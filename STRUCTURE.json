@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-05-02",
+  "lastUpdated": "2026-05-04",
   "architecture": {},
   "modules": {
     "main/aiToolManager": {
@@ -1642,7 +1642,7 @@
           ]
         },
         "updateSpecStatus": {
-          "line": 479,
+          "line": 485,
           "params": [
             "projectPath",
             "slug",
@@ -1650,14 +1650,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 497,
+          "line": 503,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 514,
+          "line": 520,
           "params": [
             "projectPath",
             "oldSlug",
@@ -1666,30 +1666,30 @@
           "purpose": "Returns { success: true, slug, status } on success, { error } on failure."
         },
         "startWatching": {
-          "line": 621,
+          "line": 627,
           "params": [
             "projectPath"
           ],
           "purpose": "across all three platforms — if that ever changes, swap in a poller."
         },
         "stopWatching": {
-          "line": 663
+          "line": 669
         },
         "pushSpecData": {
-          "line": 683,
+          "line": 689,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 694,
+          "line": 700,
           "params": [
             "window"
           ],
           "purpose": "─── Init + IPC ────────────────────────────────────────────"
         },
         "setupIPC": {
-          "line": 698,
+          "line": 704,
           "params": [
             "ipcMain"
           ]

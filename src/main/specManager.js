@@ -473,6 +473,12 @@ function createSpec(projectPath, opts) {
     fs.writeFileSync(path.join(dir, SPEC_FILE), seed, 'utf8');
   }
 
+  // Push fresh SPEC_DATA so the panel reflects the new spec immediately.
+  // The fs.watch on the specs root fires for new sub-directories on most
+  // platforms, but timing isn't reliable enough to depend on it — the user
+  // would otherwise see the spec only after switching views.
+  pushSpecData(projectPath);
+
   return { slug, status };
 }
 
