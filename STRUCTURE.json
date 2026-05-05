@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-05-04",
+  "lastUpdated": "2026-05-05",
   "architecture": {},
   "modules": {
     "main/aiToolManager": {
@@ -3650,74 +3650,78 @@
         "setupEventListeners": {
           "line": 41
         },
+        "refresh": {
+          "line": 54,
+          "purpose": "macOS builds). Re-fetches the list via LIST_SPECS and re-renders."
+        },
         "setupIPCListeners": {
-          "line": 50
+          "line": 69
         },
         "show": {
-          "line": 79,
+          "line": 98,
           "purpose": "─── Visibility ─────────────────────────────────────"
         },
         "hide": {
-          "line": 87
+          "line": 106
         },
         "toggle": {
-          "line": 96,
+          "line": 115,
           "purpose": "instead of opening the panel — keeping the workflow opt-in."
         },
         "startWatchingForProject": {
-          "line": 114,
+          "line": 133,
           "params": [
             "projectPath"
           ],
           "purpose": "─── Watch lifecycle ────────────────────────────────"
         },
         "stopWatching": {
-          "line": 123
+          "line": 142
         },
         "renderList": {
-          "line": 130,
+          "line": 149,
           "purpose": "─── List view ──────────────────────────────────────"
         },
         "renderSpecRow": {
-          "line": 161,
+          "line": 180,
           "params": [
             "spec"
           ]
         },
         "openDetail": {
-          "line": 181,
+          "line": 200,
           "params": [
             "slug"
           ],
           "purpose": "─── Detail view ────────────────────────────────────"
         },
         "reloadDetail": {
-          "line": 187
+          "line": 206
         },
         "renderDetail": {
-          "line": 195
+          "line": 214
         },
         "nextActionForPhase": {
-          "line": 260,
+          "line": 279,
           "params": [
             "phase"
           ],
           "purpose": "AI tool is running) can produce the next artifact."
         },
         "renderNextActionBar": {
-          "line": 276,
+          "line": 295,
           "params": [
             "action"
           ]
         },
         "runSpecCommand": {
-          "line": 290,
+          "line": 309,
           "params": [
             "command"
           ]
         },
         "renderTabButton": {
-          "line": 319,
+          "line": 338,
           "params": [
             "tab",
             "label",
@@ -3725,94 +3729,94 @@
           ]
         },
         "hasSpecTasks": {
-          "line": 325
+          "line": 344
         },
         "tasksTabLabel": {
-          "line": 331,
+          "line": 350,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderTabBody": {
-          "line": 340,
+          "line": 359,
           "params": [
             "tab"
           ]
         },
         "renderTasksTabBody": {
-          "line": 356
+          "line": 375
         },
         "renderSpecTaskRow": {
-          "line": 396,
+          "line": 415,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 445
+          "line": 464
         },
         "handleSpecTaskAction": {
-          "line": 458,
+          "line": 477,
           "params": [
             "taskId",
             "action"
           ]
         },
         "switchTab": {
-          "line": 477,
+          "line": 496,
           "params": [
             "tab"
           ]
         },
         "backToList": {
-          "line": 487
+          "line": 506
         },
         "showNewSpecPrompt": {
-          "line": 502,
+          "line": 521,
           "purpose": "`window.prompt` is blocked in Electron's renderer."
         },
         "deriveSlugPreview": {
-          "line": 604,
+          "line": 623,
           "params": [
             "title"
           ],
           "purpose": "can preview without a roundtrip. Keep in sync if the canonical changes."
         },
         "showSuggestionModal": {
-          "line": 622,
+          "line": 641,
           "params": [
             "projectPath"
           ],
           "purpose": "them turn it on or skip. Maximum friction: a one-time, dismissable modal."
         },
         "showRenameModal": {
-          "line": 689,
+          "line": 708,
           "params": [
             "status"
           ],
           "purpose": "status.json — all atomic from the user's perspective."
         },
         "showInlineError": {
-          "line": 782,
+          "line": 801,
           "params": [
             "message"
           ]
         },
         "renderMarkdown": {
-          "line": 802,
+          "line": 821,
           "params": [
             "md"
           ],
           "purpose": "─── Helpers ────────────────────────────────────────"
         },
         "escapeHtml": {
-          "line": 812,
+          "line": 831,
           "params": [
             "s"
           ]
         },
         "relativeTime": {
-          "line": 822,
+          "line": 841,
           "params": [
             "iso"
           ]
@@ -3825,6 +3829,7 @@
           "TOGGLE_SPECS_PANEL"
         ],
         "emits": [
+          "LOAD_TASKS",
           "WATCH_SPECS",
           "LOAD_TASKS",
           "UNWATCH_SPECS",

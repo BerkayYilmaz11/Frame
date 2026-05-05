@@ -42,9 +42,28 @@ function setupEventListeners() {
   document.getElementById('specs-close')?.addEventListener('click', hide);
   document.getElementById('specs-collapse-btn')?.addEventListener('click', hide);
   document.getElementById('specs-new-btn')?.addEventListener('click', showNewSpecPrompt);
+  document.getElementById('specs-refresh-btn')?.addEventListener('click', refresh);
   document.getElementById('specs-dashboard-btn')?.addEventListener('click', () => {
     require('./specsDashboard').show();
   });
+}
+
+// Manual fallback for the rare case where the SPEC_DATA push from main
+// doesn't reach the panel after a create/edit (we've seen this on packaged
+// macOS builds). Re-fetches the list via LIST_SPECS and re-renders.
+async function refresh() {
+  const projectPath = state.getProjectPath();
+  if (!projectPath) return;
+  try {
+    const fresh = await ipcRenderer.invoke(IPC.LIST_SPECS, projectPath);
+    specs = Array.isArray(fresh) ? fresh : [];
+  } catch (err) {
+    console.error('specPanel refresh failed', err);
+    return;
+  }
+  ipcRenderer.send(IPC.LOAD_TASKS, projectPath);
+  if (activeSlug) reloadDetail();
+  else renderList();
 }
 
 function setupIPCListeners() {
