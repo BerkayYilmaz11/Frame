@@ -448,32 +448,33 @@
         "shared/ipcChannels",
         "shared/frameConstants",
         "shared/frameTemplates",
-        "workspace"
+        "workspace",
+        "structureBootstrap"
       ],
       "functions": {
         "init": {
-          "line": 19,
+          "line": 20,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 26,
+          "line": 27,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 34,
+          "line": 35,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 47,
+          "line": 48,
           "params": [
             "filePath",
             "content"
@@ -481,7 +482,7 @@
           "purpose": "Create file if it doesn't exist"
         },
         "createSymlinkSafe": {
-          "line": 64,
+          "line": 65,
           "params": [
             "target",
             "linkPath"
@@ -489,21 +490,21 @@
           "purpose": "Create a symlink safely with Windows fallback"
         },
         "checkExistingFrameFiles": {
-          "line": 105,
+          "line": 106,
           "params": [
             "projectPath"
           ],
           "purpose": "Check which Frame files already exist in the project"
         },
         "showInitializeConfirmation": {
-          "line": 129,
+          "line": 130,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 173,
+          "line": 174,
           "params": [
             "projectPath",
             "projectName"
@@ -511,27 +512,27 @@
           "purpose": "Initialize a project as Frame project"
         },
         "isSpecDrivenEnabled": {
-          "line": 319,
+          "line": 335,
           "params": [
             "projectPath"
           ],
           "purpose": "edits — slice 1 doesn't ship a \"disable\" path."
         },
         "enableSpecDriven": {
-          "line": 324,
+          "line": 340,
           "params": [
             "projectPath"
           ]
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 349,
+          "line": 365,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "setupIPC": {
-          "line": 399,
+          "line": 415,
           "params": [
             "ipcMain"
           ],
@@ -4925,7 +4926,11 @@
         "getFrameConfigTemplate",
         "SPEC_DRIVEN_SECTION",
         "getCodexWrapperTemplate",
-        "getGenericWrapperTemplate"
+        "getGenericWrapperTemplate",
+        "getStructureHookSnippet",
+        "getStructurePreCommitHookTemplate",
+        "FRAME_HOOK_MARKER_START",
+        "FRAME_HOOK_MARKER_END"
       ],
       "depends": [],
       "functions": {
@@ -4991,6 +4996,13 @@
             "promptFlag = ''"
           ],
           "purpose": "Can be customized for other AI tools in the future"
+        },
+        "getStructureHookSnippet": {
+          "line": 537
+        },
+        "getStructurePreCommitHookTemplate": {
+          "line": 558,
+          "purpose": "Husky/lefthook get the snippet appended into their own files instead."
         }
       }
     },
@@ -5428,6 +5440,78 @@
       "functions": {
         "start": {
           "line": 12
+        }
+      }
+    },
+    "main/structureBootstrap": {
+      "file": "src/main/structureBootstrap.js",
+      "description": "Structure Bootstrap",
+      "exports": [
+        "bootstrapStructure",
+        "copyParserScripts",
+        "detectHookSetup",
+        "installPreCommitHook",
+        "runInitialFullScan"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "shared/frameConstants",
+        "shared/frameTemplates"
+      ],
+      "functions": {
+        "copyParserScripts": {
+          "line": 47,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "latest parser to all projects on their next init)."
+        },
+        "detectHookSetup": {
+          "line": 84,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "- 'vanilla'  — no existing hook (or only the .sample), safe to write"
+        },
+        "hasFrameSnippet": {
+          "line": 139,
+          "params": [
+            "hookFilePath"
+          ],
+          "purpose": "Check if our managed snippet is already present in a hook file."
+        },
+        "installPreCommitHook": {
+          "line": 156,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "manualInstructions: string shown to user when we can't auto-install"
+        },
+        "appendToHookFile": {
+          "line": 211,
+          "params": [
+            "hookPath",
+            "createIfMissing",
+            "needsShebang"
+          ],
+          "purpose": "Append the Frame snippet to an existing hook file (husky case)."
+        },
+        "runInitialFullScan": {
+          "line": 247,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Returns: { status, message }"
+        },
+        "bootstrapStructure": {
+          "line": 287,
+          "params": [
+            "projectPath",
+            "structureWasCreated"
+          ],
+          "purpose": "initial scan when we created the file, never overwriting user content."
         }
       }
     }
@@ -6312,6 +6396,13 @@
         "module": "renderer/structureMap",
         "file": "src/renderer/structureMap.js",
         "description": "Structure Map Module"
+      }
+    ],
+    "structure-bootstrap": [
+      {
+        "module": "main/structureBootstrap",
+        "file": "src/main/structureBootstrap.js",
+        "description": "Structure Bootstrap"
       }
     ],
     "task-confirm-modal": [
