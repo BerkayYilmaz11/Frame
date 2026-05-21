@@ -57,6 +57,7 @@
     <div class="sidebar-tabs">
       <button class="sidebar-tab-btn active" data-sidebar-tab="projects">Projects</button>
       <button class="sidebar-tab-btn" data-sidebar-tab="files">Files</button>
+      <button class="sidebar-tab-btn" data-sidebar-tab="changes">Changes</button>
     </div>
 
     <!-- Projects Tab Content -->
@@ -148,6 +149,28 @@
 
       <div id="file-tree">
         <!-- File tree will be populated here -->
+      </div>
+    </div>
+
+    <!-- Changes Tab Content -->
+    <div class="sidebar-tab-content" data-sidebar-tab-content="changes" style="display:none;">
+      <div id="git-changes-empty" class="git-changes-empty">Select a project to see changes</div>
+
+      <div id="git-changes-body" style="display:none;">
+        <div class="git-changes-section" data-git-changes-group="staged" style="display:none;">
+          <div class="git-changes-section-header">Staged Changes</div>
+          <div class="git-changes-list" data-git-changes-list="staged"></div>
+        </div>
+
+        <div class="git-changes-section" data-git-changes-group="changes" style="display:none;">
+          <div class="git-changes-section-header">Changes</div>
+          <div class="git-changes-list" data-git-changes-list="changes"></div>
+        </div>
+
+        <div class="git-changes-section" data-git-changes-group="conflict" style="display:none;">
+          <div class="git-changes-section-header">Merge Conflicts</div>
+          <div class="git-changes-list" data-git-changes-list="conflict"></div>
+        </div>
       </div>
     </div>
 
