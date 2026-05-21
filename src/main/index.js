@@ -28,6 +28,7 @@ const claudeSessionsManager = require('./claudeSessionsManager');
 const updateChecker = require('./updateChecker');
 const userSettings = require('./userSettings');
 const gitStatusManager = require('./gitStatusManager');
+const gitDiffManager = require('./gitDiffManager');
 const telemetry = require('./telemetry');
 const specManager = require('./specManager');
 
@@ -114,6 +115,9 @@ function setupAllIPC() {
 
   // Git status (file tree decoration polling)
   gitStatusManager.setupIPC(ipcMain);
+
+  // Git diff (Changes panel → Diff Viewer overlay)
+  gitDiffManager.setupIPC(ipcMain);
 
   // Spec-Driven Development — .frame/specs/<slug>/ CRUD + watcher
   specManager.setupIPC(ipcMain);

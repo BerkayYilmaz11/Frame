@@ -851,24 +851,25 @@
         "updateChecker",
         "userSettings",
         "gitStatusManager",
+        "gitDiffManager",
         "telemetry",
         "specManager"
       ],
       "functions": {
         "createWindow": {
-          "line": 39,
+          "line": 40,
           "purpose": "Create main application window"
         },
         "setupAllIPC": {
-          "line": 92,
+          "line": 93,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 136,
+          "line": 140,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 155,
+          "line": 159,
           "params": [
             "window"
           ],
@@ -5514,6 +5515,45 @@
           "purpose": "initial scan when we created the file, never overwriting user content."
         }
       }
+    },
+    "main/gitDiffManager": {
+      "file": "src/main/gitDiffManager.js",
+      "description": "Git Diff Manager",
+      "exports": [
+        "setupIPC"
+      ],
+      "depends": [
+        "child_process",
+        "path",
+        "shared/ipcChannels"
+      ],
+      "functions": {
+        "setupIPC": {
+          "line": 21,
+          "params": [
+            "ipcMain"
+          ]
+        },
+        "runDiff": {
+          "line": 56,
+          "params": [
+            "cwd",
+            "args"
+          ]
+        },
+        "detectBinary": {
+          "line": 75,
+          "params": [
+            "diff"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "GET_GIT_DIFF"
+        ],
+        "emits": []
+      }
     }
   },
   "ipcChannels": {
@@ -6214,6 +6254,13 @@
         "module": "main/gitBranchesManager",
         "file": "src/main/gitBranchesManager.js",
         "description": "Git Branches Manager Module"
+      }
+    ],
+    "git-diff": [
+      {
+        "module": "main/gitDiffManager",
+        "file": "src/main/gitDiffManager.js",
+        "description": "Git Diff Manager"
       }
     ],
     "git-status": [
