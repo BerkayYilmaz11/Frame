@@ -1194,3 +1194,27 @@ the git and filesystem half isn't, per the plan's test posture. Styling is
 Frame's own design system, variable names included, so drift shows up as a
 one-line diff.
 
+
+### [2026-07-21] Spec phase no longer auto-advances mid-agent-turn
+
+Bug report (with screenshot): after `/spec.plan` writes `plan.md`, the Spec
+page jumped to the Tasks stage and sat in the locked "Break into Tasks —
+Working in Frame 1" bar, even though the plan turn was still running (the
+template's Stage 5 report and status.json update come *after* the plan.md
+write). Root cause: `derivePhase` in `specManager.js` advances the phase
+purely from file existence, and the recursive specs watcher fires the moment
+`plan.md` lands mid-turn — the "defense in depth" fallback for agents that
+forget status.json was firing during the turn it was meant to backstop.
+
+Fix shape (chosen over sniffing agent state in main): the renderer already
+derives per-spec lane busyness (`agentDispatch.getSpecLaneInfo`, anti-stuck,
+never cached), so `_notifySpecLane` now feeds it to main over a new
+`SPEC_AGENT_ACTIVITY` IPC channel. `specManager` keeps a `busySpecSlugs` set;
+while a slug is busy, `derivePhase` holds the recorded phase instead of the
+file-derived one (the task-status-driven implementing/done branch stays live —
+that state is accurate mid-turn). On the busy→idle flip main runs
+`pushSpecData`, so the fallback still catches an agent that wrote artifacts
+but never touched status.json — it's deferred, not removed. The set is
+cleared in `startWatching`/`stopWatching` so a renderer reload can't leave a
+stale busy flag freezing phases; a mid-turn app reload degrades to the old
+behavior, accepted.
