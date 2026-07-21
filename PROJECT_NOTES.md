@@ -1218,3 +1218,33 @@ but never touched status.json — it's deferred, not removed. The set is
 cleared in `startWatching`/`stopWatching` so a renderer reload can't leave a
 stale busy flag freezing phases; a mid-turn app reload degrades to the old
 behavior, accepted.
+
+### [2026-07-21] Implement report surfaced in the spec UI + announced up front
+
+While testing autonomous implementation (Mode B) against another project's
+spec, the user hit a discoverability gap: the run produced
+`implement-report.html` in the spec folder, but nothing in Frame's UI pointed
+at it — the only report affordance was the plan tab's "View Plan Report"
+button, and the user had no way to even know a live report existed.
+
+Two-part fix, mirroring the existing plan-report pattern:
+
+1. **UI button** — `getSpec` now exposes `implementReportPath` (exists-check
+   on `implement-report.html`, same as `planReportPath`), and all three spec
+   renderers (`specPanel.js`, `specSection.js`, `specsDashboard.js`) show a
+   "View Implementation Report" button above the Tasks tab body when the file
+   exists. It opens in the system browser via `shell.openPath`, reusing the
+   `spec-plan-report-row` styles. No watcher work was needed: the recursive
+   specs watcher already pushes SPEC_DATA when the report lands, so the
+   button appears mid-run on its own, and since Mode B regenerates the HTML
+   after every task, refreshing the opened page follows the run live.
+
+2. **Announcement in the template** — `spec.implement.md` now tells the agent
+   to (a) mention in the mode picker that Mode B's report is reachable from
+   the spec's Tasks tab in Frame, and (b) before the first task, state once —
+   as a statement, not a question — where the button is and that the report
+   updates per task. Phrased to not reopen the "no questions mid-run" rule.
+
+Placement decision: the button lives on the **Tasks** tab (not spec/plan),
+since the implement report is per-task output and that tab is where progress
+is already watched.

@@ -27,6 +27,7 @@ const PLAN_FILE = 'plan.md';
 const TASKS_FILE = 'tasks.md';
 const OUTCOME_FILE = 'outcome.md';
 const PLAN_REPORT_FILE = 'plan-report.html';
+const IMPLEMENT_REPORT_FILE = 'implement-report.html';
 
 const PHASES = ['draft', 'specified', 'planned', 'tasks_generated', 'implementing', 'done'];
 const AI_TOOLS = ['claude-code', 'codex', 'gemini'];
@@ -684,13 +685,15 @@ function getSpec(projectPath, slug) {
   const status = readStatus(projectPath, slug);
   if (!status) return null;
   const reportPath = path.join(dir, PLAN_REPORT_FILE);
+  const implementReportPath = path.join(dir, IMPLEMENT_REPORT_FILE);
   return {
     status,
     spec: readFileSafe(path.join(dir, SPEC_FILE)),
     plan: readFileSafe(path.join(dir, PLAN_FILE)),
     tasks: readFileSafe(path.join(dir, TASKS_FILE)),
     outcome: readFileSafe(path.join(dir, OUTCOME_FILE)),
-    planReportPath: fs.existsSync(reportPath) ? reportPath : null
+    planReportPath: fs.existsSync(reportPath) ? reportPath : null,
+    implementReportPath: fs.existsSync(implementReportPath) ? implementReportPath : null
   };
 }
 

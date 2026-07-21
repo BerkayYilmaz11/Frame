@@ -2339,52 +2339,52 @@
       ],
       "functions": {
         "getSpecsRoot": {
-          "line": 57,
+          "line": 58,
           "params": [
             "projectPath"
           ]
         },
         "getSpecDir": {
-          "line": 61,
+          "line": 62,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "generateSlug": {
-          "line": 70,
+          "line": 71,
           "params": [
             "title"
           ]
         },
         "uniqueSlug": {
-          "line": 83,
+          "line": 84,
           "params": [
             "projectPath",
             "baseSlug"
           ]
         },
         "validateSpecStatus": {
-          "line": 96,
+          "line": 97,
           "params": [
             "obj"
           ]
         },
         "readFileSafe": {
-          "line": 115,
+          "line": 116,
           "params": [
             "p"
           ]
         },
         "readStatus": {
-          "line": 124,
+          "line": 125,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "writeStatus": {
-          "line": 135,
+          "line": 136,
           "params": [
             "projectPath",
             "slug",
@@ -2392,13 +2392,13 @@
           ]
         },
         "listSpecs": {
-          "line": 154,
+          "line": 155,
           "params": [
             "projectPath"
           ]
         },
         "fileExists": {
-          "line": 209,
+          "line": 210,
           "params": [
             "projectPath",
             "slug",
@@ -2406,7 +2406,7 @@
           ]
         },
         "derivePhase": {
-          "line": 213,
+          "line": 214,
           "params": [
             "projectPath",
             "slug",
@@ -2415,14 +2415,14 @@
           ]
         },
         "collectSpecTasks": {
-          "line": 239,
+          "line": 240,
           "params": [
             "slug",
             "tasksData"
           ]
         },
         "reconcilePhase": {
-          "line": 245,
+          "line": 246,
           "params": [
             "projectPath",
             "slug",
@@ -2430,14 +2430,14 @@
           ]
         },
         "getDefaultTemplatePath": {
-          "line": 270,
+          "line": 271,
           "params": [
             "aiTool",
             "command"
           ]
         },
         "getOverrideTemplatePath": {
-          "line": 274,
+          "line": 275,
           "params": [
             "projectPath",
             "aiTool",
@@ -2445,7 +2445,7 @@
           ]
         },
         "loadCommandTemplate": {
-          "line": 278,
+          "line": 279,
           "params": [
             "projectPath",
             "aiTool",
@@ -2453,14 +2453,14 @@
           ]
         },
         "interpolate": {
-          "line": 284,
+          "line": 285,
           "params": [
             "template",
             "vars"
           ]
         },
         "getCommandPrompt": {
-          "line": 291,
+          "line": 292,
           "params": [
             "projectPath",
             "slug",
@@ -2469,7 +2469,7 @@
           ]
         },
         "stageCommandAsset": {
-          "line": 337,
+          "line": 338,
           "params": [
             "projectPath",
             "aiTool",
@@ -2478,7 +2478,7 @@
           "purpose": "Copied into .frame/runtime/assets/ on every dispatch, so a project's own"
         },
         "stageCommandAssets": {
-          "line": 358,
+          "line": 359,
           "params": [
             "projectPath",
             "command",
@@ -2486,34 +2486,34 @@
           ]
         },
         "resolveVerificationCommand": {
-          "line": 414,
+          "line": 415,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 429,
+          "line": 430,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 447,
+          "line": 448,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 471,
+          "line": 472,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 487,
+          "line": 488,
           "params": [
             "projectPath",
             "slug"
@@ -2521,7 +2521,7 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "buildSpecCommandFile": {
-          "line": 494,
+          "line": 495,
           "params": [
             "projectPath",
             "slug",
@@ -2530,53 +2530,53 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 527,
+          "line": 528,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 553,
+          "line": 554,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 572,
+          "line": 573,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 577,
+          "line": 578,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 657,
+          "line": 658,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 664,
+          "line": 665,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 681,
+          "line": 682,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "searchSpecs": {
-          "line": 704,
+          "line": 707,
           "params": [
             "projectPath",
             "query"
@@ -2584,14 +2584,14 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "createSpec": {
-          "line": 725,
+          "line": 728,
           "params": [
             "projectPath",
             "opts"
           ]
         },
         "updateSpecStatus": {
-          "line": 768,
+          "line": 771,
           "params": [
             "projectPath",
             "slug",
@@ -2599,14 +2599,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 787,
+          "line": 790,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 804,
+          "line": 807,
           "params": [
             "projectPath",
             "oldSlug",
@@ -2615,28 +2615,28 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 911,
+          "line": 914,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 965
+          "line": 968
         },
         "pushSpecData": {
-          "line": 986,
+          "line": 989,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1006,
+          "line": 1009,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1010,
+          "line": 1013,
           "params": [
             "ipcMain"
           ]
@@ -6100,26 +6100,26 @@
           "line": 227
         },
         "nextActionForPhase": {
-          "line": 294,
+          "line": 297,
           "params": [
             "phase"
           ]
         },
         "renderNextActionBar": {
-          "line": 310,
+          "line": 313,
           "params": [
             "action",
             "lane"
           ]
         },
         "runSpecCommand": {
-          "line": 342,
+          "line": 345,
           "params": [
             "command"
           ]
         },
         "renderTabButton": {
-          "line": 354,
+          "line": 357,
           "params": [
             "tab",
             "label",
@@ -6127,91 +6127,98 @@
           ]
         },
         "hasSpecTasks": {
-          "line": 360
+          "line": 363
         },
         "tasksTabLabel": {
-          "line": 366,
+          "line": 369,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderTabBody": {
-          "line": 375,
+          "line": 378,
           "params": [
             "tab"
           ]
         },
         "renderPlanReportRow": {
-          "line": 397,
+          "line": 403,
           "purpose": "\"View Plan Report\" — shown above the rendered plan only when the spec"
         },
         "attachPlanReportHandler": {
-          "line": 405
+          "line": 411
+        },
+        "renderImplementReportRow": {
+          "line": 422,
+          "purpose": "\"View Implementation Report\" — shown above the task list only when the spec"
+        },
+        "attachImplementReportHandler": {
+          "line": 430
         },
         "renderTasksTabBody": {
-          "line": 412
+          "line": 437
         },
         "renderSpecTaskRow": {
-          "line": 452,
+          "line": 477,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 501
+          "line": 526
         },
         "handleSpecTaskAction": {
-          "line": 514,
+          "line": 539,
           "params": [
             "taskId",
             "action"
           ]
         },
         "switchTab": {
-          "line": 533,
+          "line": 558,
           "params": [
             "tab"
           ]
         },
         "backToList": {
-          "line": 544
+          "line": 572
         },
         "showNewSpecPrompt": {
-          "line": 559
+          "line": 587
         },
         "deriveSlugPreview": {
-          "line": 661,
+          "line": 689,
           "params": [
             "title"
           ],
           "purpose": "Same shape as specManager.generateSlug — duplicated here so the renderer"
         },
         "showSuggestionModal": {
-          "line": 679,
+          "line": 707,
           "params": [
             "projectPath"
           ]
         },
         "showRenameModal": {
-          "line": 746,
+          "line": 774,
           "params": [
             "status"
           ]
         },
         "showInlineError": {
-          "line": 839,
+          "line": 867,
           "params": [
             "message"
           ]
         },
         "renderMarkdown": {
-          "line": 859,
+          "line": 887,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 869,
+          "line": 897,
           "params": [
             "iso"
           ]
@@ -6313,45 +6320,45 @@
           "purpose": "Create a fresh spec viewport instance (the host calls this when needed)."
         },
         "nextActionForPhase": {
-          "line": 355,
+          "line": 383,
           "params": [
             "phase"
           ]
         },
         "renderNextActionBar": {
-          "line": 371,
+          "line": 399,
           "params": [
             "action",
             "lane"
           ]
         },
         "stepIndexForPhase": {
-          "line": 407,
+          "line": 435,
           "params": [
             "phase"
           ]
         },
         "renderStepper": {
-          "line": 419,
+          "line": 447,
           "params": [
             "phase"
           ]
         },
         "renderSpecTaskRow": {
-          "line": 436,
+          "line": 464,
           "params": [
             "task"
           ]
         },
         "handleTaskAction": {
-          "line": 485,
+          "line": 513,
           "params": [
             "taskId",
             "action"
           ]
         },
         "renderMarkdown": {
-          "line": 494,
+          "line": 522,
           "params": [
             "md"
           ]
@@ -6479,47 +6486,47 @@
           "line": 485
         },
         "renderTasksTabBody": {
-          "line": 515
+          "line": 526
         },
         "renderSpecTaskRow": {
-          "line": 552,
+          "line": 563,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 601
+          "line": 612
         },
         "handleSpecTaskAction": {
-          "line": 614,
+          "line": 625,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 625
+          "line": 636
         },
         "tasksTabLabel": {
-          "line": 631,
+          "line": 642,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 640,
+          "line": 651,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 645,
+          "line": 656,
           "params": [
             "iso"
           ]
         },
         "displayProjectName": {
-          "line": 656,
+          "line": 667,
           "params": [
             "projectPath"
           ]
@@ -7890,6 +7897,87 @@
       ],
       "depends": [],
       "functions": {}
+    },
+    "templates/commands/claude-code/build-implement-report": {
+      "file": "src/templates/commands/claude-code/build-implement-report.mjs",
+      "description": "",
+      "exports": [
+        "EXCLUDED_PATHS",
+        "escapeHtml",
+        "diffLineClass",
+        "renderDiff",
+        "renderVerification",
+        "renderTask",
+        "renderReport",
+        "readCommitDiff"
+      ],
+      "depends": [
+        "node:fs",
+        "node:path",
+        "node:child_process",
+        "node:url"
+      ],
+      "functions": {
+        "escapeHtml": {
+          "line": 62,
+          "params": [
+            "value"
+          ]
+        },
+        "diffLineClass": {
+          "line": 70,
+          "params": [
+            "line"
+          ],
+          "purpose": "Classify a unified-diff line so the reader can scan it. Order matters:"
+        },
+        "renderDiff": {
+          "line": 81,
+          "params": [
+            "diffText"
+          ]
+        },
+        "renderVerification": {
+          "line": 92,
+          "params": [
+            "verification"
+          ],
+          "purpose": "A task is only as trustworthy as its check. \"not run\" is stated plainly"
+        },
+        "renderTask": {
+          "line": 102,
+          "params": [
+            "task"
+          ]
+        },
+        "renderReport": {
+          "line": 131,
+          "params": [
+            "data"
+          ],
+          "purpose": "The whole transform: report data (each task carrying its already-fetched"
+        },
+        "readCommitDiff": {
+          "line": 290,
+          "params": [
+            "commit",
+            "repoRoot"
+          ],
+          "purpose": "The commit's diff with Frame's bookkeeping excluded. A hash that git"
+        },
+        "repoRootFrom": {
+          "line": 305,
+          "params": [
+            "dir"
+          ]
+        },
+        "main": {
+          "line": 313,
+          "params": [
+            "argv"
+          ]
+        }
+      }
     },
     "templates/sample-project/src/api/server": {
       "file": "src/templates/sample-project/src/api/server.js",
