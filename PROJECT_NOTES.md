@@ -1300,3 +1300,31 @@ The replacement design, converged over the conversation and specced as
 Also noted: `cli-spec-command-parity`'s "autonomous handoff wording" open
 question resolves to the helper command; its "re-dispatch is the ceiling"
 constraint is retired by this spec.
+
+### [2026-07-22] T09 — implementation report made live-followable from the terminal
+
+Added `implement-modes-v2:T09` as a follow-up. The [2026-07-21] fix surfaced
+the report through a Frame **UI button**, but the v2 launch helper
+(`implement-launch.js`) starts a run from a bare terminal with no Frame app to
+click — so a terminal-launched autonomous run generates the report but the user
+has no obvious way to reach it. T09 closes that gap in the artifact itself,
+three parts:
+
+1. **Auto-open** — `build-implement-report.mjs` gains an `--open` flag that
+   opens the written HTML cross-platform, best-effort in `main()`, never
+   failing the build (same posture as the missing-runtime rule). Open-once is
+   kept in the prompt, not the code: `spec.implement.md` passes `--open` only on
+   the first generation, so no new browser tab per task.
+2. **Progress banner** — `main()` reads `tasks.json` (canonical state, not
+   agent-transcribed — consistent with "diffs read from git, never transcribed")
+   and passes a pure `{ total, completed, current }` into `renderReport`. Banner
+   reads "In progress — N/M done · next: T0x <title>" while tasks remain,
+   "Complete — M/M" when done. `renderReport` stays pure/clock-free; all fs work
+   lives in `main()`.
+3. **Reload note** — folded into the banner (only shown while in progress), not
+   a standalone line: telling a finished report to "reload" is stale advice.
+
+Decision: **manual reload, not `<meta http-equiv="refresh">` auto-refresh.**
+Auto-refresh would deliver "always current" without a keypress, but it resets
+scroll and collapses any open `<details>` diff mid-read, and a stray refresh
+tag surviving into the final report is worse than a note. Manual note chosen.

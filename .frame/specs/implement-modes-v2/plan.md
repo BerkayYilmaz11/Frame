@@ -165,7 +165,9 @@ and the `autonomous-permission-lifecycle` branch machinery is never merged.
 
 - **Modified** `src/main/specManager.js` — stage `.frame/runtime/commands/claude-code/` (template + generator) and `.frame/bin/implement-launch.js` on `WATCH_SPECS` and implement dispatch; `getSpec` gains `implementHint`.
 - **New** `src/templates/bin/implement-launch.js` — helper source (staged into user projects; self-contained: perms write, template interpolate, prompt stage, exec).
-- **Modified** `src/templates/commands/claude-code/spec.implement.md` — mode resolved from `status.json` (no in-session picker when recorded); guided mode section; autonomous → record-then-handoff; describe-your-own skill lifecycle (offer-save / detect / run).
+- **Modified** `src/templates/commands/claude-code/spec.implement.md` — mode resolved from `status.json` (no in-session picker when recorded); guided mode section; autonomous → record-then-handoff; describe-your-own skill lifecycle (offer-save / detect / run). **[T09]** "Producing the report" passes `--open` on the first generation only.
+- **Modified** `src/templates/commands/claude-code/build-implement-report.mjs` **[T09]** — `--open` flag opens the written HTML cross-platform (best-effort in `main()`, never fails the build); a pure `{ total, completed, current }` progress object computed in `main()` from `tasks.json` (`source spec:{slug}:*`) drives a top-of-report banner (in-progress with reload note vs complete), rendered by the still-pure `renderReport`.
+- **Modified** `test/implementReport.test.js` **[T09]** — cover the pure banner rendering across in-progress and complete states.
 - **New** `src/renderer/implementModeModal.js` — unified mode + destination modal, coupling and disabled-reason logic, cancel-inert contract.
 - **New** `src/renderer/specNextAction.js` — shared next-action bar: label per resolved mode, turn- vs run-liveness lock, progress copy.
 - **Modified** `src/renderer/agentDispatch.js` — implement path ordering (modal → record → stage → dispatch); `launchedAutonomousLanes` tracking + `getSpecLaneInfo.launchedAutonomous`; guided-fallback notice/note copy.
@@ -180,6 +182,8 @@ and the `autonomous-permission-lifecycle` branch machinery is never merged.
 - src/main/specManager.js
 - src/templates/bin/implement-launch.js
 - src/templates/commands/claude-code/spec.implement.md
+- src/templates/commands/claude-code/build-implement-report.mjs
+- test/implementReport.test.js
 - src/renderer/implementModeModal.js
 - src/renderer/specNextAction.js
 - src/renderer/agentDispatch.js
@@ -229,3 +233,13 @@ None.
    staging, asset ensure, exec with flags; require-able pure functions with a
    main guard) **plus** `test/implementLaunch.test.js` covering those pure
    parts — the step is done only with its tests.
+9. **Live-followable report** — `build-implement-report.mjs`: `--open` flag
+   opens the written HTML cross-platform from `main()` (best-effort, never
+   fails the build); `main()` reads `tasks.json` (repoRoot already resolved),
+   filters `source spec:{slug}:*`, and passes a pure `{ total, completed,
+   current }` object into `renderReport`, which renders a top banner —
+   in-progress ("N/M done · next: T0x <title>" + reload note) vs complete
+   ("M/M", no note), no banner when tasks.json is absent/empty. `spec.implement.md`
+   "Producing the report" passes `--open` on the first generation only. Extend
+   `test/implementReport.test.js` for the banner states. `renderReport` stays
+   pure — all fs/clock work lives in `main()`.

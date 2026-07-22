@@ -240,6 +240,24 @@ Quote `$FRAME_NODE` — Frame injects its own executable there, and the packaged
 path contains spaces. It writes `implement-report.html` next to the data file,
 openable as each task completes.
 
+**On the first task only, add `--open`** so the report opens in the browser
+once, at the moment there's something to see:
+
+```
+ELECTRON_RUN_AS_NODE=1 "$FRAME_NODE" {report_generator_path} --open \
+  .frame/specs/{slug}/report-data.json
+```
+
+This matters most for a terminal-launched autonomous run, where there's no
+Frame window to click the **View Implementation Report** button. Pass `--open`
+**only on the first generation** — every later task regenerates the same file,
+and the reader follows the run by reloading the tab they already have open, so
+re-passing it would spawn a new tab per task. Opening is best-effort: on a box
+with no browser opener it silently does nothing and the run is unaffected. The
+report itself now carries a live status banner (how many tasks are done, which
+is next, and a reload hint), so the reader always knows whether the page in
+front of them is mid-run or final.
+
 Never transcribe a diff into the report yourself. The generator reads each
 commit from git by hash; that is the one place an invented line would silently
 corrupt the artifact, and the reason the report is generated rather than

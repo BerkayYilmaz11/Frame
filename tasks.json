@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-22T10:31:08.067Z",
+  "lastUpdated": "2026-07-22T12:22:33.962Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -3835,11 +3835,39 @@
       "createdAt": "2026-07-22T10:31:08.066Z",
       "updatedAt": "2026-07-22T14:10:00.000Z",
       "completedAt": "2026-07-22T14:10:00.000Z"
+    },
+    {
+      "id": "task-spec-implement-modes-v2-T09",
+      "title": "Make the implementation report live-followable for terminal-launched runs: add an --open flag to build-implement-report.mjs (opens the written HTML cross-platform, best-effort in main(), never fails the build); add a progress banner rendered from a pure { total, completed, current } object computed in main() from tasks.json (source spec:{slug}:*) — \"In progress — N/M done · next: T0x <title>\" plus a reload note while tasks remain, \"Complete — M/M\" with no note when done, no banner when tasks.json is absent/empty; and update spec.implement.md's \"Producing the report\" to pass --open on the first generation only. Extend test/implementReport.test.js for the pure banner states",
+      "description": "Three additions so a terminal-launched run (implement-launch.js, no Frame app to click the View Report button) can watch the report live. (1) build-implement-report.mjs gains an --open flag that opens the written HTML cross-platform (macOS `open`, Linux `xdg-open`, Windows `start`) — best-effort in the impure main(), never throwing and never failing the build if it can't open. (2) A status banner at the top of the report: main() reads tasks.json (repoRoot already resolved), filters tasks whose source is `spec:<slug>:*`, and passes a pure progress object { total, completed, current } into renderReport (keeping renderReport a pure, clock/fs-free function). current = first non-completed task (in_progress if any, else next pending). While tasks remain the banner reads 'In progress — N/M done · next: T0x <title>' with a one-line reload note ('This report is regenerated after each task — reload for the latest'); when all spec tasks are completed it reads 'Complete — M/M' with no reload note. Missing/unreadable tasks.json or no matching tasks degrades gracefully to no banner. (3) spec.implement.md 'Producing the report' section: instruct the loop to pass --open only on the FIRST report generation (open-once, no new tab per task). Extend test/implementReport.test.js to cover the pure banner rendering across in-progress vs complete states.",
+      "source": "spec:implement-modes-v2:T09",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: implement-modes-v2 (added 2026-07-22 as a follow-up to the v2 report work)",
+      "createdAt": "2026-07-22T15:00:00.000Z",
+      "updatedAt": "2026-07-22T15:40:00.000Z",
+      "completedAt": "2026-07-22T15:40:00.000Z"
+    },
+    {
+      "id": "task-gitignore-frame-runtime-artifacts",
+      "title": "Auto-manage target project .gitignore for Frame runtime artifacts",
+      "description": "Frame's project initialization (src/main/frameProject.js) scaffolds the .frame/ tree — it creates .frame/bin/, writes the codex wrapper, docs, specs, etc. — but never touches the target project's .gitignore. As a result, generated/runtime artifacts get committed in every project that uses Frame: .frame/bin/*.js (e.g. the autonomous launcher implement-launch.js), .frame/runtime/, .frame/implement-permissions.json, .frame/orchestration/, and .frame/worktrees/. Frame's OWN repo looks clean only because those entries were added to its .gitignore by hand (see this repo's .gitignore lines 45-52). Every other project would require the user to add them manually — unacceptable for a project-tooling product. Fix: during initializeFrameProject (and idempotently on subsequent opens), ensure the target project's .gitignore contains a managed Frame block that ignores the generated artifacts, while leaving real context committable (.frame/specs/, .frame/docs/, AGENTS.md/CLAUDE.md, the codex wrapper). Must be idempotent (a fenced '# Frame — generated runtime artifacts' block, add-once/update-in-place, never duplicated across reopens), create .gitignore if absent, and preserve any existing user content. Files affected: src/main/frameProject.js (add the gitignore ensure step + a helper, likely alongside the .frame scaffolding), possibly src/shared/frameConstants.js or frameTemplates.js for the block contents.",
+      "userRequest": "User said: başka bir projede autonomous bir run yaptığımız zaman .frame/bin/ içerisine bir dosya yerleştiriyor bu da commitlerde gidiyor bu biraz garip geliyor bana ama bu dosya neden var? — followed by: ama FRAME bir project geliştirme aracı yani her başka proje frame'de çalıştığında kullanıcı tek tek bunları mı .gitignore'a ekleyecek? Saçma değil mi?",
+      "acceptanceCriteria": "(1) Initializing Frame on a project writes/updates the target project's .gitignore with a managed Frame block ignoring: .frame/runtime/, .frame/bin/*.js, .frame/implement-permissions.json, .frame/orchestration/, .frame/worktrees/. (2) The operation is idempotent — reopening/re-initializing does not duplicate the block; content is updated in place. (3) If .gitignore does not exist it is created; if it exists, existing user entries are preserved. (4) Committed context (.frame/specs/, .frame/docs/, AGENTS.md, CLAUDE.md symlink, .frame/bin/codex) is NOT ignored. (5) Existing projects (already initialized) get the block on their next open, not only fresh inits.",
+      "notes": "Root cause confirmed by inspection: no occurrence of 'gitignore' anywhere in src/. The exact ignore list is mirrored from Frame's own .gitignore (this repo, lines 45-52). Keep .frame/bin/codex tracked (it's the committed AI-tool wrapper) — only *.js under bin/ is generated. Consider a single source of truth for the ignore list (frameConstants) so it can't drift from what the scaffolder actually generates. Decision was to record this as a task rather than implement now — current branch is feat/implement-modes-v2 and this is out of that spec's scope.",
+      "status": "pending",
+      "priority": "medium",
+      "category": "fix",
+      "context": "Session 2026-07-22 - Noticed implement-launch.js (autonomous launcher) getting committed in a non-Frame project; Frame never manages the consumer project's .gitignore",
+      "createdAt": "2026-07-22T00:00:00Z",
+      "updatedAt": "2026-07-22T00:00:00Z",
+      "completedAt": null
     }
   ],
   "metadata": {
-    "totalCreated": 272,
-    "totalCompleted": 20
+    "totalCreated": 274,
+    "totalCompleted": 21
   },
   "categories": {
     "feature": "New features",

@@ -61,3 +61,11 @@ Wrote `src/templates/bin/implement-launch.js`, a self-contained helper: records 
 _Captured: 2026-07-22 · 2 file changes_
 
 ---
+
+## T09 — Live-followable implementation report (--open, progress banner, reload note)
+
+Added three things to `src/templates/commands/claude-code/build-implement-report.mjs`: a `--open` flag that opens the written HTML in the default browser (detached `spawn`, best-effort, never fails the build — `openCommand` maps darwin/win32/linux, purely and testably); a top-of-report run-status banner rendered by the new pure `renderProgress` from a `{ total, completed, current }` object that `computeProgress` derives from `tasks.json` (`source spec:{slug}:*`) in `main()`, keeping `renderReport` clock/fs-free; and a `truncateTitle` clamp because the "next" task's title comes from `tasks.json` (a full sentence) and was flooding the banner. `spec.implement.md`'s "Producing the report" now passes `--open` on the first generation only. Per mid-run feedback the reload note is bright (`--text-primary`) with an inline info glyph and reads "Regenerated after each task. Reload for the latest.". Extended `test/implementReport.test.js` (+11 tests, 35 total); full suite 133/133. Files touched: `build-implement-report.mjs`, `spec.implement.md`, `test/implementReport.test.js`.
+
+_Captured: 2026-07-22 · 3 file changes_
+
+---
