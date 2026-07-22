@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "105/105 passing; node --check clean. Staged runtime/bin files are gitignored, so only specManager.js is tracked. Not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T08",
+      "title": "The launch helper plus its tests",
+      "commit": "d4bb5da",
+      "whatChanged": "New src/templates/bin/implement-launch.js: a self-contained helper that records implement_mode: autonomous, writes .frame/implement-permissions.json (own copies of the allow/deny sets and the test→lint→build verification resolution), resolves the raw implement template (override → staged), interpolates project_path/slug/report_generator_path, stages the prompt, ensures the report generator, and execs `claude --settings <abs> --permission-mode auto \"Read <rel> …\"` — with a clear error when claude isn't on PATH. Everything above main() is pure and require-able. Added test/implementLaunch.test.js (14 tests) covering interpolation, verification resolution, permission-file shape, launch-line composition and template resolution order.",
+      "whyChanged": "The helper is the single producer of the flagged launch line outside Frame's dispatch, and must run with the app closed, so it carries its own copies of specManager's rule sets and resolution (comment cross-links the source of truth). Pure/main split follows the report generator's testable-core pattern.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "119/119 passing (14 new); node --check clean on the helper"
+      }
     }
   ]
 }

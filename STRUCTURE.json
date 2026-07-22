@@ -7965,6 +7965,114 @@
       "depends": [],
       "functions": {}
     },
+    "templates/bin/implement-launch": {
+      "file": "src/templates/bin/implement-launch.js",
+      "description": "",
+      "exports": [
+        "interpolate",
+        "resolveVerificationCommand",
+        "buildPermissions",
+        "buildLaunchArgs",
+        "resolveRawTemplatePath",
+        "findProjectRoot",
+        "IMPLEMENT_ALLOW",
+        "IMPLEMENT_DENY",
+        "REPORT_GENERATOR_REL",
+        "TEMPLATE_OVERRIDE_REL",
+        "TEMPLATE_STAGED_REL"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process"
+      ],
+      "functions": {
+        "interpolate": {
+          "line": 73,
+          "params": [
+            "template",
+            "vars"
+          ],
+          "purpose": "{key} → vars[key]; unknown placeholders are left intact (same contract as"
+        },
+        "resolveVerificationCommand": {
+          "line": 80,
+          "params": [
+            "config"
+          ],
+          "purpose": "The project's own check, in descending order of what actually verifies a"
+        },
+        "buildPermissions": {
+          "line": 92,
+          "params": [
+            "verification"
+          ],
+          "purpose": "The implement-permissions.json body. When a verification command exists,"
+        },
+        "buildLaunchArgs": {
+          "line": 102,
+          "params": [
+            "settingsAbsPath",
+            "promptRelPath"
+          ],
+          "purpose": "The CLI launch line: the permission flags plus the short read-this-file"
+        },
+        "resolveRawTemplatePath": {
+          "line": 112,
+          "params": [
+            "projectRoot",
+            "existsFn = fs.existsSync"
+          ],
+          "purpose": "Raw template path: override → staged. `existsFn` is injectable for tests."
+        },
+        "findProjectRoot": {
+          "line": 124,
+          "params": [
+            "startDir"
+          ],
+          "purpose": "Walk up from a starting dir to the nearest ancestor that holds a .frame/"
+        },
+        "readJson": {
+          "line": 134,
+          "params": [
+            "absPath"
+          ]
+        },
+        "recordAutonomousMode": {
+          "line": 144,
+          "params": [
+            "projectRoot",
+            "slug"
+          ],
+          "purpose": "Merge implement_mode: autonomous into the spec's status.json, preserving"
+        },
+        "writePermissions": {
+          "line": 154,
+          "params": [
+            "projectRoot"
+          ]
+        },
+        "ensureReportGenerator": {
+          "line": 166,
+          "params": [
+            "projectRoot"
+          ],
+          "purpose": "Ensure the report generator sits at runtime/assets/, copying the staged"
+        },
+        "fail": {
+          "line": 177,
+          "params": [
+            "message"
+          ]
+        },
+        "main": {
+          "line": 182,
+          "params": [
+            "argv"
+          ]
+        }
+      }
+    },
     "templates/commands/claude-code/build-implement-report": {
       "file": "src/templates/commands/claude-code/build-implement-report.mjs",
       "description": "",
@@ -9078,6 +9186,11 @@
         "module": "renderer/implementModeModal",
         "file": "src/renderer/implementModeModal.js",
         "description": "Implement Mode Modal"
+      },
+      {
+        "module": "templates/bin/implement-launch",
+        "file": "src/templates/bin/implement-launch.js",
+        "description": ""
       },
       {
         "module": "templates/commands/claude-code/build-implement-report",

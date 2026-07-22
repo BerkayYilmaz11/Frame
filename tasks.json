@@ -3828,13 +3828,13 @@
       "title": "Write src/templates/bin/implement-launch.js (self-contained: arg parsing, implement_mode merge, permissions write with own allow/deny copies, template resolution and interpolation, prompt staging, runtime/assets ensure, exec claude with --settings and --permission-mode auto; require-able pure functions with a main guard) together with test/implementLaunch.test.js covering interpolation, permission-file shape, launch-line composition and template resolution order",
       "description": "",
       "source": "spec:implement-modes-v2:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T14:10:00.000Z",
+      "completedAt": "2026-07-22T14:10:00.000Z"
     }
   ],
   "metadata": {

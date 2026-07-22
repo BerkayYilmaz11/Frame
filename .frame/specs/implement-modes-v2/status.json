@@ -1,7 +1,7 @@
 {
   "slug": "implement-modes-v2",
   "title": "Implement modes v2 — the mode is chosen before the session, never inside it",
-  "phase": "implementing",
+  "phase": "done",
   "implement_mode": "autonomous",
   "ai_tool": "claude-code",
   "generated_task_ids": [

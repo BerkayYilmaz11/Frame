@@ -53,3 +53,11 @@ Added `stageImplementCommandFiles` and a `copyIfChanged` content-diff helper to 
 _Captured: 2026-07-22 · 1 file change_
 
 ---
+
+## T08 — The launch helper plus its tests
+
+Wrote `src/templates/bin/implement-launch.js`, a self-contained helper: records `implement_mode: autonomous`, writes `.frame/implement-permissions.json` (own copies of specManager's allow/deny sets and the test→lint→build verification resolution), resolves the raw template (override → staged), interpolates and stages the prompt, ensures the report generator, then execs `claude --settings <abs> --permission-mode auto "Read <rel> …"` with a clear error when `claude` is off PATH. Everything above `main()` is pure and require-able; added `test/implementLaunch.test.js` (14 tests) covering interpolation, verification resolution, permission-file shape, launch-line composition and template resolution order. No deviation from plan. Files touched: `src/templates/bin/implement-launch.js`, `test/implementLaunch.test.js`.
+
+_Captured: 2026-07-22 · 2 file changes_
+
+---

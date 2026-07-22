@@ -122,8 +122,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-07-22</span>
   </div>
@@ -1631,6 +1631,394 @@
 <span class="dl-ctx">   });</span>
 <span class="dl-ctx">   ipcMain.on(IPC.UNWATCH_SPECS, () =&gt; {</span>
 <span class="dl-ctx">     stopWatching();</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>The launch helper plus its tests</h2>
+    <span class="card-meta"><span class="chip">d4bb5da</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">119/119 passing (14 new); node --check clean on the helper</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/templates/bin/implement-launch.js: a self-contained helper that records implement_mode: autonomous, writes .frame/implement-permissions.json (own copies of the allow/deny sets and the test→lint→build verification resolution), resolves the raw implement template (override → staged), interpolates project_path/slug/report_generator_path, stages the prompt, ensures the report generator, and execs `claude --settings &lt;abs&gt; --permission-mode auto &quot;Read &lt;rel&gt; …&quot;` — with a clear error when claude isn&#39;t on PATH. Everything above main() is pure and require-able. Added test/implementLaunch.test.js (14 tests) covering interpolation, verification resolution, permission-file shape, launch-line composition and template resolution order.</p></div>
+    <div class="field"><span class="label">Why</span><p>The helper is the single producer of the flagged launch line outside Frame&#39;s dispatch, and must run with the app closed, so it carries its own copies of specManager&#39;s rule sets and resolution (comment cross-links the source of truth). Pure/main split follows the report generator&#39;s testable-core pattern.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/templates/bin/implement-launch.js b/src/templates/bin/implement-launch.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..e813fe0</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/templates/bin/implement-launch.js</span>
+<span class="dl-hunk">@@ -0,0 +1,244 @@</span>
+<span class="dl-add">+#!/usr/bin/env node</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Frame implement-launch helper.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The single source of the flagged autonomous launch line, runnable with the</span>
+<span class="dl-add">+ * Frame app closed. Given a spec slug it records the autonomous mode, writes</span>
+<span class="dl-add">+ * the implement permission file, stages and interpolates the implement prompt</span>
+<span class="dl-add">+ * from the templates Frame already copied to disk, and execs the CLI with the</span>
+<span class="dl-add">+ * permission flags plus the read-this-file instruction — so the new session</span>
+<span class="dl-add">+ * reaches its first task with zero typed input.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   node .frame/bin/implement-launch.js &lt;slug&gt;</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Self-contained on purpose: `.frame/bin` scripts can&#39;t read app.asar, so the</span>
+<span class="dl-add">+ * allow/deny rule sets and the verification-command resolution are carried</span>
+<span class="dl-add">+ * here as copies of src/main/specManager.js&#39;s (unchanged by this spec — keep</span>
+<span class="dl-add">+ * them in sync if that file&#39;s sets change). Everything above main() is pure</span>
+<span class="dl-add">+ * (no filesystem, no exec) so it can be tested directly.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Node 18, no dependencies.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+&#39;use strict&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { spawnSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── Constants (mirror of specManager.js) ─────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const FRAME_DIR = &#39;.frame&#39;;</span>
+<span class="dl-add">+const CONFIG_FILE = &#39;config.json&#39;;</span>
+<span class="dl-add">+const STATUS_REL = (slug) =&gt; path.posix.join(FRAME_DIR, &#39;specs&#39;, slug, &#39;status.json&#39;);</span>
+<span class="dl-add">+const PERMISSIONS_REL = path.posix.join(FRAME_DIR, &#39;implement-permissions.json&#39;);</span>
+<span class="dl-add">+const PROMPT_REL = (slug) =&gt; path.posix.join(FRAME_DIR, &#39;runtime&#39;, &#39;prompts&#39;, `${slug}__spec.implement.md`);</span>
+<span class="dl-add">+const REPORT_GENERATOR_REL = path.posix.join(FRAME_DIR, &#39;runtime&#39;, &#39;assets&#39;, &#39;build-implement-report.mjs&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Template resolution order: the project&#39;s own override first, then the copy</span>
+<span class="dl-add">+// Frame staged into runtime/commands/ on project open / implement dispatch.</span>
+<span class="dl-add">+const TEMPLATE_OVERRIDE_REL = path.posix.join(FRAME_DIR, &#39;templates&#39;, &#39;commands&#39;, &#39;claude-code&#39;, &#39;spec.implement.md&#39;);</span>
+<span class="dl-add">+const TEMPLATE_STAGED_REL = path.posix.join(FRAME_DIR, &#39;runtime&#39;, &#39;commands&#39;, &#39;claude-code&#39;, &#39;spec.implement.md&#39;);</span>
+<span class="dl-add">+const GENERATOR_STAGED_REL = path.posix.join(FRAME_DIR, &#39;runtime&#39;, &#39;commands&#39;, &#39;claude-code&#39;, &#39;build-implement-report.mjs&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Pushing and history rewrites other than the mode&#39;s own `commit --amend`.</span>
+<span class="dl-add">+const IMPLEMENT_DENY = [</span>
+<span class="dl-add">+  &#39;Bash(git push)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git push *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git reset --hard *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git rebase *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git filter-branch *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git filter-repo *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git reflog expire *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git update-ref -d *)&#39;</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Editing plus the git plumbing the loop needs. `Edit` covers Write/NotebookEdit.</span>
+<span class="dl-add">+const IMPLEMENT_ALLOW = [</span>
+<span class="dl-add">+  &#39;Edit&#39;,</span>
+<span class="dl-add">+  &#39;Read&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git add *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git commit *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git status*)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git diff*)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git show *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git log *)&#39;,</span>
+<span class="dl-add">+  &#39;Bash(git rev-parse *)&#39;</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── Pure helpers ─────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// {key} → vars[key]; unknown placeholders are left intact (same contract as</span>
+<span class="dl-add">+// specManager.interpolate).</span>
+<span class="dl-add">+function interpolate(template, vars) {</span>
+<span class="dl-add">+  if (!template) return &#39;&#39;;</span>
+<span class="dl-add">+  return template.replace(/\{(\w+)\}/g, (m, key) =&gt; (vars[key] != null ? String(vars[key]) : m));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The project&#39;s own check, in descending order of what actually verifies a</span>
+<span class="dl-add">+// change. Blank/absent → null (the run proceeds without one and says so).</span>
+<span class="dl-add">+function resolveVerificationCommand(config) {</span>
+<span class="dl-add">+  const commands = (config &amp;&amp; config.project &amp;&amp; config.project.commands) || {};</span>
+<span class="dl-add">+  for (const key of [&#39;test&#39;, &#39;lint&#39;, &#39;build&#39;]) {</span>
+<span class="dl-add">+    const value = typeof commands[key] === &#39;string&#39; ? commands[key].trim() : &#39;&#39;;</span>
+<span class="dl-add">+    if (value) return value;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The implement-permissions.json body. When a verification command exists,</span>
+<span class="dl-add">+// both its exact and prefixed forms resolve as rules (the space before `*`</span>
+<span class="dl-add">+// is load-bearing).</span>
+<span class="dl-add">+function buildPermissions(verification) {</span>
+<span class="dl-add">+  const allow = [...IMPLEMENT_ALLOW];</span>
+<span class="dl-add">+  if (verification) {</span>
+<span class="dl-add">+    allow.push(`Bash(${verification})`, `Bash(${verification} *)`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return { permissions: { allow, deny: [...IMPLEMENT_DENY] } };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The CLI launch line: the permission flags plus the short read-this-file</span>
+<span class="dl-add">+// instruction as the initial prompt argument.</span>
+<span class="dl-add">+function buildLaunchArgs(settingsAbsPath, promptRelPath) {</span>
+<span class="dl-add">+  return [</span>
+<span class="dl-add">+    &#39;--settings&#39;, settingsAbsPath,</span>
+<span class="dl-add">+    &#39;--permission-mode&#39;, &#39;auto&#39;,</span>
+<span class="dl-add">+    `Read ${promptRelPath} and follow its instructions exactly.`</span>
+<span class="dl-add">+  ];</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Raw template path: override → staged. `existsFn` is injectable for tests.</span>
+<span class="dl-add">+// Returns the chosen absolute path, or null when neither is present.</span>
+<span class="dl-add">+function resolveRawTemplatePath(projectRoot, existsFn = fs.existsSync) {</span>
+<span class="dl-add">+  const override = path.join(projectRoot, TEMPLATE_OVERRIDE_REL);</span>
+<span class="dl-add">+  if (existsFn(override)) return override;</span>
+<span class="dl-add">+  const staged = path.join(projectRoot, TEMPLATE_STAGED_REL);</span>
+<span class="dl-add">+  if (existsFn(staged)) return staged;</span>
+<span class="dl-add">+  return null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── Impure: filesystem + exec ────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Walk up from a starting dir to the nearest ancestor that holds a .frame/</span>
+<span class="dl-add">+// directory. Returns that dir, or null.</span>
+<span class="dl-add">+function findProjectRoot(startDir) {</span>
+<span class="dl-add">+  let dir = path.resolve(startDir);</span>
+<span class="dl-add">+  while (true) {</span>
+<span class="dl-add">+    if (fs.existsSync(path.join(dir, FRAME_DIR))) return dir;</span>
+<span class="dl-add">+    const parent = path.dirname(dir);</span>
+<span class="dl-add">+    if (parent === dir) return null;</span>
+<span class="dl-add">+    dir = parent;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function readJson(absPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return JSON.parse(fs.readFileSync(absPath, &#39;utf8&#39;));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Merge implement_mode: autonomous into the spec&#39;s status.json, preserving</span>
+<span class="dl-add">+// every other key.</span>
+<span class="dl-add">+function recordAutonomousMode(projectRoot, slug) {</span>
+<span class="dl-add">+  const statusPath = path.join(projectRoot, STATUS_REL(slug));</span>
+<span class="dl-add">+  const status = readJson(statusPath);</span>
+<span class="dl-add">+  if (!status) return false;</span>
+<span class="dl-add">+  status.implement_mode = &#39;autonomous&#39;;</span>
+<span class="dl-add">+  status.updated_at = new Date().toISOString();</span>
+<span class="dl-add">+  fs.writeFileSync(statusPath, JSON.stringify(status, null, 2) + &#39;\n&#39;, &#39;utf8&#39;);</span>
+<span class="dl-add">+  return true;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function writePermissions(projectRoot) {</span>
+<span class="dl-add">+  const config = readJson(path.join(projectRoot, FRAME_DIR, CONFIG_FILE));</span>
+<span class="dl-add">+  const verification = resolveVerificationCommand(config);</span>
+<span class="dl-add">+  const absPath = path.join(projectRoot, PERMISSIONS_REL);</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(absPath), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(absPath, JSON.stringify(buildPermissions(verification), null, 2) + &#39;\n&#39;, &#39;utf8&#39;);</span>
+<span class="dl-add">+  return absPath;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Ensure the report generator sits at runtime/assets/, copying the staged</span>
+<span class="dl-add">+// runtime/commands/ copy if Frame hasn&#39;t put it there yet. Best-effort — a</span>
+<span class="dl-add">+// missing generator only costs the report, never the run.</span>
+<span class="dl-add">+function ensureReportGenerator(projectRoot) {</span>
+<span class="dl-add">+  const dst = path.join(projectRoot, REPORT_GENERATOR_REL);</span>
+<span class="dl-add">+  if (fs.existsSync(dst)) return;</span>
+<span class="dl-add">+  const staged = path.join(projectRoot, GENERATOR_STAGED_REL);</span>
+<span class="dl-add">+  if (!fs.existsSync(staged)) return;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    fs.mkdirSync(path.dirname(dst), { recursive: true });</span>
+<span class="dl-add">+    fs.copyFileSync(staged, dst);</span>
+<span class="dl-add">+  } catch (_) { /* best effort */ }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function fail(message) {</span>
+<span class="dl-add">+  process.stderr.write(`implement-launch: ${message}\n`);</span>
+<span class="dl-add">+  return 1;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function main(argv) {</span>
+<span class="dl-add">+  const slug = (argv[2] || &#39;&#39;).trim();</span>
+<span class="dl-add">+  if (!slug) return fail(&#39;usage: implement-launch.js &lt;slug&gt;&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const projectRoot = findProjectRoot(process.cwd());</span>
+<span class="dl-add">+  if (!projectRoot) return fail(&#39;no .frame/ found from the current directory — run this from inside a Frame project&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const specDir = path.join(projectRoot, FRAME_DIR, &#39;specs&#39;, slug);</span>
+<span class="dl-add">+  if (!fs.existsSync(specDir)) return fail(`spec &quot;${slug}&quot; not found under .frame/specs/`);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Record autonomous first, so either entry path finds the mode.</span>
+<span class="dl-add">+  if (!recordAutonomousMode(projectRoot, slug)) {</span>
+<span class="dl-add">+    return fail(`could not read ${STATUS_REL(slug)} — is this a valid spec?`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const settingsAbsPath = writePermissions(projectRoot);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const templatePath = resolveRawTemplatePath(projectRoot);</span>
+<span class="dl-add">+  if (!templatePath) {</span>
+<span class="dl-add">+    return fail(&#39;no implement template on disk — open this project in Frame once so it stages the templates, then retry&#39;);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const raw = fs.readFileSync(templatePath, &#39;utf8&#39;);</span>
+<span class="dl-add">+  const prompt = interpolate(raw, {</span>
+<span class="dl-add">+    project_path: projectRoot,</span>
+<span class="dl-add">+    slug,</span>
+<span class="dl-add">+    report_generator_path: REPORT_GENERATOR_REL</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const promptAbs = path.join(projectRoot, PROMPT_REL(slug));</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(promptAbs), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(promptAbs, prompt, &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  ensureReportGenerator(projectRoot);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const args = buildLaunchArgs(settingsAbsPath, PROMPT_REL(slug));</span>
+<span class="dl-add">+  const result = spawnSync(&#39;claude&#39;, args, { cwd: projectRoot, stdio: &#39;inherit&#39; });</span>
+<span class="dl-add">+  if (result.error) {</span>
+<span class="dl-add">+    if (result.error.code === &#39;ENOENT&#39;) {</span>
+<span class="dl-add">+      return fail(&#39;the `claude` CLI is not on your PATH — install it or open the project in Frame instead&#39;);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    return fail(`could not launch claude — ${result.error.message}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return typeof result.status === &#39;number&#39; ? result.status : 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+if (require.main === module) {</span>
+<span class="dl-add">+  process.exit(main(process.argv));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  interpolate,</span>
+<span class="dl-add">+  resolveVerificationCommand,</span>
+<span class="dl-add">+  buildPermissions,</span>
+<span class="dl-add">+  buildLaunchArgs,</span>
+<span class="dl-add">+  resolveRawTemplatePath,</span>
+<span class="dl-add">+  findProjectRoot,</span>
+<span class="dl-add">+  IMPLEMENT_ALLOW,</span>
+<span class="dl-add">+  IMPLEMENT_DENY,</span>
+<span class="dl-add">+  REPORT_GENERATOR_REL,</span>
+<span class="dl-add">+  TEMPLATE_OVERRIDE_REL,</span>
+<span class="dl-add">+  TEMPLATE_STAGED_REL</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/test/implementLaunch.test.js b/test/implementLaunch.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..5edb05b</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/implementLaunch.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,117 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * implement-launch helper tests (T08): the pure parts of the bin helper —</span>
+<span class="dl-add">+ * template interpolation, permission-file shape, launch-line composition and</span>
+<span class="dl-add">+ * template resolution order. No filesystem, no exec: everything above main()</span>
+<span class="dl-add">+ * in src/templates/bin/implement-launch.js is pure, and these tests are what</span>
+<span class="dl-add">+ * keep it that way.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const helper = require(&#39;../src/templates/bin/implement-launch.js&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── interpolation ────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;interpolate fills the three implement placeholders&#39;, () =&gt; {</span>
+<span class="dl-add">+  const out = helper.interpolate(</span>
+<span class="dl-add">+    &#39;root={project_path} slug={slug} gen={report_generator_path}&#39;,</span>
+<span class="dl-add">+    { project_path: &#39;/p&#39;, slug: &#39;my-spec&#39;, report_generator_path: &#39;.frame/runtime/assets/build-implement-report.mjs&#39; }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.equal(out, &#39;root=/p slug=my-spec gen=.frame/runtime/assets/build-implement-report.mjs&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;interpolate leaves unknown placeholders intact&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(helper.interpolate(&#39;a {unknown} b&#39;, { slug: &#39;x&#39; }), &#39;a {unknown} b&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;interpolate returns empty string for empty template&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(helper.interpolate(&#39;&#39;, { slug: &#39;x&#39; }), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── verification resolution ──────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveVerificationCommand prefers test over lint and build&#39;, () =&gt; {</span>
+<span class="dl-add">+  const cmd = helper.resolveVerificationCommand({</span>
+<span class="dl-add">+    project: { commands: { test: &#39;npm test&#39;, lint: &#39;npm run lint&#39;, build: &#39;npm run build&#39; } }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.equal(cmd, &#39;npm test&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveVerificationCommand falls through to lint, then build&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    helper.resolveVerificationCommand({ project: { commands: { lint: &#39;eslint .&#39;, build: &#39;make&#39; } } }),</span>
+<span class="dl-add">+    &#39;eslint .&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    helper.resolveVerificationCommand({ project: { commands: { build: &#39;make&#39; } } }),</span>
+<span class="dl-add">+    &#39;make&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveVerificationCommand ignores blank commands and returns null when none&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(helper.resolveVerificationCommand({ project: { commands: { test: &#39;   &#39; } } }), null);</span>
+<span class="dl-add">+  assert.equal(helper.resolveVerificationCommand({}), null);</span>
+<span class="dl-add">+  assert.equal(helper.resolveVerificationCommand(null), null);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── permission-file shape ────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;buildPermissions without a check carries just the base allow/deny&#39;, () =&gt; {</span>
+<span class="dl-add">+  const perms = helper.buildPermissions(null);</span>
+<span class="dl-add">+  assert.deepEqual(perms.permissions.allow, helper.IMPLEMENT_ALLOW);</span>
+<span class="dl-add">+  assert.deepEqual(perms.permissions.deny, helper.IMPLEMENT_DENY);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;buildPermissions adds exact + prefixed rules for the verification command&#39;, () =&gt; {</span>
+<span class="dl-add">+  const perms = helper.buildPermissions(&#39;npm test&#39;);</span>
+<span class="dl-add">+  assert.ok(perms.permissions.allow.includes(&#39;Bash(npm test)&#39;));</span>
+<span class="dl-add">+  assert.ok(perms.permissions.allow.includes(&#39;Bash(npm test *)&#39;));</span>
+<span class="dl-add">+  // base rules still present, deny untouched</span>
+<span class="dl-add">+  assert.ok(perms.permissions.allow.includes(&#39;Edit&#39;));</span>
+<span class="dl-add">+  assert.deepEqual(perms.permissions.deny, helper.IMPLEMENT_DENY);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;buildPermissions does not mutate the shared constant arrays&#39;, () =&gt; {</span>
+<span class="dl-add">+  const before = helper.IMPLEMENT_ALLOW.length;</span>
+<span class="dl-add">+  helper.buildPermissions(&#39;npm test&#39;);</span>
+<span class="dl-add">+  assert.equal(helper.IMPLEMENT_ALLOW.length, before);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;deny list blocks push and hard resets&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.ok(helper.IMPLEMENT_DENY.includes(&#39;Bash(git push)&#39;));</span>
+<span class="dl-add">+  assert.ok(helper.IMPLEMENT_DENY.includes(&#39;Bash(git push *)&#39;));</span>
+<span class="dl-add">+  assert.ok(helper.IMPLEMENT_DENY.includes(&#39;Bash(git reset --hard *)&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── launch-line composition ──────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;buildLaunchArgs composes flags plus the read-this-file instruction&#39;, () =&gt; {</span>
+<span class="dl-add">+  const args = helper.buildLaunchArgs(&#39;/abs/perms.json&#39;, &#39;.frame/runtime/prompts/my-spec__spec.implement.md&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(args, [</span>
+<span class="dl-add">+    &#39;--settings&#39;, &#39;/abs/perms.json&#39;,</span>
+<span class="dl-add">+    &#39;--permission-mode&#39;, &#39;auto&#39;,</span>
+<span class="dl-add">+    &#39;Read .frame/runtime/prompts/my-spec__spec.implement.md and follow its instructions exactly.&#39;</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── template resolution order ────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveRawTemplatePath prefers the override when it exists&#39;, () =&gt; {</span>
+<span class="dl-add">+  const root = &#39;/proj&#39;;</span>
+<span class="dl-add">+  const override = path.join(root, helper.TEMPLATE_OVERRIDE_REL);</span>
+<span class="dl-add">+  const chosen = helper.resolveRawTemplatePath(root, (p) =&gt; p === override);</span>
+<span class="dl-add">+  assert.equal(chosen, override);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveRawTemplatePath falls back to the staged copy&#39;, () =&gt; {</span>
+<span class="dl-add">+  const root = &#39;/proj&#39;;</span>
+<span class="dl-add">+  const staged = path.join(root, helper.TEMPLATE_STAGED_REL);</span>
+<span class="dl-add">+  const chosen = helper.resolveRawTemplatePath(root, (p) =&gt; p === staged);</span>
+<span class="dl-add">+  assert.equal(chosen, staged);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveRawTemplatePath returns null when neither exists&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(helper.resolveRawTemplatePath(&#39;/proj&#39;, () =&gt; false), null);</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>
