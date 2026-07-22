@@ -11,11 +11,20 @@
  * for the command and null-check, render `renderNextActionBar(...)`, and
  * attach their own listener to the button (each passing its own `buttonId`).
  *
+ * The idle button never carries a mode. It always reads "Implement Tasks…"
+ * and opens the modal, where the mode is chosen per run; a past choice recorded
+ * in status.json only preselects there. This is deliberate: latching the label
+ * to the last mode left a "Run Custom Flow" (or "Start Guided Run") hanging on
+ * an abandoned spec with no way back. The resolved mode only shapes the
+ * *locked* bar, and only while a run is genuinely live.
+ *
+ * Progress ("2/7 done") comes from tasks.json (`counts`), never from the lane
+ * or the mode — so it stays accurate across kills, restarts and app closes.
+ *
  * Two lock regimes:
- *   - turn-scoped (today's behaviour): a live agent mid-turn locks the button
- *     until it finishes. Correct for step-by-step / custom / the pre-mode
- *     state, where the button means "do the next task" and idling for approval
- *     between tasks is expected.
+ *   - turn-scoped: a live agent mid-turn locks the button until it finishes.
+ *     Correct for step-by-step / custom / the pre-mode state, where idling for
+ *     approval between tasks is expected.
  *   - run-liveness: for the continuous modes (guided, autonomous) the lock
  *     must survive turn boundaries — the run keeps going on its own, so the
  *     button stays locked while the lane is alive and tasks remain, showing
@@ -26,8 +35,8 @@
 
 const { escapeHtml } = require('./htmlUtils');
 
-// Base next-action per phase. For the implement phase the label is resolved
-// from the mode (IMPLEMENT_LABELS); the other phases carry a fixed label.
+// Base next-action per phase. Every phase carries a fixed label; the implement
+// phase's "Implement Tasks…" opens the mode modal rather than naming a mode.
 function nextActionForPhase(phase) {
   switch (phase) {
     case 'draft':
@@ -44,22 +53,9 @@ function nextActionForPhase(phase) {
   }
 }
 
-// Idle button label per resolved implement mode. A missing/unknown hint means
-// no mode has been chosen yet — the modal will ask, so the label invites that.
-const IMPLEMENT_LABELS = {
-  'step-by-step': 'Implement Next Task',
-  guided: 'Start Guided Run',
-  autonomous: 'Start Autonomous Run',
-  custom: 'Run Custom Flow'
-};
-
 // Modes whose run spans multiple agent turns — their lock is run-liveness,
 // not turn-scoped.
 const CONTINUOUS_MODES = new Set(['guided', 'autonomous']);
-
-function implementLabel(hint) {
-  return IMPLEMENT_LABELS[hint] || 'Implement Tasks…';
-}
 
 /**
  * Count this spec's tasks from the full task list. Shared so all three
@@ -81,7 +77,9 @@ function taskCounts(allTasks, slug) {
  * @param {object} opts
  * @param {object} opts.action   - from nextActionForPhase(phase)
  * @param {object|null} opts.lane - getSpecLaneInfo(slug)
- * @param {string|null} [opts.hint] - resolved implement hint (mode)
+ * @param {string|null} [opts.hint] - resolved implement mode; picks the lock
+ *                                     regime (continuous vs turn-scoped) while a
+ *                                     run is live. Never affects the idle label.
  * @param {object|null} [opts.counts] - taskCounts(allTasks, slug); drives the
  *                                       progress copy and the run-liveness gate
  * @param {string} [opts.buttonId] - id for the idle button (surface's click
@@ -91,7 +89,13 @@ function taskCounts(allTasks, slug) {
 function renderNextActionBar({ action, lane, hint = null, counts = null, buttonId = 'spec-action-btn' } = {}) {
   if (!action) return '';
   const isImplement = action.command === 'spec.implement';
-  const label = isImplement ? implementLabel(hint) : action.label;
+  // The idle label never latches to a mode. The mode is chosen in the modal
+  // (this button opens it), so a past choice must not colour the button — that
+  // was the "Run Custom Flow" that lingered after the run was abandoned. The
+  // resolved mode only shapes the *locked* bar below, and only while a run is
+  // genuinely live. `action.label` is "Implement Tasks…" for the implement
+  // phase; the "…" signals the modal.
+  const label = action.label;
   const alive = !!(lane && lane.agentName);
 
   // Run-liveness lock — continuous mode, live agent, tasks still pending.
@@ -116,12 +120,18 @@ function renderNextActionBar({ action, lane, hint = null, counts = null, buttonI
     });
   }
 
-  // Idle — the actionable button.
+  // Idle — the actionable button. For implement, progress from tasks.json
+  // (durable, lane- and mode-independent) is the subtext: it stays accurate
+  // across kills, restarts and app closes. Falls back to the phase hint when
+  // there are no tasks to count yet.
+  const sub = isImplement && counts && counts.total > 0
+    ? `${counts.completed}/${counts.total} done`
+    : action.hint;
   return `
     <div class="spec-next-action">
       <div class="spec-next-action-text">
         <strong>${escapeHtml(label)}</strong>
-        <span>${escapeHtml(action.hint)}</span>
+        <span>${escapeHtml(sub)}</span>
       </div>
       <button class="btn btn-primary spec-action-btn" id="${escapeHtml(buttonId)}">
         ${escapeHtml(label)}

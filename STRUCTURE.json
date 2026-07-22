@@ -6085,20 +6085,14 @@
       ],
       "functions": {
         "nextActionForPhase": {
-          "line": 31,
+          "line": 40,
           "params": [
             "phase"
           ],
-          "purpose": "Base next-action per phase. For the implement phase the label is resolved"
-        },
-        "implementLabel": {
-          "line": 60,
-          "params": [
-            "hint"
-          ]
+          "purpose": "Base next-action per phase. Every phase carries a fixed label; the implement"
         },
         "taskCounts": {
-          "line": 69,
+          "line": 65,
           "params": [
             "allTasks",
             "slug"
@@ -6106,7 +6100,7 @@
           "purpose": "Count this spec's tasks from the full task list. Shared so all three"
         },
         "renderNextActionBar": {
-          "line": 91,
+          "line": 89,
           "params": [
             "{ action",
             "lane",
@@ -6117,7 +6111,7 @@
           "purpose": "Render the next-action bar."
         },
         "_lockedBar": {
-          "line": 133,
+          "line": 143,
           "params": [
             "{ heading",
             "sub",
