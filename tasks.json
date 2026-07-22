@@ -3863,10 +3863,25 @@
       "createdAt": "2026-07-22T00:00:00Z",
       "updatedAt": "2026-07-22T00:00:00Z",
       "completedAt": null
+    },
+    {
+      "id": "task-persist-section-tabs-across-project-switch",
+      "title": "Persist open section tabs (task/spec detail) across project switches",
+      "description": "When the user switches to another project and comes back, the open section tabs (task/spec detail surfaces — e.g. an open spec page) are gone. Frames (terminals/lanes) survive the switch because the terminal manager keeps them per-project, but section tabs do not. Root cause: src/renderer/multiTerminalUI.js setCurrentProject() (~line 124) unconditionally calls this._disposeAllSections() on EVERY project switch, tearing down all pinned section tabs regardless of which project they belong to (comment: 'Pinned section tabs belong to the previous project — drop them all'). Because they are disposed rather than stashed, returning to the original project cannot restore them. Fix: make section tabs per-project like terminals — instead of disposing on switch, stash the current project's open sections (and its activeSectionKey / isSectionVisible) keyed by project path, and restore that project's stashed sections when setCurrentProject returns to it. Sections for a project should only be truly disposed when that project itself is closed/removed, not on a transient switch. Files affected: src/renderer/multiTerminalUI.js (section stash/restore keyed by project path in setCurrentProject; the openSection/activateSection/closeSection/_disposeAllSections machinery around lines 224-320), and the tab-bar sync path (onActivateSection/onCloseSection wiring) so the restored chips render correctly.",
+      "userRequest": "User said: Proje değiştirdiğim zaman açık sekmeler kapanıyor spec sayfası üzerinden gördüm bunu. Frame'ler sabit ama diğer sekmeler kapanıyor başka projeye geçip geri gelince.",
+      "acceptanceCriteria": "(1) Open a spec (or task) detail section in project A, switch to project B, switch back to A — the previously open section tab(s) are still there, in the same order. (2) The active section and whether a section was on-screen are also restored per-project. (3) Switching to project B does NOT show project A's section tabs (sections stay scoped to their own project). (4) Closing/removing a project disposes only that project's sections. (5) Frames/terminals behavior is unchanged. (6) No leaked DOM/listeners when sections are stashed vs disposed.",
+      "notes": "Confirmed root cause by inspection: multiTerminalUI.js:125-126 disposes all sections on every setCurrentProject. The stash should mirror how the terminal manager already scopes terminals per project (this.manager.getCurrentProject()). Distinguish two lifecycles: transient project SWITCH (stash + restore) vs project CLOSE (dispose). Watch for the isSectionVisible/activeSectionKey fields (lines 35-36) — both need to be part of the per-project snapshot. Unrelated to the gitignore task added the same session; grouped only by being surfaced in the same conversation.",
+      "status": "pending",
+      "priority": "medium",
+      "category": "fix",
+      "context": "Session 2026-07-22 - Section tabs (spec/task detail) close on project switch; noticed via an open spec page",
+      "createdAt": "2026-07-22T00:00:00Z",
+      "updatedAt": "2026-07-22T00:00:00Z",
+      "completedAt": null
     }
   ],
   "metadata": {
-    "totalCreated": 274,
+    "totalCreated": 275,
     "totalCompleted": 21
   },
   "categories": {
