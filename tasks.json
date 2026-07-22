@@ -3776,13 +3776,13 @@
       "title": "Route spec.implement dispatches in src/renderer/agentDispatch.js through the modal: on confirm write implement_mode via UPDATE_SPEC_STATUS, then stage, then dispatch to the chosen destination; cancel writes and dispatches nothing; update the flags-dropped notice and prompt note to the guided-fallback wording; keep _askContinueOrNew for non-implement commands",
       "description": "",
       "source": "spec:implement-modes-v2:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T13:30:00.000Z",
+      "completedAt": "2026-07-22T13:30:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T05",

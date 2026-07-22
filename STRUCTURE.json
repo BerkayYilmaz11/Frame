@@ -3196,18 +3196,19 @@
         "state",
         "htmlUtils",
         "notify",
+        "implementModeModal",
         "aiToolSelector"
       ],
       "functions": {
         "init": {
-          "line": 45,
+          "line": 46,
           "params": [
             "ui"
           ],
           "purpose": "Initialize with the MultiTerminalUI instance."
         },
         "dispatch": {
-          "line": 90,
+          "line": 91,
           "params": [
             "{ terminalId = null",
             "createNew = false",
@@ -3221,11 +3222,11 @@
           "purpose": "Deliver a prompt to an agent in a lane."
         },
         "startDefaultAgent": {
-          "line": 238,
+          "line": 239,
           "purpose": "Start the default agent (the active AI tool) from the sidebar shortcut —"
         },
         "_startAgentIn": {
-          "line": 273,
+          "line": 274,
           "params": [
             "terminalId",
             "{ fresh = false } = {}"
@@ -3233,10 +3234,10 @@
           "purpose": "Start the active tool's CLI in an existing lane. `fresh` allows a newly"
         },
         "_startAgentInNewFrame": {
-          "line": 288
+          "line": 289
         },
         "_askNewOrRestart": {
-          "line": 306,
+          "line": 307,
           "params": [
             "frameName",
             "hasAgent"
@@ -3244,7 +3245,7 @@
           "purpose": "\"Open a new Frame / Kill & restart here\" — asked when the focused Frame is"
         },
         "dispatchSpecCommand": {
-          "line": 363,
+          "line": 364,
           "params": [
             "{ slug",
             "title = null",
@@ -3252,80 +3253,90 @@
           ],
           "purpose": "Run a spec command in the spec's assigned lane — or a new Frame."
         },
+        "_dispatchImplement": {
+          "line": 431,
+          "params": [
+            "{ slug",
+            "title",
+            "projectPath",
+            "assignment }"
+          ],
+          "purpose": "The spec.implement path: modal → record implement_mode → stage → dispatch."
+        },
         "getSpecLaneInfo": {
-          "line": 446,
+          "line": 522,
           "params": [
             "slug"
           ],
           "purpose": "Live info about the lane a spec is assigned to, or null when unassigned"
         },
         "getTaskLaneInfo": {
-          "line": 470,
+          "line": 546,
           "params": [
             "taskId"
           ],
           "purpose": "Live info about the lane working on a task, or null. Unlike specs there"
         },
         "specStatusDotHtml": {
-          "line": 491,
+          "line": 567,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 495,
+          "line": 571,
           "params": [
             "taskId"
           ]
         },
         "_activityDotHtml": {
-          "line": 499,
+          "line": 575,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 516,
+          "line": 592,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 524,
+          "line": 600,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 547,
+          "line": 623,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 555,
+          "line": 631,
           "params": [
             "taskId"
           ]
         },
         "_assignedLane": {
-          "line": 573,
+          "line": 649,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 583,
+          "line": 659,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 592,
+          "line": 668,
           "params": [
             "frameName",
             "specName"
@@ -3333,14 +3344,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 633,
+          "line": 709,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 662,
+          "line": 738,
           "params": [
             "terminalId",
             "message"

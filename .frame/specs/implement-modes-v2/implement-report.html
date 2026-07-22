@@ -122,8 +122,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-07-22</span>
   </div>
@@ -560,6 +560,193 @@
 <span class="dl-ctx"> /* Suggestion (opt-in) modal — softer presentation than the New Spec modal */</span>
 <span class="dl-ctx"> .spec-modal-suggestion {</span>
 <span class="dl-ctx">   width: 540px;</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Route spec.implement through the modal (ordering flip)</h2>
+    <span class="card-meta"><span class="chip">b3e663a</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">105/105 passing; node --check clean and npm run build bundles the renderer without error. Dispatch flow not unit-covered per plan&#39;s pure-logic-only test posture</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>dispatchSpecCommand in src/renderer/agentDispatch.js now branches spec.implement into a new _dispatchImplement: open the modal → record implement_mode via UPDATE_SPEC_STATUS → stage (flags derive from the recorded mode) → dispatch to the chosen destination; cancel writes and dispatches nothing. The flags-dropped notice and prompt note were rewritten to the guided-fallback wording. Non-implement commands keep the stage-first + _askContinueOrNew flow untouched.</p></div>
+    <div class="field"><span class="label">Why</span><p>The ordering flip (modal-before-stage) is what makes a fresh autonomous dispatch carry its flags on the first launch, so the re-dispatch flow is unreachable from the UI. Kept _askContinueOrNew only on the non-implement path since those commands never carry launch flags.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/agentDispatch.js b/src/renderer/agentDispatch.js</span>
+<span class="dl-meta">index 526fe05..b8cc3c0 100644</span>
+<span class="dl-file">--- a/src/renderer/agentDispatch.js</span>
+<span class="dl-file">+++ b/src/renderer/agentDispatch.js</span>
+<span class="dl-hunk">@@ -25,6 +25,7 @@ const laneStatus = require(&#39;./laneStatus&#39;);</span>
+<span class="dl-ctx"> const state = require(&#39;./state&#39;);</span>
+<span class="dl-ctx"> const { escapeHtml } = require(&#39;./htmlUtils&#39;);</span>
+<span class="dl-ctx"> const notify = require(&#39;./notify&#39;);</span>
+<span class="dl-add">+const implementModeModal = require(&#39;./implementModeModal&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let multiTerminalUI = null;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -186,7 +187,7 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p</span>
+<span class="dl-ctx">       ready = await bareReady;</span>
+<span class="dl-ctx">       if (ready) {</span>
+<span class="dl-ctx">         flagsDropped = true;</span>
+<span class="dl-del">-        notify.info(&#39;Autonomous mode is not available with this CLI — continuing without it&#39;);</span>
+<span class="dl-add">+        notify.info(&#39;Autonomous permissions were refused by this CLI — continuing in guided mode (same loop and report, paced by the CLI’s own prompts)&#39;);</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -369,6 +370,19 @@ async function dispatchSpecCommand({ slug, title = null, command } = {}) {</span>
+<span class="dl-ctx">     return _fail(null, &#39;Open a project first&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  const assignment = { kind: &#39;spec&#39;, label: `spec: ${slug}`, ref: slug };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // spec.implement flips the ordering: the mode is chosen in the unified</span>
+<span class="dl-add">+  // modal *before* anything is staged, so the recorded implement_mode is what</span>
+<span class="dl-add">+  // getImplementLaunchFlags reads — a fresh autonomous dispatch carries its</span>
+<span class="dl-add">+  // flags on the first launch and the re-dispatch flow is unreachable.</span>
+<span class="dl-add">+  if (command === &#39;spec.implement&#39;) {</span>
+<span class="dl-add">+    return _dispatchImplement({ slug, title, projectPath, assignment });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Every other spec command keeps the stage-first + continue-or-new flow;</span>
+<span class="dl-add">+  // these never carry launch flags (BUILD_SPEC_COMMAND_FILE returns them for</span>
+<span class="dl-add">+  // spec.implement only), so _askContinueOrNew is unchanged here.</span>
+<span class="dl-ctx">   let staged;</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     staged = await ipcRenderer.invoke(IPC.BUILD_SPEC_COMMAND_FILE, {</span>
+<span class="dl-hunk">@@ -385,29 +399,11 @@ async function dispatchSpecCommand({ slug, title = null, command } = {}) {</span>
+<span class="dl-ctx">     return _fail(null, &#39;Could not stage prompt: &#39; + ((staged &amp;&amp; staged.error) || &#39;unknown error&#39;));</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const assignment = { kind: &#39;spec&#39;, label: `spec: ${slug}`, ref: slug };</span>
+<span class="dl-ctx">   const assignedId = _assignedLane(slug);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Staging decides these — spec.implement&#39;s autonomous mode needs its</span>
+<span class="dl-del">-  // permission file and mode flag on the launch line. They only take effect</span>
+<span class="dl-del">-  // when this dispatch starts the CLI: continuing in a lane whose agent is</span>
+<span class="dl-del">-  // already running keeps whatever flags that session was launched with, and</span>
+<span class="dl-del">-  // the prompt handles the mismatch by asking for one re-dispatch.</span>
+<span class="dl-del">-  const launchFlags = staged.launchFlags || null;</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-  // Said, not asked. If the CLI won&#39;t take the flags the autonomous mode</span>
+<span class="dl-del">-  // needs, the run doesn&#39;t stall on a question — it states the limit and</span>
+<span class="dl-del">-  // carries on with the mode that works without them.</span>
+<span class="dl-del">-  const flagsDroppedNote = launchFlags &amp;&amp; launchFlags.length</span>
+<span class="dl-del">-    ? &#39;Frame note: this CLI refused the permission flags the autonomous mode &#39;</span>
+<span class="dl-del">-      + &#39;needs, so that mode is unavailable in this session — do not offer it. &#39;</span>
+<span class="dl-del">-      + &#39;Say so in one line, then continue with the step-by-step mode. Mention &#39;</span>
+<span class="dl-del">-      + &#39;once that describing your own flow is still available.&#39;</span>
+<span class="dl-del">-    : null;</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   let result;</span>
+<span class="dl-ctx">   if (!assignedId) {</span>
+<span class="dl-del">-    result = await dispatch({ createNew: true, prompt: staged.instruction, assignment, launchFlags, flagsDroppedNote });</span>
+<span class="dl-add">+    result = await dispatch({ createNew: true, prompt: staged.instruction, assignment });</span>
+<span class="dl-ctx">   } else {</span>
+<span class="dl-ctx">     const choice = await _askContinueOrNew(_laneName(assignedId), title || slug);</span>
+<span class="dl-ctx">     if (choice === &#39;cancel&#39;) {</span>
+<span class="dl-hunk">@@ -417,9 +413,7 @@ async function dispatchSpecCommand({ slug, title = null, command } = {}) {</span>
+<span class="dl-ctx">       terminalId: choice === &#39;continue&#39; ? assignedId : null,</span>
+<span class="dl-ctx">       createNew: choice !== &#39;continue&#39;,</span>
+<span class="dl-ctx">       prompt: staged.instruction,</span>
+<span class="dl-del">-      assignment,</span>
+<span class="dl-del">-      launchFlags,</span>
+<span class="dl-del">-      flagsDroppedNote</span>
+<span class="dl-add">+      assignment</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -431,6 +425,88 @@ async function dispatchSpecCommand({ slug, title = null, command } = {}) {</span>
+<span class="dl-ctx">   return result;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// The spec.implement path: modal → record implement_mode → stage → dispatch.</span>
+<span class="dl-add">+// The order matters — recording the mode before staging is exactly what lets</span>
+<span class="dl-add">+// the launch flags derive from the user&#39;s actual choice rather than a guess.</span>
+<span class="dl-add">+async function _dispatchImplement({ slug, title, projectPath, assignment }) {</span>
+<span class="dl-add">+  const assignedId = _assignedLane(slug);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Resolve the hint for the modal&#39;s preselection; a live lane feeds the</span>
+<span class="dl-add">+  // destination section and the autonomous-Continue gate.</span>
+<span class="dl-add">+  let hint = null;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const spec = await ipcRenderer.invoke(IPC.GET_SPEC, { projectPath, slug });</span>
+<span class="dl-add">+    hint = (spec &amp;&amp; spec.implementHint) || null;</span>
+<span class="dl-add">+  } catch (_) { /* no hint — the modal defaults to step-by-step */ }</span>
+<span class="dl-add">+  const lane = assignedId ? getSpecLaneInfo(slug) : null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const choice = await implementModeModal.open({ slug, title, hint, lane });</span>
+<span class="dl-add">+  // Cancel writes nothing and dispatches nothing.</span>
+<span class="dl-add">+  if (!choice) {</span>
+<span class="dl-add">+    return { success: false, terminalId: null, error: null };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Record the chosen mode *before* staging so the flags follow the choice.</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const res = await ipcRenderer.invoke(IPC.UPDATE_SPEC_STATUS, {</span>
+<span class="dl-add">+      projectPath,</span>
+<span class="dl-add">+      slug,</span>
+<span class="dl-add">+      partial: { implement_mode: choice.mode }</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    if (res &amp;&amp; res.error) throw new Error(res.error);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;agentDispatch: recording implement_mode failed&#39;, err);</span>
+<span class="dl-add">+    return _fail(null, &#39;Could not record the implement mode&#39;);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  let staged;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    staged = await ipcRenderer.invoke(IPC.BUILD_SPEC_COMMAND_FILE, {</span>
+<span class="dl-add">+      projectPath,</span>
+<span class="dl-add">+      slug,</span>
+<span class="dl-add">+      command: &#39;spec.implement&#39;,</span>
+<span class="dl-add">+      aiTool: &#39;claude-code&#39;</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;agentDispatch: prompt staging failed&#39;, err);</span>
+<span class="dl-add">+    staged = null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  if (!staged || !staged.success) {</span>
+<span class="dl-add">+    return _fail(null, &#39;Could not stage prompt: &#39; + ((staged &amp;&amp; staged.error) || &#39;unknown error&#39;));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Only the autonomous mode yields flags. If the CLI refuses them the run</span>
+<span class="dl-add">+  // doesn&#39;t stall — it falls back to guided (same loop, report and commits,</span>
+<span class="dl-add">+  // paced by the CLI&#39;s own prompts) and says so.</span>
+<span class="dl-add">+  const launchFlags = staged.launchFlags || null;</span>
+<span class="dl-add">+  const flagsDroppedNote = launchFlags &amp;&amp; launchFlags.length</span>
+<span class="dl-add">+    ? &#39;Frame note: this CLI refused the permission flags the autonomous mode &#39;</span>
+<span class="dl-add">+      + &#39;needs, so this run continues in guided mode — the same task-by-task &#39;</span>
+<span class="dl-add">+      + &#39;loop, report-data.json/report and one commit per task, paced by the &#39;</span>
+<span class="dl-add">+      + &#39;CLI’s own permission prompts instead of pre-granted ones. Run the &#39;</span>
+<span class="dl-add">+      + &#39;guided loop; do not ask to re-dispatch.&#39;</span>
+<span class="dl-add">+    : null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Destination from the modal. When there is no live lane the modal already</span>
+<span class="dl-add">+  // forced &#39;new&#39;; a stale assignedId (lane closed between reads) also falls</span>
+<span class="dl-add">+  // through to a new Frame.</span>
+<span class="dl-add">+  const useContinue = choice.destination === &#39;continue&#39; &amp;&amp; !!assignedId;</span>
+<span class="dl-add">+  const result = await dispatch({</span>
+<span class="dl-add">+    terminalId: useContinue ? assignedId : null,</span>
+<span class="dl-add">+    createNew: !useContinue,</span>
+<span class="dl-add">+    prompt: staged.instruction,</span>
+<span class="dl-add">+    assignment,</span>
+<span class="dl-add">+    launchFlags,</span>
+<span class="dl-add">+    flagsDroppedNote</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (result.success) {</span>
+<span class="dl-add">+    specLanes.set(slug, result.terminalId);</span>
+<span class="dl-add">+    _notifySpecLane(slug);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return result;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Live info about the lane a spec is assigned to, or null when unassigned</span>
+<span class="dl-ctx">  * (including: the lane was closed). Computed fresh on every call — never</span></pre>
     </details>
   </div>
 </section>

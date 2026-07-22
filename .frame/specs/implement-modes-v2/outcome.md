@@ -21,3 +21,11 @@ Created `src/renderer/implementModeModal.js`, a Promise-based `spec-modal-overla
 _Captured: 2026-07-22 · 2 file changes_
 
 ---
+
+## T04 — Route spec.implement through the modal (ordering flip)
+
+Branched `dispatchSpecCommand` in `src/renderer/agentDispatch.js`: `spec.implement` now goes through a new `_dispatchImplement` that opens the modal, records `implement_mode` via `UPDATE_SPEC_STATUS`, then stages (so launch flags derive from the recorded mode), then dispatches to the chosen destination — cancel writes and dispatches nothing. Rewrote the flags-dropped `notify.info` and the prompt note from the old "unavailable → step-by-step" copy to the guided-fallback wording. Non-implement commands keep the stage-first + `_askContinueOrNew` path unchanged. Files touched: `src/renderer/agentDispatch.js`.
+
+_Captured: 2026-07-22 · 1 file change_
+
+---

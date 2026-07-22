@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "105/105 passing; node --check clean. Renderer/CSS not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Route spec.implement through the modal (ordering flip)",
+      "commit": "b3e663a",
+      "whatChanged": "dispatchSpecCommand in src/renderer/agentDispatch.js now branches spec.implement into a new _dispatchImplement: open the modal → record implement_mode via UPDATE_SPEC_STATUS → stage (flags derive from the recorded mode) → dispatch to the chosen destination; cancel writes and dispatches nothing. The flags-dropped notice and prompt note were rewritten to the guided-fallback wording. Non-implement commands keep the stage-first + _askContinueOrNew flow untouched.",
+      "whyChanged": "The ordering flip (modal-before-stage) is what makes a fresh autonomous dispatch carry its flags on the first launch, so the re-dispatch flow is unreachable from the UI. Kept _askContinueOrNew only on the non-implement path since those commands never carry launch flags.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; node --check clean and npm run build bundles the renderer without error. Dispatch flow not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }
