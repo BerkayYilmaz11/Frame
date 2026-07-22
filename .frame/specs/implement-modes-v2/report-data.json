@@ -15,6 +15,18 @@
         "status": "pass",
         "detail": "105/105 passing; renderer change is not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T02",
+      "title": "Expose implementHint on getSpec",
+      "commit": "1646ecb",
+      "whatChanged": "getSpec in src/main/specManager.js now returns implementHint, computed by the already-present resolveImplementLaunchHint (status.implement_mode → config implement.defaultMode → null).",
+      "whyChanged": "The modal's mode preselection and the next-action button's label both need the resolved hint; sourcing it from getSpec means the renderer never re-implements the status→config→null precedence. resolveImplementLaunchHint already existed (D10), so this is purely surfacing it on the spec payload.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; getSpec's payload is not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }

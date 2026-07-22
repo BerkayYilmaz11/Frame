@@ -2576,7 +2576,7 @@
           ]
         },
         "searchSpecs": {
-          "line": 707,
+          "line": 712,
           "params": [
             "projectPath",
             "query"
@@ -2584,14 +2584,14 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "createSpec": {
-          "line": 728,
+          "line": 733,
           "params": [
             "projectPath",
             "opts"
           ]
         },
         "updateSpecStatus": {
-          "line": 771,
+          "line": 776,
           "params": [
             "projectPath",
             "slug",
@@ -2599,14 +2599,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 790,
+          "line": 795,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 807,
+          "line": 812,
           "params": [
             "projectPath",
             "oldSlug",
@@ -2615,28 +2615,28 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 914,
+          "line": 919,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 968
+          "line": 973
         },
         "pushSpecData": {
-          "line": 989,
+          "line": 994,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1009,
+          "line": 1014,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1013,
+          "line": 1018,
           "params": [
             "ipcMain"
           ]

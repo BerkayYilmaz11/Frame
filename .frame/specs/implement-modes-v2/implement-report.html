@@ -122,8 +122,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-07-22</span>
   </div>
@@ -199,6 +199,39 @@
 <span class="dl-add">+    // &quot;Continue&quot;. Requires agentName so a dead-but-remembered lane never</span>
 <span class="dl-add">+    // reports a session that no longer exists.</span>
 <span class="dl-add">+    launchedAutonomous: !!s.agentName &amp;&amp; !!launchedAutonomousLanes.get(id)</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Expose implementHint on getSpec</h2>
+    <span class="card-meta"><span class="chip">1646ecb</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">105/105 passing; getSpec&#39;s payload is not unit-covered per plan&#39;s pure-logic-only test posture</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getSpec in src/main/specManager.js now returns implementHint, computed by the already-present resolveImplementLaunchHint (status.implement_mode → config implement.defaultMode → null).</p></div>
+    <div class="field"><span class="label">Why</span><p>The modal&#39;s mode preselection and the next-action button&#39;s label both need the resolved hint; sourcing it from getSpec means the renderer never re-implements the status→config→null precedence. resolveImplementLaunchHint already existed (D10), so this is purely surfacing it on the spec payload.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/specManager.js b/src/main/specManager.js</span>
+<span class="dl-meta">index 06e9c5e..0db3d98 100644</span>
+<span class="dl-file">--- a/src/main/specManager.js</span>
+<span class="dl-file">+++ b/src/main/specManager.js</span>
+<span class="dl-hunk">@@ -693,7 +693,12 @@ function getSpec(projectPath, slug) {</span>
+<span class="dl-ctx">     tasks: readFileSafe(path.join(dir, TASKS_FILE)),</span>
+<span class="dl-ctx">     outcome: readFileSafe(path.join(dir, OUTCOME_FILE)),</span>
+<span class="dl-ctx">     planReportPath: fs.existsSync(reportPath) ? reportPath : null,</span>
+<span class="dl-del">-    implementReportPath: fs.existsSync(implementReportPath) ? implementReportPath : null</span>
+<span class="dl-add">+    implementReportPath: fs.existsSync(implementReportPath) ? implementReportPath : null,</span>
+<span class="dl-add">+    // Resolved implement-mode hint (status.implement_mode → config</span>
+<span class="dl-add">+    // implement.defaultMode → null), so the modal&#39;s preselection and the</span>
+<span class="dl-add">+    // next-action button&#39;s label read one authoritative value instead of</span>
+<span class="dl-add">+    // re-deriving the resolution in the renderer.</span>
+<span class="dl-add">+    implementHint: resolveImplementLaunchHint(projectPath, slug)</span>
 <span class="dl-ctx">   };</span>
 <span class="dl-ctx"> }</span>
 <span class="dl-ctx"> </span></pre>

@@ -3750,13 +3750,13 @@
       "title": "Expose implementHint in getSpec's return in src/main/specManager.js via resolveImplementLaunchHint (status.implement_mode → config implement.defaultMode → null)",
       "description": "",
       "source": "spec:implement-modes-v2:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T13:10:00.000Z",
+      "completedAt": "2026-07-22T13:10:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T03",

@@ -693,7 +693,12 @@ function getSpec(projectPath, slug) {
     tasks: readFileSafe(path.join(dir, TASKS_FILE)),
     outcome: readFileSafe(path.join(dir, OUTCOME_FILE)),
     planReportPath: fs.existsSync(reportPath) ? reportPath : null,
-    implementReportPath: fs.existsSync(implementReportPath) ? implementReportPath : null
+    implementReportPath: fs.existsSync(implementReportPath) ? implementReportPath : null,
+    // Resolved implement-mode hint (status.implement_mode → config
+    // implement.defaultMode → null), so the modal's preselection and the
+    // next-action button's label read one authoritative value instead of
+    // re-deriving the resolution in the renderer.
+    implementHint: resolveImplementLaunchHint(projectPath, slug)
   };
 }
 
