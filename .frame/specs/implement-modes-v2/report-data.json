@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "105/105 passing; template placeholders unchanged from the prior version, so the interpolation contract holds. Template prose is not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Stage the implement template, generator and helper into the project",
+      "commit": "7e70003",
+      "whatChanged": "Added stageImplementCommandFiles + a copyIfChanged content-diff helper to src/main/specManager.js: on WATCH_SPECS (project open) and on every spec.implement staging, it copies the raw spec.implement.md and build-implement-report.mjs into .frame/runtime/commands/claude-code/ (override→packaged precedence) and the launch helper into .frame/bin/, imported FRAME_BIN_DIR for the bin path.",
+      "whyChanged": "The bin helper runs with the app closed and can't read app.asar, so Frame stages its raw material to disk. copyIfChanged skips a missing source (the helper isn't built until T08) and skips unchanged destinations so project-open staging doesn't churn watchers.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; node --check clean. Staged runtime/bin files are gitignored, so only specManager.js is tracked. Not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }

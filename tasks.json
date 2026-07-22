@@ -3815,13 +3815,13 @@
       "title": "Add the staging slice to src/main/specManager.js: content-diff copy of the raw spec.implement.md template and build-implement-report.mjs into .frame/runtime/commands/claude-code/ and the helper into .frame/bin/, on WATCH_SPECS (project open) and on implement staging",
       "description": "",
       "source": "spec:implement-modes-v2:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T14:00:00.000Z",
+      "completedAt": "2026-07-22T14:00:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T08",

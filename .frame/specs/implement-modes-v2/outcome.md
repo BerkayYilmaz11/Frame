@@ -45,3 +45,11 @@ Rewrote `src/templates/commands/claude-code/spec.implement.md`: a recorded `impl
 _Captured: 2026-07-22 · 1 file change_
 
 ---
+
+## T07 — Stage the implement template, generator and helper
+
+Added `stageImplementCommandFiles` and a `copyIfChanged` content-diff helper to `src/main/specManager.js`, wired into the `WATCH_SPECS` handler (project open) and `buildSpecCommandFile` for `spec.implement`. It copies the raw `spec.implement.md` and `build-implement-report.mjs` into `.frame/runtime/commands/claude-code/` (override→packaged precedence) and the launch helper into `.frame/bin/`; imported `FRAME_BIN_DIR`. No deviation; a missing helper source (until T08) and unchanged destinations are both skipped, and the staged files are gitignored so only `specManager.js` is tracked. Files touched: `src/main/specManager.js`.
+
+_Captured: 2026-07-22 · 1 file change_
+
+---

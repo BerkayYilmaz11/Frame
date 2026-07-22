@@ -2485,35 +2485,51 @@
             "aiTool"
           ]
         },
+        "copyIfChanged": {
+          "line": 384,
+          "params": [
+            "src",
+            "dst"
+          ],
+          "purpose": "Copy only when the destination content differs, so project-open staging"
+        },
+        "stageImplementCommandFiles": {
+          "line": 409,
+          "params": [
+            "projectPath",
+            "aiTool"
+          ],
+          "purpose": "Stage the raw implement template + report generator into"
+        },
         "resolveVerificationCommand": {
-          "line": 415,
+          "line": 478,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 430,
+          "line": 493,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 448,
+          "line": 511,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 472,
+          "line": 535,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 488,
+          "line": 551,
           "params": [
             "projectPath",
             "slug"
@@ -2521,7 +2537,7 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "buildSpecCommandFile": {
-          "line": 495,
+          "line": 558,
           "params": [
             "projectPath",
             "slug",
@@ -2530,53 +2546,53 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 528,
+          "line": 594,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 554,
+          "line": 620,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 573,
+          "line": 639,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 578,
+          "line": 644,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 658,
+          "line": 724,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 665,
+          "line": 731,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 682,
+          "line": 748,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "searchSpecs": {
-          "line": 712,
+          "line": 778,
           "params": [
             "projectPath",
             "query"
@@ -2584,14 +2600,14 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "createSpec": {
-          "line": 733,
+          "line": 799,
           "params": [
             "projectPath",
             "opts"
           ]
         },
         "updateSpecStatus": {
-          "line": 776,
+          "line": 842,
           "params": [
             "projectPath",
             "slug",
@@ -2599,14 +2615,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 795,
+          "line": 861,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 812,
+          "line": 878,
           "params": [
             "projectPath",
             "oldSlug",
@@ -2615,28 +2631,28 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 919,
+          "line": 985,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 973
+          "line": 1039
         },
         "pushSpecData": {
-          "line": 994,
+          "line": 1060,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1014,
+          "line": 1080,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1018,
+          "line": 1084,
           "params": [
             "ipcMain"
           ]

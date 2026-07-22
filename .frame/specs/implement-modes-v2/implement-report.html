@@ -122,8 +122,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-07-22</span>
   </div>
@@ -1509,6 +1509,128 @@
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> ## Stop conditions</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Stage the implement template, generator and helper into the project</h2>
+    <span class="card-meta"><span class="chip">7e70003</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">105/105 passing; node --check clean. Staged runtime/bin files are gitignored, so only specManager.js is tracked. Not unit-covered per plan&#39;s pure-logic-only test posture</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added stageImplementCommandFiles + a copyIfChanged content-diff helper to src/main/specManager.js: on WATCH_SPECS (project open) and on every spec.implement staging, it copies the raw spec.implement.md and build-implement-report.mjs into .frame/runtime/commands/claude-code/ (override→packaged precedence) and the launch helper into .frame/bin/, imported FRAME_BIN_DIR for the bin path.</p></div>
+    <div class="field"><span class="label">Why</span><p>The bin helper runs with the app closed and can&#39;t read app.asar, so Frame stages its raw material to disk. copyIfChanged skips a missing source (the helper isn&#39;t built until T08) and skips unchanged destinations so project-open staging doesn&#39;t churn watchers.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/specManager.js b/src/main/specManager.js</span>
+<span class="dl-meta">index 0db3d98..cdc8f62 100644</span>
+<span class="dl-file">--- a/src/main/specManager.js</span>
+<span class="dl-file">+++ b/src/main/specManager.js</span>
+<span class="dl-hunk">@@ -15,7 +15,7 @@ const fs = require(&#39;fs&#39;);</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const fsSafe = require(&#39;./fsSafe&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-del">-const { FRAME_DIR, FRAME_CONFIG_FILE, ORCH_META_FILES } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR, FRAME_BIN_DIR, FRAME_CONFIG_FILE, ORCH_META_FILES } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const tasksManager = require(&#39;./tasksManager&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-ctx"> const perfMonitor = require(&#39;./perfMonitor&#39;);</span>
+<span class="dl-hunk">@@ -362,6 +362,69 @@ function stageCommandAssets(projectPath, command, aiTool) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── Implement helper staging (v2) ────────────────────────────</span>
+<span class="dl-add">+//</span>
+<span class="dl-add">+// The bin launch helper (implement-launch.js) runs with the Frame app closed,</span>
+<span class="dl-add">+// so it can&#39;t reach into app.asar for the raw implement template or the report</span>
+<span class="dl-add">+// generator. Frame stages both — plus the helper itself — into the project on</span>
+<span class="dl-add">+// project open (WATCH_SPECS) and on every implement dispatch, so either entry</span>
+<span class="dl-add">+// path (Frame button or `node .frame/bin/implement-launch.js &lt;slug&gt;`) finds</span>
+<span class="dl-add">+// them on disk. cli-spec-command-parity will later generalize the same</span>
+<span class="dl-add">+// runtime/commands/&lt;tool&gt;/ location to all four commands; this is the minimal</span>
+<span class="dl-add">+// slice v2 needs, at the same path, so there&#39;s no conflict.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const RUNTIME_COMMANDS_DIR = path.join(FRAME_DIR, &#39;runtime&#39;, &#39;commands&#39;);</span>
+<span class="dl-add">+const IMPLEMENT_TEMPLATE_FILE = &#39;spec.implement.md&#39;;</span>
+<span class="dl-add">+const IMPLEMENT_HELPER_FILE = &#39;implement-launch.js&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Copy only when the destination content differs, so project-open staging</span>
+<span class="dl-add">+// doesn&#39;t rewrite unchanged files (and re-trigger watchers) every time. A</span>
+<span class="dl-add">+// missing source is skipped, not fatal — the helper isn&#39;t shipped in every</span>
+<span class="dl-add">+// build stage, and a stale runtime copy is better than a crash on open.</span>
+<span class="dl-add">+function copyIfChanged(src, dst) {</span>
+<span class="dl-add">+  let content;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    content = fs.readFileSync(src, &#39;utf8&#39;);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false; // source not present — nothing to stage</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    let existing = null;</span>
+<span class="dl-add">+    try { existing = fs.readFileSync(dst, &#39;utf8&#39;); } catch (_) { /* new file */ }</span>
+<span class="dl-add">+    if (existing === content) return false;</span>
+<span class="dl-add">+    fs.mkdirSync(path.dirname(dst), { recursive: true });</span>
+<span class="dl-add">+    fs.writeFileSync(dst, content, &#39;utf8&#39;);</span>
+<span class="dl-add">+    return true;</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(`specManager: staging ${dst} failed`, err);</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Stage the raw implement template + report generator into</span>
+<span class="dl-add">+// .frame/runtime/commands/&lt;tool&gt;/ and the launch helper into .frame/bin/.</span>
+<span class="dl-add">+// Template and generator resolve through the project&#39;s own override</span>
+<span class="dl-add">+// (.frame/templates/commands/&lt;tool&gt;/) before the packaged copy — the same</span>
+<span class="dl-add">+// precedence loadCommandTemplate/stageCommandAsset use.</span>
+<span class="dl-add">+function stageImplementCommandFiles(projectPath, aiTool) {</span>
+<span class="dl-add">+  if (!projectPath) return;</span>
+<span class="dl-add">+  const tool = aiTool || &#39;claude-code&#39;;</span>
+<span class="dl-add">+  const runtimeCmdDir = path.join(projectPath, RUNTIME_COMMANDS_DIR, tool);</span>
+<span class="dl-add">+  for (const file of [IMPLEMENT_TEMPLATE_FILE, REPORT_GENERATOR_FILE]) {</span>
+<span class="dl-add">+    const override = path.join(projectPath, FRAME_DIR, &#39;templates&#39;, &#39;commands&#39;, tool, file);</span>
+<span class="dl-add">+    const packaged = path.join(FRAME_TEMPLATES_DIR, &#39;commands&#39;, tool, file);</span>
+<span class="dl-add">+    const src = fs.existsSync(override) ? override : packaged;</span>
+<span class="dl-add">+    copyIfChanged(src, path.join(runtimeCmdDir, file));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  // The helper ships from templates/bin/ (no per-project override — it&#39;s Frame</span>
+<span class="dl-add">+  // machinery, not user-authored prose). Missing until it&#39;s built; skipped</span>
+<span class="dl-add">+  // cleanly by copyIfChanged until then.</span>
+<span class="dl-add">+  const helperDst = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, IMPLEMENT_HELPER_FILE);</span>
+<span class="dl-add">+  if (copyIfChanged(path.join(FRAME_TEMPLATES_DIR, &#39;bin&#39;, IMPLEMENT_HELPER_FILE), helperDst)) {</span>
+<span class="dl-add">+    try { fs.chmodSync(helperDst, 0o755); } catch (_) { /* best effort */ }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── Implement-mode permissions ───────────────────────────────</span>
+<span class="dl-ctx"> //</span>
+<span class="dl-ctx"> // The autonomous implement mode runs a whole spec without a prompt between</span>
+<span class="dl-hunk">@@ -501,6 +564,9 @@ function buildSpecCommandFile(projectPath, slug, command, aiTool) {</span>
+<span class="dl-ctx">   const absPath = path.join(promptsDir, filename);</span>
+<span class="dl-ctx">   fs.writeFileSync(absPath, result.prompt, &#39;utf8&#39;);</span>
+<span class="dl-ctx">   stageCommandAssets(projectPath, command, aiTool);</span>
+<span class="dl-add">+  // Implement dispatches also refresh the raw template, generator and helper</span>
+<span class="dl-add">+  // so an out-of-app helper launch always finds the latest on disk.</span>
+<span class="dl-add">+  if (command === &#39;spec.implement&#39;) stageImplementCommandFiles(projectPath, aiTool);</span>
+<span class="dl-ctx">   const relPath = path.posix.join(RUNTIME_PROMPTS_DIR.replace(/\\/g, &#39;/&#39;), filename);</span>
+<span class="dl-ctx">   return {</span>
+<span class="dl-ctx">     success: true,</span>
+<span class="dl-hunk">@@ -1042,6 +1108,13 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx">   ipcMain.on(IPC.WATCH_SPECS, (event, projectPath) =&gt; {</span>
+<span class="dl-ctx">     startWatching(projectPath);</span>
+<span class="dl-add">+    // Project open: stage the implement template, generator and helper so a</span>
+<span class="dl-add">+    // helper-driven launch works even before any in-app implement dispatch.</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      stageImplementCommandFiles(projectPath, &#39;claude-code&#39;);</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      console.error(&#39;specManager: implement helper staging failed&#39;, err);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx">   ipcMain.on(IPC.UNWATCH_SPECS, () =&gt; {</span>
+<span class="dl-ctx">     stopWatching();</span></pre>
     </details>
   </div>
 </section>
