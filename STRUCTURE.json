@@ -6056,6 +6056,60 @@
         }
       }
     },
+    "renderer/specNextAction": {
+      "file": "src/renderer/specNextAction.js",
+      "description": "Spec Next-Action Bar (shared)",
+      "exports": [
+        "nextActionForPhase",
+        "taskCounts",
+        "renderNextActionBar"
+      ],
+      "depends": [
+        "htmlUtils"
+      ],
+      "functions": {
+        "nextActionForPhase": {
+          "line": 31,
+          "params": [
+            "phase"
+          ],
+          "purpose": "Base next-action per phase. For the implement phase the label is resolved"
+        },
+        "implementLabel": {
+          "line": 60,
+          "params": [
+            "hint"
+          ]
+        },
+        "taskCounts": {
+          "line": 69,
+          "params": [
+            "allTasks",
+            "slug"
+          ],
+          "purpose": "Count this spec's tasks from the full task list. Shared so all three"
+        },
+        "renderNextActionBar": {
+          "line": 91,
+          "params": [
+            "{ action",
+            "lane",
+            "hint = null",
+            "counts = null",
+            "buttonId = 'spec-action-btn' } = {}"
+          ],
+          "purpose": "Render the next-action bar."
+        },
+        "_lockedBar": {
+          "line": 133,
+          "params": [
+            "{ heading",
+            "sub",
+            "label }"
+          ]
+        }
+      }
+    },
     "renderer/specPanel": {
       "file": "src/renderer/specPanel.js",
       "description": "Specs Panel Module",
@@ -6075,84 +6129,72 @@
         "shared/ipcChannels",
         "state",
         "htmlUtils",
+        "specNextAction",
         "specsDashboard",
         "agentDispatch"
       ],
       "functions": {
         "init": {
-          "line": 31
+          "line": 32
         },
         "setupEventListeners": {
-          "line": 42
+          "line": 43
         },
         "refresh": {
-          "line": 55,
+          "line": 56,
           "purpose": "Manual fallback for the rare case where the SPEC_DATA push from main"
         },
         "setupIPCListeners": {
-          "line": 70
+          "line": 71
         },
         "show": {
-          "line": 111
+          "line": 112
         },
         "hide": {
-          "line": 119
+          "line": 120
         },
         "toggle": {
-          "line": 128,
+          "line": 129,
           "purpose": "Public toggle. The first time the user invokes this on a project where"
         },
         "startWatchingForProject": {
-          "line": 146,
+          "line": 147,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 155
+          "line": 156
         },
         "renderList": {
-          "line": 162
+          "line": 163
         },
         "renderSpecRow": {
-          "line": 193,
+          "line": 194,
           "params": [
             "spec"
           ]
         },
         "openDetail": {
-          "line": 213,
+          "line": 214,
           "params": [
             "slug"
           ]
         },
         "reloadDetail": {
-          "line": 219
+          "line": 220
         },
         "renderDetail": {
-          "line": 227
-        },
-        "nextActionForPhase": {
-          "line": 297,
-          "params": [
-            "phase"
-          ]
-        },
-        "renderNextActionBar": {
-          "line": 313,
-          "params": [
-            "action",
-            "lane"
-          ]
+          "line": 228
         },
         "runSpecCommand": {
-          "line": 345,
+          "line": 301,
           "params": [
             "command"
           ]
         },
         "renderTabButton": {
-          "line": 357,
+          "line": 313,
           "params": [
             "tab",
             "label",
@@ -6160,98 +6202,98 @@
           ]
         },
         "hasSpecTasks": {
-          "line": 363
+          "line": 319
         },
         "tasksTabLabel": {
-          "line": 369,
+          "line": 325,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderTabBody": {
-          "line": 378,
+          "line": 334,
           "params": [
             "tab"
           ]
         },
         "renderPlanReportRow": {
-          "line": 403,
+          "line": 359,
           "purpose": "\"View Plan Report\" — shown above the rendered plan only when the spec"
         },
         "attachPlanReportHandler": {
-          "line": 411
+          "line": 367
         },
         "renderImplementReportRow": {
-          "line": 422,
+          "line": 378,
           "purpose": "\"View Implementation Report\" — shown above the task list only when the spec"
         },
         "attachImplementReportHandler": {
-          "line": 430
+          "line": 386
         },
         "renderTasksTabBody": {
-          "line": 437
+          "line": 393
         },
         "renderSpecTaskRow": {
-          "line": 477,
+          "line": 433,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 526
+          "line": 482
         },
         "handleSpecTaskAction": {
-          "line": 539,
+          "line": 495,
           "params": [
             "taskId",
             "action"
           ]
         },
         "switchTab": {
-          "line": 558,
+          "line": 514,
           "params": [
             "tab"
           ]
         },
         "backToList": {
-          "line": 572
+          "line": 528
         },
         "showNewSpecPrompt": {
-          "line": 587
+          "line": 543
         },
         "deriveSlugPreview": {
-          "line": 689,
+          "line": 645,
           "params": [
             "title"
           ],
           "purpose": "Same shape as specManager.generateSlug — duplicated here so the renderer"
         },
         "showSuggestionModal": {
-          "line": 707,
+          "line": 663,
           "params": [
             "projectPath"
           ]
         },
         "showRenameModal": {
-          "line": 774,
+          "line": 730,
           "params": [
             "status"
           ]
         },
         "showInlineError": {
-          "line": 867,
+          "line": 823,
           "params": [
             "message"
           ]
         },
         "renderMarkdown": {
-          "line": 887,
+          "line": 843,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 897,
+          "line": 853,
           "params": [
             "iso"
           ]
@@ -6324,74 +6366,62 @@
         "sectionRail",
         "lucide",
         "htmlUtils",
+        "specNextAction",
         "agentDispatch",
         "specsDashboard"
       ],
       "functions": {
         "setHost": {
-          "line": 32,
+          "line": 33,
           "params": [
             "h"
           ]
         },
         "open": {
-          "line": 37,
+          "line": 38,
           "params": [
             "slug"
           ],
           "purpose": "Open a spec — reuses the open spec viewport, or creates one if none."
         },
         "openInNewTab": {
-          "line": 43,
+          "line": 44,
           "params": [
             "slug"
           ],
           "purpose": "Open a spec in a brand-new viewport tab."
         },
         "createViewport": {
-          "line": 49,
+          "line": 50,
           "purpose": "Create a fresh spec viewport instance (the host calls this when needed)."
         },
-        "nextActionForPhase": {
-          "line": 383,
-          "params": [
-            "phase"
-          ]
-        },
-        "renderNextActionBar": {
-          "line": 399,
-          "params": [
-            "action",
-            "lane"
-          ]
-        },
         "stepIndexForPhase": {
-          "line": 435,
+          "line": 392,
           "params": [
             "phase"
           ]
         },
         "renderStepper": {
-          "line": 447,
+          "line": 404,
           "params": [
             "phase"
           ]
         },
         "renderSpecTaskRow": {
-          "line": 464,
+          "line": 421,
           "params": [
             "task"
           ]
         },
         "handleTaskAction": {
-          "line": 513,
+          "line": 470,
           "params": [
             "taskId",
             "action"
           ]
         },
         "renderMarkdown": {
-          "line": 522,
+          "line": 479,
           "params": [
             "md"
           ]
@@ -6423,92 +6453,80 @@
         "shared/ipcChannels",
         "state",
         "htmlUtils",
+        "specNextAction",
         "specPanel",
         "agentDispatch",
         "taskInfoModal"
       ],
       "functions": {
         "init": {
-          "line": 55
+          "line": 56
         },
         "setupIPCListeners": {
-          "line": 91
+          "line": 92
         },
         "show": {
-          "line": 132
+          "line": 133
         },
         "hide": {
-          "line": 164
+          "line": 165
         },
         "toggle": {
-          "line": 171
+          "line": 172
         },
         "renderFilters": {
-          "line": 177
+          "line": 178
         },
         "applyFilter": {
-          "line": 191,
+          "line": 192,
           "params": [
             "specsList"
           ]
         },
         "setupSearch": {
-          "line": 207
+          "line": 208
         },
         "runSearch": {
-          "line": 221,
+          "line": 222,
           "params": [
             "rawQuery"
           ]
         },
         "clearSearch": {
-          "line": 244
+          "line": 245
         },
         "renderGrid": {
-          "line": 255
+          "line": 256
         },
         "renderCard": {
-          "line": 285,
+          "line": 286,
           "params": [
             "spec"
           ]
         },
         "selectCard": {
-          "line": 317,
+          "line": 318,
           "params": [
             "slug"
           ]
         },
         "clearSelection": {
-          "line": 325
+          "line": 326
         },
         "reloadDetail": {
-          "line": 333
+          "line": 334
         },
         "renderDetailHeader": {
-          "line": 349
-        },
-        "nextActionForPhase": {
-          "line": 421,
-          "params": [
-            "phase"
-          ]
-        },
-        "renderNextActionBar": {
-          "line": 437,
-          "params": [
-            "action",
-            "lane"
-          ]
+          "line": 350
         },
         "runSpecCommand": {
-          "line": 468,
+          "line": 431,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 479,
+          "line": 442,
           "params": [
             "tab",
             "label",
@@ -6516,50 +6534,50 @@
           ]
         },
         "renderDetailBody": {
-          "line": 485
+          "line": 448
         },
         "renderTasksTabBody": {
-          "line": 526
+          "line": 489
         },
         "renderSpecTaskRow": {
-          "line": 563,
+          "line": 526,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 612
+          "line": 575
         },
         "handleSpecTaskAction": {
-          "line": 625,
+          "line": 588,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 636
+          "line": 599
         },
         "tasksTabLabel": {
-          "line": 642,
+          "line": 605,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 651,
+          "line": 614,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 656,
+          "line": 619,
           "params": [
             "iso"
           ]
         },
         "displayProjectName": {
-          "line": 667,
+          "line": 630,
           "params": [
             "projectPath"
           ]

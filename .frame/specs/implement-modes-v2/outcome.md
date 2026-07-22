@@ -29,3 +29,11 @@ Branched `dispatchSpecCommand` in `src/renderer/agentDispatch.js`: `spec.impleme
 _Captured: 2026-07-22 · 1 file change_
 
 ---
+
+## T05 — Shared next-action bar with mode-driven label and lock
+
+Created `src/renderer/specNextAction.js` (`nextActionForPhase` + `renderNextActionBar` + `taskCounts`): mode-driven implement label table, turn-scoped lock for step-by-step/custom/no-mode, and run-liveness lock for guided/autonomous (live lane ∧ pending tasks → locked across turn boundaries with "Running — X/Y tasks" and "Waiting for permission" on approval). Wired `specSection.js`, `specPanel.js`, `specsDashboard.js` to it and deleted their three local `nextActionForPhase`/`renderNextActionBar` copies, keeping each surface's own click wiring. Minor deviation: unified the previously-divergent idle labels onto specSection's descriptive set and dropped specSection's inline command-code chip, so one bar renders everywhere. Files touched: `src/renderer/specNextAction.js`, `src/renderer/specSection.js`, `src/renderer/specPanel.js`, `src/renderer/specsDashboard.js`.
+
+_Captured: 2026-07-22 · 4 file changes_
+
+---

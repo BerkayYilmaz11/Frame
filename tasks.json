@@ -3789,13 +3789,13 @@
       "title": "Create src/renderer/specNextAction.js with the mode-driven label table and turn- vs run-liveness lock (guided/autonomous: lane alive ∧ pending tasks → locked with \"Running — X/Y tasks\" and \"Waiting for permission\" on agent-approval); wire specSection.js, specPanel.js and specsDashboard.js to it and delete their local nextActionForPhase/renderNextActionBar copies",
       "description": "",
       "source": "spec:implement-modes-v2:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T13:40:00.000Z",
+      "completedAt": "2026-07-22T13:40:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T06",

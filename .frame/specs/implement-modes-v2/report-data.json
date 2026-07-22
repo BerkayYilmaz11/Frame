@@ -51,6 +51,18 @@
         "status": "pass",
         "detail": "105/105 passing; node --check clean and npm run build bundles the renderer without error. Dispatch flow not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T05",
+      "title": "Shared next-action bar with mode-driven label and lock",
+      "commit": "47ef87d",
+      "whatChanged": "New src/renderer/specNextAction.js holds one nextActionForPhase + renderNextActionBar + taskCounts: a mode-driven implement label (step-by-step→Implement Next Task, guided→Start Guided Run, autonomous→Start Autonomous Run, custom→Run Custom Flow, none→Implement Tasks…), turn-scoped lock for step-by-step/custom/no-mode and run-liveness lock for guided/autonomous (live lane ∧ tasks pending → locked with 'Running — X/Y tasks' / 'Waiting for permission'). Wired specSection.js, specPanel.js and specsDashboard.js to it and deleted their three local copies; each surface keeps its own click wiring.",
+      "whyChanged": "Three drifting near-copies plus the new label×lock×progress logic would be a bug farm. Unified the previously-divergent idle labels (specSection's 'Write the Spec' set won over specPanel/dashboard's 'Run /spec.new'); dropped specSection's inline command-code chip for one uniform bar. Task counts are computed by a shared taskCounts() so all surfaces agree.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; node --check clean on all four files; npm run build bundles without error. Renderer not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }
