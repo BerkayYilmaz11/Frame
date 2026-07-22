@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "implement-modes-v2",
+    "title": "Implement modes v2 — the mode is chosen before the session, never inside it"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Flagged-launch tracking on lanes (launchedAutonomous)",
+      "commit": "48a5fb3",
+      "whatChanged": "Added a module-level launchedAutonomousLanes Map to src/renderer/agentDispatch.js, set when a dispatch starts the CLI carrying launch flags the CLI kept (not dropped), cleared on TERMINAL_DESTROYED, and surfaced as launchedAutonomous on getSpecLaneInfo (gated on a live agentName).",
+      "whyChanged": "The unified implement modal (later tasks) needs to know whether a live lane was launched with the autonomous permission flags before it may offer autonomous 'Continue'. Recording this at CLI-start — the only moment launch flags exist — makes it a fixed property of the session for the lane's lifetime, since a reused lane never restarts the CLI.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; renderer change is not unit-covered per plan's pure-logic-only test posture"
+      }
+    }
+  ]
+}

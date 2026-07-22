@@ -28,6 +28,17 @@ const notify = require('./notify');
 
 let multiTerminalUI = null;
 
+// Which lanes were launched with the autonomous permission flags still on
+// (the CLI accepted `--settings/--permission-mode` — the flags were not
+// dropped). Keyed by terminalId, set at the CLI start that carried them,
+// cleared when the terminal is destroyed. This is a property of how the
+// lane's agent session was *launched*, fixed for its lifetime — a reused
+// lane never restarts the CLI, so its launch flags never change. The unified
+// implement modal reads it to decide whether "Continue in <Frame>" may keep
+// the autonomous mode, which only holds when the live session already carries
+// those flags.
+const launchedAutonomousLanes = new Map(); // Map<terminalId, boolean>
+
 /**
  * Initialize with the MultiTerminalUI instance.
  */
@@ -48,6 +59,7 @@ function init(ui) {
     if (a && a.kind === 'task') _notifyTaskLane(a.ref);
   });
   ipcRenderer.on(IPC.TERMINAL_DESTROYED, (event, { terminalId }) => {
+    launchedAutonomousLanes.delete(terminalId);
     for (const [slug, laneId] of specLanes) {
       if (laneId === terminalId) _notifySpecLane(slug);
     }
@@ -185,6 +197,13 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p
     // The CLI actually launched and reached ready — that is an agent run.
     // Main normalizes the tool id to the registry enum before sending.
     ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', { tool: chosenToolId });
+
+    // This dispatch started the session. Record whether it carried the
+    // autonomous permission flags and the CLI kept them (didn't come up
+    // bare) — that pins the lane as autonomous-launched for its lifetime.
+    if (launchFlags && launchFlags.length && !flagsDropped) {
+      launchedAutonomousLanes.set(targetId, true);
+    }
   }
 
   // ── Inject ───────────────────────────────────────────────
@@ -433,7 +452,12 @@ function getSpecLaneInfo(slug) {
     name: _laneName(id),
     status: s.status,
     agentName: s.agentName,
-    busy: !!s.agentName && (s.status === 'agent-working' || s.status === 'agent-approval')
+    busy: !!s.agentName && (s.status === 'agent-working' || s.status === 'agent-approval'),
+    // True only while a live agent owns a lane that was launched with the
+    // autonomous flags intact — the modal's gate for allowing autonomous
+    // "Continue". Requires agentName so a dead-but-remembered lane never
+    // reports a session that no longer exists.
+    launchedAutonomous: !!s.agentName && !!launchedAutonomousLanes.get(id)
   };
 }
 
