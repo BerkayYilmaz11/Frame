@@ -37,3 +37,11 @@ Created `src/renderer/specNextAction.js` (`nextActionForPhase` + `renderNextActi
 _Captured: 2026-07-22 · 4 file changes_
 
 ---
+
+## T06 — Rewrite spec.implement.md for v2 dispatch
+
+Rewrote `src/templates/commands/claude-code/spec.implement.md`: a recorded `implement_mode` now runs its loop with no in-session picker; conversational entry offers step-by-step/guided/describe-your-own as runnable and resolves autonomous to one `status.json` write plus one handoff (Frame button + `node .frame/bin/implement-launch.js {slug}`). Added the guided mode (shares the autonomous loop, no flags, CLI prompts pace, same `report-data.json` contract), a flags-refused override that runs guided, and the described-flow skill lifecycle (detect/offer/save under `.claude/skills/<name>/SKILL.md`) superseding the `.frame/implement-flow.md`/`flowFile` mechanism. No deviation from plan; the `{project_path}`/`{slug}`/`{report_generator_path}` interpolation contract is unchanged. Files touched: `src/templates/commands/claude-code/spec.implement.md`.
+
+_Captured: 2026-07-22 · 1 file change_
+
+---

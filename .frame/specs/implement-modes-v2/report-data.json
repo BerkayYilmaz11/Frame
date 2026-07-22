@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "105/105 passing; node --check clean on all four files; npm run build bundles without error. Renderer not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Rewrite spec.implement.md: recorded-mode dispatch, guided, autonomous handoff, skill flows",
+      "commit": "dd65c94",
+      "whatChanged": "Rewrote src/templates/commands/claude-code/spec.implement.md so a recorded implement_mode runs its loop with no in-session picker; conversational entry offers step-by-step/guided/describe-your-own as runnable and resolves autonomous to one status.json write plus one handoff (Frame button + node .frame/bin/implement-launch.js <slug>). Added the guided mode (sharing the autonomous loop, no flags, CLI prompts pace, same report-data.json contract), a flags-refused override that runs guided, and the described-flow skill lifecycle (detect/offer/save under .claude/skills/<name>/SKILL.md) superseding the flowFile picker entry. Kept the same {project_path}/{slug}/{report_generator_path} interpolation contract.",
+      "whyChanged": "The whole spec: move mode selection ahead of the session, kill the in-session picker and the re-dispatch dead end, add the middle rung (guided), and make saved flows committable skills instead of an untracked .frame file.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; template placeholders unchanged from the prior version, so the interpolation contract holds. Template prose is not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }

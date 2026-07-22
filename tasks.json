@@ -3802,13 +3802,13 @@
       "title": "Rewrite src/templates/commands/claude-code/spec.implement.md: a recorded implement_mode runs without a picker; conversational fallback offers step-by-step/guided/describe-your-own; autonomous resolves to one status.json write plus one handoff naming the Frame button and node .frame/bin/implement-launch.js <slug>; add the guided section (Mode B loop, no flags, same report-data.json contract); flags-refused note runs guided; described-flow skill lifecycle saving to .claude/skills/<name>/SKILL.md superseding the flowFile picker entry",
       "description": "",
       "source": "spec:implement-modes-v2:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T13:50:00.000Z",
+      "completedAt": "2026-07-22T13:50:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T07",
