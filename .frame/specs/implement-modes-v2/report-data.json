@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "105/105 passing; getSpec's payload is not unit-covered per plan's pure-logic-only test posture"
       }
+    },
+    {
+      "id": "T03",
+      "title": "Unified implement mode + destination modal",
+      "commit": "e96269c",
+      "whatChanged": "New src/renderer/implementModeModal.js: a Promise-based spec-modal-overlay with four mode entries (hinted mode preselected), a destination section rendered only when the spec's lane is alive, autonomous 'Continue' disabled with a stated reason and forced to a new Frame unless lane.launchedAutonomous, and Escape/backdrop/Cancel all resolving null. Added matching styles to src/renderer/styles/components/panels.css.",
+      "whyChanged": "Absorbs the old _askContinueOrNew into one modal so two dialogs never stack, per the spec. Built as a dynamic overlay (like agentDispatch's own dialogs) rather than the pre-baked-HTML taskConfirmModal pattern, because the mode and destination sections react to each other and would otherwise need markup kept in sync in index.html.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "105/105 passing; node --check clean. Renderer/CSS not unit-covered per plan's pure-logic-only test posture"
+      }
     }
   ]
 }

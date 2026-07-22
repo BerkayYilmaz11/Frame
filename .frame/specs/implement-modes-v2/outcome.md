@@ -13,3 +13,11 @@ Added `implementHint: resolveImplementLaunchHint(projectPath, slug)` to `getSpec
 _Captured: 2026-07-22 · 1 file change_
 
 ---
+
+## T03 — Unified implement mode + destination modal
+
+Created `src/renderer/implementModeModal.js`, a Promise-based `spec-modal-overlay` with the four mode entries (hinted mode preselected), a destination section shown only when the spec's lane is alive, autonomous "Continue" disabled with a stated reason and forced to a new Frame unless `lane.launchedAutonomous`, and Escape/backdrop/Cancel resolving null. Added the matching mode/destination styles to `src/renderer/styles/components/panels.css`. Deviation from plan: built as a dynamic overlay (agentDispatch's own idiom) rather than the pre-baked-HTML `taskConfirmModal` pattern the plan cited, because the reactive mode↔destination coupling makes dynamic markup the cleaner fit — the plan already allowed reusing the `spec-modal-overlay` idiom. Files touched: `src/renderer/implementModeModal.js`, `src/renderer/styles/components/panels.css`.
+
+_Captured: 2026-07-22 · 2 file changes_
+
+---

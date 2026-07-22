@@ -3763,13 +3763,13 @@
       "title": "Build src/renderer/implementModeModal.js plus styles in src/renderer/styles/components/panels.css: four mode entries with the hinted mode preselected, destination section only when the spec's lane is alive, autonomous-Continue enabled only for launchedAutonomous lanes (disabled with reason otherwise, destination forced to new Frame), Escape/backdrop cancel resolving null",
       "description": "",
       "source": "spec:implement-modes-v2:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: implement-modes-v2",
       "createdAt": "2026-07-22T10:31:08.066Z",
-      "updatedAt": "2026-07-22T10:31:08.066Z",
-      "completedAt": null
+      "updatedAt": "2026-07-22T13:20:00.000Z",
+      "completedAt": "2026-07-22T13:20:00.000Z"
     },
     {
       "id": "task-spec-implement-modes-v2-T04",

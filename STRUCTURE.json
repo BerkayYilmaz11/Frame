@@ -4431,6 +4431,28 @@
         }
       }
     },
+    "renderer/implementModeModal": {
+      "file": "src/renderer/implementModeModal.js",
+      "description": "Implement Mode Modal",
+      "exports": [
+        "open"
+      ],
+      "depends": [
+        "htmlUtils"
+      ],
+      "functions": {
+        "open": {
+          "line": 71,
+          "params": [
+            "{ slug",
+            "title = null",
+            "hint = null",
+            "lane = null } = {}"
+          ],
+          "purpose": "Open the modal."
+        }
+      }
+    },
     "renderer/index": {
       "file": "src/renderer/index.js",
       "description": "Renderer Entry Point",
@@ -9006,6 +9028,18 @@
         "description": "Prompts Panel Module"
       }
     ],
+    "implement": [
+      {
+        "module": "renderer/implementModeModal",
+        "file": "src/renderer/implementModeModal.js",
+        "description": "Implement Mode Modal"
+      },
+      {
+        "module": "templates/commands/claude-code/build-implement-report",
+        "file": "src/templates/commands/claude-code/build-implement-report.mjs",
+        "description": ""
+      }
+    ],
     "ipc": [
       {
         "module": "shared/ipcChannels",
@@ -9023,6 +9057,18 @@
         "module": "main/pluginsManager",
         "file": "src/main/pluginsManager.js",
         "description": "Plugins Manager Module"
+      }
+    ],
+    "modal": [
+      {
+        "module": "renderer/implementModeModal",
+        "file": "src/renderer/implementModeModal.js",
+        "description": "Implement Mode Modal"
+      },
+      {
+        "module": "renderer/openProjectModal",
+        "file": "src/renderer/openProjectModal.js",
+        "description": "Open Project Modal"
       }
     ],
     "orchestration": [

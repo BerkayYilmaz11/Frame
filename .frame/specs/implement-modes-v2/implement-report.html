@@ -122,8 +122,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-07-22</span>
   </div>
@@ -235,6 +235,331 @@
 <span class="dl-ctx">   };</span>
 <span class="dl-ctx"> }</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Unified implement mode + destination modal</h2>
+    <span class="card-meta"><span class="chip">e96269c</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">105/105 passing; node --check clean. Renderer/CSS not unit-covered per plan&#39;s pure-logic-only test posture</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/renderer/implementModeModal.js: a Promise-based spec-modal-overlay with four mode entries (hinted mode preselected), a destination section rendered only when the spec&#39;s lane is alive, autonomous &#39;Continue&#39; disabled with a stated reason and forced to a new Frame unless lane.launchedAutonomous, and Escape/backdrop/Cancel all resolving null. Added matching styles to src/renderer/styles/components/panels.css.</p></div>
+    <div class="field"><span class="label">Why</span><p>Absorbs the old _askContinueOrNew into one modal so two dialogs never stack, per the spec. Built as a dynamic overlay (like agentDispatch&#39;s own dialogs) rather than the pre-baked-HTML taskConfirmModal pattern, because the mode and destination sections react to each other and would otherwise need markup kept in sync in index.html.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/implementModeModal.js b/src/renderer/implementModeModal.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..535c6d2</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/implementModeModal.js</span>
+<span class="dl-hunk">@@ -0,0 +1,187 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Implement Mode Modal</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The single door the implement button opens: pick a mode, and — only when</span>
+<span class="dl-add">+ * the spec already has a live lane — pick where it runs. It absorbs the old</span>
+<span class="dl-add">+ * `_askContinueOrNew` dialog so two stacked modals never appear; the ordering</span>
+<span class="dl-add">+ * flip (modal → record implement_mode → stage → dispatch) lives in the caller</span>
+<span class="dl-add">+ * (agentDispatch.dispatchSpecCommand).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Built the same way as agentDispatch&#39;s own overlays — a dynamically created</span>
+<span class="dl-add">+ * `spec-modal-overlay`, resolved through a Promise — rather than the</span>
+<span class="dl-add">+ * pre-baked-HTML pattern of taskConfirmModal, because it must render four</span>
+<span class="dl-add">+ * mode entries and a conditional destination section that react to each</span>
+<span class="dl-add">+ * other. No pre-existing markup in index.html to keep in sync.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Result contract:</span>
+<span class="dl-add">+ *   { mode: &#39;step-by-step&#39;|&#39;guided&#39;|&#39;autonomous&#39;|&#39;custom&#39;,</span>
+<span class="dl-add">+ *     destination: &#39;continue&#39;|&#39;new&#39; }   on confirm</span>
+<span class="dl-add">+ *   null                                 on Escape / backdrop / Cancel</span>
+<span class="dl-add">+ *     (the caller writes nothing and dispatches nothing on null)</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { escapeHtml } = require(&#39;./htmlUtils&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The four rungs of the mode ladder. Order is the display order; `id` is the</span>
+<span class="dl-add">+// persisted `implement_mode` value. Descriptions say what the user *gets*,</span>
+<span class="dl-add">+// not just what the mode is called.</span>
+<span class="dl-add">+const MODES = [</span>
+<span class="dl-add">+  {</span>
+<span class="dl-add">+    id: &#39;step-by-step&#39;,</span>
+<span class="dl-add">+    label: &#39;Step by step&#39;,</span>
+<span class="dl-add">+    desc: &#39;Implement one task, report what changed and why, then wait for your approval to commit and move on.&#39;</span>
+<span class="dl-add">+  },</span>
+<span class="dl-add">+  {</span>
+<span class="dl-add">+    id: &#39;guided&#39;,</span>
+<span class="dl-add">+    label: &#39;Guided run&#39;,</span>
+<span class="dl-add">+    desc: &#39;Run every task in order with no check-ins between them — the CLI’s own permission prompts pace it — and build the live implementation report.&#39;</span>
+<span class="dl-add">+  },</span>
+<span class="dl-add">+  {</span>
+<span class="dl-add">+    id: &#39;autonomous&#39;,</span>
+<span class="dl-add">+    label: &#39;Autonomous + report&#39;,</span>
+<span class="dl-add">+    desc: &#39;Run every task unattended, one commit each, refreshing the HTML report as each lands. Needs a session launched with the autonomous permission flags.&#39;</span>
+<span class="dl-add">+  },</span>
+<span class="dl-add">+  {</span>
+<span class="dl-add">+    id: &#39;custom&#39;,</span>
+<span class="dl-add">+    label: &#39;Describe your own&#39;,</span>
+<span class="dl-add">+    desc: &#39;Tell the agent how to run this — commit cadence, whether to verify, whether to report — in its own session.&#39;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const VALID_MODES = new Set(MODES.map((m) =&gt; m.id));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const AUTONOMOUS_CONTINUE_REASON =</span>
+<span class="dl-add">+  &#39;Autonomous needs a session launched with its permission flags, and this &#39;</span>
+<span class="dl-add">+  + &#39;Frame wasn’t — continuing here couldn’t keep that mode. Open a new Frame instead.&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Open the modal.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {object} opts</span>
+<span class="dl-add">+ * @param {string}      opts.slug   - spec slug</span>
+<span class="dl-add">+ * @param {string}      [opts.title]- spec title (heading copy only)</span>
+<span class="dl-add">+ * @param {string|null} [opts.hint] - resolved implement hint; the matching</span>
+<span class="dl-add">+ *                                     mode is preselected</span>
+<span class="dl-add">+ * @param {object|null} [opts.lane] - getSpecLaneInfo(slug); the destination</span>
+<span class="dl-add">+ *                                     section shows only when its agent is</span>
+<span class="dl-add">+ *                                     live. `lane.launchedAutonomous` gates</span>
+<span class="dl-add">+ *                                     autonomous &quot;Continue&quot;.</span>
+<span class="dl-add">+ * @returns {Promise&lt;{mode:string, destination:&#39;continue&#39;|&#39;new&#39;}|null&gt;}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function open({ slug, title = null, hint = null, lane = null } = {}) {</span>
+<span class="dl-add">+  return new Promise((resolve) =&gt; {</span>
+<span class="dl-add">+    const laneAlive = !!(lane &amp;&amp; lane.agentName);</span>
+<span class="dl-add">+    let mode = VALID_MODES.has(hint) ? hint : &#39;step-by-step&#39;;</span>
+<span class="dl-add">+    // Continue is the natural default for a live lane; a hidden section (no</span>
+<span class="dl-add">+    // live lane) always resolves to a new Frame.</span>
+<span class="dl-add">+    let destination = laneAlive ? &#39;continue&#39; : &#39;new&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const overlay = document.createElement(&#39;div&#39;);</span>
+<span class="dl-add">+    overlay.className = &#39;spec-modal-overlay&#39;;</span>
+<span class="dl-add">+    overlay.innerHTML = `</span>
+<span class="dl-add">+      &lt;div class=&quot;spec-modal spec-implement-modal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;impl-mode-title&quot;&gt;</span>
+<span class="dl-add">+        &lt;h3 id=&quot;impl-mode-title&quot;&gt;How should this run?&lt;/h3&gt;</span>
+<span class="dl-add">+        &lt;p&gt;Choose how &lt;strong&gt;${escapeHtml(title || slug)}&lt;/strong&gt; implements its remaining tasks.&lt;/p&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;impl-mode-list&quot; role=&quot;radiogroup&quot; aria-label=&quot;Implement mode&quot;&gt;&lt;/div&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;impl-dest-section&quot;&gt;&lt;/div&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;spec-modal-actions&quot;&gt;</span>
+<span class="dl-add">+          &lt;button type=&quot;button&quot; class=&quot;btn btn-secondary impl-cancel&quot;&gt;Cancel&lt;/button&gt;</span>
+<span class="dl-add">+          &lt;button type=&quot;button&quot; class=&quot;btn btn-primary impl-confirm&quot;&gt;Start&lt;/button&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+    `;</span>
+<span class="dl-add">+    document.body.appendChild(overlay);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const listEl = overlay.querySelector(&#39;.impl-mode-list&#39;);</span>
+<span class="dl-add">+    const destEl = overlay.querySelector(&#39;.impl-dest-section&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Autonomous &quot;Continue&quot; is impossible unless the live lane was itself</span>
+<span class="dl-add">+    // launched with the autonomous flags — otherwise every edit would stop on</span>
+<span class="dl-add">+    // a prompt, the precise thing the mode avoids.</span>
+<span class="dl-add">+    const autonomousContinueBlocked = () =&gt;</span>
+<span class="dl-add">+      mode === &#39;autonomous&#39; &amp;&amp; laneAlive &amp;&amp; !lane.launchedAutonomous;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    function renderModes() {</span>
+<span class="dl-add">+      listEl.innerHTML = MODES.map((m) =&gt; `</span>
+<span class="dl-add">+        &lt;button type=&quot;button&quot; class=&quot;impl-mode-option${m.id === mode ? &#39; selected&#39; : &#39;&#39;}&quot;</span>
+<span class="dl-add">+                role=&quot;radio&quot; aria-checked=&quot;${m.id === mode ? &#39;true&#39; : &#39;false&#39;}&quot; data-mode=&quot;${m.id}&quot;&gt;</span>
+<span class="dl-add">+          &lt;span class=&quot;impl-mode-name&quot;&gt;${escapeHtml(m.label)}&lt;/span&gt;</span>
+<span class="dl-add">+          &lt;span class=&quot;impl-mode-desc&quot;&gt;${escapeHtml(m.desc)}&lt;/span&gt;</span>
+<span class="dl-add">+        &lt;/button&gt;`).join(&#39;&#39;);</span>
+<span class="dl-add">+      listEl.querySelectorAll(&#39;.impl-mode-option&#39;).forEach((btn) =&gt; {</span>
+<span class="dl-add">+        btn.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+          mode = btn.dataset.mode;</span>
+<span class="dl-add">+          renderModes();</span>
+<span class="dl-add">+          renderDest();</span>
+<span class="dl-add">+        });</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    function renderDest() {</span>
+<span class="dl-add">+      if (!laneAlive) {</span>
+<span class="dl-add">+        destEl.innerHTML = &#39;&#39;;</span>
+<span class="dl-add">+        destination = &#39;new&#39;;</span>
+<span class="dl-add">+        return;</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      const blocked = autonomousContinueBlocked();</span>
+<span class="dl-add">+      // A blocked autonomous choice forces a new Frame; any other switch that</span>
+<span class="dl-add">+      // left destination undefined falls back to Continue.</span>
+<span class="dl-add">+      if (blocked) destination = &#39;new&#39;;</span>
+<span class="dl-add">+      else if (destination !== &#39;continue&#39; &amp;&amp; destination !== &#39;new&#39;) destination = &#39;continue&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+      const frameName = escapeHtml(lane.name || &#39;this Frame&#39;);</span>
+<span class="dl-add">+      destEl.innerHTML = `</span>
+<span class="dl-add">+        &lt;div class=&quot;impl-dest-label&quot;&gt;Where should it run?&lt;/div&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;impl-dest-options&quot;&gt;</span>
+<span class="dl-add">+          &lt;button type=&quot;button&quot;</span>
+<span class="dl-add">+                  class=&quot;impl-dest-option${destination === &#39;continue&#39; ? &#39; selected&#39; : &#39;&#39;}${blocked ? &#39; disabled&#39; : &#39;&#39;}&quot;</span>
+<span class="dl-add">+                  data-dest=&quot;continue&quot; ${blocked ? &#39;disabled aria-disabled=&quot;true&quot;&#39; : &#39;&#39;}&gt;</span>
+<span class="dl-add">+            &lt;span class=&quot;impl-dest-name&quot;&gt;Continue in ${frameName}&lt;/span&gt;</span>
+<span class="dl-add">+            ${blocked ? `&lt;span class=&quot;impl-dest-reason&quot;&gt;${escapeHtml(AUTONOMOUS_CONTINUE_REASON)}&lt;/span&gt;` : &#39;&#39;}</span>
+<span class="dl-add">+          &lt;/button&gt;</span>
+<span class="dl-add">+          &lt;button type=&quot;button&quot; class=&quot;impl-dest-option${destination === &#39;new&#39; ? &#39; selected&#39; : &#39;&#39;}&quot; data-dest=&quot;new&quot;&gt;</span>
+<span class="dl-add">+            &lt;span class=&quot;impl-dest-name&quot;&gt;Open a new Frame&lt;/span&gt;</span>
+<span class="dl-add">+          &lt;/button&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;`;</span>
+<span class="dl-add">+      destEl.querySelectorAll(&#39;.impl-dest-option&#39;).forEach((btn) =&gt; {</span>
+<span class="dl-add">+        if (btn.disabled) return;</span>
+<span class="dl-add">+        btn.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+          destination = btn.dataset.dest;</span>
+<span class="dl-add">+          renderDest();</span>
+<span class="dl-add">+        });</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const done = (result) =&gt; {</span>
+<span class="dl-add">+      overlay.remove();</span>
+<span class="dl-add">+      document.removeEventListener(&#39;keydown&#39;, onKey, true);</span>
+<span class="dl-add">+      resolve(result);</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+    // Capture phase so Escape beats any surface-level Esc handler, matching</span>
+<span class="dl-add">+    // taskConfirmModal&#39;s contract.</span>
+<span class="dl-add">+    const onKey = (e) =&gt; {</span>
+<span class="dl-add">+      if (e.key === &#39;Escape&#39;) {</span>
+<span class="dl-add">+        e.stopPropagation();</span>
+<span class="dl-add">+        done(null);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    overlay.querySelector(&#39;.impl-cancel&#39;).addEventListener(&#39;click&#39;, () =&gt; done(null));</span>
+<span class="dl-add">+    overlay.querySelector(&#39;.impl-confirm&#39;).addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+      done({ mode, destination: laneAlive ? destination : &#39;new&#39; });</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    overlay.addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-add">+      if (e.target === overlay) done(null);</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    document.addEventListener(&#39;keydown&#39;, onKey, true);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    renderModes();</span>
+<span class="dl-add">+    renderDest();</span>
+<span class="dl-add">+    requestAnimationFrame(() =&gt; {</span>
+<span class="dl-add">+      const confirm = overlay.querySelector(&#39;.impl-confirm&#39;);</span>
+<span class="dl-add">+      if (confirm) confirm.focus();</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { open };</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/panels.css b/src/renderer/styles/components/panels.css</span>
+<span class="dl-meta">index e28c942..4fda178 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/components/panels.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/panels.css</span>
+<span class="dl-hunk">@@ -5443,6 +5443,112 @@</span>
+<span class="dl-ctx">   gap: var(--space-sm);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/* Implement mode modal — the unified mode + destination picker opened by the</span>
+<span class="dl-add">+   implement button. Wider than the default shell to give the four mode</span>
+<span class="dl-add">+   entries room to breathe. */</span>
+<span class="dl-add">+.spec-implement-modal {</span>
+<span class="dl-add">+  width: 500px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-list {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: var(--space-sm);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-option {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: 3px;</span>
+<span class="dl-add">+  text-align: left;</span>
+<span class="dl-add">+  padding: var(--space-md);</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border: 1px solid var(--border-default);</span>
+<span class="dl-add">+  border-radius: var(--radius-md);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  transition: border-color var(--transition-fast), background var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-option:hover {</span>
+<span class="dl-add">+  border-color: var(--border-strong, var(--accent-primary));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-option.selected {</span>
+<span class="dl-add">+  border-color: var(--accent-primary);</span>
+<span class="dl-add">+  background: var(--accent-subtle, rgba(212, 165, 116, 0.12));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-name {</span>
+<span class="dl-add">+  font-size: 13px;</span>
+<span class="dl-add">+  font-weight: 600;</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-mode-desc {</span>
+<span class="dl-add">+  font-size: 11.5px;</span>
+<span class="dl-add">+  color: var(--text-tertiary);</span>
+<span class="dl-add">+  line-height: 1.45;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/* Destination section — present only when the spec&#39;s lane is alive. */</span>
+<span class="dl-add">+.impl-dest-section:empty {</span>
+<span class="dl-add">+  display: none;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-label {</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  text-transform: uppercase;</span>
+<span class="dl-add">+  letter-spacing: 0.5px;</span>
+<span class="dl-add">+  color: var(--text-tertiary);</span>
+<span class="dl-add">+  font-weight: 600;</span>
+<span class="dl-add">+  margin-bottom: var(--space-xs);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-options {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: var(--space-sm);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-option {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: 3px;</span>
+<span class="dl-add">+  text-align: left;</span>
+<span class="dl-add">+  padding: var(--space-sm) var(--space-md);</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border: 1px solid var(--border-default);</span>
+<span class="dl-add">+  border-radius: var(--radius-md);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  transition: border-color var(--transition-fast), background var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-option:hover:not(.disabled) {</span>
+<span class="dl-add">+  border-color: var(--border-strong, var(--accent-primary));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-option.selected {</span>
+<span class="dl-add">+  border-color: var(--accent-primary);</span>
+<span class="dl-add">+  background: var(--accent-subtle, rgba(212, 165, 116, 0.12));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-option.disabled {</span>
+<span class="dl-add">+  opacity: 0.55;</span>
+<span class="dl-add">+  cursor: not-allowed;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-name {</span>
+<span class="dl-add">+  font-size: 12.5px;</span>
+<span class="dl-add">+  font-weight: 600;</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.impl-dest-reason {</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  color: var(--warning);</span>
+<span class="dl-add">+  line-height: 1.45;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /* Suggestion (opt-in) modal — softer presentation than the New Spec modal */</span>
+<span class="dl-ctx"> .spec-modal-suggestion {</span>
+<span class="dl-ctx">   width: 540px;</span></pre>
     </details>
   </div>
 </section>
