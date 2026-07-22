@@ -182,12 +182,18 @@ tasks in order and keep going until none remain — no confirmation between
 tasks, no "shall I continue". A confirmation between tasks turns either mode
 back into step-by-step, which is not what the user picked.
 
-Before the first task, tell the user — once, as a statement, not a question —
-where to watch: the report opens from the **View Implementation Report** button
-on the spec's Tasks tab in Frame (the button appears when the first task
-lands), or directly at `.frame/specs/{slug}/implement-report.html` when no
-Frame window is open, and it is regenerated after every task, so refreshing
-the opened page follows the run live. Then start; do not wait for a reply.
+Before the first task, **create the empty report and open it** (see *Producing
+the report* below): write `.frame/specs/{slug}/report-data.json` with the spec's
+`slug` and `title` and an empty `tasks` array, then run the generator with
+`--open`. This opens the report in its empty state — a page that names what will
+appear as the run turns — so the user sees it waiting before any code lands, and
+makes the **View Implementation Report** button appear in Frame from the start.
+
+Then tell the user — once, as a statement, not a question — where to watch: the
+report opens from the **View Implementation Report** button on the spec's Tasks
+tab in Frame, or directly at `.frame/specs/{slug}/implement-report.html` when no
+Frame window is open, and it is regenerated after every task, so refreshing the
+opened page follows the run live. Then start; do not wait for a reply.
 
 Per task, in this order:
 
@@ -198,8 +204,9 @@ Per task, in this order:
    command, and record the result. That order is also the one Frame allowed in
    this session's permissions. If none of them holds a command, see below.
 4. Append the task's entry to `.frame/specs/{slug}/report-data.json` with
-   `"commit": ""` — the hash does not exist yet. Create the file on the first
-   task, using the shape documented at the top of the generator.
+   `"commit": ""` — the hash does not exist yet. The file already exists (you
+   created it empty before the first task); append to its `tasks` array, using
+   the shape documented at the top of the generator.
 5. Append the outcome entry.
 6. Mark the task `completed`.
 7. **One atomic commit** — code, outcome entry, report data and state files
@@ -244,8 +251,9 @@ not launch, `$FRAME_NODE` is unset — use `node` from `PATH` instead (the
 missing-runtime order below). It writes `implement-report.html` next to the
 data file, openable as each task completes.
 
-**On the first task only, add `--open`** so the report opens in the browser
-once, at the moment there's something to see:
+**Add `--open` only on the very first generation** — the empty-report
+generation you run before the first task (above) — so the report opens in the
+browser once, at the start of the run:
 
 ```
 ELECTRON_RUN_AS_NODE=1 "$FRAME_NODE" {report_generator_path} --open \
@@ -254,13 +262,14 @@ ELECTRON_RUN_AS_NODE=1 "$FRAME_NODE" {report_generator_path} --open \
 
 This matters most for a terminal-launched autonomous run, where there's no
 Frame window to click the **View Implementation Report** button. Pass `--open`
-**only on the first generation** — every later task regenerates the same file,
-and the reader follows the run by reloading the tab they already have open, so
-re-passing it would spawn a new tab per task. Opening is best-effort: on a box
-with no browser opener it silently does nothing and the run is unaffected. The
-report itself now carries a live status banner (how many tasks are done, which
-is next, and a reload hint), so the reader always knows whether the page in
-front of them is mid-run or final.
+**only on that first, empty generation** — every task afterwards regenerates the
+same file, and the reader follows the run by reloading the tab they already have
+open, so re-passing it would spawn a new tab per task. Opening is best-effort: on
+a box with no browser opener it silently does nothing and the run is unaffected.
+The report itself carries a live status banner (how many tasks are done, which
+is next, and a reload hint) plus, before the first task, an empty state naming
+what will appear — so the reader always knows whether the page in front of them
+is waiting, mid-run, or final.
 
 Never transcribe a diff into the report yourself. The generator reads each
 commit from git by hash; that is the one place an invented line would silently
