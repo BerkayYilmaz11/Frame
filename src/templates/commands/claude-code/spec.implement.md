@@ -75,6 +75,53 @@ No re-dispatch negotiation, no second picker, no settings-file writes.
 Once the user picks a runnable mode, record it in `status.json`
 (`implement_mode`) so the next dispatch resolves without asking, then run it.
 
+## Pre-flight — the tree and the branch, before anything else
+
+Runs once, in **every mode — autonomous included** — after the mode is
+resolved and before anything the run produces: no report, no task claim, no
+edit until this clears. The autonomous flags remove permission prompts, not
+this question; the unattended part of the run begins after pre-flight passes.
+
+**The working tree.** Check `git status`. Clean → pass without a word. Dirty →
+classify what's there before asking, so the question you ask is the right one:
+
+- **Plan-phase artifacts** — changes confined to `.frame/specs/{slug}/`
+  (spec.md, plan.md, tasks.md, status.json) and this spec's entries in the
+  root `tasks.json`. That is the planning session's output that never got
+  committed. Offer the natural move: *commit these as a plan commit before
+  implementation starts* (a `docs`/`plan`-style commit naming the spec), with
+  "leave them, start anyway" as the alternative.
+- **Foreign changes** — anything else, including another spec's files. Name
+  the files and ask what to do: commit them, stash them, or start on top of
+  them. Do not guess; work you didn't produce is not yours to file away.
+
+A mixed tree gets both classifications in the same question, not two
+interruptions.
+
+**The branch.** No file records a spec↔branch mapping; judge by convention:
+
+- On `main`/`master` → always ask. Offer to create and switch to
+  `feat/{slug}` — the shared core forbids touching main, so a run that starts
+  there has nowhere to commit.
+- On a branch whose name has nothing to do with `{slug}` — it reads like
+  another spec's or another piece of work's branch → ask: *switch (or create
+  `feat/{slug}`) and start there, or continue here on purpose?*
+- On a branch that plausibly belongs to this spec → pass.
+
+**Ask in the normal message flow, not with the structured-question tool.**
+Pre-flight is a judgment call, not a picker: form a recommendation from your
+classification and lead with it — what you found, what you'd do, one
+question. *"Uncommitted changes in spec.md / plan.md / tasks.md look like
+this spec's plan output — I'd commit them as a plan commit and start. OK?"*
+A plain question lets the user answer with nuance a picker would flatten
+("commit those, but stash the other two"). Tree and branch findings travel
+in the same message when both apply: one interruption, not two. Then
+**wait** — an unanswered pre-flight is a hard stop, same as the mode picker.
+
+Whatever the user answers — commit, stash, switch, or "continue as is" —
+carry it out, say in one line what state the run starts from, and start.
+Pre-flight happens once per session and never resurfaces mid-run.
+
 ## The shared core — every mode obeys this
 
 Binding on all modes, **including a flow the user describes**. A described flow
@@ -181,6 +228,10 @@ In both, you turn the loop and the user watches the report. Take the pending
 tasks in order and keep going until none remain — no confirmation between
 tasks, no "shall I continue". A confirmation between tasks turns either mode
 back into step-by-step, which is not what the user picked.
+
+Pre-flight has already cleared by the time this loop starts — the empty
+report below is the run's first output, never something that lands on a dirty
+tree or the wrong branch.
 
 Before the first task, **create the empty report and open it** (see *Producing
 the report* below): write `.frame/specs/{slug}/report-data.json` with the spec's
