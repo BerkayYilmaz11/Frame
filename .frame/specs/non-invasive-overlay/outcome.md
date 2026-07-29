@@ -182,3 +182,22 @@ require would have to join `PARSER_FILES` to survive the copy. Files:
 _Captured: 2026-07-29 · 6 file changes_
 
 ---
+
+## T11 — Init writes only inside .frame/
+
+Deleted the consume-and-symlink block from `runProjectInit` — no reading and
+unlinking `CLAUDE.md`, no `GEMINI.md` merge, no root `AGENTS.md`, and
+`createSymlinkSafe` removed with it — and routed STRUCTURE/NOTES/tasks/
+QUICKSTART through `frameStore`'s path entries; `installSpecHintHook` no longer
+reads or writes `.claude/settings.json` and instead reports that the hooks
+travel by launch flag. `checkExistingFrameFiles` and the init dialog were
+rewritten around the `.frame/`-only footprint, the dialog now naming the
+discovered instruction files it will leave untouched. The new
+`test/frameProjectInit.test.js` walks the whole tree and diffs snapshots rather
+than checking named files — that is what caught the root `STRUCTURE.json`
+escape (fixed in T13, taken first). No `.frame/AGENTS.md` is seeded. Files:
+`frameProject.js`, `test/frameProjectInit.test.js` (new, 7 cases).
+
+_Captured: 2026-07-29 · 2 file changes_
+
+---

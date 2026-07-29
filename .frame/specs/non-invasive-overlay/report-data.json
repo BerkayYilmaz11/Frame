@@ -103,9 +103,21 @@
     {
       "id": "T13",
       "title": "Structure hook and scripts stop writing the project root",
-      "commit": "811f4d8",
+      "commit": "6949f70",
       "whatChanged": "installStructureHook no longer appends to the tracked .husky/pre-commit — husky degrades to the same show-the-snippet path as lefthook and custom hooks, while vanilla .git/hooks/ installs (local-only) stay. The hook snippet stages .frame/STRUCTURE.json when present and only when tracked, falling back to the root path for pre-overlay projects. update-structure.js, find-module.js and check-freshness.js resolve meta artifacts via an inline resolveMetaPath (.frame/ first, root fallback, .frame/ for a project with neither) while ROOT_DIR keeps pointing at the project root so activityLog.projectKey stays bucketed per project.",
       "whyChanged": "Taken before T11 because T11's whole point — an init that writes nothing outside .frame/ — cannot hold while the structure scan still drops STRUCTURE.json at the root; T11's footprint test caught exactly that and would have had to be committed red otherwise. The resolver is duplicated inline in each script rather than shared, because these three are copied standalone into .frame/bin/ and a new shared require would have to be added to PARSER_FILES to survive the copy. The snippet checks `git ls-files` before staging: adding an excluded .frame/ file would drag the whole directory into the user's commit.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "309 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T11",
+      "title": "Init writes only inside .frame/",
+      "commit": "7923d7e",
+      "whatChanged": "runProjectInit lost the consume-and-symlink block entirely — no reading and deleting CLAUDE.md, no GEMINI.md merge, no root AGENTS.md, no symlinks (createSymlinkSafe is gone) — and STRUCTURE/NOTES/tasks/QUICKSTART now go through frameStore's path entries into .frame/. installSpecHintHook stops touching .claude/settings.json and reports that the hooks travel by launch flag. checkExistingFrameFiles and the init dialog were rewritten around the .frame/-only footprint, the dialog now naming the discovered instruction files it will leave alone. New test/frameProjectInit.test.js: 7 cases over a repo seeded with CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .claude/settings.json and .husky/pre-commit.",
+      "whyChanged": "The test walks the whole tree and diffs snapshots rather than checking a list of known filenames — a list would miss the write nobody thought to name, which is precisely the failure mode this guards. It is also what caught the root STRUCTURE.json escape that T13 had to fix first. No .frame/AGENTS.md is seeded: Frame's conventions live in the global layer, so a project layer should exist only when there is genuinely project-specific context to record.",
       "verification": {
         "command": "npm test",
         "status": "pass",

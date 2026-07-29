@@ -4392,13 +4392,13 @@
       "title": "Rewrite `src/main/frameProject.js` init so every write lands inside `.frame/` (seeding no `.frame/AGENTS.md`), deleting the CLAUDE/GEMINI consume-and-symlink logic and the `.claude/settings.json` merge in `registerSpecHintHooks`, and prove it with an init test that walks a temp tree for zero files created outside `.frame/`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T11:57:07.744Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T12:00:47.616Z",
+      "completedAt": "2026-07-29T12:00:47.616Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T12",
