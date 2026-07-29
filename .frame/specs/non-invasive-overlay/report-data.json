@@ -139,7 +139,7 @@
     {
       "id": "T15",
       "title": "Staged spec templates point at the global reference",
-      "commit": "506a098",
+      "commit": "a3f0870",
       "whatChanged": "commandStaging gained a pure substitutePlaceholders and a staging-time {frame_global_path} substitution resolved once per pass from globalLayer.referencePath(); resolveStagingPlan marks only the markdown templates for it, and copyIfChanged takes an optional transform. All four shipped spec.*.md templates gained a Context bullet carrying the placeholder. test/commandStaging.test.js extended with 6 cases.",
       "whyChanged": "Substituted at staging rather than per dispatch (where {project_path}/{slug} are filled) because this path is machine-wide and does not vary by spec or run — a staged file then carries something a CLI session opening it directly can follow, not just a Frame dispatch. Assets are excluded because the HTML template and the report generator both use braces for their own purposes. An unresolved placeholder is left visible rather than blanked: an empty value would silently point a reader at /REFERENCE.md, while a surviving {frame_global_path} is a legible bug. Comparison in copyIfChanged happens after the transform, so a second open is still a no-op.",
       "verification": {
