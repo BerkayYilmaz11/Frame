@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">1 of 12 tasks done · next: <span class="rs-task">T02 — Route `src/main/tasksManager.js` (reads, writes, watcher path) and…</span></span>
+  <span class="rs-count">2 of 12 tasks done · next: <span class="rs-task">T03 — Build `src/main/gitExclude.js` as a signed-line state machine (`git…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -175,7 +175,7 @@
   <header class="card-head">
     <span class="card-id">T01</span>
     <h2>Meta path map + frameStore storage seam</h2>
-    <span class="card-meta"><span class="chip">53db57b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">234 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">95e3b35</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">234 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>Added FRAME_META_FILES (the .frame/-relative meta path map) and LEGACY_ROOT_FILES to src/shared/frameConstants.js, and built src/main/frameStore.js — a data-shaped API (readTasks/writeTasks, structure, notes, quickstart, config, the project AGENTS layer) with separately named …Path(projectPath) entries for the watchers, .frame/bin/ scripts and AI-tool-facing files that need a real path. Covered by 12 cases in test/frameStore.test.js.</p></div>
@@ -631,6 +631,317 @@
 <span class="dl-add">+</span>
 <span class="dl-add">+  assert.equal(fs.readFileSync(legacyTasks, &#39;utf8&#39;), before, &#39;the legacy file was modified&#39;);</span>
 <span class="dl-add">+  assert.deepEqual(frameStore.readTasks(projectDir).data, { version: &#39;2.0&#39;, tasks: [] });</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Route tasksManager and overviewManager through frameStore</h2>
+    <span class="card-meta"><span class="chip">24ad605</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">236 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>tasksManager now reads/writes through frameStore (the fsSafe envelope arrives from the store, so the corruption-recovery contract is unchanged) and its watcher derives its directory from the store&#39;s path entry instead of assuming the project root. overviewManager&#39;s loadStructure/loadTasks/loadDecisions lost their hand-built root paths. test/tasksManager.test.js and test/specTasksSync.test.js moved their fixtures to .frame/tasks.json, plus two new cases: writes never escape .frame/, and a pre-overlay root tasks.json is not read as live data.</p></div>
+    <div class="field"><span class="label">Why</span><p>Beyond plan.md&#39;s Files: specManager.js:1063 kept its own fs.watch on the root tasks.json — a watcher my change would have left pointed at a path that no longer exists, so it now takes the same frameStore.tasksPath. Also outside the plan, test/specTasksSync.test.js seeded a root tasks.json fixture and would have failed. The &#39;tasks-root&#39; activity-watcher label was deliberately left alone: renaming it would touch the WATCHERS enum in activityEvents.js for a cosmetic gain.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/overviewManager.js b/src/main/overviewManager.js</span>
+<span class="dl-meta">index c3d2698..8faf76f 100644</span>
+<span class="dl-file">--- a/src/main/overviewManager.js</span>
+<span class="dl-file">+++ b/src/main/overviewManager.js</span>
+<span class="dl-hunk">@@ -6,6 +6,7 @@</span>
+<span class="dl-ctx"> const fs = require(&#39;fs&#39;);</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const { exec } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-hunk">@@ -50,17 +51,15 @@ async function loadOverview(projectPath) {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Load structure from STRUCTURE.json</span>
+<span class="dl-add">+ * Load the structure map through the store.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> async function loadStructure(projectPath) {</span>
+<span class="dl-del">-  const structurePath = path.join(projectPath, &#39;STRUCTURE.json&#39;);</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    if (!fs.existsSync(structurePath)) {</span>
+<span class="dl-add">+    const { data } = frameStore.readStructure(projectPath);</span>
+<span class="dl-add">+    if (!data) {</span>
+<span class="dl-ctx">       return { modules: [], totalModules: 0 };</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    const data = JSON.parse(fs.readFileSync(structurePath, &#39;utf8&#39;));</span>
+<span class="dl-ctx">     const modules = data.modules || {};</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // Group by directory</span>
+<span class="dl-hunk">@@ -90,18 +89,15 @@ async function loadStructure(projectPath) {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Load tasks from tasks.json</span>
+<span class="dl-add">+ * Load tasks through the store.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> async function loadTasks(projectPath) {</span>
+<span class="dl-del">-  const tasksPath = path.join(projectPath, &#39;tasks.json&#39;);</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    if (!fs.existsSync(tasksPath)) {</span>
+<span class="dl-add">+    const { data } = frameStore.readTasks(projectPath);</span>
+<span class="dl-add">+    if (!data) {</span>
+<span class="dl-ctx">       return { tasks: [], total: 0, completed: 0, pending: 0, inProgress: 0 };</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    const data = JSON.parse(fs.readFileSync(tasksPath, &#39;utf8&#39;));</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">     // Handle both flat array and nested object structure</span>
+<span class="dl-ctx">     let allTasks = [];</span>
+<span class="dl-ctx">     let pendingCount = 0;</span>
+<span class="dl-hunk">@@ -143,18 +139,15 @@ async function loadTasks(projectPath) {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Load decisions from PROJECT_NOTES.md</span>
+<span class="dl-add">+ * Load decisions from the project notes through the store.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> async function loadDecisions(projectPath) {</span>
+<span class="dl-del">-  const notesPath = path.join(projectPath, &#39;PROJECT_NOTES.md&#39;);</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    if (!fs.existsSync(notesPath)) {</span>
+<span class="dl-add">+    const content = frameStore.readNotes(projectPath);</span>
+<span class="dl-add">+    if (content === null) {</span>
+<span class="dl-ctx">       return { decisions: [], total: 0 };</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    const content = fs.readFileSync(notesPath, &#39;utf8&#39;);</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">     // Parse ### [YYYY-MM-DD] Title format</span>
+<span class="dl-ctx">     const decisionRegex = /###\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.+)/g;</span>
+<span class="dl-ctx">     const decisions = [];</span>
+<span class="dl-meta">diff --git a/src/main/specManager.js b/src/main/specManager.js</span>
+<span class="dl-meta">index a9f4114..f979632 100644</span>
+<span class="dl-file">--- a/src/main/specManager.js</span>
+<span class="dl-file">+++ b/src/main/specManager.js</span>
+<span class="dl-hunk">@@ -17,6 +17,7 @@ const fsSafe = require(&#39;./fsSafe&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> const { FRAME_DIR, FRAME_BIN_DIR, FRAME_CONFIG_FILE, ORCH_META_FILES } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const tasksManager = require(&#39;./tasksManager&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const commandStaging = require(&#39;./commandStaging&#39;);</span>
+<span class="dl-ctx"> const frameProject = require(&#39;./frameProject&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-hunk">@@ -1060,7 +1061,7 @@ function startWatching(projectPath) {</span>
+<span class="dl-ctx">   // &quot;done&quot; are driven by spec-derived task statuses, so a status flip in</span>
+<span class="dl-ctx">   // the Tasks panel needs to refresh SPEC_DATA too. Independent watcher</span>
+<span class="dl-ctx">   // so we don&#39;t depend on tasksManager&#39;s internal pub/sub.</span>
+<span class="dl-del">-  const tasksJsonPath = path.join(projectPath, &#39;tasks.json&#39;);</span>
+<span class="dl-add">+  const tasksJsonPath = frameStore.tasksPath(projectPath);</span>
+<span class="dl-ctx">   if (fs.existsSync(tasksJsonPath)) {</span>
+<span class="dl-ctx">     try {</span>
+<span class="dl-ctx">       activeTasksWatcher = fsSafe.safeWatch(tasksJsonPath, null, () =&gt; {</span>
+<span class="dl-meta">diff --git a/src/main/tasksManager.js b/src/main/tasksManager.js</span>
+<span class="dl-meta">index 6c9d652..8fcbbfe 100644</span>
+<span class="dl-file">--- a/src/main/tasksManager.js</span>
+<span class="dl-file">+++ b/src/main/tasksManager.js</span>
+<span class="dl-hunk">@@ -11,9 +11,9 @@</span>
+<span class="dl-ctx"> const fs = require(&#39;fs&#39;);</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const fsSafe = require(&#39;./fsSafe&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const activityLog = require(&#39;./activityLog&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-del">-const { FRAME_FILES } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const VALID_STATUSES = [&#39;pending&#39;, &#39;in_progress&#39;, &#39;completed&#39;];</span>
+<span class="dl-ctx"> const SELF_WRITE_GUARD_MS = 250;</span>
+<span class="dl-hunk">@@ -51,8 +51,17 @@ function setProjectPath(projectPath) {</span>
+<span class="dl-ctx">   currentProjectPath = projectPath;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+function projectRoot(projectPath) {</span>
+<span class="dl-add">+  return projectPath || currentProjectPath;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Where tasks physically live. Only the parse-once cache and the watcher use</span>
+<span class="dl-add">+ * this — both are genuinely file-bound (an mtime key, an `fs.watch` target).</span>
+<span class="dl-add">+ * Every read and write goes through `frameStore`&#39;s data API instead.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-ctx"> function getTasksFilePath(projectPath) {</span>
+<span class="dl-del">-  return path.join(projectPath || currentProjectPath, FRAME_FILES.TASKS);</span>
+<span class="dl-add">+  return frameStore.tasksPath(projectRoot(projectPath));</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -104,7 +113,7 @@ function loadTasks(projectPath) {</span>
+<span class="dl-ctx">     return loadCache.data;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const { data, source, error } = fsSafe.readJsonWithRecovery(tasksPath);</span>
+<span class="dl-add">+  const { data, source, error } = frameStore.readTasks(projectRoot(projectPath));</span>
+<span class="dl-ctx">   if (!data &amp;&amp; !error) return null; // no tasks.json — not a Frame project yet</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   if (source === &#39;bak&#39;) {</span>
+<span class="dl-hunk">@@ -168,7 +177,7 @@ function saveTasks(projectPath, tasksData) {</span>
+<span class="dl-ctx">     tasksData.lastUpdated = new Date().toISOString();</span>
+<span class="dl-ctx">     delete tasksData.corrupt; // in-memory flag only — never persisted</span>
+<span class="dl-ctx">     lastSelfWriteAt = Date.now();</span>
+<span class="dl-del">-    fsSafe.writeFileAtomic(tasksPath, JSON.stringify(tasksData, null, 2));</span>
+<span class="dl-add">+    frameStore.writeTasks(projectRoot(projectPath), tasksData);</span>
+<span class="dl-ctx">     loadCache = { key: cacheKeyFor(tasksPath), data: tasksData };</span>
+<span class="dl-ctx">     return true;</span>
+<span class="dl-ctx">   } catch (err) {</span>
+<span class="dl-hunk">@@ -299,15 +308,19 @@ function reorderTasks(projectPath, order) {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Watch the active project&#39;s directory for tasks.json changes. External</span>
+<span class="dl-del">- * edits (CLI / manual edit) trigger a re-read and a TASKS_DATA push to the</span>
+<span class="dl-del">- * renderer so the UI stays in sync without requiring the panel to be reopened.</span>
+<span class="dl-add">+ * Watch the directory holding tasks.json for external changes. Those edits</span>
+<span class="dl-add">+ * (CLI / manual edit) trigger a re-read and a TASKS_DATA push to the renderer</span>
+<span class="dl-add">+ * so the UI stays in sync without requiring the panel to be reopened.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * We watch the directory (not the file) because tools that write atomically</span>
+<span class="dl-ctx">  * via rename — Claude Code, vim, prettier — replace the inode that a</span>
+<span class="dl-ctx">  * file-level fs.watch is bound to, silently killing the watcher. A directory</span>
+<span class="dl-ctx">  * watcher survives renames and reports both `change` and `rename` events.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-add">+ * The directory is derived from the store&#39;s path entry rather than assumed to</span>
+<span class="dl-add">+ * be the project root: tasks live in `.frame/`, so watching the root would</span>
+<span class="dl-add">+ * never see the file change.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-ctx">  * `lastSelfWriteAt` suppresses the watcher event that fires from our own</span>
+<span class="dl-ctx">  * saveTasks() call to avoid a feedback loop.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-hunk">@@ -317,11 +330,16 @@ function startWatching(projectPath) {</span>
+<span class="dl-ctx">   if (watcher &amp;&amp; watchedPath === projectPath) return;</span>
+<span class="dl-ctx">   stopWatching();</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  if (!projectPath || !fs.existsSync(projectPath)) return;</span>
+<span class="dl-add">+  if (!projectPath) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const tasksFile = getTasksFilePath(projectPath);</span>
+<span class="dl-add">+  const watchDir = path.dirname(tasksFile);</span>
+<span class="dl-add">+  const tasksFileName = path.basename(tasksFile);</span>
+<span class="dl-add">+  if (!fs.existsSync(watchDir)) return;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    watcher = fsSafe.safeWatch(projectPath, { persistent: false }, (eventType, filename) =&gt; {</span>
+<span class="dl-del">-      if (!filename || filename !== FRAME_FILES.TASKS) return;</span>
+<span class="dl-add">+    watcher = fsSafe.safeWatch(watchDir, { persistent: false }, (eventType, filename) =&gt; {</span>
+<span class="dl-add">+      if (!filename || filename !== tasksFileName) return;</span>
+<span class="dl-ctx">       if (Date.now() - lastSelfWriteAt &lt; SELF_WRITE_GUARD_MS) {</span>
+<span class="dl-ctx">         activityLog.record(&#39;watch.suppressed&#39;, { watcher: &#39;tasks-root&#39;, reason: &#39;self-write&#39; });</span>
+<span class="dl-ctx">         return;</span>
+<span class="dl-meta">diff --git a/test/specTasksSync.test.js b/test/specTasksSync.test.js</span>
+<span class="dl-meta">index 6def7a6..fce8f0f 100644</span>
+<span class="dl-file">--- a/test/specTasksSync.test.js</span>
+<span class="dl-file">+++ b/test/specTasksSync.test.js</span>
+<span class="dl-hunk">@@ -39,7 +39,8 @@ Module._load = function (request, ...rest) {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const specManager = require(&#39;../src/main/specManager&#39;);</span>
+<span class="dl-ctx"> const tasksManager = require(&#39;../src/main/tasksManager&#39;);</span>
+<span class="dl-del">-const { FRAME_DIR, FRAME_FILES } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;../src/main/frameStore&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const SLUG = &#39;sample-spec&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -87,11 +88,7 @@ function readSpecTasks() {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> beforeEach(() =&gt; {</span>
+<span class="dl-ctx">   projectDir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-spec-sync-&#39;));</span>
+<span class="dl-del">-  fs.writeFileSync(</span>
+<span class="dl-del">-    path.join(projectDir, FRAME_FILES.TASKS),</span>
+<span class="dl-del">-    JSON.stringify({ version: &#39;2.0&#39;, tasks: [] }, null, 2),</span>
+<span class="dl-del">-    &#39;utf8&#39;</span>
+<span class="dl-del">-  );</span>
+<span class="dl-add">+  frameStore.writeTasks(projectDir, { version: &#39;2.0&#39;, tasks: [] });</span>
+<span class="dl-ctx">   specManager.init(null); // no window — IPC pushes no-op</span>
+<span class="dl-ctx">   tasksManager.init(null);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-meta">diff --git a/test/tasksManager.test.js b/test/tasksManager.test.js</span>
+<span class="dl-meta">index 33f2eac..8a1637b 100644</span>
+<span class="dl-file">--- a/test/tasksManager.test.js</span>
+<span class="dl-file">+++ b/test/tasksManager.test.js</span>
+<span class="dl-hunk">@@ -1,6 +1,10 @@</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * tasksManager corruption-recovery tests (T02): corrupt tasks.json must no</span>
+<span class="dl-ctx">  * longer silently disable CRUD or destroy recoverable data.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Since the overlay, tasks live at `.frame/tasks.json` — the fixtures write</span>
+<span class="dl-add">+ * there, and `frameDir` is what the recovery assertions scan for the</span>
+<span class="dl-add">+ * `.corrupt-` copies.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-hunk">@@ -10,9 +14,10 @@ const os = require(&#39;os&#39;);</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const tasksManager = require(&#39;../src/main/tasksManager&#39;);</span>
+<span class="dl-del">-const { FRAME_FILES } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;../src/main/frameStore&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let projectDir;</span>
+<span class="dl-add">+let frameDir;</span>
+<span class="dl-ctx"> let tasksPath;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function writeTasksFile(tasks) {</span>
+<span class="dl-hunk">@@ -21,7 +26,8 @@ function writeTasksFile(tasks) {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> beforeEach(() =&gt; {</span>
+<span class="dl-ctx">   projectDir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-tasks-&#39;));</span>
+<span class="dl-del">-  tasksPath = path.join(projectDir, FRAME_FILES.TASKS);</span>
+<span class="dl-add">+  frameDir = frameStore.ensureFrameDir(projectDir);</span>
+<span class="dl-add">+  tasksPath = frameStore.tasksPath(projectDir);</span>
+<span class="dl-ctx">   tasksManager.init(null); // no window — IPC pushes no-op</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -51,7 +57,7 @@ test(&#39;corrupt tasks.json with .bak: restores and keeps CRUD alive&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(Array.isArray(data.tasks), &#39;recovered data is usable&#39;);</span>
+<span class="dl-ctx">   assert.ok(data.tasks.some((t) =&gt; t.id === &#39;t1&#39;), &#39;pre-corruption task survives&#39;);</span>
+<span class="dl-ctx">   assert.ok(!data.corrupt);</span>
+<span class="dl-del">-  const corrupt = fs.readdirSync(projectDir).filter((f) =&gt; f.includes(&#39;.corrupt-&#39;));</span>
+<span class="dl-add">+  const corrupt = fs.readdirSync(frameDir).filter((f) =&gt; f.includes(&#39;.corrupt-&#39;));</span>
+<span class="dl-ctx">   assert.equal(corrupt.length, 1, &#39;corrupt copy preserved&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -66,7 +72,7 @@ test(&#39;corrupt tasks.json without .bak: flagged empty set, mutation cannot clobbe</span>
+<span class="dl-ctx">   const added = tasksManager.addTask(projectDir, { title: &#39;new task&#39; });</span>
+<span class="dl-ctx">   assert.ok(added);</span>
+<span class="dl-ctx">   // ...and the corrupt original is still recoverable on disk.</span>
+<span class="dl-del">-  const corrupt = fs.readdirSync(projectDir).filter((f) =&gt; f.includes(&#39;.corrupt-&#39;));</span>
+<span class="dl-add">+  const corrupt = fs.readdirSync(frameDir).filter((f) =&gt; f.includes(&#39;.corrupt-&#39;));</span>
+<span class="dl-ctx">   assert.equal(corrupt.length, 1);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // the corrupt flag is never persisted</span>
+<span class="dl-hunk">@@ -74,3 +80,20 @@ test(&#39;corrupt tasks.json without .bak: flagged empty set, mutation cannot clobbe</span>
+<span class="dl-ctx">   assert.ok(!(&#39;corrupt&#39; in onDisk));</span>
+<span class="dl-ctx">   assert.equal(onDisk.tasks.length, 1);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;tasks land in .frame/, never at the project root&#39;, () =&gt; {</span>
+<span class="dl-add">+  tasksManager.saveTasks(projectDir, { version: &#39;2.0&#39;, tasks: [] });</span>
+<span class="dl-add">+  tasksManager.addTask(projectDir, { title: &#39;A&#39; });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(projectDir), [&#39;.frame&#39;], &#39;a write escaped .frame/&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(tasksPath));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a pre-overlay root tasks.json is not read as live data&#39;, () =&gt; {</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    path.join(projectDir, &#39;tasks.json&#39;),</span>
+<span class="dl-add">+    JSON.stringify({ version: &#39;2.0&#39;, tasks: [{ id: &#39;legacy&#39;, title: &#39;root&#39;, status: &#39;pending&#39; }] })</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(tasksManager.loadTasks(projectDir), null, &#39;legacy layout read as a live project&#39;);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

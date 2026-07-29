@@ -19,3 +19,27 @@ match; the reason is now a comment on the constant. Files: `frameConstants.js`,
 _Captured: 2026-07-29 · 3 file changes_
 
 ---
+
+## T02 — Route tasksManager and overviewManager through frameStore
+
+Swapped `tasksManager`'s direct `fsSafe` reads/writes for `frameStore.readTasks`/
+`writeTasks` (the recovery envelope arrives from the store, so the corruption
+contract is untouched) and made its watcher derive the watch directory from the
+store's path entry rather than assuming the project root; `overviewManager`'s
+`loadStructure`/`loadTasks`/`loadDecisions` lost their hand-built root paths.
+Two touches outside `plan.md`'s Files, both forced by this change rather than
+chosen: `specManager.js:1063` kept a private `fs.watch` on the root
+`tasks.json` — left alone it would watch a path that no longer exists, so it
+now uses `frameStore.tasksPath` — and `test/specTasksSync.test.js` seeded its
+fixture at the root. Kept the `tasks-root` activity-watcher label as-is:
+renaming it would drag in the `WATCHERS` enum in `activityEvents.js` for a
+cosmetic gain. Files: `tasksManager.js`, `overviewManager.js`, `specManager.js`,
+`test/tasksManager.test.js` (+2 cases), `test/specTasksSync.test.js`.
+
+Followup: `src/renderer/structureMap.js:276` still reads a root `STRUCTURE.json`
+and is in no task's scope — it will show an empty map once T13 moves the
+writers.
+
+_Captured: 2026-07-29 · 5 file changes_
+
+---

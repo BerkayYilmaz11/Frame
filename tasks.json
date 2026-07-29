@@ -4301,13 +4301,13 @@
       "title": "Route `src/main/tasksManager.js` (reads, writes, watcher path) and `src/main/overviewManager.js` (`loadStructure`/`loadTasks`/`loadDecisions`) through `frameStore`, and move `test/tasksManager.test.js` expectations to `.frame/tasks.json`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:06:01.945Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:33:23.327Z",
+      "completedAt": "2026-07-29T11:33:23.327Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T03",

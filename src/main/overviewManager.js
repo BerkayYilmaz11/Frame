@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+const frameStore = require('./frameStore');
 const { IPC } = require('../shared/ipcChannels');
 
 let mainWindow = null;
@@ -50,17 +51,15 @@ async function loadOverview(projectPath) {
 }
 
 /**
- * Load structure from STRUCTURE.json
+ * Load the structure map through the store.
  */
 async function loadStructure(projectPath) {
-  const structurePath = path.join(projectPath, 'STRUCTURE.json');
-
   try {
-    if (!fs.existsSync(structurePath)) {
+    const { data } = frameStore.readStructure(projectPath);
+    if (!data) {
       return { modules: [], totalModules: 0 };
     }
 
-    const data = JSON.parse(fs.readFileSync(structurePath, 'utf8'));
     const modules = data.modules || {};
 
     // Group by directory
@@ -90,17 +89,14 @@ async function loadStructure(projectPath) {
 }
 
 /**
- * Load tasks from tasks.json
+ * Load tasks through the store.
  */
 async function loadTasks(projectPath) {
-  const tasksPath = path.join(projectPath, 'tasks.json');
-
   try {
-    if (!fs.existsSync(tasksPath)) {
+    const { data } = frameStore.readTasks(projectPath);
+    if (!data) {
       return { tasks: [], total: 0, completed: 0, pending: 0, inProgress: 0 };
     }
-
-    const data = JSON.parse(fs.readFileSync(tasksPath, 'utf8'));
 
     // Handle both flat array and nested object structure
     let allTasks = [];
@@ -143,17 +139,14 @@ async function loadTasks(projectPath) {
 }
 
 /**
- * Load decisions from PROJECT_NOTES.md
+ * Load decisions from the project notes through the store.
  */
 async function loadDecisions(projectPath) {
-  const notesPath = path.join(projectPath, 'PROJECT_NOTES.md');
-
   try {
-    if (!fs.existsSync(notesPath)) {
+    const content = frameStore.readNotes(projectPath);
+    if (content === null) {
       return { decisions: [], total: 0 };
     }
-
-    const content = fs.readFileSync(notesPath, 'utf8');
 
     // Parse ### [YYYY-MM-DD] Title format
     const decisionRegex = /###\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.+)/g;
