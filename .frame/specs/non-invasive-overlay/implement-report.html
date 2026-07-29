@@ -155,18 +155,17 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">11 tasks</span>
-    <span class="pill good">11 verified</span>
+    <span class="pill">12 tasks</span>
+    <span class="pill good">12 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
 </header>
 
 <div class="wrap">
-<div class="run-status live">
-  <span class="rs-badge">In progress</span>
-  <span class="rs-count">11 of 12 tasks done · next: <span class="rs-task">T15 — Substitute `{frame_global_path}` in `src/main/commandStaging.js` so…</span></span>
-  <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
+<div class="run-status done">
+  <span class="rs-badge">Complete</span>
+  <span class="rs-count">12 of 12 tasks done</span>
 </div>
 <section class="report-head">
   <h1>Non-Invasive Frame Overlay (.frame-only, zero-touch)</h1>
@@ -4191,7 +4190,7 @@
   <header class="card-head">
     <span class="card-id">T12</span>
     <h2>Spec-driven toggle collapses to a config-flag write</h2>
-    <span class="card-meta"><span class="chip">7d43c46</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">316 pass / 0 fail; npm run build succeeds</span></span>
+    <span class="card-meta"><span class="chip">ae5a6f5</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">316 pass / 0 fail; npm run build succeeds</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>Deleted stripManagedSpecSection, disableSpecDriven&#39;s AGENTS.md surgery, the AGENTS.md branch of ensureSpecDrivenArtifacts and upgradeSpecDocs&#39; AGENTS.md doc entry — enabling and disabling are now a flag write in .frame/config.json and nothing else. settingsModal&#39;s comment no longer promises an AGENTS.md side effect. test/specDrivenToggle.test.js rewritten (13 cases) against the config-flag-plus-preamble contract.</p></div>
@@ -4648,6 +4647,259 @@
 <span class="dl-add">+  // preamble points at it, which happens only when the flag is on.</span>
 <span class="dl-add">+  assert.ok(/Spec-Driven Development/.test(templates.getReferenceTemplate(&#39;Frame&#39;)));</span>
 <span class="dl-ctx"> });</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T15</span>
+    <h2>Staged spec templates point at the global reference</h2>
+    <span class="card-meta"><span class="chip">506a098</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">322 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>commandStaging gained a pure substitutePlaceholders and a staging-time {frame_global_path} substitution resolved once per pass from globalLayer.referencePath(); resolveStagingPlan marks only the markdown templates for it, and copyIfChanged takes an optional transform. All four shipped spec.*.md templates gained a Context bullet carrying the placeholder. test/commandStaging.test.js extended with 6 cases.</p></div>
+    <div class="field"><span class="label">Why</span><p>Substituted at staging rather than per dispatch (where {project_path}/{slug} are filled) because this path is machine-wide and does not vary by spec or run — a staged file then carries something a CLI session opening it directly can follow, not just a Frame dispatch. Assets are excluded because the HTML template and the report generator both use braces for their own purposes. An unresolved placeholder is left visible rather than blanked: an empty value would silently point a reader at /REFERENCE.md, while a surviving {frame_global_path} is a legible bug. Comparison in copyIfChanged happens after the transform, so a second open is still a no-op.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/commandStaging.js b/src/main/commandStaging.js</span>
+<span class="dl-meta">index 6cf1f4d..c29f604 100644</span>
+<span class="dl-file">--- a/src/main/commandStaging.js</span>
+<span class="dl-file">+++ b/src/main/commandStaging.js</span>
+<span class="dl-hunk">@@ -39,6 +39,46 @@ const COMMAND_ASSET_FILES = [</span>
+<span class="dl-ctx"> ];</span>
+<span class="dl-ctx"> const IMPLEMENT_HELPER_FILE = &#39;implement-launch.js&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Placeholders filled in at staging time.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Distinct from `{project_path}` / `{slug}` and friends, which specManager</span>
+<span class="dl-add">+ * fills per dispatch: `{frame_global_path}` is a machine-wide location that</span>
+<span class="dl-add">+ * does not vary by spec or by run, so a staged template can carry the real</span>
+<span class="dl-add">+ * path and any reader — a CLI session that opens the file directly, not only</span>
+<span class="dl-add">+ * a Frame dispatch — sees something it can actually follow.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Only the markdown templates are substituted. The assets are an HTML</span>
+<span class="dl-add">+ * template and a Node script whose braces mean something else entirely.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const STAGED_PLACEHOLDER = &#39;frame_global_path&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Pure: replace `{name}` for each key in `values`. A placeholder with no</span>
+<span class="dl-add">+ * value is left as written rather than blanked — a visible `{frame_global_path}`</span>
+<span class="dl-add">+ * is a legible bug, an empty path silently sends a reader to `/REFERENCE.md`.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function substitutePlaceholders(content, values) {</span>
+<span class="dl-add">+  let out = content;</span>
+<span class="dl-add">+  for (const [key, value] of Object.entries(values || {})) {</span>
+<span class="dl-add">+    if (!value) continue;</span>
+<span class="dl-add">+    out = out.split(`{${key}}`).join(value);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return out;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Where the global REFERENCE lives, or &#39;&#39; before globalLayer is initialized</span>
+<span class="dl-add">+ * (which is the case in a test, and in any headless use of this module).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function globalReferencePath() {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return require(&#39;./globalLayer&#39;).referencePath();</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return &#39;&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Pure: resolve what to stage for one tool. Returns</span>
+<span class="dl-ctx">  * [{ src, dst, executable? }] — templates and assets go to</span>
+<span class="dl-hunk">@@ -59,7 +99,10 @@ function resolveStagingPlan(projectPath, tool, existsFn) {</span>
+<span class="dl-ctx">     const override = path.join(overrideDir, file);</span>
+<span class="dl-ctx">     plan.push({</span>
+<span class="dl-ctx">       src: exists(override) ? override : path.join(packagedDir, file),</span>
+<span class="dl-del">-      dst: path.join(runtimeDir, file)</span>
+<span class="dl-add">+      dst: path.join(runtimeDir, file),</span>
+<span class="dl-add">+      // Markdown only: the assets are an HTML template and a Node script</span>
+<span class="dl-add">+      // whose braces are not Frame placeholders.</span>
+<span class="dl-add">+      substitute: COMMAND_TEMPLATE_FILES.includes(file)</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx">   plan.push({</span>
+<span class="dl-hunk">@@ -77,13 +120,14 @@ function resolveStagingPlan(projectPath, tool, existsFn) {</span>
+<span class="dl-ctx">  * stages nothing, and a stale runtime copy is better than a crash on open.</span>
+<span class="dl-ctx">  * (Moved here from specManager as part of retiring stageImplementCommandFiles.)</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function copyIfChanged(src, dst) {</span>
+<span class="dl-add">+function copyIfChanged(src, dst, transform) {</span>
+<span class="dl-ctx">   let content;</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     content = fs.readFileSync(src, &#39;utf8&#39;);</span>
+<span class="dl-ctx">   } catch (_) {</span>
+<span class="dl-ctx">     return false; // source not present — nothing to stage</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-add">+  if (typeof transform === &#39;function&#39;) content = transform(content);</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     let existing = null;</span>
+<span class="dl-ctx">     try { existing = fs.readFileSync(dst, &#39;utf8&#39;); } catch (_) { /* new file */ }</span>
+<span class="dl-hunk">@@ -118,9 +162,16 @@ function availableTools() {</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function stageCommandFiles(projectPath) {</span>
+<span class="dl-ctx">   if (!projectPath) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Resolved once per staging pass, not per file — it is the same path for</span>
+<span class="dl-add">+  // every tool and every template.</span>
+<span class="dl-add">+  const values = { [STAGED_PLACEHOLDER]: globalReferencePath() };</span>
+<span class="dl-add">+  const substitute = (content) =&gt; substitutePlaceholders(content, values);</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   for (const tool of availableTools()) {</span>
+<span class="dl-ctx">     for (const entry of resolveStagingPlan(projectPath, tool)) {</span>
+<span class="dl-del">-      if (copyIfChanged(entry.src, entry.dst) &amp;&amp; entry.executable) {</span>
+<span class="dl-add">+      const transform = entry.substitute ? substitute : null;</span>
+<span class="dl-add">+      if (copyIfChanged(entry.src, entry.dst, transform) &amp;&amp; entry.executable) {</span>
+<span class="dl-ctx">         try { fs.chmodSync(entry.dst, 0o755); } catch (_) { /* best effort */ }</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-hunk">@@ -131,6 +182,8 @@ module.exports = {</span>
+<span class="dl-ctx">   resolveStagingPlan,</span>
+<span class="dl-ctx">   stageCommandFiles,</span>
+<span class="dl-ctx">   copyIfChanged,</span>
+<span class="dl-add">+  substitutePlaceholders,</span>
+<span class="dl-add">+  STAGED_PLACEHOLDER,</span>
+<span class="dl-ctx">   availableTools,</span>
+<span class="dl-ctx">   COMMAND_TEMPLATE_FILES,</span>
+<span class="dl-ctx">   COMMAND_ASSET_FILES,</span>
+<span class="dl-meta">diff --git a/src/templates/commands/claude-code/spec.implement.md b/src/templates/commands/claude-code/spec.implement.md</span>
+<span class="dl-meta">index 3446f55..235e4f6 100644</span>
+<span class="dl-file">--- a/src/templates/commands/claude-code/spec.implement.md</span>
+<span class="dl-file">+++ b/src/templates/commands/claude-code/spec.implement.md</span>
+<span class="dl-hunk">@@ -9,6 +9,7 @@ back to the user, or the whole spec unattended.</span>
+<span class="dl-ctx"> ## Context</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> - Project root: `{project_path}`</span>
+<span class="dl-add">+- Frame&#39;s own conventions (shared by every project): `{frame_global_path}`</span>
+<span class="dl-ctx"> - Spec slug: `{slug}`</span>
+<span class="dl-ctx"> - Inputs (read these first, in order):</span>
+<span class="dl-ctx">   - `.frame/specs/{slug}/spec.md` — what we&#39;re building (intent, constraints)</span>
+<span class="dl-meta">diff --git a/src/templates/commands/claude-code/spec.new.md b/src/templates/commands/claude-code/spec.new.md</span>
+<span class="dl-meta">index cf5efe6..57506ed 100644</span>
+<span class="dl-file">--- a/src/templates/commands/claude-code/spec.new.md</span>
+<span class="dl-file">+++ b/src/templates/commands/claude-code/spec.new.md</span>
+<span class="dl-hunk">@@ -3,6 +3,7 @@ You are authoring a new spec for the Frame spec-driven workflow.</span>
+<span class="dl-ctx"> ## Context</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> - Project root: `{project_path}`</span>
+<span class="dl-add">+- Frame&#39;s own conventions (shared by every project): `{frame_global_path}`</span>
+<span class="dl-ctx"> - Spec slug: `{slug}`</span>
+<span class="dl-ctx"> - Spec folder (already exists): `.frame/specs/{slug}/`</span>
+<span class="dl-ctx"> - Title: {title}</span>
+<span class="dl-meta">diff --git a/src/templates/commands/claude-code/spec.plan.md b/src/templates/commands/claude-code/spec.plan.md</span>
+<span class="dl-meta">index 13b6b39..3309b4c 100644</span>
+<span class="dl-file">--- a/src/templates/commands/claude-code/spec.plan.md</span>
+<span class="dl-file">+++ b/src/templates/commands/claude-code/spec.plan.md</span>
+<span class="dl-hunk">@@ -6,6 +6,7 @@ visual plan report alongside `plan.md`.</span>
+<span class="dl-ctx"> ## Context</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> - Project root: `{project_path}`</span>
+<span class="dl-add">+- Frame&#39;s own conventions (shared by every project): `{frame_global_path}`</span>
+<span class="dl-ctx"> - Spec slug: `{slug}`</span>
+<span class="dl-ctx"> - Spec folder: `.frame/specs/{slug}/`</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/templates/commands/claude-code/spec.tasks.md b/src/templates/commands/claude-code/spec.tasks.md</span>
+<span class="dl-meta">index 23c3070..c4e16d6 100644</span>
+<span class="dl-file">--- a/src/templates/commands/claude-code/spec.tasks.md</span>
+<span class="dl-file">+++ b/src/templates/commands/claude-code/spec.tasks.md</span>
+<span class="dl-hunk">@@ -4,6 +4,7 @@ staged flow: derive the list from the plan, then write it.</span>
+<span class="dl-ctx"> ## Context</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> - Project root: `{project_path}`</span>
+<span class="dl-add">+- Frame&#39;s own conventions (shared by every project): `{frame_global_path}`</span>
+<span class="dl-ctx"> - Spec slug: `{slug}`</span>
+<span class="dl-ctx"> - Spec folder: `.frame/specs/{slug}/`</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/test/commandStaging.test.js b/test/commandStaging.test.js</span>
+<span class="dl-meta">index 649c1b2..f11aaac 100644</span>
+<span class="dl-file">--- a/test/commandStaging.test.js</span>
+<span class="dl-file">+++ b/test/commandStaging.test.js</span>
+<span class="dl-hunk">@@ -63,3 +63,79 @@ test(&#39;the launch helper never resolves through the override dir&#39;, () =&gt; {</span>
+<span class="dl-ctx"> test(&#39;available tools include claude-code&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(staging.availableTools().includes(&#39;claude-code&#39;));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/* ------------------- {frame_global_path} substitution ------------------- */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;markdown templates are marked for substitution, assets are not&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plan = staging.resolveStagingPlan(PROJECT, TOOL, () =&gt; false);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const file of staging.COMMAND_TEMPLATE_FILES) {</span>
+<span class="dl-add">+    const entry = plan.find((e) =&gt; path.basename(e.dst) === file);</span>
+<span class="dl-add">+    assert.equal(entry.substitute, true, `${file} should be substituted`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  for (const file of staging.COMMAND_ASSET_FILES) {</span>
+<span class="dl-add">+    const entry = plan.find((e) =&gt; path.basename(e.dst) === file);</span>
+<span class="dl-add">+    assert.ok(!entry.substitute, `${file} must not be substituted — its braces are not ours`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;substitutePlaceholders replaces every occurrence&#39;, () =&gt; {</span>
+<span class="dl-add">+  const out = staging.substitutePlaceholders(</span>
+<span class="dl-add">+    &#39;see {frame_global_path} and also {frame_global_path}&#39;,</span>
+<span class="dl-add">+    { frame_global_path: &#39;/ud/frame-global/REFERENCE.md&#39; }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.equal(out, &#39;see /ud/frame-global/REFERENCE.md and also /ud/frame-global/REFERENCE.md&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an unresolved placeholder is left visible, never blanked&#39;, () =&gt; {</span>
+<span class="dl-add">+  // An empty path would silently point a reader at /REFERENCE.md; the</span>
+<span class="dl-add">+  // placeholder surviving is a legible bug instead.</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    staging.substitutePlaceholders(&#39;at {frame_global_path}&#39;, { frame_global_path: &#39;&#39; }),</span>
+<span class="dl-add">+    &#39;at {frame_global_path}&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.equal(staging.substitutePlaceholders(&#39;at {frame_global_path}&#39;, {}), &#39;at {frame_global_path}&#39;);</span>
+<span class="dl-add">+  assert.equal(staging.substitutePlaceholders(&#39;at {frame_global_path}&#39;), &#39;at {frame_global_path}&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;other placeholders are untouched — specManager fills those per dispatch&#39;, () =&gt; {</span>
+<span class="dl-add">+  const out = staging.substitutePlaceholders(</span>
+<span class="dl-add">+    &#39;root {project_path}, slug {slug}, global {frame_global_path}&#39;,</span>
+<span class="dl-add">+    { frame_global_path: &#39;/ud/REFERENCE.md&#39; }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;{project_path}&#39;));</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;{slug}&#39;));</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;/ud/REFERENCE.md&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;every shipped spec template carries the placeholder&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const file of staging.COMMAND_TEMPLATE_FILES) {</span>
+<span class="dl-add">+    const src = path.join(staging.FRAME_TEMPLATES_DIR, &#39;commands&#39;, TOOL, file);</span>
+<span class="dl-add">+    assert.ok(</span>
+<span class="dl-add">+      fs.readFileSync(src, &#39;utf8&#39;).includes(`{${staging.STAGED_PLACEHOLDER}}`),</span>
+<span class="dl-add">+      `${file} does not reference the global layer`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;copyIfChanged applies the transform and stays content-stable&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-staging-&#39;));</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const src = path.join(dir, &#39;src.md&#39;);</span>
+<span class="dl-add">+    const dst = path.join(dir, &#39;out&#39;, &#39;dst.md&#39;);</span>
+<span class="dl-add">+    fs.writeFileSync(src, &#39;read {frame_global_path}\n&#39;);</span>
+<span class="dl-add">+    const transform = (c) =&gt; staging.substitutePlaceholders(c, { frame_global_path: &#39;/ud/REFERENCE.md&#39; });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    assert.equal(staging.copyIfChanged(src, dst, transform), true);</span>
+<span class="dl-add">+    assert.equal(fs.readFileSync(dst, &#39;utf8&#39;), &#39;read /ud/REFERENCE.md\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Second pass must be a no-op — comparison happens after the transform,</span>
+<span class="dl-add">+    // or every project open would rewrite the file and re-trigger watchers.</span>
+<span class="dl-add">+    assert.equal(staging.copyIfChanged(src, dst, transform), false);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>

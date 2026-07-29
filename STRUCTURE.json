@@ -505,6 +505,8 @@
         "resolveStagingPlan",
         "stageCommandFiles",
         "copyIfChanged",
+        "substitutePlaceholders",
+        "STAGED_PLACEHOLDER",
         "availableTools",
         "COMMAND_TEMPLATE_FILES",
         "COMMAND_ASSET_FILES",
@@ -514,11 +516,24 @@
       "depends": [
         "fs",
         "path",
-        "shared/frameConstants"
+        "shared/frameConstants",
+        "globalLayer"
       ],
       "functions": {
+        "substitutePlaceholders": {
+          "line": 61,
+          "params": [
+            "content",
+            "values"
+          ],
+          "purpose": "Pure: replace `{name}` for each key in `values`. A placeholder with no"
+        },
+        "globalReferencePath": {
+          "line": 74,
+          "purpose": "Where the global REFERENCE lives, or '' before globalLayer is initialized"
+        },
         "resolveStagingPlan": {
-          "line": 51,
+          "line": 91,
           "params": [
             "projectPath",
             "tool",
@@ -527,19 +542,20 @@
           "purpose": "Pure: resolve what to stage for one tool. Returns"
         },
         "copyIfChanged": {
-          "line": 80,
+          "line": 123,
           "params": [
             "src",
-            "dst"
+            "dst",
+            "transform"
           ],
           "purpose": "Copy only when the destination content differs, so project-open staging"
         },
         "availableTools": {
-          "line": 105,
+          "line": 149,
           "purpose": "List the tool directories that actually ship under the packaged commands"
         },
         "stageCommandFiles": {
-          "line": 119,
+          "line": 163,
           "params": [
             "projectPath"
           ],

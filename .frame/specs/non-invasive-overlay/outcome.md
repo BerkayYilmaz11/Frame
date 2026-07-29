@@ -217,3 +217,23 @@ path would have edited. Files: `frameProject.js`, `settingsModal.js`,
 _Captured: 2026-07-29 · 3 file changes_
 
 ---
+
+## T15 — Staged spec templates point at the global reference
+
+Added a pure `substitutePlaceholders` and a staging-time `{frame_global_path}`
+substitution to `commandStaging`, resolved once per pass from
+`globalLayer.referencePath()`, with `resolveStagingPlan` marking only the
+markdown templates (the HTML template and the report generator use braces for
+their own purposes) and `copyIfChanged` taking an optional transform — applied
+before the content comparison, so a second project open is still a no-op. All
+four shipped `spec.*.md` templates carry the placeholder in their Context
+block. It is filled at staging rather than per dispatch because the path is
+machine-wide, so a CLI session that opens the staged file directly sees
+something it can follow; an unresolved placeholder is left visible rather than
+blanked, since an empty value would silently point a reader at `/REFERENCE.md`.
+Files: `commandStaging.js`, the four `src/templates/commands/claude-code/spec.*.md`,
+`test/commandStaging.test.js` (+6 cases).
+
+_Captured: 2026-07-29 · 6 file changes_
+
+---

@@ -127,13 +127,25 @@
     {
       "id": "T12",
       "title": "Spec-driven toggle collapses to a config-flag write",
-      "commit": "7d43c46",
+      "commit": "ae5a6f5",
       "whatChanged": "Deleted stripManagedSpecSection, disableSpecDriven's AGENTS.md surgery, the AGENTS.md branch of ensureSpecDrivenArtifacts and upgradeSpecDocs' AGENTS.md doc entry — enabling and disabling are now a flag write in .frame/config.json and nothing else. settingsModal's comment no longer promises an AGENTS.md side effect. test/specDrivenToggle.test.js rewritten (13 cases) against the config-flag-plus-preamble contract.",
       "whyChanged": "The old toggle edited the project's AGENTS.md because that was where a session learned the workflow. Frame's instructions are one shared copy now, so there is no per-project file to edit and no way to express 'on here, off there' in it — the activation signal had to move to the launch preamble, which reads the flag fresh every launch. The new tests assert both halves: snapshots prove the write touches only .frame/config.json (a repo's own AGENTS.md stays byte-identical even when it happens to contain a 'Spec-Driven Development' heading), and the preamble is checked in both directions.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "316 pass / 0 fail; npm run build succeeds"
+      }
+    },
+    {
+      "id": "T15",
+      "title": "Staged spec templates point at the global reference",
+      "commit": "506a098",
+      "whatChanged": "commandStaging gained a pure substitutePlaceholders and a staging-time {frame_global_path} substitution resolved once per pass from globalLayer.referencePath(); resolveStagingPlan marks only the markdown templates for it, and copyIfChanged takes an optional transform. All four shipped spec.*.md templates gained a Context bullet carrying the placeholder. test/commandStaging.test.js extended with 6 cases.",
+      "whyChanged": "Substituted at staging rather than per dispatch (where {project_path}/{slug} are filled) because this path is machine-wide and does not vary by spec or run — a staged file then carries something a CLI session opening it directly can follow, not just a Frame dispatch. Assets are excluded because the HTML template and the report generator both use braces for their own purposes. An unresolved placeholder is left visible rather than blanked: an empty value would silently point a reader at /REFERENCE.md, while a surviving {frame_global_path} is a legible bug. Comparison in copyIfChanged happens after the transform, so a second open is still a no-op.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "322 pass / 0 fail"
       }
     }
   ]

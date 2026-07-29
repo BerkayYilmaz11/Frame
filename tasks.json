@@ -4431,13 +4431,13 @@
       "title": "Substitute `{frame_global_path}` in `src/main/commandStaging.js` so staged `spec.*` templates reference the global REFERENCE location, and extend `test/commandStaging.test.js` with that coverage.",
       "description": "",
       "source": "spec:non-invasive-overlay:T15",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T12:05:54.606Z",
+      "completedAt": "2026-07-29T12:05:54.606Z"
     }
   ],
   "metadata": {
