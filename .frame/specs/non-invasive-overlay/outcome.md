@@ -62,3 +62,27 @@ rather than orphaned. Files: `gitExclude.js` (new), `frameProject.js`,
 _Captured: 2026-07-29 · 3 file changes_
 
 ---
+
+## T04 — Read-only instruction discovery + legacy-layout notice
+
+Built `src/main/instructionDiscovery.js`: one root scan covering both the
+native instruction conventions and the pre-overlay Frame layout, re-scanned in
+full on every project open with the debounced `fs.watch` demoted to a pure
+optimization; added `IPC.LEGACY_LAYOUT_DETECTED`, the `healthNotice.js` banner
+branch, and the emit from the project-open IPC. The notice is **not** gated on
+`isFrameProject` as first written — a pre-overlay init wrote `.frame/config.json`
+*and* the root files, so gating on the absence of `.frame/` would have meant the
+banner never fires for the only case it exists for. Detection needs a
+Frame-specific companion (`STRUCTURE.json`/`PROJECT_NOTES.md`/`QUICKSTART.md`)
+or a `CLAUDE.md → AGENTS.md` symlink alongside a root `tasks.json`, so a repo
+that merely ships an `AGENTS.md` reads as an instruction file. Files:
+`instructionDiscovery.js` (new), `ipcChannels.js`, `healthNotice.js`,
+`frameProject.js`, `test/instructionDiscovery.test.js` (new, 16 cases with a
+checksum+mtime snapshot proving the scan is read-only).
+
+Note: Frame's own repo is a legacy layout, so it will show this banner until
+the `embedded-migration` spec runs — that is the intended "fail loud".
+
+_Captured: 2026-07-29 · 5 file changes_
+
+---

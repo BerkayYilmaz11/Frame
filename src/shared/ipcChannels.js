@@ -77,6 +77,10 @@ const IPC = {
   REORDER_TASKS: 'reorder-tasks',
   TASK_UPDATED: 'task-updated',
   TASKS_FILE_ERROR: 'tasks-file-error',
+  // Opened a project laid out by a pre-overlay Frame (root tasks.json /
+  // AGENTS.md / CLAUDE.md symlink). Frame reads only .frame/, so this says
+  // "needs migration" instead of showing an empty project.
+  LEGACY_LAYOUT_DETECTED: 'legacy-layout-detected',
   TOGGLE_TASKS_PANEL: 'toggle-tasks-panel',
   TOGGLE_TASKS_DASHBOARD: 'toggle-tasks-dashboard',
 

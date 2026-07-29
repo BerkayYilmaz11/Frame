@@ -11,6 +11,7 @@ const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require('..
 const templates = require('../shared/frameTemplates');
 const workspace = require('./workspace');
 const gitExclude = require('./gitExclude');
+const instructionDiscovery = require('./instructionDiscovery');
 const structureBootstrap = require('./structureBootstrap');
 const commandStaging = require('./commandStaging');
 const docsManagedBlock = require('../shared/docsManagedBlock');
@@ -704,6 +705,23 @@ function setupIPC(ipcMain) {
     // that has committed .frame/ gets our exclude line removed here, on every
     // clone, without anyone running a command.
     if (isFrame) gitExclude.ensure(projectPath);
+
+    // Full re-scan per open; the watcher underneath is only an optimization.
+    const discovery = instructionDiscovery.refresh(projectPath);
+    instructionDiscovery.startWatching(projectPath);
+
+    // A pre-overlay project has its Frame files at the root, where nothing
+    // reads them any more. Saying so is the difference between "needs
+    // migration" and an empty project with no explanation.
+    //
+    // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json
+    // *and* the root files, so every project this notice exists for looks
+    // like a Frame project. The root layout is the signal, not the absence
+    // of .frame/.
+    if (discovery.legacyLayout) {
+      event.sender.send(IPC.LEGACY_LAYOUT_DETECTED, { projectPath });
+    }
+
     workspace.updateProjectFrameStatus(projectPath, isFrame);
     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });
     event.sender.send(IPC.WORKSPACE_UPDATED, workspace.getProjects());

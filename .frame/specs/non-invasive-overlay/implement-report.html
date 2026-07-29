@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">3 of 12 tasks done · next: <span class="rs-task">T04 — Build `src/main/instructionDiscovery.js` as a strictly read-only scan…</span></span>
+  <span class="rs-count">4 of 12 tasks done · next: <span class="rs-task">T06 — Build `src/main/globalLayer.js` owning `userData/frame-global/{AGENTS.md…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -951,7 +951,7 @@
   <header class="card-head">
     <span class="card-id">T03</span>
     <h2>Conditional .git/info/exclude state machine</h2>
-    <span class="card-meta"><span class="chip">42a9af2</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">247 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">621f3d2</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">247 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>New src/main/gitExclude.js: resolves the exclude file via `git rev-parse --git-path info/exclude` (worktree- and submodule-safe), then no repo → no-op, .frame/ tracked → remove our entry, untracked → add it. Wired into frameProject.js at both the project-open IPC and the top of runProjectInit, before the first .frame/ artifact exists. 12 cases in test/gitExclude.test.js run against real temp git repos.</p></div>
@@ -1389,6 +1389,527 @@
 <span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
 <span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
 <span class="dl-add">+  assert.equal(gitExclude.isFrameTracked(repo), true);</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Read-only instruction discovery + legacy-layout notice</h2>
+    <span class="card-meta"><span class="chip">835b813</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">262 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/main/instructionDiscovery.js: one root scan answering both questions — native instruction files (CLAUDE.md, .claude/CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .cursor/rules/*, .github/copilot-instructions.md) and the pre-overlay Frame layout — with a full re-scan on every project open and a debounced fs.watch as an optimization on top. Added IPC.LEGACY_LAYOUT_DETECTED, the banner branch in healthNotice.js, and the emit on project open. 16 cases in test/instructionDiscovery.test.js, including a checksum+mtime snapshot of the whole tree before and after scanning.</p></div>
+    <div class="field"><span class="label">Why</span><p>The banner is deliberately not gated on isFrameProject: a pre-overlay init wrote .frame/config.json *and* the root files, so every project this notice exists for already looks like a Frame project — gating on the absence of .frame/ would have meant the notice never fires at all. The legacy detector also refuses to call a lone root tasks.json Frame&#39;s: it needs a Frame-specific companion (STRUCTURE.json / PROJECT_NOTES.md / QUICKSTART.md) or a CLAUDE.md→AGENTS.md symlink, so a repo that merely has an AGENTS.md is read as an instruction file rather than a project needing migration.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 22c3cc6..8b26a55 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -11,6 +11,7 @@ const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require(&#39;..</span>
+<span class="dl-ctx"> const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> const workspace = require(&#39;./workspace&#39;);</span>
+<span class="dl-ctx"> const gitExclude = require(&#39;./gitExclude&#39;);</span>
+<span class="dl-add">+const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-ctx"> const structureBootstrap = require(&#39;./structureBootstrap&#39;);</span>
+<span class="dl-ctx"> const commandStaging = require(&#39;./commandStaging&#39;);</span>
+<span class="dl-ctx"> const docsManagedBlock = require(&#39;../shared/docsManagedBlock&#39;);</span>
+<span class="dl-hunk">@@ -704,6 +705,23 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     // that has committed .frame/ gets our exclude line removed here, on every</span>
+<span class="dl-ctx">     // clone, without anyone running a command.</span>
+<span class="dl-ctx">     if (isFrame) gitExclude.ensure(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Full re-scan per open; the watcher underneath is only an optimization.</span>
+<span class="dl-add">+    const discovery = instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-add">+    instructionDiscovery.startWatching(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // A pre-overlay project has its Frame files at the root, where nothing</span>
+<span class="dl-add">+    // reads them any more. Saying so is the difference between &quot;needs</span>
+<span class="dl-add">+    // migration&quot; and an empty project with no explanation.</span>
+<span class="dl-add">+    //</span>
+<span class="dl-add">+    // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json</span>
+<span class="dl-add">+    // *and* the root files, so every project this notice exists for looks</span>
+<span class="dl-add">+    // like a Frame project. The root layout is the signal, not the absence</span>
+<span class="dl-add">+    // of .frame/.</span>
+<span class="dl-add">+    if (discovery.legacyLayout) {</span>
+<span class="dl-add">+      event.sender.send(IPC.LEGACY_LAYOUT_DETECTED, { projectPath });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     workspace.updateProjectFrameStatus(projectPath, isFrame);</span>
+<span class="dl-ctx">     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });</span>
+<span class="dl-ctx">     event.sender.send(IPC.WORKSPACE_UPDATED, workspace.getProjects());</span>
+<span class="dl-meta">diff --git a/src/main/instructionDiscovery.js b/src/main/instructionDiscovery.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..d7294bf</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/main/instructionDiscovery.js</span>
+<span class="dl-hunk">@@ -0,0 +1,209 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * instructionDiscovery — find out what the repo already says, and change none</span>
+<span class="dl-add">+ * of it.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Two questions, one root scan:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *  1. **Native instruction files.** `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,</span>
+<span class="dl-add">+ *     `.claude/CLAUDE.md`, `.cursorrules`, `.cursor/rules/*`,</span>
+<span class="dl-add">+ *     `.github/copilot-instructions.md`. These belong to the repo. Frame reads</span>
+<span class="dl-add">+ *     them only to know they exist, so the launch-time preamble can *point* an</span>
+<span class="dl-add">+ *     AI tool at them; nothing is copied out, nothing is written back.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *  2. **The pre-overlay Frame layout.** A project initialized by an older</span>
+<span class="dl-add">+ *     Frame carries root `tasks.json` / `AGENTS.md` / `STRUCTURE.json` /</span>
+<span class="dl-add">+ *     `PROJECT_NOTES.md` and often a `CLAUDE.md → AGENTS.md` symlink. Frame now</span>
+<span class="dl-add">+ *     reads only `.frame/`, so such a project would otherwise open as an empty,</span>
+<span class="dl-add">+ *     never-initialized one. Detecting it is what turns that silence into a</span>
+<span class="dl-add">+ *     banner; moving the files belongs to the `embedded-migration` spec.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Strictly read-only ──</span>
+<span class="dl-add">+ * Every path here is opened for reading or stat&#39;ed and nothing else. No</span>
+<span class="dl-add">+ * `openSync(..., &#39;w&#39;)`, no rename, no symlink, no mtime touch. A repo the user</span>
+<span class="dl-add">+ * does not own must be checksum-identical after a full Frame session, and this</span>
+<span class="dl-add">+ * is the module with the most opportunity to break that.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Freshness ──</span>
+<span class="dl-add">+ * A full re-scan runs on every project open — that is the correctness path,</span>
+<span class="dl-add">+ * and it is a handful of `existsSync` calls. The debounced `fs.watch` is a</span>
+<span class="dl-add">+ * best-effort optimization on top: when it fires, the cache refreshes early so</span>
+<span class="dl-add">+ * a launch mid-session sees the current state. If the watcher never fires</span>
+<span class="dl-add">+ * (network mount, platform quirk, editor writing through a temp file), nothing</span>
+<span class="dl-add">+ * is lost — the next open re-scans anyway.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const fsSafe = require(&#39;./fsSafe&#39;);</span>
+<span class="dl-add">+const { LEGACY_ROOT_FILES } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const WATCH_DEBOUNCE_MS = 250;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Native instruction files, in the order a reader would want them listed.</span>
+<span class="dl-add">+ * `dir: true` entries contribute every file inside the directory.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const NATIVE_SOURCES = [</span>
+<span class="dl-add">+  { kind: &#39;claude&#39;, rel: &#39;CLAUDE.md&#39; },</span>
+<span class="dl-add">+  { kind: &#39;claude&#39;, rel: path.join(&#39;.claude&#39;, &#39;CLAUDE.md&#39;) },</span>
+<span class="dl-add">+  { kind: &#39;agents&#39;, rel: &#39;AGENTS.md&#39; },</span>
+<span class="dl-add">+  { kind: &#39;gemini&#39;, rel: &#39;GEMINI.md&#39; },</span>
+<span class="dl-add">+  { kind: &#39;cursor&#39;, rel: &#39;.cursorrules&#39; },</span>
+<span class="dl-add">+  { kind: &#39;cursor&#39;, rel: path.join(&#39;.cursor&#39;, &#39;rules&#39;), dir: true },</span>
+<span class="dl-add">+  { kind: &#39;copilot&#39;, rel: path.join(&#39;.github&#39;, &#39;copilot-instructions.md&#39;) }</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// A pre-overlay init always produced these at the root. tasks.json alone is</span>
+<span class="dl-add">+// too weak a signal — plenty of unrelated projects have one — so the layout</span>
+<span class="dl-add">+// counts as Frame&#39;s only when a Frame-specific companion is there too.</span>
+<span class="dl-add">+const LEGACY_STRONG = [LEGACY_ROOT_FILES.STRUCTURE, LEGACY_ROOT_FILES.NOTES, LEGACY_ROOT_FILES.QUICKSTART];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let cache = new Map(); // projectPath → result</span>
+<span class="dl-add">+let watchers = new Map(); // projectPath → { watcher, timer }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function isFile(target) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.statSync(target).isFile();</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** `lstat`, so a symlink is reported as a symlink rather than followed. */</span>
+<span class="dl-add">+function linkInfo(target) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.lstatSync(target);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function listDirFiles(dir) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs</span>
+<span class="dl-add">+      .readdirSync(dir, { withFileTypes: true })</span>
+<span class="dl-add">+      .filter((entry) =&gt; entry.isFile())</span>
+<span class="dl-add">+      .map((entry) =&gt; path.join(dir, entry.name))</span>
+<span class="dl-add">+      .sort();</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return [];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Is the root layout an older Frame&#39;s, rather than a project that merely</span>
+<span class="dl-add">+ * happens to have an AGENTS.md?</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function detectLegacyLayout(projectPath) {</span>
+<span class="dl-add">+  const hasTasks = isFile(path.join(projectPath, LEGACY_ROOT_FILES.TASKS));</span>
+<span class="dl-add">+  const hasCompanion = LEGACY_STRONG.some((name) =&gt; isFile(path.join(projectPath, name)));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The other tell: a CLAUDE.md symlink pointing at AGENTS.md, which only</span>
+<span class="dl-add">+  // Frame&#39;s own init ever created.</span>
+<span class="dl-add">+  const claudeLink = linkInfo(path.join(projectPath, LEGACY_ROOT_FILES.CLAUDE_SYMLINK));</span>
+<span class="dl-add">+  let framePlantedSymlink = false;</span>
+<span class="dl-add">+  if (claudeLink &amp;&amp; claudeLink.isSymbolicLink()) {</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      framePlantedSymlink =</span>
+<span class="dl-add">+        path.basename(fs.readlinkSync(path.join(projectPath, LEGACY_ROOT_FILES.CLAUDE_SYMLINK))) ===</span>
+<span class="dl-add">+        LEGACY_ROOT_FILES.AGENTS;</span>
+<span class="dl-add">+    } catch (_) {</span>
+<span class="dl-add">+      framePlantedSymlink = false;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return (hasTasks &amp;&amp; hasCompanion) || framePlantedSymlink;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Scan a project root. Returns</span>
+<span class="dl-add">+ * `{ projectPath, nativeFiles: [{ path, kind }], legacyLayout: boolean }`.</span>
+<span class="dl-add">+ * In-memory only — never persisted, never written back.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function scan(projectPath) {</span>
+<span class="dl-add">+  const nativeFiles = [];</span>
+<span class="dl-add">+  if (!projectPath) return { projectPath, nativeFiles, legacyLayout: false };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const source of NATIVE_SOURCES) {</span>
+<span class="dl-add">+    const target = path.join(projectPath, source.rel);</span>
+<span class="dl-add">+    if (source.dir) {</span>
+<span class="dl-add">+      for (const file of listDirFiles(target)) {</span>
+<span class="dl-add">+        nativeFiles.push({ path: file, kind: source.kind });</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      continue;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    if (isFile(target)) nativeFiles.push({ path: target, kind: source.kind });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { projectPath, nativeFiles, legacyLayout: detectLegacyLayout(projectPath) };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Scan and cache. Every project open goes through here. */</span>
+<span class="dl-add">+function refresh(projectPath) {</span>
+<span class="dl-add">+  const result = scan(projectPath);</span>
+<span class="dl-add">+  cache.set(projectPath, result);</span>
+<span class="dl-add">+  return result;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The current view, scanning if this project has not been seen. Callers that</span>
+<span class="dl-add">+ * want guaranteed-fresh data call `refresh` instead.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function get(projectPath) {</span>
+<span class="dl-add">+  return cache.get(projectPath) || refresh(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Best-effort freshness: re-scan when something at the root changes.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The project root only — no recursion. A deep watch on an arbitrary</span>
+<span class="dl-add">+ * repository is a resource cost with no matching benefit here, and the</span>
+<span class="dl-add">+ * `.cursor/rules/` case is covered by the next open&#39;s full re-scan.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function startWatching(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath || watchers.has(projectPath)) return;</span>
+<span class="dl-add">+  if (!fs.existsSync(projectPath)) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const state = { watcher: null, timer: null };</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    state.watcher = fsSafe.safeWatch(projectPath, { persistent: false }, (eventType, filename) =&gt; {</span>
+<span class="dl-add">+      if (!filename) return;</span>
+<span class="dl-add">+      const base = path.basename(filename);</span>
+<span class="dl-add">+      const interesting =</span>
+<span class="dl-add">+        NATIVE_SOURCES.some((s) =&gt; path.basename(s.rel) === base) ||</span>
+<span class="dl-add">+        Object.values(LEGACY_ROOT_FILES).includes(base);</span>
+<span class="dl-add">+      if (!interesting) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+      clearTimeout(state.timer);</span>
+<span class="dl-add">+      state.timer = setTimeout(() =&gt; refresh(projectPath), WATCH_DEBOUNCE_MS);</span>
+<span class="dl-add">+    }, () =&gt; { watchers.delete(projectPath); });</span>
+<span class="dl-add">+    watchers.set(projectPath, state);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    // A project on a filesystem that cannot be watched still gets the</span>
+<span class="dl-add">+    // per-open re-scan, which is the path correctness depends on.</span>
+<span class="dl-add">+    console.warn(&#39;instructionDiscovery: watch failed (non-fatal):&#39;, err.message);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function stopWatching(projectPath) {</span>
+<span class="dl-add">+  const state = watchers.get(projectPath);</span>
+<span class="dl-add">+  if (!state) return;</span>
+<span class="dl-add">+  clearTimeout(state.timer);</span>
+<span class="dl-add">+  try { if (state.watcher) state.watcher.close(); } catch (_) { /* ignore */ }</span>
+<span class="dl-add">+  watchers.delete(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function stopAll() {</span>
+<span class="dl-add">+  for (const projectPath of Array.from(watchers.keys())) stopWatching(projectPath);</span>
+<span class="dl-add">+  cache = new Map();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  scan,</span>
+<span class="dl-add">+  refresh,</span>
+<span class="dl-add">+  get,</span>
+<span class="dl-add">+  startWatching,</span>
+<span class="dl-add">+  stopWatching,</span>
+<span class="dl-add">+  stopAll,</span>
+<span class="dl-add">+  NATIVE_SOURCES</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/src/renderer/healthNotice.js b/src/renderer/healthNotice.js</span>
+<span class="dl-meta">index 0b54c13..7a6df8a 100644</span>
+<span class="dl-file">--- a/src/renderer/healthNotice.js</span>
+<span class="dl-file">+++ b/src/renderer/healthNotice.js</span>
+<span class="dl-hunk">@@ -26,6 +26,13 @@ function init() {</span>
+<span class="dl-ctx">     show(&#39;warn&#39;, `${file} was corrupt and has been restored from its backup.`);</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  ipcRenderer.on(IPC.LEGACY_LAYOUT_DETECTED, () =&gt; {</span>
+<span class="dl-add">+    show(</span>
+<span class="dl-add">+      &#39;warn&#39;,</span>
+<span class="dl-add">+      &#39;This project uses the old Frame layout (Frame files at the project root). Frame now reads only .frame/ — migrate the project to see its tasks, specs and notes again.&#39;</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   ipcRenderer.on(IPC.TASKS_FILE_ERROR, (event, payload) =&gt; {</span>
+<span class="dl-ctx">     if (payload &amp;&amp; payload.recovered) {</span>
+<span class="dl-ctx">       show(&#39;warn&#39;, &#39;tasks.json was corrupt and has been restored from its backup.&#39;);</span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index b28b51f..a213c8c 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -77,6 +77,10 @@ const IPC = {</span>
+<span class="dl-ctx">   REORDER_TASKS: &#39;reorder-tasks&#39;,</span>
+<span class="dl-ctx">   TASK_UPDATED: &#39;task-updated&#39;,</span>
+<span class="dl-ctx">   TASKS_FILE_ERROR: &#39;tasks-file-error&#39;,</span>
+<span class="dl-add">+  // Opened a project laid out by a pre-overlay Frame (root tasks.json /</span>
+<span class="dl-add">+  // AGENTS.md / CLAUDE.md symlink). Frame reads only .frame/, so this says</span>
+<span class="dl-add">+  // &quot;needs migration&quot; instead of showing an empty project.</span>
+<span class="dl-add">+  LEGACY_LAYOUT_DETECTED: &#39;legacy-layout-detected&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_PANEL: &#39;toggle-tasks-panel&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_DASHBOARD: &#39;toggle-tasks-dashboard&#39;,</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/test/instructionDiscovery.test.js b/test/instructionDiscovery.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..9b7c6d5</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/instructionDiscovery.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,216 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * instructionDiscovery tests (T04): fixture trees for the native-file scan and</span>
+<span class="dl-add">+ * the legacy-layout detector, plus the property the whole overlay rests on —</span>
+<span class="dl-add">+ * a scanned repo is byte- and mtime-identical afterwards.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const crypto = require(&#39;crypto&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const instructionDiscovery = require(&#39;../src/main/instructionDiscovery&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let projectDir;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function write(rel, content) {</span>
+<span class="dl-add">+  const target = path.join(projectDir, rel);</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(target), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(target, content, &#39;utf8&#39;);</span>
+<span class="dl-add">+  return target;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function kinds(result) {</span>
+<span class="dl-add">+  return result.nativeFiles.map((f) =&gt; f.kind).sort();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function names(result) {</span>
+<span class="dl-add">+  return result.nativeFiles.map((f) =&gt; path.relative(projectDir, f.path)).sort();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Checksum + mtime of every file in the tree, for the read-only guarantee. */</span>
+<span class="dl-add">+function snapshot(dir) {</span>
+<span class="dl-add">+  const out = new Map();</span>
+<span class="dl-add">+  const walk = (current) =&gt; {</span>
+<span class="dl-add">+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {</span>
+<span class="dl-add">+      const full = path.join(current, entry.name);</span>
+<span class="dl-add">+      if (entry.isDirectory()) {</span>
+<span class="dl-add">+        walk(full);</span>
+<span class="dl-add">+      } else if (entry.isSymbolicLink()) {</span>
+<span class="dl-add">+        out.set(full, `link:${fs.readlinkSync(full)}`);</span>
+<span class="dl-add">+      } else {</span>
+<span class="dl-add">+        const st = fs.statSync(full);</span>
+<span class="dl-add">+        const sum = crypto.createHash(&#39;sha256&#39;).update(fs.readFileSync(full)).digest(&#39;hex&#39;);</span>
+<span class="dl-add">+        out.set(full, `${sum}:${st.mtimeMs}:${st.mode}`);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+  walk(dir);</span>
+<span class="dl-add">+  return out;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+beforeEach(() =&gt; {</span>
+<span class="dl-add">+  projectDir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-discovery-&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+afterEach(() =&gt; {</span>
+<span class="dl-add">+  instructionDiscovery.stopAll();</span>
+<span class="dl-add">+  fs.rmSync(projectDir, { recursive: true, force: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── native instruction files ─────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an empty project discovers nothing and is not legacy&#39;, () =&gt; {</span>
+<span class="dl-add">+  const result = instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  assert.deepEqual(result.nativeFiles, []);</span>
+<span class="dl-add">+  assert.equal(result.legacyLayout, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;each supported convention is found and labelled&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;CLAUDE.md&#39;, &#39;# claude\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.claude/CLAUDE.md&#39;, &#39;# scoped claude\n&#39;);</span>
+<span class="dl-add">+  write(&#39;GEMINI.md&#39;, &#39;# gemini\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.cursorrules&#39;, &#39;rules\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.github/copilot-instructions.md&#39;, &#39;# copilot\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(result), [&#39;claude&#39;, &#39;claude&#39;, &#39;copilot&#39;, &#39;cursor&#39;, &#39;gemini&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(names(result), [</span>
+<span class="dl-add">+    &#39;.claude/CLAUDE.md&#39;,</span>
+<span class="dl-add">+    &#39;.cursorrules&#39;,</span>
+<span class="dl-add">+    &#39;.github/copilot-instructions.md&#39;,</span>
+<span class="dl-add">+    &#39;CLAUDE.md&#39;,</span>
+<span class="dl-add">+    &#39;GEMINI.md&#39;</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;.cursor/rules contributes every file inside it&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;.cursor/rules/style.mdc&#39;, &#39;a\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.cursor/rules/testing.mdc&#39;, &#39;b\n&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(projectDir, &#39;.cursor&#39;, &#39;rules&#39;, &#39;nested&#39;), { recursive: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  assert.deepEqual(names(result), [&#39;.cursor/rules/style.mdc&#39;, &#39;.cursor/rules/testing.mdc&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a directory named like an instruction file is not reported as one&#39;, () =&gt; {</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(projectDir, &#39;CLAUDE.md&#39;), { recursive: true });</span>
+<span class="dl-add">+  assert.deepEqual(instructionDiscovery.scan(projectDir).nativeFiles, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── legacy layout ────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a full pre-overlay layout is detected&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;tasks.json&#39;, &#39;{&quot;version&quot;:&quot;2.0&quot;,&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+  write(&#39;AGENTS.md&#39;, &#39;# agents\n&#39;);</span>
+<span class="dl-add">+  write(&#39;STRUCTURE.json&#39;, &#39;{&quot;modules&quot;:{}}&#39;);</span>
+<span class="dl-add">+  write(&#39;PROJECT_NOTES.md&#39;, &#39;# notes\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, true);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a CLAUDE.md → AGENTS.md symlink alone is enough&#39;, (t) =&gt; {</span>
+<span class="dl-add">+  write(&#39;AGENTS.md&#39;, &#39;# agents\n&#39;);</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    fs.symlinkSync(&#39;AGENTS.md&#39;, path.join(projectDir, &#39;CLAUDE.md&#39;));</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    t.skip(&#39;symlinks unavailable on this platform&#39;);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, true);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a plain tasks.json is not mistaken for a Frame project&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;tasks.json&#39;, &#39;{&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;a repo&#39;s own AGENTS.md is an instruction file, not a legacy layout&quot;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;AGENTS.md&#39;, &#39;# our conventions\n&#39;);</span>
+<span class="dl-add">+  const result = instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  assert.equal(result.legacyLayout, false);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(result), [&#39;agents&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project already on the overlay layout is not legacy&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;.frame/tasks.json&#39;, &#39;{&quot;version&quot;:&quot;2.0&quot;,&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+  write(&#39;.frame/config.json&#39;, &#39;{&quot;version&quot;:&quot;1.0&quot;}&#39;);</span>
+<span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── read-only guarantee ──────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;scanning changes nothing on disk — checksums and mtimes hold&#39;, (t) =&gt; {</span>
+<span class="dl-add">+  write(&#39;CLAUDE.md&#39;, &#39;# claude\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.cursorrules&#39;, &#39;rules\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.cursor/rules/style.mdc&#39;, &#39;a\n&#39;);</span>
+<span class="dl-add">+  write(&#39;.github/copilot-instructions.md&#39;, &#39;# copilot\n&#39;);</span>
+<span class="dl-add">+  write(&#39;tasks.json&#39;, &#39;{&quot;version&quot;:&quot;2.0&quot;,&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+  write(&#39;AGENTS.md&#39;, &#39;# agents\n&#39;);</span>
+<span class="dl-add">+  write(&#39;STRUCTURE.json&#39;, &#39;{&quot;modules&quot;:{}}&#39;);</span>
+<span class="dl-add">+  let symlinked = true;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    fs.symlinkSync(&#39;AGENTS.md&#39;, path.join(projectDir, &#39;GEMINI.md&#39;));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    symlinked = false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const before = snapshot(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.refresh(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.get(projectDir);</span>
+<span class="dl-add">+  const after = snapshot(projectDir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual([...after.entries()].sort(), [...before.entries()].sort());</span>
+<span class="dl-add">+  if (symlinked) {</span>
+<span class="dl-add">+    assert.ok(</span>
+<span class="dl-add">+      fs.lstatSync(path.join(projectDir, &#39;GEMINI.md&#39;)).isSymbolicLink(),</span>
+<span class="dl-add">+      &#39;a symlinked instruction file was replaced&#39;</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;scanning creates no files of its own&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;CLAUDE.md&#39;, &#39;# claude\n&#39;);</span>
+<span class="dl-add">+  instructionDiscovery.scan(projectDir);</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(projectDir), [&#39;CLAUDE.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── caching ──────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;get caches, refresh re-reads&#39;, () =&gt; {</span>
+<span class="dl-add">+  write(&#39;CLAUDE.md&#39;, &#39;# claude\n&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(instructionDiscovery.get(projectDir)), [&#39;claude&#39;]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  write(&#39;GEMINI.md&#39;, &#39;# gemini\n&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(instructionDiscovery.get(projectDir)), [&#39;claude&#39;], &#39;cache was not used&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(instructionDiscovery.refresh(projectDir)), [&#39;claude&#39;, &#39;gemini&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(kinds(instructionDiscovery.get(projectDir)), [&#39;claude&#39;, &#39;gemini&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;scan(undefined) is inert&#39;, () =&gt; {</span>
+<span class="dl-add">+  const result = instructionDiscovery.scan(undefined);</span>
+<span class="dl-add">+  assert.deepEqual(result.nativeFiles, []);</span>
+<span class="dl-add">+  assert.equal(result.legacyLayout, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;watching a project is safe to start and stop repeatedly&#39;, () =&gt; {</span>
+<span class="dl-add">+  instructionDiscovery.startWatching(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.startWatching(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.stopWatching(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.stopWatching(projectDir);</span>
+<span class="dl-add">+  instructionDiscovery.startWatching(path.join(projectDir, &#39;does-not-exist&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a pre-overlay project carries .frame/config.json too — the root layout is the signal&#39;, () =&gt; {</span>
+<span class="dl-add">+  // What today&#39;s init actually produces: .frame/config.json *and* root files.</span>
+<span class="dl-add">+  // If legacy detection leaned on &quot;no .frame/&quot;, it would never fire here.</span>
+<span class="dl-add">+  write(&#39;.frame/config.json&#39;, &#39;{&quot;version&quot;:&quot;1.0&quot;}&#39;);</span>
+<span class="dl-add">+  write(&#39;tasks.json&#39;, &#39;{&quot;version&quot;:&quot;2.0&quot;,&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+  write(&#39;AGENTS.md&#39;, &#39;# agents\n&#39;);</span>
+<span class="dl-add">+  write(&#39;STRUCTURE.json&#39;, &#39;{&quot;modules&quot;:{}}&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, true);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

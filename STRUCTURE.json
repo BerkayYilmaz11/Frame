@@ -742,6 +742,7 @@
         "shared/frameTemplates",
         "workspace",
         "gitExclude",
+        "instructionDiscovery",
         "structureBootstrap",
         "commandStaging",
         "shared/docsManagedBlock",
@@ -754,28 +755,28 @@
       ],
       "functions": {
         "init": {
-          "line": 26,
+          "line": 27,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 33,
+          "line": 34,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 41,
+          "line": 42,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 54,
+          "line": 55,
           "params": [
             "filePath",
             "content"
@@ -783,7 +784,7 @@
           "purpose": "Create file if it doesn't exist"
         },
         "createSymlinkSafe": {
-          "line": 71,
+          "line": 72,
           "params": [
             "target",
             "linkPath"
@@ -791,102 +792,102 @@
           "purpose": "Create a symlink safely with Windows fallback"
         },
         "checkExistingFrameFiles": {
-          "line": 112,
+          "line": 113,
           "params": [
             "projectPath"
           ],
           "purpose": "Check which Frame files already exist in the project"
         },
         "showInitializeConfirmation": {
-          "line": 136,
+          "line": 137,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 188,
+          "line": 189,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "doInitializeFrameProject": {
-          "line": 196,
+          "line": 197,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "runProjectInit": {
-          "line": 208,
+          "line": 209,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "installSpecHintHook": {
-          "line": 439,
+          "line": 440,
           "params": [
             "projectPath"
           ],
           "purpose": "Register the spec-hint hooks in the project's .claude/settings.json."
         },
         "isSpecDrivenEnabled": {
-          "line": 496,
+          "line": 497,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 501,
+          "line": 502,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 528,
+          "line": 529,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 556,
+          "line": 557,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 560,
+          "line": 561,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 574,
+          "line": 575,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 584,
+          "line": 585,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 659,
+          "line": 660,
           "params": [
             "projectPath"
           ]
         },
         "setupIPC": {
-          "line": 700,
+          "line": 701,
           "params": [
             "ipcMain"
           ],
@@ -903,6 +904,7 @@
           "SET_SPEC_DRIVEN"
         ],
         "emits": [
+          "LEGACY_LAYOUT_DETECTED",
           "IS_FRAME_PROJECT_RESULT",
           "WORKSPACE_UPDATED",
           "FRAME_PROJECT_INITIALIZED",
@@ -1737,6 +1739,90 @@
         "emits": [
           "MAIN_PROCESS_ERROR"
         ]
+      }
+    },
+    "main/instructionDiscovery": {
+      "file": "src/main/instructionDiscovery.js",
+      "description": "instructionDiscovery — find out what the repo already says, and change none",
+      "exports": [
+        "scan",
+        "refresh",
+        "get",
+        "startWatching",
+        "stopWatching",
+        "stopAll",
+        "NATIVE_SOURCES"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "fsSafe",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "isFile": {
+          "line": 64,
+          "params": [
+            "target"
+          ]
+        },
+        "linkInfo": {
+          "line": 73,
+          "params": [
+            "target"
+          ],
+          "purpose": "`lstat`, so a symlink is reported as a symlink rather than followed."
+        },
+        "listDirFiles": {
+          "line": 81,
+          "params": [
+            "dir"
+          ]
+        },
+        "detectLegacyLayout": {
+          "line": 97,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Is the root layout an older Frame's, rather than a project that merely"
+        },
+        "scan": {
+          "line": 123,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Scan a project root. Returns"
+        },
+        "refresh": {
+          "line": 142,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Scan and cache. Every project open goes through here."
+        },
+        "get": {
+          "line": 152,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The current view, scanning if this project has not been seen. Callers that"
+        },
+        "startWatching": {
+          "line": 163,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Best-effort freshness: re-scan when something at the root changes."
+        },
+        "stopWatching": {
+          "line": 188,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "stopAll": {
+          "line": 196
+        }
       }
     },
     "main/logger": {
@@ -5004,20 +5090,21 @@
           "line": 18
         },
         "show": {
-          "line": 38,
+          "line": 45,
           "params": [
             "kind",
             "message"
           ]
         },
         "dismiss": {
-          "line": 70
+          "line": 77
         }
       },
       "ipc": {
         "listens": [
           "MAIN_PROCESS_ERROR",
           "STATE_FILE_RECOVERED",
+          "LEGACY_LAYOUT_DETECTED",
           "TASKS_FILE_ERROR"
         ],
         "emits": []
@@ -10034,6 +10121,13 @@
       },
       "ACTIVITY_DATA": {
         "name": "activity-data",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "legacy": {
+      "LEGACY_LAYOUT_DETECTED": {
+        "name": "legacy-layout-detected",
         "direction": "",
         "description": ""
       }

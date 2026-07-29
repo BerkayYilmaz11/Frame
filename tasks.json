@@ -4327,13 +4327,13 @@
       "title": "Build `src/main/instructionDiscovery.js` as a strictly read-only scan for native instruction files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.claude/CLAUDE.md`, `.cursorrules`, `.cursor/rules/*`, `.github/copilot-instructions.md`) and the legacy embedded-Frame layout — full re-scan on every project open, debounced `fs.watch` as a best-effort optimization only — wire the legacy-layout message into `src/shared/ipcChannels.js` and the banner type into `src/renderer/healthNotice.js`, and cover the engine in `test/instructionDiscovery.test.js` with fixture trees and checksum-unchanged assertions.",
       "description": "",
       "source": "spec:non-invasive-overlay:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:07:39.510Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:39:59.216Z",
+      "completedAt": "2026-07-29T11:39:59.216Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T06",
