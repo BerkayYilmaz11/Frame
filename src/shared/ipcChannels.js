@@ -133,6 +133,9 @@ const IPC = {
   SET_AI_TOOL: 'set-ai-tool',
   AI_TOOL_CHANGED: 'ai-tool-changed',
   CHECK_AI_TOOL_AVAILABLE: 'check-ai-tool-available',
+  // The start command with Frame's launch context attached. Composed
+  // main-side (it needs the filesystem); the renderer gets a finished string.
+  GET_LAUNCH_COMMAND: 'get-launch-command',
 
   // User Settings (renderer-side preferences persisted to userData JSON)
   GET_USER_SETTING: 'get-user-setting',

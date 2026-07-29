@@ -122,3 +122,24 @@ asserts `/spec/i` matches nothing in the off case. Files:
 _Captured: 2026-07-29 · 2 file changes_
 
 ---
+
+## T08 — Declarative injection config and getLaunchCommand
+
+Added `injection: { type: 'flag'|'wrapper' }` to `AI_TOOLS` — Claude Code's
+`--append-system-prompt` and `--settings` verified against the shipping CLI's
+`--help` — and `aiToolManager.getLaunchCommand(projectPath, toolId, extraFlags)`,
+which composes the preamble main-side, reads `features.specDriven` per launch,
+writes `.frame/runtime/{preamble.txt,claude-settings.json}`, regenerates the
+wrapper and returns the finished string over `IPC.GET_LAUNCH_COMMAND`. The
+wrapper reads the preamble from a file instead of carrying it inline: it is
+multi-line prose full of quotes and backticks, and inlining is how generated
+shell scripts break. Gemini moved onto a wrapper command with `gemini` as
+`fallbackCommand`, so a project whose wrapper does not exist yet still probes
+and launches; any injection failure degrades to the bare CLI. Files:
+`aiToolManager.js`, `frameTemplates.js`, `ipcChannels.js`, `frameProject.js`
+(wrapper writing + one spec-hint hook definition), `test/frameTemplates.test.js`
+(new, 13 cases).
+
+_Captured: 2026-07-29 · 5 file changes_
+
+---

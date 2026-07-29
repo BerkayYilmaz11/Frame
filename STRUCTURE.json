@@ -153,6 +153,7 @@
         "getConfig",
         "getCommand",
         "getStartCommand",
+        "getLaunchCommand",
         "composeLaunchCommand",
         "addCustomTool",
         "removeCustomTool",
@@ -167,7 +168,13 @@
         "fsSafe",
         "logger",
         "telemetry",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "shared/frameConstants",
+        "shared/frameTemplates",
+        "shared/contextPreamble",
+        "frameStore",
+        "globalLayer",
+        "instructionDiscovery"
       ],
       "functions": {
         "loginShell": {
@@ -175,7 +182,7 @@
           "purpose": "The user's real login shell. In a GUI-launched (packaged) app, process.env.SHELL"
         },
         "init": {
-          "line": 91,
+          "line": 126,
           "params": [
             "window",
             "app"
@@ -183,72 +190,72 @@
           "purpose": "Initialize the AI Tool Manager"
         },
         "detectDefaultTool": {
-          "line": 105,
+          "line": 140,
           "purpose": "First run only: default the active tool to a CLI that is actually"
         },
         "loadConfig": {
-          "line": 121,
+          "line": 156,
           "purpose": "Load configuration from file"
         },
         "saveConfig": {
-          "line": 148,
+          "line": 183,
           "purpose": "Save configuration to file"
         },
         "getAvailableTools": {
-          "line": 159,
+          "line": 194,
           "purpose": "Get all available AI tools"
         },
         "getActiveTool": {
-          "line": 166,
+          "line": 201,
           "purpose": "Get the currently active tool"
         },
         "setActiveTool": {
-          "line": 174,
+          "line": 209,
           "params": [
             "toolId"
           ],
           "purpose": "Set the active AI tool"
         },
         "getConfig": {
-          "line": 194,
+          "line": 229,
           "purpose": "Get full configuration for renderer"
         },
         "addCustomTool": {
-          "line": 204,
+          "line": 239,
           "params": [
             "tool"
           ],
           "purpose": "Add a custom AI tool"
         },
         "removeCustomTool": {
-          "line": 221,
+          "line": 256,
           "params": [
             "toolId"
           ],
           "purpose": "Remove a custom AI tool"
         },
         "quoteArg": {
-          "line": 241,
+          "line": 276,
           "params": [
             "arg"
           ],
           "purpose": "Compose the command line a lane actually types: the resolved CLI plus any"
         },
         "composeLaunchCommand": {
-          "line": 249,
+          "line": 284,
           "params": [
             "command",
             "launchFlags"
           ]
         },
         "isPathLike": {
-          "line": 254,
+          "line": 289,
           "params": [
             "command"
           ]
         },
         "isCommandAvailable": {
-          "line": 272,
+          "line": 307,
           "params": [
             "command",
             "projectPath"
@@ -256,31 +263,85 @@
           "purpose": "Check whether a CLI command can actually be launched on this system."
         },
         "trackProbeFailure": {
-          "line": 338,
+          "line": 373,
           "params": [
             "reason"
           ]
         },
         "setupIPC": {
-          "line": 346,
+          "line": 381,
           "purpose": "Setup IPC handlers"
         },
         "getCommand": {
-          "line": 412,
+          "line": 453,
           "params": [
             "action"
           ],
           "purpose": "Get command for specific action"
         },
         "getStartCommand": {
-          "line": 420,
+          "line": 461,
           "purpose": "Get the start command for active tool"
+        },
+        "runtimeDir": {
+          "line": 471,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "preambleRelPath": {
+          "line": 475
+        },
+        "buildPreamble": {
+          "line": 487,
+          "params": [
+            "projectPath",
+            "toolId"
+          ],
+          "purpose": "Build the preamble for this project and tool."
+        },
+        "safeGlobalPath": {
+          "line": 501
+        },
+        "writeRuntimeFile": {
+          "line": 509,
+          "params": [
+            "projectPath",
+            "name",
+            "content"
+          ]
+        },
+        "writeClaudeSettings": {
+          "line": 525,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The spec-hint hooks, as a settings file inside Frame's own footprint."
+        },
+        "writeWrapper": {
+          "line": 537,
+          "params": [
+            "projectPath",
+            "tool",
+            "preamble"
+          ],
+          "purpose": "Regenerate `.frame/bin/<id>` for a wrapper tool, alongside the preamble file"
+        },
+        "getLaunchCommand": {
+          "line": 567,
+          "params": [
+            "projectPath",
+            "toolId",
+            "extraFlags"
+          ],
+          "purpose": "The command a lane should actually type, with Frame's context attached."
         }
       },
       "ipc": {
         "listens": [
           "GET_AI_TOOL_CONFIG",
           "SET_AI_TOOL",
+          "GET_LAUNCH_COMMAND",
           "CHECK_AI_TOOL_AVAILABLE"
         ],
         "emits": [
@@ -827,67 +888,67 @@
           ]
         },
         "installSpecHintHook": {
-          "line": 440,
+          "line": 438,
           "params": [
             "projectPath"
           ],
           "purpose": "Register the spec-hint hooks in the project's .claude/settings.json."
         },
         "isSpecDrivenEnabled": {
-          "line": 497,
+          "line": 495,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 502,
+          "line": 500,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 529,
+          "line": 527,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 557,
+          "line": 555,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 561,
+          "line": 559,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 575,
+          "line": 573,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 585,
+          "line": 583,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 660,
+          "line": 658,
           "params": [
             "projectPath"
           ]
         },
         "setupIPC": {
-          "line": 701,
+          "line": 699,
           "params": [
             "ipcMain"
           ],
@@ -8969,6 +9030,8 @@
         "LEGACY_SPEC_DRIVEN_CORE_SECTION",
         "REFERENCE_SPEC_LEGACY_MATCHERS",
         "AGENTS_SPEC_LEGACY_MATCHERS",
+        "getWrapperTemplate",
+        "getSpecHintSettings",
         "getCodexWrapperTemplate",
         "getGenericWrapperTemplate",
         "getStructureHookSnippet",
@@ -9057,12 +9120,23 @@
           ],
           "purpose": ".frame/config.json template"
         },
+        "getWrapperTemplate": {
+          "line": 877,
+          "params": [
+            "toolCommand",
+            "options"
+          ],
+          "purpose": "Wrapper script for a tool with no flag to inject a system prompt."
+        },
+        "getSpecHintSettings": {
+          "line": 920,
+          "purpose": "The spec-hint hooks, as a Claude Code settings object."
+        },
         "getCodexWrapperTemplate": {
-          "line": 860,
-          "purpose": "Codex CLI wrapper script"
+          "line": 936
         },
         "getGenericWrapperTemplate": {
-          "line": 897,
+          "line": 973,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -9070,27 +9144,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 943
+          "line": 1019
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 964,
+          "line": 1040,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 987,
+          "line": 1063,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 999,
+          "line": 1075,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1019
+          "line": 1095
         },
         "getOrchBinScripts": {
-          "line": 1037,
+          "line": 1113,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }
@@ -10236,6 +10310,13 @@
     "legacy": {
       "LEGACY_LAYOUT_DETECTED": {
         "name": "legacy-layout-detected",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "launch": {
+      "GET_LAUNCH_COMMAND": {
+        "name": "get-launch-command",
         "direction": "",
         "description": ""
       }

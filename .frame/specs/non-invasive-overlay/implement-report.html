@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">6 of 12 tasks done · next: <span class="rs-task">T08 — Add declarative `injection: { type: &#39;flag&#39;|&#39;wrapper&#39; }` config to…</span></span>
+  <span class="rs-count">7 of 12 tasks done · next: <span class="rs-task">T10 — Switch the renderer launch call sites to the composed command over IPC…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -2380,7 +2380,7 @@
   <header class="card-head">
     <span class="card-id">T07</span>
     <h2>Pure launch-time preamble composer</h2>
-    <span class="card-meta"><span class="chip">a5b35fb</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">289 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">354945a</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">289 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>New src/shared/contextPreamble.js: composes the injected text from {globalPath, projectLayerPath?, nativeFiles, toolId, specDriven} as pointers only, states the domain-precedence rule outright, and appends the spec-driven activation paragraph when the flag is on. Tools that read the repo&#39;s file natively (Claude Code → CLAUDE.md, Gemini → GEMINI.md) are acknowledged and left alone; every other discovered file is pointed at explicitly. 17 cases in test/contextPreamble.test.js.</p></div>
@@ -2687,6 +2687,564 @@
 <span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
 <span class="dl-add">+  });</span>
 <span class="dl-add">+  assert.equal(compose(input), compose(input));</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>Declarative injection config and getLaunchCommand</h2>
+    <span class="card-meta"><span class="chip">6797f2b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>AI_TOOLS gained injection: {type:&#39;flag&#39;|&#39;wrapper&#39;} — Claude Code takes --append-system-prompt and --settings (both verified against the shipping CLI&#39;s --help), Codex and Gemini get .frame/bin/&lt;id&gt; wrappers. aiToolManager.getLaunchCommand(projectPath, toolId, extraFlags) composes the preamble main-side, reads features.specDriven from .frame/config.json per launch, writes .frame/runtime/{preamble.txt,claude-settings.json}, regenerates the wrapper, and returns command + launchFlags + resolvedCommand over the new IPC.GET_LAUNCH_COMMAND. frameTemplates gained getWrapperTemplate and getSpecHintSettings; 13 cases in test/frameTemplates.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>The wrapper reads the preamble from .frame/runtime/preamble.txt rather than having it baked in: the preamble is multi-line prose full of quotes and backticks, and every one of those is a way to corrupt a generated shell script — as data it cannot. Gemini moved to a wrapper command with &#39;gemini&#39; as fallbackCommand, so a project whose wrapper does not exist yet still probes and launches. Injection failure (read-only disk, missing global layer) degrades to the bare CLI rather than costing the user their agent, and specDriven is re-read every launch so flipping the Settings toggle takes effect on the next one.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index 3c92ff5..8fd952d 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -26,10 +26,37 @@ function loginShell() {</span>
+<span class="dl-ctx">   return process.env.SHELL || (process.platform === &#39;darwin&#39; ? &#39;/bin/zsh&#39; : &#39;/bin/bash&#39;);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR, FRAME_BIN_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-add">+const contextPreamble = require(&#39;../shared/contextPreamble&#39;);</span>
+<span class="dl-add">+const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-add">+const globalLayer = require(&#39;./globalLayer&#39;);</span>
+<span class="dl-add">+const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-ctx"> let configPath = null;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * How each tool receives Frame&#39;s launch context.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Since the overlay, Frame plants no root instruction file, so the context is</span>
+<span class="dl-add">+ * handed over when the tool starts. Declaratively per tool, because the</span>
+<span class="dl-add">+ * alternative is per-tool branching leaking across modules:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   type &#39;flag&#39;    — the CLI can take a system-prompt append and a settings</span>
+<span class="dl-add">+ *                    file on the command line. `promptFlag`/`settingsFlag`</span>
+<span class="dl-add">+ *                    name them.</span>
+<span class="dl-add">+ *   type &#39;wrapper&#39; — no such flag, so `.frame/bin/&lt;id&gt;` execs the CLI with the</span>
+<span class="dl-add">+ *                    preamble as its initial prompt.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Claude Code&#39;s flags are `--append-system-prompt &lt;prompt&gt;` and</span>
+<span class="dl-add">+ * `--settings &lt;file-or-json&gt;`, verified against the shipping CLI. A build that</span>
+<span class="dl-add">+ * does not know them degrades to the wrapper path rather than passing an</span>
+<span class="dl-add">+ * unknown flag, which would make the CLI refuse to start at all.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const INJECTION_FLAG = &#39;flag&#39;;</span>
+<span class="dl-add">+const INJECTION_WRAPPER = &#39;wrapper&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // Default AI tools configuration</span>
+<span class="dl-ctx"> const AI_TOOLS = {</span>
+<span class="dl-ctx">   claude: {</span>
+<span class="dl-hunk">@@ -37,6 +64,11 @@ const AI_TOOLS = {</span>
+<span class="dl-ctx">     name: &#39;Claude Code&#39;,</span>
+<span class="dl-ctx">     command: &#39;claude&#39;,</span>
+<span class="dl-ctx">     description: &#39;Anthropic Claude Code CLI&#39;,</span>
+<span class="dl-add">+    injection: {</span>
+<span class="dl-add">+      type: INJECTION_FLAG,</span>
+<span class="dl-add">+      promptFlag: &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+      settingsFlag: &#39;--settings&#39;</span>
+<span class="dl-add">+    },</span>
+<span class="dl-ctx">     commands: {</span>
+<span class="dl-ctx">       init: &#39;/init&#39;,</span>
+<span class="dl-ctx">       commit: &#39;/commit&#39;,</span>
+<span class="dl-hunk">@@ -51,7 +83,8 @@ const AI_TOOLS = {</span>
+<span class="dl-ctx">     name: &#39;Codex CLI&#39;,</span>
+<span class="dl-ctx">     command: &#39;./.frame/bin/codex&#39;,</span>
+<span class="dl-ctx">     fallbackCommand: &#39;codex&#39;,</span>
+<span class="dl-del">-    description: &#39;OpenAI Codex CLI (with AGENTS.md injection)&#39;,</span>
+<span class="dl-add">+    injection: { type: INJECTION_WRAPPER },</span>
+<span class="dl-add">+    description: &#39;OpenAI Codex CLI (with Frame context injection)&#39;,</span>
+<span class="dl-ctx">     commands: {</span>
+<span class="dl-ctx">       review: &#39;/review&#39;,</span>
+<span class="dl-ctx">       model: &#39;/model&#39;,</span>
+<span class="dl-hunk">@@ -64,7 +97,9 @@ const AI_TOOLS = {</span>
+<span class="dl-ctx">   gemini: {</span>
+<span class="dl-ctx">     id: &#39;gemini&#39;,</span>
+<span class="dl-ctx">     name: &#39;Gemini CLI&#39;,</span>
+<span class="dl-del">-    command: &#39;gemini&#39;,</span>
+<span class="dl-add">+    command: &#39;./.frame/bin/gemini&#39;,</span>
+<span class="dl-add">+    fallbackCommand: &#39;gemini&#39;,</span>
+<span class="dl-add">+    injection: { type: INJECTION_WRAPPER },</span>
+<span class="dl-ctx">     description: &#39;Google Gemini CLI (reads GEMINI.md natively)&#39;,</span>
+<span class="dl-ctx">     commands: {</span>
+<span class="dl-ctx">       init: &#39;/init&#39;,</span>
+<span class="dl-hunk">@@ -354,6 +389,12 @@ function setupIPC() {</span>
+<span class="dl-ctx">     return setActiveTool(toolId);</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  ipcMain.removeHandler(IPC.GET_LAUNCH_COMMAND);</span>
+<span class="dl-add">+  ipcMain.handle(IPC.GET_LAUNCH_COMMAND, (event, payload = {}) =&gt; {</span>
+<span class="dl-add">+    const { projectPath = null, toolId = null, launchFlags = null } = payload;</span>
+<span class="dl-add">+    return getLaunchCommand(projectPath, toolId, launchFlags);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   ipcMain.removeHandler(IPC.CHECK_AI_TOOL_AVAILABLE);</span>
+<span class="dl-ctx">   ipcMain.handle(IPC.CHECK_AI_TOOL_AVAILABLE, async (event, payload = {}) =&gt; {</span>
+<span class="dl-ctx">     const { toolId, projectPath, launchFlags = null } = payload;</span>
+<span class="dl-hunk">@@ -421,6 +462,167 @@ function getStartCommand() {</span>
+<span class="dl-ctx">   return getActiveTool().command;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── Launch-time context injection ────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const RUNTIME_DIR = &#39;runtime&#39;;</span>
+<span class="dl-add">+const PREAMBLE_FILE = &#39;preamble.txt&#39;;</span>
+<span class="dl-add">+const CLAUDE_SETTINGS_FILE = &#39;claude-settings.json&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function runtimeDir(projectPath) {</span>
+<span class="dl-add">+  return path.join(projectPath, FRAME_DIR, RUNTIME_DIR);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function preambleRelPath() {</span>
+<span class="dl-add">+  return `${FRAME_DIR}/${RUNTIME_DIR}/${PREAMBLE_FILE}`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Build the preamble for this project and tool.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `features.specDriven` is read from `.frame/config.json` at every launch and</span>
+<span class="dl-add">+ * never cached: the user can flip the toggle in Settings between two launches,</span>
+<span class="dl-add">+ * and a cached value would keep injecting the activation paragraph into a</span>
+<span class="dl-add">+ * project that has turned the workflow off.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function buildPreamble(projectPath, toolId) {</span>
+<span class="dl-add">+  const config = frameStore.readConfig(projectPath).data || {};</span>
+<span class="dl-add">+  const specDriven = !!(config.features &amp;&amp; config.features.specDriven);</span>
+<span class="dl-add">+  const projectLayer = frameStore.agentsPath(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return contextPreamble.compose({</span>
+<span class="dl-add">+    globalPath: safeGlobalPath(),</span>
+<span class="dl-add">+    projectLayerPath: fs.existsSync(projectLayer) ? projectLayer : &#39;&#39;,</span>
+<span class="dl-add">+    nativeFiles: instructionDiscovery.get(projectPath).nativeFiles,</span>
+<span class="dl-add">+    toolId,</span>
+<span class="dl-add">+    specDriven</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function safeGlobalPath() {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return globalLayer.agentsPath();</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return &#39;&#39;; // no global layer yet — compose() returns &#39;&#39; and we inject nothing</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function writeRuntimeFile(projectPath, name, content) {</span>
+<span class="dl-add">+  const dir = runtimeDir(projectPath);</span>
+<span class="dl-add">+  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-add">+  const target = path.join(dir, name);</span>
+<span class="dl-add">+  fs.writeFileSync(target, content, &#39;utf8&#39;);</span>
+<span class="dl-add">+  return target;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The spec-hint hooks, as a settings file inside Frame&#39;s own footprint.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * They used to be merged into the project&#39;s tracked `.claude/settings.json`,</span>
+<span class="dl-add">+ * which the overlay forbids. Passing them by flag also makes them removable:</span>
+<span class="dl-add">+ * stop passing the flag and the hooks are gone, with nothing left behind in</span>
+<span class="dl-add">+ * the repo to clean up.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeClaudeSettings(projectPath) {</span>
+<span class="dl-add">+  return writeRuntimeFile(</span>
+<span class="dl-add">+    projectPath,</span>
+<span class="dl-add">+    CLAUDE_SETTINGS_FILE,</span>
+<span class="dl-add">+    JSON.stringify(templates.getSpecHintSettings(), null, 2) + &#39;\n&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Regenerate `.frame/bin/&lt;id&gt;` for a wrapper tool, alongside the preamble file</span>
+<span class="dl-add">+ * it reads. Rewritten per launch so the preamble is never one session stale.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeWrapper(projectPath, tool, preamble) {</span>
+<span class="dl-add">+  const binDir = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR);</span>
+<span class="dl-add">+  fs.mkdirSync(binDir, { recursive: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const target = path.join(binDir, tool.id);</span>
+<span class="dl-add">+  const realCommand = tool.fallbackCommand || tool.id;</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    target,</span>
+<span class="dl-add">+    templates.getWrapperTemplate(realCommand, {</span>
+<span class="dl-add">+      promptFlag: tool.injection.promptFlag || &#39;&#39;,</span>
+<span class="dl-add">+      preambleFile: preambleRelPath()</span>
+<span class="dl-add">+    }),</span>
+<span class="dl-add">+    { mode: 0o755 }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  writeRuntimeFile(projectPath, PREAMBLE_FILE, preamble);</span>
+<span class="dl-add">+  return target;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The command a lane should actually type, with Frame&#39;s context attached.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Replaces the bare `getStartCommand()` at every launch site. Composition</span>
+<span class="dl-add">+ * happens here, main-side, because it needs the filesystem (discovery, the</span>
+<span class="dl-add">+ * config flag, the global layer path) — the renderer receives a finished</span>
+<span class="dl-add">+ * string.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns `{ command, launchFlags, resolvedCommand, injection }`.</span>
+<span class="dl-add">+ * `launchFlags` stays separate from `resolvedCommand` so a caller with its own</span>
+<span class="dl-add">+ * flags (spec.implement&#39;s autonomous mode) can compose on top.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-add">+  const tools = getAvailableTools();</span>
+<span class="dl-add">+  const tool = (toolId &amp;&amp; tools[toolId]) || getActiveTool();</span>
+<span class="dl-add">+  const extra = Array.isArray(extraFlags) ? extraFlags : [];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!projectPath) {</span>
+<span class="dl-add">+    const command = tool.command;</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      command,</span>
+<span class="dl-add">+      launchFlags: extra,</span>
+<span class="dl-add">+      resolvedCommand: composeLaunchCommand(command, extra),</span>
+<span class="dl-add">+      injection: &#39;none&#39;</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  let preamble = &#39;&#39;;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    preamble = buildPreamble(projectPath, tool.id);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, &#39;preamble composition failed (launching without it):&#39;, err.message);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const injection = (tool.injection &amp;&amp; tool.injection.type) || INJECTION_WRAPPER;</span>
+<span class="dl-add">+  const flags = [];</span>
+<span class="dl-add">+  let command = tool.command;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    if (!preamble) {</span>
+<span class="dl-add">+      // Nothing to inject — launch bare rather than pass an empty prompt.</span>
+<span class="dl-add">+      command = tool.fallbackCommand &amp;&amp; injection === INJECTION_WRAPPER ? tool.fallbackCommand : tool.command;</span>
+<span class="dl-add">+    } else if (injection === INJECTION_FLAG) {</span>
+<span class="dl-add">+      flags.push(tool.injection.promptFlag, preamble);</span>
+<span class="dl-add">+      if (tool.injection.settingsFlag) {</span>
+<span class="dl-add">+        flags.push(tool.injection.settingsFlag, writeClaudeSettings(projectPath));</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    } else {</span>
+<span class="dl-add">+      writeWrapper(projectPath, tool, preamble);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    // A read-only or full disk must not cost the user their agent; drop the</span>
+<span class="dl-add">+    // injection and launch the bare CLI.</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, &#39;context injection failed (launching without it):&#39;, err.message);</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      command: tool.fallbackCommand || tool.command,</span>
+<span class="dl-add">+      launchFlags: extra,</span>
+<span class="dl-add">+      resolvedCommand: composeLaunchCommand(tool.fallbackCommand || tool.command, extra),</span>
+<span class="dl-add">+      injection: &#39;none&#39;</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const launchFlags = [...flags, ...extra];</span>
+<span class="dl-add">+  return {</span>
+<span class="dl-add">+    command,</span>
+<span class="dl-add">+    launchFlags,</span>
+<span class="dl-add">+    resolvedCommand: composeLaunchCommand(command, launchFlags),</span>
+<span class="dl-add">+    injection: preamble ? injection : &#39;none&#39;</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   getAvailableTools,</span>
+<span class="dl-hunk">@@ -429,6 +631,7 @@ module.exports = {</span>
+<span class="dl-ctx">   getConfig,</span>
+<span class="dl-ctx">   getCommand,</span>
+<span class="dl-ctx">   getStartCommand,</span>
+<span class="dl-add">+  getLaunchCommand,</span>
+<span class="dl-ctx">   composeLaunchCommand,</span>
+<span class="dl-ctx">   addCustomTool,</span>
+<span class="dl-ctx">   removeCustomTool,</span>
+<span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 8b26a55..f0cdadb 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -364,10 +364,16 @@ async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-ctx">   const binDirPath = path.join(frameDirPath, FRAME_BIN_DIR);</span>
+<span class="dl-ctx">   await fsp.mkdir(binDirPath, { recursive: true });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Create Codex CLI wrapper script</span>
+<span class="dl-del">-  const codexWrapperPath = path.join(binDirPath, &#39;codex&#39;);</span>
+<span class="dl-del">-  if (!fs.existsSync(codexWrapperPath)) {</span>
+<span class="dl-del">-    await fsp.writeFile(codexWrapperPath, templates.getCodexWrapperTemplate(), { mode: 0o755 });</span>
+<span class="dl-add">+  // Wrapper scripts for the CLIs that cannot take a system prompt by flag.</span>
+<span class="dl-add">+  // Written unconditionally, not only when missing: the shape changed with</span>
+<span class="dl-add">+  // the overlay (the old wrappers hunted for a root AGENTS.md that no longer</span>
+<span class="dl-add">+  // exists), and aiToolManager rewrites them at every launch anyway.</span>
+<span class="dl-add">+  for (const toolId of [&#39;codex&#39;, &#39;gemini&#39;]) {</span>
+<span class="dl-add">+    await fsp.writeFile(</span>
+<span class="dl-add">+      path.join(binDirPath, toolId),</span>
+<span class="dl-add">+      templates.getWrapperTemplate(toolId, {}),</span>
+<span class="dl-add">+      { mode: 0o755 }</span>
+<span class="dl-add">+    );</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Bootstrap STRUCTURE.json auto-fill: ship parser scripts to .frame/bin/,</span>
+<span class="dl-hunk">@@ -415,17 +421,9 @@ async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-ctx"> // ─── Spec-knowledge hook install ──────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Hook entries for a user project (scripts live in .frame/bin/ there).</span>
+<span class="dl-del">-const SPEC_HINT_HOOKS = {</span>
+<span class="dl-del">-  PreToolUse: [</span>
+<span class="dl-del">-    {</span>
+<span class="dl-del">-      matcher: &#39;Edit|Write&#39;,</span>
+<span class="dl-del">-      hooks: [{ type: &#39;command&#39;, command: &#39;node .frame/bin/spec-hint.js pre-edit&#39; }]</span>
+<span class="dl-del">-    }</span>
+<span class="dl-del">-  ],</span>
+<span class="dl-del">-  UserPromptSubmit: [</span>
+<span class="dl-del">-    { hooks: [{ type: &#39;command&#39;, command: &#39;node .frame/bin/spec-hint.js prompt&#39; }] }</span>
+<span class="dl-del">-  ]</span>
+<span class="dl-del">-};</span>
+<span class="dl-add">+// One definition, in frameTemplates — the launcher writes the same hooks into</span>
+<span class="dl-add">+// .frame/runtime/claude-settings.json and passes them with --settings.</span>
+<span class="dl-add">+const SPEC_HINT_HOOKS = templates.getSpecHintSettings().hooks;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Register the spec-hint hooks in the project&#39;s .claude/settings.json.</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 7051aa3..0f003e0 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -857,6 +857,82 @@ function getFrameConfigTemplate(projectName) {</span>
+<span class="dl-ctx">  * Codex CLI wrapper script</span>
+<span class="dl-ctx">  * Instructs Codex to read AGENTS.md as initial prompt</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Wrapper script for a tool with no flag to inject a system prompt.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The old wrappers hunted for a root `AGENTS.md` and told the tool to read it.</span>
+<span class="dl-add">+ * The overlay plants no such file, so the wrapper now passes Frame&#39;s launch</span>
+<span class="dl-add">+ * preamble as the initial prompt instead.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The preamble is read from a file rather than baked into the script: it is</span>
+<span class="dl-add">+ * multi-line prose containing quotes and backticks, and every one of those is</span>
+<span class="dl-add">+ * a way to break a generated shell script. Frame rewrites that file at each</span>
+<span class="dl-add">+ * launch, so the wrapper itself stays static and correct.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {string} toolCommand - the real CLI to exec</span>
+<span class="dl-add">+ * @param {object} [options]</span>
+<span class="dl-add">+ * @param {string} [options.promptFlag] - flag carrying the prompt, &#39;&#39; for positional</span>
+<span class="dl-add">+ * @param {string} [options.preambleFile] - project-relative preamble path</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getWrapperTemplate(toolCommand, options) {</span>
+<span class="dl-add">+  const opts = options || {};</span>
+<span class="dl-add">+  const promptFlag = opts.promptFlag || &#39;&#39;;</span>
+<span class="dl-add">+  const preambleFile = opts.preambleFile || &#39;.frame/runtime/preamble.txt&#39;;</span>
+<span class="dl-add">+  const flagPart = promptFlag ? `${promptFlag} ` : &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return `#!/usr/bin/env bash</span>
+<span class="dl-add">+# Frame AI Tool Wrapper for ${toolCommand}</span>
+<span class="dl-add">+# Passes Frame&#39;s launch preamble as the initial prompt. Generated file —</span>
+<span class="dl-add">+# Frame rewrites it on every launch; edits will be lost.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# Locate the project root by walking up to the directory holding .frame/</span>
+<span class="dl-add">+find_project_root() {</span>
+<span class="dl-add">+  local dir=&quot;$PWD&quot;</span>
+<span class="dl-add">+  while [ &quot;$dir&quot; != &quot;/&quot; ]; do</span>
+<span class="dl-add">+    if [ -d &quot;$dir/.frame&quot; ]; then</span>
+<span class="dl-add">+      echo &quot;$dir&quot;</span>
+<span class="dl-add">+      return 0</span>
+<span class="dl-add">+    fi</span>
+<span class="dl-add">+    dir=&quot;$(dirname &quot;$dir&quot;)&quot;</span>
+<span class="dl-add">+  done</span>
+<span class="dl-add">+  return 1</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+PROJECT_ROOT=$(find_project_root)</span>
+<span class="dl-add">+PREAMBLE_FILE=&quot;$PROJECT_ROOT/${preambleFile}&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+if [ -n &quot;$PROJECT_ROOT&quot; ] &amp;&amp; [ -f &quot;$PREAMBLE_FILE&quot; ]; then</span>
+<span class="dl-add">+  exec ${toolCommand} ${flagPart}&quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;</span>
+<span class="dl-add">+else</span>
+<span class="dl-add">+  exec ${toolCommand} &quot;$@&quot;</span>
+<span class="dl-add">+fi</span>
+<span class="dl-add">+`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The spec-hint hooks, as a Claude Code settings object.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * These used to be merged into the project&#39;s tracked `.claude/settings.json`.</span>
+<span class="dl-add">+ * They are now written inside Frame&#39;s own footprint and passed at launch with</span>
+<span class="dl-add">+ * `--settings`, because the overlay may not write a tracked file — and a hook</span>
+<span class="dl-add">+ * list that arrives by flag is also removed by simply not passing it.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getSpecHintSettings() {</span>
+<span class="dl-add">+  return {</span>
+<span class="dl-add">+    hooks: {</span>
+<span class="dl-add">+      PreToolUse: [</span>
+<span class="dl-add">+        {</span>
+<span class="dl-add">+          matcher: &#39;Edit|Write&#39;,</span>
+<span class="dl-add">+          hooks: [{ type: &#39;command&#39;, command: &#39;node .frame/bin/spec-hint.js pre-edit&#39; }]</span>
+<span class="dl-add">+        }</span>
+<span class="dl-add">+      ],</span>
+<span class="dl-add">+      UserPromptSubmit: [</span>
+<span class="dl-add">+        { hooks: [{ type: &#39;command&#39;, command: &#39;node .frame/bin/spec-hint.js prompt&#39; }] }</span>
+<span class="dl-add">+      ]</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function getCodexWrapperTemplate() {</span>
+<span class="dl-ctx">   return `#!/usr/bin/env bash</span>
+<span class="dl-ctx"> # Frame AI Tool Wrapper for Codex CLI</span>
+<span class="dl-hunk">@@ -1061,6 +1137,8 @@ module.exports = {</span>
+<span class="dl-ctx">   LEGACY_SPEC_DRIVEN_CORE_SECTION,</span>
+<span class="dl-ctx">   REFERENCE_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   AGENTS_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-add">+  getWrapperTemplate,</span>
+<span class="dl-add">+  getSpecHintSettings,</span>
+<span class="dl-ctx">   getCodexWrapperTemplate,</span>
+<span class="dl-ctx">   getGenericWrapperTemplate,</span>
+<span class="dl-ctx">   getStructureHookSnippet,</span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index a213c8c..9e3e269 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -133,6 +133,9 @@ const IPC = {</span>
+<span class="dl-ctx">   SET_AI_TOOL: &#39;set-ai-tool&#39;,</span>
+<span class="dl-ctx">   AI_TOOL_CHANGED: &#39;ai-tool-changed&#39;,</span>
+<span class="dl-ctx">   CHECK_AI_TOOL_AVAILABLE: &#39;check-ai-tool-available&#39;,</span>
+<span class="dl-add">+  // The start command with Frame&#39;s launch context attached. Composed</span>
+<span class="dl-add">+  // main-side (it needs the filesystem); the renderer gets a finished string.</span>
+<span class="dl-add">+  GET_LAUNCH_COMMAND: &#39;get-launch-command&#39;,</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // User Settings (renderer-side preferences persisted to userData JSON)</span>
+<span class="dl-ctx">   GET_USER_SETTING: &#39;get-user-setting&#39;,</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..f6eabcb</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,117 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * frameTemplates tests (T08): what the generated files may and may not say</span>
+<span class="dl-add">+ * once Frame is an overlay.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The load-bearing assertion is negative — no template may reference a root</span>
+<span class="dl-add">+ * instruction file or a planted symlink, because the overlay creates neither</span>
+<span class="dl-add">+ * and a template that claims otherwise sends an agent looking for a file that</span>
+<span class="dl-add">+ * is not there.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── wrapper template ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the wrapper execs the real CLI with the preamble as initial prompt&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;codex&#39;, {});</span>
+<span class="dl-add">+  assert.ok(script.startsWith(&#39;#!/usr/bin/env bash&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exec codex &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exec codex &quot;$@&quot;&#39;), &#39;no fallback when the preamble is missing&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the wrapper is generalized per tool, not written per CLI&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const tool of [&#39;codex&#39;, &#39;gemini&#39;, &#39;some-future-cli&#39;]) {</span>
+<span class="dl-add">+    const script = templates.getWrapperTemplate(tool, {});</span>
+<span class="dl-add">+    assert.ok(script.includes(`exec ${tool} `), `${tool} is not execed`);</span>
+<span class="dl-add">+    assert.ok(script.includes(`Frame AI Tool Wrapper for ${tool}`));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tool with a prompt flag gets it in front of the prompt&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;sometool&#39;, { promptFlag: &#39;--prompt&#39; });</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exec sometool --prompt &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the wrapper reads the preamble from a file, never inlines it&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;codex&#39;, {});</span>
+<span class="dl-add">+  // Inlining multi-line prose full of quotes and backticks into a generated</span>
+<span class="dl-add">+  // shell script is how these break; the preamble stays data.</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;PREAMBLE_FILE=&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;.frame/runtime/preamble.txt&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the wrapper finds the project root by .frame/, not by a root AGENTS.md&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;codex&#39;, {});</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;-d &quot;$dir/.frame&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(!/AGENTS\.md/.test(script), &#39;the wrapper still hunts for a root AGENTS.md&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a custom preamble location is honoured&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;codex&#39;, { preambleFile: &#39;.frame/runtime/other.txt&#39; });</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;.frame/runtime/other.txt&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── spec-hint settings ───────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the spec-hint settings carry both hook events&#39;, () =&gt; {</span>
+<span class="dl-add">+  const settings = templates.getSpecHintSettings();</span>
+<span class="dl-add">+  assert.ok(settings.hooks.PreToolUse);</span>
+<span class="dl-add">+  assert.ok(settings.hooks.UserPromptSubmit);</span>
+<span class="dl-add">+  assert.equal(settings.hooks.PreToolUse[0].matcher, &#39;Edit|Write&#39;);</span>
+<span class="dl-add">+  assert.ok(JSON.stringify(settings).includes(&#39;.frame/bin/spec-hint.js&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the settings object is JSON-serializable as a settings file&#39;, () =&gt; {</span>
+<span class="dl-add">+  const settings = templates.getSpecHintSettings();</span>
+<span class="dl-add">+  assert.deepEqual(JSON.parse(JSON.stringify(settings)), settings);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;every spec-hint command runs from inside .frame/&#39;, () =&gt; {</span>
+<span class="dl-add">+  const commands = JSON.stringify(templates.getSpecHintSettings()).match(/&quot;command&quot;:&quot;([^&quot;]+)&quot;/g) || [];</span>
+<span class="dl-add">+  assert.ok(commands.length &gt; 0);</span>
+<span class="dl-add">+  for (const command of commands) {</span>
+<span class="dl-add">+    assert.ok(command.includes(&#39;.frame/&#39;), `${command} points outside Frame&#39;s footprint`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the global layer&#39;s content ───────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the global AGENTS core references no root file and no symlink&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = templates.getAgentsTemplate(&#39;Frame&#39;, {</span>
+<span class="dl-add">+    global: true,</span>
+<span class="dl-add">+    referencePath: &#39;REFERENCE.md&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(!/symlink/i.test(text), &#39;the overlay plants no symlink&#39;);</span>
+<span class="dl-add">+  assert.ok(!/Creation date/.test(text));</span>
+<span class="dl-add">+  assert.ok(!/Project Facts/.test(text));</span>
+<span class="dl-add">+  assert.ok(text.includes(&#39;REFERENCE.md&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the global core points at the reference it was given&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = templates.getAgentsTemplate(&#39;Frame&#39;, {</span>
+<span class="dl-add">+    global: true,</span>
+<span class="dl-add">+    referencePath: &#39;/abs/frame-global/REFERENCE.md&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.ok(text.includes(&#39;/abs/frame-global/REFERENCE.md&#39;));</span>
+<span class="dl-add">+  assert.ok(!text.includes(&#39;.frame/docs/REFERENCE.md&#39;), &#39;the default path leaked into the global copy&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;Frame-owned scripts are addressed under .frame/bin/&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = templates.getAgentsTemplate(&#39;Frame&#39;, { global: true, referencePath: &#39;REFERENCE.md&#39; });</span>
+<span class="dl-add">+  for (const script of [&#39;find-module.js&#39;, &#39;spec-context.js&#39;, &#39;check-freshness.js&#39;]) {</span>
+<span class="dl-add">+    assert.ok(text.includes(`.frame/bin/${script}`), `${script} is not addressed inside .frame/`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the project variant still renders its own facts and stamp&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = templates.getAgentsTemplate(&#39;MyProject&#39;, {</span>
+<span class="dl-add">+    project: { languages: [&#39;javascript&#39;], packageManager: &#39;npm&#39;, commands: {} }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.ok(text.includes(&#39;# MyProject - Frame Project&#39;));</span>
+<span class="dl-add">+  assert.ok(/Project Facts/.test(text));</span>
+<span class="dl-add">+  assert.ok(/Creation date/.test(text));</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

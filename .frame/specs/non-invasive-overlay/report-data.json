@@ -67,13 +67,25 @@
     {
       "id": "T07",
       "title": "Pure launch-time preamble composer",
-      "commit": "a5b35fb",
+      "commit": "354945a",
       "whatChanged": "New src/shared/contextPreamble.js: composes the injected text from {globalPath, projectLayerPath?, nativeFiles, toolId, specDriven} as pointers only, states the domain-precedence rule outright, and appends the spec-driven activation paragraph when the flag is on. Tools that read the repo's file natively (Claude Code → CLAUDE.md, Gemini → GEMINI.md) are acknowledged and left alone; every other discovered file is pointed at explicitly. 17 cases in test/contextPreamble.test.js.",
       "whyChanged": "The precedence sentence started out naming 'the spec workflow' as part of Frame's domain unconditionally — with spec-driven off that still tells an agent specs are a thing here, so the enumeration is now conditional and the off case mentions specs nowhere at all (a test asserts /spec/i never matches). The path matcher normalizes separators so a Windows CLAUDE.md is recognized as the tool's own file rather than listed back at it. No globalPath means an empty string rather than a preamble that only says 'read your own files'.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "289 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T08",
+      "title": "Declarative injection config and getLaunchCommand",
+      "commit": "6797f2b",
+      "whatChanged": "AI_TOOLS gained injection: {type:'flag'|'wrapper'} — Claude Code takes --append-system-prompt and --settings (both verified against the shipping CLI's --help), Codex and Gemini get .frame/bin/<id> wrappers. aiToolManager.getLaunchCommand(projectPath, toolId, extraFlags) composes the preamble main-side, reads features.specDriven from .frame/config.json per launch, writes .frame/runtime/{preamble.txt,claude-settings.json}, regenerates the wrapper, and returns command + launchFlags + resolvedCommand over the new IPC.GET_LAUNCH_COMMAND. frameTemplates gained getWrapperTemplate and getSpecHintSettings; 13 cases in test/frameTemplates.test.js.",
+      "whyChanged": "The wrapper reads the preamble from .frame/runtime/preamble.txt rather than having it baked in: the preamble is multi-line prose full of quotes and backticks, and every one of those is a way to corrupt a generated shell script — as data it cannot. Gemini moved to a wrapper command with 'gemini' as fallbackCommand, so a project whose wrapper does not exist yet still probes and launches. Injection failure (read-only disk, missing global layer) degrades to the bare CLI rather than costing the user their agent, and specDriven is re-read every launch so flipping the Settings toggle takes effect on the next one.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "302 pass / 0 fail"
       }
     }
   ]

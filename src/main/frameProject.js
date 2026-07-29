@@ -364,10 +364,16 @@ async function runProjectInit(projectPath, projectName) {
   const binDirPath = path.join(frameDirPath, FRAME_BIN_DIR);
   await fsp.mkdir(binDirPath, { recursive: true });
 
-  // Create Codex CLI wrapper script
-  const codexWrapperPath = path.join(binDirPath, 'codex');
-  if (!fs.existsSync(codexWrapperPath)) {
-    await fsp.writeFile(codexWrapperPath, templates.getCodexWrapperTemplate(), { mode: 0o755 });
+  // Wrapper scripts for the CLIs that cannot take a system prompt by flag.
+  // Written unconditionally, not only when missing: the shape changed with
+  // the overlay (the old wrappers hunted for a root AGENTS.md that no longer
+  // exists), and aiToolManager rewrites them at every launch anyway.
+  for (const toolId of ['codex', 'gemini']) {
+    await fsp.writeFile(
+      path.join(binDirPath, toolId),
+      templates.getWrapperTemplate(toolId, {}),
+      { mode: 0o755 }
+    );
   }
 
   // Bootstrap STRUCTURE.json auto-fill: ship parser scripts to .frame/bin/,
@@ -415,17 +421,9 @@ async function runProjectInit(projectPath, projectName) {
 // ─── Spec-knowledge hook install ──────────────────────────
 
 // Hook entries for a user project (scripts live in .frame/bin/ there).
-const SPEC_HINT_HOOKS = {
-  PreToolUse: [
-    {
-      matcher: 'Edit|Write',
-      hooks: [{ type: 'command', command: 'node .frame/bin/spec-hint.js pre-edit' }]
-    }
-  ],
-  UserPromptSubmit: [
-    { hooks: [{ type: 'command', command: 'node .frame/bin/spec-hint.js prompt' }] }
-  ]
-};
+// One definition, in frameTemplates — the launcher writes the same hooks into
+// .frame/runtime/claude-settings.json and passes them with --settings.
+const SPEC_HINT_HOOKS = templates.getSpecHintSettings().hooks;
 
 /**
  * Register the spec-hint hooks in the project's .claude/settings.json.

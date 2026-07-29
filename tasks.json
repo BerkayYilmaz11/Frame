@@ -4366,13 +4366,13 @@
       "title": "Add declarative `injection: { type: 'flag'|'wrapper' }` config to `AI_TOOLS` and a `getLaunchCommand(projectPath)` IPC to `src/main/aiToolManager.js` that reads `features.specDriven` from `.frame/config.json` at launch, composes the preamble through existing `composeLaunchCommand`/`quoteArg`, verifies Claude's system-prompt and settings flags with wrapper fallback when absent, generates `.frame/runtime/claude-settings.json` for the spec-hint hooks, and generalizes the wrapper template in `src/shared/frameTemplates.js` (per-tool wrapper, global-layer content parameterized, root-file/symlink references removed, `.frame/bin/<tool>` regenerated) with `test/frameTemplates.test.js`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:51:34.936Z",
+      "completedAt": "2026-07-29T11:51:34.936Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T10",
