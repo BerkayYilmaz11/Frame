@@ -8826,6 +8826,46 @@
         }
       }
     },
+    "shared/contextPreamble": {
+      "file": "src/shared/contextPreamble.js",
+      "description": "contextPreamble — the short text Frame injects when it launches an AI tool.",
+      "exports": [
+        "compose",
+        "precedenceSentence",
+        "NATIVE_READERS"
+      ],
+      "depends": [],
+      "functions": {
+        "precedenceSentence": {
+          "line": 49,
+          "params": [
+            "specDriven"
+          ],
+          "purpose": "The domain split, spelled out."
+        },
+        "bullet": {
+          "line": 56,
+          "params": [
+            "label",
+            "target"
+          ]
+        },
+        "compose": {
+          "line": 71,
+          "params": [
+            "input"
+          ],
+          "purpose": "Compose the preamble."
+        },
+        "endsWith": {
+          "line": 128,
+          "params": [
+            "filePath",
+            "name"
+          ]
+        }
+      }
+    },
     "shared/docsManagedBlock": {
       "file": "src/shared/docsManagedBlock.js",
       "description": "Managed-block engine for Frame's spec docs sections.",

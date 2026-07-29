@@ -106,3 +106,19 @@ block about no project and a claim that a `CLAUDE.md` symlink exists. Files:
 _Captured: 2026-07-29 · 5 file changes_
 
 ---
+
+## T07 — Pure launch-time preamble composer
+
+Built `src/shared/contextPreamble.js`: pointers only, the domain-precedence
+rule stated outright, and the spec-driven activation paragraph gated on the
+flag; tools that read the repo's own file natively are acknowledged rather than
+instructed, everything else discovered is pointed at. One correction the tests
+forced: the precedence sentence originally listed "the spec workflow" as part
+of Frame's domain unconditionally, which still tells an agent specs exist here
+when the feature is off — the enumeration is now conditional, and a test
+asserts `/spec/i` matches nothing in the off case. Files:
+`contextPreamble.js` (new), `test/contextPreamble.test.js` (new, 17 cases).
+
+_Captured: 2026-07-29 · 2 file changes_
+
+---

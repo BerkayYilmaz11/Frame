@@ -4353,13 +4353,13 @@
       "title": "Build `src/shared/contextPreamble.js` as a pure composer over `{globalPath, projectLayerPath?, nativeFiles, toolId, specDriven}` emitting pointers only, the domain-precedence sentence, and the spec-driven activation paragraph when the flag is on (silence when off), covered by `test/contextPreamble.test.js`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:06:01.945Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:46:19.837Z",
+      "completedAt": "2026-07-29T11:46:19.837Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T08",

@@ -55,13 +55,25 @@
     {
       "id": "T06",
       "title": "Global instruction layer in userData",
-      "commit": "c0979b6",
+      "commit": "794861a",
       "whatChanged": "New src/main/globalLayer.js owning userData/frame-global/{AGENTS.md,REFERENCE.md}: the core rendered without the spec section, REFERENCE keeping the full protocol as a docsManagedBlock, upgrades applied in place. Wired globalLayer.init(app.getPath('userData')) + ensure() into src/main/index.js right after userSettings.init(). Parameterized getAgentsTemplate with a `global` option (no Project Facts, no creation stamp, no symlink claim) and a `referencePath`. 11 cases in test/globalLayer.test.js plus a single-copy upgrade case in test/docsManagedBlock.test.js.",
       "whyChanged": "userDataPath is injected through init() rather than required from Electron, so the module and its tests stay Electron-free — the convention the rest of the suite follows. Only a *missing* file is written from the template; a file the user rewrote is left as theirs and only its managed block is ever touched. The global core deliberately carries no spec section: whether a project is spec-driven is per-project state, and the shared core is read by all of them, so the activation signal moves to the launch preamble (T07) and silence is what a project with the flag off gets.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "273 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T07",
+      "title": "Pure launch-time preamble composer",
+      "commit": "a5b35fb",
+      "whatChanged": "New src/shared/contextPreamble.js: composes the injected text from {globalPath, projectLayerPath?, nativeFiles, toolId, specDriven} as pointers only, states the domain-precedence rule outright, and appends the spec-driven activation paragraph when the flag is on. Tools that read the repo's file natively (Claude Code → CLAUDE.md, Gemini → GEMINI.md) are acknowledged and left alone; every other discovered file is pointed at explicitly. 17 cases in test/contextPreamble.test.js.",
+      "whyChanged": "The precedence sentence started out naming 'the spec workflow' as part of Frame's domain unconditionally — with spec-driven off that still tells an agent specs are a thing here, so the enumeration is now conditional and the off case mentions specs nowhere at all (a test asserts /spec/i never matches). The path matcher normalizes separators so a Windows CLAUDE.md is recognized as the tool's own file rather than listed back at it. No globalPath means an empty string rather than a preamble that only says 'read your own files'.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "289 pass / 0 fail"
       }
     }
   ]

@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">5 of 12 tasks done · next: <span class="rs-task">T07 — Build `src/shared/contextPreamble.js` as a pure composer over…</span></span>
+  <span class="rs-count">6 of 12 tasks done · next: <span class="rs-task">T08 — Add declarative `injection: { type: &#39;flag&#39;|&#39;wrapper&#39; }` config to…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1919,7 +1919,7 @@
   <header class="card-head">
     <span class="card-id">T06</span>
     <h2>Global instruction layer in userData</h2>
-    <span class="card-meta"><span class="chip">c0979b6</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">273 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">794861a</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">273 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>New src/main/globalLayer.js owning userData/frame-global/{AGENTS.md,REFERENCE.md}: the core rendered without the spec section, REFERENCE keeping the full protocol as a docsManagedBlock, upgrades applied in place. Wired globalLayer.init(app.getPath(&#39;userData&#39;)) + ensure() into src/main/index.js right after userSettings.init(). Parameterized getAgentsTemplate with a `global` option (no Project Facts, no creation stamp, no symlink claim) and a `referencePath`. 11 cases in test/globalLayer.test.js plus a single-copy upgrade case in test/docsManagedBlock.test.js.</p></div>
@@ -2371,6 +2371,322 @@
 <span class="dl-add">+  const result = globalLayer.ensure();</span>
 <span class="dl-add">+  assert.equal(result.agents, &#39;error&#39;);</span>
 <span class="dl-add">+  assert.ok(result.error);</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Pure launch-time preamble composer</h2>
+    <span class="card-meta"><span class="chip">a5b35fb</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">289 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/shared/contextPreamble.js: composes the injected text from {globalPath, projectLayerPath?, nativeFiles, toolId, specDriven} as pointers only, states the domain-precedence rule outright, and appends the spec-driven activation paragraph when the flag is on. Tools that read the repo&#39;s file natively (Claude Code → CLAUDE.md, Gemini → GEMINI.md) are acknowledged and left alone; every other discovered file is pointed at explicitly. 17 cases in test/contextPreamble.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>The precedence sentence started out naming &#39;the spec workflow&#39; as part of Frame&#39;s domain unconditionally — with spec-driven off that still tells an agent specs are a thing here, so the enumeration is now conditional and the off case mentions specs nowhere at all (a test asserts /spec/i never matches). The path matcher normalizes separators so a Windows CLAUDE.md is recognized as the tool&#39;s own file rather than listed back at it. No globalPath means an empty string rather than a preamble that only says &#39;read your own files&#39;.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/contextPreamble.js b/src/shared/contextPreamble.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..5bfe89a</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/shared/contextPreamble.js</span>
+<span class="dl-hunk">@@ -0,0 +1,134 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * contextPreamble — the short text Frame injects when it launches an AI tool.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Frame no longer plants a `CLAUDE.md` symlink at the project root, so a tool</span>
+<span class="dl-add">+ * can no longer stumble onto Frame&#39;s conventions by itself. Instead the</span>
+<span class="dl-add">+ * conventions are handed over at launch, as **pointers**:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   Frame global   — userData/frame-global/AGENTS.md   (Frame, every project)</span>
+<span class="dl-add">+ *   Frame project  — .frame/AGENTS.md, when present    (Frame, this project)</span>
+<span class="dl-add">+ *   Repo native    — the repo&#39;s own CLAUDE.md / AGENTS.md / …  (the repo)</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Pointers, never content ──</span>
+<span class="dl-add">+ * Nothing is copied out of any file. The preamble names paths and lets the</span>
+<span class="dl-add">+ * agent read them, so nothing can go stale, no context is duplicated into the</span>
+<span class="dl-add">+ * command line, and the day these layers stop being files in the working tree</span>
+<span class="dl-add">+ * only the path changes — not this composition.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Precedence is by domain, not by order ──</span>
+<span class="dl-add">+ * The repo&#39;s instruction file stays authoritative for code conventions;</span>
+<span class="dl-add">+ * Frame&#39;s layers are authoritative for the Frame meta-workflow. Layer order</span>
+<span class="dl-add">+ * decides nothing, which is why the preamble states the split outright instead</span>
+<span class="dl-add">+ * of leaving an agent to infer it from what came first.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Per tool ──</span>
+<span class="dl-add">+ * A tool that reads the repo&#39;s file natively (Claude Code, Gemini CLI) is left</span>
+<span class="dl-add">+ * to do so and is only pointed at the Frame layers. A tool with no such</span>
+<span class="dl-add">+ * convention is told to read the repo&#39;s file too. Which tools are which is</span>
+<span class="dl-add">+ * `aiToolManager`&#39;s business; this module only takes `toolId` and asks.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Pure: no fs, no Electron, no process. Give it the same input twice and get</span>
+<span class="dl-add">+ * the same string.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Tools that find the repo&#39;s own instruction file without being told.</span>
+<span class="dl-add">+const NATIVE_READERS = {</span>
+<span class="dl-add">+  claude: &#39;CLAUDE.md&#39;,</span>
+<span class="dl-add">+  gemini: &#39;GEMINI.md&#39;</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The domain split, spelled out.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The enumeration of Frame&#39;s side is conditional for one reason: with</span>
+<span class="dl-add">+ * spec-driven off, naming &quot;the spec workflow&quot; as part of Frame&#39;s domain is</span>
+<span class="dl-add">+ * still telling an agent that specs are a thing here. A project with the</span>
+<span class="dl-add">+ * feature off gets no mention of specs anywhere — not an instruction against</span>
+<span class="dl-add">+ * them, simply nothing.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function precedenceSentence(specDriven) {</span>
+<span class="dl-add">+  const domain = specDriven === true</span>
+<span class="dl-add">+    ? &#39;recognizing a task, capturing a note, the spec workflow, keeping the structure map current&#39;</span>
+<span class="dl-add">+    : &#39;recognizing a task, capturing a note, keeping the structure map current&#39;;</span>
+<span class="dl-add">+  return `Where these disagree: the repository owns its code conventions, Frame owns the meta-workflow (${domain}).`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function bullet(label, target) {</span>
+<span class="dl-add">+  return `- ${label}: \`${target}\``;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Compose the preamble.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {object} input</span>
+<span class="dl-add">+ * @param {string} input.globalPath        - userData/frame-global/AGENTS.md</span>
+<span class="dl-add">+ * @param {string} [input.projectLayerPath]- .frame/AGENTS.md, when it exists</span>
+<span class="dl-add">+ * @param {Array}  [input.nativeFiles]     - [{ path, kind }] from instructionDiscovery</span>
+<span class="dl-add">+ * @param {string} [input.toolId]          - &#39;claude&#39; | &#39;codex&#39; | &#39;gemini&#39; | …</span>
+<span class="dl-add">+ * @param {boolean}[input.specDriven]      - features.specDriven for this project</span>
+<span class="dl-add">+ * @returns {string} the preamble, or &#39;&#39; when there is nothing to say</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function compose(input) {</span>
+<span class="dl-add">+  const opts = input || {};</span>
+<span class="dl-add">+  const globalPath = opts.globalPath || &#39;&#39;;</span>
+<span class="dl-add">+  const projectLayerPath = opts.projectLayerPath || &#39;&#39;;</span>
+<span class="dl-add">+  const nativeFiles = Array.isArray(opts.nativeFiles) ? opts.nativeFiles : [];</span>
+<span class="dl-add">+  const toolId = opts.toolId || &#39;&#39;;</span>
+<span class="dl-add">+  const specDriven = opts.specDriven === true;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Without the global layer there is no Frame context to point at, and a</span>
+<span class="dl-add">+  // preamble that only says &quot;read your own files&quot; is worse than silence.</span>
+<span class="dl-add">+  if (!globalPath) return &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const lines = [];</span>
+<span class="dl-add">+  lines.push(</span>
+<span class="dl-add">+    &#39;Frame context for this session. These files are not loaded for you — read them before you start:&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  lines.push(&#39;&#39;);</span>
+<span class="dl-add">+  lines.push(bullet(&quot;Frame&#39;s conventions (all projects)&quot;, globalPath));</span>
+<span class="dl-add">+  if (projectLayerPath) {</span>
+<span class="dl-add">+    lines.push(bullet(&quot;This project&#39;s Frame context&quot;, projectLayerPath));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const nativeReader = NATIVE_READERS[toolId];</span>
+<span class="dl-add">+  const selfRead = nativeFiles.filter((f) =&gt; f &amp;&amp; f.path &amp;&amp; endsWith(f.path, nativeReader));</span>
+<span class="dl-add">+  const toRead = nativeFiles.filter((f) =&gt; f &amp;&amp; f.path &amp;&amp; !endsWith(f.path, nativeReader));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const file of toRead) {</span>
+<span class="dl-add">+    lines.push(bullet(&quot;This repository&#39;s own instructions&quot;, file.path));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (selfRead.length) {</span>
+<span class="dl-add">+    lines.push(&#39;&#39;);</span>
+<span class="dl-add">+    lines.push(</span>
+<span class="dl-add">+      `This repository&#39;s \`${nativeReader}\` is yours to read as usual — Frame has not modified it.`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  lines.push(&#39;&#39;);</span>
+<span class="dl-add">+  lines.push(precedenceSentence(specDriven));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (specDriven) {</span>
+<span class="dl-add">+    lines.push(&#39;&#39;);</span>
+<span class="dl-add">+    lines.push(</span>
+<span class="dl-add">+      &#39;Spec-driven development is active in this project: significant work goes through a spec &#39; +</span>
+<span class="dl-add">+      &#39;(spec.md → plan.md → tasks.md) before code — trivial changes just get done, small tracked &#39; +</span>
+<span class="dl-add">+      &#39;work becomes a task, a sizable feature or multi-file change becomes a spec. Offer it once, &#39; +</span>
+<span class="dl-add">+      &#39;never force it. The full protocol is in the &quot;Spec-Driven Development&quot; section of the Frame &#39; +</span>
+<span class="dl-add">+      &#39;reference beside the file above.&#39;</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  lines.push(&#39;&#39;);</span>
+<span class="dl-add">+  lines.push(&#39;Frame writes only inside `.frame/`. Never edit files outside it on Frame\&#39;s behalf.&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return lines.join(&#39;\n&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function endsWith(filePath, name) {</span>
+<span class="dl-add">+  if (!name) return false;</span>
+<span class="dl-add">+  const normalized = String(filePath).replace(/\\/g, &#39;/&#39;);</span>
+<span class="dl-add">+  return normalized === name || normalized.endsWith(`/${name}`);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { compose, precedenceSentence, NATIVE_READERS };</span>
+<span class="dl-meta">diff --git a/test/contextPreamble.test.js b/test/contextPreamble.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..80c638f</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/contextPreamble.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,155 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * contextPreamble tests (T07): composition across tool/layer combinations.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Two properties carry the design and are asserted everywhere: the preamble</span>
+<span class="dl-add">+ * contains **paths, never content**, and a project with spec-driven off gets</span>
+<span class="dl-add">+ * silence about specs rather than a negative instruction.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { compose, precedenceSentence } = require(&#39;../src/shared/contextPreamble&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const GLOBAL = &#39;/Users/x/Library/Application Support/Frame/frame-global/AGENTS.md&#39;;</span>
+<span class="dl-add">+const PROJECT_LAYER = &#39;/repo/.frame/AGENTS.md&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function base(extra) {</span>
+<span class="dl-add">+  return { globalPath: GLOBAL, toolId: &#39;claude&#39;, ...extra };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── layers ───────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the global layer alone is a valid preamble&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base());</span>
+<span class="dl-add">+  assert.ok(text.includes(GLOBAL));</span>
+<span class="dl-add">+  assert.ok(text.includes(precedenceSentence(false)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the project layer appears only when it exists&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.ok(!compose(base()).includes(&#39;.frame/AGENTS.md&#39;));</span>
+<span class="dl-add">+  assert.ok(compose(base({ projectLayerPath: PROJECT_LAYER })).includes(PROJECT_LAYER));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;without a global layer there is nothing to say&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(compose({ toolId: &#39;claude&#39; }), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(compose(), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(compose(null), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the precedence rule is stated, not left to be inferred&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({ nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }] }));</span>
+<span class="dl-add">+  assert.ok(text.includes(precedenceSentence(false)));</span>
+<span class="dl-add">+  assert.ok(/repository owns its code conventions/.test(text));</span>
+<span class="dl-add">+  assert.ok(/Frame owns the meta-workflow/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── per tool ─────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;Claude Code is left to read the repo&#39;s CLAUDE.md itself&quot;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;claude&#39;,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(/CLAUDE\.md` is yours to read as usual/.test(text));</span>
+<span class="dl-add">+  assert.ok(/Frame has not modified it/.test(text));</span>
+<span class="dl-add">+  assert.ok(!text.includes(&quot;- This repository&#39;s own instructions: `/repo/CLAUDE.md`&quot;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;Gemini CLI is left to read the repo&#39;s GEMINI.md itself&quot;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;gemini&#39;,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/GEMINI.md&#39;, kind: &#39;gemini&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(/GEMINI\.md` is yours to read as usual/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tool with no native convention is pointed at the repo file too&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;codex&#39;,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(text.includes(&quot;- This repository&#39;s own instructions: `/repo/CLAUDE.md`&quot;));</span>
+<span class="dl-add">+  assert.ok(!/yours to read as usual/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;a tool is still pointed at files that are not its own convention&quot;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;claude&#39;,</span>
+<span class="dl-add">+    nativeFiles: [</span>
+<span class="dl-add">+      { path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; },</span>
+<span class="dl-add">+      { path: &#39;/repo/.cursorrules&#39;, kind: &#39;cursor&#39; },</span>
+<span class="dl-add">+      { path: &#39;/repo/.github/copilot-instructions.md&#39;, kind: &#39;copilot&#39; }</span>
+<span class="dl-add">+    ]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(text.includes(&#39;/repo/.cursorrules&#39;));</span>
+<span class="dl-add">+  assert.ok(text.includes(&#39;/repo/.github/copilot-instructions.md&#39;));</span>
+<span class="dl-add">+  assert.ok(/yours to read as usual/.test(text), &quot;the tool&#39;s own file is still acknowledged&quot;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a nested .claude/CLAUDE.md counts as the tool\&#39;s own file&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;claude&#39;,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/.claude/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(/yours to read as usual/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;windows separators are matched too&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    toolId: &#39;claude&#39;,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;C:\\repo\\CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+  assert.ok(/yours to read as usual/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;no native files at all: the Frame layers are the sole source&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({ nativeFiles: [] }));</span>
+<span class="dl-add">+  assert.ok(text.includes(GLOBAL));</span>
+<span class="dl-add">+  assert.ok(!/yours to read as usual/.test(text));</span>
+<span class="dl-add">+  assert.ok(!/This repository&#39;s own instructions/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── spec-driven ──────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;spec-driven on adds the activation paragraph&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({ specDriven: true }));</span>
+<span class="dl-add">+  assert.ok(/Spec-driven development is active/.test(text));</span>
+<span class="dl-add">+  assert.ok(/spec\.md → plan\.md → tasks\.md/.test(text));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;spec-driven off says nothing about specs — never a negative instruction&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const value of [false, undefined, null, 0]) {</span>
+<span class="dl-add">+    const text = compose(base({ specDriven: value }));</span>
+<span class="dl-add">+    assert.ok(!/spec/i.test(text), `&quot;${value}&quot; leaked spec text into the preamble`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── pointers, not content ────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;no file content is embedded — only paths&#39;, () =&gt; {</span>
+<span class="dl-add">+  const text = compose(base({</span>
+<span class="dl-add">+    projectLayerPath: PROJECT_LAYER,</span>
+<span class="dl-add">+    specDriven: true,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  }));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Anything that looks like a copied document would show up as markdown</span>
+<span class="dl-add">+  // headings or fenced code, which a pointer list never contains.</span>
+<span class="dl-add">+  assert.ok(!/^#/m.test(text), &#39;a heading suggests copied file content&#39;);</span>
+<span class="dl-add">+  assert.ok(!text.includes(&#39;```&#39;), &#39;a code fence suggests copied file content&#39;);</span>
+<span class="dl-add">+  assert.ok(text.split(&#39;\n&#39;).length &lt; 25, &#39;the preamble grew into a document&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the no-write rule travels with the pointers&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.ok(/Frame writes only inside `\.frame\/`/.test(compose(base())));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;composition is deterministic&#39;, () =&gt; {</span>
+<span class="dl-add">+  const input = base({</span>
+<span class="dl-add">+    projectLayerPath: PROJECT_LAYER,</span>
+<span class="dl-add">+    specDriven: true,</span>
+<span class="dl-add">+    nativeFiles: [{ path: &#39;/repo/CLAUDE.md&#39;, kind: &#39;claude&#39; }]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.equal(compose(input), compose(input));</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>
