@@ -4405,13 +4405,13 @@
       "title": "Collapse the spec-driven toggle to a pure config-flag write — delete `stripManagedSpecSection`, the `AGENTS.md` branches of `ensureSpecDrivenArtifacts`, and `upgradeSpecDocs`' `AGENTS.md` doc entry; drop the AGENTS.md side effect from `src/renderer/settingsModal.js`; rewrite `test/specDrivenToggle.test.js` against the config-flag-plus-preamble contract.",
       "description": "",
       "source": "spec:non-invasive-overlay:T12",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T12:03:22.328Z",
+      "completedAt": "2026-07-29T12:03:22.328Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T13",

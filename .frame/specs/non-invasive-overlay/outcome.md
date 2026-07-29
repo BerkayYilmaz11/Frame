@@ -201,3 +201,19 @@ escape (fixed in T13, taken first). No `.frame/AGENTS.md` is seeded. Files:
 _Captured: 2026-07-29 · 2 file changes_
 
 ---
+
+## T12 — Spec-driven toggle collapses to a config-flag write
+
+Deleted `stripManagedSpecSection`, `disableSpecDriven`'s AGENTS.md surgery, the
+AGENTS.md branch of `ensureSpecDrivenArtifacts` and `upgradeSpecDocs`' AGENTS.md
+entry: both directions of the toggle are now a `.frame/config.json` write and
+nothing else, with the launch preamble deciding what an agent is told. Rewrote
+`test/specDrivenToggle.test.js` (13 cases) against that contract — snapshots
+prove only the config changes, including for a repo whose own `AGENTS.md`
+happens to contain a "Spec-Driven Development" heading, which the old strip
+path would have edited. Files: `frameProject.js`, `settingsModal.js`,
+`test/specDrivenToggle.test.js`.
+
+_Captured: 2026-07-29 · 3 file changes_
+
+---

@@ -7,7 +7,7 @@ const fs = require('fs');
 const fsp = require('fs').promises;
 const path = require('path');
 const { IPC } = require('../shared/ipcChannels');
-const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require('../shared/frameConstants');
+const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_BIN_DIR } = require('../shared/frameConstants');
 const templates = require('../shared/frameTemplates');
 const workspace = require('./workspace');
 const frameStore = require('./frameStore');
@@ -338,15 +338,20 @@ function installSpecHintHook(projectPath) {
 
 // ─── Spec-Driven Development toggle ──────────────────────────
 //
-// Reads/writes the `features.specDriven` flag in .frame/config.json. New
-// projects start enabled (config template); pre-existing projects that were
-// initialized before that keep whatever they have and can flip it in
-// Settings → Workflow.
+// Reads/writes the `features.specDriven` flag in .frame/config.json, and
+// that is now the whole of it.
 //
-// Enabling re-emits AGENTS.md with the spec section appended (so AI tools
-// learn the workflow) and creates an empty .frame/specs/ folder tracked by
-// .gitkeep. Disabling flips the flag back and removes the Frame-managed
-// spec section from AGENTS.md; specs already on disk are never deleted.
+// The toggle used to also perform surgery on the project's AGENTS.md —
+// appending the managed spec section on enable, stripping it on disable —
+// because that file was where an AI session learned the workflow. Frame's
+// instructions live in one user-scoped copy now, shared by every project, so
+// there is no per-project file to edit and no way to express "on here, off
+// there" in it. The activation signal moved to the launch preamble, which
+// reads this flag at every launch: on → an activation paragraph, off →
+// nothing about specs at all.
+//
+// Enabling still makes sure the artifacts exist (.frame/specs/, the staged
+// command templates, REFERENCE.md). Disabling never deletes specs on disk.
 
 function isSpecDrivenEnabled(projectPath) {
   const config = getFrameConfig(projectPath);
@@ -375,10 +380,10 @@ function enableSpecDriven(projectPath) {
 }
 
 /**
- * Turn the workflow off: flip the flag and take the Frame-managed spec
- * section back out of AGENTS.md so AI sessions stop being told to write
- * specs. Never touches .frame/specs/ — the user's specs stay on disk (and
- * come back into view if they re-enable).
+ * Turn the workflow off: flip the flag. The next launch composes a preamble
+ * with no mention of specs, which is what stops AI sessions being told to
+ * write them. Never touches .frame/specs/ — the user's specs stay on disk
+ * and come back into view if they re-enable.
  */
 function disableSpecDriven(projectPath) {
   if (!isFrameProject(projectPath)) {
@@ -390,20 +395,6 @@ function disableSpecDriven(projectPath) {
   const wasEnabled = config.features.specDriven === true;
   config.features.specDriven = false;
   writeFrameConfig(projectPath, config);
-
-  // AGENTS.md is user-owned: only remove the section when it is provably
-  // Frame's (well-formed managed block). A hand-written or customized
-  // section is left alone — same contract as the upgrade path.
-  const agentsPath = path.join(projectPath, FRAME_FILES.AGENTS);
-  try {
-    const existing = fs.readFileSync(agentsPath, 'utf8');
-    const stripped = stripManagedSpecSection(existing);
-    if (stripped !== null && stripped !== existing) {
-      fs.writeFileSync(agentsPath, stripped, 'utf8');
-    }
-  } catch (err) {
-    // Missing or unreadable AGENTS.md — the flag flip is what matters.
-  }
 
   return { success: true, alreadyDisabled: !wasEnabled };
 }
@@ -418,22 +409,6 @@ function writeFrameConfig(projectPath, config) {
     JSON.stringify(config, null, 2),
     'utf8'
   );
-}
-
-/**
- * Remove the marker-wrapped spec section from a doc, together with the `---`
- * separator that precedes it in every shape Frame emits (so removal doesn't
- * leave a double rule behind). Returns null when there is no well-formed
- * managed block — nothing may be removed then.
- */
-function stripManagedSpecSection(text) {
-  const block = docsManagedBlock.findBlock(text);
-  if (!block) return null;
-  const head = text.slice(0, block.start).replace(/\n*(-{3,}[ \t]*\n)?\s*$/, '');
-  const tail = text.slice(block.end).replace(/^\s*/, '');
-  if (!head) return tail;
-  if (!tail) return head + '\n';
-  return head + '\n\n' + tail;
 }
 
 function ensureSpecDrivenArtifacts(projectPath, config) {
@@ -455,8 +430,8 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
     fs.writeFileSync(gitkeepPath, '', 'utf8');
   }
 
-  // Make sure .frame/docs/REFERENCE.md exists — the short spec section in
-  // AGENTS.md points into it, and pre-split projects won't have it yet
+  // Make sure .frame/docs/REFERENCE.md exists — pre-split projects won't
+  // have it yet, and the staged spec commands point into it.
   const docsDir = path.join(projectPath, FRAME_DIR, 'docs');
   fs.mkdirSync(docsDir, { recursive: true });
   const referencePath = path.join(docsDir, 'REFERENCE.md');
@@ -464,49 +439,18 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
     fs.writeFileSync(referencePath, templates.getReferenceTemplate(name), 'utf8');
   }
 
-  // Make sure AGENTS.md has the Spec-Driven Development section so AI
-  // tools learn the workflow. We never rewrite the whole file — projects
-  // routinely customize their AGENTS.md with their own conventions, and
-  // blowing those away on enable would be hostile. Three branches:
-  //   1. AGENTS.md doesn't exist → write the full template (specDriven on).
-  //   2. AGENTS.md exists, no spec section → APPEND the section just before
-  //      the trailing footer marker (or at the very end if no footer).
-  //   3. AGENTS.md already has the section → no-op.
-  const agentsPath = path.join(projectPath, FRAME_FILES.AGENTS);
-  let existing = '';
-  try {
-    existing = fs.readFileSync(agentsPath, 'utf8');
-  } catch (err) {
-    existing = '';
-  }
-  if (!existing) {
-    fs.writeFileSync(agentsPath, templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null }), 'utf8');
-  } else if (!existing.includes('Spec-Driven Development')) {
-    // Append the short core section (marker-wrapped, stamped current) — the
-    // full workflow lives in .frame/docs/REFERENCE.md, guaranteed above
-    const sectionBlock = `\n\n---\n\n${templates.renderSpecCoreSection()}\n`;
-    const footerMarker = '*This file was automatically created by Frame.';
-    const footerIdx = existing.indexOf(footerMarker);
-    let updated;
-    if (footerIdx >= 0) {
-      // Insert just before the footer (and any preceding "---" / blank lines)
-      // so the footer remains the literal last block.
-      const head = existing.slice(0, footerIdx).replace(/\n*-{3,}\n*$/, '');
-      const tail = existing.slice(footerIdx);
-      updated = head + sectionBlock + '\n---\n\n' + tail;
-    } else {
-      updated = existing.replace(/\n*$/, '') + sectionBlock;
-    }
-    fs.writeFileSync(agentsPath, updated, 'utf8');
-  }
-  // else: section already present, leave file alone
+  // No AGENTS.md branch: enabling the workflow is a flag write and nothing
+  // more. The agent learns it is on from the launch preamble, which reads
+  // the flag fresh every time.
 }
 
 // ─── Spec docs upgrade on project open (cli-spec-command-parity) ─────
 //
-// REFERENCE.md and AGENTS.md carry a Frame-managed spec section; the
+// .frame/docs/REFERENCE.md carries a Frame-managed spec section; the
 // managed-block engine upgrades it in place when Frame's shipped content is
 // newer (version stamp) or migrates a byte-identical legacy section once.
+// The project's own AGENTS.md is no longer in this list — Frame does not
+// write the project root, and the shared copy is globalLayer's to upgrade.
 // Everything outside the block — and any file the user deleted or heavily
 // rewrote — is left alone. Files are never created here, only rewritten on
 // change.
@@ -519,11 +463,6 @@ function upgradeSpecDocs(projectPath) {
       file: path.join(projectPath, FRAME_DIR, 'docs', 'REFERENCE.md'),
       body: templates.SPEC_DRIVEN_SECTION,
       legacyMatchers: templates.REFERENCE_SPEC_LEGACY_MATCHERS
-    },
-    {
-      file: path.join(projectPath, FRAME_FILES.AGENTS),
-      body: templates.SPEC_DRIVEN_CORE_SECTION,
-      legacyMatchers: templates.AGENTS_SPEC_LEGACY_MATCHERS
     }
   ];
 

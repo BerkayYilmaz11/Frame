@@ -115,13 +115,25 @@
     {
       "id": "T11",
       "title": "Init writes only inside .frame/",
-      "commit": "7923d7e",
+      "commit": "1202ab2",
       "whatChanged": "runProjectInit lost the consume-and-symlink block entirely — no reading and deleting CLAUDE.md, no GEMINI.md merge, no root AGENTS.md, no symlinks (createSymlinkSafe is gone) — and STRUCTURE/NOTES/tasks/QUICKSTART now go through frameStore's path entries into .frame/. installSpecHintHook stops touching .claude/settings.json and reports that the hooks travel by launch flag. checkExistingFrameFiles and the init dialog were rewritten around the .frame/-only footprint, the dialog now naming the discovered instruction files it will leave alone. New test/frameProjectInit.test.js: 7 cases over a repo seeded with CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .claude/settings.json and .husky/pre-commit.",
       "whyChanged": "The test walks the whole tree and diffs snapshots rather than checking a list of known filenames — a list would miss the write nobody thought to name, which is precisely the failure mode this guards. It is also what caught the root STRUCTURE.json escape that T13 had to fix first. No .frame/AGENTS.md is seeded: Frame's conventions live in the global layer, so a project layer should exist only when there is genuinely project-specific context to record.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "309 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T12",
+      "title": "Spec-driven toggle collapses to a config-flag write",
+      "commit": "7d43c46",
+      "whatChanged": "Deleted stripManagedSpecSection, disableSpecDriven's AGENTS.md surgery, the AGENTS.md branch of ensureSpecDrivenArtifacts and upgradeSpecDocs' AGENTS.md doc entry — enabling and disabling are now a flag write in .frame/config.json and nothing else. settingsModal's comment no longer promises an AGENTS.md side effect. test/specDrivenToggle.test.js rewritten (13 cases) against the config-flag-plus-preamble contract.",
+      "whyChanged": "The old toggle edited the project's AGENTS.md because that was where a session learned the workflow. Frame's instructions are one shared copy now, so there is no per-project file to edit and no way to express 'on here, off there' in it — the activation signal had to move to the launch preamble, which reads the flag fresh every launch. The new tests assert both halves: snapshots prove the write touches only .frame/config.json (a repo's own AGENTS.md stays byte-identical even when it happens to contain a 'Spec-Driven Development' heading), and the preamble is checked in both directions.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "316 pass / 0 fail; npm run build succeeds"
       }
     }
   ]

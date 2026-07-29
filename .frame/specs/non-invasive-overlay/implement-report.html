@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">10 tasks</span>
-    <span class="pill good">10 verified</span>
+    <span class="pill">11 tasks</span>
+    <span class="pill good">11 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">10 of 12 tasks done · next: <span class="rs-task">T12 — Collapse the spec-driven toggle to a pure config-flag write — delete…</span></span>
+  <span class="rs-count">11 of 12 tasks done · next: <span class="rs-task">T15 — Substitute `{frame_global_path}` in `src/main/commandStaging.js` so…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -3640,7 +3640,7 @@
   <header class="card-head">
     <span class="card-id">T11</span>
     <h2>Init writes only inside .frame/</h2>
-    <span class="card-meta"><span class="chip">7923d7e</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">309 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">1202ab2</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">309 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>runProjectInit lost the consume-and-symlink block entirely — no reading and deleting CLAUDE.md, no GEMINI.md merge, no root AGENTS.md, no symlinks (createSymlinkSafe is gone) — and STRUCTURE/NOTES/tasks/QUICKSTART now go through frameStore&#39;s path entries into .frame/. installSpecHintHook stops touching .claude/settings.json and reports that the hooks travel by launch flag. checkExistingFrameFiles and the init dialog were rewritten around the .frame/-only footprint, the dialog now naming the discovered instruction files it will leave alone. New test/frameProjectInit.test.js: 7 cases over a repo seeded with CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .claude/settings.json and .husky/pre-commit.</p></div>
@@ -4183,6 +4183,471 @@
 <span class="dl-add">+    assert.equal(after.get(rel), before.get(rel), `${rel} changed on re-init`);</span>
 <span class="dl-add">+  }</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T12</span>
+    <h2>Spec-driven toggle collapses to a config-flag write</h2>
+    <span class="card-meta"><span class="chip">7d43c46</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">316 pass / 0 fail; npm run build succeeds</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Deleted stripManagedSpecSection, disableSpecDriven&#39;s AGENTS.md surgery, the AGENTS.md branch of ensureSpecDrivenArtifacts and upgradeSpecDocs&#39; AGENTS.md doc entry — enabling and disabling are now a flag write in .frame/config.json and nothing else. settingsModal&#39;s comment no longer promises an AGENTS.md side effect. test/specDrivenToggle.test.js rewritten (13 cases) against the config-flag-plus-preamble contract.</p></div>
+    <div class="field"><span class="label">Why</span><p>The old toggle edited the project&#39;s AGENTS.md because that was where a session learned the workflow. Frame&#39;s instructions are one shared copy now, so there is no per-project file to edit and no way to express &#39;on here, off there&#39; in it — the activation signal had to move to the launch preamble, which reads the flag fresh every launch. The new tests assert both halves: snapshots prove the write touches only .frame/config.json (a repo&#39;s own AGENTS.md stays byte-identical even when it happens to contain a &#39;Spec-Driven Development&#39; heading), and the preamble is checked in both directions.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 673143b..4a620ca 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -7,7 +7,7 @@ const fs = require(&#39;fs&#39;);</span>
+<span class="dl-ctx"> const fsp = require(&#39;fs&#39;).promises;</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-del">-const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_BIN_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> const workspace = require(&#39;./workspace&#39;);</span>
+<span class="dl-ctx"> const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-hunk">@@ -338,15 +338,20 @@ function installSpecHintHook(projectPath) {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // ─── Spec-Driven Development toggle ──────────────────────────</span>
+<span class="dl-ctx"> //</span>
+<span class="dl-del">-// Reads/writes the `features.specDriven` flag in .frame/config.json. New</span>
+<span class="dl-del">-// projects start enabled (config template); pre-existing projects that were</span>
+<span class="dl-del">-// initialized before that keep whatever they have and can flip it in</span>
+<span class="dl-del">-// Settings → Workflow.</span>
+<span class="dl-add">+// Reads/writes the `features.specDriven` flag in .frame/config.json, and</span>
+<span class="dl-add">+// that is now the whole of it.</span>
+<span class="dl-ctx"> //</span>
+<span class="dl-del">-// Enabling re-emits AGENTS.md with the spec section appended (so AI tools</span>
+<span class="dl-del">-// learn the workflow) and creates an empty .frame/specs/ folder tracked by</span>
+<span class="dl-del">-// .gitkeep. Disabling flips the flag back and removes the Frame-managed</span>
+<span class="dl-del">-// spec section from AGENTS.md; specs already on disk are never deleted.</span>
+<span class="dl-add">+// The toggle used to also perform surgery on the project&#39;s AGENTS.md —</span>
+<span class="dl-add">+// appending the managed spec section on enable, stripping it on disable —</span>
+<span class="dl-add">+// because that file was where an AI session learned the workflow. Frame&#39;s</span>
+<span class="dl-add">+// instructions live in one user-scoped copy now, shared by every project, so</span>
+<span class="dl-add">+// there is no per-project file to edit and no way to express &quot;on here, off</span>
+<span class="dl-add">+// there&quot; in it. The activation signal moved to the launch preamble, which</span>
+<span class="dl-add">+// reads this flag at every launch: on → an activation paragraph, off →</span>
+<span class="dl-add">+// nothing about specs at all.</span>
+<span class="dl-add">+//</span>
+<span class="dl-add">+// Enabling still makes sure the artifacts exist (.frame/specs/, the staged</span>
+<span class="dl-add">+// command templates, REFERENCE.md). Disabling never deletes specs on disk.</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function isSpecDrivenEnabled(projectPath) {</span>
+<span class="dl-ctx">   const config = getFrameConfig(projectPath);</span>
+<span class="dl-hunk">@@ -375,10 +380,10 @@ function enableSpecDriven(projectPath) {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Turn the workflow off: flip the flag and take the Frame-managed spec</span>
+<span class="dl-del">- * section back out of AGENTS.md so AI sessions stop being told to write</span>
+<span class="dl-del">- * specs. Never touches .frame/specs/ — the user&#39;s specs stay on disk (and</span>
+<span class="dl-del">- * come back into view if they re-enable).</span>
+<span class="dl-add">+ * Turn the workflow off: flip the flag. The next launch composes a preamble</span>
+<span class="dl-add">+ * with no mention of specs, which is what stops AI sessions being told to</span>
+<span class="dl-add">+ * write them. Never touches .frame/specs/ — the user&#39;s specs stay on disk</span>
+<span class="dl-add">+ * and come back into view if they re-enable.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function disableSpecDriven(projectPath) {</span>
+<span class="dl-ctx">   if (!isFrameProject(projectPath)) {</span>
+<span class="dl-hunk">@@ -391,20 +396,6 @@ function disableSpecDriven(projectPath) {</span>
+<span class="dl-ctx">   config.features.specDriven = false;</span>
+<span class="dl-ctx">   writeFrameConfig(projectPath, config);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // AGENTS.md is user-owned: only remove the section when it is provably</span>
+<span class="dl-del">-  // Frame&#39;s (well-formed managed block). A hand-written or customized</span>
+<span class="dl-del">-  // section is left alone — same contract as the upgrade path.</span>
+<span class="dl-del">-  const agentsPath = path.join(projectPath, FRAME_FILES.AGENTS);</span>
+<span class="dl-del">-  try {</span>
+<span class="dl-del">-    const existing = fs.readFileSync(agentsPath, &#39;utf8&#39;);</span>
+<span class="dl-del">-    const stripped = stripManagedSpecSection(existing);</span>
+<span class="dl-del">-    if (stripped !== null &amp;&amp; stripped !== existing) {</span>
+<span class="dl-del">-      fs.writeFileSync(agentsPath, stripped, &#39;utf8&#39;);</span>
+<span class="dl-del">-    }</span>
+<span class="dl-del">-  } catch (err) {</span>
+<span class="dl-del">-    // Missing or unreadable AGENTS.md — the flag flip is what matters.</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   return { success: true, alreadyDisabled: !wasEnabled };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -420,22 +411,6 @@ function writeFrameConfig(projectPath, config) {</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-/**</span>
+<span class="dl-del">- * Remove the marker-wrapped spec section from a doc, together with the `---`</span>
+<span class="dl-del">- * separator that precedes it in every shape Frame emits (so removal doesn&#39;t</span>
+<span class="dl-del">- * leave a double rule behind). Returns null when there is no well-formed</span>
+<span class="dl-del">- * managed block — nothing may be removed then.</span>
+<span class="dl-del">- */</span>
+<span class="dl-del">-function stripManagedSpecSection(text) {</span>
+<span class="dl-del">-  const block = docsManagedBlock.findBlock(text);</span>
+<span class="dl-del">-  if (!block) return null;</span>
+<span class="dl-del">-  const head = text.slice(0, block.start).replace(/\n*(-{3,}[ \t]*\n)?\s*$/, &#39;&#39;);</span>
+<span class="dl-del">-  const tail = text.slice(block.end).replace(/^\s*/, &#39;&#39;);</span>
+<span class="dl-del">-  if (!head) return tail;</span>
+<span class="dl-del">-  if (!tail) return head + &#39;\n&#39;;</span>
+<span class="dl-del">-  return head + &#39;\n\n&#39; + tail;</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx"> function ensureSpecDrivenArtifacts(projectPath, config) {</span>
+<span class="dl-ctx">   const name = (config &amp;&amp; config.name) || path.basename(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -455,8 +430,8 @@ function ensureSpecDrivenArtifacts(projectPath, config) {</span>
+<span class="dl-ctx">     fs.writeFileSync(gitkeepPath, &#39;&#39;, &#39;utf8&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Make sure .frame/docs/REFERENCE.md exists — the short spec section in</span>
+<span class="dl-del">-  // AGENTS.md points into it, and pre-split projects won&#39;t have it yet</span>
+<span class="dl-add">+  // Make sure .frame/docs/REFERENCE.md exists — pre-split projects won&#39;t</span>
+<span class="dl-add">+  // have it yet, and the staged spec commands point into it.</span>
+<span class="dl-ctx">   const docsDir = path.join(projectPath, FRAME_DIR, &#39;docs&#39;);</span>
+<span class="dl-ctx">   fs.mkdirSync(docsDir, { recursive: true });</span>
+<span class="dl-ctx">   const referencePath = path.join(docsDir, &#39;REFERENCE.md&#39;);</span>
+<span class="dl-hunk">@@ -464,49 +439,18 @@ function ensureSpecDrivenArtifacts(projectPath, config) {</span>
+<span class="dl-ctx">     fs.writeFileSync(referencePath, templates.getReferenceTemplate(name), &#39;utf8&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Make sure AGENTS.md has the Spec-Driven Development section so AI</span>
+<span class="dl-del">-  // tools learn the workflow. We never rewrite the whole file — projects</span>
+<span class="dl-del">-  // routinely customize their AGENTS.md with their own conventions, and</span>
+<span class="dl-del">-  // blowing those away on enable would be hostile. Three branches:</span>
+<span class="dl-del">-  //   1. AGENTS.md doesn&#39;t exist → write the full template (specDriven on).</span>
+<span class="dl-del">-  //   2. AGENTS.md exists, no spec section → APPEND the section just before</span>
+<span class="dl-del">-  //      the trailing footer marker (or at the very end if no footer).</span>
+<span class="dl-del">-  //   3. AGENTS.md already has the section → no-op.</span>
+<span class="dl-del">-  const agentsPath = path.join(projectPath, FRAME_FILES.AGENTS);</span>
+<span class="dl-del">-  let existing = &#39;&#39;;</span>
+<span class="dl-del">-  try {</span>
+<span class="dl-del">-    existing = fs.readFileSync(agentsPath, &#39;utf8&#39;);</span>
+<span class="dl-del">-  } catch (err) {</span>
+<span class="dl-del">-    existing = &#39;&#39;;</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-  if (!existing) {</span>
+<span class="dl-del">-    fs.writeFileSync(agentsPath, templates.getAgentsTemplate(name, { specDriven: true, project: (config &amp;&amp; config.project) || null }), &#39;utf8&#39;);</span>
+<span class="dl-del">-  } else if (!existing.includes(&#39;Spec-Driven Development&#39;)) {</span>
+<span class="dl-del">-    // Append the short core section (marker-wrapped, stamped current) — the</span>
+<span class="dl-del">-    // full workflow lives in .frame/docs/REFERENCE.md, guaranteed above</span>
+<span class="dl-del">-    const sectionBlock = `\n\n---\n\n${templates.renderSpecCoreSection()}\n`;</span>
+<span class="dl-del">-    const footerMarker = &#39;*This file was automatically created by Frame.&#39;;</span>
+<span class="dl-del">-    const footerIdx = existing.indexOf(footerMarker);</span>
+<span class="dl-del">-    let updated;</span>
+<span class="dl-del">-    if (footerIdx &gt;= 0) {</span>
+<span class="dl-del">-      // Insert just before the footer (and any preceding &quot;---&quot; / blank lines)</span>
+<span class="dl-del">-      // so the footer remains the literal last block.</span>
+<span class="dl-del">-      const head = existing.slice(0, footerIdx).replace(/\n*-{3,}\n*$/, &#39;&#39;);</span>
+<span class="dl-del">-      const tail = existing.slice(footerIdx);</span>
+<span class="dl-del">-      updated = head + sectionBlock + &#39;\n---\n\n&#39; + tail;</span>
+<span class="dl-del">-    } else {</span>
+<span class="dl-del">-      updated = existing.replace(/\n*$/, &#39;&#39;) + sectionBlock;</span>
+<span class="dl-del">-    }</span>
+<span class="dl-del">-    fs.writeFileSync(agentsPath, updated, &#39;utf8&#39;);</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-  // else: section already present, leave file alone</span>
+<span class="dl-add">+  // No AGENTS.md branch: enabling the workflow is a flag write and nothing</span>
+<span class="dl-add">+  // more. The agent learns it is on from the launch preamble, which reads</span>
+<span class="dl-add">+  // the flag fresh every time.</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // ─── Spec docs upgrade on project open (cli-spec-command-parity) ─────</span>
+<span class="dl-ctx"> //</span>
+<span class="dl-del">-// REFERENCE.md and AGENTS.md carry a Frame-managed spec section; the</span>
+<span class="dl-add">+// .frame/docs/REFERENCE.md carries a Frame-managed spec section; the</span>
+<span class="dl-ctx"> // managed-block engine upgrades it in place when Frame&#39;s shipped content is</span>
+<span class="dl-ctx"> // newer (version stamp) or migrates a byte-identical legacy section once.</span>
+<span class="dl-add">+// The project&#39;s own AGENTS.md is no longer in this list — Frame does not</span>
+<span class="dl-add">+// write the project root, and the shared copy is globalLayer&#39;s to upgrade.</span>
+<span class="dl-ctx"> // Everything outside the block — and any file the user deleted or heavily</span>
+<span class="dl-ctx"> // rewrote — is left alone. Files are never created here, only rewritten on</span>
+<span class="dl-ctx"> // change.</span>
+<span class="dl-hunk">@@ -519,11 +463,6 @@ function upgradeSpecDocs(projectPath) {</span>
+<span class="dl-ctx">       file: path.join(projectPath, FRAME_DIR, &#39;docs&#39;, &#39;REFERENCE.md&#39;),</span>
+<span class="dl-ctx">       body: templates.SPEC_DRIVEN_SECTION,</span>
+<span class="dl-ctx">       legacyMatchers: templates.REFERENCE_SPEC_LEGACY_MATCHERS</span>
+<span class="dl-del">-    },</span>
+<span class="dl-del">-    {</span>
+<span class="dl-del">-      file: path.join(projectPath, FRAME_FILES.AGENTS),</span>
+<span class="dl-del">-      body: templates.SPEC_DRIVEN_CORE_SECTION,</span>
+<span class="dl-del">-      legacyMatchers: templates.AGENTS_SPEC_LEGACY_MATCHERS</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   ];</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/renderer/settingsModal.js b/src/renderer/settingsModal.js</span>
+<span class="dl-meta">index 9b0524a..6817eae 100644</span>
+<span class="dl-file">--- a/src/renderer/settingsModal.js</span>
+<span class="dl-file">+++ b/src/renderer/settingsModal.js</span>
+<span class="dl-hunk">@@ -75,8 +75,10 @@ function init() {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Spec-Driven Development: per-project flag in .frame/config.json, not a</span>
+<span class="dl-del">-  // user preference — main writes the config and AGENTS.md section. On</span>
+<span class="dl-del">-  // failure we snap the switch back so it never lies about the on-disk state.</span>
+<span class="dl-add">+  // user preference. Main writes the flag and nothing else — no instruction</span>
+<span class="dl-add">+  // file is edited either way; the launch preamble reads the flag fresh and</span>
+<span class="dl-add">+  // decides what the agent is told. On failure we snap the switch back so it</span>
+<span class="dl-add">+  // never lies about the on-disk state.</span>
+<span class="dl-ctx">   if (specDrivenToggleEl) {</span>
+<span class="dl-ctx">     specDrivenToggleEl.addEventListener(&#39;change&#39;, async () =&gt; {</span>
+<span class="dl-ctx">       const projectPath = state.getProjectPath();</span>
+<span class="dl-meta">diff --git a/test/specDrivenToggle.test.js b/test/specDrivenToggle.test.js</span>
+<span class="dl-meta">index fc28575..ec27e17 100644</span>
+<span class="dl-file">--- a/test/specDrivenToggle.test.js</span>
+<span class="dl-file">+++ b/test/specDrivenToggle.test.js</span>
+<span class="dl-hunk">@@ -1,21 +1,29 @@</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Spec-Driven Development flag tests.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * Covers the default-on contract for new projects and the enable/disable</span>
+<span class="dl-del">- * round-trip that Settings → Workflow drives: the flag in .frame/config.json</span>
+<span class="dl-del">- * and the Frame-managed spec section in AGENTS.md move together, while</span>
+<span class="dl-del">- * anything the user wrote around them survives untouched.</span>
+<span class="dl-add">+ * The toggle used to move two things together: the flag in</span>
+<span class="dl-add">+ * `.frame/config.json` and a managed section in the project&#39;s root</span>
+<span class="dl-add">+ * `AGENTS.md`. Since the overlay there is no per-project instruction file to</span>
+<span class="dl-add">+ * edit — Frame&#39;s conventions are one shared copy — so the toggle is a config</span>
+<span class="dl-add">+ * write and nothing more, and what an agent is actually told is decided at</span>
+<span class="dl-add">+ * launch by `contextPreamble` reading the flag.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * These tests pin both halves of that contract: the write touches only the</span>
+<span class="dl-add">+ * config, and the preamble&#39;s behaviour follows the flag in both directions.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-ctx"> const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const crypto = require(&#39;crypto&#39;);</span>
+<span class="dl-ctx"> const fs = require(&#39;fs&#39;);</span>
+<span class="dl-ctx"> const os = require(&#39;os&#39;);</span>
+<span class="dl-ctx"> const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const frameProject = require(&#39;../src/main/frameProject&#39;);</span>
+<span class="dl-ctx"> const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-del">-const managedBlock = require(&#39;../src/shared/docsManagedBlock&#39;);</span>
+<span class="dl-add">+const { compose } = require(&#39;../src/shared/contextPreamble&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const GLOBAL = &#39;/userData/frame-global/AGENTS.md&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function makeProject({ specDriven, agents }) {</span>
+<span class="dl-ctx">   const dir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-specdriven-&#39;));</span>
+<span class="dl-hunk">@@ -27,83 +35,156 @@ function makeProject({ specDriven, agents }) {</span>
+<span class="dl-ctx">     JSON.stringify(config, null, 2),</span>
+<span class="dl-ctx">     &#39;utf8&#39;</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-del">-  fs.writeFileSync(path.join(dir, &#39;AGENTS.md&#39;), agents, &#39;utf8&#39;);</span>
+<span class="dl-add">+  if (agents !== undefined) fs.writeFileSync(path.join(dir, &#39;AGENTS.md&#39;), agents, &#39;utf8&#39;);</span>
+<span class="dl-ctx">   return dir;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function readAgents(dir) {</span>
+<span class="dl-del">-  return fs.readFileSync(path.join(dir, &#39;AGENTS.md&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+function snapshot(dir) {</span>
+<span class="dl-add">+  const out = new Map();</span>
+<span class="dl-add">+  const walk = (current, rel) =&gt; {</span>
+<span class="dl-add">+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {</span>
+<span class="dl-add">+      const full = path.join(current, entry.name);</span>
+<span class="dl-add">+      const relPath = rel ? `${rel}/${entry.name}` : entry.name;</span>
+<span class="dl-add">+      if (entry.isDirectory()) walk(full, relPath);</span>
+<span class="dl-add">+      else out.set(relPath, crypto.createHash(&#39;sha256&#39;).update(fs.readFileSync(full)).digest(&#39;hex&#39;));</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+  walk(dir, &#39;&#39;);</span>
+<span class="dl-add">+  return out;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function cleanup(dir) {</span>
+<span class="dl-add">+  fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── the flag ─────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;new projects get Spec-Driven Development on by default&#39;, () =&gt; {</span>
+<span class="dl-del">-  const config = templates.getFrameConfigTemplate(&#39;demo&#39;);</span>
+<span class="dl-del">-  assert.equal(config.features.specDriven, true);</span>
+<span class="dl-add">+  assert.equal(templates.getFrameConfigTemplate(&#39;demo&#39;).features.specDriven, true);</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const agents = templates.getAgentsTemplate(&#39;demo&#39;, { specDriven: true });</span>
+<span class="dl-del">-  assert.ok(agents.includes(&#39;## Spec-Driven Development&#39;));</span>
+<span class="dl-del">-  assert.ok(managedBlock.findBlock(agents), &#39;section must be marker-wrapped&#39;);</span>
+<span class="dl-add">+test(&#39;enable flips the flag and reports success&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: false });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const result = frameProject.enableSpecDriven(dir);</span>
+<span class="dl-add">+    assert.ok(result.success);</span>
+<span class="dl-add">+    assert.equal(frameProject.isSpecDrivenEnabled(dir), true);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-test(&#39;disable flips the flag and removes the managed section&#39;, () =&gt; {</span>
+<span class="dl-del">-  const dir = makeProject({</span>
+<span class="dl-del">-    specDriven: true,</span>
+<span class="dl-del">-    agents: templates.getAgentsTemplate(&#39;demo&#39;, { specDriven: true })</span>
+<span class="dl-del">-  });</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-  const result = frameProject.setSpecDrivenEnabled(dir, false);</span>
+<span class="dl-del">-  assert.equal(result.success, true);</span>
+<span class="dl-del">-  assert.equal(frameProject.isSpecDrivenEnabled(dir), false);</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-  const agents = readAgents(dir);</span>
+<span class="dl-del">-  assert.equal(managedBlock.findBlock(agents), null);</span>
+<span class="dl-del">-  assert.ok(!agents.includes(&#39;## Spec-Driven Development&#39;));</span>
+<span class="dl-del">-  // Neighbouring sections and the footer survive, with no orphaned rule left</span>
+<span class="dl-del">-  // where the section used to be.</span>
+<span class="dl-del">-  assert.ok(agents.includes(&#39;## Writing Frame meta files — read the reference first&#39;));</span>
+<span class="dl-del">-  assert.ok(agents.includes(&#39;*This file was automatically created by Frame.*&#39;));</span>
+<span class="dl-del">-  assert.ok(!/-{3,}\s*\n\s*-{3,}/.test(agents), &#39;no doubled separator&#39;);</span>
+<span class="dl-add">+test(&#39;disable flips it back and never deletes specs on disk&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: true });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const specDir = path.join(dir, &#39;.frame&#39;, &#39;specs&#39;, &#39;a-spec&#39;);</span>
+<span class="dl-add">+    fs.mkdirSync(specDir, { recursive: true });</span>
+<span class="dl-add">+    fs.writeFileSync(path.join(specDir, &#39;spec.md&#39;), &#39;# mine\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const result = frameProject.disableSpecDriven(dir);</span>
+<span class="dl-add">+    assert.ok(result.success);</span>
+<span class="dl-add">+    assert.equal(frameProject.isSpecDrivenEnabled(dir), false);</span>
+<span class="dl-add">+    assert.equal(fs.readFileSync(path.join(specDir, &#39;spec.md&#39;), &#39;utf8&#39;), &#39;# mine\n&#39;);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-add">+test(&#39;the round trip is idempotent and self-reporting&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: true });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    assert.equal(frameProject.enableSpecDriven(dir).alreadyEnabled, true);</span>
+<span class="dl-add">+    frameProject.disableSpecDriven(dir);</span>
+<span class="dl-add">+    assert.equal(frameProject.disableSpecDriven(dir).alreadyDisabled, true);</span>
+<span class="dl-add">+    assert.equal(frameProject.enableSpecDriven(dir).alreadyEnabled, undefined);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-test(&#39;enable after disable restores the section without touching user content&#39;, () =&gt; {</span>
+<span class="dl-del">-  const dir = makeProject({</span>
+<span class="dl-del">-    specDriven: true,</span>
+<span class="dl-del">-    agents: templates.getAgentsTemplate(&#39;demo&#39;, { specDriven: true }) +</span>
+<span class="dl-del">-      &#39;\n\n## House Rules\n\nNever force-push.\n&#39;</span>
+<span class="dl-del">-  });</span>
+<span class="dl-add">+test(&#39;neither direction works on a non-Frame project&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-nonproject-&#39;));</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    assert.equal(frameProject.enableSpecDriven(dir).success, false);</span>
+<span class="dl-add">+    assert.equal(frameProject.disableSpecDriven(dir).success, false);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  frameProject.setSpecDrivenEnabled(dir, false);</span>
+<span class="dl-del">-  const enabled = frameProject.setSpecDrivenEnabled(dir, true);</span>
+<span class="dl-del">-  assert.equal(enabled.success, true);</span>
+<span class="dl-del">-  assert.equal(frameProject.isSpecDrivenEnabled(dir), true);</span>
+<span class="dl-add">+// ─── nothing but the flag ─────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;disabling does not touch the repository&#39;s own AGENTS.md&quot;, () =&gt; {</span>
+<span class="dl-add">+  const mine = &#39;# Our conventions\n\n## Spec-Driven Development\n\nWe do it our way.\n&#39;;</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: true, agents: mine });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    frameProject.disableSpecDriven(dir);</span>
+<span class="dl-add">+    assert.equal(fs.readFileSync(path.join(dir, &#39;AGENTS.md&#39;), &#39;utf8&#39;), mine);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const agents = readAgents(dir);</span>
+<span class="dl-del">-  assert.ok(agents.includes(&#39;## Spec-Driven Development&#39;));</span>
+<span class="dl-del">-  assert.ok(agents.includes(&#39;Never force-push.&#39;), &#39;user section preserved&#39;);</span>
+<span class="dl-del">-  assert.ok(fs.existsSync(path.join(dir, &#39;.frame&#39;, &#39;specs&#39;, &#39;.gitkeep&#39;)));</span>
+<span class="dl-add">+test(&quot;enabling does not write into the repository&#39;s own AGENTS.md&quot;, () =&gt; {</span>
+<span class="dl-add">+  const mine = &#39;# Our conventions\n&#39;;</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: false, agents: mine });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    frameProject.enableSpecDriven(dir);</span>
+<span class="dl-add">+    assert.equal(fs.readFileSync(path.join(dir, &#39;AGENTS.md&#39;), &#39;utf8&#39;), mine);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-add">+test(&#39;enabling writes nothing outside .frame/&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: false, agents: &#39;# Our conventions\n&#39; });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const before = snapshot(dir);</span>
+<span class="dl-add">+    frameProject.enableSpecDriven(dir);</span>
+<span class="dl-add">+    const after = snapshot(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    for (const [rel, hash] of before) {</span>
+<span class="dl-add">+      if (rel === &#39;.frame/config.json&#39;) continue; // the flag itself</span>
+<span class="dl-add">+      assert.equal(after.get(rel), hash, `${rel} changed`);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    const created = [...after.keys()].filter((p) =&gt; !before.has(p) &amp;&amp; !p.startsWith(&#39;.frame/&#39;));</span>
+<span class="dl-add">+    assert.deepEqual(created, [], `enable wrote outside .frame/: ${created.join(&#39;, &#39;)}`);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-test(&#39;disable leaves a hand-written spec section alone&#39;, () =&gt; {</span>
+<span class="dl-del">-  const custom = &#39;# demo\n\n## Spec-Driven Development\n\nOur own house flavour.\n&#39;;</span>
+<span class="dl-del">-  const dir = makeProject({ specDriven: true, agents: custom });</span>
+<span class="dl-add">+test(&#39;disabling writes only the config&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeProject({ specDriven: true, agents: &#39;# Our conventions\n&#39; });</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const before = snapshot(dir);</span>
+<span class="dl-add">+    frameProject.disableSpecDriven(dir);</span>
+<span class="dl-add">+    const after = snapshot(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const changed = [...after.keys()].filter((p) =&gt; after.get(p) !== before.get(p));</span>
+<span class="dl-add">+    assert.deepEqual(changed, [&#39;.frame/config.json&#39;]);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    cleanup(dir);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  frameProject.setSpecDrivenEnabled(dir, false);</span>
+<span class="dl-del">-  assert.equal(frameProject.isSpecDrivenEnabled(dir), false);</span>
+<span class="dl-del">-  assert.equal(readAgents(dir), custom);</span>
+<span class="dl-add">+// ─── what the agent is actually told ──────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-add">+test(&#39;the flag decides the preamble, in both directions&#39;, () =&gt; {</span>
+<span class="dl-add">+  const on = compose({ globalPath: GLOBAL, toolId: &#39;claude&#39;, specDriven: true });</span>
+<span class="dl-add">+  assert.ok(/Spec-driven development is active/.test(on));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const off = compose({ globalPath: GLOBAL, toolId: &#39;claude&#39;, specDriven: false });</span>
+<span class="dl-add">+  assert.ok(!/spec/i.test(off), &#39;a project with the workflow off must hear nothing about specs&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-test(&#39;toggling a non-Frame folder fails instead of writing files&#39;, () =&gt; {</span>
+<span class="dl-del">-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-specdriven-none-&#39;));</span>
+<span class="dl-del">-  const off = frameProject.setSpecDrivenEnabled(dir, false);</span>
+<span class="dl-del">-  const on = frameProject.setSpecDrivenEnabled(dir, true);</span>
+<span class="dl-del">-  assert.equal(off.success, false);</span>
+<span class="dl-del">-  assert.equal(on.success, false);</span>
+<span class="dl-del">-  assert.equal(fs.existsSync(path.join(dir, &#39;.frame&#39;)), false);</span>
+<span class="dl-add">+test(&#39;the shared global core carries no spec section for the flag to contradict&#39;, () =&gt; {</span>
+<span class="dl-add">+  const core = templates.getAgentsTemplate(&#39;Frame&#39;, { global: true, referencePath: &#39;REFERENCE.md&#39; });</span>
+<span class="dl-add">+  assert.ok(!/Spec-Driven Development/.test(core));</span>
+<span class="dl-add">+});</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  fs.rmSync(dir, { recursive: true, force: true });</span>
+<span class="dl-add">+test(&#39;the reference still documents the protocol unconditionally&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Documentation, not an instruction to act — it is only reached when the</span>
+<span class="dl-add">+  // preamble points at it, which happens only when the flag is on.</span>
+<span class="dl-add">+  assert.ok(/Spec-Driven Development/.test(templates.getReferenceTemplate(&#39;Frame&#39;)));</span>
+<span class="dl-ctx"> });</span></pre>
     </details>
   </div>
 </section>

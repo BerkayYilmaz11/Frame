@@ -888,60 +888,53 @@
           "purpose": "Make the spec-hint hooks available to Claude Code."
         },
         "isSpecDrivenEnabled": {
-          "line": 351,
-          "params": [
-            "projectPath"
-          ]
-        },
-        "enableSpecDriven": {
           "line": 356,
           "params": [
             "projectPath"
           ]
         },
+        "enableSpecDriven": {
+          "line": 361,
+          "params": [
+            "projectPath"
+          ]
+        },
         "disableSpecDriven": {
-          "line": 383,
+          "line": 388,
           "params": [
             "projectPath"
           ],
-          "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
+          "purpose": "Turn the workflow off: flip the flag. The next launch composes a preamble"
         },
         "setSpecDrivenEnabled": {
-          "line": 411,
+          "line": 402,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 415,
+          "line": 406,
           "params": [
             "projectPath",
             "config"
           ]
         },
-        "stripManagedSpecSection": {
-          "line": 429,
-          "params": [
-            "text"
-          ],
-          "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
-        },
         "ensureSpecDrivenArtifacts": {
-          "line": 439,
+          "line": 414,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 514,
+          "line": 458,
           "params": [
             "projectPath"
           ]
         },
         "setupIPC": {
-          "line": 555,
+          "line": 494,
           "params": [
             "ipcMain"
           ],
@@ -6873,16 +6866,16 @@
           "line": 36
         },
         "initAboutSection": {
-          "line": 140
+          "line": 142
         },
         "runCheck": {
-          "line": 225,
+          "line": 227,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 264,
+          "line": 266,
           "params": [
             "{ checked",
             "found",
@@ -6894,44 +6887,44 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 288,
+          "line": 290,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 299
+          "line": 301
         },
         "hideSidebarDot": {
-          "line": 303
+          "line": 305
         },
         "formatRelative": {
-          "line": 310,
+          "line": 312,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 321
+          "line": 323
         },
         "syncSpecDrivenToggle": {
-          "line": 341,
+          "line": 343,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "setSpecDrivenNote": {
-          "line": 361,
+          "line": 363,
           "params": [
             "message"
           ]
         },
         "open": {
-          "line": 367
+          "line": 369
         },
         "close": {
-          "line": 374
+          "line": 376
         },
         "toggle": {
-          "line": 381
+          "line": 383
         }
       },
       "ipc": {
