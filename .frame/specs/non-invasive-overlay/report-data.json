@@ -91,13 +91,25 @@
     {
       "id": "T10",
       "title": "Renderer launch sites use the composed command",
-      "commit": "88182ef",
+      "commit": "8916906",
       "whatChanged": "aiToolSelector gained async getLaunchCommand(projectPath, launchFlags) over IPC.GET_LAUNCH_COMMAND, falling back to the bare command on any failure; index.js's startAiSession and agentDispatch's _startAgentIn await it instead of calling getStartCommand directly, and the two _startAgentIn callers await in turn. Also wired dispatch() — the path task and spec runs actually take — to fetch the composed flags and hand them to CHECK_AI_TOOL_AVAILABLE.",
       "whyChanged": "dispatch() is not in T10's list but is the main way an agent starts in Frame; leaving it alone would have meant every task and spec run launching with no Frame context at all — the exact regression this spec exists to prevent. The composition call is made *before* the availability probe on purpose: for a wrapper-based CLI it is what writes .frame/bin/<tool>, so probing first would not find the wrapper. getStartCommand survives for callers that only need to know which CLI would run.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "302 pass / 0 fail; npm run build succeeds"
+      }
+    },
+    {
+      "id": "T13",
+      "title": "Structure hook and scripts stop writing the project root",
+      "commit": "811f4d8",
+      "whatChanged": "installStructureHook no longer appends to the tracked .husky/pre-commit — husky degrades to the same show-the-snippet path as lefthook and custom hooks, while vanilla .git/hooks/ installs (local-only) stay. The hook snippet stages .frame/STRUCTURE.json when present and only when tracked, falling back to the root path for pre-overlay projects. update-structure.js, find-module.js and check-freshness.js resolve meta artifacts via an inline resolveMetaPath (.frame/ first, root fallback, .frame/ for a project with neither) while ROOT_DIR keeps pointing at the project root so activityLog.projectKey stays bucketed per project.",
+      "whyChanged": "Taken before T11 because T11's whole point — an init that writes nothing outside .frame/ — cannot hold while the structure scan still drops STRUCTURE.json at the root; T11's footprint test caught exactly that and would have had to be committed red otherwise. The resolver is duplicated inline in each script rather than shared, because these three are copied standalone into .frame/bin/ and a new shared require would have to be added to PARSER_FILES to survive the copy. The snippet checks `git ls-files` before staging: adding an excluded .frame/ file would drag the whole directory into the user's commit.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "309 pass / 0 fail"
       }
     }
   ]

@@ -4397,7 +4397,7 @@
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
+      "updatedAt": "2026-07-29T11:57:07.744Z",
       "completedAt": null
     },
     {
@@ -4418,13 +4418,13 @@
       "title": "Stop `installStructureHook` in `src/main/structureBootstrap.js` from appending to the tracked `.husky/pre-commit` (degrade to the existing manual-snippet path, keeping vanilla `.git/hooks/` installs), point the hook template output at `.frame/STRUCTURE.json` with the `.frame/bin/` `PARSER_FILES` list authoritative for what the pre-commit scripts may require, and resolve `.frame/STRUCTURE.json` first with a root fallback in `scripts/update-structure.js`, `scripts/find-module.js`, and `scripts/check-freshness.js` while keeping `ROOT_DIR` at the project root so `activityLog.projectKey` records stay bucketed per project.",
       "description": "",
       "source": "spec:non-invasive-overlay:T13",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T12:00:04.188Z",
+      "completedAt": "2026-07-29T12:00:04.188Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T15",

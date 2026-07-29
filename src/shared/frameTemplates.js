@@ -1024,7 +1024,13 @@ if command -v node >/dev/null 2>&1; then
   FRAME_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
   if [ -n "$FRAME_ROOT" ] && [ -f "$FRAME_ROOT/.frame/bin/update-structure.js" ]; then
     FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_ROOT/.frame/bin/update-structure.js" --changed || true
-    if [ -f "$FRAME_ROOT/STRUCTURE.json" ]; then
+    # .frame/ is where the map lives; the root path is only staged for a
+    # project still on the pre-overlay layout. Staged only when tracked —
+    # adding an excluded file would drag .frame/ into the commit.
+    if [ -f "$FRAME_ROOT/.frame/STRUCTURE.json" ]; then
+      git ls-files --error-unmatch "$FRAME_ROOT/.frame/STRUCTURE.json" >/dev/null 2>&1 \\
+        && git add "$FRAME_ROOT/.frame/STRUCTURE.json" || true
+    elif [ -f "$FRAME_ROOT/STRUCTURE.json" ]; then
       git add "$FRAME_ROOT/STRUCTURE.json" || true
     fi
   fi

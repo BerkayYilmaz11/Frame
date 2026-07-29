@@ -802,6 +802,7 @@
         "shared/frameConstants",
         "shared/frameTemplates",
         "workspace",
+        "frameStore",
         "gitExclude",
         "instructionDiscovery",
         "structureBootstrap",
@@ -816,139 +817,131 @@
       ],
       "functions": {
         "init": {
-          "line": 27,
+          "line": 28,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 34,
+          "line": 35,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 42,
+          "line": 43,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 55,
+          "line": 56,
           "params": [
             "filePath",
             "content"
           ],
           "purpose": "Create file if it doesn't exist"
         },
-        "createSymlinkSafe": {
-          "line": 72,
-          "params": [
-            "target",
-            "linkPath"
-          ],
-          "purpose": "Create a symlink safely with Windows fallback"
-        },
         "checkExistingFrameFiles": {
-          "line": 113,
+          "line": 74,
           "params": [
             "projectPath"
           ],
-          "purpose": "Check which Frame files already exist in the project"
+          "purpose": "Which Frame artifacts already exist — all of them inside `.frame/`."
         },
         "showInitializeConfirmation": {
-          "line": 137,
+          "line": 96,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 189,
+          "line": 146,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "doInitializeFrameProject": {
-          "line": 197,
+          "line": 154,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "runProjectInit": {
-          "line": 209,
+          "line": 166,
           "params": [
             "projectPath",
             "projectName"
           ]
         },
         "installSpecHintHook": {
-          "line": 438,
+          "line": 325,
           "params": [
             "projectPath"
           ],
-          "purpose": "Register the spec-hint hooks in the project's .claude/settings.json."
+          "purpose": "Make the spec-hint hooks available to Claude Code."
         },
         "isSpecDrivenEnabled": {
-          "line": 495,
+          "line": 351,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 500,
+          "line": 356,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 527,
+          "line": 383,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 555,
+          "line": 411,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 559,
+          "line": 415,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 573,
+          "line": 429,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 583,
+          "line": 439,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 658,
+          "line": 514,
           "params": [
             "projectPath"
           ]
         },
         "setupIPC": {
-          "line": 699,
+          "line": 555,
           "params": [
             "ipcMain"
           ],
@@ -3493,7 +3486,7 @@
           "purpose": "Install (or append) the pre-commit hook based on detected setup."
         },
         "appendToHookFile": {
-          "line": 249,
+          "line": 256,
           "params": [
             "hookPath",
             "createIfMissing",
@@ -3502,14 +3495,14 @@
           "purpose": "Append the Frame snippet to an existing hook file (husky case)."
         },
         "runInitialFullScan": {
-          "line": 287,
+          "line": 294,
           "params": [
             "projectPath"
           ],
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 325,
+          "line": 332,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -9156,24 +9149,24 @@
           "line": 1019
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1040,
+          "line": 1046,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1063,
+          "line": 1069,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1075,
+          "line": 1081,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1095
+          "line": 1101
         },
         "getOrchBinScripts": {
-          "line": 1113,
+          "line": 1119,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

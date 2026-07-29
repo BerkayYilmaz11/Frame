@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">8 tasks</span>
-    <span class="pill good">8 verified</span>
+    <span class="pill">9 tasks</span>
+    <span class="pill good">9 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">8 of 12 tasks done · next: <span class="rs-task">T11 — Rewrite `src/main/frameProject.js` init so every write lands inside…</span></span>
+  <span class="rs-count">9 of 12 tasks done · next: <span class="rs-task">T11 — Rewrite `src/main/frameProject.js` init so every write lands inside…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -3254,7 +3254,7 @@
   <header class="card-head">
     <span class="card-id">T10</span>
     <h2>Renderer launch sites use the composed command</h2>
-    <span class="card-meta"><span class="chip">88182ef</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail; npm run build succeeds</span></span>
+    <span class="card-meta"><span class="chip">8916906</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail; npm run build succeeds</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>aiToolSelector gained async getLaunchCommand(projectPath, launchFlags) over IPC.GET_LAUNCH_COMMAND, falling back to the bare command on any failure; index.js&#39;s startAiSession and agentDispatch&#39;s _startAgentIn await it instead of calling getStartCommand directly, and the two _startAgentIn callers await in turn. Also wired dispatch() — the path task and spec runs actually take — to fetch the composed flags and hand them to CHECK_AI_TOOL_AVAILABLE.</p></div>
@@ -3410,6 +3410,228 @@
 <span class="dl-ctx">   setTimeout(() =&gt; {</span>
 <span class="dl-ctx">     terminal.sendCommand(startCommand, newTerminalId);</span>
 <span class="dl-ctx">   }, 1000);</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T13</span>
+    <h2>Structure hook and scripts stop writing the project root</h2>
+    <span class="card-meta"><span class="chip">811f4d8</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">309 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>installStructureHook no longer appends to the tracked .husky/pre-commit — husky degrades to the same show-the-snippet path as lefthook and custom hooks, while vanilla .git/hooks/ installs (local-only) stay. The hook snippet stages .frame/STRUCTURE.json when present and only when tracked, falling back to the root path for pre-overlay projects. update-structure.js, find-module.js and check-freshness.js resolve meta artifacts via an inline resolveMetaPath (.frame/ first, root fallback, .frame/ for a project with neither) while ROOT_DIR keeps pointing at the project root so activityLog.projectKey stays bucketed per project.</p></div>
+    <div class="field"><span class="label">Why</span><p>Taken before T11 because T11&#39;s whole point — an init that writes nothing outside .frame/ — cannot hold while the structure scan still drops STRUCTURE.json at the root; T11&#39;s footprint test caught exactly that and would have had to be committed red otherwise. The resolver is duplicated inline in each script rather than shared, because these three are copied standalone into .frame/bin/ and a new shared require would have to be added to PARSER_FILES to survive the copy. The snippet checks `git ls-files` before staging: adding an excluded .frame/ file would drag the whole directory into the user&#39;s commit.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/scripts/check-freshness.js b/scripts/check-freshness.js</span>
+<span class="dl-meta">index 43e6ab0..fc380fc 100644</span>
+<span class="dl-file">--- a/scripts/check-freshness.js</span>
+<span class="dl-file">+++ b/scripts/check-freshness.js</span>
+<span class="dl-hunk">@@ -43,9 +43,22 @@ function git(cmd) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// Meta artifacts live in `.frame/`. The root fallback exists because Frame&#39;s</span>
+<span class="dl-add">+// own repository — and every project initialized before the overlay — is</span>
+<span class="dl-add">+// still on the pre-overlay layout until the migration spec runs. Read/write</span>
+<span class="dl-add">+// compatibility only: a project with neither gets the `.frame/` path, so new</span>
+<span class="dl-add">+// files are never created at the root.</span>
+<span class="dl-add">+function resolveMetaPath(name) {</span>
+<span class="dl-add">+  const framed = path.join(ROOT_DIR, &#39;.frame&#39;, name);</span>
+<span class="dl-add">+  if (fs.existsSync(framed)) return framed;</span>
+<span class="dl-add">+  const legacy = path.join(ROOT_DIR, name);</span>
+<span class="dl-add">+  if (fs.existsSync(legacy)) return legacy;</span>
+<span class="dl-add">+  return framed;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function readJSON(file) {</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    return JSON.parse(fs.readFileSync(path.join(ROOT_DIR, file), &#39;utf-8&#39;));</span>
+<span class="dl-add">+    return JSON.parse(fs.readFileSync(resolveMetaPath(file), &#39;utf-8&#39;));</span>
+<span class="dl-ctx">   } catch (e) {</span>
+<span class="dl-ctx">     return null;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-hunk">@@ -110,7 +123,7 @@ function checkStructureDrift(structure) {</span>
+<span class="dl-ctx">  * 3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function checkNotesStaleness() {</span>
+<span class="dl-del">-  const notesPath = path.join(ROOT_DIR, &#39;PROJECT_NOTES.md&#39;);</span>
+<span class="dl-add">+  const notesPath = resolveMetaPath(&#39;PROJECT_NOTES.md&#39;);</span>
+<span class="dl-ctx">   if (!fs.existsSync(notesPath)) return;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const content = fs.readFileSync(notesPath, &#39;utf-8&#39;);</span>
+<span class="dl-hunk">@@ -149,14 +162,16 @@ function checkStuckTasks() {</span>
+<span class="dl-ctx">  * 5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function checkQuickstartStaleness() {</span>
+<span class="dl-del">-  if (!fs.existsSync(path.join(ROOT_DIR, &#39;QUICKSTART.md&#39;))) return;</span>
+<span class="dl-add">+  const quickstartPath = resolveMetaPath(&#39;QUICKSTART.md&#39;);</span>
+<span class="dl-add">+  if (!fs.existsSync(quickstartPath)) return;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const lastTouched = git(&#39;git log -1 --format=%cs -- QUICKSTART.md&#39;);</span>
+<span class="dl-add">+  const rel = path.relative(ROOT_DIR, quickstartPath);</span>
+<span class="dl-add">+  const lastTouched = git(`git log -1 --format=%cs -- ${rel}`);</span>
+<span class="dl-ctx">   if (!lastTouched) return;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const commitsSince = git(`git rev-list --count HEAD --since=${lastTouched}`);</span>
+<span class="dl-ctx">   if (commitsSince &amp;&amp; Number(commitsSince) &gt;= QUICKSTART_COMMIT_THRESHOLD) {</span>
+<span class="dl-del">-    warn(&#39;quickstart-stale&#39;, `QUICKSTART.md was last touched ${lastTouched} with ${commitsSince} commits since — setup steps may be outdated`);</span>
+<span class="dl-add">+    warn(&#39;quickstart-stale&#39;, `${rel} was last touched ${lastTouched} with ${commitsSince} commits since — setup steps may be outdated`);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/scripts/find-module.js b/scripts/find-module.js</span>
+<span class="dl-meta">index 2af8162..a9ac204 100644</span>
+<span class="dl-file">--- a/scripts/find-module.js</span>
+<span class="dl-file">+++ b/scripts/find-module.js</span>
+<span class="dl-hunk">@@ -21,7 +21,20 @@ const { execSync, spawnSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-ctx"> const ROOT_DIR = process.env.FRAME_PROJECT_ROOT</span>
+<span class="dl-ctx">   ? path.resolve(process.env.FRAME_PROJECT_ROOT)</span>
+<span class="dl-ctx">   : path.join(__dirname, &#39;..&#39;);</span>
+<span class="dl-del">-const STRUCTURE_FILE = path.join(ROOT_DIR, &#39;STRUCTURE.json&#39;);</span>
+<span class="dl-add">+// Meta artifacts live in `.frame/`. The root fallback exists because Frame&#39;s</span>
+<span class="dl-add">+// own repository — and every project initialized before the overlay — is</span>
+<span class="dl-add">+// still on the pre-overlay layout until the migration spec runs. Read/write</span>
+<span class="dl-add">+// compatibility only: a project with neither gets the `.frame/` path, so new</span>
+<span class="dl-add">+// files are never created at the root.</span>
+<span class="dl-add">+function resolveMetaPath(name) {</span>
+<span class="dl-add">+  const framed = path.join(ROOT_DIR, &#39;.frame&#39;, name);</span>
+<span class="dl-add">+  if (fs.existsSync(framed)) return framed;</span>
+<span class="dl-add">+  const legacy = path.join(ROOT_DIR, name);</span>
+<span class="dl-add">+  if (fs.existsSync(legacy)) return legacy;</span>
+<span class="dl-add">+  return framed;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const STRUCTURE_FILE = resolveMetaPath(&#39;STRUCTURE.json&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function loadStructure() {</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-meta">diff --git a/scripts/update-structure.js b/scripts/update-structure.js</span>
+<span class="dl-meta">index 9829303..ebd8f8c 100644</span>
+<span class="dl-file">--- a/scripts/update-structure.js</span>
+<span class="dl-file">+++ b/scripts/update-structure.js</span>
+<span class="dl-hunk">@@ -23,7 +23,20 @@ const { execSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-ctx"> const ROOT_DIR = process.env.FRAME_PROJECT_ROOT</span>
+<span class="dl-ctx">   ? path.resolve(process.env.FRAME_PROJECT_ROOT)</span>
+<span class="dl-ctx">   : path.join(__dirname, &#39;..&#39;);</span>
+<span class="dl-del">-const STRUCTURE_FILE = path.join(ROOT_DIR, &#39;STRUCTURE.json&#39;);</span>
+<span class="dl-add">+// Meta artifacts live in `.frame/`. The root fallback exists because Frame&#39;s</span>
+<span class="dl-add">+// own repository — and every project initialized before the overlay — is</span>
+<span class="dl-add">+// still on the pre-overlay layout until the migration spec runs. Read/write</span>
+<span class="dl-add">+// compatibility only: a project with neither gets the `.frame/` path, so new</span>
+<span class="dl-add">+// files are never created at the root.</span>
+<span class="dl-add">+function resolveMetaPath(name) {</span>
+<span class="dl-add">+  const framed = path.join(ROOT_DIR, &#39;.frame&#39;, name);</span>
+<span class="dl-add">+  if (fs.existsSync(framed)) return framed;</span>
+<span class="dl-add">+  const legacy = path.join(ROOT_DIR, name);</span>
+<span class="dl-add">+  if (fs.existsSync(legacy)) return legacy;</span>
+<span class="dl-add">+  return framed;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const STRUCTURE_FILE = resolveMetaPath(&#39;STRUCTURE.json&#39;);</span>
+<span class="dl-ctx"> const SRC_DIR = path.join(ROOT_DIR, &#39;src&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Directories never scanned for source files, regardless of .gitignore.</span>
+<span class="dl-meta">diff --git a/src/main/structureBootstrap.js b/src/main/structureBootstrap.js</span>
+<span class="dl-meta">index 453e5c3..1279d4a 100644</span>
+<span class="dl-file">--- a/src/main/structureBootstrap.js</span>
+<span class="dl-file">+++ b/src/main/structureBootstrap.js</span>
+<span class="dl-hunk">@@ -219,8 +219,15 @@ async function installPreCommitHook(projectPath) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   if (setup === &#39;husky&#39;) {</span>
+<span class="dl-del">-    const huskyHook = path.join(projectPath, &#39;.husky&#39;, &#39;pre-commit&#39;);</span>
+<span class="dl-del">-    return appendToHookFile(huskyHook, /* createIfMissing */ true, /* needsShebang */ true);</span>
+<span class="dl-add">+    // `.husky/pre-commit` is tracked, and Frame writes nothing in the tracked</span>
+<span class="dl-add">+    // tree. Same treatment as lefthook and an existing custom hook: show the</span>
+<span class="dl-add">+    // snippet and let the user decide. Vanilla `.git/hooks/` installs stay —</span>
+<span class="dl-add">+    // that path is local-only and never leaves the clone.</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      status: &#39;skipped-custom&#39;,</span>
+<span class="dl-add">+      message: &#39;Husky detected — .husky/pre-commit is tracked, so Frame will not edit it. Add this snippet yourself:&#39;,</span>
+<span class="dl-add">+      manualInstructions: getStructureHookSnippet()</span>
+<span class="dl-add">+    };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   if (setup === &#39;custom&#39;) {</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 0f003e0..d55647e 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -1024,7 +1024,13 @@ if command -v node &gt;/dev/null 2&gt;&amp;1; then</span>
+<span class="dl-ctx">   FRAME_ROOT=&quot;$(git rev-parse --show-toplevel 2&gt;/dev/null)&quot;</span>
+<span class="dl-ctx">   if [ -n &quot;$FRAME_ROOT&quot; ] &amp;&amp; [ -f &quot;$FRAME_ROOT/.frame/bin/update-structure.js&quot; ]; then</span>
+<span class="dl-ctx">     FRAME_PROJECT_ROOT=&quot;$FRAME_ROOT&quot; node &quot;$FRAME_ROOT/.frame/bin/update-structure.js&quot; --changed || true</span>
+<span class="dl-del">-    if [ -f &quot;$FRAME_ROOT/STRUCTURE.json&quot; ]; then</span>
+<span class="dl-add">+    # .frame/ is where the map lives; the root path is only staged for a</span>
+<span class="dl-add">+    # project still on the pre-overlay layout. Staged only when tracked —</span>
+<span class="dl-add">+    # adding an excluded file would drag .frame/ into the commit.</span>
+<span class="dl-add">+    if [ -f &quot;$FRAME_ROOT/.frame/STRUCTURE.json&quot; ]; then</span>
+<span class="dl-add">+      git ls-files --error-unmatch &quot;$FRAME_ROOT/.frame/STRUCTURE.json&quot; &gt;/dev/null 2&gt;&amp;1 \\</span>
+<span class="dl-add">+        &amp;&amp; git add &quot;$FRAME_ROOT/.frame/STRUCTURE.json&quot; || true</span>
+<span class="dl-add">+    elif [ -f &quot;$FRAME_ROOT/STRUCTURE.json&quot; ]; then</span>
+<span class="dl-ctx">       git add &quot;$FRAME_ROOT/STRUCTURE.json&quot; || true</span>
+<span class="dl-ctx">     fi</span>
+<span class="dl-ctx">   fi</span>
+<span class="dl-meta">diff --git a/test/projectAgnostic.test.js b/test/projectAgnostic.test.js</span>
+<span class="dl-meta">index 206db70..3ab3e7a 100644</span>
+<span class="dl-file">--- a/test/projectAgnostic.test.js</span>
+<span class="dl-file">+++ b/test/projectAgnostic.test.js</span>
+<span class="dl-hunk">@@ -16,6 +16,16 @@ const REPO_ROOT = path.join(__dirname, &#39;..&#39;);</span>
+<span class="dl-ctx"> const PARSER = path.join(REPO_ROOT, &#39;scripts&#39;, &#39;update-structure.js&#39;);</span>
+<span class="dl-ctx"> const FIXTURES = path.join(__dirname, &#39;fixtures&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Read the parser&#39;s output from wherever it landed. Since the overlay the map</span>
+<span class="dl-add">+ * is written to `.frame/STRUCTURE.json`; the root is still read because the</span>
+<span class="dl-add">+ * committed golden fixture (and every pre-overlay project) keeps it there.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function readStructureRaw(projectRoot) {</span>
+<span class="dl-add">+  const framed = path.join(projectRoot, &#39;.frame&#39;, &#39;STRUCTURE.json&#39;);</span>
+<span class="dl-add">+  return fs.readFileSync(fs.existsSync(framed) ? framed : path.join(projectRoot, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function runParser(projectRoot, args = []) {</span>
+<span class="dl-ctx">   return spawnSync(&#39;node&#39;, [PARSER, ...args], {</span>
+<span class="dl-ctx">     env: { ...process.env, FRAME_PROJECT_ROOT: projectRoot },</span>
+<span class="dl-hunk">@@ -34,7 +44,7 @@ test(&#39;golden: full regen on js-src-app copy is byte-identical to the committed g</span>
+<span class="dl-ctx">     fs.cpSync(path.join(FIXTURES, &#39;js-src-app&#39;), tmp, { recursive: true });</span>
+<span class="dl-ctx">     const res = runParser(tmp);</span>
+<span class="dl-ctx">     assert.equal(res.status, 0, res.stderr);</span>
+<span class="dl-del">-    const regenerated = fs.readFileSync(path.join(tmp, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+    const regenerated = readStructureRaw(tmp);</span>
+<span class="dl-ctx">     const golden = fs.readFileSync(path.join(FIXTURES, &#39;js-src-app&#39;, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-ctx">     assert.equal(regenerated, golden);</span>
+<span class="dl-ctx">   } finally {</span>
+<span class="dl-hunk">@@ -59,7 +69,7 @@ function initAndParse(fixtureName) {</span>
+<span class="dl-ctx">     assert.equal(detect.status, 0, detect.stderr);</span>
+<span class="dl-ctx">     const parse = runParser(tmp);</span>
+<span class="dl-ctx">     assert.equal(parse.status, 0, parse.stderr);</span>
+<span class="dl-del">-    const raw = fs.readFileSync(path.join(tmp, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+    const raw = readStructureRaw(tmp);</span>
+<span class="dl-ctx">     // Output must never carry Frame&#39;s own vocabulary into a user project</span>
+<span class="dl-ctx">     for (const sentinel of [&#39;TERMINAL_&#39;, &#39;CLAUDE_&#39;, &#39;GITHUB_&#39;, &#39;FRAME_PROJECT&#39;, &#39;multiTerminal&#39;]) {</span>
+<span class="dl-ctx">       assert.ok(!raw.includes(sentinel), `fixture output contains Frame vocabulary &quot;${sentinel}&quot;`);</span>
+<span class="dl-hunk">@@ -200,7 +210,7 @@ test(&#39;ipc channels sync from the config-named file with token-derived categories</span>
+<span class="dl-ctx">     ].join(&#39;\n&#39;));</span>
+<span class="dl-ctx">     const res = runParser(tmp);</span>
+<span class="dl-ctx">     assert.equal(res.status, 0, res.stderr);</span>
+<span class="dl-del">-    const s = JSON.parse(fs.readFileSync(path.join(tmp, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+    const s = JSON.parse(readStructureRaw(tmp));</span>
+<span class="dl-ctx">     assert.ok(s.ipcChannels.reports.LOAD_REPORTS, &#39;LOAD_REPORTS → category &quot;reports&quot;&#39;);</span>
+<span class="dl-ctx">     assert.ok(s.ipcChannels.export.TOGGLE_EXPORT_PANEL, &#39;TOGGLE_EXPORT_PANEL → category &quot;export&quot;&#39;);</span>
+<span class="dl-ctx">   } finally {</span>
+<span class="dl-hunk">@@ -220,7 +230,7 @@ test(&#39;walker safety: symlink cycle + ignored dirs terminate with clean output&#39;,</span>
+<span class="dl-ctx">     fs.symlinkSync(path.join(tmp, &#39;lib&#39;), path.join(tmp, &#39;lib&#39;, &#39;loop&#39;));</span>
+<span class="dl-ctx">     const res = runParser(tmp);</span>
+<span class="dl-ctx">     assert.equal(res.status, 0, res.stderr);</span>
+<span class="dl-del">-    const s = JSON.parse(fs.readFileSync(path.join(tmp, &#39;STRUCTURE.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+    const s = JSON.parse(readStructureRaw(tmp));</span>
+<span class="dl-ctx">     assert.deepEqual(Object.keys(s.modules), [&#39;lib/a&#39;]); // no node_modules, no cycle dupes</span>
+<span class="dl-ctx">   } finally {</span>
+<span class="dl-ctx">     fs.rmSync(tmp, { recursive: true, force: true });</span></pre>
     </details>
   </div>
 </section>

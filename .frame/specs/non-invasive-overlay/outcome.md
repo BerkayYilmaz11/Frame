@@ -160,3 +160,25 @@ that call is also what writes `.frame/bin/<tool>`. Files:
 _Captured: 2026-07-29 · 3 file changes_
 
 ---
+
+## T13 — Structure hook and scripts stop writing the project root
+
+Taken **before T11**, out of numeric order: T11's footprint test proved init
+still wrote a root `STRUCTURE.json`, and that write belongs to this task — T11
+could not have been committed green first. `installStructureHook` stops
+appending to the tracked `.husky/pre-commit` (degrades to the existing
+show-the-snippet path; vanilla `.git/hooks/` installs stay), the snippet stages
+`.frame/STRUCTURE.json` and only when `git ls-files` says it is tracked —
+adding an excluded file would drag all of `.frame/` into the user's commit —
+and the three scripts resolve meta artifacts `.frame/`-first with a root
+fallback while `ROOT_DIR` keeps pointing at the project root so
+`activityLog.projectKey` stays bucketed. The resolver is inline in each script
+rather than shared: they are copied standalone into `.frame/bin/`, so a shared
+require would have to join `PARSER_FILES` to survive the copy. Files:
+`structureBootstrap.js`, `frameTemplates.js`, `scripts/update-structure.js`,
+`scripts/find-module.js`, `scripts/check-freshness.js`,
+`test/projectAgnostic.test.js` (reads the map from wherever it lands).
+
+_Captured: 2026-07-29 · 6 file changes_
+
+---
