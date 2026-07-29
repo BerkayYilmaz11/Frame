@@ -10,6 +10,7 @@ const { IPC } = require('../shared/ipcChannels');
 const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require('../shared/frameConstants');
 const templates = require('../shared/frameTemplates');
 const workspace = require('./workspace');
+const gitExclude = require('./gitExclude');
 const structureBootstrap = require('./structureBootstrap');
 const commandStaging = require('./commandStaging');
 const docsManagedBlock = require('../shared/docsManagedBlock');
@@ -207,6 +208,11 @@ async function doInitializeFrameProject(projectPath, projectName) {
 async function runProjectInit(projectPath, projectName) {
   const name = projectName || path.basename(projectPath);
   const frameDirPath = path.join(projectPath, FRAME_DIR);
+
+  // Before the first artifact exists, not after: the exclude entry is what
+  // keeps `git status` clean, and a .frame/ that appears untracked-and-visible
+  // even for a moment is the fingerprint this whole model exists to avoid.
+  gitExclude.ensure(projectPath);
 
   // Create .frame directory
   await fsp.mkdir(frameDirPath, { recursive: true });
@@ -694,6 +700,10 @@ function upgradeSpecDocs(projectPath) {
 function setupIPC(ipcMain) {
   ipcMain.on(IPC.CHECK_IS_FRAME_PROJECT, (event, projectPath) => {
     const isFrame = isFrameProject(projectPath);
+    // Re-evaluated on every open, which is what makes opting in work: a team
+    // that has committed .frame/ gets our exclude line removed here, on every
+    // clone, without anyone running a command.
+    if (isFrame) gitExclude.ensure(projectPath);
     workspace.updateProjectFrameStatus(projectPath, isFrame);
     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });
     event.sender.send(IPC.WORKSPACE_UPDATED, workspace.getProjects());

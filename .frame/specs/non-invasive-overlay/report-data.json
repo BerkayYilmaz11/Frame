@@ -19,13 +19,25 @@
     {
       "id": "T02",
       "title": "Route tasksManager and overviewManager through frameStore",
-      "commit": "24ad605",
+      "commit": "8663d86",
       "whatChanged": "tasksManager now reads/writes through frameStore (the fsSafe envelope arrives from the store, so the corruption-recovery contract is unchanged) and its watcher derives its directory from the store's path entry instead of assuming the project root. overviewManager's loadStructure/loadTasks/loadDecisions lost their hand-built root paths. test/tasksManager.test.js and test/specTasksSync.test.js moved their fixtures to .frame/tasks.json, plus two new cases: writes never escape .frame/, and a pre-overlay root tasks.json is not read as live data.",
       "whyChanged": "Beyond plan.md's Files: specManager.js:1063 kept its own fs.watch on the root tasks.json — a watcher my change would have left pointed at a path that no longer exists, so it now takes the same frameStore.tasksPath. Also outside the plan, test/specTasksSync.test.js seeded a root tasks.json fixture and would have failed. The 'tasks-root' activity-watcher label was deliberately left alone: renaming it would touch the WATCHERS enum in activityEvents.js for a cosmetic gain.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "236 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T03",
+      "title": "Conditional .git/info/exclude state machine",
+      "commit": "42a9af2",
+      "whatChanged": "New src/main/gitExclude.js: resolves the exclude file via `git rev-parse --git-path info/exclude` (worktree- and submodule-safe), then no repo → no-op, .frame/ tracked → remove our entry, untracked → add it. Wired into frameProject.js at both the project-open IPC and the top of runProjectInit, before the first .frame/ artifact exists. 12 cases in test/gitExclude.test.js run against real temp git repos.",
+      "whyChanged": "plan.md specified a single signed line, `.frame/  # managed by Frame …`. That does not work: gitignore syntax has no trailing comments, so git reads the whole thing as a literal pattern and excludes nothing — the entry looks right in the file and hides nothing. The signature moved to its own comment line above the pattern, added and removed as a block; the broken single-line form is still recognized so an older Frame's entry gets collapsed rather than orphaned. Removal only ever touches a signed entry, so a hand-written `.frame/` rule survives.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "247 pass / 0 fail"
       }
     }
   ]

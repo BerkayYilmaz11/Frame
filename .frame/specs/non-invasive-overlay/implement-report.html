@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">2 of 12 tasks done · next: <span class="rs-task">T03 — Build `src/main/gitExclude.js` as a signed-line state machine (`git…</span></span>
+  <span class="rs-count">3 of 12 tasks done · next: <span class="rs-task">T04 — Build `src/main/instructionDiscovery.js` as a strictly read-only scan…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -640,7 +640,7 @@
   <header class="card-head">
     <span class="card-id">T02</span>
     <h2>Route tasksManager and overviewManager through frameStore</h2>
-    <span class="card-meta"><span class="chip">24ad605</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">236 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">8663d86</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">236 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>tasksManager now reads/writes through frameStore (the fsSafe envelope arrives from the store, so the corruption-recovery contract is unchanged) and its watcher derives its directory from the store&#39;s path entry instead of assuming the project root. overviewManager&#39;s loadStructure/loadTasks/loadDecisions lost their hand-built root paths. test/tasksManager.test.js and test/specTasksSync.test.js moved their fixtures to .frame/tasks.json, plus two new cases: writes never escape .frame/, and a pre-overlay root tasks.json is not read as live data.</p></div>
@@ -942,6 +942,453 @@
 <span class="dl-add">+  );</span>
 <span class="dl-add">+</span>
 <span class="dl-add">+  assert.equal(tasksManager.loadTasks(projectDir), null, &#39;legacy layout read as a live project&#39;);</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Conditional .git/info/exclude state machine</h2>
+    <span class="card-meta"><span class="chip">42a9af2</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">247 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/main/gitExclude.js: resolves the exclude file via `git rev-parse --git-path info/exclude` (worktree- and submodule-safe), then no repo → no-op, .frame/ tracked → remove our entry, untracked → add it. Wired into frameProject.js at both the project-open IPC and the top of runProjectInit, before the first .frame/ artifact exists. 12 cases in test/gitExclude.test.js run against real temp git repos.</p></div>
+    <div class="field"><span class="label">Why</span><p>plan.md specified a single signed line, `.frame/  # managed by Frame …`. That does not work: gitignore syntax has no trailing comments, so git reads the whole thing as a literal pattern and excludes nothing — the entry looks right in the file and hides nothing. The signature moved to its own comment line above the pattern, added and removed as a block; the broken single-line form is still recognized so an older Frame&#39;s entry gets collapsed rather than orphaned. Removal only ever touches a signed entry, so a hand-written `.frame/` rule survives.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index caecf58..22c3cc6 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -10,6 +10,7 @@ const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> const workspace = require(&#39;./workspace&#39;);</span>
+<span class="dl-add">+const gitExclude = require(&#39;./gitExclude&#39;);</span>
+<span class="dl-ctx"> const structureBootstrap = require(&#39;./structureBootstrap&#39;);</span>
+<span class="dl-ctx"> const commandStaging = require(&#39;./commandStaging&#39;);</span>
+<span class="dl-ctx"> const docsManagedBlock = require(&#39;../shared/docsManagedBlock&#39;);</span>
+<span class="dl-hunk">@@ -208,6 +209,11 @@ async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-ctx">   const name = projectName || path.basename(projectPath);</span>
+<span class="dl-ctx">   const frameDirPath = path.join(projectPath, FRAME_DIR);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // Before the first artifact exists, not after: the exclude entry is what</span>
+<span class="dl-add">+  // keeps `git status` clean, and a .frame/ that appears untracked-and-visible</span>
+<span class="dl-add">+  // even for a moment is the fingerprint this whole model exists to avoid.</span>
+<span class="dl-add">+  gitExclude.ensure(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   // Create .frame directory</span>
+<span class="dl-ctx">   await fsp.mkdir(frameDirPath, { recursive: true });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -694,6 +700,10 @@ function upgradeSpecDocs(projectPath) {</span>
+<span class="dl-ctx"> function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">   ipcMain.on(IPC.CHECK_IS_FRAME_PROJECT, (event, projectPath) =&gt; {</span>
+<span class="dl-ctx">     const isFrame = isFrameProject(projectPath);</span>
+<span class="dl-add">+    // Re-evaluated on every open, which is what makes opting in work: a team</span>
+<span class="dl-add">+    // that has committed .frame/ gets our exclude line removed here, on every</span>
+<span class="dl-add">+    // clone, without anyone running a command.</span>
+<span class="dl-add">+    if (isFrame) gitExclude.ensure(projectPath);</span>
+<span class="dl-ctx">     workspace.updateProjectFrameStatus(projectPath, isFrame);</span>
+<span class="dl-ctx">     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });</span>
+<span class="dl-ctx">     event.sender.send(IPC.WORKSPACE_UPDATED, workspace.getProjects());</span>
+<span class="dl-meta">diff --git a/src/main/gitExclude.js b/src/main/gitExclude.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..9f36367</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/main/gitExclude.js</span>
+<span class="dl-hunk">@@ -0,0 +1,174 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * gitExclude — keep `.frame/` out of git without touching the tracked tree.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Frame&#39;s default is zero-touch: open any repository, use Frame for a full</span>
+<span class="dl-add">+ * session, and `git status` still reports nothing. The only place that can be</span>
+<span class="dl-add">+ * arranged without editing a tracked file is `.git/info/exclude` — per-clone,</span>
+<span class="dl-add">+ * never committed, invisible to everyone else. The project&#39;s `.gitignore` is</span>
+<span class="dl-add">+ * off limits; it belongs to the repo, not to us.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Why the entry is conditional ──</span>
+<span class="dl-add">+ * An exclude entry only hides *untracked* files, and that is exactly the trap.</span>
+<span class="dl-add">+ * A team that opts in by committing `.frame/` still has the entry sitting in</span>
+<span class="dl-add">+ * every clone — so every *new* file under `.frame/` (a fresh spec folder, a</span>
+<span class="dl-add">+ * new report) stays invisible in `git status` and the team silently drifts</span>
+<span class="dl-add">+ * apart. So the rule is: write the line only while `.frame/` is untracked, and</span>
+<span class="dl-add">+ * remove the line we previously wrote the moment any `.frame/` path is tracked.</span>
+<span class="dl-add">+ * Opting in is therefore just &quot;commit `.frame/`&quot; — this notices on the next</span>
+<span class="dl-add">+ * open, on every machine, and gets out of the way.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The entry is signed so we only ever remove our own; a hand-written</span>
+<span class="dl-add">+ * `.frame/` rule, or anything else in the file, is left exactly as found.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Why a two-line block and not one signed line ──</span>
+<span class="dl-add">+ * gitignore syntax has no trailing comments. `.frame/ # managed by Frame`</span>
+<span class="dl-add">+ * is not an excluded directory with a note attached — it is a literal pattern</span>
+<span class="dl-add">+ * that matches nothing, so the entry would look right in the file and hide</span>
+<span class="dl-add">+ * nothing at all. The signature therefore goes on its own comment line above</span>
+<span class="dl-add">+ * the pattern, and the two are added and removed together.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const MARKER = &#39;managed by Frame&#39;;</span>
+<span class="dl-add">+const PATTERN = `${FRAME_DIR}/`;</span>
+<span class="dl-add">+const COMMENT = `# ${MARKER} — removed automatically when ${FRAME_DIR}/ is committed`;</span>
+<span class="dl-add">+const EXCLUDE_BLOCK = `${COMMENT}\n${PATTERN}`;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(projectPath, args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, {</span>
+<span class="dl-add">+    cwd: projectPath,</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Absolute path of this working tree&#39;s exclude file, or null outside a repo.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `git rev-parse --git-path` rather than `&lt;root&gt;/.git/info/exclude`: in a</span>
+<span class="dl-add">+ * linked worktree `.git` is a file pointing elsewhere, and in a submodule the</span>
+<span class="dl-add">+ * git dir lives under the superproject. Asking git is the only resolution</span>
+<span class="dl-add">+ * that is right in all three.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function excludeFilePath(projectPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const raw = git(projectPath, [&#39;rev-parse&#39;, &#39;--git-path&#39;, &#39;info/exclude&#39;]).trim();</span>
+<span class="dl-add">+    if (!raw) return null;</span>
+<span class="dl-add">+    return path.isAbsolute(raw) ? raw : path.join(projectPath, raw);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null; // not a git repository — nothing to exclude from</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Is any path under `.frame/` tracked in this repo? */</span>
+<span class="dl-add">+function isFrameTracked(projectPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return git(projectPath, [&#39;ls-files&#39;, &#39;--cached&#39;, &#39;--&#39;, `${FRAME_DIR}/`]).trim().length &gt; 0;</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Strip every trace of ours from `lines`: the signed comment plus the pattern</span>
+<span class="dl-add">+ * directly beneath it, and — for files written by an earlier Frame — the</span>
+<span class="dl-add">+ * broken single-line form that carried the marker as a trailing comment.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns `{ kept, found }`. An unsigned `.frame/` that nobody claimed is</span>
+<span class="dl-add">+ * left alone; it is someone else&#39;s rule.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function stripOurs(lines) {</span>
+<span class="dl-add">+  const kept = [];</span>
+<span class="dl-add">+  let found = false;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (let i = 0; i &lt; lines.length; i += 1) {</span>
+<span class="dl-add">+    const line = lines[i];</span>
+<span class="dl-add">+    const trimmed = line.trim();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    if (trimmed.startsWith(&#39;#&#39;) &amp;&amp; trimmed.includes(MARKER)) {</span>
+<span class="dl-add">+      found = true;</span>
+<span class="dl-add">+      if (lines[i + 1] !== undefined &amp;&amp; lines[i + 1].trim() === PATTERN) i += 1;</span>
+<span class="dl-add">+      continue;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Pre-block form: `.frame/ # managed by Frame …` on one line.</span>
+<span class="dl-add">+    if (trimmed.includes(MARKER) &amp;&amp; trimmed.startsWith(PATTERN)) {</span>
+<span class="dl-add">+      found = true;</span>
+<span class="dl-add">+      continue;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    kept.push(line);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { kept, found };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function readLines(excludePath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const raw = fs.readFileSync(excludePath, &#39;utf8&#39;);</span>
+<span class="dl-add">+    return { lines: raw.split(&#39;\n&#39;), existed: true };</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    if (err.code === &#39;ENOENT&#39;) return { lines: [], existed: false };</span>
+<span class="dl-add">+    throw err;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Write `lines` back, preserving the file&#39;s trailing-newline convention and</span>
+<span class="dl-add">+ * leaving every foreign line byte-identical.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeLines(excludePath, lines) {</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(excludePath), { recursive: true });</span>
+<span class="dl-add">+  let out = lines.join(&#39;\n&#39;);</span>
+<span class="dl-add">+  if (out.length &amp;&amp; !out.endsWith(&#39;\n&#39;)) out += &#39;\n&#39;;</span>
+<span class="dl-add">+  fs.writeFileSync(excludePath, out, &#39;utf8&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Bring the exclude file to the state the repo currently calls for.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Idempotent and self-healing — safe to call on every project open. Returns</span>
+<span class="dl-add">+ * one of:</span>
+<span class="dl-add">+ *   &#39;no-repo&#39;    — not a git repository, nothing done</span>
+<span class="dl-add">+ *   &#39;added&#39;      — our line was written</span>
+<span class="dl-add">+ *   &#39;removed&#39;    — `.frame/` is tracked now, our line is gone</span>
+<span class="dl-add">+ *   &#39;unchanged&#39;  — already in the right state</span>
+<span class="dl-add">+ *   &#39;error&#39;      — the exclude file could not be read or written</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function ensure(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath) return &#39;no-repo&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const excludePath = excludeFilePath(projectPath);</span>
+<span class="dl-add">+  if (!excludePath) return &#39;no-repo&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const { lines } = readLines(excludePath);</span>
+<span class="dl-add">+    const tracked = isFrameTracked(projectPath);</span>
+<span class="dl-add">+    const { kept, found } = stripOurs(lines);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    if (tracked) {</span>
+<span class="dl-add">+      if (!found) return &#39;unchanged&#39;;</span>
+<span class="dl-add">+      writeLines(excludePath, kept);</span>
+<span class="dl-add">+      return &#39;removed&#39;;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const current = lines.join(&#39;\n&#39;);</span>
+<span class="dl-add">+    if (found &amp;&amp; current.includes(EXCLUDE_BLOCK)) return &#39;unchanged&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Absent, duplicated, or written by an older Frame in the broken</span>
+<span class="dl-add">+    // single-line form — collapse to exactly one current block at the end.</span>
+<span class="dl-add">+    while (kept.length &amp;&amp; kept[kept.length - 1].trim() === &#39;&#39;) kept.pop();</span>
+<span class="dl-add">+    kept.push(COMMENT, PATTERN);</span>
+<span class="dl-add">+    writeLines(excludePath, kept);</span>
+<span class="dl-add">+    return &#39;added&#39;;</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;gitExclude: could not update info/exclude:&#39;, err.message);</span>
+<span class="dl-add">+    return &#39;error&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { ensure, excludeFilePath, isFrameTracked, EXCLUDE_BLOCK, MARKER };</span>
+<span class="dl-meta">diff --git a/test/gitExclude.test.js b/test/gitExclude.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..9ec60a7</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/gitExclude.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,211 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * gitExclude tests (T03): the conditional exclude state machine, exercised</span>
+<span class="dl-add">+ * against real temp git repositories rather than a stubbed git.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The interesting property is not &quot;the entry gets written&quot; — it is that the</span>
+<span class="dl-add">+ * entry disappears once `.frame/` is tracked (otherwise a team that opts in</span>
+<span class="dl-add">+ * silently stops seeing new spec folders), that foreign lines survive, and</span>
+<span class="dl-add">+ * that a linked worktree resolves its own exclude file rather than the</span>
+<span class="dl-add">+ * main one.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const gitExclude = require(&#39;../src/main/gitExclude&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let root;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(cwd, ...args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, { cwd, encoding: &#39;utf8&#39;, stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;] });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function makeRepo(name) {</span>
+<span class="dl-add">+  const dir = path.join(root, name);</span>
+<span class="dl-add">+  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-add">+  git(dir, &#39;init&#39;, &#39;-q&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;config&#39;, &#39;user.email&#39;, &#39;test@example.com&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;config&#39;, &#39;user.name&#39;, &#39;Frame Test&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;README.md&#39;), &#39;# repo\n&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;README.md&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;initial&#39;);</span>
+<span class="dl-add">+  return dir;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function seedFrameDir(dir) {</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;{&quot;version&quot;:&quot;1.0&quot;}\n&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function excludeContent(dir) {</span>
+<span class="dl-add">+  return fs.readFileSync(gitExclude.excludeFilePath(dir), &#39;utf8&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function statusPorcelain(dir) {</span>
+<span class="dl-add">+  return git(dir, &#39;status&#39;, &#39;--porcelain&#39;).trim();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+beforeEach(() =&gt; {</span>
+<span class="dl-add">+  root = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-exclude-&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+afterEach(() =&gt; {</span>
+<span class="dl-add">+  fs.rmSync(root, { recursive: true, force: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── untracked → add ──────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;untracked .frame/ gets the signed block, and git status goes quiet&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;plain&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  assert.notEqual(statusPorcelain(repo), &#39;&#39;, &#39;precondition: .frame/ is visible&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;added&#39;);</span>
+<span class="dl-add">+  assert.ok(excludeContent(repo).includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+  assert.equal(statusPorcelain(repo), &#39;&#39;, &#39;the working tree is not clean&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensure is idempotent — a second call changes nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;idempotent&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;added&#39;);</span>
+<span class="dl-add">+  const after = excludeContent(repo);</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;unchanged&#39;);</span>
+<span class="dl-add">+  assert.equal(excludeContent(repo), after);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a duplicated or older Frame entry collapses to exactly one current block&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;dupes&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  const excludePath = gitExclude.excludeFilePath(repo);</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(excludePath), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(excludePath, `.frame/ # ${gitExclude.MARKER} (old wording)\n.frame/ # ${gitExclude.MARKER}\n`);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;added&#39;);</span>
+<span class="dl-add">+  const content = excludeContent(repo);</span>
+<span class="dl-add">+  const marked = content.split(&#39;\n&#39;).filter((l) =&gt; l.includes(gitExclude.MARKER));</span>
+<span class="dl-add">+  assert.equal(marked.length, 1, &#39;more than one Frame entry survived&#39;);</span>
+<span class="dl-add">+  assert.ok(content.includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── tracked → remove ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;once .frame/ is tracked the entry is removed, so new files stay visible&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;opted-in&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The team opts in: commit .frame/ (forced past our own exclude entry).</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;removed&#39;);</span>
+<span class="dl-add">+  assert.ok(!excludeContent(repo).includes(gitExclude.MARKER));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // A newly created .frame/ file must now show up — the drift this guards.</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(repo, FRAME_DIR, &#39;specs&#39;, &#39;new-spec&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, FRAME_DIR, &#39;specs&#39;, &#39;new-spec&#39;, &#39;spec.md&#39;), &#39;# new\n&#39;);</span>
+<span class="dl-add">+  assert.ok(statusPorcelain(repo).includes(&#39;.frame/&#39;), &#39;a fresh spec stayed invisible&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;removal is not repeated once done&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;opted-in-twice&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;removed&#39;);</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(repo), &#39;unchanged&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── other people&#39;s lines ─────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;foreign lines survive both adding and removing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;foreign&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  const excludePath = gitExclude.excludeFilePath(repo);</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(excludePath), { recursive: true });</span>
+<span class="dl-add">+  const foreign = &#39;# my personal ignores\nscratch/\n*.local\n.frame/\n&#39;;</span>
+<span class="dl-add">+  fs.writeFileSync(excludePath, foreign);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+  let content = excludeContent(repo);</span>
+<span class="dl-add">+  for (const line of foreign.trim().split(&#39;\n&#39;)) {</span>
+<span class="dl-add">+    assert.ok(content.includes(line), `lost a foreign line: ${line}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.ok(content.includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  content = excludeContent(repo);</span>
+<span class="dl-add">+  for (const line of foreign.trim().split(&#39;\n&#39;)) {</span>
+<span class="dl-add">+    assert.ok(content.includes(line), `lost a foreign line on removal: ${line}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.ok(!content.includes(gitExclude.MARKER), &#39;our line stayed behind&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;a hand-written unsigned .frame/ rule is never removed&quot;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;hand-written&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  const excludePath = gitExclude.excludeFilePath(repo);</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(excludePath), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(excludePath, &#39;.frame/\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(excludeContent(repo).split(&#39;\n&#39;).includes(&#39;.frame/&#39;), &quot;removed someone else&#39;s rule&quot;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── no repo / worktrees ──────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a directory outside any git repository is a no-op&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plain = path.join(root, &#39;not-a-repo&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
+<span class="dl-add">+  seedFrameDir(plain);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(plain), &#39;no-repo&#39;);</span>
+<span class="dl-add">+  assert.equal(gitExclude.excludeFilePath(plain), null);</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(plain), [FRAME_DIR], &#39;something was written anyway&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensure(undefined) is a no-op&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(undefined), &#39;no-repo&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a linked worktree writes to its own exclude file, not the main one&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;main-tree&#39;);</span>
+<span class="dl-add">+  const wt = path.join(root, &#39;linked&#39;);</span>
+<span class="dl-add">+  git(repo, &#39;worktree&#39;, &#39;add&#39;, &#39;-q&#39;, &#39;-b&#39;, &#39;side&#39;, wt);</span>
+<span class="dl-add">+  seedFrameDir(wt);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitExclude.ensure(wt), &#39;added&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const wtExclude = gitExclude.excludeFilePath(wt);</span>
+<span class="dl-add">+  assert.ok(fs.readFileSync(wtExclude, &#39;utf8&#39;).includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+  assert.equal(statusPorcelain(wt), &#39;&#39;, &#39;the worktree is not clean&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const mainExclude = gitExclude.excludeFilePath(repo);</span>
+<span class="dl-add">+  assert.notEqual(path.resolve(wtExclude), path.resolve(mainExclude), &#39;resolved to the shared file&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;isFrameTracked reflects the repo, not the filesystem&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;tracking&#39;);</span>
+<span class="dl-add">+  seedFrameDir(repo);</span>
+<span class="dl-add">+  assert.equal(gitExclude.isFrameTracked(repo), false);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(repo, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+  assert.equal(gitExclude.isFrameTracked(repo), true);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

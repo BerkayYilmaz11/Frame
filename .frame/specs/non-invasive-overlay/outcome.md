@@ -43,3 +43,22 @@ writers.
 _Captured: 2026-07-29 · 5 file changes_
 
 ---
+
+## T03 — Conditional .git/info/exclude state machine
+
+Built `src/main/gitExclude.js` — exclude file resolved through
+`git rev-parse --git-path info/exclude` so linked worktrees and submodules get
+their own, then the state machine (no repo → no-op, `.frame/` tracked → remove
+our entry, untracked → add it) — and called `ensure()` from both the
+project-open IPC and the top of `runProjectInit`, before the first `.frame/`
+artifact exists. Diverged from `plan.md` on the signed line: gitignore has no
+trailing comments, so the specified `.frame/  # managed by Frame …` would have
+been read as a literal pattern that excludes nothing — the signature now sits
+on its own comment line above the pattern and the two move together, with the
+old single-line form still recognized so an earlier Frame's entry is collapsed
+rather than orphaned. Files: `gitExclude.js` (new), `frameProject.js`,
+`test/gitExclude.test.js` (new, 12 cases against real temp repos).
+
+_Captured: 2026-07-29 · 3 file changes_
+
+---

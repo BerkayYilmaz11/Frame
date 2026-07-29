@@ -4314,13 +4314,13 @@
       "title": "Build `src/main/gitExclude.js` as a signed-line state machine (`git rev-parse --git-path info/exclude` resolution; no repo → no-op, `.frame/` tracked → remove our line, untracked → add it), call `ensure()` from the project-open path in `frameProject.js` before any `.frame/` artifact is created, and cover it in `test/gitExclude.test.js` on temp git repos (add/remove/no-repo/worktree/user-lines-preserved).",
       "description": "",
       "source": "spec:non-invasive-overlay:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:06:01.945Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:37:08.560Z",
+      "completedAt": "2026-07-29T11:37:08.560Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T04",
