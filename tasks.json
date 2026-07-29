@@ -4288,13 +4288,13 @@
       "title": "Add the `.frame/`-relative meta path map to `src/shared/frameConstants.js` (update `ORCH_META_FILES` to `.frame/` paths, keep legacy root names exported for detection only) and build `src/main/frameStore.js` with a data API (`readTasks`/`writeTasks`/notes/structure/quickstart/config) plus separately named `…Path(projectPath)` entries for the file-needing minority, covered by `test/frameStore.test.js`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:06:01.945Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:29:00.303Z",
+      "completedAt": "2026-07-29T11:29:00.303Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T02",

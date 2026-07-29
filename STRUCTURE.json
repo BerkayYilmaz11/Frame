@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-07-28",
+  "lastUpdated": "2026-07-29",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -907,6 +907,215 @@
           "FRAME_PROJECT_INITIALIZED",
           "FRAME_CONFIG_DATA"
         ]
+      }
+    },
+    "main/frameStore": {
+      "file": "src/main/frameStore.js",
+      "description": "frameStore — the single seam between Frame and its stored artifacts.",
+      "exports": [
+        "writeTasks",
+        "readStructure",
+        "writeStructure",
+        "readConfig",
+        "writeConfig",
+        "readNotes",
+        "writeNotes",
+        "readQuickstart",
+        "writeQuickstart",
+        "readAgents",
+        "writeAgents",
+        "hasFrameDir",
+        "ensureFrameDir",
+        ".frame/bin/ scripts",
+        "files handed to an AI tool\n  frameDirPath",
+        "tasksPath",
+        "structurePath",
+        "notesPath",
+        "quickstartPath",
+        "configPath",
+        "agentsPath"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "fsSafe",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "resolve": {
+          "line": 42,
+          "params": [
+            "projectPath",
+            "relative"
+          ],
+          "purpose": "Resolve one of the FRAME_META_FILES identifiers (posix, repo-relative)"
+        },
+        "ensureFrameDir": {
+          "line": 46,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "frameDirPath": {
+          "line": 54,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "tasksPath": {
+          "line": 58,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "structurePath": {
+          "line": 62,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "notesPath": {
+          "line": 66,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "quickstartPath": {
+          "line": 70,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "configPath": {
+          "line": 74,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "agentsPath": {
+          "line": 78,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "readJson": {
+          "line": 92,
+          "params": [
+            "filePath"
+          ],
+          "purpose": "Read a JSON artifact, preserving fsSafe's recovery envelope"
+        },
+        "writeJson": {
+          "line": 97,
+          "params": [
+            "projectPath",
+            "filePath",
+            "value"
+          ],
+          "purpose": "Write a JSON artifact atomically, creating `.frame/` on first write."
+        },
+        "readText": {
+          "line": 103,
+          "params": [
+            "filePath"
+          ],
+          "purpose": "Read a text artifact. Missing file → `null`, never a throw."
+        },
+        "writeText": {
+          "line": 113,
+          "params": [
+            "projectPath",
+            "filePath",
+            "text"
+          ],
+          "purpose": "Write a text artifact atomically, creating `.frame/` on first write."
+        },
+        "readTasks": {
+          "line": 120,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "writeTasks": {
+          "line": 124,
+          "params": [
+            "projectPath",
+            "data"
+          ]
+        },
+        "readStructure": {
+          "line": 128,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "writeStructure": {
+          "line": 132,
+          "params": [
+            "projectPath",
+            "data"
+          ]
+        },
+        "readConfig": {
+          "line": 136,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "writeConfig": {
+          "line": 140,
+          "params": [
+            "projectPath",
+            "data"
+          ]
+        },
+        "readNotes": {
+          "line": 144,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "writeNotes": {
+          "line": 148,
+          "params": [
+            "projectPath",
+            "text"
+          ]
+        },
+        "readQuickstart": {
+          "line": 152,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "writeQuickstart": {
+          "line": 156,
+          "params": [
+            "projectPath",
+            "text"
+          ]
+        },
+        "readAgents": {
+          "line": 166,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The project instruction layer. Legitimately absent in most projects —"
+        },
+        "writeAgents": {
+          "line": 170,
+          "params": [
+            "projectPath",
+            "text"
+          ]
+        },
+        "hasFrameDir": {
+          "line": 175,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Does this project have Frame artifacts at all?"
+        }
       }
     },
     "main/fsSafe": {
@@ -8452,6 +8661,8 @@
         "WORKSPACE_DIR",
         "WORKSPACE_FILE",
         "FRAME_FILES",
+        "LEGACY_ROOT_FILES",
+        "FRAME_META_FILES",
         "FRAME_BIN_DIR",
         "ORCH_WORKTREES_DIR",
         "ORCH_BUS_DIR",

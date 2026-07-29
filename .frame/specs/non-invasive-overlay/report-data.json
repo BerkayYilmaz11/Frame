@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "non-invasive-overlay",
+    "title": "Non-Invasive Frame Overlay (.frame-only, zero-touch)"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Meta path map + frameStore storage seam",
+      "commit": "53db57b",
+      "whatChanged": "Added FRAME_META_FILES (the .frame/-relative meta path map) and LEGACY_ROOT_FILES to src/shared/frameConstants.js, and built src/main/frameStore.js — a data-shaped API (readTasks/writeTasks, structure, notes, quickstart, config, the project AGENTS layer) with separately named …Path(projectPath) entries for the watchers, .frame/bin/ scripts and AI-tool-facing files that need a real path. Covered by 12 cases in test/frameStore.test.js.",
+      "whyChanged": "The API returns data rather than paths so the later move to a Frame-owned store is a backend swap behind these functions instead of a second pass over every caller. JSON reads pass fsSafe's { data, source, error } envelope through untouched — collapsing it to data||null would re-introduce the silent-null failure tasksManager grew out of. Diverged from plan.md on ORCH_META_FILES: left as bare file names, because both consumers match a footprint entry's basename, which is already layout-agnostic; .frame/-relative paths there would have silently killed every match.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "234 pass / 0 fail"
+      }
+    }
+  ]
+}
