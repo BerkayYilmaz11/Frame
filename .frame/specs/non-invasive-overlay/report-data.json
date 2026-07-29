@@ -79,13 +79,25 @@
     {
       "id": "T08",
       "title": "Declarative injection config and getLaunchCommand",
-      "commit": "6797f2b",
+      "commit": "98befd4",
       "whatChanged": "AI_TOOLS gained injection: {type:'flag'|'wrapper'} — Claude Code takes --append-system-prompt and --settings (both verified against the shipping CLI's --help), Codex and Gemini get .frame/bin/<id> wrappers. aiToolManager.getLaunchCommand(projectPath, toolId, extraFlags) composes the preamble main-side, reads features.specDriven from .frame/config.json per launch, writes .frame/runtime/{preamble.txt,claude-settings.json}, regenerates the wrapper, and returns command + launchFlags + resolvedCommand over the new IPC.GET_LAUNCH_COMMAND. frameTemplates gained getWrapperTemplate and getSpecHintSettings; 13 cases in test/frameTemplates.test.js.",
       "whyChanged": "The wrapper reads the preamble from .frame/runtime/preamble.txt rather than having it baked in: the preamble is multi-line prose full of quotes and backticks, and every one of those is a way to corrupt a generated shell script — as data it cannot. Gemini moved to a wrapper command with 'gemini' as fallbackCommand, so a project whose wrapper does not exist yet still probes and launches. Injection failure (read-only disk, missing global layer) degrades to the bare CLI rather than costing the user their agent, and specDriven is re-read every launch so flipping the Settings toggle takes effect on the next one.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "302 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T10",
+      "title": "Renderer launch sites use the composed command",
+      "commit": "88182ef",
+      "whatChanged": "aiToolSelector gained async getLaunchCommand(projectPath, launchFlags) over IPC.GET_LAUNCH_COMMAND, falling back to the bare command on any failure; index.js's startAiSession and agentDispatch's _startAgentIn await it instead of calling getStartCommand directly, and the two _startAgentIn callers await in turn. Also wired dispatch() — the path task and spec runs actually take — to fetch the composed flags and hand them to CHECK_AI_TOOL_AVAILABLE.",
+      "whyChanged": "dispatch() is not in T10's list but is the main way an agent starts in Frame; leaving it alone would have meant every task and spec run launching with no Frame context at all — the exact regression this spec exists to prevent. The composition call is made *before* the availability probe on purpose: for a wrapper-based CLI it is what writes .frame/bin/<tool>, so probing first would not find the wrapper. getStartCommand survives for callers that only need to know which CLI would run.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "302 pass / 0 fail; npm run build succeeds"
       }
     }
   ]

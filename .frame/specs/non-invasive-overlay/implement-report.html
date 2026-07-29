@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">7 of 12 tasks done · next: <span class="rs-task">T10 — Switch the renderer launch call sites to the composed command over IPC…</span></span>
+  <span class="rs-count">8 of 12 tasks done · next: <span class="rs-task">T11 — Rewrite `src/main/frameProject.js` init so every write lands inside…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -2696,7 +2696,7 @@
   <header class="card-head">
     <span class="card-id">T08</span>
     <h2>Declarative injection config and getLaunchCommand</h2>
-    <span class="card-meta"><span class="chip">6797f2b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">98befd4</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>AI_TOOLS gained injection: {type:&#39;flag&#39;|&#39;wrapper&#39;} — Claude Code takes --append-system-prompt and --settings (both verified against the shipping CLI&#39;s --help), Codex and Gemini get .frame/bin/&lt;id&gt; wrappers. aiToolManager.getLaunchCommand(projectPath, toolId, extraFlags) composes the preamble main-side, reads features.specDriven from .frame/config.json per launch, writes .frame/runtime/{preamble.txt,claude-settings.json}, regenerates the wrapper, and returns command + launchFlags + resolvedCommand over the new IPC.GET_LAUNCH_COMMAND. frameTemplates gained getWrapperTemplate and getSpecHintSettings; 13 cases in test/frameTemplates.test.js.</p></div>
@@ -3246,6 +3246,170 @@
 <span class="dl-add">+  assert.ok(/Project Facts/.test(text));</span>
 <span class="dl-add">+  assert.ok(/Creation date/.test(text));</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T10</span>
+    <h2>Renderer launch sites use the composed command</h2>
+    <span class="card-meta"><span class="chip">88182ef</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">302 pass / 0 fail; npm run build succeeds</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>aiToolSelector gained async getLaunchCommand(projectPath, launchFlags) over IPC.GET_LAUNCH_COMMAND, falling back to the bare command on any failure; index.js&#39;s startAiSession and agentDispatch&#39;s _startAgentIn await it instead of calling getStartCommand directly, and the two _startAgentIn callers await in turn. Also wired dispatch() — the path task and spec runs actually take — to fetch the composed flags and hand them to CHECK_AI_TOOL_AVAILABLE.</p></div>
+    <div class="field"><span class="label">Why</span><p>dispatch() is not in T10&#39;s list but is the main way an agent starts in Frame; leaving it alone would have meant every task and spec run launching with no Frame context at all — the exact regression this spec exists to prevent. The composition call is made *before* the availability probe on purpose: for a wrapper-based CLI it is what writes .frame/bin/&lt;tool&gt;, so probing first would not find the wrapper. getStartCommand survives for callers that only need to know which CLI would run.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/agentDispatch.js b/src/renderer/agentDispatch.js</span>
+<span class="dl-meta">index b8cc3c0..aa731a7 100644</span>
+<span class="dl-file">--- a/src/renderer/agentDispatch.js</span>
+<span class="dl-file">+++ b/src/renderer/agentDispatch.js</span>
+<span class="dl-hunk">@@ -134,6 +134,22 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p</span>
+<span class="dl-ctx">       return _fail(targetId, &#39;No AI CLI selected&#39;);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    // Attach Frame&#39;s launch context to whatever flags this dispatch already</span>
+<span class="dl-add">+    // wanted. First, because for a wrapper-based CLI this is also what writes</span>
+<span class="dl-add">+    // `.frame/bin/&lt;tool&gt;` — the probe below would otherwise not find it.</span>
+<span class="dl-add">+    let composedFlags = launchFlags;</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      const launch = await ipcRenderer.invoke(IPC.GET_LAUNCH_COMMAND, {</span>
+<span class="dl-add">+        toolId: chosenToolId,</span>
+<span class="dl-add">+        projectPath: state.getProjectPath(),</span>
+<span class="dl-add">+        launchFlags</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+      if (launch &amp;&amp; Array.isArray(launch.launchFlags)) composedFlags = launch.launchFlags;</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      // Context is a nice-to-have; a dispatch that loses it still runs.</span>
+<span class="dl-add">+      console.error(&#39;agentDispatch: launch context composition failed&#39;, err);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     // Pre-flight: confirm the CLI is installed before sending anything —</span>
+<span class="dl-ctx">     // otherwise the lane shows &quot;command not found&quot; and the prompt is lost.</span>
+<span class="dl-ctx">     let check;</span>
+<span class="dl-hunk">@@ -141,7 +157,7 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p</span>
+<span class="dl-ctx">       check = await ipcRenderer.invoke(IPC.CHECK_AI_TOOL_AVAILABLE, {</span>
+<span class="dl-ctx">         toolId: chosenToolId,</span>
+<span class="dl-ctx">         projectPath: state.getProjectPath(),</span>
+<span class="dl-del">-        launchFlags</span>
+<span class="dl-add">+        launchFlags: composedFlags</span>
+<span class="dl-ctx">       });</span>
+<span class="dl-ctx">     } catch (err) {</span>
+<span class="dl-ctx">       console.error(&#39;agentDispatch: CLI availability check failed&#39;, err);</span>
+<span class="dl-hunk">@@ -258,7 +274,7 @@ async function startDefaultAgent() {</span>
+<span class="dl-ctx">   const s = laneStatus.getStatus(focusedId);</span>
+<span class="dl-ctx">   const idle = !s.agentName &amp;&amp; s.status === &#39;idle&#39;;</span>
+<span class="dl-ctx">   if (idle) {</span>
+<span class="dl-del">-    _startAgentIn(focusedId);</span>
+<span class="dl-add">+    await _startAgentIn(focusedId);</span>
+<span class="dl-ctx">     return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -271,14 +287,16 @@ async function startDefaultAgent() {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Start the active tool&#39;s CLI in an existing lane. `fresh` allows a newly</span>
+<span class="dl-ctx"> // spawned shell a beat to accept input before the command is typed.</span>
+<span class="dl-del">-function _startAgentIn(terminalId, { fresh = false } = {}) {</span>
+<span class="dl-add">+async function _startAgentIn(terminalId, { fresh = false } = {}) {</span>
+<span class="dl-ctx">   multiTerminalUI.enterLane(terminalId);</span>
+<span class="dl-ctx">   const aiToolSelector = require(&#39;./aiToolSelector&#39;);</span>
+<span class="dl-del">-  const startCommand = aiToolSelector.getStartCommand();</span>
+<span class="dl-del">-  if (!startCommand) {</span>
+<span class="dl-add">+  if (!aiToolSelector.getStartCommand()) {</span>
+<span class="dl-ctx">     notify.error(&#39;No AI CLI selected&#39;);</span>
+<span class="dl-ctx">     return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-add">+  // Composed main-side, so the agent starts already pointed at Frame&#39;s</span>
+<span class="dl-add">+  // context — the root CLAUDE.md symlink that used to do this is gone.</span>
+<span class="dl-add">+  const startCommand = await aiToolSelector.getLaunchCommand(state.getProjectPath());</span>
+<span class="dl-ctx">   const currentTool = aiToolSelector.getCurrentTool();</span>
+<span class="dl-ctx">   ipcRenderer.send(IPC.TELEMETRY_TRACK, &#39;agent_run_started&#39;, {</span>
+<span class="dl-ctx">     tool: currentTool ? currentTool.id : null</span>
+<span class="dl-hunk">@@ -298,7 +316,7 @@ async function _startAgentInNewFrame() {</span>
+<span class="dl-ctx">     notify.error(`Could not create a new Frame — maximum (${max}) may be reached for this project`);</span>
+<span class="dl-ctx">     return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-del">-  _startAgentIn(id, { fresh: true });</span>
+<span class="dl-add">+  await _startAgentIn(id, { fresh: true });</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // &quot;Open a new Frame / Kill &amp; restart here&quot; — asked when the focused Frame is</span>
+<span class="dl-meta">diff --git a/src/renderer/aiToolSelector.js b/src/renderer/aiToolSelector.js</span>
+<span class="dl-meta">index 3b6cd97..41e183c 100644</span>
+<span class="dl-file">--- a/src/renderer/aiToolSelector.js</span>
+<span class="dl-file">+++ b/src/renderer/aiToolSelector.js</span>
+<span class="dl-hunk">@@ -107,12 +107,43 @@ function getAvailableTools() {</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Get the start command for current tool</span>
+<span class="dl-add">+ * Get the start command for current tool.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The bare CLI, with no Frame context attached. Kept for the places that only</span>
+<span class="dl-add">+ * need to know *what* would run; anything that actually launches a session</span>
+<span class="dl-add">+ * uses `getLaunchCommand` below, or the agent starts with no idea Frame exists.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function getStartCommand() {</span>
+<span class="dl-ctx">   return currentTool ? currentTool.command : &#39;claude&#39;;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The command to actually type into a lane: the CLI plus Frame&#39;s launch</span>
+<span class="dl-add">+ * context, composed in the main process (it needs the filesystem — discovery,</span>
+<span class="dl-add">+ * the project&#39;s spec-driven flag, the global layer&#39;s path).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Falls back to the bare command if the main process cannot compose one, so a</span>
+<span class="dl-add">+ * failure here costs the context, never the session.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {string} projectPath</span>
+<span class="dl-add">+ * @param {string[]} [launchFlags] - extra flags this particular run needs</span>
+<span class="dl-add">+ * @returns {Promise&lt;string&gt;}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function getLaunchCommand(projectPath, launchFlags) {</span>
+<span class="dl-add">+  const fallback = getStartCommand();</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const result = await ipcRenderer.invoke(IPC.GET_LAUNCH_COMMAND, {</span>
+<span class="dl-add">+      projectPath,</span>
+<span class="dl-add">+      toolId: currentTool ? currentTool.id : null,</span>
+<span class="dl-add">+      launchFlags: launchFlags || null</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    return (result &amp;&amp; result.resolvedCommand) || fallback;</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;aiToolSelector: launch command composition failed&#39;, err);</span>
+<span class="dl-add">+    return fallback;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Get a specific command for current tool</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-hunk">@@ -144,6 +175,7 @@ module.exports = {</span>
+<span class="dl-ctx">   getCurrentTool,</span>
+<span class="dl-ctx">   getAvailableTools,</span>
+<span class="dl-ctx">   getStartCommand,</span>
+<span class="dl-add">+  getLaunchCommand,</span>
+<span class="dl-ctx">   getCommand,</span>
+<span class="dl-ctx">   supportsFeature</span>
+<span class="dl-ctx"> };</span>
+<span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index a3d4b54..6f0ffbf 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -737,9 +737,10 @@ async function startAiSession() {</span>
+<span class="dl-ctx">   // Ensure the new terminal is focused</span>
+<span class="dl-ctx">   terminal.setActiveTerminal(newTerminalId);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Send start command for the selected AI tool. The board&#39;s agent</span>
+<span class="dl-del">-  // chip is derived live from the foreground process, not tagged here.</span>
+<span class="dl-del">-  const startCommand = aiToolSelector.getStartCommand();</span>
+<span class="dl-add">+  // Send start command for the selected AI tool, with Frame&#39;s launch context</span>
+<span class="dl-add">+  // attached. The board&#39;s agent chip is derived live from the foreground</span>
+<span class="dl-add">+  // process, not tagged here.</span>
+<span class="dl-add">+  const startCommand = await aiToolSelector.getLaunchCommand(projectPath);</span>
+<span class="dl-ctx">   setTimeout(() =&gt; {</span>
+<span class="dl-ctx">     terminal.sendCommand(startCommand, newTerminalId);</span>
+<span class="dl-ctx">   }, 1000);</span></pre>
     </details>
   </div>
 </section>

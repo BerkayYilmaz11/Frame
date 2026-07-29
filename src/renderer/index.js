@@ -737,9 +737,10 @@ async function startAiSession() {
   // Ensure the new terminal is focused
   terminal.setActiveTerminal(newTerminalId);
 
-  // Send start command for the selected AI tool. The board's agent
-  // chip is derived live from the foreground process, not tagged here.
-  const startCommand = aiToolSelector.getStartCommand();
+  // Send start command for the selected AI tool, with Frame's launch context
+  // attached. The board's agent chip is derived live from the foreground
+  // process, not tagged here.
+  const startCommand = await aiToolSelector.getLaunchCommand(projectPath);
   setTimeout(() => {
     terminal.sendCommand(startCommand, newTerminalId);
   }, 1000);

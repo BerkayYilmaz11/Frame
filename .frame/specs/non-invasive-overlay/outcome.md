@@ -143,3 +143,20 @@ and launches; any injection failure degrades to the bare CLI. Files:
 _Captured: 2026-07-29 · 5 file changes_
 
 ---
+
+## T10 — Renderer launch sites use the composed command
+
+Added async `aiToolSelector.getLaunchCommand(projectPath, launchFlags)` over
+`IPC.GET_LAUNCH_COMMAND` (bare command as fallback on any failure) and switched
+`index.js`'s `startAiSession` and `agentDispatch._startAgentIn` — plus its two
+callers — to await it. Went beyond the three listed call sites for one reason:
+`dispatch()` is the path every task and spec run actually takes, and leaving it
+on `CHECK_AI_TOOL_AVAILABLE` alone would have launched all of them with no
+Frame context — the regression this spec exists to prevent. It now fetches the
+composed flags *before* the availability probe, because for a wrapper-based CLI
+that call is also what writes `.frame/bin/<tool>`. Files:
+`aiToolSelector.js`, `index.js`, `agentDispatch.js`.
+
+_Captured: 2026-07-29 · 3 file changes_
+
+---

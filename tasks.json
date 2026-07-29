@@ -4379,13 +4379,13 @@
       "title": "Switch the renderer launch call sites to the composed command over IPC: `src/renderer/aiToolSelector.js`, `src/renderer/index.js`, and `src/renderer/agentDispatch.js` await `getLaunchCommand` instead of calling `getStartCommand` directly.",
       "description": "",
       "source": "spec:non-invasive-overlay:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:08:49.642Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:53:33.774Z",
+      "completedAt": "2026-07-29T11:53:33.774Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T11",
