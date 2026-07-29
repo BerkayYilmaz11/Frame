@@ -1658,6 +1658,72 @@
         "emits": []
       }
     },
+    "main/globalLayer": {
+      "file": "src/main/globalLayer.js",
+      "description": "globalLayer — Frame's own instructions, stored once outside every project.",
+      "exports": [
+        "init",
+        "ensure",
+        "dirPath",
+        "agentsPath",
+        "referencePath",
+        "renderAgents",
+        "renderReference",
+        "GLOBAL_DIR_NAME"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "shared/frameTemplates",
+        "shared/docsManagedBlock"
+      ],
+      "functions": {
+        "init": {
+          "line": 42,
+          "params": [
+            "dataPath"
+          ]
+        },
+        "dirPath": {
+          "line": 46
+        },
+        "agentsPath": {
+          "line": 51
+        },
+        "referencePath": {
+          "line": 55
+        },
+        "renderAgents": {
+          "line": 71,
+          "purpose": "Frame's generic core: no Project Facts, no creation stamp, and no spec"
+        },
+        "renderReference": {
+          "line": 79
+        },
+        "writeFile": {
+          "line": 83,
+          "params": [
+            "target",
+            "content"
+          ]
+        },
+        "ensureFile": {
+          "line": 94,
+          "params": [
+            "target",
+            "render",
+            "body",
+            "version",
+            "legacyMatchers"
+          ],
+          "purpose": "Bring one file to the current version."
+        },
+        "ensure": {
+          "line": 117,
+          "purpose": "Create or upgrade the global layer. Called once at app ready; safe to call"
+        }
+      }
+    },
     "main/index": {
       "file": "src/main/index.js",
       "description": "Main Process Entry Point",
@@ -1691,6 +1757,7 @@
         "claudeSessionsManager",
         "updateChecker",
         "userSettings",
+        "globalLayer",
         "gitStatusManager",
         "gitDiffManager",
         "telemetry",
@@ -1700,26 +1767,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 48,
+          "line": 49,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 66,
+          "line": 67,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 158
+          "line": 159
         },
         "setupAllIPC": {
-          "line": 184,
+          "line": 185,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 261,
+          "line": 262,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 296,
+          "line": 303,
           "params": [
             "window"
           ],
@@ -8899,21 +8966,22 @@
           "purpose": "Render the Project Facts section for AGENTS.md from the detected project"
         },
         "getAgentsTemplate": {
-          "line": 352,
+          "line": 363,
           "params": [
             "projectName",
             "options"
-          ]
+          ],
+          "purpose": "options:"
         },
         "getReferenceTemplate": {
-          "line": 448,
+          "line": 473,
           "params": [
             "projectName"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 623,
+          "line": 648,
           "params": [
             "projectName",
             "project"
@@ -8921,21 +8989,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 648,
+          "line": 673,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 668,
+          "line": 693,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 714,
+          "line": 739,
           "params": [
             "projectName",
             "project"
@@ -8943,18 +9011,18 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 795,
+          "line": 820,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getCodexWrapperTemplate": {
-          "line": 835,
+          "line": 860,
           "purpose": "Codex CLI wrapper script"
         },
         "getGenericWrapperTemplate": {
-          "line": 872,
+          "line": 897,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -8962,27 +9030,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 918
+          "line": 943
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 939,
+          "line": 964,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 962,
+          "line": 987,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 974,
+          "line": 999,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 994
+          "line": 1019
         },
         "getOrchBinScripts": {
-          "line": 1012,
+          "line": 1037,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

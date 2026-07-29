@@ -43,13 +43,25 @@
     {
       "id": "T04",
       "title": "Read-only instruction discovery + legacy-layout notice",
-      "commit": "835b813",
+      "commit": "ac6853a",
       "whatChanged": "New src/main/instructionDiscovery.js: one root scan answering both questions — native instruction files (CLAUDE.md, .claude/CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .cursor/rules/*, .github/copilot-instructions.md) and the pre-overlay Frame layout — with a full re-scan on every project open and a debounced fs.watch as an optimization on top. Added IPC.LEGACY_LAYOUT_DETECTED, the banner branch in healthNotice.js, and the emit on project open. 16 cases in test/instructionDiscovery.test.js, including a checksum+mtime snapshot of the whole tree before and after scanning.",
       "whyChanged": "The banner is deliberately not gated on isFrameProject: a pre-overlay init wrote .frame/config.json *and* the root files, so every project this notice exists for already looks like a Frame project — gating on the absence of .frame/ would have meant the notice never fires at all. The legacy detector also refuses to call a lone root tasks.json Frame's: it needs a Frame-specific companion (STRUCTURE.json / PROJECT_NOTES.md / QUICKSTART.md) or a CLAUDE.md→AGENTS.md symlink, so a repo that merely has an AGENTS.md is read as an instruction file rather than a project needing migration.",
       "verification": {
         "command": "npm test",
         "status": "pass",
         "detail": "262 pass / 0 fail"
+      }
+    },
+    {
+      "id": "T06",
+      "title": "Global instruction layer in userData",
+      "commit": "c0979b6",
+      "whatChanged": "New src/main/globalLayer.js owning userData/frame-global/{AGENTS.md,REFERENCE.md}: the core rendered without the spec section, REFERENCE keeping the full protocol as a docsManagedBlock, upgrades applied in place. Wired globalLayer.init(app.getPath('userData')) + ensure() into src/main/index.js right after userSettings.init(). Parameterized getAgentsTemplate with a `global` option (no Project Facts, no creation stamp, no symlink claim) and a `referencePath`. 11 cases in test/globalLayer.test.js plus a single-copy upgrade case in test/docsManagedBlock.test.js.",
+      "whyChanged": "userDataPath is injected through init() rather than required from Electron, so the module and its tests stay Electron-free — the convention the rest of the suite follows. Only a *missing* file is written from the template; a file the user rewrote is left as theirs and only its managed block is ever touched. The global core deliberately carries no spec section: whether a project is spec-driven is per-project state, and the shared core is read by all of them, so the activation signal moves to the launch preamble (T07) and silence is what a project with the flag off gets.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "273 pass / 0 fail"
       }
     }
   ]

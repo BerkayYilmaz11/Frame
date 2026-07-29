@@ -349,23 +349,48 @@ an assumption into code or docs.`;
 ${record}`;
 }
 
+/**
+ * options:
+ *   specDriven:    include the short Spec-Driven Development section.
+ *   global:        render Frame's single user-scoped copy instead of a
+ *                  per-project file — no Project Facts (there is no one
+ *                  project to state facts about), no creation stamp, and no
+ *                  claim that a CLAUDE.md symlink exists, because the overlay
+ *                  never plants one.
+ *   referencePath: where the maintenance reference lives, since the global
+ *                  copy sits beside this file rather than in `.frame/docs/`.
+ */
 function getAgentsTemplate(projectName, options) {
   const opts = options || {};
   const specDriven = opts.specDriven === true;
+  const isGlobal = opts.global === true;
+  const referencePath = opts.referencePath || '.frame/docs/REFERENCE.md';
   const date = getDateString();
-  return `# ${projectName} - Frame Project
+
+  const heading = isGlobal
+    ? `# Frame — Agent Instructions
+
+These are **Frame's own** conventions, and they apply in every project Frame
+opens. They live here, once, outside every repository: updating Frame updates
+every project and writes to none of them. The repository you are working in
+owns its code conventions; this file owns the Frame meta-workflow.
+**Before writing any Frame meta file, read the matching section of
+\`${referencePath}\`** — the maintenance rules live there, not here.`
+    : `# ${projectName} - Frame Project
 
 This project is managed with **Frame**: durable, structured context that keeps
 AI agents oriented across sessions. This file is the always-on core.
 **Before writing any Frame meta file, read the matching section of
-\`.frame/docs/REFERENCE.md\`** — the maintenance rules live there, not here.
+\`${referencePath}\`** — the maintenance rules live there, not here.`;
+
+  return `${heading}
 
 ---
-
+${isGlobal ? '' : `
 ${formatProjectFacts(opts.project)}
 
 ---
-
+`}
 ## Core Working Principle
 
 **Only do what the user asks.** Do not go beyond the scope of the request.
@@ -414,7 +439,7 @@ ${renderSpecCoreSection()}
 
 ## Writing Frame meta files — read the reference first
 
-| Before writing…  | Read in \`.frame/docs/REFERENCE.md\` |
+| Before writing…  | Read in \`${referencePath}\` |
 | ---------------- | ------------------------------------ |
 | tasks.json       | "Task Management" (schema + rules)   |
 | PROJECT_NOTES.md | "PROJECT_NOTES.md Rules"             |
@@ -427,7 +452,7 @@ Quick reminders that always apply:
 - Important decisions: append to PROJECT_NOTES.md as
   \`### [YYYY-MM-DD] Title\` with the conversation's context (not a summary).
 - Documentation in English; dates in ISO 8601.
-
+${isGlobal ? '' : `
 ---
 
 *This file was automatically created by Frame.*
@@ -436,7 +461,7 @@ Quick reminders that always apply:
 ---
 
 **Note:** This file is named \`AGENTS.md\` to be AI-tool agnostic. A \`CLAUDE.md\` symlink is provided for Claude Code compatibility.
-`;
+`}`;
 }
 
 /**

@@ -86,3 +86,23 @@ the `embedded-migration` spec runs — that is the intended "fail loud".
 _Captured: 2026-07-29 · 5 file changes_
 
 ---
+
+## T06 — Global instruction layer in userData
+
+Built `src/main/globalLayer.js` owning `userData/frame-global/{AGENTS.md,
+REFERENCE.md}` — core without the spec section, REFERENCE keeping the full
+protocol as a managed block, upgrades in place — and called `init(app.getPath(
+'userData'))` + `ensure()` from `index.js` beside `userSettings.init()`, where
+userData first resolves. `userDataPath` is injected rather than required from
+Electron so the module and its tests stay Electron-free, matching the suite's
+convention. Ahead of `plan.md`'s sequencing (it assigns `frameTemplates` to
+step 5) `getAgentsTemplate` gained the `global` and `referencePath` options
+this needed — without them the shared copy would have carried a Project Facts
+block about no project and a claim that a `CLAUDE.md` symlink exists. Files:
+`globalLayer.js` (new), `index.js`, `frameTemplates.js`,
+`test/globalLayer.test.js` (new, 11 cases), `test/docsManagedBlock.test.js`
+(+1 single-copy case).
+
+_Captured: 2026-07-29 · 5 file changes_
+
+---

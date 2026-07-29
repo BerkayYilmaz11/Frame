@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">4 tasks</span>
-    <span class="pill good">4 verified</span>
+    <span class="pill">5 tasks</span>
+    <span class="pill good">5 verified</span>
     
     <span class="chip">2026-07-29</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">4 of 12 tasks done · next: <span class="rs-task">T06 — Build `src/main/globalLayer.js` owning `userData/frame-global/{AGENTS.md…</span></span>
+  <span class="rs-count">5 of 12 tasks done · next: <span class="rs-task">T07 — Build `src/shared/contextPreamble.js` as a pure composer over…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1398,7 +1398,7 @@
   <header class="card-head">
     <span class="card-id">T04</span>
     <h2>Read-only instruction discovery + legacy-layout notice</h2>
-    <span class="card-meta"><span class="chip">835b813</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">262 pass / 0 fail</span></span>
+    <span class="card-meta"><span class="chip">ac6853a</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">262 pass / 0 fail</span></span>
   </header>
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>New src/main/instructionDiscovery.js: one root scan answering both questions — native instruction files (CLAUDE.md, .claude/CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .cursor/rules/*, .github/copilot-instructions.md) and the pre-overlay Frame layout — with a full re-scan on every project open and a debounced fs.watch as an optimization on top. Added IPC.LEGACY_LAYOUT_DETECTED, the banner branch in healthNotice.js, and the emit on project open. 16 cases in test/instructionDiscovery.test.js, including a checksum+mtime snapshot of the whole tree before and after scanning.</p></div>
@@ -1910,6 +1910,467 @@
 <span class="dl-add">+  write(&#39;STRUCTURE.json&#39;, &#39;{&quot;modules&quot;:{}}&#39;);</span>
 <span class="dl-add">+</span>
 <span class="dl-add">+  assert.equal(instructionDiscovery.scan(projectDir).legacyLayout, true);</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Global instruction layer in userData</h2>
+    <span class="card-meta"><span class="chip">c0979b6</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">273 pass / 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/main/globalLayer.js owning userData/frame-global/{AGENTS.md,REFERENCE.md}: the core rendered without the spec section, REFERENCE keeping the full protocol as a docsManagedBlock, upgrades applied in place. Wired globalLayer.init(app.getPath(&#39;userData&#39;)) + ensure() into src/main/index.js right after userSettings.init(). Parameterized getAgentsTemplate with a `global` option (no Project Facts, no creation stamp, no symlink claim) and a `referencePath`. 11 cases in test/globalLayer.test.js plus a single-copy upgrade case in test/docsManagedBlock.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>userDataPath is injected through init() rather than required from Electron, so the module and its tests stay Electron-free — the convention the rest of the suite follows. Only a *missing* file is written from the template; a file the user rewrote is left as theirs and only its managed block is ever touched. The global core deliberately carries no spec section: whether a project is spec-driven is per-project state, and the shared core is read by all of them, so the activation signal moves to the launch preamble (T07) and silence is what a project with the flag off gets.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/globalLayer.js b/src/main/globalLayer.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..e61cf4b</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/main/globalLayer.js</span>
+<span class="dl-hunk">@@ -0,0 +1,151 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * globalLayer — Frame&#39;s own instructions, stored once outside every project.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * How to recognize a task, when to capture a note, the spec workflow,</span>
+<span class="dl-add">+ * structure upkeep: that content is identical in every project and belongs to</span>
+<span class="dl-add">+ * Frame, not to the user&#39;s repository. It lives in user-scoped storage —</span>
+<span class="dl-add">+ * `userData/frame-global/{AGENTS.md, REFERENCE.md}`, beside `user-settings.json`</span>
+<span class="dl-add">+ * and `ai-tool-config.json` — and is referenced by path at launch, never copied</span>
+<span class="dl-add">+ * into a working tree.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * That is what makes the overlay possible at all: opening a company repo adds</span>
+<span class="dl-add">+ * nothing to it, and updating Frame updates every project&#39;s agent behavior</span>
+<span class="dl-add">+ * without a single write to any repository.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Upgrades vs. user additions ──</span>
+<span class="dl-add">+ * The user may extend these files, so an upgrade must not flatten them. The</span>
+<span class="dl-add">+ * generated spec section carries `docsManagedBlock` markers and is replaced in</span>
+<span class="dl-add">+ * place when its version moves; everything outside the markers is the user&#39;s</span>
+<span class="dl-add">+ * and is preserved. The same managed-block machinery that used to chase a copy</span>
+<span class="dl-add">+ * per project now runs once, here.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * A file the user has edited outside the managed block is never regenerated</span>
+<span class="dl-add">+ * wholesale — only a missing file is written from the template.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-add">+const managedBlock = require(&#39;../shared/docsManagedBlock&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const GLOBAL_DIR_NAME = &#39;frame-global&#39;;</span>
+<span class="dl-add">+const AGENTS_FILE = &#39;AGENTS.md&#39;;</span>
+<span class="dl-add">+const REFERENCE_FILE = &#39;REFERENCE.md&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Injected by init(); kept out of the module&#39;s require graph so the suite can</span>
+<span class="dl-add">+// exercise this without Electron.</span>
+<span class="dl-add">+let userDataPath = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * @param {string} dataPath - Electron&#39;s `app.getPath(&#39;userData&#39;)`.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function init(dataPath) {</span>
+<span class="dl-add">+  userDataPath = dataPath;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function dirPath() {</span>
+<span class="dl-add">+  if (!userDataPath) throw new Error(&#39;globalLayer: init(userDataPath) has not been called&#39;);</span>
+<span class="dl-add">+  return path.join(userDataPath, GLOBAL_DIR_NAME);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function agentsPath() {</span>
+<span class="dl-add">+  return path.join(dirPath(), AGENTS_FILE);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function referencePath() {</span>
+<span class="dl-add">+  return path.join(dirPath(), REFERENCE_FILE);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Frame&#39;s generic core: no Project Facts, no creation stamp, and no spec</span>
+<span class="dl-add">+ * section.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The spec workflow is deliberately absent from the core — whether a project</span>
+<span class="dl-add">+ * runs spec-driven is per-project state (`features.specDriven`), and the core</span>
+<span class="dl-add">+ * is shared by all of them. The activation signal moves to the launch-time</span>
+<span class="dl-add">+ * preamble, which says nothing at all when the flag is off; a project with the</span>
+<span class="dl-add">+ * workflow disabled must have no text anywhere telling an agent to write specs.</span>
+<span class="dl-add">+ * The full protocol still lives in REFERENCE.md, where it is documentation</span>
+<span class="dl-add">+ * rather than an instruction to act.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function renderAgents() {</span>
+<span class="dl-add">+  return templates.getAgentsTemplate(&#39;Frame&#39;, {</span>
+<span class="dl-add">+    global: true,</span>
+<span class="dl-add">+    specDriven: false,</span>
+<span class="dl-add">+    referencePath: REFERENCE_FILE</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function renderReference() {</span>
+<span class="dl-add">+  return templates.getReferenceTemplate(&#39;Frame&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function writeFile(target, content) {</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(target), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(target, content, &#39;utf8&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Bring one file to the current version.</span>
+<span class="dl-add">+ *   &#39;created&#39;  — was missing, written from the template</span>
+<span class="dl-add">+ *   &#39;upgraded&#39; — managed block replaced in place, user additions untouched</span>
+<span class="dl-add">+ *   &#39;current&#39;  — nothing to do</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function ensureFile(target, render, body, version, legacyMatchers) {</span>
+<span class="dl-add">+  let existing;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    existing = fs.readFileSync(target, &#39;utf8&#39;);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    if (err.code !== &#39;ENOENT&#39;) throw err;</span>
+<span class="dl-add">+    writeFile(target, render());</span>
+<span class="dl-add">+    return &#39;created&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!body) return &#39;current&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const upgraded = managedBlock.upgradeDoc(existing, { body, version, legacyMatchers });</span>
+<span class="dl-add">+  if (upgraded === null) return &#39;current&#39;;</span>
+<span class="dl-add">+  writeFile(target, upgraded);</span>
+<span class="dl-add">+  return &#39;upgraded&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Create or upgrade the global layer. Called once at app ready; safe to call</span>
+<span class="dl-add">+ * again. Never throws at the caller — a home directory that cannot be written</span>
+<span class="dl-add">+ * degrades the preamble, it does not stop the app.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function ensure() {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    fs.mkdirSync(dirPath(), { recursive: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      // The core carries no managed block, so there is nothing to upgrade in</span>
+<span class="dl-add">+      // place — it is written once and then belongs to the user.</span>
+<span class="dl-add">+      agents: ensureFile(agentsPath(), renderAgents, null, null, null),</span>
+<span class="dl-add">+      // REFERENCE.md carries the spec protocol as a managed block: this is the</span>
+<span class="dl-add">+      // single copy that the per-project chase in upgradeSpecDocs existed to</span>
+<span class="dl-add">+      // replace.</span>
+<span class="dl-add">+      reference: ensureFile(</span>
+<span class="dl-add">+        referencePath(),</span>
+<span class="dl-add">+        renderReference,</span>
+<span class="dl-add">+        templates.SPEC_DRIVEN_SECTION,</span>
+<span class="dl-add">+        templates.SPEC_SECTION_VERSION,</span>
+<span class="dl-add">+        templates.REFERENCE_SPEC_LEGACY_MATCHERS</span>
+<span class="dl-add">+      )</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;globalLayer: could not ensure the global layer:&#39;, err.message);</span>
+<span class="dl-add">+    return { agents: &#39;error&#39;, reference: &#39;error&#39;, error: err.message };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  init,</span>
+<span class="dl-add">+  ensure,</span>
+<span class="dl-add">+  dirPath,</span>
+<span class="dl-add">+  agentsPath,</span>
+<span class="dl-add">+  referencePath,</span>
+<span class="dl-add">+  renderAgents,</span>
+<span class="dl-add">+  renderReference,</span>
+<span class="dl-add">+  GLOBAL_DIR_NAME</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/src/main/index.js b/src/main/index.js</span>
+<span class="dl-meta">index 9c874e5..6ac696c 100644</span>
+<span class="dl-file">--- a/src/main/index.js</span>
+<span class="dl-file">+++ b/src/main/index.js</span>
+<span class="dl-hunk">@@ -31,6 +31,7 @@ const aiToolManager = require(&#39;./aiToolManager&#39;);</span>
+<span class="dl-ctx"> const claudeSessionsManager = require(&#39;./claudeSessionsManager&#39;);</span>
+<span class="dl-ctx"> const updateChecker = require(&#39;./updateChecker&#39;);</span>
+<span class="dl-ctx"> const userSettings = require(&#39;./userSettings&#39;);</span>
+<span class="dl-add">+const globalLayer = require(&#39;./globalLayer&#39;);</span>
+<span class="dl-ctx"> const gitStatusManager = require(&#39;./gitStatusManager&#39;);</span>
+<span class="dl-ctx"> const gitDiffManager = require(&#39;./gitDiffManager&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-hunk">@@ -276,6 +277,12 @@ function init() {</span>
+<span class="dl-ctx">   // Initialize user settings (must run after app is ready so userData path resolves)</span>
+<span class="dl-ctx">   userSettings.init();</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // Frame&#39;s own instructions, written once into userData and never into a</span>
+<span class="dl-add">+  // project. Same reason as userSettings for the placement: userData resolves</span>
+<span class="dl-add">+  // only after the app is ready.</span>
+<span class="dl-add">+  globalLayer.init(app.getPath(&#39;userData&#39;));</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   // Global crash handlers + local-only crash dumps. After userSettings</span>
+<span class="dl-ctx">   // (reads the crashDumpsEnabled toggle), before everything else so no</span>
+<span class="dl-ctx">   // later init runs unguarded.</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 366071a..7051aa3 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -349,23 +349,48 @@ an assumption into code or docs.`;</span>
+<span class="dl-ctx"> ${record}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * options:</span>
+<span class="dl-add">+ *   specDriven:    include the short Spec-Driven Development section.</span>
+<span class="dl-add">+ *   global:        render Frame&#39;s single user-scoped copy instead of a</span>
+<span class="dl-add">+ *                  per-project file — no Project Facts (there is no one</span>
+<span class="dl-add">+ *                  project to state facts about), no creation stamp, and no</span>
+<span class="dl-add">+ *                  claim that a CLAUDE.md symlink exists, because the overlay</span>
+<span class="dl-add">+ *                  never plants one.</span>
+<span class="dl-add">+ *   referencePath: where the maintenance reference lives, since the global</span>
+<span class="dl-add">+ *                  copy sits beside this file rather than in `.frame/docs/`.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-ctx"> function getAgentsTemplate(projectName, options) {</span>
+<span class="dl-ctx">   const opts = options || {};</span>
+<span class="dl-ctx">   const specDriven = opts.specDriven === true;</span>
+<span class="dl-add">+  const isGlobal = opts.global === true;</span>
+<span class="dl-add">+  const referencePath = opts.referencePath || &#39;.frame/docs/REFERENCE.md&#39;;</span>
+<span class="dl-ctx">   const date = getDateString();</span>
+<span class="dl-del">-  return `# ${projectName} - Frame Project</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const heading = isGlobal</span>
+<span class="dl-add">+    ? `# Frame — Agent Instructions</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+These are **Frame&#39;s own** conventions, and they apply in every project Frame</span>
+<span class="dl-add">+opens. They live here, once, outside every repository: updating Frame updates</span>
+<span class="dl-add">+every project and writes to none of them. The repository you are working in</span>
+<span class="dl-add">+owns its code conventions; this file owns the Frame meta-workflow.</span>
+<span class="dl-add">+**Before writing any Frame meta file, read the matching section of</span>
+<span class="dl-add">+\`${referencePath}\`** — the maintenance rules live there, not here.`</span>
+<span class="dl-add">+    : `# ${projectName} - Frame Project</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> This project is managed with **Frame**: durable, structured context that keeps</span>
+<span class="dl-ctx"> AI agents oriented across sessions. This file is the always-on core.</span>
+<span class="dl-ctx"> **Before writing any Frame meta file, read the matching section of</span>
+<span class="dl-del">-\`.frame/docs/REFERENCE.md\`** — the maintenance rules live there, not here.</span>
+<span class="dl-add">+\`${referencePath}\`** — the maintenance rules live there, not here.`;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-file">----</span>
+<span class="dl-add">+  return `${heading}</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+---</span>
+<span class="dl-add">+${isGlobal ? &#39;&#39; : `</span>
+<span class="dl-ctx"> ${formatProjectFacts(opts.project)}</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> ---</span>
+<span class="dl-del">-</span>
+<span class="dl-add">+`}</span>
+<span class="dl-ctx"> ## Core Working Principle</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> **Only do what the user asks.** Do not go beyond the scope of the request.</span>
+<span class="dl-hunk">@@ -414,7 +439,7 @@ ${renderSpecCoreSection()}</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> ## Writing Frame meta files — read the reference first</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-| Before writing…  | Read in \`.frame/docs/REFERENCE.md\` |</span>
+<span class="dl-add">+| Before writing…  | Read in \`${referencePath}\` |</span>
+<span class="dl-ctx"> | ---------------- | ------------------------------------ |</span>
+<span class="dl-ctx"> | tasks.json       | &quot;Task Management&quot; (schema + rules)   |</span>
+<span class="dl-ctx"> | PROJECT_NOTES.md | &quot;PROJECT_NOTES.md Rules&quot;             |</span>
+<span class="dl-hunk">@@ -427,7 +452,7 @@ Quick reminders that always apply:</span>
+<span class="dl-ctx"> - Important decisions: append to PROJECT_NOTES.md as</span>
+<span class="dl-ctx">   \`### [YYYY-MM-DD] Title\` with the conversation&#39;s context (not a summary).</span>
+<span class="dl-ctx"> - Documentation in English; dates in ISO 8601.</span>
+<span class="dl-del">-</span>
+<span class="dl-add">+${isGlobal ? &#39;&#39; : `</span>
+<span class="dl-ctx"> ---</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> *This file was automatically created by Frame.*</span>
+<span class="dl-hunk">@@ -436,7 +461,7 @@ Quick reminders that always apply:</span>
+<span class="dl-ctx"> ---</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> **Note:** This file is named \`AGENTS.md\` to be AI-tool agnostic. A \`CLAUDE.md\` symlink is provided for Claude Code compatibility.</span>
+<span class="dl-del">-`;</span>
+<span class="dl-add">+`}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-meta">diff --git a/test/docsManagedBlock.test.js b/test/docsManagedBlock.test.js</span>
+<span class="dl-meta">index 93474e7..365b49d 100644</span>
+<span class="dl-file">--- a/test/docsManagedBlock.test.js</span>
+<span class="dl-file">+++ b/test/docsManagedBlock.test.js</span>
+<span class="dl-hunk">@@ -218,3 +218,23 @@ test(&#39;subheadings inside the section do not truncate the match&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(!migrated.includes(&#39;### Slash commands&#39;));</span>
+<span class="dl-ctx">   assert.ok(migrated.includes(&quot;## User&#39;s Own Section&quot;));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the single global copy upgrades once and carries every project along&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Since the overlay, this engine no longer chases one copy per project —</span>
+<span class="dl-add">+  // it runs against the one file in userData/frame-global/REFERENCE.md. The</span>
+<span class="dl-add">+  // property that matters there is that a second pass is a no-op, so opening</span>
+<span class="dl-add">+  // ten projects does not rewrite the shared file ten times.</span>
+<span class="dl-add">+  const doc = `# Frame — Agent Instructions\n\n---\n\n${renderBlock(&#39;## Spec-Driven Development\n\nv1 body\n&#39;, 1)}\n\n---\n\n## My team rules\n\nMine.\n`;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const upgraded = upgradeDoc(doc, { body: NEW_BODY, version: 2 });</span>
+<span class="dl-add">+  assert.ok(upgraded, &#39;a stale global copy must upgrade&#39;);</span>
+<span class="dl-add">+  assert.ok(upgraded.includes(NEW_BODY));</span>
+<span class="dl-add">+  assert.ok(upgraded.includes(&#39;## My team rules&#39;), &#39;user additions survive in the shared copy&#39;);</span>
+<span class="dl-add">+  assert.ok(!upgraded.includes(&#39;v1 body&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    upgradeDoc(upgraded, { body: NEW_BODY, version: 2 }),</span>
+<span class="dl-add">+    null,</span>
+<span class="dl-add">+    &#39;a second project opening must not rewrite the shared file&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-meta">diff --git a/test/globalLayer.test.js b/test/globalLayer.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..c74b211</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/globalLayer.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,146 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * globalLayer tests (T06): Frame&#39;s instructions exist once, outside every</span>
+<span class="dl-add">+ * project, and an upgrade never costs the user their additions.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `userData` is injected rather than read from Electron, so these run against</span>
+<span class="dl-add">+ * a temp directory with no app involved.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const globalLayer = require(&#39;../src/main/globalLayer&#39;);</span>
+<span class="dl-add">+const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-add">+const managedBlock = require(&#39;../src/shared/docsManagedBlock&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let userData;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+beforeEach(() =&gt; {</span>
+<span class="dl-add">+  userData = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-global-&#39;));</span>
+<span class="dl-add">+  globalLayer.init(userData);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+afterEach(() =&gt; {</span>
+<span class="dl-add">+  fs.rmSync(userData, { recursive: true, force: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── first render ─────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensure creates both files under userData/frame-global&#39;, () =&gt; {</span>
+<span class="dl-add">+  const result = globalLayer.ensure();</span>
+<span class="dl-add">+  assert.deepEqual(result, { agents: &#39;created&#39;, reference: &#39;created&#39; });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(globalLayer.dirPath(), path.join(userData, &#39;frame-global&#39;));</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(globalLayer.agentsPath()));</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(globalLayer.referencePath()));</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(globalLayer.dirPath()).sort(), [&#39;AGENTS.md&#39;, &#39;REFERENCE.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the global core is project-independent&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+  const agents = fs.readFileSync(globalLayer.agentsPath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(!/Project Facts/.test(agents), &#39;the global copy states facts about no project&#39;);</span>
+<span class="dl-add">+  assert.ok(!/Creation date/.test(agents), &#39;a creation stamp belongs to a per-project file&#39;);</span>
+<span class="dl-add">+  assert.ok(!/symlink/.test(agents), &#39;the overlay never plants a CLAUDE.md symlink&#39;);</span>
+<span class="dl-add">+  assert.ok(/every project/.test(agents), &#39;the copy does not say it is global&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the global core carries no spec section; REFERENCE carries the protocol&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+  const agents = fs.readFileSync(globalLayer.agentsPath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+  const reference = fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // A project with spec-driven off must find no instruction to write specs.</span>
+<span class="dl-add">+  assert.ok(!/Spec-Driven Development/.test(agents));</span>
+<span class="dl-add">+  assert.ok(/Spec-Driven Development/.test(reference));</span>
+<span class="dl-add">+  assert.ok(managedBlock.findBlock(reference), &#39;the spec protocol is not in a managed block&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensure is idempotent&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+  const before = fs.readFileSync(globalLayer.agentsPath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(globalLayer.ensure(), { agents: &#39;current&#39;, reference: &#39;current&#39; });</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(globalLayer.agentsPath(), &#39;utf8&#39;), before);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── upgrades ─────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an out-of-date managed block is upgraded in place&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const current = fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+  const stale = current.replace(</span>
+<span class="dl-add">+    new RegExp(`&lt;!--\\s*${managedBlock.BLOCK_NAME}\\s+v=\\d+\\s*--&gt;[\\s\\S]*?${managedBlock.END_MARKER.replace(/[.*+?^${}()|[\]\\]/g, &#39;\\$&amp;&#39;)}`),</span>
+<span class="dl-add">+    managedBlock.renderBlock(&#39;## Spec-Driven Development\n\nold body\n&#39;, 0)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  fs.writeFileSync(globalLayer.referencePath(), stale, &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(/old body/.test(fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;)), &#39;fixture&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(globalLayer.ensure().reference, &#39;upgraded&#39;);</span>
+<span class="dl-add">+  const after = fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(!/old body/.test(after));</span>
+<span class="dl-add">+  assert.equal(managedBlock.findBlock(after).version, templates.SPEC_SECTION_VERSION);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;an upgrade preserves the user&#39;s own additions&quot;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const current = fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+  const stale = current.replace(</span>
+<span class="dl-add">+    new RegExp(`&lt;!--\\s*${managedBlock.BLOCK_NAME}\\s+v=\\d+\\s*--&gt;[\\s\\S]*?${managedBlock.END_MARKER.replace(/[.*+?^${}()|[\]\\]/g, &#39;\\$&amp;&#39;)}`),</span>
+<span class="dl-add">+    managedBlock.renderBlock(&#39;## Spec-Driven Development\n\nold body\n&#39;, 0)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  const mine = &#39;\n\n## My team rules\n\nAlways run the linter before committing.\n&#39;;</span>
+<span class="dl-add">+  fs.writeFileSync(globalLayer.referencePath(), stale + mine, &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(globalLayer.ensure().reference, &#39;upgraded&#39;);</span>
+<span class="dl-add">+  const after = fs.readFileSync(globalLayer.referencePath(), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(after.includes(&#39;## My team rules&#39;), &#39;a user addition was flattened&#39;);</span>
+<span class="dl-add">+  assert.ok(after.includes(&#39;Always run the linter before committing.&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a file the user rewrote wholesale is never regenerated&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+  fs.writeFileSync(globalLayer.agentsPath(), &#39;# Mine now\n&#39;, &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(globalLayer.ensure().agents, &#39;current&#39;);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(globalLayer.agentsPath(), &#39;utf8&#39;), &#39;# Mine now\n&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a deleted file comes back on the next ensure&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.ensure();</span>
+<span class="dl-add">+  fs.unlinkSync(globalLayer.referencePath());</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(globalLayer.ensure().reference, &#39;created&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(globalLayer.referencePath()));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── one copy, not per project ────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;two projects share one copy — nothing is written into either tree&#39;, () =&gt; {</span>
+<span class="dl-add">+  const projectA = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-proj-a-&#39;));</span>
+<span class="dl-add">+  const projectB = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-proj-b-&#39;));</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    globalLayer.ensure();</span>
+<span class="dl-add">+    globalLayer.ensure();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    assert.deepEqual(fs.readdirSync(projectA), []);</span>
+<span class="dl-add">+    assert.deepEqual(fs.readdirSync(projectB), []);</span>
+<span class="dl-add">+    assert.equal(fs.readdirSync(globalLayer.dirPath()).length, 2);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    fs.rmSync(projectA, { recursive: true, force: true });</span>
+<span class="dl-add">+    fs.rmSync(projectB, { recursive: true, force: true });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensure without init reports the error instead of throwing&#39;, () =&gt; {</span>
+<span class="dl-add">+  globalLayer.init(null);</span>
+<span class="dl-add">+  const result = globalLayer.ensure();</span>
+<span class="dl-add">+  assert.equal(result.agents, &#39;error&#39;);</span>
+<span class="dl-add">+  assert.ok(result.error);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

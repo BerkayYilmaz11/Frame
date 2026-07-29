@@ -4340,13 +4340,13 @@
       "title": "Build `src/main/globalLayer.js` owning `userData/frame-global/{AGENTS.md,REFERENCE.md}` — AGENTS core rendered without the spec section, REFERENCE keeping the full spec protocol, upgrades via `docsManagedBlock` preserving user additions — call `ensure()` at app-ready in `src/main/index.js`, and cover it in `test/globalLayer.test.js` plus a single-copy upgrade case in `test/docsManagedBlock.test.js`.",
       "description": "",
       "source": "spec:non-invasive-overlay:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: non-invasive-overlay",
       "createdAt": "2026-07-29T10:06:01.945Z",
-      "updatedAt": "2026-07-29T10:06:01.945Z",
-      "completedAt": null
+      "updatedAt": "2026-07-29T11:43:46.644Z",
+      "completedAt": "2026-07-29T11:43:46.644Z"
     },
     {
       "id": "task-spec-non-invasive-overlay-T07",
