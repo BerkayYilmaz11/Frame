@@ -5510,6 +5510,7 @@
         "welcomeOverlay",
         "appLoader",
         "settingsModal",
+        "projectSettingsModal",
         "telemetryNotice",
         "healthNotice",
         "specDrivenHint",
@@ -5519,34 +5520,34 @@
       ],
       "functions": {
         "init": {
-          "line": 50,
+          "line": 51,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 247,
+          "line": 249,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 312,
+          "line": 314,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 401,
+          "line": 403,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 432,
+          "line": 434,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 458,
+          "line": 460,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 730,
+          "line": 732,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -6560,6 +6561,7 @@
         "init",
         "loadProjects",
         "renderProjects",
+        "confirmRemoveProject",
         "selectProject",
         "setActiveProject",
         "getActiveProject",
@@ -6576,6 +6578,7 @@
         "electron",
         "shared/ipcChannels",
         "lucide",
+        "projectSettingsModal",
         "terminal"
       ],
       "functions": {
@@ -6629,7 +6632,7 @@
           "purpose": "Create a project item element"
         },
         "renderItemStatus": {
-          "line": 205,
+          "line": 207,
           "params": [
             "container",
             "counts"
@@ -6637,29 +6640,29 @@
           "purpose": "Render the agent status badges for one project into its status container."
         },
         "applyAgentStatuses": {
-          "line": 226,
+          "line": 228,
           "params": [
             "map"
           ],
           "purpose": "Apply per-project agent status counts (from projectStatusBadges) to the"
         },
         "attachDragHandlers": {
-          "line": 240,
+          "line": 242,
           "params": [
             "item"
           ],
           "purpose": "Wire HTML5 drag-and-drop reordering onto a project item. Dragging an item"
         },
         "persistOrder": {
-          "line": 271,
+          "line": 273,
           "purpose": "Read the current DOM order, sync the in-memory list, and persist it."
         },
         "scrollActiveIntoView": {
-          "line": 292,
+          "line": 294,
           "purpose": "Scroll the active project item into view within the (max-3-row) list."
         },
         "confirmRemoveProject": {
-          "line": 303,
+          "line": 305,
           "params": [
             "projectPath",
             "projectName"
@@ -6667,25 +6670,25 @@
           "purpose": "Show confirmation dialog and remove project"
         },
         "selectProject": {
-          "line": 329,
+          "line": 331,
           "params": [
             "projectPath"
           ],
           "purpose": "Select a project"
         },
         "setActiveProject": {
-          "line": 340,
+          "line": 342,
           "params": [
             "projectPath"
           ],
           "purpose": "Set active project (visual only)"
         },
         "getActiveProject": {
-          "line": 361,
+          "line": 363,
           "purpose": "Get active project path"
         },
         "addProject": {
-          "line": 368,
+          "line": 370,
           "params": [
             "projectPath",
             "projectName",
@@ -6694,41 +6697,41 @@
           "purpose": "Add project to workspace"
         },
         "removeProject": {
-          "line": 379,
+          "line": 381,
           "params": [
             "projectPath"
           ],
           "purpose": "Remove project from workspace"
         },
         "setupIPC": {
-          "line": 395,
+          "line": 397,
           "purpose": "Setup IPC listeners"
         },
         "selectNextProject": {
-          "line": 408,
+          "line": 410,
           "purpose": "Select next project in list"
         },
         "selectPrevProject": {
-          "line": 419,
+          "line": 421,
           "purpose": "Select previous project in list"
         },
         "focus": {
-          "line": 430,
+          "line": 432,
           "purpose": "Focus project list for keyboard navigation"
         },
         "handleKeydown": {
-          "line": 453,
+          "line": 455,
           "params": [
             "e"
           ],
           "purpose": "Handle keyboard navigation in project list"
         },
         "blur": {
-          "line": 488,
+          "line": 490,
           "purpose": "Blur/unfocus project list"
         },
         "getProjects": {
-          "line": 497,
+          "line": 499,
           "purpose": "Snapshot of the workspace projects (used by the current-project dropdown in"
         }
       },
@@ -6763,6 +6766,46 @@
         },
         "init": {
           "line": 23
+        }
+      }
+    },
+    "renderer/projectSettingsModal": {
+      "file": "src/renderer/projectSettingsModal.js",
+      "description": "Project Settings Modal",
+      "exports": [
+        "init",
+        "open",
+        "close"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "projectListUI"
+      ],
+      "functions": {
+        "init": {
+          "line": 35
+        },
+        "onSharingToggle": {
+          "line": 99,
+          "purpose": "Toggle change → SET_GIT_SHARING, the single write path shared with the"
+        },
+        "renderSharingState": {
+          "line": 125,
+          "params": [
+            "state"
+          ],
+          "purpose": "Render the Sharing section from the behaviour matrix. `effective` carries"
+        },
+        "open": {
+          "line": 154,
+          "params": [
+            "project"
+          ],
+          "purpose": "Open for a project row: { path, name, isFrameProject }. Non-Frame projects"
+        },
+        "close": {
+          "line": 189
         }
       }
     },
@@ -10723,6 +10766,11 @@
         "module": "renderer/openProjectModal",
         "file": "src/renderer/openProjectModal.js",
         "description": "Open Project Modal"
+      },
+      {
+        "module": "renderer/projectSettingsModal",
+        "file": "src/renderer/projectSettingsModal.js",
+        "description": "Project Settings Modal"
       }
     ],
     "orchestration": [
@@ -10818,6 +10866,11 @@
         "module": "renderer/projectSection",
         "file": "src/renderer/projectSection.js",
         "description": "Projects Section"
+      },
+      {
+        "module": "renderer/projectSettingsModal",
+        "file": "src/renderer/projectSettingsModal.js",
+        "description": "Project Settings Modal"
       },
       {
         "module": "renderer/projectStatusBadges",

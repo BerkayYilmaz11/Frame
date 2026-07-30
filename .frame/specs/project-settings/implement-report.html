@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">6 of 9 tasks done · next: <span class="rs-task">T07 — Build the Project Settings modal: markup in index.html…</span></span>
+  <span class="rs-count">7 of 9 tasks done · next: <span class="rs-task">T08 — Delete the Workflow section from App Settings (index.html and…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1488,6 +1488,471 @@
 <span class="dl-ctx"> .init-modal-warning {</span>
 <span class="dl-ctx">   background: rgba(200, 160, 60, 0.1);</span>
 <span class="dl-ctx">   border: 1px solid rgba(200, 160, 60, 0.3);</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Project Settings modal + the row gear</h2>
+    <span class="card-meta"><span class="chip">6181314</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">358 tests, 0 failures (renderer is uncovered by design — see plan test posture)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New projectSettingsModal.js + markup in index.html + project-settings-modal.css (imported from main.css): header, Sharing section rendering the full state matrix (disabled non-repo state, S4 warning with copyable git rm -r --cached .frame), Remove via the newly exported projectListUI.confirmRemoveProject. The row × became a lucide Settings gear on every row; non-Frame projects get header + Remove only. Wired in index.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>Project-scoped affordances had nowhere to live — the row&#39;s only action was a nervous one-click ×. The gear and modal require each other lazily to avoid a require cycle; a hidden Workflow placeholder and the .hint-anchored rule land ready for T08&#39;s toggle relocation and hint re-anchoring.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/index.html b/index.html</span>
+<span class="dl-meta">index 27e0657..af810f8 100644</span>
+<span class="dl-file">--- a/index.html</span>
+<span class="dl-file">+++ b/index.html</span>
+<span class="dl-hunk">@@ -1289,6 +1289,54 @@</span>
+<span class="dl-ctx">     &lt;button class=&quot;context-menu-item&quot; data-action=&quot;copy-path&quot; type=&quot;button&quot;&gt;Copy Filepath&lt;/button&gt;</span>
+<span class="dl-ctx">   &lt;/div&gt;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  &lt;!-- Project Settings Modal (opened from the project row&#39;s gear) --&gt;</span>
+<span class="dl-add">+  &lt;div id=&quot;project-settings-overlay&quot; class=&quot;settings-overlay&quot;&gt;</span>
+<span class="dl-add">+    &lt;div class=&quot;settings-modal&quot; role=&quot;dialog&quot; aria-label=&quot;Project Settings&quot;&gt;</span>
+<span class="dl-add">+      &lt;div class=&quot;settings-header&quot;&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;project-settings-heading&quot;&gt;</span>
+<span class="dl-add">+          &lt;h3 class=&quot;settings-title&quot; id=&quot;project-settings-name&quot;&gt;Project Settings&lt;/h3&gt;</span>
+<span class="dl-add">+          &lt;p class=&quot;project-settings-path&quot; id=&quot;project-settings-path&quot;&gt;&lt;/p&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+        &lt;button type=&quot;button&quot; class=&quot;settings-close&quot; data-project-settings-close aria-label=&quot;Close&quot;&gt;&amp;#x2715;&lt;/button&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;div class=&quot;settings-body&quot;&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;settings-section&quot; id=&quot;project-settings-workflow-section&quot; style=&quot;display:none;&quot;&gt;</span>
+<span class="dl-add">+          &lt;h4 class=&quot;settings-section-title&quot;&gt;Workflow&lt;/h4&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+        &lt;div class=&quot;settings-section&quot; id=&quot;project-settings-sharing-section&quot;&gt;</span>
+<span class="dl-add">+          &lt;h4 class=&quot;settings-section-title&quot;&gt;Sharing&lt;/h4&gt;</span>
+<span class="dl-add">+          &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-add">+            &lt;div class=&quot;settings-row-text&quot;&gt;</span>
+<span class="dl-add">+              &lt;label class=&quot;settings-row-label&quot; for=&quot;project-settings-sharing-toggle&quot;&gt;Shared in the repository&lt;/label&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot; id=&quot;project-settings-sharing-desc&quot;&gt;&lt;/p&gt;</span>
+<span class="dl-add">+              &lt;div id=&quot;project-settings-sharing-warning&quot; class=&quot;project-settings-warning&quot; style=&quot;display:none;&quot;&gt;</span>
+<span class="dl-add">+                &lt;p&gt;&lt;code&gt;.frame/&lt;/code&gt; is committed to this repository, so it&#39;s shared with everyone</span>
+<span class="dl-add">+                who clones it &amp;mdash; this setting can&#39;t hide it. To make it local again, run</span>
+<span class="dl-add">+                &lt;code&gt;git rm -r --cached .frame&lt;/code&gt; and commit that.&lt;/p&gt;</span>
+<span class="dl-add">+                &lt;button type=&quot;button&quot; id=&quot;project-settings-copy-untrack&quot; class=&quot;project-settings-copy-btn&quot;&gt;Copy command&lt;/button&gt;</span>
+<span class="dl-add">+              &lt;/div&gt;</span>
+<span class="dl-add">+            &lt;/div&gt;</span>
+<span class="dl-add">+            &lt;label class=&quot;settings-switch&quot;&gt;</span>
+<span class="dl-add">+              &lt;input type=&quot;checkbox&quot; id=&quot;project-settings-sharing-toggle&quot; /&gt;</span>
+<span class="dl-add">+              &lt;span class=&quot;settings-switch-slider&quot;&gt;&lt;/span&gt;</span>
+<span class="dl-add">+            &lt;/label&gt;</span>
+<span class="dl-add">+          &lt;/div&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+        &lt;div class=&quot;settings-section&quot;&gt;</span>
+<span class="dl-add">+          &lt;h4 class=&quot;settings-section-title&quot;&gt;Remove from Frame&lt;/h4&gt;</span>
+<span class="dl-add">+          &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-add">+            &lt;div class=&quot;settings-row-text&quot;&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot;&gt;Removes this project from Frame&#39;s list. Nothing on disk is deleted.&lt;/p&gt;</span>
+<span class="dl-add">+            &lt;/div&gt;</span>
+<span class="dl-add">+            &lt;button type=&quot;button&quot; id=&quot;project-settings-remove-btn&quot; class=&quot;project-settings-remove-btn&quot;&gt;Remove&amp;hellip;&lt;/button&gt;</span>
+<span class="dl-add">+          &lt;/div&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+    &lt;/div&gt;</span>
+<span class="dl-add">+  &lt;/div&gt;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   &lt;!-- Settings Modal --&gt;</span>
+<span class="dl-ctx">   &lt;div id=&quot;settings-overlay&quot; class=&quot;settings-overlay&quot;&gt;</span>
+<span class="dl-ctx">     &lt;div class=&quot;settings-modal&quot; role=&quot;dialog&quot; aria-label=&quot;Settings&quot;&gt;</span>
+<span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index e99b9e5..8f4dce0 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -39,6 +39,7 @@ const cheatSheet = require(&#39;./cheatSheet&#39;);</span>
+<span class="dl-ctx"> const welcomeOverlay = require(&#39;./welcomeOverlay&#39;);</span>
+<span class="dl-ctx"> const appLoader = require(&#39;./appLoader&#39;);</span>
+<span class="dl-ctx"> const settingsModal = require(&#39;./settingsModal&#39;);</span>
+<span class="dl-add">+const projectSettingsModal = require(&#39;./projectSettingsModal&#39;);</span>
+<span class="dl-ctx"> const telemetryNotice = require(&#39;./telemetryNotice&#39;);</span>
+<span class="dl-ctx"> const healthNotice = require(&#39;./healthNotice&#39;);</span>
+<span class="dl-ctx"> const specDrivenHint = require(&#39;./specDrivenHint&#39;);</span>
+<span class="dl-hunk">@@ -227,6 +228,7 @@ function init() {</span>
+<span class="dl-ctx">   cheatSheet.init();</span>
+<span class="dl-ctx">   welcomeOverlay.init();</span>
+<span class="dl-ctx">   settingsModal.init();</span>
+<span class="dl-add">+  projectSettingsModal.init();</span>
+<span class="dl-ctx">   telemetryNotice.init(() =&gt; settingsModal.open());</span>
+<span class="dl-ctx">   healthNotice.init();</span>
+<span class="dl-ctx">   sampleBanner.init();</span>
+<span class="dl-meta">diff --git a/src/renderer/projectListUI.js b/src/renderer/projectListUI.js</span>
+<span class="dl-meta">index d3af47a..048e137 100644</span>
+<span class="dl-file">--- a/src/renderer/projectListUI.js</span>
+<span class="dl-file">+++ b/src/renderer/projectListUI.js</span>
+<span class="dl-hunk">@@ -5,7 +5,7 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-del">-const { Bot } = require(&#39;lucide&#39;);</span>
+<span class="dl-add">+const { Bot, Settings } = require(&#39;lucide&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let projectsListElement = null;</span>
+<span class="dl-ctx"> let activeProjectPath = null;</span>
+<span class="dl-hunk">@@ -179,16 +179,18 @@ function createProjectItem(project, index) {</span>
+<span class="dl-ctx">   renderItemStatus(status, agentStatusMap.get(project.path));</span>
+<span class="dl-ctx">   item.appendChild(status);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Remove button (visible on hover)</span>
+<span class="dl-del">-  const removeBtn = document.createElement(&#39;button&#39;);</span>
+<span class="dl-del">-  removeBtn.className = &#39;project-remove-btn&#39;;</span>
+<span class="dl-del">-  removeBtn.title = &#39;Remove from list&#39;;</span>
+<span class="dl-del">-  removeBtn.innerHTML = &#39;&amp;times;&#39;;</span>
+<span class="dl-del">-  removeBtn.addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-add">+  // Gear button (visible on hover) — opens Project Settings, where Remove</span>
+<span class="dl-add">+  // now lives behind its confirmation. One affordance per row, on every row.</span>
+<span class="dl-add">+  const gearBtn = document.createElement(&#39;button&#39;);</span>
+<span class="dl-add">+  gearBtn.className = &#39;project-gear-btn&#39;;</span>
+<span class="dl-add">+  gearBtn.title = &#39;Project Settings&#39;;</span>
+<span class="dl-add">+  gearBtn.innerHTML = lucideIcon(Settings, 13);</span>
+<span class="dl-add">+  gearBtn.addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-ctx">     e.stopPropagation(); // Prevent project selection</span>
+<span class="dl-del">-    confirmRemoveProject(project.path, project.name);</span>
+<span class="dl-add">+    // Lazy require: the modal requires this module back for confirmRemoveProject.</span>
+<span class="dl-add">+    require(&#39;./projectSettingsModal&#39;).open(project);</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-del">-  item.appendChild(removeBtn);</span>
+<span class="dl-add">+  item.appendChild(gearBtn);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Click handler</span>
+<span class="dl-ctx">   item.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-hunk">@@ -502,6 +504,7 @@ module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   loadProjects,</span>
+<span class="dl-ctx">   renderProjects,</span>
+<span class="dl-add">+  confirmRemoveProject,</span>
+<span class="dl-ctx">   selectProject,</span>
+<span class="dl-ctx">   setActiveProject,</span>
+<span class="dl-ctx">   getActiveProject,</span>
+<span class="dl-meta">diff --git a/src/renderer/projectSettingsModal.js b/src/renderer/projectSettingsModal.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..82d3063</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/projectSettingsModal.js</span>
+<span class="dl-hunk">@@ -0,0 +1,197 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Project Settings Modal</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Everything project-scoped lives here, opened from the project row&#39;s gear:</span>
+<span class="dl-add">+ * the Sharing section (Git Sharing per the behaviour matrix), the Workflow</span>
+<span class="dl-add">+ * section (Spec-Driven Development — populated when the toggle relocates</span>
+<span class="dl-add">+ * from App Settings), and &quot;Remove from Frame&quot;. App Settings keeps only the</span>
+<span class="dl-add">+ * genuinely app-wide switches.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * For a project that isn&#39;t a Frame project the modal shows only the header</span>
+<span class="dl-add">+ * and Remove — there is no config to hold a per-project setting yet.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-add">+const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const UNTRACK_COMMAND = &#39;git rm -r --cached .frame&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let overlayEl = null;</span>
+<span class="dl-add">+let nameEl = null;</span>
+<span class="dl-add">+let pathEl = null;</span>
+<span class="dl-add">+let workflowSectionEl = null;</span>
+<span class="dl-add">+let sharingSectionEl = null;</span>
+<span class="dl-add">+let sharingToggleEl = null;</span>
+<span class="dl-add">+let sharingDescEl = null;</span>
+<span class="dl-add">+let sharingWarningEl = null;</span>
+<span class="dl-add">+let copyBtnEl = null;</span>
+<span class="dl-add">+let removeBtnEl = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let isOpen = false;</span>
+<span class="dl-add">+// The project the modal is showing: { path, name, isFrameProject }. The gear</span>
+<span class="dl-add">+// exists on every row, so this is not necessarily the active project.</span>
+<span class="dl-add">+let currentProject = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function init() {</span>
+<span class="dl-add">+  overlayEl = document.getElementById(&#39;project-settings-overlay&#39;);</span>
+<span class="dl-add">+  nameEl = document.getElementById(&#39;project-settings-name&#39;);</span>
+<span class="dl-add">+  pathEl = document.getElementById(&#39;project-settings-path&#39;);</span>
+<span class="dl-add">+  workflowSectionEl = document.getElementById(&#39;project-settings-workflow-section&#39;);</span>
+<span class="dl-add">+  sharingSectionEl = document.getElementById(&#39;project-settings-sharing-section&#39;);</span>
+<span class="dl-add">+  sharingToggleEl = document.getElementById(&#39;project-settings-sharing-toggle&#39;);</span>
+<span class="dl-add">+  sharingDescEl = document.getElementById(&#39;project-settings-sharing-desc&#39;);</span>
+<span class="dl-add">+  sharingWarningEl = document.getElementById(&#39;project-settings-sharing-warning&#39;);</span>
+<span class="dl-add">+  copyBtnEl = document.getElementById(&#39;project-settings-copy-untrack&#39;);</span>
+<span class="dl-add">+  removeBtnEl = document.getElementById(&#39;project-settings-remove-btn&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!overlayEl || !sharingToggleEl) {</span>
+<span class="dl-add">+    console.error(&#39;Project Settings modal: required elements not found&#39;);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  sharingToggleEl.addEventListener(&#39;change&#39;, onSharingToggle);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (copyBtnEl) {</span>
+<span class="dl-add">+    copyBtnEl.addEventListener(&#39;click&#39;, async () =&gt; {</span>
+<span class="dl-add">+      try {</span>
+<span class="dl-add">+        await navigator.clipboard.writeText(UNTRACK_COMMAND);</span>
+<span class="dl-add">+        copyBtnEl.textContent = &#39;Copied&#39;;</span>
+<span class="dl-add">+        setTimeout(() =&gt; { copyBtnEl.textContent = &#39;Copy command&#39;; }, 1500);</span>
+<span class="dl-add">+      } catch (_) {</span>
+<span class="dl-add">+        copyBtnEl.textContent = UNTRACK_COMMAND;</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (removeBtnEl) {</span>
+<span class="dl-add">+    removeBtnEl.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+      const project = currentProject;</span>
+<span class="dl-add">+      close();</span>
+<span class="dl-add">+      if (project) {</span>
+<span class="dl-add">+        // Lazy require: projectListUI&#39;s gear opens this modal, so a</span>
+<span class="dl-add">+        // top-level require in both directions would cycle.</span>
+<span class="dl-add">+        require(&#39;./projectListUI&#39;).confirmRemoveProject(project.path, project.name);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  overlayEl.addEventListener(&#39;mousedown&#39;, (e) =&gt; {</span>
+<span class="dl-add">+    if (e.target === overlayEl) close();</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  document.querySelectorAll(&#39;[data-project-settings-close]&#39;).forEach((btn) =&gt; {</span>
+<span class="dl-add">+    btn.addEventListener(&#39;click&#39;, () =&gt; close());</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  document.addEventListener(&#39;keydown&#39;, (e) =&gt; {</span>
+<span class="dl-add">+    if (isOpen &amp;&amp; e.key === &#39;Escape&#39;) {</span>
+<span class="dl-add">+      e.preventDefault();</span>
+<span class="dl-add">+      close();</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Toggle change → SET_GIT_SHARING, the single write path shared with the</span>
+<span class="dl-add">+ * sharing hint. Snapped back on failure so the switch never lies about the</span>
+<span class="dl-add">+ * on-disk state (the settingsModal spec-driven precedent).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function onSharingToggle() {</span>
+<span class="dl-add">+  if (!currentProject) return;</span>
+<span class="dl-add">+  const mode = sharingToggleEl.checked ? &#39;repo&#39; : &#39;local&#39;;</span>
+<span class="dl-add">+  sharingToggleEl.disabled = true;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const result = await ipcRenderer.invoke(IPC.SET_GIT_SHARING, {</span>
+<span class="dl-add">+      projectPath: currentProject.path,</span>
+<span class="dl-add">+      mode</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    if (result &amp;&amp; result.success &amp;&amp; result.state) {</span>
+<span class="dl-add">+      renderSharingState(result.state);</span>
+<span class="dl-add">+    } else {</span>
+<span class="dl-add">+      sharingToggleEl.checked = mode !== &#39;repo&#39;;</span>
+<span class="dl-add">+      sharingToggleEl.disabled = false;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    sharingToggleEl.checked = mode !== &#39;repo&#39;;</span>
+<span class="dl-add">+    sharingToggleEl.disabled = false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Render the Sharing section from the behaviour matrix. `effective` carries</span>
+<span class="dl-add">+ * D3 (tracked → repo whatever was declared); the S4 warning shows exactly</span>
+<span class="dl-add">+ * when a `local` declaration cannot be honoured because `.frame/` is tracked.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function renderSharingState(state) {</span>
+<span class="dl-add">+  if (!state || !state.isRepo) {</span>
+<span class="dl-add">+    sharingToggleEl.checked = false;</span>
+<span class="dl-add">+    sharingToggleEl.disabled = true;</span>
+<span class="dl-add">+    sharingDescEl.textContent = &#39;Not a git repository — there is nothing to share or hide.&#39;;</span>
+<span class="dl-add">+    sharingWarningEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const conflicted = state.declared === &#39;local&#39; &amp;&amp; state.tracked;</span>
+<span class="dl-add">+  sharingToggleEl.checked = state.effective === &#39;repo&#39;;</span>
+<span class="dl-add">+  sharingToggleEl.disabled = false;</span>
+<span class="dl-add">+  sharingWarningEl.style.display = conflicted ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (conflicted) {</span>
+<span class="dl-add">+    sharingDescEl.textContent = &#39;&#39;;</span>
+<span class="dl-add">+  } else if (state.effective === &#39;repo&#39;) {</span>
+<span class="dl-add">+    sharingDescEl.textContent = state.tracked</span>
+<span class="dl-add">+      ? &#39;Frame’s context is shared with everyone who clones this repository. Machine-local files stay out.&#39;</span>
+<span class="dl-add">+      : &#39;.frame/ now appears in git status — commit it to share it. Machine-local files stay out.&#39;;</span>
+<span class="dl-add">+  } else {</span>
+<span class="dl-add">+    sharingDescEl.textContent = &#39;.frame/ is hidden from git on this machine.&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Open for a project row: { path, name, isFrameProject }. Non-Frame projects</span>
+<span class="dl-add">+ * get header + Remove only.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function open(project) {</span>
+<span class="dl-add">+  if (!project || !project.path) return;</span>
+<span class="dl-add">+  currentProject = project;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (nameEl) nameEl.textContent = project.name || project.path.split(&#39;/&#39;).pop();</span>
+<span class="dl-add">+  if (pathEl) pathEl.textContent = project.path;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const isFrame = project.isFrameProject === true;</span>
+<span class="dl-add">+  if (workflowSectionEl) {</span>
+<span class="dl-add">+    // The Workflow section only renders content once the spec-driven toggle</span>
+<span class="dl-add">+    // lives here; kept hidden for non-Frame projects either way.</span>
+<span class="dl-add">+    workflowSectionEl.style.display = isFrame &amp;&amp; workflowSectionEl.dataset.populated === &#39;true&#39; ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  if (sharingSectionEl) sharingSectionEl.style.display = isFrame ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (isFrame) {</span>
+<span class="dl-add">+    sharingToggleEl.disabled = true;</span>
+<span class="dl-add">+    sharingDescEl.textContent = &#39;&#39;;</span>
+<span class="dl-add">+    sharingWarningEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+    ipcRenderer</span>
+<span class="dl-add">+      .invoke(IPC.GET_GIT_SHARING_STATE, project.path)</span>
+<span class="dl-add">+      .then((state) =&gt; {</span>
+<span class="dl-add">+        if (isOpen &amp;&amp; currentProject &amp;&amp; currentProject.path === project.path) {</span>
+<span class="dl-add">+          renderSharingState(state);</span>
+<span class="dl-add">+        }</span>
+<span class="dl-add">+      })</span>
+<span class="dl-add">+      .catch(() =&gt; {</span>
+<span class="dl-add">+        sharingDescEl.textContent = &#39;Could not read this project’s sharing state.&#39;;</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  isOpen = true;</span>
+<span class="dl-add">+  overlayEl.classList.add(&#39;visible&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function close() {</span>
+<span class="dl-add">+  if (!isOpen) return;</span>
+<span class="dl-add">+  isOpen = false;</span>
+<span class="dl-add">+  currentProject = null;</span>
+<span class="dl-add">+  overlayEl.classList.remove(&#39;visible&#39;);</span>
+<span class="dl-add">+  if (typeof window.terminalFocus === &#39;function&#39;) window.terminalFocus();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { init, open, close };</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/project-settings-modal.css b/src/renderer/styles/components/project-settings-modal.css</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..28a380f</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/project-settings-modal.css</span>
+<span class="dl-hunk">@@ -0,0 +1,101 @@</span>
+<span class="dl-add">+/*</span>
+<span class="dl-add">+ * Project Settings modal — follows settings-modal.css vocabulary (the modal</span>
+<span class="dl-add">+ * reuses .settings-modal/.settings-section/.settings-row wholesale); only the</span>
+<span class="dl-add">+ * project-specific pieces live here, plus the row gear that opens it.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-heading {</span>
+<span class="dl-add">+  min-width: 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-path {</span>
+<span class="dl-add">+  margin: 2px 0 0;</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  font-family: var(--font-mono);</span>
+<span class="dl-add">+  color: var(--text-muted);</span>
+<span class="dl-add">+  overflow: hidden;</span>
+<span class="dl-add">+  text-overflow: ellipsis;</span>
+<span class="dl-add">+  white-space: nowrap;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/* S4 — declared local while .frame/ is tracked: the one conflicted state. */</span>
+<span class="dl-add">+.project-settings-warning {</span>
+<span class="dl-add">+  margin-top: var(--space-sm);</span>
+<span class="dl-add">+  background: rgba(200, 160, 60, 0.1);</span>
+<span class="dl-add">+  border: 1px solid rgba(200, 160, 60, 0.3);</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  padding: var(--space-md);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-warning p {</span>
+<span class="dl-add">+  margin: 0 0 var(--space-sm) 0;</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  line-height: 1.6;</span>
+<span class="dl-add">+  color: #c8a03c;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-warning code {</span>
+<span class="dl-add">+  font-family: var(--font-mono);</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-copy-btn {</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.25));</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  font-family: var(--font-mono);</span>
+<span class="dl-add">+  padding: 4px 10px;</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-copy-btn:hover {</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-remove-btn {</span>
+<span class="dl-add">+  background: transparent;</span>
+<span class="dl-add">+  border: 1px solid var(--error);</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  color: var(--error);</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  padding: 6px 14px;</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  flex-shrink: 0;</span>
+<span class="dl-add">+  transition: all var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-settings-remove-btn:hover {</span>
+<span class="dl-add">+  background: var(--error);</span>
+<span class="dl-add">+  color: white;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/* The row gear (replaces the old hover ×) — same hover-reveal discipline as</span>
+<span class="dl-add">+   the .project-remove-btn it succeeds. `.hint-anchored` forces it visible</span>
+<span class="dl-add">+   while a hint popover points at it: a popover cannot anchor to nothing. */</span>
+<span class="dl-add">+.project-item .project-gear-btn {</span>
+<span class="dl-add">+  opacity: 0;</span>
+<span class="dl-add">+  visibility: hidden;</span>
+<span class="dl-add">+  background: transparent;</span>
+<span class="dl-add">+  border: none;</span>
+<span class="dl-add">+  color: var(--text-muted);</span>
+<span class="dl-add">+  line-height: 1;</span>
+<span class="dl-add">+  padding: 3px 5px;</span>
+<span class="dl-add">+  margin-left: var(--space-xs);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  transition: all var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-item:hover .project-gear-btn,</span>
+<span class="dl-add">+.project-item .project-gear-btn.hint-anchored {</span>
+<span class="dl-add">+  opacity: 1;</span>
+<span class="dl-add">+  visibility: visible;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.project-item .project-gear-btn:hover {</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/main.css b/src/renderer/styles/main.css</span>
+<span class="dl-meta">index 39a666a..f26861c 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/main.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/main.css</span>
+<span class="dl-hunk">@@ -50,6 +50,8 @@</span>
+<span class="dl-ctx"> /* 12c. Spec-Driven Development hint (popover on the Settings rail button) */</span>
+<span class="dl-ctx"> @import &#39;components/spec-driven-hint.css&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+@import &#39;components/project-settings-modal.css&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /* 13. Tasks Dashboard (Kanban-style overlay) */</span>
+<span class="dl-ctx"> @import &#39;components/tasks-dashboard.css&#39;;</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>

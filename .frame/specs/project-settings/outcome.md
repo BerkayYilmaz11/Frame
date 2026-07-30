@@ -47,3 +47,11 @@ Added the options block below the init modal's no-write note in index.html: Spec
 _Captured: 2026-07-30 · 3 file change(s)_
 
 ---
+
+## T07 — Project Settings modal + the row gear
+
+Built the modal (markup in index.html reusing the settings-modal class vocabulary, logic in new projectSettingsModal.js, styles in new project-settings-modal.css imported from main.css): header with name/path, Sharing section rendering the full state matrix from GET_GIT_SHARING_STATE (toggle disabled with "Not a git repository" outside a repo; S4 warning with a copyable `git rm -r --cached .frame` when local is declared but `.frame/` is tracked; snap-back on failed writes through SET_GIT_SHARING), and Remove reusing the newly exported `projectListUI.confirmRemoveProject`. The row `×` became a lucide Settings gear on every row (non-Frame projects get header + Remove only); a hidden Workflow section placeholder awaits T08. Gear/modal require each other lazily to avoid a module cycle; `.hint-anchored` (forces the hover-revealed gear visible) ships in the CSS for T08's re-anchoring.
+
+_Captured: 2026-07-30 · 6 file change(s)_
+
+---

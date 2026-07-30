@@ -1289,6 +1289,54 @@
     <button class="context-menu-item" data-action="copy-path" type="button">Copy Filepath</button>
   </div>
 
+  <!-- Project Settings Modal (opened from the project row's gear) -->
+  <div id="project-settings-overlay" class="settings-overlay">
+    <div class="settings-modal" role="dialog" aria-label="Project Settings">
+      <div class="settings-header">
+        <div class="project-settings-heading">
+          <h3 class="settings-title" id="project-settings-name">Project Settings</h3>
+          <p class="project-settings-path" id="project-settings-path"></p>
+        </div>
+        <button type="button" class="settings-close" data-project-settings-close aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section" id="project-settings-workflow-section" style="display:none;">
+          <h4 class="settings-section-title">Workflow</h4>
+        </div>
+
+        <div class="settings-section" id="project-settings-sharing-section">
+          <h4 class="settings-section-title">Sharing</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="project-settings-sharing-toggle">Shared in the repository</label>
+              <p class="settings-row-desc" id="project-settings-sharing-desc"></p>
+              <div id="project-settings-sharing-warning" class="project-settings-warning" style="display:none;">
+                <p><code>.frame/</code> is committed to this repository, so it's shared with everyone
+                who clones it &mdash; this setting can't hide it. To make it local again, run
+                <code>git rm -r --cached .frame</code> and commit that.</p>
+                <button type="button" id="project-settings-copy-untrack" class="project-settings-copy-btn">Copy command</button>
+              </div>
+            </div>
+            <label class="settings-switch">
+              <input type="checkbox" id="project-settings-sharing-toggle" />
+              <span class="settings-switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4 class="settings-section-title">Remove from Frame</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <p class="settings-row-desc">Removes this project from Frame's list. Nothing on disk is deleted.</p>
+            </div>
+            <button type="button" id="project-settings-remove-btn" class="project-settings-remove-btn">Remove&hellip;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Modal -->
   <div id="settings-overlay" class="settings-overlay">
     <div class="settings-modal" role="dialog" aria-label="Settings">

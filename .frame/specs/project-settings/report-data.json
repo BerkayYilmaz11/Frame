@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Project Settings modal + the row gear",
+      "commit": "6181314",
+      "whatChanged": "New projectSettingsModal.js + markup in index.html + project-settings-modal.css (imported from main.css): header, Sharing section rendering the full state matrix (disabled non-repo state, S4 warning with copyable git rm -r --cached .frame), Remove via the newly exported projectListUI.confirmRemoveProject. The row × became a lucide Settings gear on every row; non-Frame projects get header + Remove only. Wired in index.js.",
+      "whyChanged": "Project-scoped affordances had nowhere to live — the row's only action was a nervous one-click ×. The gear and modal require each other lazily to avoid a require cycle; a hidden Workflow placeholder and the .hint-anchored rule land ready for T08's toggle relocation and hint re-anchoring.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
+      }
     }
   ]
 }

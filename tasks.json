@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:51:26.480Z",
+  "lastUpdated": "2026-07-30T13:54:40.377Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4522,13 +4522,13 @@
       "title": "Build the Project Settings modal: markup in index.html, src/renderer/projectSettingsModal.js, src/renderer/styles/components/project-settings-modal.css with its main.css import; replace the row × with a gear on every row in src/renderer/projectListUI.js (export `confirmRemoveProject`) opening the modal; render header + Remove only for non-Frame projects, and the Sharing section from the full state matrix including the disabled non-repo state and the S4 warning with a copyable `git rm -r --cached .frame` command; wire init in src/renderer/index.js.",
       "description": "",
       "source": "spec:project-settings:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:33:43.582Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:54:40.377Z",
+      "completedAt": "2026-07-30T13:54:40.377Z"
     },
     {
       "id": "task-spec-project-settings-T08",
