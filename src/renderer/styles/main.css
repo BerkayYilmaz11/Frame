@@ -52,6 +52,8 @@
 
 @import 'components/project-settings-modal.css';
 
+@import 'components/sharing-hint.css';
+
 /* 13. Tasks Dashboard (Kanban-style overlay) */
 @import 'components/tasks-dashboard.css';
 

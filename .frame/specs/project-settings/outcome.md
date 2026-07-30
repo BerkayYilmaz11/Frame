@@ -63,3 +63,11 @@ Deleted the Workflow section from App Settings (index.html) and all its wiring f
 _Captured: 2026-07-30 · 4 file change(s)_
 
 ---
+
+## T09 — Sharing hint
+
+Built sharingHint.js on the specDrivenHint pattern (plus sharing-hint.css mirroring spec-driven-hint.css, main.css import, index.js init): evaluated on project change, showing only when GET_GIT_SHARING_STATE reports effective `local` in a repo AND GET_SHARING_REPO_SIGNAL reports a remote plus >1 distinct author, with the cheap state gate checked before the git-log-class signal reads. "Share in the repository" writes through SET_GIT_SHARING — the same path as the modal toggle — and dismissal persists in user settings under `sharingHintDismissed` keyed by project path. Beyond plan: the hint yields when the spec-driven hint is already showing on the same gear, since two popovers on one anchor is noise.
+
+_Captured: 2026-07-30 · 4 file change(s)_
+
+---

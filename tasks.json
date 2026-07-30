@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:57:50.057Z",
+  "lastUpdated": "2026-07-30T14:00:20.690Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4548,13 +4548,13 @@
       "title": "Build the sharing hint: src/renderer/sharingHint.js and src/renderer/styles/components/sharing-hint.css with its main.css import and index.js init, evaluated on project change via GET_GIT_SHARING_STATE + GET_SHARING_REPO_SIGNAL (show only when remote exists, >1 author, effective local, not dismissed), dismissal persisted in user settings keyed by project path, and \"Share in the repository\" writing through SET_GIT_SHARING.",
       "description": "",
       "source": "spec:project-settings:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:33:43.582Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T14:00:20.690Z",
+      "completedAt": "2026-07-30T14:00:20.690Z"
     }
   ],
   "metadata": {

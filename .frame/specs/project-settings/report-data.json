@@ -99,6 +99,18 @@
         "status": "pass",
         "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
       }
+    },
+    {
+      "id": "T09",
+      "title": "Sharing hint — repo-mode discovery",
+      "commit": "d9e6722",
+      "whatChanged": "New sharingHint.js (specDrivenHint pattern) + sharing-hint.css + main.css import + index.js init. Shows only when the project is a git repo in effective local mode with a remote and >1 distinct author, not dismissed. 'Share in the repository' writes through SET_GIT_SHARING — the same path as the modal toggle; dismissal persists in user settings keyed by project path.",
+      "whyChanged": "The local→repo direction is the only one that doesn't discover itself, and a setting nobody finds is barely a setting. Beyond plan: the hint yields when the spec-driven hint already occupies the same gear — two popovers on one anchor is noise.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
+      }
     }
   ]
 }

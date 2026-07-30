@@ -5514,40 +5514,41 @@
         "telemetryNotice",
         "healthNotice",
         "specDrivenHint",
+        "sharingHint",
         "sampleBanner",
         "../package.json",
         "agentDispatch"
       ],
       "functions": {
         "init": {
-          "line": 51,
+          "line": 52,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 249,
+          "line": 251,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 314,
+          "line": 316,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 403,
+          "line": 405,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 434,
+          "line": 436,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 460,
+          "line": 462,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 732,
+          "line": 734,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7109,6 +7110,94 @@
           "UPDATE_AVAILABLE"
         ],
         "emits": []
+      }
+    },
+    "renderer/sharingHint": {
+      "file": "src/renderer/sharingHint.js",
+      "description": "Sharing hint — repo-mode discovery.",
+      "exports": [
+        "init",
+        "refresh",
+        "markDismissed"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state"
+      ],
+      "functions": {
+        "getAnchor": {
+          "line": 37,
+          "purpose": "The active project row's gear — the button that opens Project Settings."
+        },
+        "init": {
+          "line": 41
+        },
+        "evaluate": {
+          "line": 61,
+          "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
+        },
+        "schedule": {
+          "line": 91,
+          "params": [
+            "projectPath",
+            "authorCount"
+          ]
+        },
+        "refresh": {
+          "line": 102,
+          "purpose": "Re-check after something changed the mode."
+        },
+        "render": {
+          "line": 107,
+          "params": [
+            "projectPath",
+            "authorCount"
+          ]
+        },
+        "onOutsideClick": {
+          "line": 148,
+          "params": [
+            "e"
+          ]
+        },
+        "position": {
+          "line": 157,
+          "purpose": "Anchor to the active row's gear: same baseline, just outboard of the rail."
+        },
+        "share": {
+          "line": 179,
+          "params": [
+            "projectPath",
+            "btn"
+          ],
+          "purpose": "The same write path as the modal toggle (SET_GIT_SHARING)."
+        },
+        "dismissForever": {
+          "line": 201,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "markDismissed": {
+          "line": 210,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Remember that this project should not be hinted at again — user settings,"
+        },
+        "isDismissed": {
+          "line": 222,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "readDismissed": {
+          "line": 227
+        },
+        "hide": {
+          "line": 232
+        }
       }
     },
     "renderer/sidebarResize": {
@@ -10709,6 +10798,18 @@
         "description": "GitHub Panel Module"
       }
     ],
+    "hint": [
+      {
+        "module": "renderer/sharingHint",
+        "file": "src/renderer/sharingHint.js",
+        "description": "Sharing hint — repo-mode discovery."
+      },
+      {
+        "module": "renderer/specDrivenHint",
+        "file": "src/renderer/specDrivenHint.js",
+        "description": "Spec-Driven Development hint"
+      }
+    ],
     "history": [
       {
         "module": "main/promptLogger",
@@ -10918,6 +11019,18 @@
         "module": "renderer/settingsModal",
         "file": "src/renderer/settingsModal.js",
         "description": "Settings Modal"
+      }
+    ],
+    "sharing": [
+      {
+        "module": "main/gitSharing",
+        "file": "src/main/gitSharing.js",
+        "description": "gitSharing — the one owner of a project's Git Sharing mode."
+      },
+      {
+        "module": "renderer/sharingHint",
+        "file": "src/renderer/sharingHint.js",
+        "description": "Sharing hint — repo-mode discovery."
       }
     ],
     "sidebar": [

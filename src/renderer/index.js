@@ -43,6 +43,7 @@ const projectSettingsModal = require('./projectSettingsModal');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
 const specDrivenHint = require('./specDrivenHint');
+const sharingHint = require('./sharingHint');
 const sampleBanner = require('./sampleBanner');
 
 /**
@@ -233,6 +234,7 @@ function init() {
   healthNotice.init();
   sampleBanner.init();
   specDrivenHint.init();
+  sharingHint.init();
   setupUpdateDot();
   registerCommands();
   commandRegistry.bindKeyboard();

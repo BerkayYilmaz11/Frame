@@ -155,18 +155,17 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">8 tasks</span>
-    <span class="pill good">8 verified</span>
+    <span class="pill">9 tasks</span>
+    <span class="pill good">9 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
 </header>
 
 <div class="wrap">
-<div class="run-status live">
-  <span class="rs-badge">In progress</span>
-  <span class="rs-count">8 of 9 tasks done · next: <span class="rs-task">T09 — Build the sharing hint: src/renderer/sharingHint.js and…</span></span>
-  <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
+<div class="run-status done">
+  <span class="rs-badge">Complete</span>
+  <span class="rs-count">9 of 9 tasks done</span>
 </div>
 <section class="report-head">
   <h1>Project Settings — git sharing and spec-driven become real, per-project choices</h1>
@@ -2364,6 +2363,421 @@
 <span class="dl-ctx">   if (popoverEl) {</span>
 <span class="dl-ctx">     popoverEl.remove();</span>
 <span class="dl-ctx">     popoverEl = null;</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T09</span>
+    <h2>Sharing hint — repo-mode discovery</h2>
+    <span class="card-meta"><span class="chip">d9e6722</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">358 tests, 0 failures (renderer is uncovered by design — see plan test posture)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New sharingHint.js (specDrivenHint pattern) + sharing-hint.css + main.css import + index.js init. Shows only when the project is a git repo in effective local mode with a remote and &gt;1 distinct author, not dismissed. &#39;Share in the repository&#39; writes through SET_GIT_SHARING — the same path as the modal toggle; dismissal persists in user settings keyed by project path.</p></div>
+    <div class="field"><span class="label">Why</span><p>The local→repo direction is the only one that doesn&#39;t discover itself, and a setting nobody finds is barely a setting. Beyond plan: the hint yields when the spec-driven hint already occupies the same gear — two popovers on one anchor is noise.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index 8f4dce0..67fc208 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -43,6 +43,7 @@ const projectSettingsModal = require(&#39;./projectSettingsModal&#39;);</span>
+<span class="dl-ctx"> const telemetryNotice = require(&#39;./telemetryNotice&#39;);</span>
+<span class="dl-ctx"> const healthNotice = require(&#39;./healthNotice&#39;);</span>
+<span class="dl-ctx"> const specDrivenHint = require(&#39;./specDrivenHint&#39;);</span>
+<span class="dl-add">+const sharingHint = require(&#39;./sharingHint&#39;);</span>
+<span class="dl-ctx"> const sampleBanner = require(&#39;./sampleBanner&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -233,6 +234,7 @@ function init() {</span>
+<span class="dl-ctx">   healthNotice.init();</span>
+<span class="dl-ctx">   sampleBanner.init();</span>
+<span class="dl-ctx">   specDrivenHint.init();</span>
+<span class="dl-add">+  sharingHint.init();</span>
+<span class="dl-ctx">   setupUpdateDot();</span>
+<span class="dl-ctx">   registerCommands();</span>
+<span class="dl-ctx">   commandRegistry.bindKeyboard();</span>
+<span class="dl-meta">diff --git a/src/renderer/sharingHint.js b/src/renderer/sharingHint.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..f413f08</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/sharingHint.js</span>
+<span class="dl-hunk">@@ -0,0 +1,246 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Sharing hint — repo-mode discovery.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * One direction of Git Sharing is self-solving: clone a repo with `.frame/`</span>
+<span class="dl-add">+ * committed and Frame derives repo mode with no prompting. This is the other</span>
+<span class="dl-add">+ * direction — a developer on a repo with a remote and several contributors,</span>
+<span class="dl-add">+ * sitting in local mode, whose specs and notes their teammates would benefit</span>
+<span class="dl-add">+ * from stay on one laptop. Nothing else ever tells them the mode exists.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The specDrivenHint pattern pointed at a different condition, anchored to</span>
+<span class="dl-add">+ * the active project row&#39;s gear. The signal is entirely local — no network:</span>
+<span class="dl-add">+ * remote present AND &gt;1 distinct author in the last ~200 commits AND</span>
+<span class="dl-add">+ * effective mode local AND not dismissed for this project. The author count</span>
+<span class="dl-add">+ * is a deliberate heuristic; being wrong costs one dismissible popover.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * &quot;Share in the repository&quot; performs the same SET_GIT_SHARING write as the</span>
+<span class="dl-add">+ * modal toggle — one code path for the transition, one place it can go wrong.</span>
+<span class="dl-add">+ * Dismissal lives in user settings keyed by project path: whether you want</span>
+<span class="dl-add">+ * to be nudged is a preference about Frame&#39;s UI, not a fact about the</span>
+<span class="dl-add">+ * project, and in repo mode a config-stored dismissal would silently travel</span>
+<span class="dl-add">+ * to every teammate.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-add">+const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+const state = require(&#39;./state&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const DISMISSED_KEY = &#39;sharingHintDismissed&#39;;</span>
+<span class="dl-add">+const SHOW_DELAY_MS = 900;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let popoverEl = null;</span>
+<span class="dl-add">+let shownForPath = null;</span>
+<span class="dl-add">+let showTimer = null;</span>
+<span class="dl-add">+let initialized = false;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** The active project row&#39;s gear — the button that opens Project Settings. */</span>
+<span class="dl-add">+function getAnchor() {</span>
+<span class="dl-add">+  return document.querySelector(&#39;.project-item.active .project-gear-btn&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function init() {</span>
+<span class="dl-add">+  if (initialized) return;</span>
+<span class="dl-add">+  initialized = true;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  state.onProjectChange(() =&gt; {</span>
+<span class="dl-add">+    hide();</span>
+<span class="dl-add">+    evaluate();</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  state.onFrameStatusChange(() =&gt; evaluate());</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  window.addEventListener(&#39;resize&#39;, position);</span>
+<span class="dl-add">+  document.addEventListener(&#39;keydown&#39;, (e) =&gt; {</span>
+<span class="dl-add">+    if (popoverEl &amp;&amp; e.key === &#39;Escape&#39;) hide();</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Show the hint if this project qualifies. Safe to call repeatedly — a</span>
+<span class="dl-add">+ * popover already shown for the same project is left as it is.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function evaluate() {</span>
+<span class="dl-add">+  const projectPath = state.getProjectPath();</span>
+<span class="dl-add">+  if (!projectPath || !state.getIsFrameProject()) {</span>
+<span class="dl-add">+    hide();</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  if ((popoverEl || showTimer) &amp;&amp; shownForPath === projectPath) return;</span>
+<span class="dl-add">+  if (!getAnchor()) return;</span>
+<span class="dl-add">+  // The spec-driven hint anchors to the same gear; two popovers on one</span>
+<span class="dl-add">+  // button is noise. It wins — this hint returns on a later project open.</span>
+<span class="dl-add">+  if (document.querySelector(&#39;.spec-driven-hint&#39;)) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    if (await isDismissed(projectPath)) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const sharing = await ipcRenderer.invoke(IPC.GET_GIT_SHARING_STATE, projectPath);</span>
+<span class="dl-add">+    if (!sharing || !sharing.isRepo || sharing.effective !== &#39;local&#39;) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // The two git-log-class reads run only after the cheap gates passed.</span>
+<span class="dl-add">+    const signal = await ipcRenderer.invoke(IPC.GET_SHARING_REPO_SIGNAL, projectPath);</span>
+<span class="dl-add">+    if (!signal || !signal.hasRemote || !(signal.authorCount &gt; 1)) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // The project may have changed while we were awaiting.</span>
+<span class="dl-add">+    if (state.getProjectPath() !== projectPath) return;</span>
+<span class="dl-add">+    schedule(projectPath, signal.authorCount);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;sharingHint: could not evaluate&#39;, err);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function schedule(projectPath, authorCount) {</span>
+<span class="dl-add">+  clearTimeout(showTimer);</span>
+<span class="dl-add">+  shownForPath = projectPath;</span>
+<span class="dl-add">+  showTimer = setTimeout(() =&gt; {</span>
+<span class="dl-add">+    showTimer = null;</span>
+<span class="dl-add">+    if (state.getProjectPath() !== projectPath) return;</span>
+<span class="dl-add">+    render(projectPath, authorCount);</span>
+<span class="dl-add">+  }, SHOW_DELAY_MS);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Re-check after something changed the mode. */</span>
+<span class="dl-add">+function refresh() {</span>
+<span class="dl-add">+  hide();</span>
+<span class="dl-add">+  evaluate();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function render(projectPath, authorCount) {</span>
+<span class="dl-add">+  hide();</span>
+<span class="dl-add">+  shownForPath = projectPath;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  popoverEl = document.createElement(&#39;div&#39;);</span>
+<span class="dl-add">+  popoverEl.className = &#39;sharing-hint&#39;;</span>
+<span class="dl-add">+  popoverEl.setAttribute(&#39;role&#39;, &#39;dialog&#39;);</span>
+<span class="dl-add">+  popoverEl.setAttribute(&#39;aria-label&#39;, &#39;This looks like a shared project&#39;);</span>
+<span class="dl-add">+  popoverEl.innerHTML = `</span>
+<span class="dl-add">+    &lt;button type=&quot;button&quot; class=&quot;sharing-hint-close&quot; aria-label=&quot;Dismiss&quot;&gt;&amp;#x2715;&lt;/button&gt;</span>
+<span class="dl-add">+    &lt;div class=&quot;sharing-hint-title&quot;&gt;This looks like a shared project&lt;/div&gt;</span>
+<span class="dl-add">+    &lt;p class=&quot;sharing-hint-text&quot;&gt;</span>
+<span class="dl-add">+      &lt;span class=&quot;sharing-hint-count&quot;&gt;&lt;/span&gt; people have committed here, but</span>
+<span class="dl-add">+      Frame&#39;s specs and notes stay on this machine. Sharing puts them in the</span>
+<span class="dl-add">+      repository &amp;mdash; machine-local files stay out.</span>
+<span class="dl-add">+    &lt;/p&gt;</span>
+<span class="dl-add">+    &lt;div class=&quot;sharing-hint-error&quot; role=&quot;alert&quot;&gt;&lt;/div&gt;</span>
+<span class="dl-add">+    &lt;div class=&quot;sharing-hint-actions&quot;&gt;</span>
+<span class="dl-add">+      &lt;button type=&quot;button&quot; class=&quot;sharing-hint-never&quot;&gt;Don&#39;t show again&lt;/button&gt;</span>
+<span class="dl-add">+      &lt;button type=&quot;button&quot; class=&quot;sharing-hint-share&quot;&gt;Share in the repository&lt;/button&gt;</span>
+<span class="dl-add">+    &lt;/div&gt;</span>
+<span class="dl-add">+  `;</span>
+<span class="dl-add">+  // textContent, not template interpolation: the count is git output.</span>
+<span class="dl-add">+  popoverEl.querySelector(&#39;.sharing-hint-count&#39;).textContent = String(authorCount);</span>
+<span class="dl-add">+  document.body.appendChild(popoverEl);</span>
+<span class="dl-add">+  const anchor = getAnchor();</span>
+<span class="dl-add">+  if (anchor) anchor.classList.add(&#39;hint-anchored&#39;);</span>
+<span class="dl-add">+  position();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  popoverEl.querySelector(&#39;.sharing-hint-close&#39;).addEventListener(&#39;click&#39;, hide);</span>
+<span class="dl-add">+  popoverEl.querySelector(&#39;.sharing-hint-never&#39;).addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+    dismissForever(projectPath);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  popoverEl.querySelector(&#39;.sharing-hint-share&#39;).addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-add">+    share(projectPath, e.currentTarget);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // A click anywhere else means &quot;later&quot; — the hint returns on the next open.</span>
+<span class="dl-add">+  setTimeout(() =&gt; document.addEventListener(&#39;mousedown&#39;, onOutsideClick), 0);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function onOutsideClick(e) {</span>
+<span class="dl-add">+  if (!popoverEl) return;</span>
+<span class="dl-add">+  if (popoverEl.contains(e.target)) return;</span>
+<span class="dl-add">+  // Clicking the gear itself opens Project Settings, which supersedes the</span>
+<span class="dl-add">+  // hint — close it either way.</span>
+<span class="dl-add">+  hide();</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Anchor to the active row&#39;s gear: same baseline, just outboard of the rail. */</span>
+<span class="dl-add">+function position() {</span>
+<span class="dl-add">+  if (!popoverEl) return;</span>
+<span class="dl-add">+  const anchor = getAnchor();</span>
+<span class="dl-add">+  if (!anchor) return;</span>
+<span class="dl-add">+  const rect = anchor.getBoundingClientRect();</span>
+<span class="dl-add">+  if (rect.width === 0 &amp;&amp; rect.height === 0) {</span>
+<span class="dl-add">+    hide();</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  const gap = 8;</span>
+<span class="dl-add">+  const width = popoverEl.offsetWidth;</span>
+<span class="dl-add">+  const height = popoverEl.offsetHeight;</span>
+<span class="dl-add">+  const left = Math.min(rect.right + gap, window.innerWidth - width - gap);</span>
+<span class="dl-add">+  const top = Math.min(</span>
+<span class="dl-add">+    Math.max(rect.bottom - height, gap),</span>
+<span class="dl-add">+    window.innerHeight - height - gap</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  popoverEl.style.left = `${Math.max(gap, left)}px`;</span>
+<span class="dl-add">+  popoverEl.style.top = `${top}px`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** The same write path as the modal toggle (SET_GIT_SHARING). */</span>
+<span class="dl-add">+async function share(projectPath, btn) {</span>
+<span class="dl-add">+  const errorEl = popoverEl ? popoverEl.querySelector(&#39;.sharing-hint-error&#39;) : null;</span>
+<span class="dl-add">+  if (btn) btn.disabled = true;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const result = await ipcRenderer.invoke(IPC.SET_GIT_SHARING, {</span>
+<span class="dl-add">+      projectPath,</span>
+<span class="dl-add">+      mode: &#39;repo&#39;</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    if (!result || !result.success) {</span>
+<span class="dl-add">+      if (errorEl) {</span>
+<span class="dl-add">+        errorEl.textContent = &#39;Could not switch: &#39; + ((result &amp;&amp; result.error) || &#39;unknown error&#39;);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      if (btn) btn.disabled = false;</span>
+<span class="dl-add">+      return;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    hide();</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    if (errorEl) errorEl.textContent = &#39;Could not switch: &#39; + err.message;</span>
+<span class="dl-add">+    if (btn) btn.disabled = false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+async function dismissForever(projectPath) {</span>
+<span class="dl-add">+  hide();</span>
+<span class="dl-add">+  await markDismissed(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Remember that this project should not be hinted at again — user settings,</span>
+<span class="dl-add">+ * keyed by project path (the specDrivenHint.markDismissed precedent).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function markDismissed(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath) return;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const list = await readDismissed();</span>
+<span class="dl-add">+    if (list.includes(projectPath)) return;</span>
+<span class="dl-add">+    list.push(projectPath);</span>
+<span class="dl-add">+    await ipcRenderer.invoke(IPC.SET_USER_SETTING, DISMISSED_KEY, list);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;sharingHint: could not persist dismissal&#39;, err);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+async function isDismissed(projectPath) {</span>
+<span class="dl-add">+  const list = await readDismissed();</span>
+<span class="dl-add">+  return list.includes(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+async function readDismissed() {</span>
+<span class="dl-add">+  const stored = await ipcRenderer.invoke(IPC.GET_USER_SETTING, DISMISSED_KEY);</span>
+<span class="dl-add">+  return Array.isArray(stored) ? stored.slice() : [];</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function hide() {</span>
+<span class="dl-add">+  clearTimeout(showTimer);</span>
+<span class="dl-add">+  showTimer = null;</span>
+<span class="dl-add">+  document.removeEventListener(&#39;mousedown&#39;, onOutsideClick);</span>
+<span class="dl-add">+  document.querySelectorAll(&#39;.project-gear-btn.hint-anchored&#39;).forEach((el) =&gt; {</span>
+<span class="dl-add">+    el.classList.remove(&#39;hint-anchored&#39;);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  if (popoverEl) {</span>
+<span class="dl-add">+    popoverEl.remove();</span>
+<span class="dl-add">+    popoverEl = null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  shownForPath = null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { init, refresh, markDismissed };</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/sharing-hint.css b/src/renderer/styles/components/sharing-hint.css</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..ee2e80b</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/sharing-hint.css</span>
+<span class="dl-hunk">@@ -0,0 +1,109 @@</span>
+<span class="dl-add">+/* Sharing hint — repo-mode discovery popover anchored on the active project</span>
+<span class="dl-add">+   row&#39;s gear. Mirrors spec-driven-hint.css: same elevated-surface language,</span>
+<span class="dl-add">+   sized like a tooltip rather than a dialog. Position is set inline by</span>
+<span class="dl-add">+   sharingHint.js. */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint {</span>
+<span class="dl-add">+  position: fixed;</span>
+<span class="dl-add">+  z-index: 8500;</span>
+<span class="dl-add">+  width: 260px;</span>
+<span class="dl-add">+  padding: 12px;</span>
+<span class="dl-add">+  background: var(--bg-elevated);</span>
+<span class="dl-add">+  border: 1px solid var(--border-default);</span>
+<span class="dl-add">+  border-radius: var(--radius-md);</span>
+<span class="dl-add">+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);</span>
+<span class="dl-add">+  font-family: var(--font-sans);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-close {</span>
+<span class="dl-add">+  position: absolute;</span>
+<span class="dl-add">+  top: 6px;</span>
+<span class="dl-add">+  right: 6px;</span>
+<span class="dl-add">+  width: 20px;</span>
+<span class="dl-add">+  height: 20px;</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  align-items: center;</span>
+<span class="dl-add">+  justify-content: center;</span>
+<span class="dl-add">+  padding: 0;</span>
+<span class="dl-add">+  background: transparent;</span>
+<span class="dl-add">+  border: none;</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  color: var(--text-muted);</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  transition: all var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-close:hover {</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  background: var(--bg-hover);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-title {</span>
+<span class="dl-add">+  padding-right: 20px;</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  font-weight: 600;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-text {</span>
+<span class="dl-add">+  margin: 6px 0 0;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  line-height: 1.5;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-error {</span>
+<span class="dl-add">+  margin-top: 6px;</span>
+<span class="dl-add">+  color: var(--error);</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  line-height: 1.4;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-error:empty {</span>
+<span class="dl-add">+  display: none;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-actions {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  align-items: center;</span>
+<span class="dl-add">+  justify-content: flex-end;</span>
+<span class="dl-add">+  gap: 6px;</span>
+<span class="dl-add">+  margin-top: 10px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-actions button {</span>
+<span class="dl-add">+  padding: 4px 10px;</span>
+<span class="dl-add">+  border-radius: 5px;</span>
+<span class="dl-add">+  font-family: inherit;</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  font-weight: 500;</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  transition: all var(--transition-fast);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-never {</span>
+<span class="dl-add">+  background: transparent;</span>
+<span class="dl-add">+  border: 1px solid transparent;</span>
+<span class="dl-add">+  color: var(--text-muted);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-never:hover {</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  background: var(--bg-hover);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-share {</span>
+<span class="dl-add">+  background: var(--accent-primary);</span>
+<span class="dl-add">+  border: 1px solid var(--accent-primary);</span>
+<span class="dl-add">+  color: var(--bg-secondary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-share:hover {</span>
+<span class="dl-add">+  filter: brightness(1.08);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.sharing-hint-share:disabled {</span>
+<span class="dl-add">+  opacity: 0.6;</span>
+<span class="dl-add">+  cursor: default;</span>
+<span class="dl-add">+}</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/main.css b/src/renderer/styles/main.css</span>
+<span class="dl-meta">index f26861c..4a24d22 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/main.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/main.css</span>
+<span class="dl-hunk">@@ -52,6 +52,8 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> @import &#39;components/project-settings-modal.css&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+@import &#39;components/sharing-hint.css&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /* 13. Tasks Dashboard (Kanban-style overlay) */</span>
+<span class="dl-ctx"> @import &#39;components/tasks-dashboard.css&#39;;</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>
