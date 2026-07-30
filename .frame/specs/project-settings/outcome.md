@@ -7,3 +7,11 @@ Added an optional `mode` parameter to `ensure(projectPath, mode)` in src/main/gi
 _Captured: 2026-07-30 · 2 file change(s)_
 
 ---
+
+## T02 — `src/main/gitSharing.js`, the sharing-semantics owner
+
+Created src/main/gitSharing.js (Electron-free): `getState` returning `{ isRepo, declared, tracked, effective }` with D3's tracked-wins rule, `resolveMode` deriving and persisting an absent mode once (D4), `setMode` as the single write path (config → ensure(mode) → gitignore, index never touched), `ensureOnOpen`, `writeFrameGitignore`, and `getRepoSignal` (remote presence + distinct authors over 200 commits). The `.frame/.gitignore` signed block uses begin/end marker comments rather than gitExclude's comment-plus-one-line form — the block is multi-line, so an explicit end marker is what keeps unsigned user lines safe; contents per plan (runtime/, index/, implement-permissions.json, worktrees/, orchestration/, bin/, *.bak, *.tmp, *.corrupt-*). Authored test/gitSharing.test.js: 24 cases over derivation, the state matrix, setMode side effects on tmp repos, gitignore idempotence/preservation, and the repo signal.
+
+_Captured: 2026-07-30 · 2 file change(s)_
+
+---

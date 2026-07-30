@@ -1548,6 +1548,112 @@
         }
       }
     },
+    "main/gitSharing": {
+      "file": "src/main/gitSharing.js",
+      "description": "gitSharing — the one owner of a project's Git Sharing mode.",
+      "exports": [
+        "getState",
+        "resolveMode",
+        "setMode",
+        "ensureOnOpen",
+        "writeFrameGitignore",
+        "getRepoSignal",
+        "MACHINE_LOCAL_PATHS",
+        "GITIGNORE_BLOCK"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "gitExclude",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "git": {
+          "line": 55,
+          "params": [
+            "projectPath",
+            "args"
+          ]
+        },
+        "isGitRepo": {
+          "line": 63,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "configPath": {
+          "line": 67,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "readConfig": {
+          "line": 72,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Parsed `.frame/config.json`, or null when absent/unreadable."
+        },
+        "writeConfig": {
+          "line": 81,
+          "params": [
+            "projectPath",
+            "config"
+          ],
+          "purpose": "Read-modify-write preserving every unknown key (the detectProject precedent)."
+        },
+        "declaredMode": {
+          "line": 85,
+          "params": [
+            "config"
+          ]
+        },
+        "resolveMode": {
+          "line": 98,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The declared mode, derived once and persisted when absent (D4):"
+        },
+        "getState": {
+          "line": 121,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The full sharing state for the UI's behaviour matrix."
+        },
+        "setMode": {
+          "line": 139,
+          "params": [
+            "projectPath",
+            "mode"
+          ],
+          "purpose": "The single write path for a mode change — the modal toggle and the sharing"
+        },
+        "ensureOnOpen": {
+          "line": 164,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The project-open path: resolve (deriving and persisting on first sight of"
+        },
+        "writeFrameGitignore": {
+          "line": 179,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Write the signed machine-local block into `.frame/.gitignore`."
+        },
+        "getRepoSignal": {
+          "line": 230,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The discovery-hint signal (D7), entirely local — no network. Both reads"
+        }
+      }
+    },
     "main/gitStatusManager": {
       "file": "src/main/gitStatusManager.js",
       "description": "Git Status Manager",
@@ -10467,6 +10573,18 @@
         "module": "shared/frameTemplates",
         "file": "src/shared/frameTemplates.js",
         "description": "Frame Templates"
+      }
+    ],
+    "git": [
+      {
+        "module": "main/gitExclude",
+        "file": "src/main/gitExclude.js",
+        "description": "gitExclude — keep `.frame/` out of git without touching the tracked tree."
+      },
+      {
+        "module": "main/gitSharing",
+        "file": "src/main/gitSharing.js",
+        "description": "gitSharing — the one owner of a project's Git Sharing mode."
       }
     ],
     "git-branches": [

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:40:43.654Z",
+  "lastUpdated": "2026-07-30T13:44:19.287Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4457,13 +4457,13 @@
       "title": "Create src/main/gitSharing.js (Electron-free): `getState` returning `{ isRepo, declared, tracked, effective }`, `resolveMode` with D4 derive-once-persist, `setMode` (config write → ensure(mode) → gitignore, never touching the git index), `ensureOnOpen`, `writeFrameGitignore` (signed block listing runtime/, index/, implement-permissions.json, worktrees/, orchestration/, bin/, *.bak, *.tmp, *.corrupt-*; unsigned lines preserved), and `getRepoSignal` (remote presence + distinct authors in last 200 commits); author test/gitSharing.test.js covering derivation, the state matrix rows, repeated-call idempotence, and unsigned-line preservation.",
       "description": "",
       "source": "spec:project-settings:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:11:24.946Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:44:19.287Z",
+      "completedAt": "2026-07-30T13:44:19.287Z"
     },
     {
       "id": "task-spec-project-settings-T03",

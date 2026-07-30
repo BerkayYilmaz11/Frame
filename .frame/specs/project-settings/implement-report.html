@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">1 of 9 tasks done · next: <span class="rs-task">T02 — Create src/main/gitSharing.js (Electron-free): `getState` returning `{…</span></span>
+  <span class="rs-count">2 of 9 tasks done · next: <span class="rs-task">T03 — Remove `autoUpdateStructure`, `autoUpdateNotes`, and `taskRecognition`…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -279,6 +279,627 @@
 <span class="dl-ctx"> // ─── no repo / worktrees ──────────────────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;a directory outside any git repository is a no-op&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>src/main/gitSharing.js — the sharing-semantics owner</h2>
+    <span class="card-meta"><span class="chip">54ddf7c</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">350 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New Electron-free main module: getState (isRepo/declared/tracked/effective, tracked wins per D3), resolveMode (D4 derive-once-persist), setMode (config write → ensure(mode) → .frame/.gitignore, git index never touched), ensureOnOpen, writeFrameGitignore (signed begin/end block listing runtime/, index/, implement-permissions.json, worktrees/, orchestration/, bin/, *.bak, *.tmp, *.corrupt-*), getRepoSignal (remote + distinct authors over 200 commits). 24 new tests in test/gitSharing.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>D5 keeps gitExclude ignorant of the config format, so the sharing logic needed its own module (frameProject → gitSharing → gitExclude, one-way). The gitignore block uses explicit begin/end markers instead of gitExclude&#39;s comment-plus-one-line form because it is multi-line and unsigned user lines must survive rewrites.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/gitSharing.js b/src/main/gitSharing.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..a7ca07c</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/main/gitSharing.js</span>
+<span class="dl-hunk">@@ -0,0 +1,255 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * gitSharing — the one owner of a project&#39;s Git Sharing mode.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `settings.gitSharing: &quot;local&quot; | &quot;repo&quot;` lives in `.frame/config.json` (D1),</span>
+<span class="dl-add">+ * so in repo mode the declaration is itself committed and travels with the</span>
+<span class="dl-add">+ * repository. This module composes `gitExclude` (which stays ignorant of the</span>
+<span class="dl-add">+ * config format — `frameProject → gitSharing → gitExclude` is one-way) and</span>
+<span class="dl-add">+ * maintains `.frame/.gitignore`, the signed list of machine-local paths that</span>
+<span class="dl-add">+ * makes sharing safe: a teammate who clones a repo-mode project inherits the</span>
+<span class="dl-add">+ * protection before Frame has ever run on their machine.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Declared and effective mode are two different things (D3): a tracked</span>
+<span class="dl-add">+ * `.frame/` makes the effective mode `repo` whatever the config says, because</span>
+<span class="dl-add">+ * an exclude entry only hides untracked files and honouring `local` there</span>
+<span class="dl-add">+ * would silently hide every new file while the old ones stay visible.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Never touches the git index: no staging, no commits, no `git rm`. Turning</span>
+<span class="dl-add">+ * sharing on removes the exclude block and nothing else — committing is the</span>
+<span class="dl-add">+ * user&#39;s move.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Electron-free on purpose, so it tests under `node --test` like gitExclude.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+const gitExclude = require(&#39;./gitExclude&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR, FRAME_CONFIG_FILE } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const MODES = [&#39;local&#39;, &#39;repo&#39;];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── .frame/.gitignore — the machine-local manifest ───────────</span>
+<span class="dl-add">+//</span>
+<span class="dl-add">+// Everything here is generated or derived: committing it would put churn in</span>
+<span class="dl-add">+// files nobody edits (bin/, orchestration/) or absolute local paths in the</span>
+<span class="dl-add">+// repo (worktrees/, runtime/). The fsSafe suffixes keep crash-safety</span>
+<span class="dl-add">+// artifacts (tasks.json.bak and friends) out of repo-mode projects too.</span>
+<span class="dl-add">+// `bin/` is listed whole, not `bin/*.js` — every file in it is generated.</span>
+<span class="dl-add">+const MACHINE_LOCAL_PATHS = [</span>
+<span class="dl-add">+  &#39;runtime/&#39;,</span>
+<span class="dl-add">+  &#39;index/&#39;,</span>
+<span class="dl-add">+  &#39;implement-permissions.json&#39;,</span>
+<span class="dl-add">+  &#39;worktrees/&#39;,</span>
+<span class="dl-add">+  &#39;orchestration/&#39;,</span>
+<span class="dl-add">+  &#39;bin/&#39;,</span>
+<span class="dl-add">+  &#39;*.bak&#39;,</span>
+<span class="dl-add">+  &#39;*.tmp&#39;,</span>
+<span class="dl-add">+  &#39;*.corrupt-*&#39;</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const GITIGNORE_BEGIN = `# managed by Frame — machine-local paths, rewritten by Frame; add your own lines outside this block`;</span>
+<span class="dl-add">+const GITIGNORE_END = `# end managed by Frame`;</span>
+<span class="dl-add">+const GITIGNORE_BLOCK = [GITIGNORE_BEGIN, ...MACHINE_LOCAL_PATHS, GITIGNORE_END].join(&#39;\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(projectPath, args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, {</span>
+<span class="dl-add">+    cwd: projectPath,</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function isGitRepo(projectPath) {</span>
+<span class="dl-add">+  return Boolean(projectPath) &amp;&amp; gitExclude.excludeFilePath(projectPath) !== null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function configPath(projectPath) {</span>
+<span class="dl-add">+  return path.join(projectPath, FRAME_DIR, FRAME_CONFIG_FILE);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Parsed `.frame/config.json`, or null when absent/unreadable. */</span>
+<span class="dl-add">+function readConfig(projectPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return JSON.parse(fs.readFileSync(configPath(projectPath), &#39;utf8&#39;));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Read-modify-write preserving every unknown key (the detectProject precedent). */</span>
+<span class="dl-add">+function writeConfig(projectPath, config) {</span>
+<span class="dl-add">+  fs.writeFileSync(configPath(projectPath), JSON.stringify(config, null, 2), &#39;utf8&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function declaredMode(config) {</span>
+<span class="dl-add">+  const value = config &amp;&amp; config.settings &amp;&amp; config.settings.gitSharing;</span>
+<span class="dl-add">+  return MODES.includes(value) ? value : null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The declared mode, derived once and persisted when absent (D4):</span>
+<span class="dl-add">+ * a pre-upgrade project keeps exactly the behaviour it already had —</span>
+<span class="dl-add">+ * tracked `.frame/` → `repo`, untracked → `local`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns `&#39;local&#39; | &#39;repo&#39; | null` — null outside a git repo (no mode to</span>
+<span class="dl-add">+ * derive) or when the project has no `.frame/config.json` to persist into.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function resolveMode(projectPath) {</span>
+<span class="dl-add">+  if (!isGitRepo(projectPath)) return null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = readConfig(projectPath);</span>
+<span class="dl-add">+  if (!config) return null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const declared = declaredMode(config);</span>
+<span class="dl-add">+  if (declared) return declared;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const derived = gitExclude.isFrameTracked(projectPath) ? &#39;repo&#39; : &#39;local&#39;;</span>
+<span class="dl-add">+  config.settings = config.settings || {};</span>
+<span class="dl-add">+  config.settings.gitSharing = derived;</span>
+<span class="dl-add">+  writeConfig(projectPath, config);</span>
+<span class="dl-add">+  return derived;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The full sharing state for the UI&#39;s behaviour matrix.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `effective` implements D3: tracked → `&#39;repo&#39;` regardless of `declared`;</span>
+<span class="dl-add">+ * the S4 warning renders exactly when `declared === &#39;local&#39; &amp;&amp; tracked`.</span>
+<span class="dl-add">+ * Works without `.frame/` existing (the init modal asks before init).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getState(projectPath) {</span>
+<span class="dl-add">+  if (!isGitRepo(projectPath)) {</span>
+<span class="dl-add">+    return { isRepo: false, declared: declaredMode(readConfig(projectPath)), tracked: false, effective: null };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const declared = resolveMode(projectPath);</span>
+<span class="dl-add">+  const tracked = gitExclude.isFrameTracked(projectPath);</span>
+<span class="dl-add">+  const effective = tracked ? &#39;repo&#39; : declared;</span>
+<span class="dl-add">+  return { isRepo: true, declared, tracked, effective };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The single write path for a mode change — the modal toggle and the sharing</span>
+<span class="dl-add">+ * hint both land here. Config write → exclude block per the new mode →</span>
+<span class="dl-add">+ * `.frame/.gitignore` refresh. Never touches the index (C1/C2): going</span>
+<span class="dl-add">+ * local on a tracked project writes the declaration and stops — the caller</span>
+<span class="dl-add">+ * shows the S4 warning with the `git rm -r --cached .frame` command.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function setMode(projectPath, mode) {</span>
+<span class="dl-add">+  if (!MODES.includes(mode)) {</span>
+<span class="dl-add">+    return { success: false, error: `invalid mode: ${mode}` };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  const config = readConfig(projectPath);</span>
+<span class="dl-add">+  if (!config) {</span>
+<span class="dl-add">+    return { success: false, error: &#39;not a Frame project&#39; };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  config.settings = config.settings || {};</span>
+<span class="dl-add">+  config.settings.gitSharing = mode;</span>
+<span class="dl-add">+  writeConfig(projectPath, config);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitExclude.ensure(projectPath, mode);</span>
+<span class="dl-add">+  writeFrameGitignore(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { success: true, state: getState(projectPath) };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The project-open path: resolve (deriving and persisting on first sight of</span>
+<span class="dl-add">+ * a pre-upgrade project), bring the exclude file in line, and make sure</span>
+<span class="dl-add">+ * `.frame/.gitignore` exists — which is how existing projects gain it.</span>
+<span class="dl-add">+ * Replaces the bare `gitExclude.ensure` call. Safe on any input.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function ensureOnOpen(projectPath) {</span>
+<span class="dl-add">+  const mode = resolveMode(projectPath);</span>
+<span class="dl-add">+  gitExclude.ensure(projectPath, mode || undefined);</span>
+<span class="dl-add">+  writeFrameGitignore(projectPath);</span>
+<span class="dl-add">+  return getState(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Write the signed machine-local block into `.frame/.gitignore`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Rewrites replace only our block — everything outside the begin/end</span>
+<span class="dl-add">+ * markers is preserved byte-identical, the `stripOurs` discipline. No-op</span>
+<span class="dl-add">+ * when `.frame/` doesn&#39;t exist: this module never creates the overlay dir.</span>
+<span class="dl-add">+ * Returns &#39;written&#39; | &#39;unchanged&#39; | &#39;no-frame&#39; | &#39;error&#39;.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeFrameGitignore(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath) return &#39;no-frame&#39;;</span>
+<span class="dl-add">+  const frameDir = path.join(projectPath, FRAME_DIR);</span>
+<span class="dl-add">+  if (!fs.existsSync(frameDir)) return &#39;no-frame&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const file = path.join(frameDir, &#39;.gitignore&#39;);</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    let lines = [];</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      lines = fs.readFileSync(file, &#39;utf8&#39;).split(&#39;\n&#39;);</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      if (err.code !== &#39;ENOENT&#39;) throw err;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Strip our block: from a begin marker through the matching end marker</span>
+<span class="dl-add">+    // (or, for a truncated file, through the last consecutive non-empty line).</span>
+<span class="dl-add">+    const kept = [];</span>
+<span class="dl-add">+    for (let i = 0; i &lt; lines.length; i += 1) {</span>
+<span class="dl-add">+      if (lines[i].trim() === GITIGNORE_BEGIN.trim() || (lines[i].trim().startsWith(&#39;#&#39;) &amp;&amp; lines[i].includes(&#39;managed by Frame&#39;) &amp;&amp; !lines[i].includes(&#39;end&#39;))) {</span>
+<span class="dl-add">+        while (i + 1 &lt; lines.length &amp;&amp; lines[i + 1].trim() !== GITIGNORE_END &amp;&amp; lines[i + 1].trim() !== &#39;&#39;) i += 1;</span>
+<span class="dl-add">+        if (i + 1 &lt; lines.length &amp;&amp; lines[i + 1].trim() === GITIGNORE_END) i += 1;</span>
+<span class="dl-add">+        continue;</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      kept.push(lines[i]);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    while (kept.length &amp;&amp; kept[kept.length - 1].trim() === &#39;&#39;) kept.pop();</span>
+<span class="dl-add">+    const next = kept.length ? [...kept, &#39;&#39;, GITIGNORE_BLOCK] : [GITIGNORE_BLOCK];</span>
+<span class="dl-add">+    let out = next.join(&#39;\n&#39;);</span>
+<span class="dl-add">+    if (!out.endsWith(&#39;\n&#39;)) out += &#39;\n&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    let current = null;</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      current = fs.readFileSync(file, &#39;utf8&#39;);</span>
+<span class="dl-add">+    } catch (_) { /* absent */ }</span>
+<span class="dl-add">+    if (current === out) return &#39;unchanged&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    fs.writeFileSync(file, out, &#39;utf8&#39;);</span>
+<span class="dl-add">+    return &#39;written&#39;;</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.error(&#39;gitSharing: could not write .frame/.gitignore:&#39;, err.message);</span>
+<span class="dl-add">+    return &#39;error&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The discovery-hint signal (D7), entirely local — no network. Both reads</span>
+<span class="dl-add">+ * are cheap; the author count over the last 200 commits is a deliberate</span>
+<span class="dl-add">+ * heuristic for &quot;other people work here&quot;, where being wrong costs one</span>
+<span class="dl-add">+ * dismissible popover.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getRepoSignal(projectPath) {</span>
+<span class="dl-add">+  if (!isGitRepo(projectPath)) return { hasRemote: false, authorCount: 0 };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  let hasRemote = false;</span>
+<span class="dl-add">+  let authorCount = 0;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    hasRemote = git(projectPath, [&#39;remote&#39;]).trim().length &gt; 0;</span>
+<span class="dl-add">+  } catch (_) { /* leave false */ }</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const authors = git(projectPath, [&#39;log&#39;, &#39;-n&#39;, &#39;200&#39;, &#39;--format=%ae&#39;]).trim();</span>
+<span class="dl-add">+    authorCount = authors ? new Set(authors.split(&#39;\n&#39;).map((a) =&gt; a.trim()).filter(Boolean)).size : 0;</span>
+<span class="dl-add">+  } catch (_) { /* unborn HEAD — leave 0 */ }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { hasRemote, authorCount };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  getState,</span>
+<span class="dl-add">+  resolveMode,</span>
+<span class="dl-add">+  setMode,</span>
+<span class="dl-add">+  ensureOnOpen,</span>
+<span class="dl-add">+  writeFrameGitignore,</span>
+<span class="dl-add">+  getRepoSignal,</span>
+<span class="dl-add">+  MACHINE_LOCAL_PATHS,</span>
+<span class="dl-add">+  GITIGNORE_BLOCK</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/test/gitSharing.test.js b/test/gitSharing.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..cf25c26</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/gitSharing.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,339 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * gitSharing tests: derivation, the behaviour matrix, mode transitions and</span>
+<span class="dl-add">+ * the `.frame/.gitignore` writer, against real temp git repositories.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The properties that matter: a pre-upgrade project derives the mode it</span>
+<span class="dl-add">+ * already behaves as (and only once); a tracked `.frame/` makes the</span>
+<span class="dl-add">+ * effective mode repo whatever was declared; setMode never touches the git</span>
+<span class="dl-add">+ * index; the gitignore writer is idempotent and preserves unsigned lines.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const gitSharing = require(&#39;../src/main/gitSharing&#39;);</span>
+<span class="dl-add">+const gitExclude = require(&#39;../src/main/gitExclude&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let root;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(cwd, ...args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, { cwd, encoding: &#39;utf8&#39;, stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;] });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function makeRepo(name) {</span>
+<span class="dl-add">+  const dir = path.join(root, name);</span>
+<span class="dl-add">+  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-add">+  git(dir, &#39;init&#39;, &#39;-q&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;config&#39;, &#39;user.email&#39;, &#39;test@example.com&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;config&#39;, &#39;user.name&#39;, &#39;Frame Test&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;README.md&#39;), &#39;# repo\n&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;README.md&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;initial&#39;);</span>
+<span class="dl-add">+  return dir;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function seedFrameProject(dir, config = { version: &#39;1.0&#39;, settings: {} }) {</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), JSON.stringify(config, null, 2));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function readConfig(dir) {</span>
+<span class="dl-add">+  return JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function trackFrame(dir) {</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;-f&#39;, `${FRAME_DIR}/config.json`);</span>
+<span class="dl-add">+  git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;track frame&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function gitignorePath(dir) {</span>
+<span class="dl-add">+  return path.join(dir, FRAME_DIR, &#39;.gitignore&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+beforeEach(() =&gt; {</span>
+<span class="dl-add">+  root = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-sharing-&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+afterEach(() =&gt; {</span>
+<span class="dl-add">+  fs.rmSync(root, { recursive: true, force: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D4: derive once, persist ─────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;absent mode on an untracked project derives local and persists it&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;derive-local&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitSharing.resolveMode(repo), &#39;local&#39;);</span>
+<span class="dl-add">+  assert.equal(readConfig(repo).settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;absent mode on a tracked project derives repo and persists it&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;derive-repo&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+  trackFrame(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitSharing.resolveMode(repo), &#39;repo&#39;);</span>
+<span class="dl-add">+  assert.equal(readConfig(repo).settings.gitSharing, &#39;repo&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an already-declared mode is returned untouched — derivation happens once&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;declared-stays&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { version: &#39;1.0&#39;, settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitSharing.resolveMode(repo), &#39;repo&#39;);</span>
+<span class="dl-add">+  assert.equal(gitExclude.isFrameTracked(repo), false, &#39;precondition: untracked&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;derivation preserves unknown config keys&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;unknown-keys&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { version: &#39;1.0&#39;, settings: { x: 1 }, custom: { keep: true } });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitSharing.resolveMode(repo);</span>
+<span class="dl-add">+  const config = readConfig(repo);</span>
+<span class="dl-add">+  assert.equal(config.settings.x, 1);</span>
+<span class="dl-add">+  assert.deepEqual(config.custom, { keep: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;resolveMode is null outside a git repo and for a non-Frame project&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plain = path.join(root, &#39;not-a-repo&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
+<span class="dl-add">+  seedFrameProject(plain);</span>
+<span class="dl-add">+  assert.equal(gitSharing.resolveMode(plain), null);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;no-frame&#39;);</span>
+<span class="dl-add">+  assert.equal(gitSharing.resolveMode(repo), null);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the state matrix ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;declared local, untracked → effective local&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;m-local&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;local&#39; } });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getState(repo), {</span>
+<span class="dl-add">+    isRepo: true, declared: &#39;local&#39;, tracked: false, effective: &#39;local&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;declared local, tracked → effective repo (D3, the S4 row)&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;m-conflict&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;local&#39; } });</span>
+<span class="dl-add">+  trackFrame(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getState(repo), {</span>
+<span class="dl-add">+    isRepo: true, declared: &#39;local&#39;, tracked: true, effective: &#39;repo&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;declared repo, untracked and tracked → effective repo&#39;, () =&gt; {</span>
+<span class="dl-add">+  const untracked = makeRepo(&#39;m-repo-untracked&#39;);</span>
+<span class="dl-add">+  seedFrameProject(untracked, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+  assert.equal(gitSharing.getState(untracked).effective, &#39;repo&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const tracked = makeRepo(&#39;m-repo-tracked&#39;);</span>
+<span class="dl-add">+  seedFrameProject(tracked, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+  trackFrame(tracked);</span>
+<span class="dl-add">+  assert.equal(gitSharing.getState(tracked).effective, &#39;repo&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;not a git repo → isRepo false, effective null&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plain = path.join(root, &#39;m-no-repo&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
+<span class="dl-add">+  seedFrameProject(plain);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getState(plain), {</span>
+<span class="dl-add">+    isRepo: false, declared: null, tracked: false, effective: null</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── setMode ──────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;local → repo removes the exclude block, writes nothing to the index&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;set-repo&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;local&#39; } });</span>
+<span class="dl-add">+  gitExclude.ensure(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = gitSharing.setMode(repo, &#39;repo&#39;);</span>
+<span class="dl-add">+  assert.equal(result.success, true);</span>
+<span class="dl-add">+  assert.equal(result.state.effective, &#39;repo&#39;);</span>
+<span class="dl-add">+  assert.equal(readConfig(repo).settings.gitSharing, &#39;repo&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(!exclude.includes(gitExclude.MARKER), &#39;exclude block survived the switch&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(gitignorePath(repo)), &#39;.frame/.gitignore not written&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(git(repo, &#39;diff&#39;, &#39;--cached&#39;, &#39;--name-only&#39;).trim(), &#39;&#39;, &#39;something was staged&#39;);</span>
+<span class="dl-add">+  assert.ok(git(repo, &#39;status&#39;, &#39;--porcelain&#39;).includes(&#39;.frame/&#39;), &#39;.frame/ not visible after switch&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo → local on an untracked project restores the block&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;set-local&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = gitSharing.setMode(repo, &#39;local&#39;);</span>
+<span class="dl-add">+  assert.equal(result.success, true);</span>
+<span class="dl-add">+  assert.equal(result.state.effective, &#39;local&#39;);</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(exclude.includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo → local on a tracked project never touches the index (S4)&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;set-local-tracked&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+  trackFrame(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = gitSharing.setMode(repo, &#39;local&#39;);</span>
+<span class="dl-add">+  assert.equal(result.success, true);</span>
+<span class="dl-add">+  assert.deepEqual(result.state, { isRepo: true, declared: &#39;local&#39;, tracked: true, effective: &#39;repo&#39; });</span>
+<span class="dl-add">+  assert.equal(gitExclude.isFrameTracked(repo), true, &#39;something was untracked&#39;);</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(!exclude.includes(gitExclude.MARKER), &#39;a block was written while tracked&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;setMode rejects invalid modes and non-Frame projects&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;set-invalid&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+  assert.equal(gitSharing.setMode(repo, &#39;team&#39;).success, false);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const bare = makeRepo(&#39;set-no-frame&#39;);</span>
+<span class="dl-add">+  assert.equal(gitSharing.setMode(bare, &#39;repo&#39;).success, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── ensureOnOpen ─────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensureOnOpen derives, ensures the exclude state, and adds the gitignore&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;open-upgrade&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const state = gitSharing.ensureOnOpen(repo);</span>
+<span class="dl-add">+  assert.equal(state.declared, &#39;local&#39;);</span>
+<span class="dl-add">+  assert.equal(readConfig(repo).settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(exclude.includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(gitignorePath(repo)), &#39;pre-upgrade project did not gain .frame/.gitignore&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensureOnOpen is idempotent — repeated calls change nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;open-idempotent&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitSharing.ensureOnOpen(repo);</span>
+<span class="dl-add">+  const config = fs.readFileSync(path.join(repo, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+  const gitignore = fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitSharing.ensureOnOpen(repo);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(path.join(repo, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;), config);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;), gitignore);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(gitExclude.excludeFilePath(repo), &#39;utf8&#39;), exclude);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;ensureOnOpen on a non-repo or non-Frame dir is a safe no-op&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plain = path.join(root, &#39;open-plain&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
+<span class="dl-add">+  const state = gitSharing.ensureOnOpen(plain);</span>
+<span class="dl-add">+  assert.equal(state.isRepo, false);</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(plain), [], &#39;something was written&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the .frame/.gitignore writer ─────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the gitignore block lists every machine-local path&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-content&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+  gitSharing.writeFrameGitignore(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const content = fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  for (const p of [&#39;runtime/&#39;, &#39;index/&#39;, &#39;implement-permissions.json&#39;, &#39;worktrees/&#39;, &#39;orchestration/&#39;, &#39;bin/&#39;, &#39;*.bak&#39;, &#39;*.tmp&#39;, &#39;*.corrupt-*&#39;]) {</span>
+<span class="dl-add">+    assert.ok(content.split(&#39;\n&#39;).includes(p), `missing machine-local path: ${p}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;machine-local paths are actually ignored in repo mode&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-effective&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+  gitSharing.ensureOnOpen(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(repo, FRAME_DIR, &#39;runtime&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, FRAME_DIR, &#39;runtime&#39;, &#39;bus.json&#39;), &#39;{}&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(repo, FRAME_DIR, &#39;specs&#39;, &#39;s1&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, FRAME_DIR, &#39;specs&#39;, &#39;s1&#39;, &#39;spec.md&#39;), &#39;# s\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, FRAME_DIR, &#39;tasks.json.bak&#39;), &#39;{}&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const status = git(repo, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;);</span>
+<span class="dl-add">+  assert.ok(status.includes(&#39;specs/s1/spec.md&#39;), &#39;a spec was hidden&#39;);</span>
+<span class="dl-add">+  assert.ok(!status.includes(&#39;runtime/&#39;), &#39;runtime/ leaked into git status&#39;);</span>
+<span class="dl-add">+  assert.ok(!status.includes(&#39;tasks.json.bak&#39;), &#39;a .bak leaked into git status&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;rewrites are idempotent and preserve unsigned user lines&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-preserve&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+  fs.writeFileSync(gitignorePath(repo), &#39;# my own rules\nscratch/\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(gitSharing.writeFrameGitignore(repo), &#39;written&#39;);</span>
+<span class="dl-add">+  assert.equal(gitSharing.writeFrameGitignore(repo), &#39;unchanged&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const content = fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(content.includes(&#39;# my own rules&#39;));</span>
+<span class="dl-add">+  assert.ok(content.includes(&#39;scratch/&#39;));</span>
+<span class="dl-add">+  assert.equal(content.split(&#39;\n&#39;).filter((l) =&gt; l === &#39;runtime/&#39;).length, 1);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an outdated signed block is replaced, not duplicated&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-outdated&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo);</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    gitignorePath(repo),</span>
+<span class="dl-add">+    &#39;keep-me/\n\n# managed by Frame — machine-local paths, rewritten by Frame; add your own lines outside this block\nruntime/\nold-entry/\n# end managed by Frame\n&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  gitSharing.writeFrameGitignore(repo);</span>
+<span class="dl-add">+  const content = fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(content.includes(&#39;keep-me/&#39;));</span>
+<span class="dl-add">+  assert.ok(!content.includes(&#39;old-entry/&#39;), &#39;stale entry survived the rewrite&#39;);</span>
+<span class="dl-add">+  assert.equal(content.split(&#39;\n&#39;).filter((l) =&gt; l === &#39;runtime/&#39;).length, 1);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;no .frame/ directory → no-op, nothing created&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-no-frame&#39;);</span>
+<span class="dl-add">+  assert.equal(gitSharing.writeFrameGitignore(repo), &#39;no-frame&#39;);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(repo, FRAME_DIR)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── repo signal ──────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo signal: no remote, one author&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;sig-solo&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getRepoSignal(repo), { hasRemote: false, authorCount: 1 });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo signal: remote present, distinct authors counted&#39;, () =&gt; {</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;sig-team&#39;);</span>
+<span class="dl-add">+  git(repo, &#39;remote&#39;, &#39;add&#39;, &#39;origin&#39;, path.join(root, &#39;nowhere.git&#39;));</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, &#39;a.txt&#39;), &#39;a\n&#39;);</span>
+<span class="dl-add">+  git(repo, &#39;add&#39;, &#39;a.txt&#39;);</span>
+<span class="dl-add">+  execFileSync(&#39;git&#39;, [&#39;commit&#39;, &#39;-qm&#39;, &#39;second&#39;], {</span>
+<span class="dl-add">+    cwd: repo,</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    env: {</span>
+<span class="dl-add">+      ...process.env,</span>
+<span class="dl-add">+      GIT_AUTHOR_NAME: &#39;Other&#39;, GIT_AUTHOR_EMAIL: &#39;other@example.com&#39;,</span>
+<span class="dl-add">+      GIT_COMMITTER_NAME: &#39;Other&#39;, GIT_COMMITTER_EMAIL: &#39;other@example.com&#39;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getRepoSignal(repo), { hasRemote: true, authorCount: 2 });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo signal outside a git repo is empty&#39;, () =&gt; {</span>
+<span class="dl-add">+  const plain = path.join(root, &#39;sig-plain&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
+<span class="dl-add">+  assert.deepEqual(gitSharing.getRepoSignal(plain), { hasRemote: false, authorCount: 0 });</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>
