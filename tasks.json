@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:33:43.582Z",
+  "lastUpdated": "2026-07-30T13:40:43.654Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4444,13 +4444,13 @@
       "title": "Add an optional explicit mode parameter to `gitExclude.ensure()` in src/main/gitExclude.js — `'repo'` never writes the block and strips ours if present; `'local'`/absent keep today's conditional logic with tracked state still overriding — and extend test/gitExclude.test.js with the mode cases.",
       "description": "",
       "source": "spec:project-settings:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:29:04.758Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:40:43.654Z",
+      "completedAt": "2026-07-30T13:40:43.654Z"
     },
     {
       "id": "task-spec-project-settings-T02",

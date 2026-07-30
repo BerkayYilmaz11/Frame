@@ -1,7 +1,7 @@
 {
   "slug": "project-settings",
   "title": "Project Settings — git sharing and spec-driven become real, per-project choices",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "ai_tool": "claude-code",
   "generated_task_ids": [
     "task-spec-project-settings-T01",

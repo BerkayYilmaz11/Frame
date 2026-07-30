@@ -1539,9 +1539,10 @@
           "purpose": "Write `lines` back, preserving the file's trailing-newline convention and"
         },
         "ensure": {
-          "line": 142,
+          "line": 151,
           "params": [
-            "projectPath"
+            "projectPath",
+            "mode"
           ],
           "purpose": "Bring the exclude file to the state the repo currently calls for."
         }

@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "project-settings",
+    "title": "Project Settings — git sharing and spec-driven become real, per-project choices"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Explicit mode parameter on gitExclude.ensure()",
+      "commit": "4d2cda7",
+      "whatChanged": "ensure(projectPath, mode) in src/main/gitExclude.js: 'repo' joins the tracked check in the removal branch, so the block is never written and an existing one is stripped; 'local'/absent keep the conditional logic with tracked state still overriding. Four new mode cases in test/gitExclude.test.js.",
+      "whyChanged": "D5 requires the init path to pass the sharing mode in explicitly (the config doesn't exist yet at ensure time), and D3 requires that a 'local' declaration never resurrect the block on a tracked repo.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "326 tests, 0 failures"
+      }
+    }
+  ]
+}
