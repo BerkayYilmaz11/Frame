@@ -9233,7 +9233,8 @@
         "getFrameConfigTemplate": {
           "line": 820,
           "params": [
-            "projectName"
+            "projectName",
+            "options = {}"
           ],
           "purpose": ".frame/config.json template"
         },

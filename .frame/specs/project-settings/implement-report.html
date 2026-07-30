@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">2 of 9 tasks done · next: <span class="rs-task">T03 — Remove `autoUpdateStructure`, `autoUpdateNotes`, and `taskRecognition`…</span></span>
+  <span class="rs-count">3 of 9 tasks done · next: <span class="rs-task">T04 — Register `project_sharing_set: { mode: [&#39;local&#39;,&#39;repo&#39;], source…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -899,6 +899,89 @@
 <span class="dl-add">+  const plain = path.join(root, &#39;sig-plain&#39;);</span>
 <span class="dl-add">+  fs.mkdirSync(plain, { recursive: true });</span>
 <span class="dl-add">+  assert.deepEqual(gitSharing.getRepoSignal(plain), { hasRemote: false, authorCount: 0 });</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Config template: dead flags out, gitSharing in, specDriven from options</h2>
+    <span class="card-meta"><span class="chip">c37514e</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">353 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getFrameConfigTemplate(name, options) in src/shared/frameTemplates.js: autoUpdateStructure/autoUpdateNotes/taskRecognition removed, settings now holds only gitSharing (from options, invalid values fall back to &#39;local&#39;), features.specDriven from options.specDriven (default true). Three new cases in test/frameTemplates.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>The three flags never had a reader (two write-only commits each in all of git history); leaving them in the template would hand every new settings surface three switches that do nothing. Existing configs are deliberately not rewritten — no reader means no behaviour change, and rewriting would diff every shared repo.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index d55647e..22778c6 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -817,7 +817,7 @@ ${tree}</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * .frame/config.json template</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function getFrameConfigTemplate(projectName) {</span>
+<span class="dl-add">+function getFrameConfigTemplate(projectName, options = {}) {</span>
+<span class="dl-ctx">   return {</span>
+<span class="dl-ctx">     version: &quot;1.0&quot;,</span>
+<span class="dl-ctx">     name: projectName,</span>
+<span class="dl-hunk">@@ -825,17 +825,17 @@ function getFrameConfigTemplate(projectName) {</span>
+<span class="dl-ctx">     createdAt: getISOTimestamp(),</span>
+<span class="dl-ctx">     initializedBy: &quot;Frame&quot;,</span>
+<span class="dl-ctx">     settings: {</span>
+<span class="dl-del">-      autoUpdateStructure: true,</span>
+<span class="dl-del">-      autoUpdateNotes: false,</span>
+<span class="dl-del">-      taskRecognition: true</span>
+<span class="dl-add">+      // The only per-project setting besides features: whether .frame/ is</span>
+<span class="dl-add">+      // machine-local (hidden via .git/info/exclude) or shared in the</span>
+<span class="dl-add">+      // repository. Chosen at init, changeable in Project Settings.</span>
+<span class="dl-add">+      gitSharing: options.gitSharing === &#39;repo&#39; ? &#39;repo&#39; : &#39;local&#39;</span>
+<span class="dl-ctx">     },</span>
+<span class="dl-ctx">     features: {</span>
+<span class="dl-del">-      // Spec-Driven Development is ON for new projects: the spec commands</span>
+<span class="dl-del">-      // ship at init, so an AI session can write specs from day one — the</span>
+<span class="dl-del">-      // flag being off only hid them from the Specs panel. The user can turn</span>
+<span class="dl-del">-      // it off in Settings → Workflow, which flips this flag and strips the</span>
+<span class="dl-del">-      // spec section from AGENTS.md.</span>
+<span class="dl-del">-      specDriven: true</span>
+<span class="dl-add">+      // Spec-Driven Development defaults ON for new projects: the spec</span>
+<span class="dl-add">+      // commands ship at init, so an AI session can write specs from day</span>
+<span class="dl-add">+      // one — the flag being off only hid them from the Specs panel. The</span>
+<span class="dl-add">+      // init modal and Project Settings can turn it off.</span>
+<span class="dl-add">+      specDriven: options.specDriven !== false</span>
+<span class="dl-ctx">     },</span>
+<span class="dl-ctx">     files: {</span>
+<span class="dl-ctx">       agents: &quot;AGENTS.md&quot;,</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index f6eabcb..6a3ce90 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -115,3 +115,23 @@ test(&#39;the project variant still renders its own facts and stamp&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(/Project Facts/.test(text));</span>
+<span class="dl-ctx">   assert.ok(/Creation date/.test(text));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── config template ──────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the config template carries gitSharing and none of the dead flags&#39;, () =&gt; {</span>
+<span class="dl-add">+  const config = templates.getFrameConfigTemplate(&#39;MyProject&#39;);</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;, &#39;default sharing mode is local&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(Object.keys(config.settings), [&#39;gitSharing&#39;], &#39;a dead flag survived in settings&#39;);</span>
+<span class="dl-add">+  assert.equal(config.features.specDriven, true, &#39;spec-driven defaults on&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the config template takes both init answers from options&#39;, () =&gt; {</span>
+<span class="dl-add">+  const config = templates.getFrameConfigTemplate(&#39;MyProject&#39;, { gitSharing: &#39;repo&#39;, specDriven: false });</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;repo&#39;);</span>
+<span class="dl-add">+  assert.equal(config.features.specDriven, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an invalid gitSharing option falls back to local&#39;, () =&gt; {</span>
+<span class="dl-add">+  const config = templates.getFrameConfigTemplate(&#39;MyProject&#39;, { gitSharing: &#39;team&#39; });</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

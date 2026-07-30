@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "350 tests, 0 failures"
       }
+    },
+    {
+      "id": "T03",
+      "title": "Config template: dead flags out, gitSharing in, specDriven from options",
+      "commit": "c37514e",
+      "whatChanged": "getFrameConfigTemplate(name, options) in src/shared/frameTemplates.js: autoUpdateStructure/autoUpdateNotes/taskRecognition removed, settings now holds only gitSharing (from options, invalid values fall back to 'local'), features.specDriven from options.specDriven (default true). Three new cases in test/frameTemplates.test.js.",
+      "whyChanged": "The three flags never had a reader (two write-only commits each in all of git history); leaving them in the template would hand every new settings surface three switches that do nothing. Existing configs are deliberately not rewritten — no reader means no behaviour change, and rewriting would diff every shared repo.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "353 tests, 0 failures"
+      }
     }
   ]
 }

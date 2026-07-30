@@ -15,3 +15,11 @@ Created src/main/gitSharing.js (Electron-free): `getState` returning `{ isRepo, 
 _Captured: 2026-07-30 · 2 file change(s)_
 
 ---
+
+## T03 — Config template: dead flags out, gitSharing in, specDriven from options
+
+`getFrameConfigTemplate(name, options)` in src/shared/frameTemplates.js: dropped `autoUpdateStructure`/`autoUpdateNotes`/`taskRecognition` (never had a reader), `settings` now holds only `gitSharing` (from `options.gitSharing`, invalid values fall back to `'local'`), and `features.specDriven` comes from `options.specDriven` (default true). The sole caller (`frameProject.js:189`) still passes one argument and gets identical-to-today defaults until T05 threads the init options through. Three new cases in test/frameTemplates.test.js.
+
+_Captured: 2026-07-30 · 2 file change(s)_
+
+---

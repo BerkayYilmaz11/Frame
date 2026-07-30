@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:44:19.287Z",
+  "lastUpdated": "2026-07-30T13:45:44.168Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4470,13 +4470,13 @@
       "title": "Remove `autoUpdateStructure`, `autoUpdateNotes`, and `taskRecognition` from `getFrameConfigTemplate` in src/shared/frameTemplates.js, add `settings.gitSharing`, and take `features.specDriven` from an options argument (default true); extend test/frameTemplates.test.js.",
       "description": "",
       "source": "spec:project-settings:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:11:24.946Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:45:44.168Z",
+      "completedAt": "2026-07-30T13:45:44.168Z"
     },
     {
       "id": "task-spec-project-settings-T04",
