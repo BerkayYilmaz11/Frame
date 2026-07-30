@@ -667,6 +667,32 @@
             <li><span class="file-icon">&#128196;</span> .frame/QUICKSTART.md <span class="file-desc">getting started</span></li>
           </ul>
           <p class="init-modal-note">No file outside <code>.frame/</code> is created, modified or deleted &mdash; your <code>CLAUDE.md</code>, <code>AGENTS.md</code> and any other instruction files are read only, never rewritten. <code>.frame/</code> is kept out of git via <code>.git/info/exclude</code>, so <code>git status</code> stays clean.</p>
+          <div class="init-modal-options">
+            <label class="init-modal-option" title="Specs, plans and task lists drive significant work; toggleable later in Project Settings">
+              <input type="checkbox" id="init-option-spec-driven" checked>
+              <span class="init-modal-option-text">
+                <span class="init-modal-option-title">Spec-Driven Development</span>
+                <span class="init-modal-option-desc">Significant work flows through a spec before code</span>
+              </span>
+            </label>
+            <div class="init-modal-option-group" id="init-option-sharing" style="display: none;">
+              <span class="init-modal-option-title">Git Sharing</span>
+              <label class="init-modal-option">
+                <input type="radio" name="init-option-git-sharing" value="local" checked>
+                <span class="init-modal-option-text">
+                  <span class="init-modal-option-title">Local to this machine</span>
+                  <span class="init-modal-option-desc"><code>.frame/</code> is hidden from git; <code>git status</code> stays clean</span>
+                </span>
+              </label>
+              <label class="init-modal-option">
+                <input type="radio" name="init-option-git-sharing" value="repo">
+                <span class="init-modal-option-text">
+                  <span class="init-modal-option-title">Shared in the repository</span>
+                  <span class="init-modal-option-desc">Specs and notes can be committed; machine-local files stay out</span>
+                </span>
+              </label>
+            </div>
+          </div>
           <div id="init-frame-existing-warning" class="init-modal-warning" style="display: none;">
             <p>These files already exist and will NOT be overwritten:</p>
             <ul id="init-frame-existing-list"></ul>

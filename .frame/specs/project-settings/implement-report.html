@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">5 of 9 tasks done · next: <span class="rs-task">T06 — Add the options block to the initialize-frame-modal in index.html…</span></span>
+  <span class="rs-count">6 of 9 tasks done · next: <span class="rs-task">T07 — Build the Project Settings modal: markup in index.html…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1300,6 +1300,194 @@
 <span class="dl-add">+  assert.equal(config.features.specDriven, false);</span>
 <span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;, &#39;non-repo default should still be local&#39;);</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Init modal options block</h2>
+    <span class="card-meta"><span class="chip">59d1958</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">358 tests, 0 failures (renderer is uncovered by design — see plan test posture)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Options block in index.html&#39;s initialize-frame-modal: Spec-Driven checkbox (default on) and the Git Sharing radio pair (default Local to this machine), the sharing group hidden until GET_GIT_SHARING_STATE reports isRepo. state.js resets the options on open and sends both in the init payload. Styles added beside the existing init-modal rules in panels.css.</p></div>
+    <div class="field"><span class="label">Why</span><p>Init asked neither question before — someone setting up a shared team project had to initialize wrong and then discover the fix. Styling landed in panels.css rather than a new file (a small divergence from the plan&#39;s Files list) because that file already owns every init-modal-* rule.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/index.html b/index.html</span>
+<span class="dl-meta">index 2956d76..27e0657 100644</span>
+<span class="dl-file">--- a/index.html</span>
+<span class="dl-file">+++ b/index.html</span>
+<span class="dl-hunk">@@ -667,6 +667,32 @@</span>
+<span class="dl-ctx">             &lt;li&gt;&lt;span class=&quot;file-icon&quot;&gt;&amp;#128196;&lt;/span&gt; .frame/QUICKSTART.md &lt;span class=&quot;file-desc&quot;&gt;getting started&lt;/span&gt;&lt;/li&gt;</span>
+<span class="dl-ctx">           &lt;/ul&gt;</span>
+<span class="dl-ctx">           &lt;p class=&quot;init-modal-note&quot;&gt;No file outside &lt;code&gt;.frame/&lt;/code&gt; is created, modified or deleted &amp;mdash; your &lt;code&gt;CLAUDE.md&lt;/code&gt;, &lt;code&gt;AGENTS.md&lt;/code&gt; and any other instruction files are read only, never rewritten. &lt;code&gt;.frame/&lt;/code&gt; is kept out of git via &lt;code&gt;.git/info/exclude&lt;/code&gt;, so &lt;code&gt;git status&lt;/code&gt; stays clean.&lt;/p&gt;</span>
+<span class="dl-add">+          &lt;div class=&quot;init-modal-options&quot;&gt;</span>
+<span class="dl-add">+            &lt;label class=&quot;init-modal-option&quot; title=&quot;Specs, plans and task lists drive significant work; toggleable later in Project Settings&quot;&gt;</span>
+<span class="dl-add">+              &lt;input type=&quot;checkbox&quot; id=&quot;init-option-spec-driven&quot; checked&gt;</span>
+<span class="dl-add">+              &lt;span class=&quot;init-modal-option-text&quot;&gt;</span>
+<span class="dl-add">+                &lt;span class=&quot;init-modal-option-title&quot;&gt;Spec-Driven Development&lt;/span&gt;</span>
+<span class="dl-add">+                &lt;span class=&quot;init-modal-option-desc&quot;&gt;Significant work flows through a spec before code&lt;/span&gt;</span>
+<span class="dl-add">+              &lt;/span&gt;</span>
+<span class="dl-add">+            &lt;/label&gt;</span>
+<span class="dl-add">+            &lt;div class=&quot;init-modal-option-group&quot; id=&quot;init-option-sharing&quot; style=&quot;display: none;&quot;&gt;</span>
+<span class="dl-add">+              &lt;span class=&quot;init-modal-option-title&quot;&gt;Git Sharing&lt;/span&gt;</span>
+<span class="dl-add">+              &lt;label class=&quot;init-modal-option&quot;&gt;</span>
+<span class="dl-add">+                &lt;input type=&quot;radio&quot; name=&quot;init-option-git-sharing&quot; value=&quot;local&quot; checked&gt;</span>
+<span class="dl-add">+                &lt;span class=&quot;init-modal-option-text&quot;&gt;</span>
+<span class="dl-add">+                  &lt;span class=&quot;init-modal-option-title&quot;&gt;Local to this machine&lt;/span&gt;</span>
+<span class="dl-add">+                  &lt;span class=&quot;init-modal-option-desc&quot;&gt;&lt;code&gt;.frame/&lt;/code&gt; is hidden from git; &lt;code&gt;git status&lt;/code&gt; stays clean&lt;/span&gt;</span>
+<span class="dl-add">+                &lt;/span&gt;</span>
+<span class="dl-add">+              &lt;/label&gt;</span>
+<span class="dl-add">+              &lt;label class=&quot;init-modal-option&quot;&gt;</span>
+<span class="dl-add">+                &lt;input type=&quot;radio&quot; name=&quot;init-option-git-sharing&quot; value=&quot;repo&quot;&gt;</span>
+<span class="dl-add">+                &lt;span class=&quot;init-modal-option-text&quot;&gt;</span>
+<span class="dl-add">+                  &lt;span class=&quot;init-modal-option-title&quot;&gt;Shared in the repository&lt;/span&gt;</span>
+<span class="dl-add">+                  &lt;span class=&quot;init-modal-option-desc&quot;&gt;Specs and notes can be committed; machine-local files stay out&lt;/span&gt;</span>
+<span class="dl-add">+                &lt;/span&gt;</span>
+<span class="dl-add">+              &lt;/label&gt;</span>
+<span class="dl-add">+            &lt;/div&gt;</span>
+<span class="dl-add">+          &lt;/div&gt;</span>
+<span class="dl-ctx">           &lt;div id=&quot;init-frame-existing-warning&quot; class=&quot;init-modal-warning&quot; style=&quot;display: none;&quot;&gt;</span>
+<span class="dl-ctx">             &lt;p&gt;These files already exist and will NOT be overwritten:&lt;/p&gt;</span>
+<span class="dl-ctx">             &lt;ul id=&quot;init-frame-existing-list&quot;&gt;&lt;/ul&gt;</span>
+<span class="dl-meta">diff --git a/src/renderer/state.js b/src/renderer/state.js</span>
+<span class="dl-meta">index 1f848fe..7712945 100644</span>
+<span class="dl-file">--- a/src/renderer/state.js</span>
+<span class="dl-file">+++ b/src/renderer/state.js</span>
+<span class="dl-hunk">@@ -186,6 +186,26 @@ function showInitializeFrameModal() {</span>
+<span class="dl-ctx">     // Reset the &quot;Don&#39;t ask again&quot; checkbox each time the prompt opens.</span>
+<span class="dl-ctx">     const dontAsk = document.getElementById(&#39;init-frame-dontask&#39;);</span>
+<span class="dl-ctx">     if (dontAsk) dontAsk.checked = false;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Reset the init options to their defaults: Spec-Driven on, sharing</span>
+<span class="dl-add">+    // local. The Git Sharing choice only exists inside a git repository —</span>
+<span class="dl-add">+    // outside one there is no mode to choose, so the block stays hidden.</span>
+<span class="dl-add">+    const specDriven = document.getElementById(&#39;init-option-spec-driven&#39;);</span>
+<span class="dl-add">+    if (specDriven) specDriven.checked = true;</span>
+<span class="dl-add">+    const localRadio = document.querySelector(&#39;input[name=&quot;init-option-git-sharing&quot;][value=&quot;local&quot;]&#39;);</span>
+<span class="dl-add">+    if (localRadio) localRadio.checked = true;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const sharingBlock = document.getElementById(&#39;init-option-sharing&#39;);</span>
+<span class="dl-add">+    if (sharingBlock) {</span>
+<span class="dl-add">+      sharingBlock.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+      ipcRenderer</span>
+<span class="dl-add">+        .invoke(IPC.GET_GIT_SHARING_STATE, currentProjectPath)</span>
+<span class="dl-add">+        .then((state) =&gt; {</span>
+<span class="dl-add">+          if (state &amp;&amp; state.isRepo) sharingBlock.style.display = &#39;&#39;;</span>
+<span class="dl-add">+        })</span>
+<span class="dl-add">+        .catch(() =&gt; { /* leave hidden */ });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     modal.classList.add(&#39;visible&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-hunk">@@ -217,14 +237,28 @@ function dismissInitPrompt() {</span>
+<span class="dl-ctx">  * Handle initialize Frame confirmation</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function handleInitializeFrame() {</span>
+<span class="dl-del">-  hideInitializeFrameModal();</span>
+<span class="dl-ctx">   if (currentProjectPath) {</span>
+<span class="dl-ctx">     const projectName = currentProjectPath.split(&#39;/&#39;).pop() || currentProjectPath.split(&#39;\\&#39;).pop();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // Read both init answers before the modal closes. The sharing radios</span>
+<span class="dl-add">+    // only count when the block is visible (i.e. this is a git repository);</span>
+<span class="dl-add">+    // hidden radios still hold &#39;local&#39;, which is also the right default.</span>
+<span class="dl-add">+    const specDrivenInput = document.getElementById(&#39;init-option-spec-driven&#39;);</span>
+<span class="dl-add">+    const sharingChecked = document.querySelector(&#39;input[name=&quot;init-option-git-sharing&quot;]:checked&#39;);</span>
+<span class="dl-add">+    const options = {</span>
+<span class="dl-add">+      specDriven: !specDrivenInput || specDrivenInput.checked,</span>
+<span class="dl-add">+      gitSharing: sharingChecked &amp;&amp; sharingChecked.value === &#39;repo&#39; ? &#39;repo&#39; : &#39;local&#39;</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    hideInitializeFrameModal();</span>
+<span class="dl-ctx">     ipcRenderer.send(IPC.INITIALIZE_FRAME_PROJECT, {</span>
+<span class="dl-ctx">       projectPath: currentProjectPath,</span>
+<span class="dl-ctx">       projectName: projectName,</span>
+<span class="dl-del">-      confirmed: true</span>
+<span class="dl-add">+      confirmed: true,</span>
+<span class="dl-add">+      options</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-add">+  } else {</span>
+<span class="dl-add">+    hideInitializeFrameModal();</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/panels.css b/src/renderer/styles/components/panels.css</span>
+<span class="dl-meta">index 2c80cb7..d4af5bc 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/components/panels.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/panels.css</span>
+<span class="dl-hunk">@@ -2314,6 +2314,69 @@</span>
+<span class="dl-ctx">   font-family: var(--font-sans, sans-serif);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/* The two init choices (Spec-Driven, Git Sharing) below the no-write note.</span>
+<span class="dl-add">+   Same quiet card the file list uses; the sharing group is hidden entirely</span>
+<span class="dl-add">+   outside a git repository. */</span>
+<span class="dl-add">+.init-modal-options {</span>
+<span class="dl-add">+  margin-top: var(--space-md);</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border-radius: var(--radius-sm);</span>
+<span class="dl-add">+  padding: var(--space-md);</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: var(--space-sm);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  align-items: flex-start;</span>
+<span class="dl-add">+  gap: var(--space-sm);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  user-select: none;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option input {</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  margin-top: 2px;</span>
+<span class="dl-add">+  flex-shrink: 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-text {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: 2px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-title {</span>
+<span class="dl-add">+  font-size: 13px;</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-desc {</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  line-height: 1.5;</span>
+<span class="dl-add">+  color: var(--text-tertiary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-desc code {</span>
+<span class="dl-add">+  font-family: var(--font-mono);</span>
+<span class="dl-add">+  font-size: 10px;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-group {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: var(--space-sm);</span>
+<span class="dl-add">+  padding-top: var(--space-sm);</span>
+<span class="dl-add">+  border-top: 1px solid var(--border-color, rgba(128, 128, 128, 0.15));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.init-modal-option-group &gt; .init-modal-option-title {</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> .init-modal-warning {</span>
+<span class="dl-ctx">   background: rgba(200, 160, 60, 0.1);</span>
+<span class="dl-ctx">   border: 1px solid rgba(200, 160, 60, 0.3);</span></pre>
     </details>
   </div>
 </section>

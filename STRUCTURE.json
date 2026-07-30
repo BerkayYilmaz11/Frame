@@ -7854,62 +7854,62 @@
           "purpose": "Show custom initialize Frame modal"
         },
         "hideInitializeFrameModal": {
-          "line": 196,
+          "line": 216,
           "purpose": "Hide initialize Frame modal"
         },
         "dismissInitPrompt": {
-          "line": 208,
+          "line": 228,
           "purpose": "Dismiss the prompt without initializing (\"Not Now\" / close / Escape /"
         },
         "handleInitializeFrame": {
-          "line": 219,
+          "line": 239,
           "purpose": "Handle initialize Frame confirmation"
         },
         "setupInitFrameModalListeners": {
-          "line": 234,
+          "line": 268,
           "purpose": "Setup initialize Frame modal listeners"
         },
         "showInitSpotlight": {
-          "line": 260,
+          "line": 294,
           "purpose": "Show spotlight tour for the initialize button (first time only)"
         },
         "dismissSpotlight": {
-          "line": 301,
+          "line": 335,
           "purpose": "Dismiss spotlight and mark as seen"
         },
         "setupSpotlightListeners": {
-          "line": 312,
+          "line": 346,
           "purpose": "Setup spotlight tour listeners"
         },
         "updateProjectUI": {
-          "line": 354,
+          "line": 388,
           "purpose": "Update project UI elements"
         },
         "selectProjectFolder": {
-          "line": 378,
+          "line": 412,
           "purpose": "Request folder selection"
         },
         "createNewProject": {
-          "line": 385,
+          "line": 419,
           "purpose": "Request new project creation"
         },
         "openSampleProject": {
-          "line": 395,
+          "line": 429,
           "purpose": "Open the bundled sample project. Main copies it into the user-data"
         },
         "getIsSampleProject": {
-          "line": 402,
+          "line": 436,
           "purpose": "Check whether the current project is the bundled sample."
         },
         "onSampleChange": {
-          "line": 410,
+          "line": 444,
           "params": [
             "callback"
           ],
           "purpose": "Register a callback fired whenever the current project's"
         },
         "setupIPC": {
-          "line": 417,
+          "line": 451,
           "purpose": "Setup IPC listeners"
         }
       },

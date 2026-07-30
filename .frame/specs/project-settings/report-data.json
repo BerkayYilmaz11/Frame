@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "358 tests, 0 failures"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Init modal options block",
+      "commit": "59d1958",
+      "whatChanged": "Options block in index.html's initialize-frame-modal: Spec-Driven checkbox (default on) and the Git Sharing radio pair (default Local to this machine), the sharing group hidden until GET_GIT_SHARING_STATE reports isRepo. state.js resets the options on open and sends both in the init payload. Styles added beside the existing init-modal rules in panels.css.",
+      "whyChanged": "Init asked neither question before — someone setting up a shared team project had to initialize wrong and then discover the fix. Styling landed in panels.css rather than a new file (a small divergence from the plan's Files list) because that file already owns every init-modal-* rule.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
+      }
     }
   ]
 }

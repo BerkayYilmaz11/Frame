@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:49:32.292Z",
+  "lastUpdated": "2026-07-30T13:51:26.480Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4509,13 +4509,13 @@
       "title": "Add the options block to the initialize-frame-modal in index.html (Spec-Driven checkbox default on; Git Sharing choice phrased Local to this machine / Shared in the repository, default local, hidden when GET_GIT_SHARING_STATE reports isRepo false) and send both options in the init payload from src/renderer/state.js.",
       "description": "",
       "source": "spec:project-settings:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:29:04.758Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:51:26.480Z",
+      "completedAt": "2026-07-30T13:51:26.480Z"
     },
     {
       "id": "task-spec-project-settings-T07",

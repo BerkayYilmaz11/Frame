@@ -39,3 +39,11 @@ Threaded `options: { specDriven, gitSharing }` through `initializeFrameProject �
 _Captured: 2026-07-30 · 4 file change(s)_
 
 ---
+
+## T06 — Init modal options block
+
+Added the options block below the init modal's no-write note in index.html: Spec-Driven checkbox (default on) and the Git Sharing radio pair ("Local to this machine" / "Shared in the repository", default local), the sharing group hidden until GET_GIT_SHARING_STATE reports `isRepo: true`. `state.js` resets both options on every open and reads them into `options` on confirm, sent in the INITIALIZE_FRAME_PROJECT payload. Divergence from plan.md: the block's styles went into `src/renderer/styles/components/panels.css` (not in the plan's Files list) because that file already owns every `init-modal-*` rule.
+
+_Captured: 2026-07-30 · 3 file change(s)_
+
+---
