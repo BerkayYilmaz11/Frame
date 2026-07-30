@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
       }
+    },
+    {
+      "id": "T08",
+      "title": "App Settings slimdown, spec-driven relocation, hint re-anchor",
+      "commit": "6a307a6",
+      "whatChanged": "Workflow section deleted from App Settings (index.html + settingsModal.js wiring); the spec-driven toggle semantics moved verbatim into Project Settings' Workflow section (snap-back, markDismissed on disable, specDrivenHint.refresh), keyed to the modal's project. specDrivenHint re-anchored from sidebar-settings-btn to the active row's gear, with .hint-anchored forcing the hover-revealed gear visible and copy pointing at Project Settings.",
+      "whyChanged": "The per-project flag sat in the app-wide modal above genuinely global switches — two scopes, one surface. With App Settings losing Workflow, the hint's old anchor and copy both went stale; behaviour is otherwise identical per acceptance 7.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "358 tests, 0 failures (renderer is uncovered by design — see plan test posture)"
+      }
     }
   ]
 }

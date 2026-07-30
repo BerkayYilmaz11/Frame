@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">7 of 9 tasks done · next: <span class="rs-task">T08 — Delete the Workflow section from App Settings (index.html and…</span></span>
+  <span class="rs-count">8 of 9 tasks done · next: <span class="rs-task">T09 — Build the sharing hint: src/renderer/sharingHint.js and…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1953,6 +1953,417 @@
 <span class="dl-ctx"> /* 13. Tasks Dashboard (Kanban-style overlay) */</span>
 <span class="dl-ctx"> @import &#39;components/tasks-dashboard.css&#39;;</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>App Settings slimdown, spec-driven relocation, hint re-anchor</h2>
+    <span class="card-meta"><span class="chip">6a307a6</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">358 tests, 0 failures (renderer is uncovered by design — see plan test posture)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Workflow section deleted from App Settings (index.html + settingsModal.js wiring); the spec-driven toggle semantics moved verbatim into Project Settings&#39; Workflow section (snap-back, markDismissed on disable, specDrivenHint.refresh), keyed to the modal&#39;s project. specDrivenHint re-anchored from sidebar-settings-btn to the active row&#39;s gear, with .hint-anchored forcing the hover-revealed gear visible and copy pointing at Project Settings.</p></div>
+    <div class="field"><span class="label">Why</span><p>The per-project flag sat in the app-wide modal above genuinely global switches — two scopes, one surface. With App Settings losing Workflow, the hint&#39;s old anchor and copy both went stale; behaviour is otherwise identical per acceptance 7.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/index.html b/index.html</span>
+<span class="dl-meta">index af810f8..3a87854 100644</span>
+<span class="dl-file">--- a/index.html</span>
+<span class="dl-file">+++ b/index.html</span>
+<span class="dl-hunk">@@ -1300,8 +1300,24 @@</span>
+<span class="dl-ctx">         &lt;button type=&quot;button&quot; class=&quot;settings-close&quot; data-project-settings-close aria-label=&quot;Close&quot;&gt;&amp;#x2715;&lt;/button&gt;</span>
+<span class="dl-ctx">       &lt;/div&gt;</span>
+<span class="dl-ctx">       &lt;div class=&quot;settings-body&quot;&gt;</span>
+<span class="dl-del">-        &lt;div class=&quot;settings-section&quot; id=&quot;project-settings-workflow-section&quot; style=&quot;display:none;&quot;&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;settings-section&quot; id=&quot;project-settings-workflow-section&quot;&gt;</span>
+<span class="dl-ctx">           &lt;h4 class=&quot;settings-section-title&quot;&gt;Workflow&lt;/h4&gt;</span>
+<span class="dl-add">+          &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-add">+            &lt;div class=&quot;settings-row-text&quot;&gt;</span>
+<span class="dl-add">+              &lt;label class=&quot;settings-row-label&quot; for=&quot;project-settings-spec-driven-toggle&quot;&gt;Spec-Driven Development&lt;/label&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot; id=&quot;project-settings-spec-driven-desc&quot;&gt;</span>
+<span class="dl-add">+                Structure AI work into specs → plans → tasks under</span>
+<span class="dl-add">+                &lt;code&gt;.frame/specs/&lt;/code&gt;, visible in the Specs panel. Applies to this</span>
+<span class="dl-add">+                project: turning it off stops Frame telling your AI tool</span>
+<span class="dl-add">+                about specs from the next launch; existing specs are kept on disk.</span>
+<span class="dl-add">+              &lt;/p&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot; id=&quot;project-settings-spec-driven-note&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;</span>
+<span class="dl-add">+            &lt;/div&gt;</span>
+<span class="dl-add">+            &lt;label class=&quot;settings-switch&quot;&gt;</span>
+<span class="dl-add">+              &lt;input type=&quot;checkbox&quot; id=&quot;project-settings-spec-driven-toggle&quot; /&gt;</span>
+<span class="dl-add">+              &lt;span class=&quot;settings-switch-slider&quot;&gt;&lt;/span&gt;</span>
+<span class="dl-add">+            &lt;/label&gt;</span>
+<span class="dl-add">+          &lt;/div&gt;</span>
+<span class="dl-ctx">         &lt;/div&gt;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">         &lt;div class=&quot;settings-section&quot; id=&quot;project-settings-sharing-section&quot;&gt;</span>
+<span class="dl-hunk">@@ -1345,26 +1361,6 @@</span>
+<span class="dl-ctx">         &lt;button type=&quot;button&quot; class=&quot;settings-close&quot; data-settings-close aria-label=&quot;Close&quot;&gt;&amp;#x2715;&lt;/button&gt;</span>
+<span class="dl-ctx">       &lt;/div&gt;</span>
+<span class="dl-ctx">       &lt;div class=&quot;settings-body&quot;&gt;</span>
+<span class="dl-del">-        &lt;div class=&quot;settings-section&quot;&gt;</span>
+<span class="dl-del">-          &lt;h4 class=&quot;settings-section-title&quot;&gt;Workflow&lt;/h4&gt;</span>
+<span class="dl-del">-          &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-del">-            &lt;div class=&quot;settings-row-text&quot;&gt;</span>
+<span class="dl-del">-              &lt;label class=&quot;settings-row-label&quot; for=&quot;settings-spec-driven-toggle&quot;&gt;Spec-Driven Development&lt;/label&gt;</span>
+<span class="dl-del">-              &lt;p class=&quot;settings-row-desc&quot; id=&quot;settings-spec-driven-desc&quot;&gt;</span>
+<span class="dl-del">-                Structure AI work into specs → plans → tasks under</span>
+<span class="dl-del">-                &lt;code&gt;.frame/specs/&lt;/code&gt;, visible in the Specs panel. Applies to the</span>
+<span class="dl-del">-                current project: turning it off stops Frame telling your AI tool</span>
+<span class="dl-del">-                about specs from the next launch; existing specs are kept on disk.</span>
+<span class="dl-del">-              &lt;/p&gt;</span>
+<span class="dl-del">-              &lt;p class=&quot;settings-row-desc&quot; id=&quot;settings-spec-driven-note&quot; style=&quot;display:none;&quot;&gt;&lt;/p&gt;</span>
+<span class="dl-del">-            &lt;/div&gt;</span>
+<span class="dl-del">-            &lt;label class=&quot;settings-switch&quot;&gt;</span>
+<span class="dl-del">-              &lt;input type=&quot;checkbox&quot; id=&quot;settings-spec-driven-toggle&quot; /&gt;</span>
+<span class="dl-del">-              &lt;span class=&quot;settings-switch-slider&quot;&gt;&lt;/span&gt;</span>
+<span class="dl-del">-            &lt;/label&gt;</span>
+<span class="dl-del">-          &lt;/div&gt;</span>
+<span class="dl-del">-        &lt;/div&gt;</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">         &lt;div class=&quot;settings-section&quot;&gt;</span>
+<span class="dl-ctx">           &lt;h4 class=&quot;settings-section-title&quot;&gt;Privacy &amp;amp; Analytics&lt;/h4&gt;</span>
+<span class="dl-ctx">           &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-meta">diff --git a/src/renderer/projectSettingsModal.js b/src/renderer/projectSettingsModal.js</span>
+<span class="dl-meta">index 82d3063..65e2bdf 100644</span>
+<span class="dl-file">--- a/src/renderer/projectSettingsModal.js</span>
+<span class="dl-file">+++ b/src/renderer/projectSettingsModal.js</span>
+<span class="dl-hunk">@@ -13,6 +13,7 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+const specDrivenHint = require(&#39;./specDrivenHint&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const UNTRACK_COMMAND = &#39;git rm -r --cached .frame&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -20,6 +21,8 @@ let overlayEl = null;</span>
+<span class="dl-ctx"> let nameEl = null;</span>
+<span class="dl-ctx"> let pathEl = null;</span>
+<span class="dl-ctx"> let workflowSectionEl = null;</span>
+<span class="dl-add">+let specDrivenToggleEl = null;</span>
+<span class="dl-add">+let specDrivenNoteEl = null;</span>
+<span class="dl-ctx"> let sharingSectionEl = null;</span>
+<span class="dl-ctx"> let sharingToggleEl = null;</span>
+<span class="dl-ctx"> let sharingDescEl = null;</span>
+<span class="dl-hunk">@@ -37,6 +40,8 @@ function init() {</span>
+<span class="dl-ctx">   nameEl = document.getElementById(&#39;project-settings-name&#39;);</span>
+<span class="dl-ctx">   pathEl = document.getElementById(&#39;project-settings-path&#39;);</span>
+<span class="dl-ctx">   workflowSectionEl = document.getElementById(&#39;project-settings-workflow-section&#39;);</span>
+<span class="dl-add">+  specDrivenToggleEl = document.getElementById(&#39;project-settings-spec-driven-toggle&#39;);</span>
+<span class="dl-add">+  specDrivenNoteEl = document.getElementById(&#39;project-settings-spec-driven-note&#39;);</span>
+<span class="dl-ctx">   sharingSectionEl = document.getElementById(&#39;project-settings-sharing-section&#39;);</span>
+<span class="dl-ctx">   sharingToggleEl = document.getElementById(&#39;project-settings-sharing-toggle&#39;);</span>
+<span class="dl-ctx">   sharingDescEl = document.getElementById(&#39;project-settings-sharing-desc&#39;);</span>
+<span class="dl-hunk">@@ -51,6 +56,46 @@ function init() {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   sharingToggleEl.addEventListener(&#39;change&#39;, onSharingToggle);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // Spec-Driven Development: per-project flag in .frame/config.json, not a</span>
+<span class="dl-add">+  // user preference. Main writes the flag and nothing else — no instruction</span>
+<span class="dl-add">+  // file is edited either way; the launch preamble reads the flag fresh and</span>
+<span class="dl-add">+  // decides what the agent is told. On failure we snap the switch back so it</span>
+<span class="dl-add">+  // never lies about the on-disk state. (Moved verbatim from App Settings.)</span>
+<span class="dl-add">+  if (specDrivenToggleEl) {</span>
+<span class="dl-add">+    specDrivenToggleEl.addEventListener(&#39;change&#39;, async () =&gt; {</span>
+<span class="dl-add">+      const projectPath = currentProject &amp;&amp; currentProject.path;</span>
+<span class="dl-add">+      const wanted = specDrivenToggleEl.checked;</span>
+<span class="dl-add">+      if (!projectPath) {</span>
+<span class="dl-add">+        specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-add">+        return;</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      specDrivenToggleEl.disabled = true;</span>
+<span class="dl-add">+      try {</span>
+<span class="dl-add">+        const result = await ipcRenderer.invoke(IPC.SET_SPEC_DRIVEN, {</span>
+<span class="dl-add">+          projectPath,</span>
+<span class="dl-add">+          enabled: wanted</span>
+<span class="dl-add">+        });</span>
+<span class="dl-add">+        if (!result || !result.success) {</span>
+<span class="dl-add">+          specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-add">+          setSpecDrivenNote(</span>
+<span class="dl-add">+            &#39;Could not change this setting: &#39; + ((result &amp;&amp; result.error) || &#39;unknown error&#39;)</span>
+<span class="dl-add">+          );</span>
+<span class="dl-add">+        } else {</span>
+<span class="dl-add">+          setSpecDrivenNote(null);</span>
+<span class="dl-add">+          // Turning it off here is a deliberate choice — stop offering to</span>
+<span class="dl-add">+          // turn it back on for this project.</span>
+<span class="dl-add">+          if (!wanted) await specDrivenHint.markDismissed(projectPath);</span>
+<span class="dl-add">+          specDrivenHint.refresh();</span>
+<span class="dl-add">+        }</span>
+<span class="dl-add">+      } catch (err) {</span>
+<span class="dl-add">+        specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-add">+        setSpecDrivenNote(&#39;Could not change this setting: &#39; + err.message);</span>
+<span class="dl-add">+      } finally {</span>
+<span class="dl-add">+        specDrivenToggleEl.disabled = false;</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   if (copyBtnEl) {</span>
+<span class="dl-ctx">     copyBtnEl.addEventListener(&#39;click&#39;, async () =&gt; {</span>
+<span class="dl-ctx">       try {</span>
+<span class="dl-hunk">@@ -159,14 +204,11 @@ function open(project) {</span>
+<span class="dl-ctx">   if (pathEl) pathEl.textContent = project.path;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const isFrame = project.isFrameProject === true;</span>
+<span class="dl-del">-  if (workflowSectionEl) {</span>
+<span class="dl-del">-    // The Workflow section only renders content once the spec-driven toggle</span>
+<span class="dl-del">-    // lives here; kept hidden for non-Frame projects either way.</span>
+<span class="dl-del">-    workflowSectionEl.style.display = isFrame &amp;&amp; workflowSectionEl.dataset.populated === &#39;true&#39; ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-del">-  }</span>
+<span class="dl-add">+  if (workflowSectionEl) workflowSectionEl.style.display = isFrame ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-ctx">   if (sharingSectionEl) sharingSectionEl.style.display = isFrame ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   if (isFrame) {</span>
+<span class="dl-add">+    syncSpecDrivenToggle(project.path);</span>
+<span class="dl-ctx">     sharingToggleEl.disabled = true;</span>
+<span class="dl-ctx">     sharingDescEl.textContent = &#39;&#39;;</span>
+<span class="dl-ctx">     sharingWarningEl.style.display = &#39;none&#39;;</span>
+<span class="dl-hunk">@@ -186,6 +228,32 @@ function open(project) {</span>
+<span class="dl-ctx">   overlayEl.classList.add(&#39;visible&#39;);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Reflect this project&#39;s features.specDriven flag. The modal only shows the</span>
+<span class="dl-add">+ * Workflow section for Frame projects, so a missing config reads as an error</span>
+<span class="dl-add">+ * rather than an empty state.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function syncSpecDrivenToggle(projectPath) {</span>
+<span class="dl-add">+  if (!specDrivenToggleEl) return;</span>
+<span class="dl-add">+  specDrivenToggleEl.disabled = true;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const enabled = await ipcRenderer.invoke(IPC.IS_SPEC_DRIVEN_ENABLED, projectPath);</span>
+<span class="dl-add">+    if (!currentProject || currentProject.path !== projectPath) return;</span>
+<span class="dl-add">+    specDrivenToggleEl.checked = enabled === true;</span>
+<span class="dl-add">+    specDrivenToggleEl.disabled = false;</span>
+<span class="dl-add">+    setSpecDrivenNote(null);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    specDrivenToggleEl.disabled = true;</span>
+<span class="dl-add">+    setSpecDrivenNote(&#39;Could not read this project’s Frame config.&#39;);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function setSpecDrivenNote(message) {</span>
+<span class="dl-add">+  if (!specDrivenNoteEl) return;</span>
+<span class="dl-add">+  specDrivenNoteEl.textContent = message || &#39;&#39;;</span>
+<span class="dl-add">+  specDrivenNoteEl.style.display = message ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function close() {</span>
+<span class="dl-ctx">   if (!isOpen) return;</span>
+<span class="dl-ctx">   isOpen = false;</span>
+<span class="dl-meta">diff --git a/src/renderer/settingsModal.js b/src/renderer/settingsModal.js</span>
+<span class="dl-meta">index 6817eae..74b51dc 100644</span>
+<span class="dl-file">--- a/src/renderer/settingsModal.js</span>
+<span class="dl-file">+++ b/src/renderer/settingsModal.js</span>
+<span class="dl-hunk">@@ -8,8 +8,6 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { ipcRenderer, shell } = require(&#39;electron&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-del">-const state = require(&#39;./state&#39;);</span>
+<span class="dl-del">-const specDrivenHint = require(&#39;./specDrivenHint&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const TELEMETRY_KEY = &#39;telemetryEnabled&#39;;</span>
+<span class="dl-ctx"> const CRASH_DUMPS_KEY = &#39;crashDumpsEnabled&#39;;</span>
+<span class="dl-hunk">@@ -18,8 +16,6 @@ const DISMISSED_VERSION_KEY = &#39;dismissedUpdateVersion&#39;;</span>
+<span class="dl-ctx"> let overlayEl = null;</span>
+<span class="dl-ctx"> let toggleEl = null;</span>
+<span class="dl-ctx"> let crashDumpsToggleEl = null;</span>
+<span class="dl-del">-let specDrivenToggleEl = null;</span>
+<span class="dl-del">-let specDrivenNoteEl = null;</span>
+<span class="dl-ctx"> let isOpen = false;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // About section elements + state</span>
+<span class="dl-hunk">@@ -37,8 +33,6 @@ function init() {</span>
+<span class="dl-ctx">   overlayEl = document.getElementById(&#39;settings-overlay&#39;);</span>
+<span class="dl-ctx">   toggleEl = document.getElementById(&#39;settings-telemetry-toggle&#39;);</span>
+<span class="dl-ctx">   crashDumpsToggleEl = document.getElementById(&#39;settings-crash-dumps-toggle&#39;);</span>
+<span class="dl-del">-  specDrivenToggleEl = document.getElementById(&#39;settings-spec-driven-toggle&#39;);</span>
+<span class="dl-del">-  specDrivenNoteEl = document.getElementById(&#39;settings-spec-driven-note&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // About section</span>
+<span class="dl-ctx">   aboutVersionEl = document.getElementById(&#39;settings-version&#39;);</span>
+<span class="dl-hunk">@@ -74,46 +68,6 @@ function init() {</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Spec-Driven Development: per-project flag in .frame/config.json, not a</span>
+<span class="dl-del">-  // user preference. Main writes the flag and nothing else — no instruction</span>
+<span class="dl-del">-  // file is edited either way; the launch preamble reads the flag fresh and</span>
+<span class="dl-del">-  // decides what the agent is told. On failure we snap the switch back so it</span>
+<span class="dl-del">-  // never lies about the on-disk state.</span>
+<span class="dl-del">-  if (specDrivenToggleEl) {</span>
+<span class="dl-del">-    specDrivenToggleEl.addEventListener(&#39;change&#39;, async () =&gt; {</span>
+<span class="dl-del">-      const projectPath = state.getProjectPath();</span>
+<span class="dl-del">-      const wanted = specDrivenToggleEl.checked;</span>
+<span class="dl-del">-      if (!projectPath) {</span>
+<span class="dl-del">-        specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-del">-        return;</span>
+<span class="dl-del">-      }</span>
+<span class="dl-del">-      specDrivenToggleEl.disabled = true;</span>
+<span class="dl-del">-      try {</span>
+<span class="dl-del">-        const result = await ipcRenderer.invoke(IPC.SET_SPEC_DRIVEN, {</span>
+<span class="dl-del">-          projectPath,</span>
+<span class="dl-del">-          enabled: wanted</span>
+<span class="dl-del">-        });</span>
+<span class="dl-del">-        if (!result || !result.success) {</span>
+<span class="dl-del">-          specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-del">-          setSpecDrivenNote(</span>
+<span class="dl-del">-            &#39;Could not change this setting: &#39; + ((result &amp;&amp; result.error) || &#39;unknown error&#39;)</span>
+<span class="dl-del">-          );</span>
+<span class="dl-del">-        } else {</span>
+<span class="dl-del">-          setSpecDrivenNote(null);</span>
+<span class="dl-del">-          // Turning it off here is a deliberate choice — stop offering to</span>
+<span class="dl-del">-          // turn it back on for this project.</span>
+<span class="dl-del">-          if (!wanted) await specDrivenHint.markDismissed(projectPath);</span>
+<span class="dl-del">-          specDrivenHint.refresh();</span>
+<span class="dl-del">-        }</span>
+<span class="dl-del">-      } catch (err) {</span>
+<span class="dl-del">-        specDrivenToggleEl.checked = !wanted;</span>
+<span class="dl-del">-        setSpecDrivenNote(&#39;Could not change this setting: &#39; + err.message);</span>
+<span class="dl-del">-      } finally {</span>
+<span class="dl-del">-        specDrivenToggleEl.disabled = false;</span>
+<span class="dl-del">-      }</span>
+<span class="dl-del">-    });</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   overlayEl.addEventListener(&#39;mousedown&#39;, (e) =&gt; {</span>
+<span class="dl-ctx">     if (e.target === overlayEl) close();</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-hunk">@@ -331,39 +285,6 @@ async function syncToggleFromSettings() {</span>
+<span class="dl-ctx">     // Default ON when unset (local-only; nothing is uploaded)</span>
+<span class="dl-ctx">     crashDumpsToggleEl.checked = dumps !== false;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-  await syncSpecDrivenToggle();</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-/**</span>
+<span class="dl-del">- * Reflect the current project&#39;s features.specDriven flag. With no project</span>
+<span class="dl-del">- * open (or a folder that isn&#39;t a Frame project yet) there is nothing to</span>
+<span class="dl-del">- * write, so the switch is disabled and says why.</span>
+<span class="dl-del">- */</span>
+<span class="dl-del">-async function syncSpecDrivenToggle() {</span>
+<span class="dl-del">-  if (!specDrivenToggleEl) return;</span>
+<span class="dl-del">-  const projectPath = state.getProjectPath();</span>
+<span class="dl-del">-  if (!projectPath) {</span>
+<span class="dl-del">-    specDrivenToggleEl.checked = false;</span>
+<span class="dl-del">-    specDrivenToggleEl.disabled = true;</span>
+<span class="dl-del">-    setSpecDrivenNote(&#39;Open a project to change this — the setting lives in its .frame/config.json.&#39;);</span>
+<span class="dl-del">-    return;</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-  try {</span>
+<span class="dl-del">-    const enabled = await ipcRenderer.invoke(IPC.IS_SPEC_DRIVEN_ENABLED, projectPath);</span>
+<span class="dl-del">-    specDrivenToggleEl.checked = enabled === true;</span>
+<span class="dl-del">-    specDrivenToggleEl.disabled = false;</span>
+<span class="dl-del">-    setSpecDrivenNote(null);</span>
+<span class="dl-del">-  } catch (err) {</span>
+<span class="dl-del">-    specDrivenToggleEl.disabled = true;</span>
+<span class="dl-del">-    setSpecDrivenNote(&#39;Could not read this project’s Frame config.&#39;);</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-function setSpecDrivenNote(message) {</span>
+<span class="dl-del">-  if (!specDrivenNoteEl) return;</span>
+<span class="dl-del">-  specDrivenNoteEl.textContent = message || &#39;&#39;;</span>
+<span class="dl-del">-  specDrivenNoteEl.style.display = message ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function open() {</span>
+<span class="dl-meta">diff --git a/src/renderer/specDrivenHint.js b/src/renderer/specDrivenHint.js</span>
+<span class="dl-meta">index 0368ebd..efe657c 100644</span>
+<span class="dl-file">--- a/src/renderer/specDrivenHint.js</span>
+<span class="dl-file">+++ b/src/renderer/specDrivenHint.js</span>
+<span class="dl-hunk">@@ -9,8 +9,13 @@</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * Deliberately quiet: only for Frame projects with the flag off, never for</span>
+<span class="dl-ctx">  * new projects (they start enabled), and &quot;Don&#39;t show again&quot; is remembered</span>
+<span class="dl-del">- * per project. Turning the feature off from Settings also silences it — a</span>
+<span class="dl-del">- * choice the user just made is not something to nag about.</span>
+<span class="dl-add">+ * per project. Turning the feature off from Project Settings also silences</span>
+<span class="dl-add">+ * it — a choice the user just made is not something to nag about.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Anchored to the active project row&#39;s gear — the switch lives in Project</span>
+<span class="dl-add">+ * Settings now, not app Settings. The gear is hover-revealed, so while the</span>
+<span class="dl-add">+ * popover is showing it gets `.hint-anchored` to force it visible: a popover</span>
+<span class="dl-add">+ * cannot point at nothing.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-hunk">@@ -18,11 +23,15 @@ const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> const state = require(&#39;./state&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const DISMISSED_KEY = &#39;specDrivenHintDismissed&#39;;</span>
+<span class="dl-del">-const ANCHOR_ID = &#39;sidebar-settings-btn&#39;;</span>
+<span class="dl-ctx"> // Let the app finish opening the project (loader fade, panels settling)</span>
+<span class="dl-ctx"> // before something pops up in the corner.</span>
+<span class="dl-ctx"> const SHOW_DELAY_MS = 900;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/** The active project row&#39;s gear — the button that opens Project Settings. */</span>
+<span class="dl-add">+function getAnchor() {</span>
+<span class="dl-add">+  return document.querySelector(&#39;.project-item.active .project-gear-btn&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> let popoverEl = null;</span>
+<span class="dl-ctx"> let shownForPath = null;</span>
+<span class="dl-ctx"> let showTimer = null;</span>
+<span class="dl-hunk">@@ -57,7 +66,7 @@ async function evaluate() {</span>
+<span class="dl-ctx">     return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx">   if ((popoverEl || showTimer) &amp;&amp; shownForPath === projectPath) return;</span>
+<span class="dl-del">-  if (!document.getElementById(ANCHOR_ID)) return;</span>
+<span class="dl-add">+  if (!getAnchor()) return;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     if (await isDismissed(projectPath)) return;</span>
+<span class="dl-hunk">@@ -100,7 +109,7 @@ function render(projectPath) {</span>
+<span class="dl-ctx">     &lt;div class=&quot;spec-driven-hint-title&quot;&gt;Spec-Driven Development is off&lt;/div&gt;</span>
+<span class="dl-ctx">     &lt;p class=&quot;spec-driven-hint-text&quot;&gt;</span>
+<span class="dl-ctx">       Specs your AI writes stay hidden from the Specs panel while this is off.</span>
+<span class="dl-del">-      New projects have it on — you can switch it here, in Settings &amp;rarr; Workflow.</span>
+<span class="dl-add">+      New projects have it on — you can switch it here, in Project Settings &amp;rarr; Workflow.</span>
+<span class="dl-ctx">     &lt;/p&gt;</span>
+<span class="dl-ctx">     &lt;div class=&quot;spec-driven-hint-error&quot; role=&quot;alert&quot;&gt;&lt;/div&gt;</span>
+<span class="dl-ctx">     &lt;div class=&quot;spec-driven-hint-actions&quot;&gt;</span>
+<span class="dl-hunk">@@ -109,6 +118,8 @@ function render(projectPath) {</span>
+<span class="dl-ctx">     &lt;/div&gt;</span>
+<span class="dl-ctx">   `;</span>
+<span class="dl-ctx">   document.body.appendChild(popoverEl);</span>
+<span class="dl-add">+  const anchor = getAnchor();</span>
+<span class="dl-add">+  if (anchor) anchor.classList.add(&#39;hint-anchored&#39;);</span>
+<span class="dl-ctx">   position();</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   popoverEl.querySelector(&#39;.spec-driven-hint-close&#39;).addEventListener(&#39;click&#39;, hide);</span>
+<span class="dl-hunk">@@ -126,15 +137,15 @@ function render(projectPath) {</span>
+<span class="dl-ctx"> function onOutsideClick(e) {</span>
+<span class="dl-ctx">   if (!popoverEl) return;</span>
+<span class="dl-ctx">   if (popoverEl.contains(e.target)) return;</span>
+<span class="dl-del">-  // Clicking the Settings button itself opens the modal, which supersedes</span>
+<span class="dl-del">-  // the hint — close it either way.</span>
+<span class="dl-add">+  // Clicking the gear itself opens Project Settings, which supersedes the</span>
+<span class="dl-add">+  // hint — close it either way.</span>
+<span class="dl-ctx">   hide();</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-/** Anchor to the Settings button: same baseline, just outboard of the rail. */</span>
+<span class="dl-add">+/** Anchor to the active row&#39;s gear: same baseline, just outboard of the rail. */</span>
+<span class="dl-ctx"> function position() {</span>
+<span class="dl-ctx">   if (!popoverEl) return;</span>
+<span class="dl-del">-  const anchor = document.getElementById(ANCHOR_ID);</span>
+<span class="dl-add">+  const anchor = getAnchor();</span>
+<span class="dl-ctx">   if (!anchor) return;</span>
+<span class="dl-ctx">   const rect = anchor.getBoundingClientRect();</span>
+<span class="dl-ctx">   if (rect.width === 0 &amp;&amp; rect.height === 0) {</span>
+<span class="dl-hunk">@@ -212,6 +223,9 @@ function hide() {</span>
+<span class="dl-ctx">   clearTimeout(showTimer);</span>
+<span class="dl-ctx">   showTimer = null;</span>
+<span class="dl-ctx">   document.removeEventListener(&#39;mousedown&#39;, onOutsideClick);</span>
+<span class="dl-add">+  document.querySelectorAll(&#39;.project-gear-btn.hint-anchored&#39;).forEach((el) =&gt; {</span>
+<span class="dl-add">+    el.classList.remove(&#39;hint-anchored&#39;);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-ctx">   if (popoverEl) {</span>
+<span class="dl-ctx">     popoverEl.remove();</span>
+<span class="dl-ctx">     popoverEl = null;</span></pre>
     </details>
   </div>
 </section>

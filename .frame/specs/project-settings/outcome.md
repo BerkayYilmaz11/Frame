@@ -55,3 +55,11 @@ Built the modal (markup in index.html reusing the settings-modal class vocabular
 _Captured: 2026-07-30 · 6 file change(s)_
 
 ---
+
+## T08 — App Settings slimdown, spec-driven relocation, hint re-anchor
+
+Deleted the Workflow section from App Settings (index.html) and all its wiring from settingsModal.js (element refs, change listener, `syncSpecDrivenToggle`, `setSpecDrivenNote`, the state/specDrivenHint imports); the toggle now lives in Project Settings' Workflow section with the semantics moved verbatim — snap-back on failure, `markDismissed` on disable, `specDrivenHint.refresh()` — operating on the modal's project rather than the active one. Re-anchored specDrivenHint.js from `sidebar-settings-btn` to the active row's gear via a `getAnchor()` query, adding `.hint-anchored` to force the hover-revealed gear visible while the popover shows, copy now pointing at Project Settings → Workflow. App Settings retains only Privacy & Analytics and About.
+
+_Captured: 2026-07-30 · 4 file change(s)_
+
+---

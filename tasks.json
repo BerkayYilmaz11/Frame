@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:54:40.377Z",
+  "lastUpdated": "2026-07-30T13:57:50.057Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4535,13 +4535,13 @@
       "title": "Delete the Workflow section from App Settings (index.html and src/renderer/settingsModal.js), move the spec-driven toggle semantics verbatim into the Project Settings Workflow section (snap-back on failure, markDismissed on disable, specDrivenHint.refresh), and re-anchor src/renderer/specDrivenHint.js to the active project row's gear — forced visible while the popover is shown — with copy pointing at Project Settings.",
       "description": "",
       "source": "spec:project-settings:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:11:24.946Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:57:50.057Z",
+      "completedAt": "2026-07-30T13:57:50.057Z"
     },
     {
       "id": "task-spec-project-settings-T09",

@@ -13,6 +13,7 @@
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const specDrivenHint = require('./specDrivenHint');
 
 const UNTRACK_COMMAND = 'git rm -r --cached .frame';
 
@@ -20,6 +21,8 @@ let overlayEl = null;
 let nameEl = null;
 let pathEl = null;
 let workflowSectionEl = null;
+let specDrivenToggleEl = null;
+let specDrivenNoteEl = null;
 let sharingSectionEl = null;
 let sharingToggleEl = null;
 let sharingDescEl = null;
@@ -37,6 +40,8 @@ function init() {
   nameEl = document.getElementById('project-settings-name');
   pathEl = document.getElementById('project-settings-path');
   workflowSectionEl = document.getElementById('project-settings-workflow-section');
+  specDrivenToggleEl = document.getElementById('project-settings-spec-driven-toggle');
+  specDrivenNoteEl = document.getElementById('project-settings-spec-driven-note');
   sharingSectionEl = document.getElementById('project-settings-sharing-section');
   sharingToggleEl = document.getElementById('project-settings-sharing-toggle');
   sharingDescEl = document.getElementById('project-settings-sharing-desc');
@@ -50,6 +55,46 @@ function init() {
   }
 
   sharingToggleEl.addEventListener('change', onSharingToggle);
+
+  // Spec-Driven Development: per-project flag in .frame/config.json, not a
+  // user preference. Main writes the flag and nothing else — no instruction
+  // file is edited either way; the launch preamble reads the flag fresh and
+  // decides what the agent is told. On failure we snap the switch back so it
+  // never lies about the on-disk state. (Moved verbatim from App Settings.)
+  if (specDrivenToggleEl) {
+    specDrivenToggleEl.addEventListener('change', async () => {
+      const projectPath = currentProject && currentProject.path;
+      const wanted = specDrivenToggleEl.checked;
+      if (!projectPath) {
+        specDrivenToggleEl.checked = !wanted;
+        return;
+      }
+      specDrivenToggleEl.disabled = true;
+      try {
+        const result = await ipcRenderer.invoke(IPC.SET_SPEC_DRIVEN, {
+          projectPath,
+          enabled: wanted
+        });
+        if (!result || !result.success) {
+          specDrivenToggleEl.checked = !wanted;
+          setSpecDrivenNote(
+            'Could not change this setting: ' + ((result && result.error) || 'unknown error')
+          );
+        } else {
+          setSpecDrivenNote(null);
+          // Turning it off here is a deliberate choice — stop offering to
+          // turn it back on for this project.
+          if (!wanted) await specDrivenHint.markDismissed(projectPath);
+          specDrivenHint.refresh();
+        }
+      } catch (err) {
+        specDrivenToggleEl.checked = !wanted;
+        setSpecDrivenNote('Could not change this setting: ' + err.message);
+      } finally {
+        specDrivenToggleEl.disabled = false;
+      }
+    });
+  }
 
   if (copyBtnEl) {
     copyBtnEl.addEventListener('click', async () => {
@@ -159,14 +204,11 @@ function open(project) {
   if (pathEl) pathEl.textContent = project.path;
 
   const isFrame = project.isFrameProject === true;
-  if (workflowSectionEl) {
-    // The Workflow section only renders content once the spec-driven toggle
-    // lives here; kept hidden for non-Frame projects either way.
-    workflowSectionEl.style.display = isFrame && workflowSectionEl.dataset.populated === 'true' ? '' : 'none';
-  }
+  if (workflowSectionEl) workflowSectionEl.style.display = isFrame ? '' : 'none';
   if (sharingSectionEl) sharingSectionEl.style.display = isFrame ? '' : 'none';
 
   if (isFrame) {
+    syncSpecDrivenToggle(project.path);
     sharingToggleEl.disabled = true;
     sharingDescEl.textContent = '';
     sharingWarningEl.style.display = 'none';
@@ -184,6 +226,32 @@ function open(project) {
 
   isOpen = true;
   overlayEl.classList.add('visible');
+}
+
+/**
+ * Reflect this project's features.specDriven flag. The modal only shows the
+ * Workflow section for Frame projects, so a missing config reads as an error
+ * rather than an empty state.
+ */
+async function syncSpecDrivenToggle(projectPath) {
+  if (!specDrivenToggleEl) return;
+  specDrivenToggleEl.disabled = true;
+  try {
+    const enabled = await ipcRenderer.invoke(IPC.IS_SPEC_DRIVEN_ENABLED, projectPath);
+    if (!currentProject || currentProject.path !== projectPath) return;
+    specDrivenToggleEl.checked = enabled === true;
+    specDrivenToggleEl.disabled = false;
+    setSpecDrivenNote(null);
+  } catch (_) {
+    specDrivenToggleEl.disabled = true;
+    setSpecDrivenNote('Could not read this project’s Frame config.');
+  }
+}
+
+function setSpecDrivenNote(message) {
+  if (!specDrivenNoteEl) return;
+  specDrivenNoteEl.textContent = message || '';
+  specDrivenNoteEl.style.display = message ? '' : 'none';
 }
 
 function close() {

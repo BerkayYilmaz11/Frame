@@ -1300,8 +1300,24 @@
         <button type="button" class="settings-close" data-project-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
-        <div class="settings-section" id="project-settings-workflow-section" style="display:none;">
+        <div class="settings-section" id="project-settings-workflow-section">
           <h4 class="settings-section-title">Workflow</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="project-settings-spec-driven-toggle">Spec-Driven Development</label>
+              <p class="settings-row-desc" id="project-settings-spec-driven-desc">
+                Structure AI work into specs → plans → tasks under
+                <code>.frame/specs/</code>, visible in the Specs panel. Applies to this
+                project: turning it off stops Frame telling your AI tool
+                about specs from the next launch; existing specs are kept on disk.
+              </p>
+              <p class="settings-row-desc" id="project-settings-spec-driven-note" style="display:none;"></p>
+            </div>
+            <label class="settings-switch">
+              <input type="checkbox" id="project-settings-spec-driven-toggle" />
+              <span class="settings-switch-slider"></span>
+            </label>
+          </div>
         </div>
 
         <div class="settings-section" id="project-settings-sharing-section">
@@ -1345,26 +1361,6 @@
         <button type="button" class="settings-close" data-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
-        <div class="settings-section">
-          <h4 class="settings-section-title">Workflow</h4>
-          <div class="settings-row">
-            <div class="settings-row-text">
-              <label class="settings-row-label" for="settings-spec-driven-toggle">Spec-Driven Development</label>
-              <p class="settings-row-desc" id="settings-spec-driven-desc">
-                Structure AI work into specs → plans → tasks under
-                <code>.frame/specs/</code>, visible in the Specs panel. Applies to the
-                current project: turning it off stops Frame telling your AI tool
-                about specs from the next launch; existing specs are kept on disk.
-              </p>
-              <p class="settings-row-desc" id="settings-spec-driven-note" style="display:none;"></p>
-            </div>
-            <label class="settings-switch">
-              <input type="checkbox" id="settings-spec-driven-toggle" />
-              <span class="settings-switch-slider"></span>
-            </label>
-          </div>
-        </div>
-
         <div class="settings-section">
           <h4 class="settings-section-title">Privacy &amp; Analytics</h4>
           <div class="settings-row">

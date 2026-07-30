@@ -9,8 +9,13 @@
  *
  * Deliberately quiet: only for Frame projects with the flag off, never for
  * new projects (they start enabled), and "Don't show again" is remembered
- * per project. Turning the feature off from Settings also silences it — a
- * choice the user just made is not something to nag about.
+ * per project. Turning the feature off from Project Settings also silences
+ * it — a choice the user just made is not something to nag about.
+ *
+ * Anchored to the active project row's gear — the switch lives in Project
+ * Settings now, not app Settings. The gear is hover-revealed, so while the
+ * popover is showing it gets `.hint-anchored` to force it visible: a popover
+ * cannot point at nothing.
  */
 
 const { ipcRenderer } = require('electron');
@@ -18,10 +23,14 @@ const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 
 const DISMISSED_KEY = 'specDrivenHintDismissed';
-const ANCHOR_ID = 'sidebar-settings-btn';
 // Let the app finish opening the project (loader fade, panels settling)
 // before something pops up in the corner.
 const SHOW_DELAY_MS = 900;
+
+/** The active project row's gear — the button that opens Project Settings. */
+function getAnchor() {
+  return document.querySelector('.project-item.active .project-gear-btn');
+}
 
 let popoverEl = null;
 let shownForPath = null;
@@ -57,7 +66,7 @@ async function evaluate() {
     return;
   }
   if ((popoverEl || showTimer) && shownForPath === projectPath) return;
-  if (!document.getElementById(ANCHOR_ID)) return;
+  if (!getAnchor()) return;
 
   try {
     if (await isDismissed(projectPath)) return;
@@ -100,7 +109,7 @@ function render(projectPath) {
     <div class="spec-driven-hint-title">Spec-Driven Development is off</div>
     <p class="spec-driven-hint-text">
       Specs your AI writes stay hidden from the Specs panel while this is off.
-      New projects have it on — you can switch it here, in Settings &rarr; Workflow.
+      New projects have it on — you can switch it here, in Project Settings &rarr; Workflow.
     </p>
     <div class="spec-driven-hint-error" role="alert"></div>
     <div class="spec-driven-hint-actions">
@@ -109,6 +118,8 @@ function render(projectPath) {
     </div>
   `;
   document.body.appendChild(popoverEl);
+  const anchor = getAnchor();
+  if (anchor) anchor.classList.add('hint-anchored');
   position();
 
   popoverEl.querySelector('.spec-driven-hint-close').addEventListener('click', hide);
@@ -126,15 +137,15 @@ function render(projectPath) {
 function onOutsideClick(e) {
   if (!popoverEl) return;
   if (popoverEl.contains(e.target)) return;
-  // Clicking the Settings button itself opens the modal, which supersedes
-  // the hint — close it either way.
+  // Clicking the gear itself opens Project Settings, which supersedes the
+  // hint — close it either way.
   hide();
 }
 
-/** Anchor to the Settings button: same baseline, just outboard of the rail. */
+/** Anchor to the active row's gear: same baseline, just outboard of the rail. */
 function position() {
   if (!popoverEl) return;
-  const anchor = document.getElementById(ANCHOR_ID);
+  const anchor = getAnchor();
   if (!anchor) return;
   const rect = anchor.getBoundingClientRect();
   if (rect.width === 0 && rect.height === 0) {
@@ -212,6 +223,9 @@ function hide() {
   clearTimeout(showTimer);
   showTimer = null;
   document.removeEventListener('mousedown', onOutsideClick);
+  document.querySelectorAll('.project-gear-btn.hint-anchored').forEach((el) => {
+    el.classList.remove('hint-anchored');
+  });
   if (popoverEl) {
     popoverEl.remove();
     popoverEl = null;

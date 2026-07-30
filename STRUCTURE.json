@@ -6780,32 +6780,46 @@
       "depends": [
         "electron",
         "shared/ipcChannels",
+        "specDrivenHint",
         "projectListUI"
       ],
       "functions": {
         "init": {
-          "line": 35
+          "line": 38
         },
         "onSharingToggle": {
-          "line": 99,
+          "line": 144,
           "purpose": "Toggle change → SET_GIT_SHARING, the single write path shared with the"
         },
         "renderSharingState": {
-          "line": 125,
+          "line": 170,
           "params": [
             "state"
           ],
           "purpose": "Render the Sharing section from the behaviour matrix. `effective` carries"
         },
         "open": {
-          "line": 154,
+          "line": 199,
           "params": [
             "project"
           ],
           "purpose": "Open for a project row: { path, name, isFrameProject }. Non-Frame projects"
         },
+        "syncSpecDrivenToggle": {
+          "line": 236,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Reflect this project's features.specDriven flag. The modal only shows the"
+        },
+        "setSpecDrivenNote": {
+          "line": 251,
+          "params": [
+            "message"
+          ]
+        },
         "close": {
-          "line": 189
+          "line": 257
         }
       }
     },
@@ -7031,25 +7045,23 @@
       "depends": [
         "electron",
         "shared/ipcChannels",
-        "state",
-        "specDrivenHint",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 36
+          "line": 32
         },
         "initAboutSection": {
-          "line": 142
+          "line": 96
         },
         "runCheck": {
-          "line": 227,
+          "line": 181,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 266,
+          "line": 220,
           "params": [
             "{ checked",
             "found",
@@ -7061,44 +7073,34 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 290,
+          "line": 244,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 301
+          "line": 255
         },
         "hideSidebarDot": {
-          "line": 305
+          "line": 259
         },
         "formatRelative": {
-          "line": 312,
+          "line": 266,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 323
-        },
-        "syncSpecDrivenToggle": {
-          "line": 343,
-          "purpose": "Reflect the current project's features.specDriven flag. With no project"
-        },
-        "setSpecDrivenNote": {
-          "line": 363,
-          "params": [
-            "message"
-          ]
+          "line": 277
         },
         "open": {
-          "line": 369
+          "line": 290
         },
         "close": {
-          "line": 376
+          "line": 297
         },
         "toggle": {
-          "line": 383
+          "line": 304
         }
       },
       "ipc": {
@@ -7199,70 +7201,74 @@
         "state"
       ],
       "functions": {
+        "getAnchor": {
+          "line": 31,
+          "purpose": "The active project row's gear — the button that opens Project Settings."
+        },
         "init": {
-          "line": 31
+          "line": 40
         },
         "evaluate": {
-          "line": 53,
+          "line": 62,
           "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
         },
         "schedule": {
-          "line": 74,
+          "line": 83,
           "params": [
             "projectPath"
           ]
         },
         "refresh": {
-          "line": 85,
+          "line": 94,
           "purpose": "Re-check after the Settings toggle changed the flag."
         },
         "render": {
-          "line": 90,
+          "line": 99,
           "params": [
             "projectPath"
           ]
         },
         "onOutsideClick": {
-          "line": 126,
+          "line": 137,
           "params": [
             "e"
           ]
         },
         "position": {
-          "line": 135,
-          "purpose": "Anchor to the Settings button: same baseline, just outboard of the rail."
+          "line": 146,
+          "purpose": "Anchor to the active row's gear: same baseline, just outboard of the rail."
         },
         "enable": {
-          "line": 157,
+          "line": 168,
           "params": [
             "projectPath",
             "btn"
           ]
         },
         "dismissForever": {
-          "line": 179,
+          "line": 190,
           "params": [
             "projectPath"
           ]
         },
         "markDismissed": {
-          "line": 189,
+          "line": 200,
           "params": [
             "projectPath"
           ],
           "purpose": "Remember that this project should not be hinted at again. Lives in user"
         },
         "isDismissed": {
-          "line": 201,
+          "line": 212,
           "params": [
             "projectPath"
           ]
         },
         "readDismissed": {
-          "line": 206
+          "line": 217
         },
         "hide": {
-          "line": 211
+          "line": 222
         }
       }
     },
