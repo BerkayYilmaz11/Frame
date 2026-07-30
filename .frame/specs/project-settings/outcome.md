@@ -23,3 +23,11 @@ _Captured: 2026-07-30 · 2 file change(s)_
 _Captured: 2026-07-30 · 2 file change(s)_
 
 ---
+
+## T04 — Register the `project_sharing_set` telemetry event
+
+Added `project_sharing_set: { mode: ['local','repo'], source: ['init','settings'] }` to the registry in src/main/telemetryEvents.js and its row to PRIVACY.md's collection table (the registry rule: event and doc land in the same change). Extended test/telemetry.test.js with in-enum pass-through and out-of-enum/unknown-prop stripping. The stale privacy copy in App Settings stays untouched per the spec's non-goal.
+
+_Captured: 2026-07-30 · 3 file change(s)_
+
+---

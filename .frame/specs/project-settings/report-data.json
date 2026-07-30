@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "353 tests, 0 failures"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Register the project_sharing_set telemetry event",
+      "commit": "1fe8746",
+      "whatChanged": "project_sharing_set { mode: local|repo, source: init|settings } added to the registry in src/main/telemetryEvents.js and documented in PRIVACY.md's collection table. Validation tests in test/telemetry.test.js: in-enum passes, out-of-enum and unknown props are stripped.",
+      "whyChanged": "D8: repo mode is built on a hypothesis, and the registry rule requires the PRIVACY.md row in the same change. Two enum values carry nothing identifying — consistent with the existing registry.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "355 tests, 0 failures"
+      }
     }
   ]
 }

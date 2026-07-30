@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">3 of 9 tasks done · next: <span class="rs-task">T04 — Register `project_sharing_set: { mode: [&#39;local&#39;,&#39;repo&#39;], source…</span></span>
+  <span class="rs-count">4 of 9 tasks done · next: <span class="rs-task">T05 — Wire src/main/frameProject.js: accept `options: { specDriven…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -982,6 +982,77 @@
 <span class="dl-add">+test(&#39;an invalid gitSharing option falls back to local&#39;, () =&gt; {</span>
 <span class="dl-add">+  const config = templates.getFrameConfigTemplate(&#39;MyProject&#39;, { gitSharing: &#39;team&#39; });</span>
 <span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Register the project_sharing_set telemetry event</h2>
+    <span class="card-meta"><span class="chip">1fe8746</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">355 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>project_sharing_set { mode: local|repo, source: init|settings } added to the registry in src/main/telemetryEvents.js and documented in PRIVACY.md&#39;s collection table. Validation tests in test/telemetry.test.js: in-enum passes, out-of-enum and unknown props are stripped.</p></div>
+    <div class="field"><span class="label">Why</span><p>D8: repo mode is built on a hypothesis, and the registry rule requires the PRIVACY.md row in the same change. Two enum values carry nothing identifying — consistent with the existing registry.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/PRIVACY.md b/PRIVACY.md</span>
+<span class="dl-meta">index edd2f23..27346f4 100644</span>
+<span class="dl-file">--- a/PRIVACY.md</span>
+<span class="dl-file">+++ b/PRIVACY.md</span>
+<span class="dl-hunk">@@ -18,6 +18,7 @@ The complete event list:</span>
+<span class="dl-ctx"> | `orchestrator_opened` | — | the orchestrator view was opened |</span>
+<span class="dl-ctx"> | `orchestration_run_started` | — | a parallel orchestration run began |</span>
+<span class="dl-ctx"> | `plugin_toggled` | `action`: `enabled` / `disabled` | the plugin system is being used (never which plugin) |</span>
+<span class="dl-add">+| `project_sharing_set` | `mode`: `local` / `repo`; `source`: `init` / `settings` | whether Git Sharing is used, and from where it was chosen (never which project or repository) |</span>
+<span class="dl-ctx"> | `ai_tool_selected` | `tool`: `claude` / `codex` / `gemini` / `custom` | which AI tool is preferred |</span>
+<span class="dl-ctx"> | `error_occurred` | `category`: a fixed list of failure types (e.g. `agent_cli_not_found`, `orch_merge_failed`) | what breaks in the wild — counts only, never error messages, stack traces, or file paths |</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/main/telemetryEvents.js b/src/main/telemetryEvents.js</span>
+<span class="dl-meta">index fda355c..e9bec29 100644</span>
+<span class="dl-file">--- a/src/main/telemetryEvents.js</span>
+<span class="dl-file">+++ b/src/main/telemetryEvents.js</span>
+<span class="dl-hunk">@@ -25,6 +25,10 @@ const EVENTS = {</span>
+<span class="dl-ctx">   orchestrator_opened: {},</span>
+<span class="dl-ctx">   orchestration_run_started: {},</span>
+<span class="dl-ctx">   plugin_toggled: { action: [&#39;enabled&#39;, &#39;disabled&#39;] },</span>
+<span class="dl-add">+  project_sharing_set: {</span>
+<span class="dl-add">+    mode: [&#39;local&#39;, &#39;repo&#39;],</span>
+<span class="dl-add">+    source: [&#39;init&#39;, &#39;settings&#39;],</span>
+<span class="dl-add">+  },</span>
+<span class="dl-ctx">   ai_tool_selected: { tool: [&#39;claude&#39;, &#39;codex&#39;, &#39;gemini&#39;, &#39;custom&#39;] },</span>
+<span class="dl-ctx">   error_occurred: {</span>
+<span class="dl-ctx">     category: [</span>
+<span class="dl-meta">diff --git a/test/telemetry.test.js b/test/telemetry.test.js</span>
+<span class="dl-meta">index b08cfde..eadf245 100644</span>
+<span class="dl-file">--- a/test/telemetry.test.js</span>
+<span class="dl-file">+++ b/test/telemetry.test.js</span>
+<span class="dl-hunk">@@ -86,3 +86,24 @@ test(&#39;normalizeTool collapses everything outside the built-ins to custom&#39;, () =&gt;</span>
+<span class="dl-ctx">   assert.equal(normalizeTool(undefined), &#39;custom&#39;);</span>
+<span class="dl-ctx">   assert.equal(normalizeTool(null), &#39;custom&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── project_sharing_set ──────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;project_sharing_set passes validation with in-enum values&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(</span>
+<span class="dl-add">+    validateEvent(&#39;project_sharing_set&#39;, { mode: &#39;local&#39;, source: &#39;init&#39; }),</span>
+<span class="dl-add">+    { mode: &#39;local&#39;, source: &#39;init&#39; }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.deepEqual(</span>
+<span class="dl-add">+    validateEvent(&#39;project_sharing_set&#39;, { mode: &#39;repo&#39;, source: &#39;settings&#39; }),</span>
+<span class="dl-add">+    { mode: &#39;repo&#39;, source: &#39;settings&#39; }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;project_sharing_set strips out-of-enum values and unknown props&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(validateEvent(&#39;project_sharing_set&#39;, { mode: &#39;team&#39;, source: &#39;init&#39; }), { source: &#39;init&#39; });</span>
+<span class="dl-add">+  assert.deepEqual(</span>
+<span class="dl-add">+    validateEvent(&#39;project_sharing_set&#39;, { mode: &#39;repo&#39;, source: &#39;hint&#39;, projectPath: &#39;/Users/x/secret&#39; }),</span>
+<span class="dl-add">+    { mode: &#39;repo&#39; }</span>
+<span class="dl-add">+  );</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

@@ -3844,14 +3844,14 @@
       "depends": [],
       "functions": {
         "normalizeTool": {
-          "line": 54,
+          "line": 58,
           "params": [
             "id"
           ],
           "purpose": "Collapse a tool id to the fixed dashboard enum. User-defined custom tool"
         },
         "validateEvent": {
-          "line": 69,
+          "line": 73,
           "params": [
             "name",
             "props"
@@ -3859,7 +3859,7 @@
           "purpose": "Validate an (event, props) pair against the registry."
         },
         "effectiveEnabled": {
-          "line": 93,
+          "line": 97,
           "params": [
             "{ value",
             "loadFailed }"

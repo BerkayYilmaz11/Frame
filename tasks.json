@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:45:44.168Z",
+  "lastUpdated": "2026-07-30T13:46:58.834Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4483,13 +4483,13 @@
       "title": "Register `project_sharing_set: { mode: ['local','repo'], source: ['init','settings'] }` in src/main/telemetryEvents.js, document the event in PRIVACY.md, and extend test/telemetry.test.js with in-enum and out-of-enum validation.",
       "description": "",
       "source": "spec:project-settings:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:29:04.758Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:46:58.834Z",
+      "completedAt": "2026-07-30T13:46:58.834Z"
     },
     {
       "id": "task-spec-project-settings-T05",
