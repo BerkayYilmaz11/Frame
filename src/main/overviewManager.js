@@ -417,6 +417,14 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.GET_FILE_GIT_HISTORY, async (event, projectPath, filePath) => {
     return await getFileGitHistory(projectPath, filePath);
   });
+
+  // The structure map graph needs the file as written, not the dashboard's
+  // grouped view. It reads through frameStore like everything else, so the
+  // renderer never has to know where the map physically lives.
+  ipcMain.handle(IPC.LOAD_STRUCTURE_MAP, (event, projectPath) => {
+    if (!projectPath) return null;
+    return frameStore.readStructure(projectPath).data;
+  });
 }
 
 module.exports = {

@@ -132,6 +132,9 @@ const IPC = {
   AI_TOOL_CONFIG_DATA: 'ai-tool-config-data',
   SET_AI_TOOL: 'set-ai-tool',
   AI_TOOL_CHANGED: 'ai-tool-changed',
+  // Raw structure map for the graph view. Separate from LOAD_OVERVIEW, which
+  // returns the same file already grouped and counted for the dashboard.
+  LOAD_STRUCTURE_MAP: 'load-structure-map',
   CHECK_AI_TOOL_AVAILABLE: 'check-ai-tool-available',
   // The start command with Frame's launch context attached. Composed
   // main-side (it needs the filesystem); the renderer gets a finished string.

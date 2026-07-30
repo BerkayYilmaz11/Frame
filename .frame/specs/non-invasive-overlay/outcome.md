@@ -237,3 +237,27 @@ Files: `commandStaging.js`, the four `src/templates/commands/claude-code/spec.*.
 _Captured: 2026-07-29 · 6 file changes_
 
 ---
+
+## Post-implementation fixes
+
+Two gaps surfaced after the spec closed, both from the same cause — `plan.md`'s
+Files list covered the main process but not the renderer surfaces that describe
+it:
+
+- **The init modal advertised the old layout.** Its file list is static markup
+  in `index.html`; T11 rewrote `frameProject.js`'s native dialog, which is only
+  the fallback. Five further strings were stale for the same reason (both
+  spotlight cards, the Settings and specPanel spec-driven copy, `sampleBanner`'s
+  "your AI agent starts from AGENTS.md", the post-init terminal line). Fixed in
+  `d10df3a`.
+- **Structure Map read the root `STRUCTURE.json`** — recorded as a followup on
+  T02 and now closed. It went through IPC to `frameStore.readStructure` rather
+  than gaining a `.frame/`-first resolver, because it was the last place in the
+  renderer opening a project file directly; `frameStore` is now the only module
+  that knows where the map lives, which is what the spec's storage constraint
+  asked for. `structureMap.js` lost its `fs` and `path` imports entirely.
+
+Still open, deliberately: `.frame/` visibility (private vs shared) has a working
+mechanism but no UI, so Goal 7's "Frame surfaces this as an explicit choice" is
+only half delivered — `plan.md` never turned that sentence into a task. Carried
+to a follow-up spec together with an init-time spec-driven choice.
