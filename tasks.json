@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-30T13:46:58.834Z",
+  "lastUpdated": "2026-07-30T13:49:32.292Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4496,13 +4496,13 @@
       "title": "Wire src/main/frameProject.js: accept `options: { specDriven, gitSharing }` on INITIALIZE_FRAME_PROJECT and thread them through `runProjectInit` (mode passed to the pre-mkdir ensure, both options baked into the single config template write, `.frame/.gitignore` written at init), replace the bare `gitExclude.ensure` in CHECK_IS_FRAME_PROJECT with `gitSharing.ensureOnOpen`, add GET_GIT_SHARING_STATE / SET_GIT_SHARING / GET_SHARING_REPO_SIGNAL handlers with their constants in src/shared/ipcChannels.js, fire `project_sharing_set` with source `'init'` on init success and `'settings'` from SET_GIT_SHARING; extend test/frameProjectInit.test.js with the repo-mode init case (no exclude block ever written, `.frame/.gitignore` present).",
       "description": "",
       "source": "spec:project-settings:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: project-settings",
       "createdAt": "2026-07-30T13:11:24.946Z",
-      "updatedAt": "2026-07-30T13:29:04.758Z",
-      "completedAt": null
+      "updatedAt": "2026-07-30T13:49:32.292Z",
+      "completedAt": "2026-07-30T13:49:32.292Z"
     },
     {
       "id": "task-spec-project-settings-T06",

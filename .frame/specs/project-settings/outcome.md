@@ -31,3 +31,11 @@ Added `project_sharing_set: { mode: ['local','repo'], source: ['init','settings'
 _Captured: 2026-07-30 · 3 file change(s)_
 
 ---
+
+## T05 — Main-process wiring: init options, open path, sharing IPC
+
+Threaded `options: { specDriven, gitSharing }` through `initializeFrameProject → runProjectInit`: the mode drives the pre-mkdir `gitExclude.ensure(path, mode)` (repo mode never writes the block), both answers bake into the single config-template write, and `.frame/.gitignore` is written at init. `CHECK_IS_FRAME_PROJECT` now calls `gitSharing.ensureOnOpen` instead of bare `gitExclude.ensure`, which is how pre-upgrade projects gain derivation and the gitignore. Added GET_GIT_SHARING_STATE / SET_GIT_SHARING / GET_SHARING_REPO_SIGNAL invoke handlers (constants in ipcChannels.js); `project_sharing_set` fires with source `'init'` on init success and `'settings'` from SET_GIT_SHARING. Three new init-harness tests cover repo-mode init (acceptance 2), local default, and the specDriven option.
+
+_Captured: 2026-07-30 · 4 file change(s)_
+
+---

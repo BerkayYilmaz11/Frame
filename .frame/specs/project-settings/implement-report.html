@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">4 tasks</span>
-    <span class="pill good">4 verified</span>
+    <span class="pill">5 tasks</span>
+    <span class="pill good">5 verified</span>
     
     <span class="chip">2026-07-30</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">4 of 9 tasks done · next: <span class="rs-task">T05 — Wire src/main/frameProject.js: accept `options: { specDriven…</span></span>
+  <span class="rs-count">5 of 9 tasks done · next: <span class="rs-task">T06 — Add the options block to the initialize-frame-modal in index.html…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1053,6 +1053,252 @@
 <span class="dl-add">+    validateEvent(&#39;project_sharing_set&#39;, { mode: &#39;repo&#39;, source: &#39;hint&#39;, projectPath: &#39;/Users/x/secret&#39; }),</span>
 <span class="dl-add">+    { mode: &#39;repo&#39; }</span>
 <span class="dl-add">+  );</span>
+<span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T05</span>
+    <h2>Main-process wiring: init options, open path, sharing IPC</h2>
+    <span class="card-meta"><span class="chip">358dd93</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">358 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>initializeFrameProject/runProjectInit accept { specDriven, gitSharing }: the mode drives the pre-mkdir gitExclude.ensure (repo mode never writes the block), both answers bake into the one config write, .frame/.gitignore lands at init. CHECK_IS_FRAME_PROJECT uses gitSharing.ensureOnOpen. New invoke handlers GET_GIT_SHARING_STATE / SET_GIT_SHARING / GET_SHARING_REPO_SIGNAL; project_sharing_set fires with source init/settings. Three new tests in the stubbed init harness.</p></div>
+    <div class="field"><span class="label">Why</span><p>D5&#39;s ordering constraint: the exclude decision happens before .frame/ exists, so the mode must ride the call, not be read back from config. SET_GIT_SHARING is the single write path so the modal toggle and the hint cannot diverge.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 4a620ca..7dfc109 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -12,6 +12,7 @@ const templates = require(&#39;../shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> const workspace = require(&#39;./workspace&#39;);</span>
+<span class="dl-ctx"> const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const gitExclude = require(&#39;./gitExclude&#39;);</span>
+<span class="dl-add">+const gitSharing = require(&#39;./gitSharing&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-ctx"> const structureBootstrap = require(&#39;./structureBootstrap&#39;);</span>
+<span class="dl-ctx"> const commandStaging = require(&#39;./commandStaging&#39;);</span>
+<span class="dl-hunk">@@ -143,34 +144,37 @@ async function showInitializeConfirmation(projectPath) {</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> const inFlightInits = new Map();</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function initializeFrameProject(projectPath, projectName) {</span>
+<span class="dl-add">+function initializeFrameProject(projectPath, projectName, options) {</span>
+<span class="dl-ctx">   if (inFlightInits.has(projectPath)) return inFlightInits.get(projectPath);</span>
+<span class="dl-del">-  const run = doInitializeFrameProject(projectPath, projectName)</span>
+<span class="dl-add">+  const run = doInitializeFrameProject(projectPath, projectName, options)</span>
+<span class="dl-ctx">     .finally(() =&gt; inFlightInits.delete(projectPath));</span>
+<span class="dl-ctx">   inFlightInits.set(projectPath, run);</span>
+<span class="dl-ctx">   return run;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-async function doInitializeFrameProject(projectPath, projectName) {</span>
+<span class="dl-add">+async function doInitializeFrameProject(projectPath, projectName, options) {</span>
+<span class="dl-ctx">   // Point the activity record at this project before init starts, so the</span>
+<span class="dl-ctx">   // work init itself does lands in the right bucket rather than in `app`.</span>
+<span class="dl-ctx">   activityLog.setProject(projectPath);</span>
+<span class="dl-ctx">   perfMonitor.opStart(&#39;project-init&#39;);</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-del">-    return await runProjectInit(projectPath, projectName);</span>
+<span class="dl-add">+    return await runProjectInit(projectPath, projectName, options);</span>
+<span class="dl-ctx">   } finally {</span>
+<span class="dl-ctx">     perfMonitor.opEnd(&#39;project-init&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-add">+async function runProjectInit(projectPath, projectName, options = {}) {</span>
+<span class="dl-ctx">   const name = projectName || path.basename(projectPath);</span>
+<span class="dl-ctx">   const frameDirPath = path.join(projectPath, FRAME_DIR);</span>
+<span class="dl-add">+  const gitSharingMode = options.gitSharing === &#39;repo&#39; ? &#39;repo&#39; : &#39;local&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Before the first artifact exists, not after: the exclude entry is what</span>
+<span class="dl-ctx">   // keeps `git status` clean, and a .frame/ that appears untracked-and-visible</span>
+<span class="dl-ctx">   // even for a moment is the fingerprint this whole model exists to avoid.</span>
+<span class="dl-del">-  gitExclude.ensure(projectPath);</span>
+<span class="dl-add">+  // The mode is passed in explicitly (D5) — the config it will live in does</span>
+<span class="dl-add">+  // not exist yet, so in repo mode the block is simply never written.</span>
+<span class="dl-add">+  gitExclude.ensure(projectPath, gitSharingMode);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Create .frame directory</span>
+<span class="dl-ctx">   await fsp.mkdir(frameDirPath, { recursive: true });</span>
+<span class="dl-hunk">@@ -185,8 +189,13 @@ async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-ctx">     console.warn(&#39;[frame] project detection failed (non-fatal):&#39;, err.message);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Create .frame/config.json (carrying the detected project block)</span>
+<span class="dl-del">-  const config = templates.getFrameConfigTemplate(name);</span>
+<span class="dl-add">+  // Create .frame/config.json (carrying the detected project block). Both</span>
+<span class="dl-add">+  // init answers are baked into this single write — never written then</span>
+<span class="dl-add">+  // rewritten (D5).</span>
+<span class="dl-add">+  const config = templates.getFrameConfigTemplate(name, {</span>
+<span class="dl-add">+    gitSharing: gitSharingMode,</span>
+<span class="dl-add">+    specDriven: options.specDriven !== false</span>
+<span class="dl-add">+  });</span>
+<span class="dl-ctx">   if (detectedProject) {</span>
+<span class="dl-ctx">     config.project = detectedProject;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-hunk">@@ -196,6 +205,12 @@ async function runProjectInit(projectPath, projectName) {</span>
+<span class="dl-ctx">     &#39;utf8&#39;</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // .frame/.gitignore — the machine-local manifest. Written unconditionally</span>
+<span class="dl-add">+  // (D2): harmless in local mode (the whole directory is excluded anyway),</span>
+<span class="dl-add">+  // and in repo mode it is itself committed, so a teammate inherits the</span>
+<span class="dl-add">+  // protection before Frame has ever run on their machine.</span>
+<span class="dl-add">+  gitSharing.writeFrameGitignore(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   // ── Every artifact below lands inside .frame/ ────────────────</span>
+<span class="dl-ctx">   //</span>
+<span class="dl-ctx">   // What used to happen here: a root AGENTS.md was written, an existing</span>
+<span class="dl-hunk">@@ -496,8 +511,10 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     const isFrame = isFrameProject(projectPath);</span>
+<span class="dl-ctx">     // Re-evaluated on every open, which is what makes opting in work: a team</span>
+<span class="dl-ctx">     // that has committed .frame/ gets our exclude line removed here, on every</span>
+<span class="dl-del">-    // clone, without anyone running a command.</span>
+<span class="dl-del">-    if (isFrame) gitExclude.ensure(projectPath);</span>
+<span class="dl-add">+    // clone, without anyone running a command. ensureOnOpen also derives and</span>
+<span class="dl-add">+    // persists the mode for pre-upgrade projects (D4) and maintains</span>
+<span class="dl-add">+    // .frame/.gitignore, which is how existing projects gain it.</span>
+<span class="dl-add">+    if (isFrame) gitSharing.ensureOnOpen(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // Full re-scan per open; the watcher underneath is only an optimization.</span>
+<span class="dl-ctx">     const discovery = instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-hunk">@@ -520,7 +537,7 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     event.sender.send(IPC.WORKSPACE_UPDATED, workspace.getProjects());</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  ipcMain.on(IPC.INITIALIZE_FRAME_PROJECT, async (event, { projectPath, projectName, confirmed }) =&gt; {</span>
+<span class="dl-add">+  ipcMain.on(IPC.INITIALIZE_FRAME_PROJECT, async (event, { projectPath, projectName, confirmed, options }) =&gt; {</span>
+<span class="dl-ctx">     try {</span>
+<span class="dl-ctx">       // If not already confirmed by renderer modal, show native dialog as fallback</span>
+<span class="dl-ctx">       if (!confirmed) {</span>
+<span class="dl-hunk">@@ -535,11 +552,15 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">         }</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-      const config = await initializeFrameProject(projectPath, projectName);</span>
+<span class="dl-add">+      const config = await initializeFrameProject(projectPath, projectName, options);</span>
+<span class="dl-ctx">       // Lazy require, same reason as aiToolManager below: telemetry pulls</span>
+<span class="dl-ctx">       // @aptabase/electron → electron, and CI runs the suite with no</span>
+<span class="dl-ctx">       // node_modules. Keep this module&#39;s load graph Electron-free.</span>
+<span class="dl-ctx">       require(&#39;./telemetry&#39;).track(&#39;project_initialized&#39;);</span>
+<span class="dl-add">+      require(&#39;./telemetry&#39;).track(&#39;project_sharing_set&#39;, {</span>
+<span class="dl-add">+        mode: options &amp;&amp; options.gitSharing === &#39;repo&#39; ? &#39;repo&#39; : &#39;local&#39;,</span>
+<span class="dl-add">+        source: &#39;init&#39;</span>
+<span class="dl-add">+      });</span>
+<span class="dl-ctx">       event.sender.send(IPC.FRAME_PROJECT_INITIALIZED, {</span>
+<span class="dl-ctx">         projectPath,</span>
+<span class="dl-ctx">         config,</span>
+<span class="dl-hunk">@@ -574,6 +595,24 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">   ipcMain.handle(IPC.SET_SPEC_DRIVEN, (event, { projectPath, enabled }) =&gt;</span>
+<span class="dl-ctx">     setSpecDrivenEnabled(projectPath, enabled === true)</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Git Sharing (per project). GET_GIT_SHARING_STATE serves the Project</span>
+<span class="dl-add">+  // Settings modal *and* the init modal&#39;s &quot;hide the choice outside a git</span>
+<span class="dl-add">+  // repo&quot; — it must work before .frame/ exists. SET_GIT_SHARING is the single</span>
+<span class="dl-add">+  // write path for every later mode change (modal toggle and sharing hint).</span>
+<span class="dl-add">+  ipcMain.handle(IPC.GET_GIT_SHARING_STATE, (event, projectPath) =&gt;</span>
+<span class="dl-add">+    gitSharing.getState(projectPath)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  ipcMain.handle(IPC.SET_GIT_SHARING, (event, { projectPath, mode }) =&gt; {</span>
+<span class="dl-add">+    const result = gitSharing.setMode(projectPath, mode);</span>
+<span class="dl-add">+    if (result.success) {</span>
+<span class="dl-add">+      require(&#39;./telemetry&#39;).track(&#39;project_sharing_set&#39;, { mode, source: &#39;settings&#39; });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    return result;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  ipcMain.handle(IPC.GET_SHARING_REPO_SIGNAL, (event, projectPath) =&gt;</span>
+<span class="dl-add">+    gitSharing.getRepoSignal(projectPath)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> module.exports = {</span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index 10c127f..6ad3b55 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -184,6 +184,11 @@ const IPC = {</span>
+<span class="dl-ctx">   ENABLE_SPEC_DRIVEN: &#39;enable-spec-driven&#39;,</span>
+<span class="dl-ctx">   SET_SPEC_DRIVEN: &#39;set-spec-driven&#39;,                // renderer → main: { projectPath, enabled } — Settings toggle</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // Git Sharing (per project, .frame/config.json settings.gitSharing)</span>
+<span class="dl-add">+  GET_GIT_SHARING_STATE: &#39;get-git-sharing-state&#39;,    // invoke: projectPath → { isRepo, declared, tracked, effective }</span>
+<span class="dl-add">+  SET_GIT_SHARING: &#39;set-git-sharing&#39;,                // invoke: { projectPath, mode } — the single mode-change write path</span>
+<span class="dl-add">+  GET_SHARING_REPO_SIGNAL: &#39;get-sharing-repo-signal&#39;,// invoke: projectPath → { hasRemote, authorCount } — discovery hint only</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   // Orchestration (conductor / parallel spec execution)</span>
+<span class="dl-ctx">   OPEN_ORCHESTRATOR: &#39;open-orchestrator&#39;,            // → renderer: open the orchestrator view</span>
+<span class="dl-ctx">   START_ORCHESTRATION: &#39;start-orchestration&#39;,        // renderer → main: begin a session (conductor lane id in)</span>
+<span class="dl-meta">diff --git a/test/frameProjectInit.test.js b/test/frameProjectInit.test.js</span>
+<span class="dl-meta">index 053fcae..0ae3aa5 100644</span>
+<span class="dl-file">--- a/test/frameProjectInit.test.js</span>
+<span class="dl-file">+++ b/test/frameProjectInit.test.js</span>
+<span class="dl-hunk">@@ -172,3 +172,61 @@ test(&#39;a second init is still footprint-clean&#39;, async () =&gt; {</span>
+<span class="dl-ctx">     assert.equal(after.get(rel), before.get(rel), `${rel} changed on re-init`);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── init options: git sharing (project-settings) ─────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+const gitExclude = require(&#39;../src/main/gitExclude&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function initGitRepo(dir) {</span>
+<span class="dl-add">+  const git = (...args) =&gt;</span>
+<span class="dl-add">+    execFileSync(&#39;git&#39;, args, { cwd: dir, encoding: &#39;utf8&#39;, stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;] });</span>
+<span class="dl-add">+  git(&#39;init&#39;, &#39;-q&#39;);</span>
+<span class="dl-add">+  git(&#39;config&#39;, &#39;user.email&#39;, &#39;test@example.com&#39;);</span>
+<span class="dl-add">+  git(&#39;config&#39;, &#39;user.name&#39;, &#39;Frame Test&#39;);</span>
+<span class="dl-add">+  git(&#39;add&#39;, &#39;.&#39;);</span>
+<span class="dl-add">+  git(&#39;commit&#39;, &#39;-qm&#39;, &#39;initial&#39;);</span>
+<span class="dl-add">+  return git;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;repo-mode init: config says repo, no exclude block ever written, gitignore present&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const git = initGitRepo(projectDir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  await frameProject.initializeFrameProject(projectDir, &#39;victim&#39;, { gitSharing: &#39;repo&#39; });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;repo&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const excludePath = gitExclude.excludeFilePath(projectDir);</span>
+<span class="dl-add">+  assert.ok(</span>
+<span class="dl-add">+    !fs.existsSync(excludePath) || !fs.readFileSync(excludePath, &#39;utf8&#39;).includes(gitExclude.MARKER),</span>
+<span class="dl-add">+    &#39;an exclude block was written during repo-mode init&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, &#39;.gitignore&#39;)), &#39;.frame/.gitignore missing&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const status = git(&#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;);</span>
+<span class="dl-add">+  assert.ok(status.includes(`${FRAME_DIR}/config.json`), &#39;.frame/ is not visible in repo mode&#39;);</span>
+<span class="dl-add">+  assert.ok(!status.includes(`${FRAME_DIR}/bin/`), &#39;generated bin/ leaked into git status&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;local-mode init (default): config says local, exclude block present, status clean&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const git = initGitRepo(projectDir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  await frameProject.initializeFrameProject(projectDir, &#39;victim&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, &#39;.gitignore&#39;)), &#39;.frame/.gitignore missing&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const exclude = fs.readFileSync(gitExclude.excludeFilePath(projectDir), &#39;utf8&#39;);</span>
+<span class="dl-add">+  assert.ok(exclude.includes(gitExclude.EXCLUDE_BLOCK));</span>
+<span class="dl-add">+  assert.equal(git(&#39;status&#39;, &#39;--porcelain&#39;).trim(), &#39;&#39;, &#39;git status is not clean after local init&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;init options: specDriven false lands in the config&#39;, async () =&gt; {</span>
+<span class="dl-add">+  await frameProject.initializeFrameProject(projectDir, &#39;victim&#39;, { specDriven: false });</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.equal(config.features.specDriven, false);</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;, &#39;non-repo default should still be local&#39;);</span>
 <span class="dl-add">+});</span></pre>
     </details>
   </div>

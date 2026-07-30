@@ -51,6 +51,18 @@
         "status": "pass",
         "detail": "355 tests, 0 failures"
       }
+    },
+    {
+      "id": "T05",
+      "title": "Main-process wiring: init options, open path, sharing IPC",
+      "commit": "358dd93",
+      "whatChanged": "initializeFrameProject/runProjectInit accept { specDriven, gitSharing }: the mode drives the pre-mkdir gitExclude.ensure (repo mode never writes the block), both answers bake into the one config write, .frame/.gitignore lands at init. CHECK_IS_FRAME_PROJECT uses gitSharing.ensureOnOpen. New invoke handlers GET_GIT_SHARING_STATE / SET_GIT_SHARING / GET_SHARING_REPO_SIGNAL; project_sharing_set fires with source init/settings. Three new tests in the stubbed init harness.",
+      "whyChanged": "D5's ordering constraint: the exclude decision happens before .frame/ exists, so the mode must ride the call, not be read back from config. SET_GIT_SHARING is the single write path so the modal toggle and the hint cannot diverge.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "358 tests, 0 failures"
+      }
     }
   ]
 }

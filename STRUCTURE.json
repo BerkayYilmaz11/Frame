@@ -820,6 +820,7 @@
         "workspace",
         "frameStore",
         "gitExclude",
+        "gitSharing",
         "instructionDiscovery",
         "structureBootstrap",
         "commandStaging",
@@ -833,28 +834,28 @@
       ],
       "functions": {
         "init": {
-          "line": 28,
+          "line": 29,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 35,
+          "line": 36,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 43,
+          "line": 44,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 56,
+          "line": 57,
           "params": [
             "filePath",
             "content"
@@ -862,95 +863,98 @@
           "purpose": "Create file if it doesn't exist"
         },
         "checkExistingFrameFiles": {
-          "line": 74,
+          "line": 75,
           "params": [
             "projectPath"
           ],
           "purpose": "Which Frame artifacts already exist — all of them inside `.frame/`."
         },
         "showInitializeConfirmation": {
-          "line": 96,
+          "line": 97,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 146,
+          "line": 147,
           "params": [
             "projectPath",
-            "projectName"
+            "projectName",
+            "options"
           ]
         },
         "doInitializeFrameProject": {
-          "line": 154,
+          "line": 155,
           "params": [
             "projectPath",
-            "projectName"
+            "projectName",
+            "options"
           ]
         },
         "runProjectInit": {
-          "line": 166,
+          "line": 167,
           "params": [
             "projectPath",
-            "projectName"
+            "projectName",
+            "options = {}"
           ]
         },
         "installSpecHintHook": {
-          "line": 325,
+          "line": 340,
           "params": [
             "projectPath"
           ],
           "purpose": "Make the spec-hint hooks available to Claude Code."
         },
         "isSpecDrivenEnabled": {
-          "line": 356,
+          "line": 371,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 361,
+          "line": 376,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 388,
+          "line": 403,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag. The next launch composes a preamble"
         },
         "setSpecDrivenEnabled": {
-          "line": 402,
+          "line": 417,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 406,
+          "line": 421,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 414,
+          "line": 429,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 458,
+          "line": 473,
           "params": [
             "projectPath"
           ]
         },
         "setupIPC": {
-          "line": 494,
+          "line": 509,
           "params": [
             "ipcMain"
           ],
@@ -964,7 +968,10 @@
           "GET_FRAME_CONFIG",
           "IS_SPEC_DRIVEN_ENABLED",
           "ENABLE_SPEC_DRIVEN",
-          "SET_SPEC_DRIVEN"
+          "SET_SPEC_DRIVEN",
+          "GET_GIT_SHARING_STATE",
+          "SET_GIT_SHARING",
+          "GET_SHARING_REPO_SIGNAL"
         ],
         "emits": [
           "LEGACY_LAYOUT_DETECTED",
@@ -10442,6 +10449,25 @@
     "structure": {
       "LOAD_STRUCTURE_MAP": {
         "name": "load-structure-map",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "git": {
+      "GET_GIT_SHARING_STATE": {
+        "name": "get-git-sharing-state",
+        "direction": "",
+        "description": ""
+      },
+      "SET_GIT_SHARING": {
+        "name": "set-git-sharing",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "sharing": {
+      "GET_SHARING_REPO_SIGNAL": {
+        "name": "get-sharing-repo-signal",
         "direction": "",
         "description": ""
       }
