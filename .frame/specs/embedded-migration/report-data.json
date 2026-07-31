@@ -99,6 +99,18 @@
         "status": "pass",
         "detail": "419 tests, 0 failures — src/renderer/ is not covered by the suite"
       }
+    },
+    {
+      "id": "T09",
+      "title": "The sample project on the overlay layout",
+      "commit": "88dbd9c",
+      "whatChanged": "Moved tasks.json, STRUCTURE.json and PROJECT_NOTES.md into src/templates/sample-project/.frame/, deleted the three byte-identical root instruction files, and added .frame/config.json plus a short project-specific .frame/AGENTS.md.",
+      "whyChanged": "The bundled sample tripped legacy detection, so the first project a new user opened would have announced that it needed migrating. The config was a real gap rather than a move: the sample had no .frame/config.json at all, so after the overlay it opened as a non-Frame project with invisible tasks. The 11 KB conventions doc was dropped rather than moved — that content lives in the global layer now, and shipping a copy is the contradiction this spec exists to remove.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "419 tests, 0 failures"
+      }
     }
   ]
 }

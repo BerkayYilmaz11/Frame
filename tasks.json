@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:26:57.536Z",
+  "lastUpdated": "2026-07-31T14:29:30.974Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4665,13 +4665,13 @@
       "title": "Rewrite `src/templates/sample-project/` to the overlay layout so legacy detection never matches the bundled sample",
       "description": "",
       "source": "spec:embedded-migration:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:29:30.974Z",
+      "completedAt": "2026-07-31T14:29:30.974Z"
     }
   ],
   "metadata": {

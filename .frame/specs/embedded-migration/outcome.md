@@ -136,3 +136,21 @@ uncovered and the engine behind it is covered by T03–T06.
 _Captured: 2026-07-31 · 7 file changes_
 
 ---
+
+## T09 — The sample project on the overlay layout
+
+Moved `tasks.json`, `STRUCTURE.json` and `PROJECT_NOTES.md` into
+`src/templates/sample-project/.frame/`, deleted the three byte-identical root
+instruction files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md` — 11 KB of the
+pre-overlay conventions doc that now lives in the global layer), and added
+`.frame/config.json` plus a short project-specific `.frame/AGENTS.md`. The
+config was a real gap, not just a move: the sample had no `.frame/config.json`
+at all, so post-overlay it opened as a non-Frame project with invisible tasks.
+Verified the sample now reads `legacyLayout: false` and `isFrameProject: true`.
+Followup: `frameTemplates.getFrameConfigTemplate` still writes a `files` block
+naming root files that overlay init no longer creates — outside this spec's
+footprint, so left alone; it deserves its own task.
+
+_Captured: 2026-07-31 · 8 file changes_
+
+---
