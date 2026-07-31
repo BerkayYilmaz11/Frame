@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:07:56.384Z",
+  "lastUpdated": "2026-07-31T14:12:19.710Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4600,13 +4600,13 @@
       "title": "Execute a plan: move artifacts whose `.frame/` counterpart is absent, delete identical ones, send conflicting root copies to the backup so `.frame/` wins, then rewrite `config.json` without its `files` block",
       "description": "",
       "source": "spec:embedded-migration:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:12:19.710Z",
+      "completedAt": "2026-07-31T14:12:19.710Z"
     },
     {
       "id": "task-spec-embedded-migration-T05",

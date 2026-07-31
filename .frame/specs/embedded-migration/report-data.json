@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "388 tests, 0 failures"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Execute a plan — move, resolve conflicts, rewrite the config",
+      "commit": "c0dd6c3",
+      "whatChanged": "Added applyArtifact(), rewriteConfig() and migrateProject() to src/main/embeddedMigration.js: backup first, then move / delete-identical / delete-with-the-root-copy-in-the-backup per disposition, then drop the config files block. Returns migrated | deferred | skipped | failed, records the activity trace, and sends the failure telemetry event with a bucketed count. 12 more cases.",
+      "whyChanged": "move is copy-verify-then-delete rather than rename, so an interruption leaves a duplicate the next run reconciles as delete-identical — never a hole (D2). The failure path returns the step and the real error instead of throwing, because the foreground modal has to show both and the sweep has to isolate one project failing from the rest.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "400 tests, 0 failures"
+      }
     }
   ]
 }

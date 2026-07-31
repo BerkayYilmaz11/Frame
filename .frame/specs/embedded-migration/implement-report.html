@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">3 of 9 tasks done · next: <span class="rs-task">T04 — Execute a plan: move artifacts whose `.frame/` counterpart is absent…</span></span>
+  <span class="rs-count">4 of 9 tasks done · next: <span class="rs-task">T05 — Restore `CLAUDE.md`, `GEMINI.md` and `AGENTS.md` from their `##…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1342,6 +1342,335 @@
 <span class="dl-add">+  assert.equal(git(dir, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;).trim(), &#39;&#39;, &#39;plan() touched the working tree&#39;);</span>
 <span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, FRAME_DIR, migration.BACKUP_DIR)), &#39;plan() created the backup dir&#39;);</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Execute a plan — move, resolve conflicts, rewrite the config</h2>
+    <span class="card-meta"><span class="chip">c0dd6c3</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">400 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added applyArtifact(), rewriteConfig() and migrateProject() to src/main/embeddedMigration.js: backup first, then move / delete-identical / delete-with-the-root-copy-in-the-backup per disposition, then drop the config files block. Returns migrated | deferred | skipped | failed, records the activity trace, and sends the failure telemetry event with a bucketed count. 12 more cases.</p></div>
+    <div class="field"><span class="label">Why</span><p>move is copy-verify-then-delete rather than rename, so an interruption leaves a duplicate the next run reconciles as delete-identical — never a hole (D2). The failure path returns the step and the real error instead of throwing, because the foreground modal has to show both and the sweep has to isolate one project failing from the rest.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/embeddedMigration.js b/src/main/embeddedMigration.js</span>
+<span class="dl-meta">index ec75e13..1c8bec1 100644</span>
+<span class="dl-file">--- a/src/main/embeddedMigration.js</span>
+<span class="dl-file">+++ b/src/main/embeddedMigration.js</span>
+<span class="dl-hunk">@@ -34,6 +34,7 @@ const {</span>
+<span class="dl-ctx">   FRAME_META_FILES</span>
+<span class="dl-ctx"> } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-add">+const { bucketCount } = require(&#39;./telemetryEvents&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /** Everything removed is copied here first, and nothing prunes it. */</span>
+<span class="dl-ctx"> const BACKUP_DIR = &#39;migration-backup&#39;;</span>
+<span class="dl-hunk">@@ -400,10 +401,137 @@ function writeBackup(projectPath, rels) {</span>
+<span class="dl-ctx">   return written;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── executing a plan ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Carry out one artifact&#39;s disposition.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `move` is copy-verify-then-delete rather than rename: an interruption then</span>
+<span class="dl-add">+ * leaves a duplicate the next run&#39;s idempotent copy step reconciles, never a</span>
+<span class="dl-add">+ * hole (D2). `backup-conflict` only deletes, because `.frame/` always wins and</span>
+<span class="dl-add">+ * the root copy is already in the backup — post-upgrade work is never</span>
+<span class="dl-add">+ * overwritten by a stale root file (D3).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function applyArtifact(projectPath, artifact) {</span>
+<span class="dl-add">+  const from = path.join(projectPath, artifact.rel);</span>
+<span class="dl-add">+  const to = path.join(projectPath, artifact.target);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (artifact.disposition === &#39;move&#39;) {</span>
+<span class="dl-add">+    fs.mkdirSync(path.dirname(to), { recursive: true });</span>
+<span class="dl-add">+    fs.copyFileSync(from, to);</span>
+<span class="dl-add">+    if (!sameContent(from, to)) {</span>
+<span class="dl-add">+      throw new Error(`embeddedMigration: ${artifact.rel} did not copy intact`);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  fs.unlinkSync(from);</span>
+<span class="dl-add">+  record(&#39;migration.artifact&#39;, { path: artifact.rel, disposition: artifact.disposition });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Drop the `files` block from `.frame/config.json`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * It is a manifest of root files that no longer exist, and leaving it would</span>
+<span class="dl-add">+ * make the next `plan()` name paths that are gone. Everything else in the</span>
+<span class="dl-add">+ * config is preserved — this rewrites one key, it does not regenerate a file.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function rewriteConfig(projectPath) {</span>
+<span class="dl-add">+  const config = readConfig(projectPath);</span>
+<span class="dl-add">+  if (!config || !Object.prototype.hasOwnProperty.call(config, &#39;files&#39;)) return false;</span>
+<span class="dl-add">+  delete config.files;</span>
+<span class="dl-add">+  fs.writeFileSync(configPath(projectPath), `${JSON.stringify(config, null, 2)}\n`, &#39;utf8&#39;);</span>
+<span class="dl-add">+  return true;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Migrate one project. Either it completes or it leaves the project untouched</span>
+<span class="dl-add">+ * and retries on the next open — there is no persisted half-migrated state</span>
+<span class="dl-add">+ * (D2).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {string} projectPath</span>
+<span class="dl-add">+ * @param {{ onProgress?: (artifact: object) =&gt; void }} [opts]</span>
+<span class="dl-add">+ *   onProgress — the foreground modal&#39;s per-artifact reporter. The sweep</span>
+<span class="dl-add">+ *   passes nothing; the engine has no notion of which caller it has.</span>
+<span class="dl-add">+ * @returns {{ status: &#39;migrated&#39;|&#39;deferred&#39;|&#39;skipped&#39;|&#39;failed&#39;, ... }}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-add">+  const started = Date.now();</span>
+<span class="dl-add">+  const onProgress = typeof opts.onProgress === &#39;function&#39; ? opts.onProgress : null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const detected = plan(projectPath);</span>
+<span class="dl-add">+  if (!detected.legacy) return { status: &#39;skipped&#39;, artifacts: [], restored: [], tracked: [] };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  record(&#39;migration.detected&#39;, {</span>
+<span class="dl-add">+    artifacts: detected.artifacts.length,</span>
+<span class="dl-add">+    restore: detected.restore.length</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (detected.dirty.length) {</span>
+<span class="dl-add">+    record(&#39;migration.deferred&#39;, { reason: &#39;uncommitted&#39;, files: detected.dirty.length });</span>
+<span class="dl-add">+    return { status: &#39;deferred&#39;, dirty: detected.dirty, artifacts: [], restored: [], tracked: detected.tracked };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Steps below are the atomic unit: a failure aborts the run, leaves the</span>
+<span class="dl-add">+  // backup behind, and the next open retries from a state the idempotent copy</span>
+<span class="dl-add">+  // step can reconcile.</span>
+<span class="dl-add">+  let step = &#39;backup&#39;;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    writeBackup(projectPath, [...detected.artifacts.map((a) =&gt; a.rel), ...detected.symlinks]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    step = &#39;move&#39;;</span>
+<span class="dl-add">+    for (const artifact of detected.artifacts) {</span>
+<span class="dl-add">+      applyArtifact(projectPath, artifact);</span>
+<span class="dl-add">+      if (onProgress) onProgress(artifact);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    step = &#39;config&#39;;</span>
+<span class="dl-add">+    rewriteConfig(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    record(&#39;migration.completed&#39;, {</span>
+<span class="dl-add">+      artifacts: detected.artifacts.length,</span>
+<span class="dl-add">+      restored: 0,</span>
+<span class="dl-add">+      tracked: detected.tracked.length,</span>
+<span class="dl-add">+      ms: Date.now() - started</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      status: &#39;migrated&#39;,</span>
+<span class="dl-add">+      artifacts: detected.artifacts,</span>
+<span class="dl-add">+      restored: [],</span>
+<span class="dl-add">+      tracked: detected.tracked,</span>
+<span class="dl-add">+      unrecognized: detected.unrecognized,</span>
+<span class="dl-add">+      backupDir: detected.backupDir</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    record(&#39;migration.failed&#39;, { step, artifacts: detected.artifacts.length });</span>
+<span class="dl-add">+    // The one thing this spec reports off-machine, and only because D1 runs</span>
+<span class="dl-add">+    // silently and D10 removed the banner: a run that dies halfway is</span>
+<span class="dl-add">+    // otherwise invisible everywhere but this user&#39;s own disk.</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      sendTelemetry(&#39;migration_failed&#39;, {</span>
+<span class="dl-add">+        step,</span>
+<span class="dl-add">+        artifacts: bucketCount(detected.artifacts.length)</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+    } catch (_) {</span>
+<span class="dl-add">+      /* telemetry never decides whether migration reports a failure */</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      status: &#39;failed&#39;,</span>
+<span class="dl-add">+      step,</span>
+<span class="dl-add">+      error: err.message,</span>
+<span class="dl-add">+      artifacts: detected.artifacts,</span>
+<span class="dl-add">+      restored: [],</span>
+<span class="dl-add">+      tracked: detected.tracked,</span>
+<span class="dl-add">+      backupDir: detected.backupDir</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   plan,</span>
+<span class="dl-add">+  migrateProject,</span>
+<span class="dl-ctx">   writeBackup,</span>
+<span class="dl-add">+  rewriteConfig,</span>
+<span class="dl-ctx">   extractExisting,</span>
+<span class="dl-ctx">   BACKUP_DIR,</span>
+<span class="dl-ctx">   TARGET_BY_ROOT_NAME,</span>
+<span class="dl-meta">diff --git a/test/embeddedMigration.test.js b/test/embeddedMigration.test.js</span>
+<span class="dl-meta">index 0c7a18d..a70b031 100644</span>
+<span class="dl-file">--- a/test/embeddedMigration.test.js</span>
+<span class="dl-file">+++ b/test/embeddedMigration.test.js</span>
+<span class="dl-hunk">@@ -313,6 +313,159 @@ test(&#39;a dangling symlink is skipped — there is nothing to preserve&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(!fs.existsSync(backupPath(dir, &#39;GEMINI.md&#39;)));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── D2 / D3: executing a plan ────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a clean legacy project migrates: root artifacts land under .frame/&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;migrate&#39;);</span>
+<span class="dl-add">+  const result = migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.status, &#39;migrated&#39;);</span>
+<span class="dl-add">+  for (const rel of [&#39;tasks.json&#39;, &#39;STRUCTURE.json&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;, &#39;AGENTS.md&#39;]) {</span>
+<span class="dl-add">+    assert.ok(!fs.existsSync(path.join(dir, rel)), `${rel} survived at the root`);</span>
+<span class="dl-add">+    assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, rel)), `${rel} never arrived under .frame/`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;utf8&#39;), &#39;{&quot;tasks&quot;:[]}\n&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;nothing outside the manifest is touched&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;untouched&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;package.json&#39;), &#39;{&quot;name&quot;:&quot;mine&quot;}\n&#39;);</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, &#39;README.md&#39;)));</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, &#39;package.json&#39;)));</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, &#39;specs&#39;)), &#39;the pre-existing .frame/specs/ was disturbed&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an identical counterpart is deleted at the root, not copied over&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;apply-identical&#39;);</span>
+<span class="dl-add">+  fs.copyFileSync(path.join(dir, &#39;tasks.json&#39;), path.join(dir, FRAME_DIR, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+  const before = fs.statSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;)).mtimeMs;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, &#39;tasks.json&#39;)));</span>
+<span class="dl-add">+  assert.equal(fs.statSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;)).mtimeMs, before, &#39;.frame/ copy was rewritten&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;dual layout: the .frame/ version survives and the root copy goes to the backup&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;apply-conflict&#39;);</span>
+<span class="dl-add">+  // Work done after the upgrade — a blind move would overwrite it with the</span>
+<span class="dl-add">+  // stale root file, which is the whole reason .frame/ wins.</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[{&quot;id&quot;:&quot;post-upgrade&quot;}]}\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.status, &#39;migrated&#39;);</span>
+<span class="dl-add">+  assert.match(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;utf8&#39;), /post-upgrade/);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(backupPath(dir, &#39;tasks.json&#39;), &#39;utf8&#39;), &#39;{&quot;tasks&quot;:[]}\n&#39;);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, &#39;tasks.json&#39;)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;everything removed is in the backup, whatever its disposition&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;apply-backup&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;QUICKSTART.md&#39;), &#39;# different\n&#39;);</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const rel of [&#39;tasks.json&#39;, &#39;STRUCTURE.json&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;, &#39;AGENTS.md&#39;]) {</span>
+<span class="dl-add">+    assert.ok(fs.existsSync(backupPath(dir, rel)), `${rel} was removed without a backup`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a deferred project is left exactly as it was&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;apply-deferred&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;PROJECT_NOTES.md&#39;), &#39;# Notes\n\nMid-edit.\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.status, &#39;deferred&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(result.dirty, [&#39;PROJECT_NOTES.md&#39;]);</span>
+<span class="dl-add">+  assert.match(fs.readFileSync(path.join(dir, &#39;PROJECT_NOTES.md&#39;), &#39;utf8&#39;), /Mid-edit/);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, &#39;tasks.json&#39;)), &#39;a deferred run moved something anyway&#39;);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, FRAME_DIR, migration.BACKUP_DIR)), &#39;a deferred run wrote a backup&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project already on the overlay layout is skipped&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = path.join(root, &#39;apply-modern&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;{&quot;version&quot;:&quot;1.0&quot;}&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(migration.migrateProject(dir).status, &#39;skipped&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the config keeps everything but its files block&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;apply-config&#39;);</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.ok(!(&#39;files&#39; in config), &#39;the stale root-file manifest survived&#39;);</span>
+<span class="dl-add">+  assert.equal(config.version, &#39;1.0&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(config.settings, {});</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an interrupted run reconciles on the next pass&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;interrupted&#39;);</span>
+<span class="dl-add">+  // Stop after the backup and one artifact — the state a killed app leaves.</span>
+<span class="dl-add">+  migration.writeBackup(dir, [&#39;tasks.json&#39;, &#39;STRUCTURE.json&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;, &#39;AGENTS.md&#39;]);</span>
+<span class="dl-add">+  fs.copyFileSync(path.join(dir, &#39;tasks.json&#39;), path.join(dir, FRAME_DIR, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.status, &#39;migrated&#39;);</span>
+<span class="dl-add">+  // The duplicate left behind is reconciled as identical, not as a conflict.</span>
+<span class="dl-add">+  assert.equal(dispositionOf(result, &#39;tasks.json&#39;), &#39;delete-identical&#39;);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, &#39;tasks.json&#39;)));</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;utf8&#39;), &#39;{&quot;tasks&quot;:[]}\n&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a second full run changes nothing — migration is not re-entrant damage&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;idempotent&#39;);</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+  const after = fs.readdirSync(path.join(dir, FRAME_DIR)).sort();</span>
+<span class="dl-add">+  const tasks = fs.readFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(fs.readdirSync(path.join(dir, FRAME_DIR)).sort(), after);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;utf8&#39;), tasks);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the progress callback reports each artifact as it lands&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;progress&#39;);</span>
+<span class="dl-add">+  const seen = [];</span>
+<span class="dl-add">+  migration.migrateProject(dir, { onProgress: (a) =&gt; seen.push(a.rel) });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(seen.sort(), [&#39;AGENTS.md&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;, &#39;STRUCTURE.json&#39;, &#39;tasks.json&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a failure aborts the run, keeps the backup, and reports the step it died at&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Not a git repo: swapping the artifact below would otherwise read as an</span>
+<span class="dl-add">+  // uncommitted change and defer the run before it could fail.</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;failing&#39;, { git: false });</span>
+<span class="dl-add">+  const events = [];</span>
+<span class="dl-add">+  const sent = [];</span>
+<span class="dl-add">+  migration.init({ record: (name, fields) =&gt; events.push({ name, fields }), telemetry: (e, p) =&gt; sent.push({ e, p }) });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // An unreadable artifact — the stand-in for the real causes: a locked file,</span>
+<span class="dl-add">+  // a permission the user does not have, a full disk.</span>
+<span class="dl-add">+  fs.unlinkSync(path.join(dir, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.migrateProject(dir);</span>
+<span class="dl-add">+  migration.init({ record: () =&gt; {}, telemetry: () =&gt; {} });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.status, &#39;failed&#39;);</span>
+<span class="dl-add">+  assert.equal(result.step, &#39;backup&#39;);</span>
+<span class="dl-add">+  assert.equal(result.error.length &gt; 0, true, &#39;the underlying error was swallowed&#39;);</span>
+<span class="dl-add">+  // Whatever it managed before dying stays in the backup: that is the sentence</span>
+<span class="dl-add">+  // the failure screen makes to the user.</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(backupPath(dir, &#39;PROJECT_NOTES.md&#39;)), &#39;the failure took the backup with it&#39;);</span>
+<span class="dl-add">+  assert.ok(events.some((e) =&gt; e.name === &#39;migration.failed&#39;), &#39;the failure went unrecorded&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(sent.map((s) =&gt; s.e), [&#39;migration_failed&#39;]);</span>
+<span class="dl-add">+  assert.equal(sent[0].p.step, &#39;backup&#39;);</span>
+<span class="dl-add">+  assert.equal(sent[0].p.artifacts, &#39;4-6&#39;, &#39;the count reached telemetry unbucketed&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;plan writes nothing at all&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const dir = makeLegacyProject(&#39;read-only&#39;, { commit: false });</span>
+<span class="dl-ctx">   git(dir, &#39;add&#39;, &#39;-A&#39;);</span></pre>
     </details>
   </div>
 </section>

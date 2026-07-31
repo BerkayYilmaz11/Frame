@@ -700,7 +700,9 @@
       "exports": [
         "init",
         "plan",
+        "migrateProject",
         "writeBackup",
+        "rewriteConfig",
         "extractExisting",
         "BACKUP_DIR",
         "TARGET_BY_ROOT_NAME",
@@ -711,37 +713,38 @@
         "path",
         "child_process",
         "shared/frameConstants",
-        "instructionDiscovery"
+        "instructionDiscovery",
+        "telemetryEvents"
       ],
       "functions": {
         "init": {
-          "line": 95,
+          "line": 96,
           "params": [
             "deps = {}"
           ],
           "purpose": "record    — `activityLog.record(name, fields)`"
         },
         "record": {
-          "line": 100,
+          "line": 101,
           "params": [
             "name",
             "fields"
           ]
         },
         "lstat": {
-          "line": 110,
+          "line": 111,
           "params": [
             "target"
           ]
         },
         "exists": {
-          "line": 118,
+          "line": 119,
           "params": [
             "target"
           ]
         },
         "isFramePlantedSymlink": {
-          "line": 123,
+          "line": 124,
           "params": [
             "projectPath",
             "rel"
@@ -749,13 +752,13 @@
           "purpose": "True only for a symlink Frame planted: one that points at `AGENTS.md`."
         },
         "readFile": {
-          "line": 134,
+          "line": 135,
           "params": [
             "target"
           ]
         },
         "sameContent": {
-          "line": 143,
+          "line": 144,
           "params": [
             "a",
             "b"
@@ -763,20 +766,20 @@
           "purpose": "Byte comparison, not mtime or size: a stale copy can match on both."
         },
         "git": {
-          "line": 153,
+          "line": 154,
           "params": [
             "projectPath",
             "args"
           ]
         },
         "isGitRepo": {
-          "line": 161,
+          "line": 162,
           "params": [
             "projectPath"
           ]
         },
         "dirtyArtifacts": {
-          "line": 179,
+          "line": 180,
           "params": [
             "projectPath",
             "rels"
@@ -784,7 +787,7 @@
           "purpose": "Legacy artifacts git reports as modified or staged (D4)."
         },
         "trackedArtifacts": {
-          "line": 202,
+          "line": 203,
           "params": [
             "projectPath",
             "rels"
@@ -792,26 +795,26 @@
           "purpose": "Which artifacts git has committed. This drives the receipt's git sentence,"
         },
         "configPath": {
-          "line": 216,
+          "line": 217,
           "params": [
             "projectPath"
           ]
         },
         "readConfig": {
-          "line": 220,
+          "line": 221,
           "params": [
             "projectPath"
           ]
         },
         "artifactManifest": {
-          "line": 237,
+          "line": 238,
           "params": [
             "projectPath"
           ],
           "purpose": "The root files Frame created *for this project*, from the legacy config's"
         },
         "extractExisting": {
-          "line": 266,
+          "line": 267,
           "params": [
             "content",
             "label"
@@ -819,25 +822,48 @@
           "purpose": "Pull one `## Existing Instructions (from <label>)` block out of a merged"
         },
         "plan": {
-          "line": 296,
+          "line": 297,
           "params": [
             "projectPath"
           ],
           "purpose": "What migrating this project would do. Pure inspection — no writes, safe to"
         },
         "writeBackup": {
-          "line": 382,
+          "line": 383,
           "params": [
             "projectPath",
             "rels"
           ],
           "purpose": "Byte-copy everything the run will remove into `.frame/migration-backup/`,"
         },
+        "applyArtifact": {
+          "line": 415,
+          "params": [
+            "projectPath",
+            "artifact"
+          ],
+          "purpose": "Carry out one artifact's disposition."
+        },
+        "rewriteConfig": {
+          "line": 437,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Drop the `files` block from `.frame/config.json`."
+        },
+        "migrateProject": {
+          "line": 456,
+          "params": [
+            "projectPath",
+            "opts = {}"
+          ],
+          "purpose": "Migrate one project. Either it completes or it leaves the project untouched"
+        },
         "recordActivity": {
-          "line": 87
+          "line": 88
         },
         "sendTelemetry": {
-          "line": 88
+          "line": 89
         }
       }
     },

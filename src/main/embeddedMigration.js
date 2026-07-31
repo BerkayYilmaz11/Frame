@@ -34,6 +34,7 @@ const {
   FRAME_META_FILES
 } = require('../shared/frameConstants');
 const instructionDiscovery = require('./instructionDiscovery');
+const { bucketCount } = require('./telemetryEvents');
 
 /** Everything removed is copied here first, and nothing prunes it. */
 const BACKUP_DIR = 'migration-backup';
@@ -400,10 +401,137 @@ function writeBackup(projectPath, rels) {
   return written;
 }
 
+// ─── executing a plan ─────────────────────────────────────────
+
+/**
+ * Carry out one artifact's disposition.
+ *
+ * `move` is copy-verify-then-delete rather than rename: an interruption then
+ * leaves a duplicate the next run's idempotent copy step reconciles, never a
+ * hole (D2). `backup-conflict` only deletes, because `.frame/` always wins and
+ * the root copy is already in the backup — post-upgrade work is never
+ * overwritten by a stale root file (D3).
+ */
+function applyArtifact(projectPath, artifact) {
+  const from = path.join(projectPath, artifact.rel);
+  const to = path.join(projectPath, artifact.target);
+
+  if (artifact.disposition === 'move') {
+    fs.mkdirSync(path.dirname(to), { recursive: true });
+    fs.copyFileSync(from, to);
+    if (!sameContent(from, to)) {
+      throw new Error(`embeddedMigration: ${artifact.rel} did not copy intact`);
+    }
+  }
+  fs.unlinkSync(from);
+  record('migration.artifact', { path: artifact.rel, disposition: artifact.disposition });
+}
+
+/**
+ * Drop the `files` block from `.frame/config.json`.
+ *
+ * It is a manifest of root files that no longer exist, and leaving it would
+ * make the next `plan()` name paths that are gone. Everything else in the
+ * config is preserved — this rewrites one key, it does not regenerate a file.
+ */
+function rewriteConfig(projectPath) {
+  const config = readConfig(projectPath);
+  if (!config || !Object.prototype.hasOwnProperty.call(config, 'files')) return false;
+  delete config.files;
+  fs.writeFileSync(configPath(projectPath), `${JSON.stringify(config, null, 2)}\n`, 'utf8');
+  return true;
+}
+
+/**
+ * Migrate one project. Either it completes or it leaves the project untouched
+ * and retries on the next open — there is no persisted half-migrated state
+ * (D2).
+ *
+ * @param {string} projectPath
+ * @param {{ onProgress?: (artifact: object) => void }} [opts]
+ *   onProgress — the foreground modal's per-artifact reporter. The sweep
+ *   passes nothing; the engine has no notion of which caller it has.
+ * @returns {{ status: 'migrated'|'deferred'|'skipped'|'failed', ... }}
+ */
+function migrateProject(projectPath, opts = {}) {
+  const started = Date.now();
+  const onProgress = typeof opts.onProgress === 'function' ? opts.onProgress : null;
+
+  const detected = plan(projectPath);
+  if (!detected.legacy) return { status: 'skipped', artifacts: [], restored: [], tracked: [] };
+
+  record('migration.detected', {
+    artifacts: detected.artifacts.length,
+    restore: detected.restore.length
+  });
+
+  if (detected.dirty.length) {
+    record('migration.deferred', { reason: 'uncommitted', files: detected.dirty.length });
+    return { status: 'deferred', dirty: detected.dirty, artifacts: [], restored: [], tracked: detected.tracked };
+  }
+
+  // Steps below are the atomic unit: a failure aborts the run, leaves the
+  // backup behind, and the next open retries from a state the idempotent copy
+  // step can reconcile.
+  let step = 'backup';
+  try {
+    writeBackup(projectPath, [...detected.artifacts.map((a) => a.rel), ...detected.symlinks]);
+
+    step = 'move';
+    for (const artifact of detected.artifacts) {
+      applyArtifact(projectPath, artifact);
+      if (onProgress) onProgress(artifact);
+    }
+
+    step = 'config';
+    rewriteConfig(projectPath);
+
+    record('migration.completed', {
+      artifacts: detected.artifacts.length,
+      restored: 0,
+      tracked: detected.tracked.length,
+      ms: Date.now() - started
+    });
+
+    return {
+      status: 'migrated',
+      artifacts: detected.artifacts,
+      restored: [],
+      tracked: detected.tracked,
+      unrecognized: detected.unrecognized,
+      backupDir: detected.backupDir
+    };
+  } catch (err) {
+    record('migration.failed', { step, artifacts: detected.artifacts.length });
+    // The one thing this spec reports off-machine, and only because D1 runs
+    // silently and D10 removed the banner: a run that dies halfway is
+    // otherwise invisible everywhere but this user's own disk.
+    try {
+      sendTelemetry('migration_failed', {
+        step,
+        artifacts: bucketCount(detected.artifacts.length)
+      });
+    } catch (_) {
+      /* telemetry never decides whether migration reports a failure */
+    }
+    return {
+      status: 'failed',
+      step,
+      error: err.message,
+      artifacts: detected.artifacts,
+      restored: [],
+      tracked: detected.tracked,
+      backupDir: detected.backupDir
+    };
+  }
+}
+
 module.exports = {
   init,
   plan,
+  migrateProject,
   writeBackup,
+  rewriteConfig,
   extractExisting,
   BACKUP_DIR,
   TARGET_BY_ROOT_NAME,

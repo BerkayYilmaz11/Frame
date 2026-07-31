@@ -48,3 +48,21 @@ never load Electron.
 _Captured: 2026-07-31 · 2 file changes_
 
 ---
+
+## T04 — Execute a plan: move, resolve conflicts, rewrite the config
+
+Added `applyArtifact()`, `rewriteConfig()` and `migrateProject()` to
+`src/main/embeddedMigration.js` — backup first, then each artifact's
+disposition, then the `files` block dropped from `.frame/config.json`.
+Implemented `move` as copy-verify-then-delete rather than `rename` so an
+interruption leaves a duplicate the next run reconciles as `delete-identical`,
+which is what D2's "never a hole" requires. The failure path returns
+`{ status, step, error }` instead of throwing, because T06's sweep must isolate
+one project's failure and T08's modal must show the real message; it also
+sends the `migration_failed` telemetry event through `bucketCount`. Twelve
+cases added, including dual layout, an interrupted run, and a failing run whose
+backup survives.
+
+_Captured: 2026-07-31 · 2 file changes_
+
+---

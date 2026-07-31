@@ -313,6 +313,159 @@ test('a dangling symlink is skipped — there is nothing to preserve', () => {
   assert.ok(!fs.existsSync(backupPath(dir, 'GEMINI.md')));
 });
 
+// ─── D2 / D3: executing a plan ────────────────────────────────
+
+test('a clean legacy project migrates: root artifacts land under .frame/', () => {
+  const dir = makeLegacyProject('migrate');
+  const result = migration.migrateProject(dir);
+
+  assert.equal(result.status, 'migrated');
+  for (const rel of ['tasks.json', 'STRUCTURE.json', 'PROJECT_NOTES.md', 'QUICKSTART.md', 'AGENTS.md']) {
+    assert.ok(!fs.existsSync(path.join(dir, rel)), `${rel} survived at the root`);
+    assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, rel)), `${rel} never arrived under .frame/`);
+  }
+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), 'utf8'), '{"tasks":[]}\n');
+});
+
+test('nothing outside the manifest is touched', () => {
+  const dir = makeLegacyProject('untouched');
+  fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"mine"}\n');
+  migration.migrateProject(dir);
+
+  assert.ok(fs.existsSync(path.join(dir, 'README.md')));
+  assert.ok(fs.existsSync(path.join(dir, 'package.json')));
+  assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, 'specs')), 'the pre-existing .frame/specs/ was disturbed');
+});
+
+test('an identical counterpart is deleted at the root, not copied over', () => {
+  const dir = makeLegacyProject('apply-identical');
+  fs.copyFileSync(path.join(dir, 'tasks.json'), path.join(dir, FRAME_DIR, 'tasks.json'));
+  const before = fs.statSync(path.join(dir, FRAME_DIR, 'tasks.json')).mtimeMs;
+
+  migration.migrateProject(dir);
+
+  assert.ok(!fs.existsSync(path.join(dir, 'tasks.json')));
+  assert.equal(fs.statSync(path.join(dir, FRAME_DIR, 'tasks.json')).mtimeMs, before, '.frame/ copy was rewritten');
+});
+
+test('dual layout: the .frame/ version survives and the root copy goes to the backup', () => {
+  const dir = makeLegacyProject('apply-conflict');
+  // Work done after the upgrade — a blind move would overwrite it with the
+  // stale root file, which is the whole reason .frame/ wins.
+  fs.writeFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), '{"tasks":[{"id":"post-upgrade"}]}\n');
+
+  const result = migration.migrateProject(dir);
+
+  assert.equal(result.status, 'migrated');
+  assert.match(fs.readFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), 'utf8'), /post-upgrade/);
+  assert.equal(fs.readFileSync(backupPath(dir, 'tasks.json'), 'utf8'), '{"tasks":[]}\n');
+  assert.ok(!fs.existsSync(path.join(dir, 'tasks.json')));
+});
+
+test('everything removed is in the backup, whatever its disposition', () => {
+  const dir = makeLegacyProject('apply-backup');
+  fs.writeFileSync(path.join(dir, FRAME_DIR, 'QUICKSTART.md'), '# different\n');
+  migration.migrateProject(dir);
+
+  for (const rel of ['tasks.json', 'STRUCTURE.json', 'PROJECT_NOTES.md', 'QUICKSTART.md', 'AGENTS.md']) {
+    assert.ok(fs.existsSync(backupPath(dir, rel)), `${rel} was removed without a backup`);
+  }
+});
+
+test('a deferred project is left exactly as it was', () => {
+  const dir = makeLegacyProject('apply-deferred');
+  fs.writeFileSync(path.join(dir, 'PROJECT_NOTES.md'), '# Notes\n\nMid-edit.\n');
+
+  const result = migration.migrateProject(dir);
+
+  assert.equal(result.status, 'deferred');
+  assert.deepEqual(result.dirty, ['PROJECT_NOTES.md']);
+  assert.match(fs.readFileSync(path.join(dir, 'PROJECT_NOTES.md'), 'utf8'), /Mid-edit/);
+  assert.ok(fs.existsSync(path.join(dir, 'tasks.json')), 'a deferred run moved something anyway');
+  assert.ok(!fs.existsSync(path.join(dir, FRAME_DIR, migration.BACKUP_DIR)), 'a deferred run wrote a backup');
+});
+
+test('a project already on the overlay layout is skipped', () => {
+  const dir = path.join(root, 'apply-modern');
+  fs.mkdirSync(path.join(dir, FRAME_DIR), { recursive: true });
+  fs.writeFileSync(path.join(dir, FRAME_DIR, 'config.json'), '{"version":"1.0"}');
+
+  assert.equal(migration.migrateProject(dir).status, 'skipped');
+});
+
+test('the config keeps everything but its files block', () => {
+  const dir = makeLegacyProject('apply-config');
+  migration.migrateProject(dir);
+
+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, 'config.json'), 'utf8'));
+  assert.ok(!('files' in config), 'the stale root-file manifest survived');
+  assert.equal(config.version, '1.0');
+  assert.deepEqual(config.settings, {});
+});
+
+test('an interrupted run reconciles on the next pass', () => {
+  const dir = makeLegacyProject('interrupted');
+  // Stop after the backup and one artifact — the state a killed app leaves.
+  migration.writeBackup(dir, ['tasks.json', 'STRUCTURE.json', 'PROJECT_NOTES.md', 'QUICKSTART.md', 'AGENTS.md']);
+  fs.copyFileSync(path.join(dir, 'tasks.json'), path.join(dir, FRAME_DIR, 'tasks.json'));
+
+  const result = migration.migrateProject(dir);
+
+  assert.equal(result.status, 'migrated');
+  // The duplicate left behind is reconciled as identical, not as a conflict.
+  assert.equal(dispositionOf(result, 'tasks.json'), 'delete-identical');
+  assert.ok(!fs.existsSync(path.join(dir, 'tasks.json')));
+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), 'utf8'), '{"tasks":[]}\n');
+});
+
+test('a second full run changes nothing — migration is not re-entrant damage', () => {
+  const dir = makeLegacyProject('idempotent');
+  migration.migrateProject(dir);
+  const after = fs.readdirSync(path.join(dir, FRAME_DIR)).sort();
+  const tasks = fs.readFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), 'utf8');
+
+  migration.migrateProject(dir);
+
+  assert.deepEqual(fs.readdirSync(path.join(dir, FRAME_DIR)).sort(), after);
+  assert.equal(fs.readFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), 'utf8'), tasks);
+});
+
+test('the progress callback reports each artifact as it lands', () => {
+  const dir = makeLegacyProject('progress');
+  const seen = [];
+  migration.migrateProject(dir, { onProgress: (a) => seen.push(a.rel) });
+
+  assert.deepEqual(seen.sort(), ['AGENTS.md', 'PROJECT_NOTES.md', 'QUICKSTART.md', 'STRUCTURE.json', 'tasks.json']);
+});
+
+test('a failure aborts the run, keeps the backup, and reports the step it died at', () => {
+  // Not a git repo: swapping the artifact below would otherwise read as an
+  // uncommitted change and defer the run before it could fail.
+  const dir = makeLegacyProject('failing', { git: false });
+  const events = [];
+  const sent = [];
+  migration.init({ record: (name, fields) => events.push({ name, fields }), telemetry: (e, p) => sent.push({ e, p }) });
+
+  // An unreadable artifact — the stand-in for the real causes: a locked file,
+  // a permission the user does not have, a full disk.
+  fs.unlinkSync(path.join(dir, 'tasks.json'));
+  fs.mkdirSync(path.join(dir, 'tasks.json'));
+
+  const result = migration.migrateProject(dir);
+  migration.init({ record: () => {}, telemetry: () => {} });
+
+  assert.equal(result.status, 'failed');
+  assert.equal(result.step, 'backup');
+  assert.equal(result.error.length > 0, true, 'the underlying error was swallowed');
+  // Whatever it managed before dying stays in the backup: that is the sentence
+  // the failure screen makes to the user.
+  assert.ok(fs.existsSync(backupPath(dir, 'PROJECT_NOTES.md')), 'the failure took the backup with it');
+  assert.ok(events.some((e) => e.name === 'migration.failed'), 'the failure went unrecorded');
+  assert.deepEqual(sent.map((s) => s.e), ['migration_failed']);
+  assert.equal(sent[0].p.step, 'backup');
+  assert.equal(sent[0].p.artifacts, '4-6', 'the count reached telemetry unbucketed');
+});
+
 test('plan writes nothing at all', () => {
   const dir = makeLegacyProject('read-only', { commit: false });
   git(dir, 'add', '-A');
