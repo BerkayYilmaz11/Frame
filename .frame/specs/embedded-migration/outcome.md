@@ -83,3 +83,20 @@ longer a legacy project".
 _Captured: 2026-07-31 · 2 file changes_
 
 ---
+
+## T06 — Sharing posture and the registry sweep
+
+Added the `posture` step (`gitSharing.resolveMode` + `writeFrameGitignore`) and
+`sweep()`, which walks the registry yielding to the event loop between
+projects, skips missing paths, and isolates a failure to its own project.
+Deviation from plan.md's step order: `writeFrameGitignore` also runs *before*
+the backup, so a run that dies halfway never leaves a repo-mode project showing
+every backed-up file as untracked. The in-flight guard sits inside
+`migrateProject`, not in `sweep`, because the foreground path reaches the same
+engine and must hit the same guard (S15) — a re-entrancy test drives it through
+`onProgress`. Fixed the test harness, which had been committing `.frame/` and
+so made every fixture derive `repo`.
+
+_Captured: 2026-07-31 · 2 file changes_
+
+---

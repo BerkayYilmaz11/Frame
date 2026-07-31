@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">5 of 9 tasks done · next: <span class="rs-task">T06 — Resolve sharing posture through `gitSharing.resolveMode` after the move…</span></span>
+  <span class="rs-count">6 of 9 tasks done · next: <span class="rs-task">T07 — Sweep the registry asynchronously from `initModulesWithWindow`, replace…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1921,6 +1921,314 @@
 <span class="dl-add">+</span>
 <span class="dl-add">+  assert.equal(migration.plan(dir).legacy, false, &#39;the project would migrate again on the next open&#39;);</span>
 <span class="dl-add">+  assert.equal(migration.migrateProject(dir).status, &#39;skipped&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;plan writes nothing at all&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const dir = makeLegacyProject(&#39;read-only&#39;, { commit: false });</span>
+<span class="dl-ctx">   git(dir, &#39;add&#39;, &#39;-A&#39;);</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Sharing posture and the registry sweep</h2>
+    <span class="card-meta"><span class="chip">b17a307</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">419 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added the posture step (gitSharing.resolveMode + writeFrameGitignore) to migrateProject and sweep(), which walks the registry yielding between projects, skips paths that no longer exist, and confines a failure to its own project. Eleven cases, including a mixed workspace and a re-entrancy test.</p></div>
+    <div class="field"><span class="label">Why</span><p>The in-flight guard lives inside migrateProject rather than sweep because the foreground path reaches the same engine and has to hit the same guard (S15). writeFrameGitignore also runs before the backup, ahead of plan.md order, so a run that dies halfway never leaves a repo-mode project showing every backed-up file as untracked. The harness had been committing .frame/, which made every fixture derive repo and hid the local case.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/embeddedMigration.js b/src/main/embeddedMigration.js</span>
+<span class="dl-meta">index 0469629..4a4bb2b 100644</span>
+<span class="dl-file">--- a/src/main/embeddedMigration.js</span>
+<span class="dl-file">+++ b/src/main/embeddedMigration.js</span>
+<span class="dl-hunk">@@ -34,6 +34,7 @@ const {</span>
+<span class="dl-ctx">   FRAME_META_FILES</span>
+<span class="dl-ctx"> } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-add">+const gitSharing = require(&#39;./gitSharing&#39;);</span>
+<span class="dl-ctx"> const { bucketCount } = require(&#39;./telemetryEvents&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /** Everything removed is copied here first, and nothing prunes it. */</span>
+<span class="dl-hunk">@@ -88,6 +89,12 @@ const RESTORE_TARGETS = [</span>
+<span class="dl-ctx"> let recordActivity = () =&gt; {};</span>
+<span class="dl-ctx"> let sendTelemetry = () =&gt; {};</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Projects currently being migrated. Shared by the sweep and the foreground</span>
+<span class="dl-add">+ * path, which are the same engine reached two ways.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const inFlight = new Set();</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * @param {{ record?: Function, telemetry?: Function }} deps</span>
+<span class="dl-ctx">  *   record    — `activityLog.record(name, fields)`</span>
+<span class="dl-hunk">@@ -518,6 +525,14 @@ function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-ctx">   const started = Date.now();</span>
+<span class="dl-ctx">   const onProgress = typeof opts.onProgress === &#39;function&#39; ? opts.onProgress : null;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // The guard lives here rather than in `sweep()` so both callers share it:</span>
+<span class="dl-add">+  // the user selecting a project the sweep is already working on must not</span>
+<span class="dl-add">+  // start a second migration of it (S15).</span>
+<span class="dl-add">+  if (inFlight.has(projectPath)) {</span>
+<span class="dl-add">+    record(&#39;migration.skipped&#39;, { reason: &#39;in-flight&#39; });</span>
+<span class="dl-add">+    return { status: &#39;skipped&#39;, reason: &#39;in-flight&#39;, artifacts: [], restored: [], tracked: [] };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   const detected = plan(projectPath);</span>
+<span class="dl-ctx">   if (!detected.legacy) return { status: &#39;skipped&#39;, artifacts: [], restored: [], tracked: [] };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -534,8 +549,13 @@ function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-ctx">   // Steps below are the atomic unit: a failure aborts the run, leaves the</span>
+<span class="dl-ctx">   // backup behind, and the next open retries from a state the idempotent copy</span>
+<span class="dl-ctx">   // step can reconcile.</span>
+<span class="dl-add">+  inFlight.add(projectPath);</span>
+<span class="dl-ctx">   let step = &#39;backup&#39;;</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-add">+    // The ignore block before the backup, not after: a run that dies halfway</span>
+<span class="dl-add">+    // would otherwise leave a repo-mode project showing every backed-up file</span>
+<span class="dl-add">+    // as a new untracked one.</span>
+<span class="dl-add">+    gitSharing.writeFrameGitignore(projectPath);</span>
+<span class="dl-ctx">     writeBackup(projectPath, [...detected.artifacts.map((a) =&gt; a.rel), ...detected.symlinks]);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     step = &#39;move&#39;;</span>
+<span class="dl-hunk">@@ -558,6 +578,16 @@ function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-ctx">     step = &#39;config&#39;;</span>
+<span class="dl-ctx">     rewriteConfig(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    // The project keeps the sharing posture it already had. `declaredMode` is</span>
+<span class="dl-add">+    // null on every legacy config — the block predates `settings.gitSharing` —</span>
+<span class="dl-add">+    // so derivation runs here for the first time and `.frame/` being committed</span>
+<span class="dl-add">+    // is what decides it. Frame does not offer the choice: Project Settings</span>
+<span class="dl-add">+    // owns that, and this is a recording, not a decision (D7).</span>
+<span class="dl-add">+    step = &#39;posture&#39;;</span>
+<span class="dl-add">+    const mode = gitSharing.resolveMode(projectPath);</span>
+<span class="dl-add">+    gitSharing.writeFrameGitignore(projectPath);</span>
+<span class="dl-add">+    if (mode) record(&#39;migration.posture&#39;, { mode });</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     record(&#39;migration.completed&#39;, {</span>
+<span class="dl-ctx">       artifacts: detected.artifacts.length,</span>
+<span class="dl-ctx">       restored: restored.length,</span>
+<span class="dl-hunk">@@ -595,13 +625,69 @@ function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-ctx">       tracked: detected.tracked,</span>
+<span class="dl-ctx">       backupDir: detected.backupDir</span>
+<span class="dl-ctx">     };</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    inFlight.delete(projectPath);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the sweep ────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Migrate every project the workspace registry knows about.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Frame is not a one-project tool: hanging migration off project-open alone</span>
+<span class="dl-add">+ * would migrate a user&#39;s five legacy projects one per session, each with its</span>
+<span class="dl-add">+ * own notice, and leave every project they did not happen to open in the</span>
+<span class="dl-add">+ * broken state indefinitely (D1a).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Projects Frame does not know about are not migrated, and that is correct:</span>
+<span class="dl-add">+ * `workspaces.json` *is* the set Frame is responsible for, and the only way</span>
+<span class="dl-add">+ * out of it is the user removing a project. An old one migrates the moment</span>
+<span class="dl-add">+ * they add it back.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Yields to the event loop between projects so a long sweep never holds the</span>
+<span class="dl-add">+ * main process; a failure is confined to its own project.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {Promise&lt;Array&lt;{ path, name, status, tracked, restored, error? }&gt;&gt;}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function sweep(projectPaths) {</span>
+<span class="dl-add">+  const results = [];</span>
+<span class="dl-add">+  for (const projectPath of projectPaths || []) {</span>
+<span class="dl-add">+    await new Promise((resolve) =&gt; setImmediate(resolve));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const entry = { path: projectPath, name: projectPath ? path.basename(projectPath) : &#39;&#39; };</span>
+<span class="dl-add">+    if (!projectPath || !exists(projectPath)) {</span>
+<span class="dl-add">+      record(&#39;migration.skipped&#39;, { reason: &#39;missing-path&#39; });</span>
+<span class="dl-add">+      results.push({ ...entry, status: &#39;skipped&#39;, reason: &#39;missing-path&#39;, tracked: 0, restored: 0 });</span>
+<span class="dl-add">+      continue;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      const result = migrateProject(projectPath);</span>
+<span class="dl-add">+      results.push({</span>
+<span class="dl-add">+        ...entry,</span>
+<span class="dl-add">+        status: result.status,</span>
+<span class="dl-add">+        reason: result.reason,</span>
+<span class="dl-add">+        tracked: (result.tracked || []).length,</span>
+<span class="dl-add">+        restored: (result.restored || []).length,</span>
+<span class="dl-add">+        dirty: result.dirty,</span>
+<span class="dl-add">+        backupDir: result.backupDir,</span>
+<span class="dl-add">+        error: result.error</span>
+<span class="dl-add">+      });</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      // migrateProject already reports its own failures; this catches the</span>
+<span class="dl-add">+      // unforeseen so one project can never stop the pass.</span>
+<span class="dl-add">+      results.push({ ...entry, status: &#39;failed&#39;, tracked: 0, restored: 0, error: err.message });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-add">+  return results;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   plan,</span>
+<span class="dl-ctx">   migrateProject,</span>
+<span class="dl-add">+  sweep,</span>
+<span class="dl-ctx">   writeBackup,</span>
+<span class="dl-ctx">   removeSymlinks,</span>
+<span class="dl-ctx">   restoreInstructions,</span>
+<span class="dl-meta">diff --git a/test/embeddedMigration.test.js b/test/embeddedMigration.test.js</span>
+<span class="dl-meta">index 29e8b57..38dc8fe 100644</span>
+<span class="dl-file">--- a/test/embeddedMigration.test.js</span>
+<span class="dl-file">+++ b/test/embeddedMigration.test.js</span>
+<span class="dl-hunk">@@ -68,7 +68,14 @@ function makeLegacyProject(name, opts = {}) {</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   if (opts.git !== false &amp;&amp; opts.commit !== false) {</span>
+<span class="dl-del">-    git(dir, &#39;add&#39;, &#39;-A&#39;);</span>
+<span class="dl-add">+    // The root files only, unless the project committed `.frame/` too. Which</span>
+<span class="dl-add">+    // of the two it is decides the sharing mode migration derives, so the</span>
+<span class="dl-add">+    // harness must be able to produce both.</span>
+<span class="dl-add">+    const rootEntries = fs</span>
+<span class="dl-add">+      .readdirSync(dir)</span>
+<span class="dl-add">+      .filter((entry) =&gt; entry !== FRAME_DIR &amp;&amp; entry !== &#39;.git&#39;);</span>
+<span class="dl-add">+    git(dir, &#39;add&#39;, &#39;--&#39;, ...rootEntries);</span>
+<span class="dl-add">+    if (opts.trackFrame) git(dir, &#39;add&#39;, &#39;-f&#39;, &#39;--&#39;, FRAME_DIR);</span>
+<span class="dl-ctx">     git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;initial&#39;);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx">   return dir;</span>
+<span class="dl-hunk">@@ -400,7 +407,9 @@ test(&#39;the config keeps everything but its files block&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-ctx">   assert.ok(!(&#39;files&#39; in config), &#39;the stale root-file manifest survived&#39;);</span>
+<span class="dl-ctx">   assert.equal(config.version, &#39;1.0&#39;);</span>
+<span class="dl-del">-  assert.deepEqual(config.settings, {});</span>
+<span class="dl-add">+  // `settings` gains the derived sharing mode — a recording of the posture the</span>
+<span class="dl-add">+  // project already had, not a new choice (D7).</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;an interrupted run reconciles on the next pass&#39;, () =&gt; {</span>
+<span class="dl-hunk">@@ -580,6 +589,120 @@ test(&#39;a migrated project is no longer a legacy project&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.equal(migration.migrateProject(dir).status, &#39;skipped&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── D7: the posture the project already had ──────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project that committed .frame/ still shares it after migration&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;posture-repo&#39;, { trackFrame: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;repo&#39;);</span>
+<span class="dl-add">+  // The migrated meta files are visible to git — that is what sharing means.</span>
+<span class="dl-add">+  assert.match(git(dir, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;), new RegExp(`${FRAME_DIR}/tasks\\.json`));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project that never committed .frame/ derives local and hides it&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;posture-local&#39;);</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;utf8&#39;));</span>
+<span class="dl-add">+  assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the backup is ignored the moment it is written&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;posture-backup&#39;, { trackFrame: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  migration.migrateProject(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const status = git(dir, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;);</span>
+<span class="dl-add">+  assert.ok(!status.includes(migration.BACKUP_DIR), &#39;the backup showed up in git status&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a non-git project migrates without a posture&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;posture-none&#39;, { git: false });</span>
+<span class="dl-add">+  assert.equal(migration.migrateProject(dir).status, &#39;migrated&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D1a: the sweep ───────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;every registered project migrates in one pass&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const dirs = [&#39;sweep-a&#39;, &#39;sweep-b&#39;, &#39;sweep-c&#39;].map((n) =&gt; makeLegacyProject(n));</span>
+<span class="dl-add">+  const results = await migration.sweep(dirs);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(results.map((r) =&gt; r.status), [&#39;migrated&#39;, &#39;migrated&#39;, &#39;migrated&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(results.map((r) =&gt; r.name), [&#39;sweep-a&#39;, &#39;sweep-b&#39;, &#39;sweep-c&#39;]);</span>
+<span class="dl-add">+  for (const dir of dirs) {</span>
+<span class="dl-add">+    assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;)), `${dir} was not migrated`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;one project failing does not stop the rest&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const first = makeLegacyProject(&#39;sweep-fails&#39;, { git: false });</span>
+<span class="dl-add">+  fs.unlinkSync(path.join(first, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(first, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+  const second = makeLegacyProject(&#39;sweep-survives&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const results = await migration.sweep([first, second]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(results[0].status, &#39;failed&#39;);</span>
+<span class="dl-add">+  assert.ok(results[0].error, &#39;the failure carries no error to report&#39;);</span>
+<span class="dl-add">+  assert.equal(results[1].status, &#39;migrated&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a registered project whose path is gone is skipped, not failed&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const alive = makeLegacyProject(&#39;sweep-alive&#39;);</span>
+<span class="dl-add">+  const results = await migration.sweep([path.join(root, &#39;deleted-last-week&#39;), alive]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(results[0].status, &#39;skipped&#39;);</span>
+<span class="dl-add">+  assert.equal(results[0].reason, &#39;missing-path&#39;);</span>
+<span class="dl-add">+  assert.equal(results[1].status, &#39;migrated&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a mixed workspace reports each project on its own terms&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const clean = makeLegacyProject(&#39;sweep-clean&#39;);</span>
+<span class="dl-add">+  const deferred = makeLegacyProject(&#39;sweep-deferred&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(deferred, &#39;PROJECT_NOTES.md&#39;), &#39;# Notes\n\nMid-edit.\n&#39;);</span>
+<span class="dl-add">+  const modern = path.join(root, &#39;sweep-modern&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(modern, FRAME_DIR), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(modern, FRAME_DIR, &#39;config.json&#39;), &#39;{&quot;version&quot;:&quot;1.0&quot;}&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const results = await migration.sweep([clean, deferred, modern]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(results.map((r) =&gt; r.status), [&#39;migrated&#39;, &#39;deferred&#39;, &#39;skipped&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(results[1].dirty, [&#39;PROJECT_NOTES.md&#39;]);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(deferred, &#39;PROJECT_NOTES.md&#39;)), &#39;a deferred project was migrated anyway&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the receipt learns how many removed artifacts were tracked&#39;, async () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;sweep-tracked&#39;);</span>
+<span class="dl-add">+  const [result] = await migration.sweep([dir]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.tracked, 6, &#39;five meta files plus the CLAUDE.md symlink were committed&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an empty registry sweeps to an empty result&#39;, async () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(await migration.sweep([]), []);</span>
+<span class="dl-add">+  assert.deepEqual(await migration.sweep(undefined), []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project already in flight is not migrated a second time&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;reentrant&#39;);</span>
+<span class="dl-add">+  let reentered = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Selecting the project while the sweep has it open reaches the engine</span>
+<span class="dl-add">+  // again; the guard is what keeps that from being a second migration.</span>
+<span class="dl-add">+  migration.migrateProject(dir, {</span>
+<span class="dl-add">+    onProgress: () =&gt; {</span>
+<span class="dl-add">+      if (!reentered) reentered = migration.migrateProject(dir);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(reentered.status, &#39;skipped&#39;);</span>
+<span class="dl-add">+  assert.equal(reentered.reason, &#39;in-flight&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;)), &#39;the first migration was disturbed&#39;);</span>
 <span class="dl-add">+});</span>
 <span class="dl-add">+</span>
 <span class="dl-ctx"> test(&#39;plan writes nothing at all&#39;, () =&gt; {</span>

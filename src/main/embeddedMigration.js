@@ -34,6 +34,7 @@ const {
   FRAME_META_FILES
 } = require('../shared/frameConstants');
 const instructionDiscovery = require('./instructionDiscovery');
+const gitSharing = require('./gitSharing');
 const { bucketCount } = require('./telemetryEvents');
 
 /** Everything removed is copied here first, and nothing prunes it. */
@@ -87,6 +88,12 @@ const RESTORE_TARGETS = [
 
 let recordActivity = () => {};
 let sendTelemetry = () => {};
+
+/**
+ * Projects currently being migrated. Shared by the sweep and the foreground
+ * path, which are the same engine reached two ways.
+ */
+const inFlight = new Set();
 
 /**
  * @param {{ record?: Function, telemetry?: Function }} deps
@@ -518,6 +525,14 @@ function migrateProject(projectPath, opts = {}) {
   const started = Date.now();
   const onProgress = typeof opts.onProgress === 'function' ? opts.onProgress : null;
 
+  // The guard lives here rather than in `sweep()` so both callers share it:
+  // the user selecting a project the sweep is already working on must not
+  // start a second migration of it (S15).
+  if (inFlight.has(projectPath)) {
+    record('migration.skipped', { reason: 'in-flight' });
+    return { status: 'skipped', reason: 'in-flight', artifacts: [], restored: [], tracked: [] };
+  }
+
   const detected = plan(projectPath);
   if (!detected.legacy) return { status: 'skipped', artifacts: [], restored: [], tracked: [] };
 
@@ -534,8 +549,13 @@ function migrateProject(projectPath, opts = {}) {
   // Steps below are the atomic unit: a failure aborts the run, leaves the
   // backup behind, and the next open retries from a state the idempotent copy
   // step can reconcile.
+  inFlight.add(projectPath);
   let step = 'backup';
   try {
+    // The ignore block before the backup, not after: a run that dies halfway
+    // would otherwise leave a repo-mode project showing every backed-up file
+    // as a new untracked one.
+    gitSharing.writeFrameGitignore(projectPath);
     writeBackup(projectPath, [...detected.artifacts.map((a) => a.rel), ...detected.symlinks]);
 
     step = 'move';
@@ -557,6 +577,16 @@ function migrateProject(projectPath, opts = {}) {
 
     step = 'config';
     rewriteConfig(projectPath);
+
+    // The project keeps the sharing posture it already had. `declaredMode` is
+    // null on every legacy config — the block predates `settings.gitSharing` —
+    // so derivation runs here for the first time and `.frame/` being committed
+    // is what decides it. Frame does not offer the choice: Project Settings
+    // owns that, and this is a recording, not a decision (D7).
+    step = 'posture';
+    const mode = gitSharing.resolveMode(projectPath);
+    gitSharing.writeFrameGitignore(projectPath);
+    if (mode) record('migration.posture', { mode });
 
     record('migration.completed', {
       artifacts: detected.artifacts.length,
@@ -595,13 +625,69 @@ function migrateProject(projectPath, opts = {}) {
       tracked: detected.tracked,
       backupDir: detected.backupDir
     };
+  } finally {
+    inFlight.delete(projectPath);
   }
+}
+
+// ─── the sweep ────────────────────────────────────────────────
+
+/**
+ * Migrate every project the workspace registry knows about.
+ *
+ * Frame is not a one-project tool: hanging migration off project-open alone
+ * would migrate a user's five legacy projects one per session, each with its
+ * own notice, and leave every project they did not happen to open in the
+ * broken state indefinitely (D1a).
+ *
+ * Projects Frame does not know about are not migrated, and that is correct:
+ * `workspaces.json` *is* the set Frame is responsible for, and the only way
+ * out of it is the user removing a project. An old one migrates the moment
+ * they add it back.
+ *
+ * Yields to the event loop between projects so a long sweep never holds the
+ * main process; a failure is confined to its own project.
+ *
+ * @returns {Promise<Array<{ path, name, status, tracked, restored, error? }>>}
+ */
+async function sweep(projectPaths) {
+  const results = [];
+  for (const projectPath of projectPaths || []) {
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const entry = { path: projectPath, name: projectPath ? path.basename(projectPath) : '' };
+    if (!projectPath || !exists(projectPath)) {
+      record('migration.skipped', { reason: 'missing-path' });
+      results.push({ ...entry, status: 'skipped', reason: 'missing-path', tracked: 0, restored: 0 });
+      continue;
+    }
+
+    try {
+      const result = migrateProject(projectPath);
+      results.push({
+        ...entry,
+        status: result.status,
+        reason: result.reason,
+        tracked: (result.tracked || []).length,
+        restored: (result.restored || []).length,
+        dirty: result.dirty,
+        backupDir: result.backupDir,
+        error: result.error
+      });
+    } catch (err) {
+      // migrateProject already reports its own failures; this catches the
+      // unforeseen so one project can never stop the pass.
+      results.push({ ...entry, status: 'failed', tracked: 0, restored: 0, error: err.message });
+    }
+  }
+  return results;
 }
 
 module.exports = {
   init,
   plan,
   migrateProject,
+  sweep,
   writeBackup,
   removeSymlinks,
   restoreInstructions,

@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "408 tests, 0 failures"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Sharing posture and the registry sweep",
+      "commit": "b17a307",
+      "whatChanged": "Added the posture step (gitSharing.resolveMode + writeFrameGitignore) to migrateProject and sweep(), which walks the registry yielding between projects, skips paths that no longer exist, and confines a failure to its own project. Eleven cases, including a mixed workspace and a re-entrancy test.",
+      "whyChanged": "The in-flight guard lives inside migrateProject rather than sweep because the foreground path reaches the same engine and has to hit the same guard (S15). writeFrameGitignore also runs before the backup, ahead of plan.md order, so a run that dies halfway never leaves a repo-mode project showing every backed-up file as untracked. The harness had been committing .frame/, which made every fixture derive repo and hid the local case.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "419 tests, 0 failures"
+      }
     }
   ]
 }

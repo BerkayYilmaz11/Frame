@@ -68,7 +68,14 @@ function makeLegacyProject(name, opts = {}) {
   );
 
   if (opts.git !== false && opts.commit !== false) {
-    git(dir, 'add', '-A');
+    // The root files only, unless the project committed `.frame/` too. Which
+    // of the two it is decides the sharing mode migration derives, so the
+    // harness must be able to produce both.
+    const rootEntries = fs
+      .readdirSync(dir)
+      .filter((entry) => entry !== FRAME_DIR && entry !== '.git');
+    git(dir, 'add', '--', ...rootEntries);
+    if (opts.trackFrame) git(dir, 'add', '-f', '--', FRAME_DIR);
     git(dir, 'commit', '-qm', 'initial');
   }
   return dir;
@@ -400,7 +407,9 @@ test('the config keeps everything but its files block', () => {
   const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, 'config.json'), 'utf8'));
   assert.ok(!('files' in config), 'the stale root-file manifest survived');
   assert.equal(config.version, '1.0');
-  assert.deepEqual(config.settings, {});
+  // `settings` gains the derived sharing mode — a recording of the posture the
+  // project already had, not a new choice (D7).
+  assert.equal(config.settings.gitSharing, 'local');
 });
 
 test('an interrupted run reconciles on the next pass', () => {
@@ -578,6 +587,120 @@ test('a migrated project is no longer a legacy project', () => {
 
   assert.equal(migration.plan(dir).legacy, false, 'the project would migrate again on the next open');
   assert.equal(migration.migrateProject(dir).status, 'skipped');
+});
+
+// ─── D7: the posture the project already had ──────────────────
+
+test('a project that committed .frame/ still shares it after migration', () => {
+  const dir = makeLegacyProject('posture-repo', { trackFrame: true });
+
+  migration.migrateProject(dir);
+
+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, 'config.json'), 'utf8'));
+  assert.equal(config.settings.gitSharing, 'repo');
+  // The migrated meta files are visible to git — that is what sharing means.
+  assert.match(git(dir, 'status', '--porcelain', '-uall'), new RegExp(`${FRAME_DIR}/tasks\\.json`));
+});
+
+test('a project that never committed .frame/ derives local and hides it', () => {
+  const dir = makeLegacyProject('posture-local');
+  migration.migrateProject(dir);
+
+  const config = JSON.parse(fs.readFileSync(path.join(dir, FRAME_DIR, 'config.json'), 'utf8'));
+  assert.equal(config.settings.gitSharing, 'local');
+});
+
+test('the backup is ignored the moment it is written', () => {
+  const dir = makeLegacyProject('posture-backup', { trackFrame: true });
+
+  migration.migrateProject(dir);
+
+  const status = git(dir, 'status', '--porcelain', '-uall');
+  assert.ok(!status.includes(migration.BACKUP_DIR), 'the backup showed up in git status');
+});
+
+test('a non-git project migrates without a posture', () => {
+  const dir = makeLegacyProject('posture-none', { git: false });
+  assert.equal(migration.migrateProject(dir).status, 'migrated');
+});
+
+// ─── D1a: the sweep ───────────────────────────────────────────
+
+test('every registered project migrates in one pass', async () => {
+  const dirs = ['sweep-a', 'sweep-b', 'sweep-c'].map((n) => makeLegacyProject(n));
+  const results = await migration.sweep(dirs);
+
+  assert.deepEqual(results.map((r) => r.status), ['migrated', 'migrated', 'migrated']);
+  assert.deepEqual(results.map((r) => r.name), ['sweep-a', 'sweep-b', 'sweep-c']);
+  for (const dir of dirs) {
+    assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, 'tasks.json')), `${dir} was not migrated`);
+  }
+});
+
+test('one project failing does not stop the rest', async () => {
+  const first = makeLegacyProject('sweep-fails', { git: false });
+  fs.unlinkSync(path.join(first, 'tasks.json'));
+  fs.mkdirSync(path.join(first, 'tasks.json'));
+  const second = makeLegacyProject('sweep-survives');
+
+  const results = await migration.sweep([first, second]);
+
+  assert.equal(results[0].status, 'failed');
+  assert.ok(results[0].error, 'the failure carries no error to report');
+  assert.equal(results[1].status, 'migrated');
+});
+
+test('a registered project whose path is gone is skipped, not failed', async () => {
+  const alive = makeLegacyProject('sweep-alive');
+  const results = await migration.sweep([path.join(root, 'deleted-last-week'), alive]);
+
+  assert.equal(results[0].status, 'skipped');
+  assert.equal(results[0].reason, 'missing-path');
+  assert.equal(results[1].status, 'migrated');
+});
+
+test('a mixed workspace reports each project on its own terms', async () => {
+  const clean = makeLegacyProject('sweep-clean');
+  const deferred = makeLegacyProject('sweep-deferred');
+  fs.writeFileSync(path.join(deferred, 'PROJECT_NOTES.md'), '# Notes\n\nMid-edit.\n');
+  const modern = path.join(root, 'sweep-modern');
+  fs.mkdirSync(path.join(modern, FRAME_DIR), { recursive: true });
+  fs.writeFileSync(path.join(modern, FRAME_DIR, 'config.json'), '{"version":"1.0"}');
+
+  const results = await migration.sweep([clean, deferred, modern]);
+
+  assert.deepEqual(results.map((r) => r.status), ['migrated', 'deferred', 'skipped']);
+  assert.deepEqual(results[1].dirty, ['PROJECT_NOTES.md']);
+  assert.ok(fs.existsSync(path.join(deferred, 'PROJECT_NOTES.md')), 'a deferred project was migrated anyway');
+});
+
+test('the receipt learns how many removed artifacts were tracked', async () => {
+  const dir = makeLegacyProject('sweep-tracked');
+  const [result] = await migration.sweep([dir]);
+
+  assert.equal(result.tracked, 6, 'five meta files plus the CLAUDE.md symlink were committed');
+});
+
+test('an empty registry sweeps to an empty result', async () => {
+  assert.deepEqual(await migration.sweep([]), []);
+  assert.deepEqual(await migration.sweep(undefined), []);
+});
+
+test('a project already in flight is not migrated a second time', () => {
+  const dir = makeLegacyProject('reentrant');
+  let reentered = null;
+
+  // Selecting the project while the sweep has it open reaches the engine
+  // again; the guard is what keeps that from being a second migration.
+  migration.migrateProject(dir, {
+    onProgress: () => {
+      if (!reentered) reentered = migration.migrateProject(dir);
+    }
+  });
+
+  assert.equal(reentered.status, 'skipped');
+  assert.equal(reentered.reason, 'in-flight');
+  assert.ok(fs.existsSync(path.join(dir, FRAME_DIR, 'tasks.json')), 'the first migration was disturbed');
 });
 
 test('plan writes nothing at all', () => {
