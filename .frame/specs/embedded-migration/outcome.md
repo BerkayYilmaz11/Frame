@@ -30,3 +30,21 @@ before the ignore rule exists.
 _Captured: 2026-07-31 · 2 file changes_
 
 ---
+
+## T03 — `embeddedMigration.plan()` and the backup writer
+
+Added `src/main/embeddedMigration.js`: `plan()` reads the legacy
+`config.json.files` manifest (falling back to `LEGACY_ROOT_FILES`), gives each
+artifact a disposition against its `.frame/` counterpart, and reports
+Frame-planted symlinks, restorable instruction blocks, unrecognized root files
+and the git dirty/tracked verdicts — all without writing; `writeBackup()`
+byte-copies into `.frame/migration-backup/` and skips paths already there.
+Detection reuses `instructionDiscovery.scan().legacyLayout` rather than
+exporting the unexported `detectLegacyLayout`, which would have widened the
+footprint for nothing. The activity and telemetry sinks are injected through
+`init()` (the `globalLayer` convention) so the engine and its 22-case suite
+never load Electron.
+
+_Captured: 2026-07-31 · 2 file changes_
+
+---

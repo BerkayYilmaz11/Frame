@@ -694,6 +694,153 @@
         ]
       }
     },
+    "main/embeddedMigration": {
+      "file": "src/main/embeddedMigration.js",
+      "description": "embeddedMigration — move a pre-overlay project into the `.frame/` layout.",
+      "exports": [
+        "init",
+        "plan",
+        "writeBackup",
+        "extractExisting",
+        "BACKUP_DIR",
+        "TARGET_BY_ROOT_NAME",
+        "SYMLINK_NAMES"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "shared/frameConstants",
+        "instructionDiscovery"
+      ],
+      "functions": {
+        "init": {
+          "line": 95,
+          "params": [
+            "deps = {}"
+          ],
+          "purpose": "record    — `activityLog.record(name, fields)`"
+        },
+        "record": {
+          "line": 100,
+          "params": [
+            "name",
+            "fields"
+          ]
+        },
+        "lstat": {
+          "line": 110,
+          "params": [
+            "target"
+          ]
+        },
+        "exists": {
+          "line": 118,
+          "params": [
+            "target"
+          ]
+        },
+        "isFramePlantedSymlink": {
+          "line": 123,
+          "params": [
+            "projectPath",
+            "rel"
+          ],
+          "purpose": "True only for a symlink Frame planted: one that points at `AGENTS.md`."
+        },
+        "readFile": {
+          "line": 134,
+          "params": [
+            "target"
+          ]
+        },
+        "sameContent": {
+          "line": 143,
+          "params": [
+            "a",
+            "b"
+          ],
+          "purpose": "Byte comparison, not mtime or size: a stale copy can match on both."
+        },
+        "git": {
+          "line": 153,
+          "params": [
+            "projectPath",
+            "args"
+          ]
+        },
+        "isGitRepo": {
+          "line": 161,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "dirtyArtifacts": {
+          "line": 179,
+          "params": [
+            "projectPath",
+            "rels"
+          ],
+          "purpose": "Legacy artifacts git reports as modified or staged (D4)."
+        },
+        "trackedArtifacts": {
+          "line": 202,
+          "params": [
+            "projectPath",
+            "rels"
+          ],
+          "purpose": "Which artifacts git has committed. This drives the receipt's git sentence,"
+        },
+        "configPath": {
+          "line": 216,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "readConfig": {
+          "line": 220,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "artifactManifest": {
+          "line": 237,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The root files Frame created *for this project*, from the legacy config's"
+        },
+        "extractExisting": {
+          "line": 266,
+          "params": [
+            "content",
+            "label"
+          ],
+          "purpose": "Pull one `## Existing Instructions (from <label>)` block out of a merged"
+        },
+        "plan": {
+          "line": 296,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "What migrating this project would do. Pure inspection — no writes, safe to"
+        },
+        "writeBackup": {
+          "line": 382,
+          "params": [
+            "projectPath",
+            "rels"
+          ],
+          "purpose": "Byte-copy everything the run will remove into `.frame/migration-backup/`,"
+        },
+        "recordActivity": {
+          "line": 87
+        },
+        "sendTelemetry": {
+          "line": 88
+        }
+      }
+    },
     "main/fileEditor": {
       "file": "src/main/fileEditor.js",
       "description": "File Editor Module",

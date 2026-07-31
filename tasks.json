@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:02:51.996Z",
+  "lastUpdated": "2026-07-31T14:07:56.384Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4587,13 +4587,13 @@
       "title": "Build `embeddedMigration.plan()` and the backup writer — artifact list from legacy `config.json.files` with `LEGACY_ROOT_FILES` as fallback, the git dirty-check that defers, and a byte copy into `.frame/migration-backup/` that skips paths already there",
       "description": "",
       "source": "spec:embedded-migration:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:07:56.384Z",
+      "completedAt": "2026-07-31T14:07:56.384Z"
     },
     {
       "id": "task-spec-embedded-migration-T04",

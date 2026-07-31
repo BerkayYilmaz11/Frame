@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">2 of 9 tasks done · next: <span class="rs-task">T03 — Build `embeddedMigration.plan()` and the backup writer — artifact list…</span></span>
+  <span class="rs-count">3 of 9 tasks done · next: <span class="rs-task">T04 — Execute a plan: move artifacts whose `.frame/` counterpart is absent…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -579,6 +579,769 @@
 <span class="dl-ctx"> test(&#39;rewrites are idempotent and preserve unsigned user lines&#39;, () =&gt; {</span>
 <span class="dl-ctx">   const repo = makeRepo(&#39;gi-preserve&#39;);</span>
 <span class="dl-ctx">   seedFrameProject(repo);</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>embeddedMigration.plan() and the backup writer</h2>
+    <span class="card-meta"><span class="chip">f68a2cd</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">388 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New src/main/embeddedMigration.js: plan() reads the legacy config.json.files manifest (LEGACY_ROOT_FILES as fallback), computes each artifact disposition against its .frame/ counterpart, lists Frame-planted symlinks, restorable instruction blocks, unrecognized root files, and the git dirty/tracked verdicts — writing nothing. writeBackup() byte-copies into .frame/migration-backup/, skipping paths already there. 22 cases in test/embeddedMigration.test.js against real temp repos.</p></div>
+    <div class="field"><span class="label">Why</span><p>plan() is pure inspection so the hard cases — dual layout, dirty trees, an interrupted run — are testable without performing them. The activity and telemetry sinks are injected via init() rather than required, keeping the engine and its suite Electron-free. Detection reuses instructionDiscovery.scan().legacyLayout instead of exporting detectLegacyLayout, which would have widened the footprint for no gain.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/embeddedMigration.js b/src/main/embeddedMigration.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..ec75e13</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/main/embeddedMigration.js</span>
+<span class="dl-hunk">@@ -0,0 +1,411 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * embeddedMigration — move a pre-overlay project into the `.frame/` layout.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * A project initialized by an older Frame keeps its meta files at the root:</span>
+<span class="dl-add">+ * `tasks.json`, `STRUCTURE.json`, `PROJECT_NOTES.md`, `QUICKSTART.md`, a</span>
+<span class="dl-add">+ * generated `AGENTS.md`, and `CLAUDE.md`/`GEMINI.md` symlinks pointing at it.</span>
+<span class="dl-add">+ * Frame now reads only `.frame/`, so those files are simultaneously invisible</span>
+<span class="dl-add">+ * to the app and *visible to the agent* — the launch preamble tells Claude the</span>
+<span class="dl-add">+ * root `CLAUDE.md` is the user&#39;s own, when it is a symlink Frame planted to a</span>
+<span class="dl-add">+ * file Frame generated describing a layout that no longer exists. That</span>
+<span class="dl-add">+ * contradiction, not the empty panels, is why this runs by itself.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Shape ──</span>
+<span class="dl-add">+ * `plan()` inspects and writes nothing. `migrateProject()` executes a plan.</span>
+<span class="dl-add">+ * `sweep()` maps that over the registry. Splitting inspection from execution</span>
+<span class="dl-add">+ * is what makes the hard parts — dual layout, dirty trees, half-finished runs</span>
+<span class="dl-add">+ * — testable without performing them.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Electron-free ──</span>
+<span class="dl-add">+ * Paths in, plain objects out. The activity recorder and the telemetry sink</span>
+<span class="dl-add">+ * are injected by `init()` (the convention `globalLayer` follows), so this</span>
+<span class="dl-add">+ * module and its suite never load Electron.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Spec: .frame/specs/embedded-migration/</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+const {</span>
+<span class="dl-add">+  FRAME_DIR,</span>
+<span class="dl-add">+  FRAME_CONFIG_FILE,</span>
+<span class="dl-add">+  LEGACY_ROOT_FILES,</span>
+<span class="dl-add">+  FRAME_META_FILES</span>
+<span class="dl-add">+} = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-add">+const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Everything removed is copied here first, and nothing prunes it. */</span>
+<span class="dl-add">+const BACKUP_DIR = &#39;migration-backup&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Root artifact → where it belongs under `.frame/`. Only these five carry</span>
+<span class="dl-add">+ * data; the symlinks are handled separately because they hold nothing.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const TARGET_BY_ROOT_NAME = {</span>
+<span class="dl-add">+  [LEGACY_ROOT_FILES.AGENTS]: FRAME_META_FILES.AGENTS,</span>
+<span class="dl-add">+  [LEGACY_ROOT_FILES.STRUCTURE]: FRAME_META_FILES.STRUCTURE,</span>
+<span class="dl-add">+  [LEGACY_ROOT_FILES.NOTES]: FRAME_META_FILES.NOTES,</span>
+<span class="dl-add">+  [LEGACY_ROOT_FILES.TASKS]: FRAME_META_FILES.TASKS,</span>
+<span class="dl-add">+  [LEGACY_ROOT_FILES.QUICKSTART]: FRAME_META_FILES.QUICKSTART</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** `config.json.files` keys that name a data artifact, in migration order. */</span>
+<span class="dl-add">+const MANIFEST_ARTIFACT_KEYS = [&#39;agents&#39;, &#39;structure&#39;, &#39;notes&#39;, &#39;tasks&#39;, &#39;quickstart&#39;];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The two symlinks old init planted. `config.json.files` records only</span>
+<span class="dl-add">+ * `claudeSymlink` even though `GEMINI.md` was created the same way, so the</span>
+<span class="dl-add">+ * manifest cannot be the test here — the link target is.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const SYMLINK_NAMES = [LEGACY_ROOT_FILES.CLAUDE_SYMLINK, LEGACY_ROOT_FILES.GEMINI_SYMLINK];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The heading old init wrote when it consumed a user&#39;s instruction file. The</span>
+<span class="dl-add">+ * code that produced it was deleted in 1202ab2; it survives in users&#39; files,</span>
+<span class="dl-add">+ * so it lives here as a literal — this is the only handle on content that was</span>
+<span class="dl-add">+ * taken from the user and has to go back.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+const EXISTING_HEADING = (label) =&gt; `## Existing Instructions (from ${label})`;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Label in the merged file → the root path its content came from. */</span>
+<span class="dl-add">+const RESTORE_TARGETS = [</span>
+<span class="dl-add">+  { label: LEGACY_ROOT_FILES.CLAUDE_SYMLINK, rel: LEGACY_ROOT_FILES.CLAUDE_SYMLINK },</span>
+<span class="dl-add">+  { label: LEGACY_ROOT_FILES.GEMINI_SYMLINK, rel: LEGACY_ROOT_FILES.GEMINI_SYMLINK },</span>
+<span class="dl-add">+  { label: LEGACY_ROOT_FILES.AGENTS, rel: LEGACY_ROOT_FILES.AGENTS }</span>
+<span class="dl-add">+  // `.claude/CLAUDE.md` is deliberately absent: old init read it but never</span>
+<span class="dl-add">+  // unlinked it, so the file is still on disk and recreating it would be</span>
+<span class="dl-add">+  // Frame writing a file it never took (D6).</span>
+<span class="dl-add">+];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── injection ────────────────────────────────────────────────</span>
+<span class="dl-add">+//</span>
+<span class="dl-add">+// Both sinks default to no-ops. A migration that cannot record must still</span>
+<span class="dl-add">+// migrate: observability is the compensation for running silently, not a</span>
+<span class="dl-add">+// precondition for running at all.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let recordActivity = () =&gt; {};</span>
+<span class="dl-add">+let sendTelemetry = () =&gt; {};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * @param {{ record?: Function, telemetry?: Function }} deps</span>
+<span class="dl-add">+ *   record    — `activityLog.record(name, fields)`</span>
+<span class="dl-add">+ *   telemetry — `telemetry.track(event, props)`</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function init(deps = {}) {</span>
+<span class="dl-add">+  if (typeof deps.record === &#39;function&#39;) recordActivity = deps.record;</span>
+<span class="dl-add">+  if (typeof deps.telemetry === &#39;function&#39;) sendTelemetry = deps.telemetry;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function record(name, fields) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    recordActivity(name, fields);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    /* recording must never break the thing it observes */</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── filesystem helpers ───────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function lstat(target) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.lstatSync(target);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function exists(target) {</span>
+<span class="dl-add">+  return lstat(target) !== null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** True only for a symlink Frame planted: one that points at `AGENTS.md`. */</span>
+<span class="dl-add">+function isFramePlantedSymlink(projectPath, rel) {</span>
+<span class="dl-add">+  const target = path.join(projectPath, rel);</span>
+<span class="dl-add">+  const info = lstat(target);</span>
+<span class="dl-add">+  if (!info || !info.isSymbolicLink()) return false;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return path.basename(fs.readlinkSync(target)) === LEGACY_ROOT_FILES.AGENTS;</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function readFile(target) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.readFileSync(target, &#39;utf8&#39;);</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Byte comparison, not mtime or size: a stale copy can match on both. */</span>
+<span class="dl-add">+function sameContent(a, b) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.readFileSync(a).equals(fs.readFileSync(b));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── git ──────────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(projectPath, args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, {</span>
+<span class="dl-add">+    cwd: projectPath,</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function isGitRepo(projectPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    git(projectPath, [&#39;rev-parse&#39;, &#39;--git-dir&#39;]);</span>
+<span class="dl-add">+    return true;</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Legacy artifacts git reports as modified or staged (D4).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Untracked files are not dirty: there is no diff for the user to be confused</span>
+<span class="dl-add">+ * by and nothing git is holding. A non-git project returns `[]` on purpose —</span>
+<span class="dl-add">+ * the failure D4 guards against needs a working tree to occur in, and the only</span>
+<span class="dl-add">+ * other available signal, mtime, would strand an actively-edited project in</span>
+<span class="dl-add">+ * the broken state forever.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function dirtyArtifacts(projectPath, rels) {</span>
+<span class="dl-add">+  if (!rels.length || !isGitRepo(projectPath)) return [];</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const out = git(projectPath, [&#39;status&#39;, &#39;--porcelain&#39;, &#39;--&#39;, ...rels]);</span>
+<span class="dl-add">+    return out</span>
+<span class="dl-add">+      .split(&#39;\n&#39;)</span>
+<span class="dl-add">+      .filter((line) =&gt; line.trim() &amp;&amp; !line.startsWith(&#39;??&#39;))</span>
+<span class="dl-add">+      .map((line) =&gt; line.slice(3).trim())</span>
+<span class="dl-add">+      // A rename reads as &quot;old -&gt; new&quot;; the artifact is the destination.</span>
+<span class="dl-add">+      .map((name) =&gt; (name.includes(&#39; -&gt; &#39;) ? name.split(&#39; -&gt; &#39;).pop() : name))</span>
+<span class="dl-add">+      .map((name) =&gt; name.replace(/^&quot;|&quot;$/g, &#39;&#39;))</span>
+<span class="dl-add">+      .filter((name) =&gt; rels.includes(name));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return [];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Which artifacts git has committed. This drives the receipt&#39;s git sentence,</span>
+<span class="dl-add">+ * and it is deliberately not the sharing mode: a user who gitignored `.frame/`</span>
+<span class="dl-add">+ * themselves but committed the root files derives `local` while the deletions</span>
+<span class="dl-add">+ * are plainly visible in their working tree (D8).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function trackedArtifacts(projectPath, rels) {</span>
+<span class="dl-add">+  if (!rels.length || !isGitRepo(projectPath)) return [];</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return git(projectPath, [&#39;ls-files&#39;, &#39;--cached&#39;, &#39;--&#39;, ...rels])</span>
+<span class="dl-add">+      .split(&#39;\n&#39;)</span>
+<span class="dl-add">+      .map((line) =&gt; line.trim())</span>
+<span class="dl-add">+      .filter((name) =&gt; rels.includes(name));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return [];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the legacy config ────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function configPath(projectPath) {</span>
+<span class="dl-add">+  return path.join(projectPath, FRAME_DIR, FRAME_CONFIG_FILE);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function readConfig(projectPath) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return JSON.parse(fs.readFileSync(configPath(projectPath), &#39;utf8&#39;));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The root files Frame created *for this project*, from the legacy config&#39;s</span>
+<span class="dl-add">+ * `files` block — a per-project manifest of Frame&#39;s own artifacts, and a far</span>
+<span class="dl-add">+ * stronger basis for &quot;touch only what Frame made&quot; than matching well-known</span>
+<span class="dl-add">+ * names (D5). Falls back to `LEGACY_ROOT_FILES` when the block is absent or</span>
+<span class="dl-add">+ * malformed, which is also the case for a project whose config never had one.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {{ source: &#39;config&#39;|&#39;fallback&#39;, names: string[] }}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function artifactManifest(projectPath) {</span>
+<span class="dl-add">+  const config = readConfig(projectPath);</span>
+<span class="dl-add">+  const files = config &amp;&amp; config.files;</span>
+<span class="dl-add">+  if (files &amp;&amp; typeof files === &#39;object&#39; &amp;&amp; !Array.isArray(files)) {</span>
+<span class="dl-add">+    const names = MANIFEST_ARTIFACT_KEYS.map((key) =&gt; files[key]).filter(</span>
+<span class="dl-add">+      (name) =&gt; typeof name === &#39;string&#39; &amp;&amp; name.length &gt; 0</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+    if (names.length) return { source: &#39;config&#39;, names };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return {</span>
+<span class="dl-add">+    source: &#39;fallback&#39;,</span>
+<span class="dl-add">+    names: Object.keys(TARGET_BY_ROOT_NAME)</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the merged instruction blocks ────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Pull one `## Existing Instructions (from &lt;label&gt;)` block out of a merged</span>
+<span class="dl-add">+ * `AGENTS.md`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The blocks were joined with `\n\n---\n\n`, so a block runs until the next</span>
+<span class="dl-add">+ * horizontal rule that is followed by another such heading, or to end of file.</span>
+<span class="dl-add">+ * Matching on the rule alone would truncate any user content that contains</span>
+<span class="dl-add">+ * one — and a consumed CLAUDE.md full of `---` separators is exactly the kind</span>
+<span class="dl-add">+ * of file that gets handed back mangled.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {string|null} the block&#39;s content, or null when it isn&#39;t there</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function extractExisting(content, label) {</span>
+<span class="dl-add">+  if (typeof content !== &#39;string&#39;) return null;</span>
+<span class="dl-add">+  const heading = EXISTING_HEADING(label);</span>
+<span class="dl-add">+  const start = content.indexOf(heading);</span>
+<span class="dl-add">+  if (start === -1) return null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const bodyStart = start + heading.length;</span>
+<span class="dl-add">+  const rest = content.slice(bodyStart);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The next block&#39;s separator: a rule on its own line followed by another</span>
+<span class="dl-add">+  // &quot;Existing Instructions&quot; heading.</span>
+<span class="dl-add">+  const next = rest.search(/\n+---\n+## Existing Instructions \(from /);</span>
+<span class="dl-add">+  const body = next === -1 ? rest : rest.slice(0, next);</span>
+<span class="dl-add">+  return body.replace(/^\n+/, &#39;&#39;).replace(/\s+$/, &#39;&#39;) + &#39;\n&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── plan ─────────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * What migrating this project would do. Pure inspection — no writes, safe to</span>
+<span class="dl-add">+ * call on every open and on every project in the registry.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {{</span>
+<span class="dl-add">+ *   legacy: boolean, manifest: &#39;config&#39;|&#39;fallback&#39;,</span>
+<span class="dl-add">+ *   artifacts: Array&lt;{ rel: string, target: string, disposition: string }&gt;,</span>
+<span class="dl-add">+ *   restore: Array&lt;{ rel: string, from: string }&gt;,</span>
+<span class="dl-add">+ *   symlinks: string[], unrecognized: string[],</span>
+<span class="dl-add">+ *   dirty: string[], tracked: string[], backupDir: string</span>
+<span class="dl-add">+ * }}</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function plan(projectPath) {</span>
+<span class="dl-add">+  const empty = {</span>
+<span class="dl-add">+    legacy: false,</span>
+<span class="dl-add">+    manifest: &#39;fallback&#39;,</span>
+<span class="dl-add">+    artifacts: [],</span>
+<span class="dl-add">+    restore: [],</span>
+<span class="dl-add">+    symlinks: [],</span>
+<span class="dl-add">+    unrecognized: [],</span>
+<span class="dl-add">+    dirty: [],</span>
+<span class="dl-add">+    tracked: [],</span>
+<span class="dl-add">+    backupDir: path.join(FRAME_DIR, BACKUP_DIR)</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+  if (!projectPath || !exists(projectPath)) return empty;</span>
+<span class="dl-add">+  if (!instructionDiscovery.scan(projectPath).legacyLayout) return empty;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const manifest = artifactManifest(projectPath);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const artifacts = [];</span>
+<span class="dl-add">+  for (const rel of manifest.names) {</span>
+<span class="dl-add">+    const target = TARGET_BY_ROOT_NAME[rel];</span>
+<span class="dl-add">+    if (!target) continue; // named by the manifest but not a layout we know</span>
+<span class="dl-add">+    const from = path.join(projectPath, rel);</span>
+<span class="dl-add">+    if (!exists(from)) continue;</span>
+<span class="dl-add">+    // A symlink at an artifact&#39;s name is the CLAUDE.md/AGENTS.md case, not a</span>
+<span class="dl-add">+    // file to move — the symlink list owns it.</span>
+<span class="dl-add">+    if (lstat(from).isSymbolicLink()) continue;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    const to = path.join(projectPath, target);</span>
+<span class="dl-add">+    let disposition = &#39;move&#39;;</span>
+<span class="dl-add">+    if (exists(to)) disposition = sameContent(from, to) ? &#39;delete-identical&#39; : &#39;backup-conflict&#39;;</span>
+<span class="dl-add">+    artifacts.push({ rel, target, disposition });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const planned = new Set(artifacts.map((a) =&gt; a.rel));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Well-known legacy names sitting at the root that this project&#39;s manifest</span>
+<span class="dl-add">+  // does not claim. Reported so the receipt can say so, never touched (D5).</span>
+<span class="dl-add">+  const unrecognized = Object.keys(TARGET_BY_ROOT_NAME).filter(</span>
+<span class="dl-add">+    (rel) =&gt; !planned.has(rel) &amp;&amp; exists(path.join(projectPath, rel)) &amp;&amp; !lstat(path.join(projectPath, rel)).isSymbolicLink()</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const symlinks = SYMLINK_NAMES.filter((rel) =&gt; isFramePlantedSymlink(projectPath, rel));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The merged file is still at the root before the move, and already under</span>
+<span class="dl-add">+  // `.frame/` if an earlier run was interrupted after it.</span>
+<span class="dl-add">+  const mergedFrom = artifacts.some((a) =&gt; a.rel === LEGACY_ROOT_FILES.AGENTS)</span>
+<span class="dl-add">+    ? LEGACY_ROOT_FILES.AGENTS</span>
+<span class="dl-add">+    : FRAME_META_FILES.AGENTS;</span>
+<span class="dl-add">+  const merged = readFile(path.join(projectPath, mergedFrom));</span>
+<span class="dl-add">+  const restore = [];</span>
+<span class="dl-add">+  for (const { label, rel } of RESTORE_TARGETS) {</span>
+<span class="dl-add">+    if (extractExisting(merged, label) === null) continue;</span>
+<span class="dl-add">+    restore.push({ rel, from: `${mergedFrom}#${EXISTING_HEADING(label).replace(&#39;## &#39;, &#39;&#39;)}` });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const touched = [...planned, ...symlinks];</span>
+<span class="dl-add">+  return {</span>
+<span class="dl-add">+    legacy: true,</span>
+<span class="dl-add">+    manifest: manifest.source,</span>
+<span class="dl-add">+    artifacts,</span>
+<span class="dl-add">+    restore,</span>
+<span class="dl-add">+    symlinks,</span>
+<span class="dl-add">+    unrecognized,</span>
+<span class="dl-add">+    dirty: dirtyArtifacts(projectPath, touched),</span>
+<span class="dl-add">+    tracked: trackedArtifacts(projectPath, touched),</span>
+<span class="dl-add">+    backupDir: path.join(FRAME_DIR, BACKUP_DIR)</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the backup ───────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Byte-copy everything the run will remove into `.frame/migration-backup/`,</span>
+<span class="dl-add">+ * preserving relative paths.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * One directory for the project&#39;s whole migration history, never timestamped</span>
+<span class="dl-add">+ * and never pruned (D9). Migration fires once per project, so there is no pile</span>
+<span class="dl-add">+ * to organize; a second run only follows a failed one, and since the backup is</span>
+<span class="dl-add">+ * written whole before anything moves, skipping paths already there yields</span>
+<span class="dl-add">+ * exactly the union of both runs in the one place a user can understand.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * A dangling symlink is skipped rather than failing the run: it points at</span>
+<span class="dl-add">+ * nothing, so there is nothing to preserve.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {string[]} the relative paths written by this call</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeBackup(projectPath, rels) {</span>
+<span class="dl-add">+  const root = path.join(projectPath, FRAME_DIR, BACKUP_DIR);</span>
+<span class="dl-add">+  const written = [];</span>
+<span class="dl-add">+  for (const rel of rels) {</span>
+<span class="dl-add">+    const from = path.join(projectPath, rel);</span>
+<span class="dl-add">+    if (!exists(from)) continue;</span>
+<span class="dl-add">+    const to = path.join(root, rel);</span>
+<span class="dl-add">+    if (exists(to)) continue; // an earlier run already preserved this one</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      fs.mkdirSync(path.dirname(to), { recursive: true });</span>
+<span class="dl-add">+      fs.copyFileSync(from, to);</span>
+<span class="dl-add">+      written.push(rel);</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      const info = lstat(from);</span>
+<span class="dl-add">+      if (info &amp;&amp; info.isSymbolicLink()) continue; // dangling — nothing to keep</span>
+<span class="dl-add">+      throw err;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return written;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  init,</span>
+<span class="dl-add">+  plan,</span>
+<span class="dl-add">+  writeBackup,</span>
+<span class="dl-add">+  extractExisting,</span>
+<span class="dl-add">+  BACKUP_DIR,</span>
+<span class="dl-add">+  TARGET_BY_ROOT_NAME,</span>
+<span class="dl-add">+  SYMLINK_NAMES</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/test/embeddedMigration.test.js b/test/embeddedMigration.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..0c7a18d</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/embeddedMigration.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,325 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * embeddedMigration tests — against real temp git repositories, because every</span>
+<span class="dl-add">+ * hard case in this spec is a filesystem or a git fact: a symlink Frame</span>
+<span class="dl-add">+ * planted, a root file the user is mid-edit on, a `.frame/` counterpart that</span>
+<span class="dl-add">+ * already exists and differs.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The properties under test are the ones a user cannot recover from if we get</span>
+<span class="dl-add">+ * them wrong: nothing Frame did not create is planned, a dirty tree defers the</span>
+<span class="dl-add">+ * whole run, and the backup is a byte copy that a second run adds to rather</span>
+<span class="dl-add">+ * than overwrites.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test, beforeEach, afterEach } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const migration = require(&#39;../src/main/embeddedMigration&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let root;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function git(cwd, ...args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;git&#39;, args, { cwd, encoding: &#39;utf8&#39;, stdio: [&#39;ignore&#39;, &#39;pipe&#39;, &#39;ignore&#39;] });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** The manifest a pre-overlay init wrote into `.frame/config.json`. */</span>
+<span class="dl-add">+const LEGACY_FILES_BLOCK = {</span>
+<span class="dl-add">+  agents: &#39;AGENTS.md&#39;,</span>
+<span class="dl-add">+  claudeSymlink: &#39;CLAUDE.md&#39;,</span>
+<span class="dl-add">+  structure: &#39;STRUCTURE.json&#39;,</span>
+<span class="dl-add">+  notes: &#39;PROJECT_NOTES.md&#39;,</span>
+<span class="dl-add">+  tasks: &#39;tasks.json&#39;,</span>
+<span class="dl-add">+  quickstart: &#39;QUICKSTART.md&#39;</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * A project as pre-overlay Frame left it: meta files at the root, a `.frame/`</span>
+<span class="dl-add">+ * that already exists (config, specs), and a CLAUDE.md → AGENTS.md symlink.</span>
+<span class="dl-add">+ * Every legacy project is both layouts at once — that is the normal case, not</span>
+<span class="dl-add">+ * an edge one.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function makeLegacyProject(name, opts = {}) {</span>
+<span class="dl-add">+  const dir = path.join(root, name);</span>
+<span class="dl-add">+  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-add">+  if (opts.git !== false) {</span>
+<span class="dl-add">+    git(dir, &#39;init&#39;, &#39;-q&#39;);</span>
+<span class="dl-add">+    git(dir, &#39;config&#39;, &#39;user.email&#39;, &#39;test@example.com&#39;);</span>
+<span class="dl-add">+    git(dir, &#39;config&#39;, &#39;user.name&#39;, &#39;Frame Test&#39;);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;README.md&#39;), &#39;# repo\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;AGENTS.md&#39;), opts.agents ?? &#39;# Project\n\nFrame instructions.\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;STRUCTURE.json&#39;), &#39;{&quot;modules&quot;:[]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;PROJECT_NOTES.md&#39;), &#39;# Notes\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;QUICKSTART.md&#39;), &#39;# Quickstart\n&#39;);</span>
+<span class="dl-add">+  if (opts.symlinks !== false) {</span>
+<span class="dl-add">+    fs.symlinkSync(&#39;AGENTS.md&#39;, path.join(dir, &#39;CLAUDE.md&#39;));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR, &#39;specs&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    path.join(dir, FRAME_DIR, &#39;config.json&#39;),</span>
+<span class="dl-add">+    JSON.stringify({ version: &#39;1.0&#39;, settings: {}, files: opts.files ?? LEGACY_FILES_BLOCK }, null, 2)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (opts.git !== false &amp;&amp; opts.commit !== false) {</span>
+<span class="dl-add">+    git(dir, &#39;add&#39;, &#39;-A&#39;);</span>
+<span class="dl-add">+    git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;initial&#39;);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return dir;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function dispositionOf(result, rel) {</span>
+<span class="dl-add">+  const entry = result.artifacts.find((a) =&gt; a.rel === rel);</span>
+<span class="dl-add">+  return entry ? entry.disposition : null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function backupPath(dir, rel) {</span>
+<span class="dl-add">+  return path.join(dir, FRAME_DIR, migration.BACKUP_DIR, rel);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+beforeEach(() =&gt; {</span>
+<span class="dl-add">+  root = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-migration-&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+afterEach(() =&gt; {</span>
+<span class="dl-add">+  fs.rmSync(root, { recursive: true, force: true });</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── detection ────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project already on the overlay layout plans nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = path.join(root, &#39;modern&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR, &#39;specs&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;config.json&#39;), &#39;{&quot;version&quot;:&quot;1.0&quot;}&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[]}&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.equal(result.legacy, false);</span>
+<span class="dl-add">+  assert.deepEqual(result.artifacts, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a path that no longer exists plans nothing instead of throwing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const result = migration.plan(path.join(root, &#39;gone&#39;));</span>
+<span class="dl-add">+  assert.equal(result.legacy, false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D5: the manifest is the authority ────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the artifact list comes from config.json.files&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;manifest&#39;);</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(result.legacy, true);</span>
+<span class="dl-add">+  assert.equal(result.manifest, &#39;config&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(</span>
+<span class="dl-add">+    result.artifacts.map((a) =&gt; a.rel).sort(),</span>
+<span class="dl-add">+    [&#39;AGENTS.md&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;, &#39;STRUCTURE.json&#39;, &#39;tasks.json&#39;]</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  assert.equal(dispositionOf(result, &#39;tasks.json&#39;), &#39;move&#39;);</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    result.artifacts.find((a) =&gt; a.rel === &#39;tasks.json&#39;).target,</span>
+<span class="dl-add">+    `${FRAME_DIR}/tasks.json`</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a missing or malformed files block falls back to the well-known names&#39;, () =&gt; {</span>
+<span class="dl-add">+  const absent = makeLegacyProject(&#39;no-manifest&#39;, { files: undefined });</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    path.join(absent, FRAME_DIR, &#39;config.json&#39;),</span>
+<span class="dl-add">+    JSON.stringify({ version: &#39;1.0&#39;, settings: {} }, null, 2)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  const fallback = migration.plan(absent);</span>
+<span class="dl-add">+  assert.equal(fallback.manifest, &#39;fallback&#39;);</span>
+<span class="dl-add">+  assert.equal(fallback.artifacts.length, 5);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const malformed = makeLegacyProject(&#39;bad-manifest&#39;, { files: &#39;AGENTS.md, tasks.json&#39; });</span>
+<span class="dl-add">+  assert.equal(migration.plan(malformed).manifest, &#39;fallback&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a root file this project\&#39;s manifest does not claim is reported, not planned&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Frame created tasks.json and STRUCTURE.json here; PROJECT_NOTES.md and the</span>
+<span class="dl-add">+  // rest arrived some other way, so they are not ours to move.</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;partial-manifest&#39;, {</span>
+<span class="dl-add">+    files: { tasks: &#39;tasks.json&#39;, structure: &#39;STRUCTURE.json&#39; }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(result.artifacts.map((a) =&gt; a.rel).sort(), [&#39;STRUCTURE.json&#39;, &#39;tasks.json&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(result.unrecognized.sort(), [&#39;AGENTS.md&#39;, &#39;PROJECT_NOTES.md&#39;, &#39;QUICKSTART.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;only a Frame-planted symlink is planned for removal&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;symlinks&#39;);</span>
+<span class="dl-add">+  fs.symlinkSync(&#39;README.md&#39;, path.join(dir, &#39;GEMINI.md&#39;)); // someone else&#39;s link</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.deepEqual(result.symlinks, [&#39;CLAUDE.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D4: a dirty tree defers ──────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an uncommitted edit to a legacy file defers the whole run&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;dirty&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;PROJECT_NOTES.md&#39;), &#39;# Notes\n\nHalf a thought I was mid-way through.\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.deepEqual(result.dirty, [&#39;PROJECT_NOTES.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a staged edit counts as dirty too&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;staged&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[{&quot;id&quot;:1}]}\n&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;tasks.json&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(migration.plan(dir).dirty, [&#39;tasks.json&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tracked-but-clean project is not deferred&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(migration.plan(makeLegacyProject(&#39;clean&#39;)).dirty, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an untracked root file is not dirty — there is no diff to be confused by&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;untracked&#39;, { commit: false });</span>
+<span class="dl-add">+  assert.deepEqual(migration.plan(dir).dirty, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a non-git project is never deferred&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;no-git&#39;, { git: false });</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.equal(result.legacy, true);</span>
+<span class="dl-add">+  assert.deepEqual(result.dirty, []);</span>
+<span class="dl-add">+  assert.deepEqual(result.tracked, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D8: what the receipt&#39;s git sentence keys off ─────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;tracked artifacts are reported, and only the tracked ones&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;tracked-some&#39;, { commit: false });</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;tasks.json&#39;, &#39;AGENTS.md&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;track two&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.deepEqual(result.tracked.sort(), [&#39;AGENTS.md&#39;, &#39;tasks.json&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D3: dual layout ──────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an identical .frame/ counterpart makes the root copy a plain delete&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;identical&#39;);</span>
+<span class="dl-add">+  fs.copyFileSync(path.join(dir, &#39;tasks.json&#39;), path.join(dir, FRAME_DIR, &#39;tasks.json&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(dispositionOf(migration.plan(dir), &#39;tasks.json&#39;), &#39;delete-identical&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a differing .frame/ counterpart sends the root copy to the backup&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;conflict&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[{&quot;id&quot;:&quot;newer&quot;}]}\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(dispositionOf(migration.plan(dir), &#39;tasks.json&#39;), &#39;backup-conflict&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D6: what can be handed back ──────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a consumed instruction file is planned for restoration&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;consumed&#39;, {</span>
+<span class="dl-add">+    agents:</span>
+<span class="dl-add">+      &#39;# Frame\n\nGenerated.\n\n---\n\n## Existing Instructions (from CLAUDE.md)\n\nMy own rules.\n&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(result.restore.map((r) =&gt; r.rel), [&#39;CLAUDE.md&#39;]);</span>
+<span class="dl-add">+  assert.match(result.restore[0].from, /^AGENTS\.md#Existing Instructions/);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;nothing is planned for restoration when init consumed nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(migration.plan(makeLegacyProject(&#39;never-consumed&#39;)).restore, []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;extraction returns the block verbatim and stops at the next one&#39;, () =&gt; {</span>
+<span class="dl-add">+  const merged = [</span>
+<span class="dl-add">+    &#39;# Frame template&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;---&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;## Existing Instructions (from CLAUDE.md)&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;Rule one.&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;---&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;Still my file — a rule after a horizontal rule.&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;---&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;## Existing Instructions (from GEMINI.md)&#39;,</span>
+<span class="dl-add">+    &#39;&#39;,</span>
+<span class="dl-add">+    &#39;Gemini rules.&#39;,</span>
+<span class="dl-add">+    &#39;&#39;</span>
+<span class="dl-add">+  ].join(&#39;\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const claude = migration.extractExisting(merged, &#39;CLAUDE.md&#39;);</span>
+<span class="dl-add">+  assert.match(claude, /Rule one\./);</span>
+<span class="dl-add">+  // The user&#39;s own `---` must not truncate their file.</span>
+<span class="dl-add">+  assert.match(claude, /a rule after a horizontal rule/);</span>
+<span class="dl-add">+  assert.ok(!claude.includes(&#39;Gemini rules&#39;), &#39;the next block bled into this one&#39;);</span>
+<span class="dl-add">+  assert.equal(migration.extractExisting(merged, &#39;GEMINI.md&#39;), &#39;Gemini rules.\n&#39;);</span>
+<span class="dl-add">+  assert.equal(migration.extractExisting(merged, &#39;AGENTS.md&#39;), null);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── D9: the backup ───────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the backup is a byte copy under .frame/migration-backup/&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;backup&#39;);</span>
+<span class="dl-add">+  const written = migration.writeBackup(dir, [&#39;tasks.json&#39;, &#39;PROJECT_NOTES.md&#39;]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(written, [&#39;tasks.json&#39;, &#39;PROJECT_NOTES.md&#39;]);</span>
+<span class="dl-add">+  assert.ok(</span>
+<span class="dl-add">+    fs.readFileSync(backupPath(dir, &#39;tasks.json&#39;)).equals(fs.readFileSync(path.join(dir, &#39;tasks.json&#39;))),</span>
+<span class="dl-add">+    &#39;the backup is not byte-identical&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a second run adds only what is missing and never overwrites&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;backup-twice&#39;);</span>
+<span class="dl-add">+  migration.writeBackup(dir, [&#39;tasks.json&#39;]);</span>
+<span class="dl-add">+  // The interrupted run&#39;s copy is the one that must survive: the live file may</span>
+<span class="dl-add">+  // have moved on since.</span>
+<span class="dl-add">+  fs.writeFileSync(backupPath(dir, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[&quot;the first run\&#39;s copy&quot;]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[&quot;changed since&quot;]}\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const written = migration.writeBackup(dir, [&#39;tasks.json&#39;, &#39;QUICKSTART.md&#39;]);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(written, [&#39;QUICKSTART.md&#39;], &#39;an existing backup entry was rewritten&#39;);</span>
+<span class="dl-add">+  assert.match(fs.readFileSync(backupPath(dir, &#39;tasks.json&#39;), &#39;utf8&#39;), /the first run&#39;s copy/);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a file that is not there is skipped, not failed&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;backup-absent&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(migration.writeBackup(dir, [&#39;GEMINI.md&#39;]), []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a dangling symlink is skipped — there is nothing to preserve&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;backup-dangling&#39;, { symlinks: false });</span>
+<span class="dl-add">+  fs.symlinkSync(&#39;AGENTS.md&#39;, path.join(dir, &#39;GEMINI.md&#39;));</span>
+<span class="dl-add">+  fs.unlinkSync(path.join(dir, &#39;AGENTS.md&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.deepEqual(migration.writeBackup(dir, [&#39;GEMINI.md&#39;]), []);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(backupPath(dir, &#39;GEMINI.md&#39;)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;plan writes nothing at all&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;read-only&#39;, { commit: false });</span>
+<span class="dl-add">+  git(dir, &#39;add&#39;, &#39;-A&#39;);</span>
+<span class="dl-add">+  git(dir, &#39;commit&#39;, &#39;-qm&#39;, &#39;baseline&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  migration.plan(dir);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(git(dir, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;).trim(), &#39;&#39;, &#39;plan() touched the working tree&#39;);</span>
+<span class="dl-add">+  assert.ok(!fs.existsSync(path.join(dir, FRAME_DIR, migration.BACKUP_DIR)), &#39;plan() created the backup dir&#39;);</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>

@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "366 tests, 0 failures"
       }
+    },
+    {
+      "id": "T03",
+      "title": "embeddedMigration.plan() and the backup writer",
+      "commit": "f68a2cd",
+      "whatChanged": "New src/main/embeddedMigration.js: plan() reads the legacy config.json.files manifest (LEGACY_ROOT_FILES as fallback), computes each artifact disposition against its .frame/ counterpart, lists Frame-planted symlinks, restorable instruction blocks, unrecognized root files, and the git dirty/tracked verdicts — writing nothing. writeBackup() byte-copies into .frame/migration-backup/, skipping paths already there. 22 cases in test/embeddedMigration.test.js against real temp repos.",
+      "whyChanged": "plan() is pure inspection so the hard cases — dual layout, dirty trees, an interrupted run — are testable without performing them. The activity and telemetry sinks are injected via init() rather than required, keeping the engine and its suite Electron-free. Detection reuses instructionDiscovery.scan().legacyLayout instead of exporting detectLegacyLayout, which would have widened the footprint for no gain.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "388 tests, 0 failures"
+      }
     }
   ]
 }
