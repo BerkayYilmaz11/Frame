@@ -73,8 +73,7 @@
 }
 
 /* The row gear (replaces the old hover ×) — same hover-reveal discipline as
-   the .project-remove-btn it succeeds. `.hint-anchored` forces it visible
-   while a hint popover points at it: a popover cannot anchor to nothing. */
+   the .project-remove-btn it succeeds. */
 .project-item .project-gear-btn {
   opacity: 0;
   visibility: hidden;
@@ -89,8 +88,7 @@
   transition: all var(--transition-fast);
 }
 
-.project-item:hover .project-gear-btn,
-.project-item .project-gear-btn.hint-anchored {
+.project-item:hover .project-gear-btn {
   opacity: 1;
   visibility: visible;
 }

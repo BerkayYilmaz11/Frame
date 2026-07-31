@@ -7,8 +7,10 @@
  * sitting in local mode, whose specs and notes their teammates would benefit
  * from stay on one laptop. Nothing else ever tells them the mode exists.
  *
- * The specDrivenHint pattern pointed at a different condition, anchored to
- * the active project row's gear. The signal is entirely local — no network:
+ * The specDrivenHint pattern pointed at a different condition: a free-floating
+ * notice in the window's bottom-left corner, not anchored to anything (see
+ * that module for why nothing is anchored). The signal is entirely local — no
+ * network:
  * remote present AND >1 distinct author in the last ~200 commits AND
  * effective mode local AND not dismissed for this project. The author count
  * is a deliberate heuristic; being wrong costs one dismissible popover.
@@ -33,11 +35,6 @@ let shownForPath = null;
 let showTimer = null;
 let initialized = false;
 
-/** The active project row's gear — the button that opens Project Settings. */
-function getAnchor() {
-  return document.querySelector('.project-item.active .project-gear-btn');
-}
-
 function init() {
   if (initialized) return;
   initialized = true;
@@ -48,7 +45,6 @@ function init() {
   });
   state.onFrameStatusChange(() => evaluate());
 
-  window.addEventListener('resize', position);
   document.addEventListener('keydown', (e) => {
     if (popoverEl && e.key === 'Escape') hide();
   });
@@ -65,9 +61,8 @@ async function evaluate() {
     return;
   }
   if ((popoverEl || showTimer) && shownForPath === projectPath) return;
-  if (!getAnchor()) return;
-  // The spec-driven hint anchors to the same gear; two popovers on one
-  // button is noise. It wins — this hint returns on a later project open.
+  // Both notices claim the same corner; two stacked on top of each other is
+  // noise. Spec-driven wins — this one returns on a later project open.
   if (document.querySelector('.spec-driven-hint')) return;
 
   try {
@@ -129,9 +124,6 @@ function render(projectPath, authorCount) {
   // textContent, not template interpolation: the count is git output.
   popoverEl.querySelector('.sharing-hint-count').textContent = String(authorCount);
   document.body.appendChild(popoverEl);
-  const anchor = getAnchor();
-  if (anchor) anchor.classList.add('hint-anchored');
-  position();
 
   popoverEl.querySelector('.sharing-hint-close').addEventListener('click', hide);
   popoverEl.querySelector('.sharing-hint-never').addEventListener('click', () => {
@@ -148,31 +140,8 @@ function render(projectPath, authorCount) {
 function onOutsideClick(e) {
   if (!popoverEl) return;
   if (popoverEl.contains(e.target)) return;
-  // Clicking the gear itself opens Project Settings, which supersedes the
-  // hint — close it either way.
+  // A click elsewhere means "later" — the notice returns on the next open.
   hide();
-}
-
-/** Anchor to the active row's gear: same baseline, just outboard of the rail. */
-function position() {
-  if (!popoverEl) return;
-  const anchor = getAnchor();
-  if (!anchor) return;
-  const rect = anchor.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) {
-    hide();
-    return;
-  }
-  const gap = 8;
-  const width = popoverEl.offsetWidth;
-  const height = popoverEl.offsetHeight;
-  const left = Math.min(rect.right + gap, window.innerWidth - width - gap);
-  const top = Math.min(
-    Math.max(rect.bottom - height, gap),
-    window.innerHeight - height - gap
-  );
-  popoverEl.style.left = `${Math.max(gap, left)}px`;
-  popoverEl.style.top = `${top}px`;
 }
 
 /** The same write path as the modal toggle (SET_GIT_SHARING). */
@@ -233,9 +202,6 @@ function hide() {
   clearTimeout(showTimer);
   showTimer = null;
   document.removeEventListener('mousedown', onOutsideClick);
-  document.querySelectorAll('.project-gear-btn.hint-anchored').forEach((el) => {
-    el.classList.remove('hint-anchored');
-  });
   if (popoverEl) {
     popoverEl.remove();
     popoverEl = null;

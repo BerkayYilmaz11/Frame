@@ -71,3 +71,11 @@ Built sharingHint.js on the specDrivenHint pattern (plus sharing-hint.css mirror
 _Captured: 2026-07-30 · 4 file change(s)_
 
 ---
+
+## Follow-up — both hints became unanchored bottom-left notices
+
+Post-spec change on the user's call: neither hint anchors to anything now; both are fixed notices in the window's bottom-left corner, where the spec-driven one effectively sat before T08 (it pointed at the sidebar's Settings button). Dropped `getAnchor`, `position()`, the resize listeners and the `.hint-anchored` rule; the anchor-existence gate in `evaluate()` went with them, which also closes the race where a hint could silently never appear because the project list hadn't rendered its gear yet. The gear itself is unchanged and still hover-revealed; the "one notice at a time" yield remains, now because both claim the same corner.
+
+_Captured: 2026-07-31 · 5 file change(s)_
+
+---

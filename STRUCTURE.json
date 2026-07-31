@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-07-30",
+  "lastUpdated": "2026-07-31",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -7126,47 +7126,39 @@
         "state"
       ],
       "functions": {
-        "getAnchor": {
-          "line": 37,
-          "purpose": "The active project row's gear — the button that opens Project Settings."
-        },
         "init": {
-          "line": 41
+          "line": 38
         },
         "evaluate": {
-          "line": 61,
+          "line": 57,
           "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
         },
         "schedule": {
-          "line": 91,
+          "line": 86,
           "params": [
             "projectPath",
             "authorCount"
           ]
         },
         "refresh": {
-          "line": 102,
+          "line": 97,
           "purpose": "Re-check after something changed the mode."
         },
         "render": {
-          "line": 107,
+          "line": 102,
           "params": [
             "projectPath",
             "authorCount"
           ]
         },
         "onOutsideClick": {
-          "line": 148,
+          "line": 140,
           "params": [
             "e"
           ]
         },
-        "position": {
-          "line": 157,
-          "purpose": "Anchor to the active row's gear: same baseline, just outboard of the rail."
-        },
         "share": {
-          "line": 179,
+          "line": 148,
           "params": [
             "projectPath",
             "btn"
@@ -7174,29 +7166,29 @@
           "purpose": "The same write path as the modal toggle (SET_GIT_SHARING)."
         },
         "dismissForever": {
-          "line": 201,
+          "line": 170,
           "params": [
             "projectPath"
           ]
         },
         "markDismissed": {
-          "line": 210,
+          "line": 179,
           "params": [
             "projectPath"
           ],
           "purpose": "Remember that this project should not be hinted at again — user settings,"
         },
         "isDismissed": {
-          "line": 222,
+          "line": 191,
           "params": [
             "projectPath"
           ]
         },
         "readDismissed": {
-          "line": 227
+          "line": 196
         },
         "hide": {
-          "line": 232
+          "line": 201
         }
       }
     },
@@ -7290,74 +7282,66 @@
         "state"
       ],
       "functions": {
-        "getAnchor": {
-          "line": 31,
-          "purpose": "The active project row's gear — the button that opens Project Settings."
-        },
         "init": {
-          "line": 40
+          "line": 37
         },
         "evaluate": {
-          "line": 62,
+          "line": 58,
           "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
         },
         "schedule": {
-          "line": 83,
+          "line": 78,
           "params": [
             "projectPath"
           ]
         },
         "refresh": {
-          "line": 94,
+          "line": 89,
           "purpose": "Re-check after the Settings toggle changed the flag."
         },
         "render": {
-          "line": 99,
+          "line": 94,
           "params": [
             "projectPath"
           ]
         },
         "onOutsideClick": {
-          "line": 137,
+          "line": 129,
           "params": [
             "e"
           ]
         },
-        "position": {
-          "line": 146,
-          "purpose": "Anchor to the active row's gear: same baseline, just outboard of the rail."
-        },
         "enable": {
-          "line": 168,
+          "line": 136,
           "params": [
             "projectPath",
             "btn"
           ]
         },
         "dismissForever": {
-          "line": 190,
+          "line": 158,
           "params": [
             "projectPath"
           ]
         },
         "markDismissed": {
-          "line": 200,
+          "line": 168,
           "params": [
             "projectPath"
           ],
           "purpose": "Remember that this project should not be hinted at again. Lives in user"
         },
         "isDismissed": {
-          "line": 212,
+          "line": 180,
           "params": [
             "projectPath"
           ]
         },
         "readDismissed": {
-          "line": 217
+          "line": 185
         },
         "hide": {
-          "line": 222
+          "line": 190
         }
       }
     },

@@ -12,10 +12,12 @@
  * per project. Turning the feature off from Project Settings also silences
  * it — a choice the user just made is not something to nag about.
  *
- * Anchored to the active project row's gear — the switch lives in Project
- * Settings now, not app Settings. The gear is hover-revealed, so while the
- * popover is showing it gets `.hint-anchored` to force it visible: a popover
- * cannot point at nothing.
+ * A free-floating notice in the window's bottom-left corner, not a popover
+ * anchored to anything. It used to point at the app Settings button, and
+ * briefly at the project row's gear once the switch moved into Project
+ * Settings — but that gear is rendered with the project list, so the hint
+ * could silently never appear when the list hadn't been painted yet. A
+ * notice that owns its own corner has no such race and no anchor to lose.
  */
 
 const { ipcRenderer } = require('electron');
@@ -26,11 +28,6 @@ const DISMISSED_KEY = 'specDrivenHintDismissed';
 // Let the app finish opening the project (loader fade, panels settling)
 // before something pops up in the corner.
 const SHOW_DELAY_MS = 900;
-
-/** The active project row's gear — the button that opens Project Settings. */
-function getAnchor() {
-  return document.querySelector('.project-item.active .project-gear-btn');
-}
 
 let popoverEl = null;
 let shownForPath = null;
@@ -49,7 +46,6 @@ function init() {
   });
   state.onFrameStatusChange(() => evaluate());
 
-  window.addEventListener('resize', position);
   document.addEventListener('keydown', (e) => {
     if (popoverEl && e.key === 'Escape') hide();
   });
@@ -66,7 +62,6 @@ async function evaluate() {
     return;
   }
   if ((popoverEl || showTimer) && shownForPath === projectPath) return;
-  if (!getAnchor()) return;
 
   try {
     if (await isDismissed(projectPath)) return;
@@ -118,9 +113,6 @@ function render(projectPath) {
     </div>
   `;
   document.body.appendChild(popoverEl);
-  const anchor = getAnchor();
-  if (anchor) anchor.classList.add('hint-anchored');
-  position();
 
   popoverEl.querySelector('.spec-driven-hint-close').addEventListener('click', hide);
   popoverEl.querySelector('.spec-driven-hint-never').addEventListener('click', () => {
@@ -137,32 +129,8 @@ function render(projectPath) {
 function onOutsideClick(e) {
   if (!popoverEl) return;
   if (popoverEl.contains(e.target)) return;
-  // Clicking the gear itself opens Project Settings, which supersedes the
-  // hint — close it either way.
+  // A click elsewhere means "later" — the notice returns on the next open.
   hide();
-}
-
-/** Anchor to the active row's gear: same baseline, just outboard of the rail. */
-function position() {
-  if (!popoverEl) return;
-  const anchor = getAnchor();
-  if (!anchor) return;
-  const rect = anchor.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) {
-    // Sidebar hidden — nothing to point at.
-    hide();
-    return;
-  }
-  const gap = 8;
-  const width = popoverEl.offsetWidth;
-  const height = popoverEl.offsetHeight;
-  const left = Math.min(rect.right + gap, window.innerWidth - width - gap);
-  const top = Math.min(
-    Math.max(rect.bottom - height, gap),
-    window.innerHeight - height - gap
-  );
-  popoverEl.style.left = `${Math.max(gap, left)}px`;
-  popoverEl.style.top = `${top}px`;
 }
 
 async function enable(projectPath, btn) {
@@ -223,9 +191,6 @@ function hide() {
   clearTimeout(showTimer);
   showTimer = null;
   document.removeEventListener('mousedown', onOutsideClick);
-  document.querySelectorAll('.project-gear-btn.hint-anchored').forEach((el) => {
-    el.classList.remove('hint-anchored');
-  });
   if (popoverEl) {
     popoverEl.remove();
     popoverEl = null;

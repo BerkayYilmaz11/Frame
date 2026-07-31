@@ -1,10 +1,12 @@
-/* Sharing hint — repo-mode discovery popover anchored on the active project
-   row's gear. Mirrors spec-driven-hint.css: same elevated-surface language,
-   sized like a tooltip rather than a dialog. Position is set inline by
-   sharingHint.js. */
+/* Sharing hint — repo-mode discovery notice in the window's bottom-left
+   corner. Mirrors spec-driven-hint.css: same elevated-surface language,
+   same corner, sized like a tooltip rather than a dialog. Only one of the
+   two shows at a time — sharingHint.js yields to the spec-driven notice. */
 
 .sharing-hint {
   position: fixed;
+  left: var(--space-md, 16px);
+  bottom: var(--space-md, 16px);
   z-index: 8500;
   width: 260px;
   padding: 12px;
