@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">9 tasks</span>
-    <span class="pill good">9 verified</span>
+    <span class="pill">10 tasks</span>
+    <span class="pill good">10 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -3977,6 +3977,240 @@
 <span class="dl-file">----</span>
 <span class="dl-del">-</span>
 <span class="dl-del">-**Note:** This file is named `AGENTS.md` to be AI-tool agnostic. A `CLAUDE.md` symlink is provided for Claude Code compatibility, and a `GEMINI.md` for Gemini CLI.</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">Follow-up</span>
+    <h2>Migration requires Frame&#39;s own fingerprint, not a name match</h2>
+    <span class="card-meta"><span class="chip">ae29870</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">423 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Removed the stale files block from getFrameConfigTemplate and made plan() ignore a name match unless corroborated by a fingerprint only Frame&#39;s init leaves — the files record in .frame/config.json, or a CLAUDE.md/GEMINI.md symlink pointing at AGENTS.md. Four cases added in test/embeddedMigration.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>detectLegacyLayout decides on names, which was fine when it produced a banner and unsafe once it moved files: a repository with its own tasks.json and QUICKSTART.md had both planned for relocation into .frame/, reproduced on two fixtures. A banner-with-button for projects outside the rule was rejected — while detection is name-based it would fire on repositories Frame never touched; the reasoning is in PROJECT_NOTES.md [2026-07-31].</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/PROJECT_NOTES.md b/PROJECT_NOTES.md</span>
+<span class="dl-meta">index 699e17d..c323955 100644</span>
+<span class="dl-file">--- a/PROJECT_NOTES.md</span>
+<span class="dl-file">+++ b/PROJECT_NOTES.md</span>
+<span class="dl-hunk">@@ -1405,3 +1405,31 @@ are never touched. Projects initialized before this keep their existing flag;</span>
+<span class="dl-ctx"> nothing force-enables on open, since that would rewrite an AGENTS.md the user</span>
+<span class="dl-ctx"> never asked us to change. Rejected: auto-enabling when specs already exist on</span>
+<span class="dl-ctx"> disk — it would silently undo an explicit &quot;off&quot; on every panel open.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+### [2026-07-31] The layout migration needs Frame&#39;s own fingerprint, not a name match</span>
+<span class="dl-add">+The embedded-migration spec shipped and its automatic sweep exposed a weakness</span>
+<span class="dl-add">+inherited from `non-invasive-overlay`: `detectLegacyLayout` decides on names —</span>
+<span class="dl-add">+a root `tasks.json` plus one of `STRUCTURE.json` / `PROJECT_NOTES.md` /</span>
+<span class="dl-add">+`QUICKSTART.md`. That was tolerable when the consequence was a banner. Once the</span>
+<span class="dl-add">+consequence became *moving files*, it meant a repository with its own</span>
+<span class="dl-add">+`tasks.json` and `QUICKSTART.md` would have had both relocated into `.frame/`</span>
+<span class="dl-add">+at the next startup, silently, whether or not Frame had ever initialized it.</span>
+<span class="dl-add">+Reproduced on two fixtures before fixing. Compounding it,</span>
+<span class="dl-add">+`getFrameConfigTemplate` still wrote the `files` manifest after the overlay</span>
+<span class="dl-add">+removed the root files it names, so a freshly initialized project carried a</span>
+<span class="dl-add">+record claiming Frame authored files it had never created — which is exactly</span>
+<span class="dl-add">+the evidence D5 leans on. Decisions: (1) that block is gone from the template;</span>
+<span class="dl-add">+(2) a name match is now inert unless corroborated by something only Frame&#39;s</span>
+<span class="dl-add">+init could leave — the `files` record in `.frame/config.json`, or a</span>
+<span class="dl-add">+`CLAUDE.md`/`GEMINI.md` symlink pointing at `AGENTS.md`. Either is proof;</span>
+<span class="dl-add">+neither is forgeable by an ordinary repository. The `files` record is kept as</span>
+<span class="dl-add">+evidence even when its keys are too old to read (`claude` rather than</span>
+<span class="dl-add">+`agents`), since an unreadable block is still a block Frame wrote. Rejected: a</span>
+<span class="dl-add">+banner with a &quot;migrate&quot; button for projects that fall outside the rule — while</span>
+<span class="dl-add">+detection stays name-based it would appear on repositories Frame never touched,</span>
+<span class="dl-add">+and it revives the deferred-state surface D1 exists to avoid. If a manual path</span>
+<span class="dl-add">+is ever wanted, the right shape is pull, not push: an action in Project</span>
+<span class="dl-add">+Settings that opens the existing migration modal with an itemized preview —</span>
+<span class="dl-add">+Frame acting alone needs proof, a user asking *is* the proof. Not built; no</span>
+<span class="dl-add">+population needs it yet. Timing note: #8/#9 are unreleased (post-v2.6.0), so no</span>
+<span class="dl-add">+user config carries the stale record and no cleanup path was needed.</span>
+<span class="dl-meta">diff --git a/src/main/embeddedMigration.js b/src/main/embeddedMigration.js</span>
+<span class="dl-meta">index 6a93f31..8f5d5a0 100644</span>
+<span class="dl-file">--- a/src/main/embeddedMigration.js</span>
+<span class="dl-file">+++ b/src/main/embeddedMigration.js</span>
+<span class="dl-hunk">@@ -240,20 +240,27 @@ function readConfig(projectPath) {</span>
+<span class="dl-ctx">  * names (D5). Falls back to `LEGACY_ROOT_FILES` when the block is absent or</span>
+<span class="dl-ctx">  * malformed, which is also the case for a project whose config never had one.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * @returns {{ source: &#39;config&#39;|&#39;fallback&#39;, names: string[] }}</span>
+<span class="dl-add">+ * `hasRecord` is a separate question from `names`: the oldest configs used</span>
+<span class="dl-add">+ * keys this version does not know (`claude` rather than `agents`), so a block</span>
+<span class="dl-add">+ * we cannot read is still a block Frame wrote — evidence of a pre-overlay</span>
+<span class="dl-add">+ * init even when the names have to come from the fallback.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {{ source: &#39;config&#39;|&#39;fallback&#39;, names: string[], hasRecord: boolean }}</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function artifactManifest(projectPath) {</span>
+<span class="dl-ctx">   const config = readConfig(projectPath);</span>
+<span class="dl-ctx">   const files = config &amp;&amp; config.files;</span>
+<span class="dl-del">-  if (files &amp;&amp; typeof files === &#39;object&#39; &amp;&amp; !Array.isArray(files)) {</span>
+<span class="dl-add">+  const hasRecord = Boolean(files &amp;&amp; typeof files === &#39;object&#39; &amp;&amp; !Array.isArray(files));</span>
+<span class="dl-add">+  if (hasRecord) {</span>
+<span class="dl-ctx">     const names = MANIFEST_ARTIFACT_KEYS.map((key) =&gt; files[key]).filter(</span>
+<span class="dl-ctx">       (name) =&gt; typeof name === &#39;string&#39; &amp;&amp; name.length &gt; 0</span>
+<span class="dl-ctx">     );</span>
+<span class="dl-del">-    if (names.length) return { source: &#39;config&#39;, names };</span>
+<span class="dl-add">+    if (names.length) return { source: &#39;config&#39;, names, hasRecord };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx">   return {</span>
+<span class="dl-ctx">     source: &#39;fallback&#39;,</span>
+<span class="dl-del">-    names: Object.keys(TARGET_BY_ROOT_NAME)</span>
+<span class="dl-add">+    names: Object.keys(TARGET_BY_ROOT_NAME),</span>
+<span class="dl-add">+    hasRecord</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -316,7 +323,31 @@ function plan(projectPath) {</span>
+<span class="dl-ctx">   if (!projectPath || !exists(projectPath)) return empty;</span>
+<span class="dl-ctx">   if (!instructionDiscovery.scan(projectPath).legacyLayout) return empty;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // ── Frame&#39;s own fingerprint, or nothing happens ──</span>
+<span class="dl-add">+  //</span>
+<span class="dl-add">+  // `detectLegacyLayout` matches on names — root `tasks.json` plus one of</span>
+<span class="dl-add">+  // `STRUCTURE.json` / `PROJECT_NOTES.md` / `QUICKSTART.md`. That was enough</span>
+<span class="dl-add">+  // when the consequence was a banner; it is not enough now that the</span>
+<span class="dl-add">+  // consequence is moving files, because those names belong to plenty of</span>
+<span class="dl-add">+  // repositories Frame never touched. A project with its own `tasks.json` and</span>
+<span class="dl-add">+  // `QUICKSTART.md` would have had both relocated on the next start.</span>
+<span class="dl-add">+  //</span>
+<span class="dl-add">+  // So a name match must be corroborated by something only Frame&#39;s own init</span>
+<span class="dl-add">+  // could have left:</span>
+<span class="dl-add">+  //</span>
+<span class="dl-add">+  //   - the `files` record in `.frame/config.json` — every pre-overlay init</span>
+<span class="dl-add">+  //     wrote one; the current init writes none, precisely so this stays a</span>
+<span class="dl-add">+  //     signature rather than a formality;</span>
+<span class="dl-add">+  //   - a `CLAUDE.md`/`GEMINI.md` symlink pointing at `AGENTS.md` — nothing</span>
+<span class="dl-add">+  //     else creates that, and old init created it unconditionally.</span>
+<span class="dl-add">+  //</span>
+<span class="dl-add">+  // Either is proof. Neither is forgeable by an ordinary repository. Without</span>
+<span class="dl-add">+  // one, the root files are the user&#39;s and this returns as if nothing were</span>
+<span class="dl-add">+  // there. (A migrated project has neither — the record is dropped and the</span>
+<span class="dl-add">+  // links removed — so it also reads as done, which is the same answer.)</span>
+<span class="dl-ctx">   const manifest = artifactManifest(projectPath);</span>
+<span class="dl-add">+  const symlinks = SYMLINK_NAMES.filter((rel) =&gt; isFramePlantedSymlink(projectPath, rel));</span>
+<span class="dl-add">+  if (!manifest.hasRecord &amp;&amp; !symlinks.length) return empty;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const artifacts = [];</span>
+<span class="dl-ctx">   for (const rel of manifest.names) {</span>
+<span class="dl-hunk">@@ -342,8 +373,6 @@ function plan(projectPath) {</span>
+<span class="dl-ctx">     (rel) =&gt; !planned.has(rel) &amp;&amp; exists(path.join(projectPath, rel)) &amp;&amp; !lstat(path.join(projectPath, rel)).isSymbolicLink()</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const symlinks = SYMLINK_NAMES.filter((rel) =&gt; isFramePlantedSymlink(projectPath, rel));</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   // The merged file is still at the root before the move, and already under</span>
+<span class="dl-ctx">   // `.frame/` if an earlier run was interrupted after it.</span>
+<span class="dl-ctx">   const mergedFrom = artifacts.some((a) =&gt; a.rel === LEGACY_ROOT_FILES.AGENTS)</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 22778c6..0d04d5e 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -836,15 +836,12 @@ function getFrameConfigTemplate(projectName, options = {}) {</span>
+<span class="dl-ctx">       // one — the flag being off only hid them from the Specs panel. The</span>
+<span class="dl-ctx">       // init modal and Project Settings can turn it off.</span>
+<span class="dl-ctx">       specDriven: options.specDriven !== false</span>
+<span class="dl-del">-    },</span>
+<span class="dl-del">-    files: {</span>
+<span class="dl-del">-      agents: &quot;AGENTS.md&quot;,</span>
+<span class="dl-del">-      claudeSymlink: &quot;CLAUDE.md&quot;,</span>
+<span class="dl-del">-      structure: &quot;STRUCTURE.json&quot;,</span>
+<span class="dl-del">-      notes: &quot;PROJECT_NOTES.md&quot;,</span>
+<span class="dl-del">-      tasks: &quot;tasks.json&quot;,</span>
+<span class="dl-del">-      quickstart: &quot;QUICKSTART.md&quot;</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-add">+    // No `files` block. It was a manifest of the root files init created, and</span>
+<span class="dl-add">+    // since the overlay (1202ab2) init creates none — so writing it would</span>
+<span class="dl-add">+    // claim authorship of files Frame never touched. `embeddedMigration`</span>
+<span class="dl-add">+    // treats that block as proof of a pre-overlay init and moves what it</span>
+<span class="dl-add">+    // names, which on a fresh project would be the user&#39;s own files.</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/test/embeddedMigration.test.js b/test/embeddedMigration.test.js</span>
+<span class="dl-meta">index 38dc8fe..d2d68cb 100644</span>
+<span class="dl-file">--- a/test/embeddedMigration.test.js</span>
+<span class="dl-file">+++ b/test/embeddedMigration.test.js</span>
+<span class="dl-hunk">@@ -18,6 +18,7 @@ const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const migration = require(&#39;../src/main/embeddedMigration&#39;);</span>
+<span class="dl-add">+const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> const { FRAME_DIR } = require(&#39;../src/shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let root;</span>
+<span class="dl-hunk">@@ -135,7 +136,68 @@ test(&#39;the artifact list comes from config.json.files&#39;, () =&gt; {</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── D5: Frame&#39;s fingerprint, or nothing happens ──────────────</span>
+<span class="dl-add">+//</span>
+<span class="dl-add">+// A name match alone was enough when it produced a banner. It is not enough</span>
+<span class="dl-add">+// now that it moves files: `tasks.json` and `QUICKSTART.md` belong to plenty</span>
+<span class="dl-add">+// of repositories Frame never touched.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project Frame never initialized is left alone, whatever its root files are called&#39;, () =&gt; {</span>
+<span class="dl-add">+  const dir = path.join(root, &#39;not-ours&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;{&quot;npmTasks&quot;:[&quot;build&quot;]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;QUICKSTART.md&#39;), &#39;# My own quickstart\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.equal(result.legacy, false, &quot;a stranger&#39;s files were planned for migration&quot;);</span>
+<span class="dl-add">+  assert.deepEqual(result.artifacts, []);</span>
+<span class="dl-add">+  assert.equal(migration.migrateProject(dir).status, &#39;skipped&#39;);</span>
+<span class="dl-add">+  assert.ok(fs.existsSync(path.join(dir, &#39;tasks.json&#39;)), &#39;a file Frame never wrote was moved&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project initialized after the overlay is left alone too&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The current init writes no `files` record and plants no symlink, so a</span>
+<span class="dl-add">+  // project of its making carries no fingerprint — even when the user&#39;s own</span>
+<span class="dl-add">+  // root files happen to share the names.</span>
+<span class="dl-add">+  const dir = path.join(root, &#39;post-overlay&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(dir, FRAME_DIR, &#39;specs&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    path.join(dir, FRAME_DIR, &#39;config.json&#39;),</span>
+<span class="dl-add">+    JSON.stringify(templates.getFrameConfigTemplate(&#39;post-overlay&#39;), null, 2)</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, FRAME_DIR, &#39;tasks.json&#39;), &#39;{&quot;tasks&quot;:[{&quot;title&quot;:&quot;Frame task&quot;}]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;{&quot;npmTasks&quot;:[&quot;build&quot;]}\n&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(dir, &#39;QUICKSTART.md&#39;), &#39;# My own quickstart\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  assert.equal(migration.plan(dir).legacy, false);</span>
+<span class="dl-add">+  assert.equal(fs.readFileSync(path.join(dir, &#39;tasks.json&#39;), &#39;utf8&#39;), &#39;{&quot;npmTasks&quot;:[&quot;build&quot;]}\n&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the current config template writes no files record&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The record is what proves a pre-overlay init. Writing one on a project</span>
+<span class="dl-add">+  // where nothing was created at the root would make it a formality — and</span>
+<span class="dl-add">+  // would hand this engine the user&#39;s own files.</span>
+<span class="dl-add">+  assert.ok(!(&#39;files&#39; in templates.getFrameConfigTemplate(&#39;MyProject&#39;)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a Frame-planted symlink is fingerprint enough on its own&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The other half of the rule: a config that lost its record still migrates,</span>
+<span class="dl-add">+  // because nothing but Frame&#39;s init creates a CLAUDE.md → AGENTS.md link.</span>
+<span class="dl-add">+  const dir = makeLegacyProject(&#39;symlink-evidence&#39;);</span>
+<span class="dl-add">+  const configPath = path.join(dir, FRAME_DIR, &#39;config.json&#39;);</span>
+<span class="dl-add">+  const config = JSON.parse(fs.readFileSync(configPath, &#39;utf8&#39;));</span>
+<span class="dl-add">+  delete config.files;</span>
+<span class="dl-add">+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const result = migration.plan(dir);</span>
+<span class="dl-add">+  assert.equal(result.legacy, true, &#39;a real legacy project was stranded&#39;);</span>
+<span class="dl-add">+  assert.equal(result.manifest, &#39;fallback&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(result.symlinks, [&#39;CLAUDE.md&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;a missing or malformed files block falls back to the well-known names&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Both fixtures still carry the planted symlink, which is what keeps them</span>
+<span class="dl-add">+  // legacy at all — this is about which names get used once that is settled.</span>
+<span class="dl-ctx">   const absent = makeLegacyProject(&#39;no-manifest&#39;, { files: undefined });</span>
+<span class="dl-ctx">   fs.writeFileSync(</span>
+<span class="dl-ctx">     path.join(absent, FRAME_DIR, &#39;config.json&#39;),</span></pre>
     </details>
   </div>
 </section>

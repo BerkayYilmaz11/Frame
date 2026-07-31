@@ -812,14 +812,14 @@
           ]
         },
         "artifactManifest": {
-          "line": 245,
+          "line": 250,
           "params": [
             "projectPath"
           ],
           "purpose": "The root files Frame created *for this project*, from the legacy config's"
         },
         "extractExisting": {
-          "line": 274,
+          "line": 281,
           "params": [
             "content",
             "label"
@@ -827,14 +827,14 @@
           "purpose": "Pull one `## Existing Instructions (from <label>)` block out of a merged"
         },
         "plan": {
-          "line": 304,
+          "line": 311,
           "params": [
             "projectPath"
           ],
           "purpose": "What migrating this project would do. Pure inspection — no writes, safe to"
         },
         "writeBackup": {
-          "line": 390,
+          "line": 419,
           "params": [
             "projectPath",
             "rels"
@@ -842,7 +842,7 @@
           "purpose": "Byte-copy everything the run will remove into `.frame/migration-backup/`,"
         },
         "applyArtifact": {
-          "line": 422,
+          "line": 451,
           "params": [
             "projectPath",
             "artifact"
@@ -850,14 +850,14 @@
           "purpose": "Carry out one artifact's disposition."
         },
         "rewriteConfig": {
-          "line": 444,
+          "line": 473,
           "params": [
             "projectPath"
           ],
           "purpose": "Drop the `files` block from `.frame/config.json`."
         },
         "removeSymlinks": {
-          "line": 460,
+          "line": 489,
           "params": [
             "projectPath",
             "rels"
@@ -865,7 +865,7 @@
           "purpose": "Remove the symlinks old init planted. Runs *before* restoration, not after"
         },
         "restoreInstructions": {
-          "line": 487,
+          "line": 516,
           "params": [
             "projectPath",
             "mergedRel"
@@ -873,7 +873,7 @@
           "purpose": "Hand back the instruction files old init took."
         },
         "migrateProject": {
-          "line": 524,
+          "line": 553,
           "params": [
             "projectPath",
             "opts = {}"
@@ -881,14 +881,14 @@
           "purpose": "Migrate one project. Either it completes or it leaves the project untouched"
         },
         "isMigrating": {
-          "line": 634,
+          "line": 663,
           "params": [
             "projectPath"
           ],
           "purpose": "True while a migration of this project is running (S15)."
         },
         "sweep": {
-          "line": 658,
+          "line": 687,
           "params": [
             "projectPaths"
           ],
@@ -9589,7 +9589,7 @@
           "purpose": ".frame/config.json template"
         },
         "getWrapperTemplate": {
-          "line": 877,
+          "line": 874,
           "params": [
             "toolCommand",
             "options"
@@ -9597,14 +9597,14 @@
           "purpose": "Wrapper script for a tool with no flag to inject a system prompt."
         },
         "getSpecHintSettings": {
-          "line": 920,
+          "line": 917,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getCodexWrapperTemplate": {
-          "line": 936
+          "line": 933
         },
         "getGenericWrapperTemplate": {
-          "line": 973,
+          "line": 970,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -9612,27 +9612,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1019
+          "line": 1016
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1046,
+          "line": 1043,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1069,
+          "line": 1066,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1081,
+          "line": 1078,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1101
+          "line": 1098
         },
         "getOrchBinScripts": {
-          "line": 1119,
+          "line": 1116,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

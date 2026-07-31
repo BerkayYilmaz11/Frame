@@ -111,6 +111,18 @@
         "status": "pass",
         "detail": "419 tests, 0 failures"
       }
+    },
+    {
+      "id": "Follow-up",
+      "title": "Migration requires Frame's own fingerprint, not a name match",
+      "commit": "ae29870",
+      "whatChanged": "Removed the stale files block from getFrameConfigTemplate and made plan() ignore a name match unless corroborated by a fingerprint only Frame's init leaves — the files record in .frame/config.json, or a CLAUDE.md/GEMINI.md symlink pointing at AGENTS.md. Four cases added in test/embeddedMigration.test.js.",
+      "whyChanged": "detectLegacyLayout decides on names, which was fine when it produced a banner and unsafe once it moved files: a repository with its own tasks.json and QUICKSTART.md had both planned for relocation into .frame/, reproduced on two fixtures. A banner-with-button for projects outside the rule was rejected — while detection is name-based it would fire on repositories Frame never touched; the reasoning is in PROJECT_NOTES.md [2026-07-31].",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "423 tests, 0 failures"
+      }
     }
   ]
 }

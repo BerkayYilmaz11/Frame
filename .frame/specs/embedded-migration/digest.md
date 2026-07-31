@@ -17,7 +17,10 @@ per-open trigger (migrates a multi-project workspace one session at a time),
 retention on the backup (Frame would delete user data on its own schedule), and
 "remove and re-add" as failure advice (nothing travels through the registry).
 
-Rules established: `.frame/` always wins a dual-layout conflict, the root copy
+Rules established: migration never acts on a name match alone — it needs a
+fingerprint only Frame's init leaves (the `files` record in `config.json`, or a
+`CLAUDE.md`/`GEMINI.md` symlink pointing at `AGENTS.md`), or a repo with its own
+`tasks.json` + `QUICKSTART.md` gets relocated; `.frame/` always wins a dual-layout conflict, the root copy
 goes to `.frame/migration-backup/` (ignored, never pruned); a legacy file dirty
 in git defers the whole run, non-git projects get no equivalent guard; moves are
 copy-verify-then-delete so an interruption leaves a duplicate, never a hole;

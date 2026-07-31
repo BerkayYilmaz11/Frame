@@ -240,20 +240,27 @@ function readConfig(projectPath) {
  * names (D5). Falls back to `LEGACY_ROOT_FILES` when the block is absent or
  * malformed, which is also the case for a project whose config never had one.
  *
- * @returns {{ source: 'config'|'fallback', names: string[] }}
+ * `hasRecord` is a separate question from `names`: the oldest configs used
+ * keys this version does not know (`claude` rather than `agents`), so a block
+ * we cannot read is still a block Frame wrote — evidence of a pre-overlay
+ * init even when the names have to come from the fallback.
+ *
+ * @returns {{ source: 'config'|'fallback', names: string[], hasRecord: boolean }}
  */
 function artifactManifest(projectPath) {
   const config = readConfig(projectPath);
   const files = config && config.files;
-  if (files && typeof files === 'object' && !Array.isArray(files)) {
+  const hasRecord = Boolean(files && typeof files === 'object' && !Array.isArray(files));
+  if (hasRecord) {
     const names = MANIFEST_ARTIFACT_KEYS.map((key) => files[key]).filter(
       (name) => typeof name === 'string' && name.length > 0
     );
-    if (names.length) return { source: 'config', names };
+    if (names.length) return { source: 'config', names, hasRecord };
   }
   return {
     source: 'fallback',
-    names: Object.keys(TARGET_BY_ROOT_NAME)
+    names: Object.keys(TARGET_BY_ROOT_NAME),
+    hasRecord
   };
 }
 
@@ -316,7 +323,31 @@ function plan(projectPath) {
   if (!projectPath || !exists(projectPath)) return empty;
   if (!instructionDiscovery.scan(projectPath).legacyLayout) return empty;
 
+  // ── Frame's own fingerprint, or nothing happens ──
+  //
+  // `detectLegacyLayout` matches on names — root `tasks.json` plus one of
+  // `STRUCTURE.json` / `PROJECT_NOTES.md` / `QUICKSTART.md`. That was enough
+  // when the consequence was a banner; it is not enough now that the
+  // consequence is moving files, because those names belong to plenty of
+  // repositories Frame never touched. A project with its own `tasks.json` and
+  // `QUICKSTART.md` would have had both relocated on the next start.
+  //
+  // So a name match must be corroborated by something only Frame's own init
+  // could have left:
+  //
+  //   - the `files` record in `.frame/config.json` — every pre-overlay init
+  //     wrote one; the current init writes none, precisely so this stays a
+  //     signature rather than a formality;
+  //   - a `CLAUDE.md`/`GEMINI.md` symlink pointing at `AGENTS.md` — nothing
+  //     else creates that, and old init created it unconditionally.
+  //
+  // Either is proof. Neither is forgeable by an ordinary repository. Without
+  // one, the root files are the user's and this returns as if nothing were
+  // there. (A migrated project has neither — the record is dropped and the
+  // links removed — so it also reads as done, which is the same answer.)
   const manifest = artifactManifest(projectPath);
+  const symlinks = SYMLINK_NAMES.filter((rel) => isFramePlantedSymlink(projectPath, rel));
+  if (!manifest.hasRecord && !symlinks.length) return empty;
 
   const artifacts = [];
   for (const rel of manifest.names) {
@@ -341,8 +372,6 @@ function plan(projectPath) {
   const unrecognized = Object.keys(TARGET_BY_ROOT_NAME).filter(
     (rel) => !planned.has(rel) && exists(path.join(projectPath, rel)) && !lstat(path.join(projectPath, rel)).isSymbolicLink()
   );
-
-  const symlinks = SYMLINK_NAMES.filter((rel) => isFramePlantedSymlink(projectPath, rel));
 
   // The merged file is still at the root before the move, and already under
   // `.frame/` if an earlier run was interrupted after it.

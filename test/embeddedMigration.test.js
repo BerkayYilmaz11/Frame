@@ -18,6 +18,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const migration = require('../src/main/embeddedMigration');
+const templates = require('../src/shared/frameTemplates');
 const { FRAME_DIR } = require('../src/shared/frameConstants');
 
 let root;
@@ -135,7 +136,68 @@ test('the artifact list comes from config.json.files', () => {
   );
 });
 
+// ─── D5: Frame's fingerprint, or nothing happens ──────────────
+//
+// A name match alone was enough when it produced a banner. It is not enough
+// now that it moves files: `tasks.json` and `QUICKSTART.md` belong to plenty
+// of repositories Frame never touched.
+
+test('a project Frame never initialized is left alone, whatever its root files are called', () => {
+  const dir = path.join(root, 'not-ours');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'tasks.json'), '{"npmTasks":["build"]}\n');
+  fs.writeFileSync(path.join(dir, 'QUICKSTART.md'), '# My own quickstart\n');
+
+  const result = migration.plan(dir);
+  assert.equal(result.legacy, false, "a stranger's files were planned for migration");
+  assert.deepEqual(result.artifacts, []);
+  assert.equal(migration.migrateProject(dir).status, 'skipped');
+  assert.ok(fs.existsSync(path.join(dir, 'tasks.json')), 'a file Frame never wrote was moved');
+});
+
+test('a project initialized after the overlay is left alone too', () => {
+  // The current init writes no `files` record and plants no symlink, so a
+  // project of its making carries no fingerprint — even when the user's own
+  // root files happen to share the names.
+  const dir = path.join(root, 'post-overlay');
+  fs.mkdirSync(path.join(dir, FRAME_DIR, 'specs'), { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, FRAME_DIR, 'config.json'),
+    JSON.stringify(templates.getFrameConfigTemplate('post-overlay'), null, 2)
+  );
+  fs.writeFileSync(path.join(dir, FRAME_DIR, 'tasks.json'), '{"tasks":[{"title":"Frame task"}]}\n');
+  fs.writeFileSync(path.join(dir, 'tasks.json'), '{"npmTasks":["build"]}\n');
+  fs.writeFileSync(path.join(dir, 'QUICKSTART.md'), '# My own quickstart\n');
+
+  assert.equal(migration.plan(dir).legacy, false);
+  assert.equal(fs.readFileSync(path.join(dir, 'tasks.json'), 'utf8'), '{"npmTasks":["build"]}\n');
+});
+
+test('the current config template writes no files record', () => {
+  // The record is what proves a pre-overlay init. Writing one on a project
+  // where nothing was created at the root would make it a formality — and
+  // would hand this engine the user's own files.
+  assert.ok(!('files' in templates.getFrameConfigTemplate('MyProject')));
+});
+
+test('a Frame-planted symlink is fingerprint enough on its own', () => {
+  // The other half of the rule: a config that lost its record still migrates,
+  // because nothing but Frame's init creates a CLAUDE.md → AGENTS.md link.
+  const dir = makeLegacyProject('symlink-evidence');
+  const configPath = path.join(dir, FRAME_DIR, 'config.json');
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  delete config.files;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+  const result = migration.plan(dir);
+  assert.equal(result.legacy, true, 'a real legacy project was stranded');
+  assert.equal(result.manifest, 'fallback');
+  assert.deepEqual(result.symlinks, ['CLAUDE.md']);
+});
+
 test('a missing or malformed files block falls back to the well-known names', () => {
+  // Both fixtures still carry the planted symlink, which is what keeps them
+  // legacy at all — this is about which names get used once that is settled.
   const absent = makeLegacyProject('no-manifest', { files: undefined });
   fs.writeFileSync(
     path.join(absent, FRAME_DIR, 'config.json'),

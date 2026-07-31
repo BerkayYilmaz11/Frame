@@ -149,8 +149,28 @@ at all, so post-overlay it opened as a non-Frame project with invisible tasks.
 Verified the sample now reads `legacyLayout: false` and `isFrameProject: true`.
 Followup: `frameTemplates.getFrameConfigTemplate` still writes a `files` block
 naming root files that overlay init no longer creates — outside this spec's
-footprint, so left alone; it deserves its own task.
+footprint, so left alone; it deserves its own task. **Resolved below.**
 
 _Captured: 2026-07-31 · 8 file changes_
+
+---
+
+## Follow-up — migration requires Frame's own fingerprint
+
+Investigating T09's followup showed it was not cosmetic: `detectLegacyLayout`
+decides on names, so a repository with its own `tasks.json` and `QUICKSTART.md`
+had both planned for relocation into `.frame/` — reproduced on a
+never-initialized project and on a post-overlay one, where the template's stale
+`files` record made the "authoritative manifest" of D5 point at the user's
+files. Dropped the block from `getFrameConfigTemplate` and made a name match
+inert in `plan()` unless corroborated by a fingerprint only Frame's init leaves:
+the `files` record (kept as evidence even when its keys are too old to read) or
+a `CLAUDE.md`/`GEMINI.md` symlink pointing at `AGENTS.md`. Four cases added; the
+existing fallback test now documents that the symlink is what keeps its
+fixtures legacy. Rejected a banner-with-button for projects outside the rule —
+while detection is name-based it would fire on repositories Frame never
+touched; the reasoning is in PROJECT_NOTES.md [2026-07-31].
+
+_Captured: 2026-07-31 · 4 file changes_
 
 ---
