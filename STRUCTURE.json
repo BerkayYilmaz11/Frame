@@ -1173,7 +1173,6 @@
           "SET_GIT_SHARING"
         ],
         "emits": [
-          "LEGACY_LAYOUT_DETECTED",
           "IS_FRAME_PROJECT_RESULT",
           "WORKSPACE_UPDATED",
           "FRAME_PROJECT_INITIALIZED",
@@ -2131,34 +2130,42 @@
         "telemetry",
         "specManager",
         "orchestrationManager",
+        "embeddedMigration",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 49,
+          "line": 50,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 67,
+          "line": 68,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 159
+          "line": 160
         },
         "setupAllIPC": {
-          "line": 185,
+          "line": 186,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 262,
+          "line": 263,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 303,
+          "line": 304,
           "params": [
             "window"
           ],
           "purpose": "Initialize modules that need window reference"
+        },
+        "sweepLegacyProjects": {
+          "line": 332,
+          "params": [
+            "window"
+          ],
+          "purpose": "Migrate every registered pre-overlay project into the `.frame/` layout, then"
         }
       },
       "ipc": {
@@ -2172,7 +2179,8 @@
           "RECONCILE_TERMINALS"
         ],
         "emits": [
-          "MAIN_PROCESS_ERROR"
+          "MAIN_PROCESS_ERROR",
+          "MIGRATION_COMPLETED"
         ]
       }
     },
@@ -5532,7 +5540,8 @@
       "file": "src/renderer/healthNotice.js",
       "description": "Health Notice Banner",
       "exports": [
-        "init"
+        "init",
+        "buildReceipt"
       ],
       "depends": [
         "electron",
@@ -5540,25 +5549,36 @@
       ],
       "functions": {
         "init": {
-          "line": 18
+          "line": 26,
+          "params": [
+            "deps = {}"
+          ]
+        },
+        "buildReceipt": {
+          "line": 73,
+          "params": [
+            "projects"
+          ],
+          "purpose": "The receipt for one sweep. It reports; it does not advise."
         },
         "show": {
-          "line": 45,
+          "line": 112,
           "params": [
             "kind",
-            "message"
+            "message",
+            "action"
           ]
         },
         "dismiss": {
-          "line": 77
+          "line": 164
         }
       },
       "ipc": {
         "listens": [
           "MAIN_PROCESS_ERROR",
           "STATE_FILE_RECOVERED",
-          "LEGACY_LAYOUT_DETECTED",
-          "TASKS_FILE_ERROR"
+          "TASKS_FILE_ERROR",
+          "MIGRATION_COMPLETED"
         ],
         "emits": []
       }
@@ -5723,30 +5743,30 @@
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 249,
+          "line": 251,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 314,
+          "line": 316,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 403,
+          "line": 405,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 434,
+          "line": 436,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 460,
+          "line": 462,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 732,
+          "line": 734,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -10705,6 +10725,13 @@
       },
       "SET_GIT_SHARING": {
         "name": "set-git-sharing",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "migration": {
+      "MIGRATION_COMPLETED": {
+        "name": "migration-completed",
         "direction": "",
         "description": ""
       }

@@ -230,7 +230,9 @@ function init() {
   settingsModal.init();
   projectSettingsModal.init();
   telemetryNotice.init(() => settingsModal.open());
-  healthNotice.init();
+  // The migration receipt's one action opens the diff surface the deletions
+  // are visible in. Showing the change is not advice about committing it.
+  healthNotice.init({ onShowChanges: () => revealSidebarTab('changes') });
   sampleBanner.init();
   specDrivenHint.init();
   setupUpdateDot();

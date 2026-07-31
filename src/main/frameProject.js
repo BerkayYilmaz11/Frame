@@ -517,20 +517,21 @@ function setupIPC(ipcMain) {
     if (isFrame) gitSharing.ensureOnOpen(projectPath);
 
     // Full re-scan per open; the watcher underneath is only an optimization.
-    const discovery = instructionDiscovery.refresh(projectPath);
+    instructionDiscovery.refresh(projectPath);
     instructionDiscovery.startWatching(projectPath);
 
-    // A pre-overlay project has its Frame files at the root, where nothing
-    // reads them any more. Saying so is the difference between "needs
-    // migration" and an empty project with no explanation.
+    // A pre-overlay project still has its Frame files at the root, where
+    // nothing reads them any more. Frame migrates it rather than warning about
+    // it — a condition the tool resolves by itself does not get a banner.
+    //
+    // Reaching here at all means the startup sweep did not get to this project
+    // (added since, or it failed or deferred), and the user is waiting on it
+    // right now — which is when blocking UI is earned. The modal is wired in
+    // T08; until then the lazy path stays silent and the sweep covers it.
     //
     // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json
-    // *and* the root files, so every project this notice exists for looks
-    // like a Frame project. The root layout is the signal, not the absence
-    // of .frame/.
-    if (discovery.legacyLayout) {
-      event.sender.send(IPC.LEGACY_LAYOUT_DETECTED, { projectPath });
-    }
+    // *and* the root files, so every project this covers looks like a Frame
+    // project. The root layout is the signal, not the absence of .frame/.
 
     workspace.updateProjectFrameStatus(projectPath, isFrame);
     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });

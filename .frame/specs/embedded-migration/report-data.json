@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "419 tests, 0 failures"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Sweep the registry at startup and show the receipt",
+      "commit": "ce41f93",
+      "whatChanged": "index.js sweeps workspace.getProjects() after the window is up, without awaiting, and sends MIGRATION_COMPLETED with the migrated and failed projects. LEGACY_LAYOUT_DETECTED is out of ipcChannels.js, its frameProject.js send and healthNotice.js branch deleted. healthNotice gained a neutral info kind, one optional action opening the Changes tab, and buildReceipt().",
+      "whyChanged": "The banner and its replacement land in one commit so no build has the warning without the migration that resolves it. The receipt reports and does not advise: it names failures (otherwise invisible now that migration is silent), counts tracked deletions off git ls-files rather than the sharing mode, and never mentions a deferral — that state is normal, self-resolving, and belongs to the foreground modal.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "419 tests, 0 failures — src/renderer/ is not covered by the suite"
+      }
     }
   ]
 }

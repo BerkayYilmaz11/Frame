@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">6 of 9 tasks done · next: <span class="rs-task">T07 — Sweep the registry asynchronously from `initModulesWithWindow`, replace…</span></span>
+  <span class="rs-count">7 of 9 tasks done · next: <span class="rs-task">T08 — Add the foreground migration modal — per-artifact progress over…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -2234,6 +2234,393 @@
 <span class="dl-ctx"> test(&#39;plan writes nothing at all&#39;, () =&gt; {</span>
 <span class="dl-ctx">   const dir = makeLegacyProject(&#39;read-only&#39;, { commit: false });</span>
 <span class="dl-ctx">   git(dir, &#39;add&#39;, &#39;-A&#39;);</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Sweep the registry at startup and show the receipt</h2>
+    <span class="card-meta"><span class="chip">ce41f93</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">419 tests, 0 failures — src/renderer/ is not covered by the suite</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>index.js sweeps workspace.getProjects() after the window is up, without awaiting, and sends MIGRATION_COMPLETED with the migrated and failed projects. LEGACY_LAYOUT_DETECTED is out of ipcChannels.js, its frameProject.js send and healthNotice.js branch deleted. healthNotice gained a neutral info kind, one optional action opening the Changes tab, and buildReceipt().</p></div>
+    <div class="field"><span class="label">Why</span><p>The banner and its replacement land in one commit so no build has the warning without the migration that resolves it. The receipt reports and does not advise: it names failures (otherwise invisible now that migration is silent), counts tracked deletions off git ls-files rather than the sharing mode, and never mentions a deferral — that state is normal, self-resolving, and belongs to the foreground modal.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index ab85b35..091607c 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -517,20 +517,21 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     if (isFrame) gitSharing.ensureOnOpen(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // Full re-scan per open; the watcher underneath is only an optimization.</span>
+<span class="dl-del">-    const discovery = instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-add">+    instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-ctx">     instructionDiscovery.startWatching(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    // A pre-overlay project has its Frame files at the root, where nothing</span>
+<span class="dl-del">-    // reads them any more. Saying so is the difference between &quot;needs</span>
+<span class="dl-del">-    // migration&quot; and an empty project with no explanation.</span>
+<span class="dl-add">+    // A pre-overlay project still has its Frame files at the root, where</span>
+<span class="dl-add">+    // nothing reads them any more. Frame migrates it rather than warning about</span>
+<span class="dl-add">+    // it — a condition the tool resolves by itself does not get a banner.</span>
+<span class="dl-add">+    //</span>
+<span class="dl-add">+    // Reaching here at all means the startup sweep did not get to this project</span>
+<span class="dl-add">+    // (added since, or it failed or deferred), and the user is waiting on it</span>
+<span class="dl-add">+    // right now — which is when blocking UI is earned. The modal is wired in</span>
+<span class="dl-add">+    // T08; until then the lazy path stays silent and the sweep covers it.</span>
+<span class="dl-ctx">     //</span>
+<span class="dl-ctx">     // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json</span>
+<span class="dl-del">-    // *and* the root files, so every project this notice exists for looks</span>
+<span class="dl-del">-    // like a Frame project. The root layout is the signal, not the absence</span>
+<span class="dl-del">-    // of .frame/.</span>
+<span class="dl-del">-    if (discovery.legacyLayout) {</span>
+<span class="dl-del">-      event.sender.send(IPC.LEGACY_LAYOUT_DETECTED, { projectPath });</span>
+<span class="dl-del">-    }</span>
+<span class="dl-add">+    // *and* the root files, so every project this covers looks like a Frame</span>
+<span class="dl-add">+    // project. The root layout is the signal, not the absence of .frame/.</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     workspace.updateProjectFrameStatus(projectPath, isFrame);</span>
+<span class="dl-ctx">     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });</span>
+<span class="dl-meta">diff --git a/src/main/index.js b/src/main/index.js</span>
+<span class="dl-meta">index 6ac696c..b6a61af 100644</span>
+<span class="dl-file">--- a/src/main/index.js</span>
+<span class="dl-file">+++ b/src/main/index.js</span>
+<span class="dl-hunk">@@ -37,6 +37,7 @@ const gitDiffManager = require(&#39;./gitDiffManager&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-ctx"> const specManager = require(&#39;./specManager&#39;);</span>
+<span class="dl-ctx"> const orchestrationManager = require(&#39;./orchestrationManager&#39;);</span>
+<span class="dl-add">+const embeddedMigration = require(&#39;./embeddedMigration&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-ctx"> let quitConfirmed = false;</span>
+<span class="dl-hunk">@@ -315,6 +316,32 @@ function initModulesWithWindow(window) {</span>
+<span class="dl-ctx">   specManager.init(window);</span>
+<span class="dl-ctx">   orchestrationManager.init(window);</span>
+<span class="dl-ctx">   activityLog.attachWindow(window);</span>
+<span class="dl-add">+  sweepLegacyProjects(window);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Migrate every registered pre-overlay project into the `.frame/` layout, then</span>
+<span class="dl-add">+ * report the pass once.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Asynchronous and never awaited: the window is already up, and a workspace of</span>
+<span class="dl-add">+ * legacy projects must not delay it. A project Frame has never been pointed at</span>
+<span class="dl-add">+ * is not migrated — `workspaces.json` is the definition of the set Frame is</span>
+<span class="dl-add">+ * responsible for, and an old project migrates the moment the user adds it</span>
+<span class="dl-add">+ * back.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function sweepLegacyProjects(window) {</span>
+<span class="dl-add">+  embeddedMigration.init({ record: activityLog.record, telemetry: telemetry.track });</span>
+<span class="dl-add">+  embeddedMigration</span>
+<span class="dl-add">+    .sweep(workspace.getProjects().map((project) =&gt; project.path))</span>
+<span class="dl-add">+    .then((results) =&gt; {</span>
+<span class="dl-add">+      const projects = results.filter((r) =&gt; r.status === &#39;migrated&#39; || r.status === &#39;failed&#39;);</span>
+<span class="dl-add">+      if (!projects.length) return;</span>
+<span class="dl-add">+      logger.info(&#39;migration&#39;, `swept ${results.length} project(s), ${projects.length} reported`);</span>
+<span class="dl-add">+      if (window &amp;&amp; !window.isDestroyed()) {</span>
+<span class="dl-add">+        window.webContents.send(IPC.MIGRATION_COMPLETED, { projects });</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    })</span>
+<span class="dl-add">+    .catch((err) =&gt; logger.error(&#39;migration&#39;, &#39;sweep failed:&#39;, err.message));</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Aptabase MUST be initialized before app.whenReady() because the SDK</span>
+<span class="dl-meta">diff --git a/src/renderer/healthNotice.js b/src/renderer/healthNotice.js</span>
+<span class="dl-meta">index 7a6df8a..10dc8e9 100644</span>
+<span class="dl-file">--- a/src/renderer/healthNotice.js</span>
+<span class="dl-file">+++ b/src/renderer/healthNotice.js</span>
+<span class="dl-hunk">@@ -1,11 +1,17 @@</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Health Notice Banner</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * Dismissible one-liner at the top of the app for degraded/recovered states</span>
+<span class="dl-del">- * pushed from the main process: crash-guard errors (MAIN_PROCESS_ERROR),</span>
+<span class="dl-del">- * state files restored from backup (STATE_FILE_RECOVERED), and corrupt</span>
+<span class="dl-del">- * tasks.json (TASKS_FILE_ERROR). Same visual pattern as the telemetry</span>
+<span class="dl-del">- * notice, but created on demand — one banner, latest message wins.</span>
+<span class="dl-add">+ * Dismissible one-liner at the top of the app for states pushed from the main</span>
+<span class="dl-add">+ * process: crash-guard errors (MAIN_PROCESS_ERROR), state files restored from</span>
+<span class="dl-add">+ * backup (STATE_FILE_RECOVERED), corrupt tasks.json (TASKS_FILE_ERROR), and</span>
+<span class="dl-add">+ * the layout-migration receipt (MIGRATION_COMPLETED). Same visual pattern as</span>
+<span class="dl-add">+ * the telemetry notice, but created on demand — one banner, latest message</span>
+<span class="dl-add">+ * wins.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Three kinds: `error`, `warn`, and `info`. The last exists for the migration</span>
+<span class="dl-add">+ * receipt, which is not a degraded state — a completed migration gets an</span>
+<span class="dl-add">+ * information icon and `role=&quot;status&quot;`, not `⚠` and `role=&quot;alert&quot;` — and it is</span>
+<span class="dl-add">+ * the only kind that can carry an action button.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-hunk">@@ -13,9 +19,13 @@ const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let bannerEl = null;</span>
+<span class="dl-ctx"> let messageEl = null;</span>
+<span class="dl-add">+let actionEl = null;</span>
+<span class="dl-ctx"> let lastMessage = null;</span>
+<span class="dl-add">+let showChanges = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function init(deps = {}) {</span>
+<span class="dl-add">+  showChanges = typeof deps.onShowChanges === &#39;function&#39; ? deps.onShowChanges : null;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function init() {</span>
+<span class="dl-ctx">   ipcRenderer.on(IPC.MAIN_PROCESS_ERROR, (event, payload) =&gt; {</span>
+<span class="dl-ctx">     const kind = payload &amp;&amp; payload.severity === &#39;warning&#39; ? &#39;warn&#39; : &#39;error&#39;;</span>
+<span class="dl-ctx">     show(kind, payload &amp;&amp; payload.message ? payload.message : &#39;An unexpected error occurred in the main process.&#39;);</span>
+<span class="dl-hunk">@@ -26,13 +36,6 @@ function init() {</span>
+<span class="dl-ctx">     show(&#39;warn&#39;, `${file} was corrupt and has been restored from its backup.`);</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  ipcRenderer.on(IPC.LEGACY_LAYOUT_DETECTED, () =&gt; {</span>
+<span class="dl-del">-    show(</span>
+<span class="dl-del">-      &#39;warn&#39;,</span>
+<span class="dl-del">-      &#39;This project uses the old Frame layout (Frame files at the project root). Frame now reads only .frame/ — migrate the project to see its tasks, specs and notes again.&#39;</span>
+<span class="dl-del">-    );</span>
+<span class="dl-del">-  });</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   ipcRenderer.on(IPC.TASKS_FILE_ERROR, (event, payload) =&gt; {</span>
+<span class="dl-ctx">     if (payload &amp;&amp; payload.recovered) {</span>
+<span class="dl-ctx">       show(&#39;warn&#39;, &#39;tasks.json was corrupt and has been restored from its backup.&#39;);</span>
+<span class="dl-hunk">@@ -40,9 +43,73 @@ function init() {</span>
+<span class="dl-ctx">       show(&#39;warn&#39;, &#39;tasks.json was corrupt — started a fresh file; the broken copy is preserved next to it.&#39;);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  ipcRenderer.on(IPC.MIGRATION_COMPLETED, (event, payload) =&gt; {</span>
+<span class="dl-add">+    const receipt = buildReceipt(payload &amp;&amp; payload.projects);</span>
+<span class="dl-add">+    if (!receipt) return;</span>
+<span class="dl-add">+    show(&#39;info&#39;, receipt.message, receipt.tracked &amp;&amp; showChanges</span>
+<span class="dl-add">+      ? { label: &#39;Show changes&#39;, onClick: showChanges }</span>
+<span class="dl-add">+      : null);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function show(kind, message) {</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The receipt for one sweep. It reports; it does not advise.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Its job is to answer &quot;why does my working tree have seven deletions?&quot; before</span>
+<span class="dl-add">+ * the user asks it — attribution, not instruction. So it says what moved, what</span>
+<span class="dl-add">+ * was restored and where the backup is, and says nothing about committing,</span>
+<span class="dl-add">+ * about sharing modes, or about Project Settings: when and whether to commit</span>
+<span class="dl-add">+ * is the user&#39;s repo discipline and Frame has no standing in it.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Deferred projects are deliberately absent. That state is normal, it resolves</span>
+<span class="dl-add">+ * the moment the user commits, and reporting it every startup would be a</span>
+<span class="dl-add">+ * recurring message with no action attached — the foreground modal is where a</span>
+<span class="dl-add">+ * deferral gets explained, because there the user is actually blocked.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @returns {{ message: string, tracked: number }|null} null when nothing</span>
+<span class="dl-add">+ *   happened that the user needs to be told about.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function buildReceipt(projects) {</span>
+<span class="dl-add">+  const all = Array.isArray(projects) ? projects : [];</span>
+<span class="dl-add">+  const migrated = all.filter((p) =&gt; p.status === &#39;migrated&#39;);</span>
+<span class="dl-add">+  const failed = all.filter((p) =&gt; p.status === &#39;failed&#39;);</span>
+<span class="dl-add">+  if (!migrated.length &amp;&amp; !failed.length) return null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const tracked = migrated.reduce((sum, p) =&gt; sum + (p.tracked || 0), 0);</span>
+<span class="dl-add">+  const parts = [];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (migrated.length === 1) {</span>
+<span class="dl-add">+    parts.push(</span>
+<span class="dl-add">+      `${migrated[0].name} was migrated to the current Frame layout — its tasks, structure and notes now live in .frame/, and a copy of everything removed is in .frame/migration-backup/.`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  } else if (migrated.length &gt; 1) {</span>
+<span class="dl-add">+    parts.push(</span>
+<span class="dl-add">+      `${migrated.length} projects migrated to the current Frame layout — ${migrated.map((p) =&gt; p.name).join(&#39;, &#39;)}. Their tasks, structure and notes now live in .frame/; a copy of everything removed is in each project&#39;s .frame/migration-backup/.`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Keyed off the deleted files&#39; tracked state, not the sharing mode: a user</span>
+<span class="dl-add">+  // who gitignored .frame/ themselves but committed the root files derives</span>
+<span class="dl-add">+  // `local` while the deletions are plainly visible (D8).</span>
+<span class="dl-add">+  if (tracked) {</span>
+<span class="dl-add">+    parts.push(`${tracked} tracked ${tracked === 1 ? &#39;file was&#39; : &#39;files were&#39;} removed — Frame staged nothing.`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // With migration silent and the legacy banner gone, a failed project has no</span>
+<span class="dl-add">+  // other way to tell the user why it is empty.</span>
+<span class="dl-add">+  if (failed.length) {</span>
+<span class="dl-add">+    parts.push(</span>
+<span class="dl-add">+      failed.length === 1</span>
+<span class="dl-add">+        ? `${failed[0].name} could not be migrated.`</span>
+<span class="dl-add">+        : `${failed.length} projects could not be migrated: ${failed.map((p) =&gt; p.name).join(&#39;, &#39;)}.`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { message: parts.join(&#39; &#39;), tracked };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function show(kind, message, action) {</span>
+<span class="dl-ctx">   // An uncaught-exception loop must not stack/flicker banners.</span>
+<span class="dl-ctx">   if (bannerEl &amp;&amp; message === lastMessage) return;</span>
+<span class="dl-ctx">   lastMessage = message;</span>
+<span class="dl-hunk">@@ -50,27 +117,47 @@ function show(kind, message) {</span>
+<span class="dl-ctx">   if (!bannerEl) {</span>
+<span class="dl-ctx">     bannerEl = document.createElement(&#39;div&#39;);</span>
+<span class="dl-ctx">     bannerEl.className = &#39;health-notice&#39;;</span>
+<span class="dl-del">-    bannerEl.setAttribute(&#39;role&#39;, &#39;alert&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     const icon = document.createElement(&#39;span&#39;);</span>
+<span class="dl-ctx">     icon.className = &#39;health-notice-icon&#39;;</span>
+<span class="dl-del">-    icon.textContent = &#39;⚠&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     messageEl = document.createElement(&#39;span&#39;);</span>
+<span class="dl-ctx">     messageEl.className = &#39;health-notice-text&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    actionEl = document.createElement(&#39;button&#39;);</span>
+<span class="dl-add">+    actionEl.className = &#39;health-notice-action&#39;;</span>
+<span class="dl-add">+    actionEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     const close = document.createElement(&#39;button&#39;);</span>
+<span class="dl-ctx">     close.className = &#39;health-notice-close&#39;;</span>
+<span class="dl-ctx">     close.setAttribute(&#39;aria-label&#39;, &#39;Dismiss&#39;);</span>
+<span class="dl-ctx">     close.textContent = &#39;✕&#39;;</span>
+<span class="dl-ctx">     close.addEventListener(&#39;click&#39;, dismiss);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    bannerEl.append(icon, messageEl, close);</span>
+<span class="dl-add">+    bannerEl.append(icon, messageEl, actionEl, close);</span>
+<span class="dl-ctx">     document.body.appendChild(bannerEl);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  const info = kind === &#39;info&#39;;</span>
+<span class="dl-ctx">   bannerEl.classList.toggle(&#39;health-notice-error&#39;, kind === &#39;error&#39;);</span>
+<span class="dl-add">+  bannerEl.classList.toggle(&#39;health-notice-info&#39;, info);</span>
+<span class="dl-add">+  bannerEl.setAttribute(&#39;role&#39;, info ? &#39;status&#39; : &#39;alert&#39;);</span>
+<span class="dl-add">+  bannerEl.querySelector(&#39;.health-notice-icon&#39;).textContent = info ? &#39;ℹ&#39; : &#39;⚠&#39;;</span>
+<span class="dl-ctx">   messageEl.textContent = message;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  actionEl.replaceWith(actionEl.cloneNode(false)); // drop the previous handler</span>
+<span class="dl-add">+  actionEl = bannerEl.querySelector(&#39;.health-notice-action&#39;);</span>
+<span class="dl-add">+  if (action &amp;&amp; action.label) {</span>
+<span class="dl-add">+    actionEl.textContent = action.label;</span>
+<span class="dl-add">+    actionEl.style.display = &#39;&#39;;</span>
+<span class="dl-add">+    actionEl.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+      dismiss();</span>
+<span class="dl-add">+      action.onClick();</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  } else {</span>
+<span class="dl-add">+    actionEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   bannerEl.classList.add(&#39;visible&#39;);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -80,10 +167,11 @@ function dismiss() {</span>
+<span class="dl-ctx">   const el = bannerEl;</span>
+<span class="dl-ctx">   bannerEl = null;</span>
+<span class="dl-ctx">   messageEl = null;</span>
+<span class="dl-add">+  actionEl = null;</span>
+<span class="dl-ctx">   lastMessage = null;</span>
+<span class="dl-ctx">   setTimeout(() =&gt; {</span>
+<span class="dl-ctx">     if (el.parentNode) el.parentNode.removeChild(el);</span>
+<span class="dl-ctx">   }, 220);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-module.exports = { init };</span>
+<span class="dl-add">+module.exports = { init, buildReceipt };</span>
+<span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index 8f4dce0..087a548 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -230,7 +230,9 @@ function init() {</span>
+<span class="dl-ctx">   settingsModal.init();</span>
+<span class="dl-ctx">   projectSettingsModal.init();</span>
+<span class="dl-ctx">   telemetryNotice.init(() =&gt; settingsModal.open());</span>
+<span class="dl-del">-  healthNotice.init();</span>
+<span class="dl-add">+  // The migration receipt&#39;s one action opens the diff surface the deletions</span>
+<span class="dl-add">+  // are visible in. Showing the change is not advice about committing it.</span>
+<span class="dl-add">+  healthNotice.init({ onShowChanges: () =&gt; revealSidebarTab(&#39;changes&#39;) });</span>
+<span class="dl-ctx">   sampleBanner.init();</span>
+<span class="dl-ctx">   specDrivenHint.init();</span>
+<span class="dl-ctx">   setupUpdateDot();</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/health-notice.css b/src/renderer/styles/components/health-notice.css</span>
+<span class="dl-meta">index a2d9da7..66daa3e 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/components/health-notice.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/health-notice.css</span>
+<span class="dl-hunk">@@ -26,6 +26,13 @@</span>
+<span class="dl-ctx">   border-bottom-color: var(--error);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/* A completed migration is not a degraded state: neutral surface, an</span>
+<span class="dl-add">+   information icon, and room for the receipt to wrap. */</span>
+<span class="dl-add">+.health-notice.health-notice-info {</span>
+<span class="dl-add">+  background: var(--bg-secondary);</span>
+<span class="dl-add">+  border-bottom-color: var(--border);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> .health-notice-icon {</span>
+<span class="dl-ctx">   font-size: 14px;</span>
+<span class="dl-ctx">   color: var(--warning);</span>
+<span class="dl-hunk">@@ -36,6 +43,10 @@</span>
+<span class="dl-ctx">   color: var(--error);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+.health-notice-info .health-notice-icon {</span>
+<span class="dl-add">+  color: var(--accent);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> .health-notice-text {</span>
+<span class="dl-ctx">   flex: 1;</span>
+<span class="dl-ctx">   min-width: 0;</span>
+<span class="dl-hunk">@@ -45,6 +56,30 @@</span>
+<span class="dl-ctx">   white-space: nowrap;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+.health-notice-info .health-notice-text {</span>
+<span class="dl-add">+  white-space: normal;</span>
+<span class="dl-add">+  overflow: visible;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.health-notice-action {</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border: 1px solid var(--border);</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  padding: 3px 10px;</span>
+<span class="dl-add">+  border-radius: 4px;</span>
+<span class="dl-add">+  line-height: 1.4;</span>
+<span class="dl-add">+  white-space: nowrap;</span>
+<span class="dl-add">+  flex-shrink: 0;</span>
+<span class="dl-add">+  transition: color 0.12s, background 0.12s, border-color 0.12s;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.health-notice-action:hover {</span>
+<span class="dl-add">+  background: var(--bg-hover);</span>
+<span class="dl-add">+  border-color: var(--accent);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> .health-notice-close {</span>
+<span class="dl-ctx">   background: none;</span>
+<span class="dl-ctx">   border: none;</span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index 4399bdf..3182264 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -77,10 +77,12 @@ const IPC = {</span>
+<span class="dl-ctx">   REORDER_TASKS: &#39;reorder-tasks&#39;,</span>
+<span class="dl-ctx">   TASK_UPDATED: &#39;task-updated&#39;,</span>
+<span class="dl-ctx">   TASKS_FILE_ERROR: &#39;tasks-file-error&#39;,</span>
+<span class="dl-del">-  // Opened a project laid out by a pre-overlay Frame (root tasks.json /</span>
+<span class="dl-del">-  // AGENTS.md / CLAUDE.md symlink). Frame reads only .frame/, so this says</span>
+<span class="dl-del">-  // &quot;needs migration&quot; instead of showing an empty project.</span>
+<span class="dl-del">-  LEGACY_LAYOUT_DETECTED: &#39;legacy-layout-detected&#39;,</span>
+<span class="dl-add">+  // Pre-overlay projects (root tasks.json / AGENTS.md / CLAUDE.md symlink)</span>
+<span class="dl-add">+  // migrate themselves into .frame/ — a startup sweep over the registry, plus</span>
+<span class="dl-add">+  // a foreground path for a project the user selects. The receipt reports the</span>
+<span class="dl-add">+  // whole sweep once; there is no &quot;needs migration&quot; warning to replace,</span>
+<span class="dl-add">+  // because Frame resolves the condition by itself.</span>
+<span class="dl-add">+  MIGRATION_COMPLETED: &#39;migration-completed&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_PANEL: &#39;toggle-tasks-panel&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_DASHBOARD: &#39;toggle-tasks-dashboard&#39;,</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>

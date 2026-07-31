@@ -100,3 +100,21 @@ so made every fixture derive `repo`.
 _Captured: 2026-07-31 · 2 file changes_
 
 ---
+
+## T07 — Sweep at startup, receipt on `healthNotice`
+
+Wired `sweepLegacyProjects()` into `initModulesWithWindow` — injects the
+activity/telemetry sinks, sweeps `workspace.getProjects()` without awaiting,
+and sends `MIGRATION_COMPLETED` with only the migrated and failed projects.
+Swapped `LEGACY_LAYOUT_DETECTED` out of `ipcChannels.js` and deleted its
+`frameProject.js` send and `healthNotice.js` branch in the same change, so no
+build has the banner without its replacement. `healthNotice` gained a neutral
+`info` kind (`ℹ`, `role="status"`, wrapping text), one optional action wired to
+`revealSidebarTab('changes')`, and `buildReceipt()` — which names failures,
+counts tracked deletions, and stays silent about deferrals. Not unit-tested
+(`src/renderer/` is uncovered); `buildReceipt` is exported and was smoke-checked
+against the three receipt shapes.
+
+_Captured: 2026-07-31 · 7 file changes_
+
+---
