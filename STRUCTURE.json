@@ -702,6 +702,8 @@
         "plan",
         "migrateProject",
         "writeBackup",
+        "removeSymlinks",
+        "restoreInstructions",
         "rewriteConfig",
         "extractExisting",
         "BACKUP_DIR",
@@ -851,8 +853,24 @@
           ],
           "purpose": "Drop the `files` block from `.frame/config.json`."
         },
+        "removeSymlinks": {
+          "line": 453,
+          "params": [
+            "projectPath",
+            "rels"
+          ],
+          "purpose": "Remove the symlinks old init planted. Runs *before* restoration, not after"
+        },
+        "restoreInstructions": {
+          "line": 480,
+          "params": [
+            "projectPath",
+            "mergedRel"
+          ],
+          "purpose": "Hand back the instruction files old init took."
+        },
         "migrateProject": {
-          "line": 456,
+          "line": 517,
           "params": [
             "projectPath",
             "opts = {}"

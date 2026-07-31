@@ -66,3 +66,20 @@ backup survives.
 _Captured: 2026-07-31 · 2 file changes_
 
 ---
+
+## T05 — Restore the consumed instruction files, remove the planted symlinks
+
+Added `removeSymlinks()` and `restoreInstructions()` and wired them into
+`migrateProject()` between the move and the config rewrite. Deviation from the
+spec's step order: symlinks are removed **before** restoration, not after —
+writing `CLAUDE.md` while the dangling link is still there follows it and
+recreates the root `AGENTS.md` the migration exists to remove, which the
+`restore-order` test now pins. An occupied target is never overwritten; the
+extracted content goes to `migration-backup/restored/<rel>` instead.
+`.claude/CLAUDE.md` stays out of `RESTORE_TARGETS` because old init read it
+without unlinking it. Eight cases added, including "a migrated project is no
+longer a legacy project".
+
+_Captured: 2026-07-31 · 2 file changes_
+
+---

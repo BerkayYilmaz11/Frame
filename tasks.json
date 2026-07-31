@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:12:19.710Z",
+  "lastUpdated": "2026-07-31T14:14:46.314Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4613,13 +4613,13 @@
       "title": "Restore `CLAUDE.md`, `GEMINI.md` and `AGENTS.md` from their `## Existing Instructions (from …)` blocks, remove Frame-planted symlinks, and leave `.claude/CLAUDE.md` untouched",
       "description": "",
       "source": "spec:embedded-migration:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:14:46.314Z",
+      "completedAt": "2026-07-31T14:14:46.314Z"
     },
     {
       "id": "task-spec-embedded-migration-T06",

@@ -443,6 +443,67 @@ function rewriteConfig(projectPath) {
 }
 
 /**
+ * Remove the symlinks old init planted. Runs *before* restoration, not after
+ * it as the spec's step list reads: writing `CLAUDE.md` while the symlink is
+ * still there would follow it and create a root `AGENTS.md` instead — the one
+ * file this migration exists to remove.
+ *
+ * @returns {string[]} the links actually removed
+ */
+function removeSymlinks(projectPath, rels) {
+  const removed = [];
+  for (const rel of rels) {
+    const target = path.join(projectPath, rel);
+    const info = lstat(target);
+    if (!info || !info.isSymbolicLink()) continue;
+    fs.unlinkSync(target);
+    removed.push(rel);
+  }
+  return removed;
+}
+
+/**
+ * Hand back the instruction files old init took.
+ *
+ * This is the overlay rule's one sanctioned write outside `.frame/`, and it is
+ * narrow: it returns bytes this tool consumed, to the path it took them from,
+ * only when nothing is there now. A file the user has since created at that
+ * path is never overwritten — the extracted content goes to
+ * `migration-backup/restored/` instead, where the receipt can point at it.
+ *
+ * `.claude/CLAUDE.md` is absent from `RESTORE_TARGETS` on purpose: old init
+ * read it but never unlinked it, so it is still on disk and recreating it
+ * would be Frame writing a file it never took (D6).
+ *
+ * @returns {Array<{ rel: string, source: 'merge-block'|'backup-conflict' }>}
+ */
+function restoreInstructions(projectPath, mergedRel) {
+  const merged = readFile(path.join(projectPath, mergedRel));
+  const restored = [];
+
+  for (const { label, rel } of RESTORE_TARGETS) {
+    const content = extractExisting(merged, label);
+    if (content === null) continue;
+
+    const target = path.join(projectPath, rel);
+    if (exists(target)) {
+      const held = path.join(projectPath, FRAME_DIR, BACKUP_DIR, 'restored', rel);
+      fs.mkdirSync(path.dirname(held), { recursive: true });
+      if (!exists(held)) fs.writeFileSync(held, content, 'utf8');
+      record('migration.restored', { path: rel, source: 'backup-conflict' });
+      restored.push({ rel, source: 'backup-conflict' });
+      continue;
+    }
+
+    fs.writeFileSync(target, content, 'utf8');
+    record('migration.restored', { path: rel, source: 'merge-block' });
+    restored.push({ rel, source: 'merge-block' });
+  }
+
+  return restored;
+}
+
+/**
  * Migrate one project. Either it completes or it leaves the project untouched
  * and retries on the next open — there is no persisted half-migrated state
  * (D2).
@@ -483,12 +544,23 @@ function migrateProject(projectPath, opts = {}) {
       if (onProgress) onProgress(artifact);
     }
 
+    step = 'restore';
+    for (const rel of removeSymlinks(projectPath, detected.symlinks)) {
+      record('migration.restored', { path: rel, source: 'symlink-only' });
+    }
+    // The merged file is under `.frame/` once the move above has run, and
+    // still at the root when this project's manifest never claimed it.
+    const mergedRel = exists(path.join(projectPath, FRAME_META_FILES.AGENTS))
+      ? FRAME_META_FILES.AGENTS
+      : LEGACY_ROOT_FILES.AGENTS;
+    const restored = restoreInstructions(projectPath, mergedRel);
+
     step = 'config';
     rewriteConfig(projectPath);
 
     record('migration.completed', {
       artifacts: detected.artifacts.length,
-      restored: 0,
+      restored: restored.length,
       tracked: detected.tracked.length,
       ms: Date.now() - started
     });
@@ -496,7 +568,7 @@ function migrateProject(projectPath, opts = {}) {
     return {
       status: 'migrated',
       artifacts: detected.artifacts,
-      restored: [],
+      restored,
       tracked: detected.tracked,
       unrecognized: detected.unrecognized,
       backupDir: detected.backupDir
@@ -531,6 +603,8 @@ module.exports = {
   plan,
   migrateProject,
   writeBackup,
+  removeSymlinks,
+  restoreInstructions,
   rewriteConfig,
   extractExisting,
   BACKUP_DIR,

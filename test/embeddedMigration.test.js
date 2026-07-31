@@ -466,6 +466,120 @@ test('a failure aborts the run, keeps the backup, and reports the step it died a
   assert.equal(sent[0].p.artifacts, '4-6', 'the count reached telemetry unbucketed');
 });
 
+// ─── D6: what old init took, migration hands back ─────────────
+
+/** An AGENTS.md as old init left it: the template plus what it consumed. */
+function mergedAgents(blocks) {
+  const merged = Object.entries(blocks)
+    .map(([label, content]) => `## Existing Instructions (from ${label})\n\n${content}`)
+    .join('\n\n---\n\n');
+  return `# Frame\n\nGenerated instructions.\n\n---\n\n${merged}`;
+}
+
+test('a consumed CLAUDE.md is a real file again, with its original content', () => {
+  const dir = makeLegacyProject('restore-claude', {
+    agents: mergedAgents({ 'CLAUDE.md': 'Always run the linter.\n' })
+  });
+
+  const result = migration.migrateProject(dir);
+
+  const restored = path.join(dir, 'CLAUDE.md');
+  assert.ok(!fs.lstatSync(restored).isSymbolicLink(), 'CLAUDE.md is still a symlink');
+  assert.match(fs.readFileSync(restored, 'utf8'), /Always run the linter\./);
+  assert.ok(!fs.readFileSync(restored, 'utf8').includes('Generated instructions'), 'Frame content leaked back to the root');
+  assert.deepEqual(result.restored.filter((r) => r.source === 'merge-block').map((r) => r.rel), ['CLAUDE.md']);
+});
+
+test('a project that never had one ends up with no root CLAUDE.md at all', () => {
+  const dir = makeLegacyProject('restore-none');
+  migration.migrateProject(dir);
+
+  assert.ok(!fs.existsSync(path.join(dir, 'CLAUDE.md')), 'a CLAUDE.md the user never had was recreated');
+  assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')), 'the generated AGENTS.md survived at the root');
+});
+
+test('CLAUDE.md, GEMINI.md and AGENTS.md are each restored from their own block', () => {
+  const dir = makeLegacyProject('restore-all', {
+    agents: mergedAgents({
+      'CLAUDE.md': 'Claude rules.\n',
+      'AGENTS.md': 'Agent rules.\n',
+      'GEMINI.md': 'Gemini rules.\n'
+    }),
+    symlinks: false
+  });
+  fs.symlinkSync('AGENTS.md', path.join(dir, 'CLAUDE.md'));
+  fs.symlinkSync('AGENTS.md', path.join(dir, 'GEMINI.md'));
+
+  migration.migrateProject(dir);
+
+  assert.equal(fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8'), 'Claude rules.\n');
+  assert.equal(fs.readFileSync(path.join(dir, 'GEMINI.md'), 'utf8'), 'Gemini rules.\n');
+  assert.equal(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), 'Agent rules.\n');
+});
+
+test('a symlink with nothing behind it is simply removed', () => {
+  const dir = makeLegacyProject('restore-symlink-only');
+  const result = migration.migrateProject(dir);
+
+  assert.ok(!fs.existsSync(path.join(dir, 'CLAUDE.md')));
+  assert.deepEqual(result.restored, []);
+});
+
+test("a user's own file at the target is never overwritten", () => {
+  const dir = makeLegacyProject('restore-occupied', {
+    agents: mergedAgents({ 'GEMINI.md': 'What Frame took.\n' }),
+  });
+  fs.writeFileSync(path.join(dir, 'GEMINI.md'), 'What I wrote since.\n');
+
+  const result = migration.migrateProject(dir);
+
+  assert.equal(fs.readFileSync(path.join(dir, 'GEMINI.md'), 'utf8'), 'What I wrote since.\n');
+  assert.deepEqual(result.restored, [{ rel: 'GEMINI.md', source: 'backup-conflict' }]);
+  assert.equal(
+    fs.readFileSync(path.join(dir, FRAME_DIR, migration.BACKUP_DIR, 'restored', 'GEMINI.md'), 'utf8'),
+    'What Frame took.\n'
+  );
+});
+
+test('.claude/CLAUDE.md is left alone, and never recreated', () => {
+  const dir = makeLegacyProject('restore-claude-dir', {
+    agents: mergedAgents({ '.claude/CLAUDE.md': 'Subfolder rules.\n' })
+  });
+  fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.claude', 'CLAUDE.md'), 'Subfolder rules.\n');
+
+  migration.migrateProject(dir);
+
+  assert.equal(fs.readFileSync(path.join(dir, '.claude', 'CLAUDE.md'), 'utf8'), 'Subfolder rules.\n');
+
+  const absent = makeLegacyProject('restore-claude-dir-absent', {
+    agents: mergedAgents({ '.claude/CLAUDE.md': 'Subfolder rules.\n' })
+  });
+  migration.migrateProject(absent);
+  assert.ok(!fs.existsSync(path.join(absent, '.claude')), '.claude/ was conjured out of a merge block');
+});
+
+test('a restored file is the user\'s content, not a symlink target', () => {
+  // Writing through the dangling symlink would recreate the root AGENTS.md
+  // this migration exists to remove — so the link goes first.
+  const dir = makeLegacyProject('restore-order', {
+    agents: mergedAgents({ 'CLAUDE.md': 'Mine.\n' })
+  });
+  migration.migrateProject(dir);
+
+  assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')), 'a root AGENTS.md came back through the symlink');
+});
+
+test('a migrated project is no longer a legacy project', () => {
+  const dir = makeLegacyProject('no-longer-legacy', {
+    agents: mergedAgents({ 'CLAUDE.md': 'Mine.\n' })
+  });
+  migration.migrateProject(dir);
+
+  assert.equal(migration.plan(dir).legacy, false, 'the project would migrate again on the next open');
+  assert.equal(migration.migrateProject(dir).status, 'skipped');
+});
+
 test('plan writes nothing at all', () => {
   const dir = makeLegacyProject('read-only', { commit: false });
   git(dir, 'add', '-A');
