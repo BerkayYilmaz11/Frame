@@ -14,6 +14,7 @@ const frameStore = require('./frameStore');
 const gitExclude = require('./gitExclude');
 const gitSharing = require('./gitSharing');
 const instructionDiscovery = require('./instructionDiscovery');
+const embeddedMigration = require('./embeddedMigration');
 const structureBootstrap = require('./structureBootstrap');
 const commandStaging = require('./commandStaging');
 const docsManagedBlock = require('../shared/docsManagedBlock');
@@ -504,9 +505,65 @@ function upgradeSpecDocs(projectPath) {
 }
 
 /**
+ * Migrate a project the user is waiting on, reporting to the modal.
+ *
+ * The distinction from the startup sweep needs no stored state: if the sweep
+ * had succeeded, this project would no longer be legacy — so reaching here
+ * means it was added after the sweep, or it failed or deferred during one.
+ * Either way the user just selected it and is waiting, which is exactly when
+ * blocking UI is earned (D13).
+ *
+ * Everything the modal renders travels on MIGRATION_PROGRESS: `start`, one
+ * `artifact` per file, then `done` carrying the end state.
+ */
+function runForegroundMigration(sender, projectPath) {
+  // The sweep may already be working on this project; a second migration must
+  // not start, and a modal must not flash for one that is already handled.
+  if (embeddedMigration.isMigrating(projectPath)) return;
+
+  const detected = embeddedMigration.plan(projectPath);
+  if (!detected.legacy) return;
+
+  const send = (payload) => {
+    if (sender && !sender.isDestroyed()) sender.send(IPC.MIGRATION_PROGRESS, { projectPath, ...payload });
+  };
+
+  send({
+    phase: 'start',
+    name: path.basename(projectPath),
+    total: detected.artifacts.length,
+    backupDir: detected.backupDir
+  });
+
+  let done = 0;
+  const result = embeddedMigration.migrateProject(projectPath, {
+    onProgress: (artifact) => {
+      done += 1;
+      send({ phase: 'artifact', rel: artifact.rel, disposition: artifact.disposition, done, total: detected.artifacts.length });
+    }
+  });
+
+  send({
+    phase: 'done',
+    status: result.status,
+    dirty: result.dirty || [],
+    restored: (result.restored || []).length,
+    error: result.error,
+    backupDir: result.backupDir || detected.backupDir
+  });
+}
+
+/**
  * Setup IPC handlers
  */
 function setupIPC(ipcMain) {
+  // The failure screen's retry: re-runs against the current disk state, which
+  // is the only thing that can have changed. (Removing and re-adding the
+  // project would not — it only drops a registry entry.)
+  ipcMain.on(IPC.RETRY_MIGRATION, (event, { projectPath }) => {
+    runForegroundMigration(event.sender, projectPath);
+  });
+
   ipcMain.on(IPC.CHECK_IS_FRAME_PROJECT, (event, projectPath) => {
     const isFrame = isFrameProject(projectPath);
     // Re-evaluated on every open, which is what makes opting in work: a team
@@ -517,21 +574,17 @@ function setupIPC(ipcMain) {
     if (isFrame) gitSharing.ensureOnOpen(projectPath);
 
     // Full re-scan per open; the watcher underneath is only an optimization.
-    instructionDiscovery.refresh(projectPath);
+    const discovery = instructionDiscovery.refresh(projectPath);
     instructionDiscovery.startWatching(projectPath);
 
     // A pre-overlay project still has its Frame files at the root, where
     // nothing reads them any more. Frame migrates it rather than warning about
     // it — a condition the tool resolves by itself does not get a banner.
     //
-    // Reaching here at all means the startup sweep did not get to this project
-    // (added since, or it failed or deferred), and the user is waiting on it
-    // right now — which is when blocking UI is earned. The modal is wired in
-    // T08; until then the lazy path stays silent and the sweep covers it.
-    //
     // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json
     // *and* the root files, so every project this covers looks like a Frame
     // project. The root layout is the signal, not the absence of .frame/.
+    if (discovery.legacyLayout) runForegroundMigration(event.sender, projectPath);
 
     workspace.updateProjectFrameStatus(projectPath, isFrame);
     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });

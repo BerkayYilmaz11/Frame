@@ -630,6 +630,11 @@ function migrateProject(projectPath, opts = {}) {
   }
 }
 
+/** True while a migration of this project is running (S15). */
+function isMigrating(projectPath) {
+  return inFlight.has(projectPath);
+}
+
 // ─── the sweep ────────────────────────────────────────────────
 
 /**
@@ -687,6 +692,7 @@ module.exports = {
   init,
   plan,
   migrateProject,
+  isMigrating,
   sweep,
   writeBackup,
   removeSymlinks,

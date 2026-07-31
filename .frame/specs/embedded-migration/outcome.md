@@ -118,3 +118,21 @@ against the three receipt shapes.
 _Captured: 2026-07-31 · 7 file changes_
 
 ---
+
+## T08 — The foreground migration modal
+
+Added `runForegroundMigration()` to `frameProject.js` (called from the
+`CHECK_IS_FRAME_PROJECT` handler and from a new `RETRY_MIGRATION` handler) plus
+`migrationModal.js`, its markup in `index.html` and
+`migration-modal.css`. Chose to carry the modal's whole lifecycle on
+`MIGRATION_PROGRESS` as `start` / `artifact` / `done` rather than adding a
+fourth channel, keeping the plan's channel list intact. Added
+`embeddedMigration.isMigrating()` so a project the sweep already holds never
+flashes a modal that would immediately close (S15). The engine stays
+synchronous, so progress rows arrive in one burst on a fast disk — honest, and
+not worth an async rewrite of the engine. Not unit-tested: `src/renderer/` is
+uncovered and the engine behind it is covered by T03–T06.
+
+_Captured: 2026-07-31 · 7 file changes_
+
+---

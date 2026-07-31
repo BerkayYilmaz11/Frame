@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "419 tests, 0 failures — src/renderer/ is not covered by the suite"
       }
+    },
+    {
+      "id": "T08",
+      "title": "The foreground migration modal",
+      "commit": "3e2136a",
+      "whatChanged": "frameProject.js gained runForegroundMigration() — reached from the project-open handler and from a new RETRY_MIGRATION handler — and the renderer gained migrationModal.js, its settings-modal-vocabulary markup in index.html, and migration-modal.css. The modal renders per-artifact progress, the deferral explanation naming the dirty files, and the failure screen carrying the error, the backup path and Try again.",
+      "whyChanged": "The modal lifecycle rides on MIGRATION_PROGRESS as start / artifact / done rather than a fourth channel, keeping the plan channel list intact. embeddedMigration.isMigrating() gates the foreground path so a project the sweep already holds never flashes a modal that closes immediately (S15). The failure screen retries instead of suggesting remove-and-re-add, which only drops a registry entry no plausible cause travels through.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "419 tests, 0 failures — src/renderer/ is not covered by the suite"
+      }
     }
   ]
 }

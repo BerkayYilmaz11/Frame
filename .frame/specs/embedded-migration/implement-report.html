@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">7 of 9 tasks done · next: <span class="rs-task">T08 — Add the foreground migration modal — per-artifact progress over…</span></span>
+  <span class="rs-count">8 of 9 tasks done · next: <span class="rs-task">T09 — Rewrite `src/templates/sample-project/` to the overlay layout so legacy…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -2618,6 +2618,484 @@
 <span class="dl-add">+  // whole sweep once; there is no &quot;needs migration&quot; warning to replace,</span>
 <span class="dl-add">+  // because Frame resolves the condition by itself.</span>
 <span class="dl-add">+  MIGRATION_COMPLETED: &#39;migration-completed&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_PANEL: &#39;toggle-tasks-panel&#39;,</span>
+<span class="dl-ctx">   TOGGLE_TASKS_DASHBOARD: &#39;toggle-tasks-dashboard&#39;,</span>
+<span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>The foreground migration modal</h2>
+    <span class="card-meta"><span class="chip">3e2136a</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">419 tests, 0 failures — src/renderer/ is not covered by the suite</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>frameProject.js gained runForegroundMigration() — reached from the project-open handler and from a new RETRY_MIGRATION handler — and the renderer gained migrationModal.js, its settings-modal-vocabulary markup in index.html, and migration-modal.css. The modal renders per-artifact progress, the deferral explanation naming the dirty files, and the failure screen carrying the error, the backup path and Try again.</p></div>
+    <div class="field"><span class="label">Why</span><p>The modal lifecycle rides on MIGRATION_PROGRESS as start / artifact / done rather than a fourth channel, keeping the plan channel list intact. embeddedMigration.isMigrating() gates the foreground path so a project the sweep already holds never flashes a modal that closes immediately (S15). The failure screen retries instead of suggesting remove-and-re-add, which only drops a registry entry no plausible cause travels through.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/index.html b/index.html</span>
+<span class="dl-meta">index 3a87854..5252c78 100644</span>
+<span class="dl-file">--- a/index.html</span>
+<span class="dl-file">+++ b/index.html</span>
+<span class="dl-hunk">@@ -1353,6 +1353,27 @@</span>
+<span class="dl-ctx">     &lt;/div&gt;</span>
+<span class="dl-ctx">   &lt;/div&gt;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  &lt;!-- Layout Migration Modal (opens when a selected project still uses the</span>
+<span class="dl-add">+       pre-overlay layout; the startup sweep never shows it) --&gt;</span>
+<span class="dl-add">+  &lt;div id=&quot;migration-overlay&quot; class=&quot;settings-overlay&quot;&gt;</span>
+<span class="dl-add">+    &lt;div class=&quot;settings-modal migration-modal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;Updating project layout&quot;&gt;</span>
+<span class="dl-add">+      &lt;div class=&quot;settings-header&quot;&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;project-settings-heading&quot;&gt;</span>
+<span class="dl-add">+          &lt;h3 class=&quot;settings-title&quot; id=&quot;migration-title&quot;&gt;Updating project layout&lt;/h3&gt;</span>
+<span class="dl-add">+          &lt;p class=&quot;project-settings-path&quot; id=&quot;migration-subtitle&quot;&gt;&lt;/p&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+        &lt;button type=&quot;button&quot; class=&quot;settings-close&quot; data-migration-close aria-label=&quot;Close&quot; style=&quot;display:none;&quot;&gt;&amp;#x2715;&lt;/button&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;div class=&quot;settings-body&quot;&gt;</span>
+<span class="dl-add">+        &lt;ul class=&quot;migration-artifacts&quot; id=&quot;migration-artifacts&quot; aria-live=&quot;polite&quot;&gt;&lt;/ul&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;migration-message&quot; id=&quot;migration-message&quot; style=&quot;display:none;&quot;&gt;&lt;/div&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;migration-actions&quot; id=&quot;migration-actions&quot; style=&quot;display:none;&quot;&gt;</span>
+<span class="dl-add">+          &lt;button type=&quot;button&quot; class=&quot;migration-retry-btn&quot; id=&quot;migration-retry&quot;&gt;Try again&lt;/button&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+    &lt;/div&gt;</span>
+<span class="dl-add">+  &lt;/div&gt;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   &lt;!-- Settings Modal --&gt;</span>
+<span class="dl-ctx">   &lt;div id=&quot;settings-overlay&quot; class=&quot;settings-overlay&quot;&gt;</span>
+<span class="dl-ctx">     &lt;div class=&quot;settings-modal&quot; role=&quot;dialog&quot; aria-label=&quot;Settings&quot;&gt;</span>
+<span class="dl-meta">diff --git a/src/main/embeddedMigration.js b/src/main/embeddedMigration.js</span>
+<span class="dl-meta">index 4a4bb2b..6a93f31 100644</span>
+<span class="dl-file">--- a/src/main/embeddedMigration.js</span>
+<span class="dl-file">+++ b/src/main/embeddedMigration.js</span>
+<span class="dl-hunk">@@ -630,6 +630,11 @@ function migrateProject(projectPath, opts = {}) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/** True while a migration of this project is running (S15). */</span>
+<span class="dl-add">+function isMigrating(projectPath) {</span>
+<span class="dl-add">+  return inFlight.has(projectPath);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── the sweep ────────────────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -687,6 +692,7 @@ module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   plan,</span>
+<span class="dl-ctx">   migrateProject,</span>
+<span class="dl-add">+  isMigrating,</span>
+<span class="dl-ctx">   sweep,</span>
+<span class="dl-ctx">   writeBackup,</span>
+<span class="dl-ctx">   removeSymlinks,</span>
+<span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 091607c..68c34f5 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -14,6 +14,7 @@ const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const gitExclude = require(&#39;./gitExclude&#39;);</span>
+<span class="dl-ctx"> const gitSharing = require(&#39;./gitSharing&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-add">+const embeddedMigration = require(&#39;./embeddedMigration&#39;);</span>
+<span class="dl-ctx"> const structureBootstrap = require(&#39;./structureBootstrap&#39;);</span>
+<span class="dl-ctx"> const commandStaging = require(&#39;./commandStaging&#39;);</span>
+<span class="dl-ctx"> const docsManagedBlock = require(&#39;../shared/docsManagedBlock&#39;);</span>
+<span class="dl-hunk">@@ -503,10 +504,66 @@ function upgradeSpecDocs(projectPath) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Migrate a project the user is waiting on, reporting to the modal.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The distinction from the startup sweep needs no stored state: if the sweep</span>
+<span class="dl-add">+ * had succeeded, this project would no longer be legacy — so reaching here</span>
+<span class="dl-add">+ * means it was added after the sweep, or it failed or deferred during one.</span>
+<span class="dl-add">+ * Either way the user just selected it and is waiting, which is exactly when</span>
+<span class="dl-add">+ * blocking UI is earned (D13).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Everything the modal renders travels on MIGRATION_PROGRESS: `start`, one</span>
+<span class="dl-add">+ * `artifact` per file, then `done` carrying the end state.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function runForegroundMigration(sender, projectPath) {</span>
+<span class="dl-add">+  // The sweep may already be working on this project; a second migration must</span>
+<span class="dl-add">+  // not start, and a modal must not flash for one that is already handled.</span>
+<span class="dl-add">+  if (embeddedMigration.isMigrating(projectPath)) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const detected = embeddedMigration.plan(projectPath);</span>
+<span class="dl-add">+  if (!detected.legacy) return;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const send = (payload) =&gt; {</span>
+<span class="dl-add">+    if (sender &amp;&amp; !sender.isDestroyed()) sender.send(IPC.MIGRATION_PROGRESS, { projectPath, ...payload });</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  send({</span>
+<span class="dl-add">+    phase: &#39;start&#39;,</span>
+<span class="dl-add">+    name: path.basename(projectPath),</span>
+<span class="dl-add">+    total: detected.artifacts.length,</span>
+<span class="dl-add">+    backupDir: detected.backupDir</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  let done = 0;</span>
+<span class="dl-add">+  const result = embeddedMigration.migrateProject(projectPath, {</span>
+<span class="dl-add">+    onProgress: (artifact) =&gt; {</span>
+<span class="dl-add">+      done += 1;</span>
+<span class="dl-add">+      send({ phase: &#39;artifact&#39;, rel: artifact.rel, disposition: artifact.disposition, done, total: detected.artifacts.length });</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  send({</span>
+<span class="dl-add">+    phase: &#39;done&#39;,</span>
+<span class="dl-add">+    status: result.status,</span>
+<span class="dl-add">+    dirty: result.dirty || [],</span>
+<span class="dl-add">+    restored: (result.restored || []).length,</span>
+<span class="dl-add">+    error: result.error,</span>
+<span class="dl-add">+    backupDir: result.backupDir || detected.backupDir</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Setup IPC handlers</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function setupIPC(ipcMain) {</span>
+<span class="dl-add">+  // The failure screen&#39;s retry: re-runs against the current disk state, which</span>
+<span class="dl-add">+  // is the only thing that can have changed. (Removing and re-adding the</span>
+<span class="dl-add">+  // project would not — it only drops a registry entry.)</span>
+<span class="dl-add">+  ipcMain.on(IPC.RETRY_MIGRATION, (event, { projectPath }) =&gt; {</span>
+<span class="dl-add">+    runForegroundMigration(event.sender, projectPath);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   ipcMain.on(IPC.CHECK_IS_FRAME_PROJECT, (event, projectPath) =&gt; {</span>
+<span class="dl-ctx">     const isFrame = isFrameProject(projectPath);</span>
+<span class="dl-ctx">     // Re-evaluated on every open, which is what makes opting in work: a team</span>
+<span class="dl-hunk">@@ -517,21 +574,17 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     if (isFrame) gitSharing.ensureOnOpen(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // Full re-scan per open; the watcher underneath is only an optimization.</span>
+<span class="dl-del">-    instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-add">+    const discovery = instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-ctx">     instructionDiscovery.startWatching(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // A pre-overlay project still has its Frame files at the root, where</span>
+<span class="dl-ctx">     // nothing reads them any more. Frame migrates it rather than warning about</span>
+<span class="dl-ctx">     // it — a condition the tool resolves by itself does not get a banner.</span>
+<span class="dl-ctx">     //</span>
+<span class="dl-del">-    // Reaching here at all means the startup sweep did not get to this project</span>
+<span class="dl-del">-    // (added since, or it failed or deferred), and the user is waiting on it</span>
+<span class="dl-del">-    // right now — which is when blocking UI is earned. The modal is wired in</span>
+<span class="dl-del">-    // T08; until then the lazy path stays silent and the sweep covers it.</span>
+<span class="dl-del">-    //</span>
+<span class="dl-ctx">     // Not gated on `isFrame`: a pre-overlay init wrote .frame/config.json</span>
+<span class="dl-ctx">     // *and* the root files, so every project this covers looks like a Frame</span>
+<span class="dl-ctx">     // project. The root layout is the signal, not the absence of .frame/.</span>
+<span class="dl-add">+    if (discovery.legacyLayout) runForegroundMigration(event.sender, projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     workspace.updateProjectFrameStatus(projectPath, isFrame);</span>
+<span class="dl-ctx">     event.sender.send(IPC.IS_FRAME_PROJECT_RESULT, { projectPath, isFrame });</span>
+<span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index 087a548..b36cefd 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -40,6 +40,7 @@ const welcomeOverlay = require(&#39;./welcomeOverlay&#39;);</span>
+<span class="dl-ctx"> const appLoader = require(&#39;./appLoader&#39;);</span>
+<span class="dl-ctx"> const settingsModal = require(&#39;./settingsModal&#39;);</span>
+<span class="dl-ctx"> const projectSettingsModal = require(&#39;./projectSettingsModal&#39;);</span>
+<span class="dl-add">+const migrationModal = require(&#39;./migrationModal&#39;);</span>
+<span class="dl-ctx"> const telemetryNotice = require(&#39;./telemetryNotice&#39;);</span>
+<span class="dl-ctx"> const healthNotice = require(&#39;./healthNotice&#39;);</span>
+<span class="dl-ctx"> const specDrivenHint = require(&#39;./specDrivenHint&#39;);</span>
+<span class="dl-hunk">@@ -229,6 +230,7 @@ function init() {</span>
+<span class="dl-ctx">   welcomeOverlay.init();</span>
+<span class="dl-ctx">   settingsModal.init();</span>
+<span class="dl-ctx">   projectSettingsModal.init();</span>
+<span class="dl-add">+  migrationModal.init();</span>
+<span class="dl-ctx">   telemetryNotice.init(() =&gt; settingsModal.open());</span>
+<span class="dl-ctx">   // The migration receipt&#39;s one action opens the diff surface the deletions</span>
+<span class="dl-ctx">   // are visible in. Showing the change is not advice about committing it.</span>
+<span class="dl-meta">diff --git a/src/renderer/migrationModal.js b/src/renderer/migrationModal.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..2ec9ba8</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/migrationModal.js</span>
+<span class="dl-hunk">@@ -0,0 +1,161 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Layout Migration Modal</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Shown when the user selects a project that still uses the pre-overlay</span>
+<span class="dl-add">+ * layout. The startup sweep never opens this — it runs silently because</span>
+<span class="dl-add">+ * nobody is waiting on it. Reaching here means the sweep did not get to this</span>
+<span class="dl-add">+ * project (added since, failed, or deferred), so the user has just selected it</span>
+<span class="dl-add">+ * and is waiting for it, which is when blocking UI is earned (D13).</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Three end states, driven entirely by MIGRATION_PROGRESS:</span>
+<span class="dl-add">+ *   migrated — the modal closes and the project opens. No receipt: the user</span>
+<span class="dl-add">+ *              watched it happen.</span>
+<span class="dl-add">+ *   deferred — the files holding it up, and what to do about them. This is the</span>
+<span class="dl-add">+ *              one place a D4 deferral is explained, because here it is</span>
+<span class="dl-add">+ *              blocking someone right now and there is a concrete action.</span>
+<span class="dl-add">+ *   failed   — the real error, the sentence that stops the panic (nothing was</span>
+<span class="dl-add">+ *              lost, the backup has it), and Try again.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Reuses the `settings-modal` vocabulary rather than inventing a dialog.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-add">+const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const CLOSE_DELAY_MS = 650;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const DISPOSITION_TEXT = {</span>
+<span class="dl-add">+  move: &#39;moved&#39;,</span>
+<span class="dl-add">+  &#39;delete-identical&#39;: &#39;already in .frame/&#39;,</span>
+<span class="dl-add">+  &#39;backup-conflict&#39;: &#39;kept the .frame/ version&#39;</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let overlayEl = null;</span>
+<span class="dl-add">+let titleEl = null;</span>
+<span class="dl-add">+let subtitleEl = null;</span>
+<span class="dl-add">+let artifactsEl = null;</span>
+<span class="dl-add">+let messageEl = null;</span>
+<span class="dl-add">+let actionsEl = null;</span>
+<span class="dl-add">+let retryEl = null;</span>
+<span class="dl-add">+let closeEl = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let currentProject = null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function init() {</span>
+<span class="dl-add">+  overlayEl = document.getElementById(&#39;migration-overlay&#39;);</span>
+<span class="dl-add">+  titleEl = document.getElementById(&#39;migration-title&#39;);</span>
+<span class="dl-add">+  subtitleEl = document.getElementById(&#39;migration-subtitle&#39;);</span>
+<span class="dl-add">+  artifactsEl = document.getElementById(&#39;migration-artifacts&#39;);</span>
+<span class="dl-add">+  messageEl = document.getElementById(&#39;migration-message&#39;);</span>
+<span class="dl-add">+  actionsEl = document.getElementById(&#39;migration-actions&#39;);</span>
+<span class="dl-add">+  retryEl = document.getElementById(&#39;migration-retry&#39;);</span>
+<span class="dl-add">+  closeEl = overlayEl ? overlayEl.querySelector(&#39;[data-migration-close]&#39;) : null;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!overlayEl || !artifactsEl) {</span>
+<span class="dl-add">+    console.error(&#39;Migration modal: required elements not found&#39;);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (closeEl) closeEl.addEventListener(&#39;click&#39;, close);</span>
+<span class="dl-add">+  if (retryEl) {</span>
+<span class="dl-add">+    retryEl.addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-add">+      if (!currentProject) return;</span>
+<span class="dl-add">+      ipcRenderer.send(IPC.RETRY_MIGRATION, { projectPath: currentProject });</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  ipcRenderer.on(IPC.MIGRATION_PROGRESS, (event, payload) =&gt; {</span>
+<span class="dl-add">+    if (!payload) return;</span>
+<span class="dl-add">+    if (payload.phase === &#39;start&#39;) return onStart(payload);</span>
+<span class="dl-add">+    if (payload.phase === &#39;artifact&#39;) return onArtifact(payload);</span>
+<span class="dl-add">+    if (payload.phase === &#39;done&#39;) return onDone(payload);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function onStart(payload) {</span>
+<span class="dl-add">+  currentProject = payload.projectPath;</span>
+<span class="dl-add">+  artifactsEl.innerHTML = &#39;&#39;;</span>
+<span class="dl-add">+  messageEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+  messageEl.innerHTML = &#39;&#39;;</span>
+<span class="dl-add">+  actionsEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+  if (closeEl) closeEl.style.display = &#39;none&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  titleEl.textContent = &#39;Updating project layout&#39;;</span>
+<span class="dl-add">+  subtitleEl.textContent = `Moving ${payload.name || &#39;this project&#39;}&#39;s Frame files into .frame/`;</span>
+<span class="dl-add">+  overlayEl.classList.add(&#39;visible&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function onArtifact(payload) {</span>
+<span class="dl-add">+  const row = document.createElement(&#39;li&#39;);</span>
+<span class="dl-add">+  row.className = &#39;migration-artifact&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const name = document.createElement(&#39;span&#39;);</span>
+<span class="dl-add">+  name.className = &#39;migration-artifact-name&#39;;</span>
+<span class="dl-add">+  name.textContent = payload.rel;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const note = document.createElement(&#39;span&#39;);</span>
+<span class="dl-add">+  note.className = &#39;migration-artifact-note&#39;;</span>
+<span class="dl-add">+  note.textContent = DISPOSITION_TEXT[payload.disposition] || payload.disposition;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  row.append(name, note);</span>
+<span class="dl-add">+  artifactsEl.appendChild(row);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function onDone(payload) {</span>
+<span class="dl-add">+  if (payload.status === &#39;migrated&#39;) {</span>
+<span class="dl-add">+    // Nothing to read: the user watched it happen and the project is open.</span>
+<span class="dl-add">+    setTimeout(close, CLOSE_DELAY_MS);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (payload.status === &#39;skipped&#39;) {</span>
+<span class="dl-add">+    close();</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (closeEl) closeEl.style.display = &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (payload.status === &#39;deferred&#39;) {</span>
+<span class="dl-add">+    const files = Array.isArray(payload.dirty) ? payload.dirty : [];</span>
+<span class="dl-add">+    titleEl.textContent = &#39;Project layout not updated yet&#39;;</span>
+<span class="dl-add">+    subtitleEl.textContent = &#39;&#39;;</span>
+<span class="dl-add">+    setMessage([</span>
+<span class="dl-add">+      `Frame can&#39;t update the layout while ${listFiles(files)} ${files.length === 1 ? &#39;has&#39; : &#39;have&#39;} uncommitted changes — moving ${files.length === 1 ? &#39;it&#39; : &#39;them&#39;} now would leave your unfinished work in a file you didn&#39;t choose.`,</span>
+<span class="dl-add">+      &#39;Commit or stash the changes, then reopen the project.&#39;</span>
+<span class="dl-add">+    ]);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  titleEl.textContent = &#39;Could not update the project layout&#39;;</span>
+<span class="dl-add">+  subtitleEl.textContent = &#39;&#39;;</span>
+<span class="dl-add">+  setMessage([</span>
+<span class="dl-add">+    payload.error || &#39;The migration stopped before it finished.&#39;,</span>
+<span class="dl-add">+    `Nothing was lost: a copy of everything removed is in ${payload.backupDir || &#39;.frame/migration-backup/&#39;}.`</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+  actionsEl.style.display = &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Plain text only — a file name and an error message are both user data. */</span>
+<span class="dl-add">+function setMessage(paragraphs) {</span>
+<span class="dl-add">+  messageEl.innerHTML = &#39;&#39;;</span>
+<span class="dl-add">+  for (const text of paragraphs) {</span>
+<span class="dl-add">+    const p = document.createElement(&#39;p&#39;);</span>
+<span class="dl-add">+    p.textContent = text;</span>
+<span class="dl-add">+    messageEl.appendChild(p);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  messageEl.style.display = &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function listFiles(files) {</span>
+<span class="dl-add">+  if (!files.length) return &#39;a file&#39;;</span>
+<span class="dl-add">+  if (files.length === 1) return files[0];</span>
+<span class="dl-add">+  return `${files.slice(0, -1).join(&#39;, &#39;)} and ${files[files.length - 1]}`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function close() {</span>
+<span class="dl-add">+  if (!overlayEl) return;</span>
+<span class="dl-add">+  overlayEl.classList.remove(&#39;visible&#39;);</span>
+<span class="dl-add">+  currentProject = null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { init, close };</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/migration-modal.css b/src/renderer/styles/components/migration-modal.css</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..3a8ce88</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/migration-modal.css</span>
+<span class="dl-hunk">@@ -0,0 +1,82 @@</span>
+<span class="dl-add">+/* Layout Migration Modal — the foreground path of the embedded-layout</span>
+<span class="dl-add">+   migration. Sits on the settings-modal vocabulary; only the artifact list,</span>
+<span class="dl-add">+   the message block and the retry button are its own. */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-modal {</span>
+<span class="dl-add">+  width: min(480px, 92vw);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-artifacts {</span>
+<span class="dl-add">+  list-style: none;</span>
+<span class="dl-add">+  margin: 0;</span>
+<span class="dl-add">+  padding: 0;</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: 2px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-artifact {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  align-items: baseline;</span>
+<span class="dl-add">+  justify-content: space-between;</span>
+<span class="dl-add">+  gap: 12px;</span>
+<span class="dl-add">+  padding: 5px 8px;</span>
+<span class="dl-add">+  border-radius: 4px;</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  animation: migration-artifact-in 0.16s ease-out;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+@keyframes migration-artifact-in {</span>
+<span class="dl-add">+  from { opacity: 0; transform: translateY(-2px); }</span>
+<span class="dl-add">+  to { opacity: 1; transform: none; }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-artifact-name {</span>
+<span class="dl-add">+  font-family: var(--font-mono, monospace);</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  overflow: hidden;</span>
+<span class="dl-add">+  text-overflow: ellipsis;</span>
+<span class="dl-add">+  white-space: nowrap;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-artifact-note {</span>
+<span class="dl-add">+  color: var(--text-tertiary);</span>
+<span class="dl-add">+  flex-shrink: 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-message {</span>
+<span class="dl-add">+  font-size: 12.5px;</span>
+<span class="dl-add">+  line-height: 1.55;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-message p {</span>
+<span class="dl-add">+  margin: 0 0 8px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-message p:last-child {</span>
+<span class="dl-add">+  margin-bottom: 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-actions {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  justify-content: flex-end;</span>
+<span class="dl-add">+  margin-top: 14px;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-retry-btn {</span>
+<span class="dl-add">+  background: var(--bg-tertiary);</span>
+<span class="dl-add">+  border: 1px solid var(--border-strong);</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+  font-size: 12px;</span>
+<span class="dl-add">+  padding: 6px 14px;</span>
+<span class="dl-add">+  border-radius: 5px;</span>
+<span class="dl-add">+  transition: background 0.12s, border-color 0.12s;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.migration-retry-btn:hover {</span>
+<span class="dl-add">+  background: var(--bg-hover);</span>
+<span class="dl-add">+  border-color: var(--accent);</span>
+<span class="dl-add">+}</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/main.css b/src/renderer/styles/main.css</span>
+<span class="dl-meta">index f26861c..6782e1f 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/main.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/main.css</span>
+<span class="dl-hunk">@@ -52,6 +52,9 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> @import &#39;components/project-settings-modal.css&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/* 12d. Layout migration (foreground path of the embedded-layout migration) */</span>
+<span class="dl-add">+@import &#39;components/migration-modal.css&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /* 13. Tasks Dashboard (Kanban-style overlay) */</span>
+<span class="dl-ctx"> @import &#39;components/tasks-dashboard.css&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index 3182264..460333c 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -83,6 +83,10 @@ const IPC = {</span>
+<span class="dl-ctx">   // whole sweep once; there is no &quot;needs migration&quot; warning to replace,</span>
+<span class="dl-ctx">   // because Frame resolves the condition by itself.</span>
+<span class="dl-ctx">   MIGRATION_COMPLETED: &#39;migration-completed&#39;,</span>
+<span class="dl-add">+  // The foreground path&#39;s whole lifecycle on one channel: `start`, one</span>
+<span class="dl-add">+  // `artifact` per file, then `done` with the end state the modal renders.</span>
+<span class="dl-add">+  MIGRATION_PROGRESS: &#39;migration-progress&#39;,</span>
+<span class="dl-add">+  RETRY_MIGRATION: &#39;retry-migration&#39;,</span>
 <span class="dl-ctx">   TOGGLE_TASKS_PANEL: &#39;toggle-tasks-panel&#39;,</span>
 <span class="dl-ctx">   TOGGLE_TASKS_DASHBOARD: &#39;toggle-tasks-dashboard&#39;,</span>
 <span class="dl-ctx"> </span></pre>

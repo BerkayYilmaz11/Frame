@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:23:19.628Z",
+  "lastUpdated": "2026-07-31T14:26:57.536Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4652,13 +4652,13 @@
       "title": "Add the foreground migration modal — per-artifact progress over `MIGRATION_PROGRESS`, the deferral explanation naming the dirty files, and the failure screen carrying the error, the backup path and a retry",
       "description": "",
       "source": "spec:embedded-migration:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:26:57.536Z",
+      "completedAt": "2026-07-31T14:26:57.536Z"
     },
     {
       "id": "task-spec-embedded-migration-T09",

@@ -83,6 +83,10 @@ const IPC = {
   // whole sweep once; there is no "needs migration" warning to replace,
   // because Frame resolves the condition by itself.
   MIGRATION_COMPLETED: 'migration-completed',
+  // The foreground path's whole lifecycle on one channel: `start`, one
+  // `artifact` per file, then `done` with the end state the modal renders.
+  MIGRATION_PROGRESS: 'migration-progress',
+  RETRY_MIGRATION: 'retry-migration',
   TOGGLE_TASKS_PANEL: 'toggle-tasks-panel',
   TOGGLE_TASKS_DASHBOARD: 'toggle-tasks-dashboard',
 
