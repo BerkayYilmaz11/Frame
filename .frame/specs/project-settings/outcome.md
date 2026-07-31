@@ -79,3 +79,50 @@ Post-spec change on the user's call: neither hint anchors to anything now; both 
 _Captured: 2026-07-31 · 5 file change(s)_
 
 ---
+
+## Follow-up — T09 reverted: the sharing hint is gone
+
+Post-spec removal on the user's call, overturning T09 deliberately rather than
+letting it rot. The reasoning is an asymmetry between the two notices: the
+spec-driven hint reports a **broken state** (flag off → the AI's specs never
+reach the Specs panel; the user cannot deduce this), while the sharing hint
+advertised a **working choice** — local mode is valid and nothing malfunctions
+in it. Against that thin justification stood three costs: the trigger guessed
+team intent from git log (`hasRemote && authorCount > 1` over 200 commits), so
+rebased history, bot committers and other people's clones all fired it; its
+primary button performed an outward-facing change (`.frame/` into everyone's
+`git status`, from a corner popover, one click); and it needed a yield rule
+against the other notice, which is the tell that the second popover was one
+too many. The discovery gap it targeted stays covered on both ends — the init
+modal asks both questions (T06) and Project Settings → Sharing states the mode
+in words. `getRepoSignal` went with it: its only consumer was this hint, and
+dead code with passing tests reads as live code. The Sharing feature itself,
+its modal section, `getState`/`resolveMode`/`setMode`/`writeFrameGitignore`
+and the `project_sharing_set` telemetry are all untouched. Files touched:
+`src/renderer/sharingHint.js` (deleted),
+`src/renderer/styles/components/sharing-hint.css` (deleted),
+`src/renderer/index.js`, `src/renderer/styles/main.css`,
+`src/shared/ipcChannels.js`, `src/main/frameProject.js`,
+`src/main/gitSharing.js`, `test/gitSharing.test.js`, `STRUCTURE.json`.
+
+_Captured: 2026-07-31 · 9 file change(s)_
+
+---
+
+## Follow-up — the spec-driven hint stops nagging
+
+Two behaviour fixes on the surviving notice, both from watching it in use.
+It now steps aside while Project Settings is open (`suspend()`/`resume()`,
+called from the modal's `open`/`close`): the notice's whole message is "the
+switch is in Project Settings", so with that modal open it has nothing to say
+— and it sits below modal z-indexes, so left alone it rendered *behind* the
+overlay. That also settles a race where a hint scheduled moments before the
+gear was clicked appeared under the open modal, which read as "Frame shows
+this when you enter Settings". Second, `render()` now adds the project to
+`sessionSuppressed`, so the notice is said at most once per project per
+session: leaving a project and coming back is navigation, not a request to
+hear it again. The persisted "Don't show again" list is unchanged and remains
+the only forever-silence. Files touched: `src/renderer/specDrivenHint.js`,
+`src/renderer/projectSettingsModal.js`.
+
+_Captured: 2026-07-31 · 2 file change(s)_

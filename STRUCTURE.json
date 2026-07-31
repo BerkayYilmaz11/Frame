@@ -970,8 +970,7 @@
           "ENABLE_SPEC_DRIVEN",
           "SET_SPEC_DRIVEN",
           "GET_GIT_SHARING_STATE",
-          "SET_GIT_SHARING",
-          "GET_SHARING_REPO_SIGNAL"
+          "SET_GIT_SHARING"
         ],
         "emits": [
           "LEGACY_LAYOUT_DETECTED",
@@ -1564,7 +1563,6 @@
         "setMode",
         "ensureOnOpen",
         "writeFrameGitignore",
-        "getRepoSignal",
         "MACHINE_LOCAL_PATHS",
         "GITIGNORE_BLOCK"
       ],
@@ -1651,13 +1649,6 @@
             "projectPath"
           ],
           "purpose": "Write the signed machine-local block into `.frame/.gitignore`."
-        },
-        "getRepoSignal": {
-          "line": 230,
-          "params": [
-            "projectPath"
-          ],
-          "purpose": "The discovery-hint signal (D7), entirely local — no network. Both reads"
         }
       }
     },
@@ -5514,41 +5505,40 @@
         "telemetryNotice",
         "healthNotice",
         "specDrivenHint",
-        "sharingHint",
         "sampleBanner",
         "../package.json",
         "agentDispatch"
       ],
       "functions": {
         "init": {
-          "line": 52,
+          "line": 51,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 251,
+          "line": 249,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 316,
+          "line": 314,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 405,
+          "line": 403,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 436,
+          "line": 434,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 462,
+          "line": 460,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 734,
+          "line": 732,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7110,86 +7100,6 @@
           "UPDATE_AVAILABLE"
         ],
         "emits": []
-      }
-    },
-    "renderer/sharingHint": {
-      "file": "src/renderer/sharingHint.js",
-      "description": "Sharing hint — repo-mode discovery.",
-      "exports": [
-        "init",
-        "refresh",
-        "markDismissed"
-      ],
-      "depends": [
-        "electron",
-        "shared/ipcChannels",
-        "state"
-      ],
-      "functions": {
-        "init": {
-          "line": 38
-        },
-        "evaluate": {
-          "line": 57,
-          "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
-        },
-        "schedule": {
-          "line": 86,
-          "params": [
-            "projectPath",
-            "authorCount"
-          ]
-        },
-        "refresh": {
-          "line": 97,
-          "purpose": "Re-check after something changed the mode."
-        },
-        "render": {
-          "line": 102,
-          "params": [
-            "projectPath",
-            "authorCount"
-          ]
-        },
-        "onOutsideClick": {
-          "line": 140,
-          "params": [
-            "e"
-          ]
-        },
-        "share": {
-          "line": 148,
-          "params": [
-            "projectPath",
-            "btn"
-          ],
-          "purpose": "The same write path as the modal toggle (SET_GIT_SHARING)."
-        },
-        "dismissForever": {
-          "line": 170,
-          "params": [
-            "projectPath"
-          ]
-        },
-        "markDismissed": {
-          "line": 179,
-          "params": [
-            "projectPath"
-          ],
-          "purpose": "Remember that this project should not be hinted at again — user settings,"
-        },
-        "isDismissed": {
-          "line": 191,
-          "params": [
-            "projectPath"
-          ]
-        },
-        "readDismissed": {
-          "line": 196
-        },
-        "hide": {
-          "line": 201
-        }
       }
     },
     "renderer/sidebarResize": {
@@ -10586,13 +10496,6 @@
         "direction": "",
         "description": ""
       }
-    },
-    "sharing": {
-      "GET_SHARING_REPO_SIGNAL": {
-        "name": "get-sharing-repo-signal",
-        "direction": "",
-        "description": ""
-      }
     }
   },
   "dataFlow": [],
@@ -10780,18 +10683,6 @@
         "module": "renderer/githubPanel",
         "file": "src/renderer/githubPanel.js",
         "description": "GitHub Panel Module"
-      }
-    ],
-    "hint": [
-      {
-        "module": "renderer/sharingHint",
-        "file": "src/renderer/sharingHint.js",
-        "description": "Sharing hint — repo-mode discovery."
-      },
-      {
-        "module": "renderer/specDrivenHint",
-        "file": "src/renderer/specDrivenHint.js",
-        "description": "Spec-Driven Development hint"
       }
     ],
     "history": [
@@ -11003,18 +10894,6 @@
         "module": "renderer/settingsModal",
         "file": "src/renderer/settingsModal.js",
         "description": "Settings Modal"
-      }
-    ],
-    "sharing": [
-      {
-        "module": "main/gitSharing",
-        "file": "src/main/gitSharing.js",
-        "description": "gitSharing — the one owner of a project's Git Sharing mode."
-      },
-      {
-        "module": "renderer/sharingHint",
-        "file": "src/renderer/sharingHint.js",
-        "description": "Sharing hint — repo-mode discovery."
       }
     ],
     "sidebar": [

@@ -610,9 +610,6 @@ function setupIPC(ipcMain) {
     }
     return result;
   });
-  ipcMain.handle(IPC.GET_SHARING_REPO_SIGNAL, (event, projectPath) =>
-    gitSharing.getRepoSignal(projectPath)
-  );
 }
 
 module.exports = {

@@ -306,34 +306,3 @@ test('no .frame/ directory → no-op, nothing created', () => {
   assert.equal(gitSharing.writeFrameGitignore(repo), 'no-frame');
   assert.ok(!fs.existsSync(path.join(repo, FRAME_DIR)));
 });
-
-// ─── repo signal ──────────────────────────────────────────────
-
-test('repo signal: no remote, one author', () => {
-  const repo = makeRepo('sig-solo');
-  assert.deepEqual(gitSharing.getRepoSignal(repo), { hasRemote: false, authorCount: 1 });
-});
-
-test('repo signal: remote present, distinct authors counted', () => {
-  const repo = makeRepo('sig-team');
-  git(repo, 'remote', 'add', 'origin', path.join(root, 'nowhere.git'));
-  fs.writeFileSync(path.join(repo, 'a.txt'), 'a\n');
-  git(repo, 'add', 'a.txt');
-  execFileSync('git', ['commit', '-qm', 'second'], {
-    cwd: repo,
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      GIT_AUTHOR_NAME: 'Other', GIT_AUTHOR_EMAIL: 'other@example.com',
-      GIT_COMMITTER_NAME: 'Other', GIT_COMMITTER_EMAIL: 'other@example.com'
-    }
-  });
-
-  assert.deepEqual(gitSharing.getRepoSignal(repo), { hasRemote: true, authorCount: 2 });
-});
-
-test('repo signal outside a git repo is empty', () => {
-  const plain = path.join(root, 'sig-plain');
-  fs.mkdirSync(plain, { recursive: true });
-  assert.deepEqual(gitSharing.getRepoSignal(plain), { hasRemote: false, authorCount: 0 });
-});

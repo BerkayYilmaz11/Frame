@@ -14,10 +14,11 @@ orchestration/, whole bin/, and fsSafe suffixes. Tracked .frame/ always beats
 a `local` declaration (S4 warns, shows `git rm -r --cached .frame`, never runs
 it — Frame never stages/commits/untracks). Absent modes derive once from
 tracked state and persist. Spec-driven toggle moved from App Settings to
-Project Settings. Both hints are unanchored bottom-left notices: anchoring
-them to the row gear tied them to the async-rendered project list, so a hint
-could silently never appear. sharingHint nudges multi-author remote repos in
-local mode; dismissal in user settings, not config. Telemetry: project_sharing_set {mode, source}. The three dead
+Project Settings. The spec-driven hint is a bottom-left notice (the row
+gear anchor tied it to the async project list, so it could silently never
+appear), said once per project per session, hidden while the modal is open.
+T09's sharingHint and `getRepoSignal` were then removed: a notice is earned
+by a broken state, not a working choice. Telemetry: project_sharing_set {mode, source}. The three dead
 config flags left the template; existing configs untouched. Init options
 styling landed in panels.css (owns init-modal-*), not a new file.
 

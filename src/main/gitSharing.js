@@ -221,35 +221,12 @@ function writeFrameGitignore(projectPath) {
   }
 }
 
-/**
- * The discovery-hint signal (D7), entirely local — no network. Both reads
- * are cheap; the author count over the last 200 commits is a deliberate
- * heuristic for "other people work here", where being wrong costs one
- * dismissible popover.
- */
-function getRepoSignal(projectPath) {
-  if (!isGitRepo(projectPath)) return { hasRemote: false, authorCount: 0 };
-
-  let hasRemote = false;
-  let authorCount = 0;
-  try {
-    hasRemote = git(projectPath, ['remote']).trim().length > 0;
-  } catch (_) { /* leave false */ }
-  try {
-    const authors = git(projectPath, ['log', '-n', '200', '--format=%ae']).trim();
-    authorCount = authors ? new Set(authors.split('\n').map((a) => a.trim()).filter(Boolean)).size : 0;
-  } catch (_) { /* unborn HEAD — leave 0 */ }
-
-  return { hasRemote, authorCount };
-}
-
 module.exports = {
   getState,
   resolveMode,
   setMode,
   ensureOnOpen,
   writeFrameGitignore,
-  getRepoSignal,
   MACHINE_LOCAL_PATHS,
   GITIGNORE_BLOCK
 };

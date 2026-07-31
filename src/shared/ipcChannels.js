@@ -187,7 +187,6 @@ const IPC = {
   // Git Sharing (per project, .frame/config.json settings.gitSharing)
   GET_GIT_SHARING_STATE: 'get-git-sharing-state',    // invoke: projectPath → { isRepo, declared, tracked, effective }
   SET_GIT_SHARING: 'set-git-sharing',                // invoke: { projectPath, mode } — the single mode-change write path
-  GET_SHARING_REPO_SIGNAL: 'get-sharing-repo-signal',// invoke: projectPath → { hasRemote, authorCount } — discovery hint only
 
   // Orchestration (conductor / parallel spec execution)
   OPEN_ORCHESTRATOR: 'open-orchestrator',            // → renderer: open the orchestrator view
