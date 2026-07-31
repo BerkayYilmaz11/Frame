@@ -8,9 +8,13 @@
  * lives — offering to turn it on right there.
  *
  * Deliberately quiet: only for Frame projects with the flag off, never for
- * new projects (they start enabled), and "Don't show again" is remembered
- * per project. Turning the feature off from Project Settings also silences
- * it — a choice the user just made is not something to nag about.
+ * new projects (they start enabled), and said at most once per project per
+ * session — switching projects and coming back is navigation, not a request
+ * to hear it again. Turning the feature off from Project Settings silences it
+ * for the session too: a choice just made is not something to nag about.
+ * Both are in-memory, so a project that stays off for weeks is reminded again
+ * on the next launch; only the explicit "Don't show again" is forever, and
+ * that one is remembered per project in user settings.
  *
  * A free-floating notice in the window's bottom-left corner, not a popover
  * anchored to anything. It used to point at the app Settings button, and
@@ -33,6 +37,15 @@ let popoverEl = null;
 let shownForPath = null;
 let showTimer = null;
 let initialized = false;
+
+// Projects already dealt with this session — either the notice was shown
+// once, or the feature was turned off from Project Settings. Deliberately in
+// memory: the next app start offers the reminder again, unlike the persisted
+// "Don't show again" list.
+const sessionSuppressed = new Set();
+
+// Set while Project Settings owns the screen — see suspend().
+let suspended = false;
 
 function init() {
   if (initialized) return;
@@ -61,7 +74,9 @@ async function evaluate() {
     hide();
     return;
   }
+  if (suspended) return;
   if ((popoverEl || showTimer) && shownForPath === projectPath) return;
+  if (sessionSuppressed.has(projectPath)) return;
 
   try {
     if (await isDismissed(projectPath)) return;
@@ -94,6 +109,10 @@ function refresh() {
 function render(projectPath) {
   hide();
   shownForPath = projectPath;
+  // Said once per project per session. Switching projects and coming back is
+  // normal navigation, not a request to be asked again — the reminder has
+  // already been made and the next launch is soon enough to repeat it.
+  sessionSuppressed.add(projectPath);
 
   popoverEl = document.createElement('div');
   popoverEl.className = 'spec-driven-hint';
@@ -122,14 +141,14 @@ function render(projectPath) {
     enable(projectPath, e.currentTarget);
   });
 
-  // A click anywhere else means "later" — the hint returns on the next open.
+  // A click anywhere else dismisses it: the notice has been read, and it is
+  // already silent for the rest of the session either way.
   setTimeout(() => document.addEventListener('mousedown', onOutsideClick), 0);
 }
 
 function onOutsideClick(e) {
   if (!popoverEl) return;
   if (popoverEl.contains(e.target)) return;
-  // A click elsewhere means "later" — the notice returns on the next open.
   hide();
 }
 
@@ -158,6 +177,37 @@ async function enable(projectPath, btn) {
 async function dismissForever(projectPath) {
   hide();
   await markDismissed(projectPath);
+}
+
+/**
+ * Step aside while Project Settings is open, and come back when it closes.
+ *
+ * The notice's whole message is "the switch is in Project Settings" — with
+ * that modal open it has nothing left to say, and the modal is the higher
+ * surface anyway (it would otherwise sit behind the overlay, since the hint
+ * deliberately stays below modal z-indexes). Suspending rather than plain
+ * hiding also settles the race where the hint was scheduled moments before
+ * the gear was clicked and rendered itself behind the modal.
+ */
+function suspend() {
+  suspended = true;
+  hide();
+}
+
+/** Project Settings closed — offer the hint again if it still applies. */
+function resume() {
+  suspended = false;
+  evaluate();
+}
+
+/**
+ * Stop offering this project the hint for the rest of the session. Used when
+ * the user turns the feature off from Project Settings: nagging about a
+ * decision made seconds ago is noise, but the project may well sit off for
+ * weeks — the next app start is a fair time to mention it again.
+ */
+function suppressForSession(projectPath) {
+  if (projectPath) sessionSuppressed.add(projectPath);
 }
 
 /**
@@ -198,4 +248,4 @@ function hide() {
   shownForPath = null;
 }
 
-module.exports = { init, refresh, markDismissed };
+module.exports = { init, refresh, markDismissed, suppressForSession, suspend, resume };

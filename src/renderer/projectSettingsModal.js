@@ -83,8 +83,10 @@ function init() {
         } else {
           setSpecDrivenNote(null);
           // Turning it off here is a deliberate choice — stop offering to
-          // turn it back on for this project.
-          if (!wanted) await specDrivenHint.markDismissed(projectPath);
+          // turn it back on, but only for this session. The project may stay
+          // off for weeks, and then the reminder is worth having again; only
+          // the hint's own "Don't show again" silences it for good.
+          if (!wanted) specDrivenHint.suppressForSession(projectPath);
           specDrivenHint.refresh();
         }
       } catch (err) {
@@ -226,6 +228,10 @@ function open(project) {
 
   isOpen = true;
   overlayEl.classList.add('visible');
+  // The spec-driven notice points here, so it has nothing to say while this
+  // is open — and it lives below modal z-indexes, so left alone it would sit
+  // behind the overlay.
+  specDrivenHint.suspend();
 }
 
 /**
@@ -259,6 +265,9 @@ function close() {
   isOpen = false;
   currentProject = null;
   overlayEl.classList.remove('visible');
+  // Back to the corner if the active project still qualifies — turning the
+  // feature on in here, or off (session-suppressed), both settle it.
+  specDrivenHint.resume();
   if (typeof window.terminalFocus === 'function') window.terminalFocus();
 }
 
