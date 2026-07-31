@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-07-31T14:01:17.252Z",
+  "lastUpdated": "2026-07-31T14:02:51.996Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4574,13 +4574,13 @@
       "title": "Add `migration-backup/` to the managed `.frame/.gitignore` block written by `gitSharing.writeFrameGitignore`",
       "description": "",
       "source": "spec:embedded-migration:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: embedded-migration",
       "createdAt": "2026-07-31T13:51:42.605Z",
-      "updatedAt": "2026-07-31T13:51:42.605Z",
-      "completedAt": null
+      "updatedAt": "2026-07-31T14:02:51.996Z",
+      "completedAt": "2026-07-31T14:02:51.996Z"
     },
     {
       "id": "task-spec-embedded-migration-T03",

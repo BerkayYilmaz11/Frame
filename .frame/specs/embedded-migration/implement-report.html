@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-07-31</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">1 of 9 tasks done · next: <span class="rs-task">T02 — Add `migration-backup/` to the managed `.frame/.gitignore` block…</span></span>
+  <span class="rs-count">2 of 9 tasks done · next: <span class="rs-task">T03 — Build `embeddedMigration.plan()` and the backup writer — artifact list…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -511,6 +511,74 @@
 <span class="dl-add">+    );</span>
 <span class="dl-add">+  }</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Add migration-backup/ to the managed .frame/.gitignore block</h2>
+    <span class="card-meta"><span class="chip">8b5af08</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">366 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added `migration-backup/` to MACHINE_LOCAL_PATHS in src/main/gitSharing.js, so the block written into .frame/.gitignore covers it. Extended the block-content test and added one that seeds a backup file in a repo-mode project and asserts it stays out of git status.</p></div>
+    <div class="field"><span class="label">Why</span><p>Ordered before anything can write a backup: a repo-mode project that migrated first would have staged a duplicate of every root file the same change deletes, and removing it afterwards is a second commit the user never asked for.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/gitSharing.js b/src/main/gitSharing.js</span>
+<span class="dl-meta">index 1f4d0e2..132a4f3 100644</span>
+<span class="dl-file">--- a/src/main/gitSharing.js</span>
+<span class="dl-file">+++ b/src/main/gitSharing.js</span>
+<span class="dl-hunk">@@ -36,9 +36,13 @@ const MODES = [&#39;local&#39;, &#39;repo&#39;];</span>
+<span class="dl-ctx"> // repo (worktrees/, runtime/). The fsSafe suffixes keep crash-safety</span>
+<span class="dl-ctx"> // artifacts (tasks.json.bak and friends) out of repo-mode projects too.</span>
+<span class="dl-ctx"> // `bin/` is listed whole, not `bin/*.js` — every file in it is generated.</span>
+<span class="dl-add">+// `migration-backup/` holds the copy the layout migration takes of every root</span>
+<span class="dl-add">+// file it removes: without this line a repo-mode project would commit a</span>
+<span class="dl-add">+// duplicate of each file the same commit deletes.</span>
+<span class="dl-ctx"> const MACHINE_LOCAL_PATHS = [</span>
+<span class="dl-ctx">   &#39;runtime/&#39;,</span>
+<span class="dl-ctx">   &#39;index/&#39;,</span>
+<span class="dl-add">+  &#39;migration-backup/&#39;,</span>
+<span class="dl-ctx">   &#39;implement-permissions.json&#39;,</span>
+<span class="dl-ctx">   &#39;worktrees/&#39;,</span>
+<span class="dl-ctx">   &#39;orchestration/&#39;,</span>
+<span class="dl-meta">diff --git a/test/gitSharing.test.js b/test/gitSharing.test.js</span>
+<span class="dl-meta">index 440f507..46d5f06 100644</span>
+<span class="dl-file">--- a/test/gitSharing.test.js</span>
+<span class="dl-file">+++ b/test/gitSharing.test.js</span>
+<span class="dl-hunk">@@ -250,7 +250,7 @@ test(&#39;the gitignore block lists every machine-local path&#39;, () =&gt; {</span>
+<span class="dl-ctx">   gitSharing.writeFrameGitignore(repo);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const content = fs.readFileSync(gitignorePath(repo), &#39;utf8&#39;);</span>
+<span class="dl-del">-  for (const p of [&#39;runtime/&#39;, &#39;index/&#39;, &#39;implement-permissions.json&#39;, &#39;worktrees/&#39;, &#39;orchestration/&#39;, &#39;bin/&#39;, &#39;*.bak&#39;, &#39;*.tmp&#39;, &#39;*.corrupt-*&#39;]) {</span>
+<span class="dl-add">+  for (const p of [&#39;runtime/&#39;, &#39;index/&#39;, &#39;migration-backup/&#39;, &#39;implement-permissions.json&#39;, &#39;worktrees/&#39;, &#39;orchestration/&#39;, &#39;bin/&#39;, &#39;*.bak&#39;, &#39;*.tmp&#39;, &#39;*.corrupt-*&#39;]) {</span>
+<span class="dl-ctx">     assert.ok(content.split(&#39;\n&#39;).includes(p), `missing machine-local path: ${p}`);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-hunk">@@ -272,6 +272,21 @@ test(&#39;machine-local paths are actually ignored in repo mode&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(!status.includes(&#39;tasks.json.bak&#39;), &#39;a .bak leaked into git status&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+test(&#39;a migration backup is never staged, even in repo mode&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The backup holds a byte copy of every root file the migration deletes.</span>
+<span class="dl-add">+  // Untracked, that is a safety net; tracked, it is the same commit adding</span>
+<span class="dl-add">+  // back everything it removes.</span>
+<span class="dl-add">+  const repo = makeRepo(&#39;gi-migration-backup&#39;);</span>
+<span class="dl-add">+  seedFrameProject(repo, { settings: { gitSharing: &#39;repo&#39; } });</span>
+<span class="dl-add">+  gitSharing.ensureOnOpen(repo);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  fs.mkdirSync(path.join(repo, FRAME_DIR, &#39;migration-backup&#39;), { recursive: true });</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(repo, FRAME_DIR, &#39;migration-backup&#39;, &#39;PROJECT_NOTES.md&#39;), &#39;# notes\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const status = git(repo, &#39;status&#39;, &#39;--porcelain&#39;, &#39;-uall&#39;);</span>
+<span class="dl-add">+  assert.ok(!status.includes(&#39;migration-backup&#39;), &#39;the backup leaked into git status&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;rewrites are idempotent and preserve unsigned user lines&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const repo = makeRepo(&#39;gi-preserve&#39;);</span>
+<span class="dl-ctx">   seedFrameProject(repo);</span></pre>
     </details>
   </div>
 </section>

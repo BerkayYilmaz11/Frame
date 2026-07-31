@@ -1575,33 +1575,33 @@
       ],
       "functions": {
         "git": {
-          "line": 55,
+          "line": 59,
           "params": [
             "projectPath",
             "args"
           ]
         },
         "isGitRepo": {
-          "line": 63,
-          "params": [
-            "projectPath"
-          ]
-        },
-        "configPath": {
           "line": 67,
           "params": [
             "projectPath"
           ]
         },
+        "configPath": {
+          "line": 71,
+          "params": [
+            "projectPath"
+          ]
+        },
         "readConfig": {
-          "line": 72,
+          "line": 76,
           "params": [
             "projectPath"
           ],
           "purpose": "Parsed `.frame/config.json`, or null when absent/unreadable."
         },
         "writeConfig": {
-          "line": 81,
+          "line": 85,
           "params": [
             "projectPath",
             "config"
@@ -1609,27 +1609,27 @@
           "purpose": "Read-modify-write preserving every unknown key (the detectProject precedent)."
         },
         "declaredMode": {
-          "line": 85,
+          "line": 89,
           "params": [
             "config"
           ]
         },
         "resolveMode": {
-          "line": 98,
+          "line": 102,
           "params": [
             "projectPath"
           ],
           "purpose": "The declared mode, derived once and persisted when absent (D4):"
         },
         "getState": {
-          "line": 121,
+          "line": 125,
           "params": [
             "projectPath"
           ],
           "purpose": "The full sharing state for the UI's behaviour matrix."
         },
         "setMode": {
-          "line": 139,
+          "line": 143,
           "params": [
             "projectPath",
             "mode"
@@ -1637,14 +1637,14 @@
           "purpose": "The single write path for a mode change — the modal toggle and the sharing"
         },
         "ensureOnOpen": {
-          "line": 164,
+          "line": 168,
           "params": [
             "projectPath"
           ],
           "purpose": "The project-open path: resolve (deriving and persisting on first sight of"
         },
         "writeFrameGitignore": {
-          "line": 179,
+          "line": 183,
           "params": [
             "projectPath"
           ],

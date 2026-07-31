@@ -15,6 +15,18 @@
         "status": "pass",
         "detail": "365 tests, 0 failures"
       }
+    },
+    {
+      "id": "T02",
+      "title": "Add migration-backup/ to the managed .frame/.gitignore block",
+      "commit": "8b5af08",
+      "whatChanged": "Added `migration-backup/` to MACHINE_LOCAL_PATHS in src/main/gitSharing.js, so the block written into .frame/.gitignore covers it. Extended the block-content test and added one that seeds a backup file in a repo-mode project and asserts it stays out of git status.",
+      "whyChanged": "Ordered before anything can write a backup: a repo-mode project that migrated first would have staged a duplicate of every root file the same change deletes, and removing it afterwards is a second commit the user never asked for.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "366 tests, 0 failures"
+      }
     }
   ]
 }

@@ -17,3 +17,16 @@ pure `bucketCount()` and the exact figures stay local. Tests added to
 _Captured: 2026-07-31 · 5 file changes_
 
 ---
+
+## T02 — Add `migration-backup/` to the managed `.frame/.gitignore` block
+
+Added `migration-backup/` to `MACHINE_LOCAL_PATHS` in `src/main/gitSharing.js`,
+which is the only definition the block writer reads. Extended the
+block-content case in `test/gitSharing.test.js` and added one that seeds a
+backup file inside a repo-mode project and asserts `git status` never sees it.
+Followed plan.md exactly; sequenced second so no project can write a backup
+before the ignore rule exists.
+
+_Captured: 2026-07-31 · 2 file changes_
+
+---
