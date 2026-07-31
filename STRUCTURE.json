@@ -3836,20 +3836,28 @@
       "exports": [
         "EVENTS",
         "normalizeTool",
+        "bucketCount",
         "validateEvent",
         "effectiveEnabled"
       ],
       "depends": [],
       "functions": {
         "normalizeTool": {
-          "line": 58,
+          "line": 67,
           "params": [
             "id"
           ],
           "purpose": "Collapse a tool id to the fixed dashboard enum. User-defined custom tool"
         },
+        "bucketCount": {
+          "line": 78,
+          "params": [
+            "n"
+          ],
+          "purpose": "Collapse a count to the fixed bucket enum above. Lives here rather than at"
+        },
         "validateEvent": {
-          "line": 73,
+          "line": 94,
           "params": [
             "name",
             "props"
@@ -3857,7 +3865,7 @@
           "purpose": "Validate an (event, props) pair against the registry."
         },
         "effectiveEnabled": {
-          "line": 97,
+          "line": 118,
           "params": [
             "{ value",
             "loadFailed }"
@@ -8983,6 +8991,10 @@
         "POLLERS",
         "HINT_REASONS",
         "HOSTS",
+        "MIGRATION_DISPOSITIONS",
+        "MIGRATION_STEPS",
+        "MIGRATION_DEFER_REASONS",
+        "MIGRATION_SKIP_REASONS",
         "isRegistered",
         "kindOf",
         "isSuppression",
@@ -8993,32 +9005,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 206,
+          "line": 299,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 210,
+          "line": 303,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 214,
+          "line": 307,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 218,
+          "line": 311,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 241,
+          "line": 334,
           "params": [
             "name",
             "fields"
@@ -9026,7 +9038,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 258,
+          "line": 351,
           "params": [
             "name",
             "fields"
@@ -9034,7 +9046,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 279,
+          "line": 372,
           "params": [
             "name",
             "fields"

@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "embedded-migration",
+    "title": "Embedded-Layout Migration — pre-overlay projects migrate themselves on open"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Register the migration event family and the failure-only telemetry event",
+      "commit": "c5779f5",
+      "whatChanged": "Added eight migration events to the activity registry (detected, deferred, skipped, artifact, restored, posture, completed, failed) with their enums exported for the engine to reuse, plus a `migration_failed` telemetry event, a `bucketCount` helper, and the matching PRIVACY.md row. Tests cover both registries.",
+      "whyChanged": "The dispositions are exported as MIGRATION_DISPOSITIONS so plan() can label artifacts with the same strings the log records — one vocabulary, not two that can drift. Telemetry counts are bucketed ranges because that registry is enum-only by construction; the exact numbers stay in the local activity log.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "365 tests, 0 failures"
+      }
+    }
+  ]
+}
