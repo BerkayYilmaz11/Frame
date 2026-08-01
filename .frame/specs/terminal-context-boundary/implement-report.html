@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">6 of 12 tasks done · next: <span class="rs-task">T07 — Return `./.frame/bin/&lt;id&gt;` from `getLaunchCommand` for every tool on…</span></span>
+  <span class="rs-count">7 of 12 tasks done · next: <span class="rs-task">T08 — Merge a `--settings &lt;path&gt;` pair found in `extraFlags` into the…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1032,6 +1032,152 @@
 <span class="dl-ctx">     // A pre-overlay project still has its Frame files at the root, where</span>
 <span class="dl-ctx">     // nothing reads them any more. Frame migrates it rather than warning about</span>
 <span class="dl-ctx">     // it — a condition the tool resolves by itself does not get a banner.</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Dispatch through the wrapper on POSIX</h2>
+    <span class="card-meta"><span class="chip">88c4667</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass; all three tools verified to compose ./.frame/bin/&lt;id&gt; with a dispatch&#39;s extra flags appended</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getLaunchCommand now returns `./.frame/bin/&lt;id&gt;` with no Frame flags of its own for every tool on POSIX, and falls back to the bare command plus inline flags where no wrapper exists. New wrapperLaunchCommand() and bareCommandFor() are the one place that choice is made, and CHECK_AI_TOOL_AVAILABLE composes its dispatched line from the same helper. Claude gained fallbackCommand: &#39;claude&#39;.</p></div>
+    <div class="field"><span class="label">Why</span><p>The dispatched command is a relative path, not the bare name: a bare `claude` would resolve through PATH to the same wrapper once T09 lands, and Frame&#39;s flags would stack on the wrapper&#39;s. Beyond the task as written, the availability handler had to move too — it, not getLaunchCommand, composes the line agentDispatch actually types, so leaving it on tool.command would have made the two disagree. Claude&#39;s fallbackCommand exists so the probe still asks whether the real CLI is installed instead of stopping at the wrapper it always finds.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index b98ddf8..db4af06 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -64,6 +64,12 @@ const AI_TOOLS = {</span>
+<span class="dl-ctx">     id: &#39;claude&#39;,</span>
+<span class="dl-ctx">     name: &#39;Claude Code&#39;,</span>
+<span class="dl-ctx">     command: &#39;claude&#39;,</span>
+<span class="dl-add">+    // Same value as `command`, and it earns its place: once a launch goes</span>
+<span class="dl-add">+    // through `.frame/bin/claude`, the availability probe would find the</span>
+<span class="dl-add">+    // wrapper and stop there. `fallbackCommand` is what it probes *behind* a</span>
+<span class="dl-add">+    // wrapper, so this is how &quot;is Claude Code actually installed&quot; keeps being</span>
+<span class="dl-add">+    // asked. Same reason codex and gemini carry it.</span>
+<span class="dl-add">+    fallbackCommand: &#39;claude&#39;,</span>
+<span class="dl-ctx">     description: &#39;Anthropic Claude Code CLI&#39;,</span>
+<span class="dl-ctx">     injection: {</span>
+<span class="dl-ctx">       type: INJECTION_FLAG,</span>
+<span class="dl-hunk">@@ -417,23 +423,28 @@ function setupIPC() {</span>
+<span class="dl-ctx">       name</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    const primary = await isCommandAvailable(tool.command, projectPath);</span>
+<span class="dl-add">+    // The dispatch types what a launch types: the project&#39;s wrapper where one</span>
+<span class="dl-add">+    // exists, the tool&#39;s own command otherwise. Composed here rather than</span>
+<span class="dl-add">+    // taken from `tool.command` so the dispatched line and `getLaunchCommand`</span>
+<span class="dl-add">+    // can never disagree about which of the two is running.</span>
+<span class="dl-add">+    const primaryCommand = wrapperLaunchCommand(projectPath, tool) || tool.command;</span>
+<span class="dl-add">+    const primary = await isCommandAvailable(primaryCommand, projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     // When the primary is a path-based wrapper script and the tool</span>
+<span class="dl-ctx">     // declares a fallback, the wrapper almost always `exec`s the</span>
+<span class="dl-ctx">     // fallback (see .frame/bin/codex). Treat the fallback as a hard</span>
+<span class="dl-ctx">     // dependency in that case — wrapper presence alone isn&#39;t enough.</span>
+<span class="dl-del">-    if (primary.found &amp;&amp; tool.fallbackCommand &amp;&amp; isPathLike(tool.command)) {</span>
+<span class="dl-add">+    if (primary.found &amp;&amp; tool.fallbackCommand &amp;&amp; isPathLike(primaryCommand)) {</span>
+<span class="dl-ctx">       const fallback = await isCommandAvailable(tool.fallbackCommand, projectPath);</span>
+<span class="dl-ctx">       if (fallback.found) {</span>
+<span class="dl-del">-        return ok(tool.command, tool.name);</span>
+<span class="dl-add">+        return ok(primaryCommand, tool.name);</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx">       trackProbeFailure(fallback.reason);</span>
+<span class="dl-ctx">       return { available: false, resolvedCommand: null, name: tool.name, reason: fallback.reason };</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     if (primary.found) {</span>
+<span class="dl-del">-      return ok(tool.command, tool.name);</span>
+<span class="dl-add">+      return ok(primaryCommand, tool.name);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     if (tool.fallbackCommand) {</span>
+<span class="dl-hunk">@@ -630,6 +641,32 @@ function prepareLaunchAssets(projectPath, tool) {</span>
+<span class="dl-ctx">  * Non-fatal per tool: a read-only checkout costs the user their context, never</span>
+<span class="dl-ctx">  * their project.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The command a launch types for this tool — the wrapper wherever Frame can</span>
+<span class="dl-add">+ * write one, the bare CLI otherwise.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Relative on purpose (`./.frame/bin/&lt;id&gt;`). A dispatch that typed the bare</span>
+<span class="dl-add">+ * name would resolve through `PATH` to the same wrapper, and Frame&#39;s own flags</span>
+<span class="dl-add">+ * would then land on top of the ones the wrapper emits; a relative path can</span>
+<span class="dl-add">+ * only ever mean this project&#39;s wrapper, so there is no window in which both</span>
+<span class="dl-add">+ * are applied.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Falls back the moment the file is not there: the availability probe can run</span>
+<span class="dl-add">+ * before anything has been written, and a path that does not exist reads as</span>
+<span class="dl-add">+ * &quot;CLI not installed&quot; — a wrong and very confusing answer.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function wrapperLaunchCommand(projectPath, tool) {</span>
+<span class="dl-add">+  if (!projectPath || !launchEnv.supportsWrappers()) return &#39;&#39;;</span>
+<span class="dl-add">+  const rel = `./${FRAME_DIR}/${FRAME_BIN_DIR}/${tool.id}`;</span>
+<span class="dl-add">+  return fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id)) ? rel : &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function bareCommandFor(tool) {</span>
+<span class="dl-add">+  // `command` is the wrapper path for the pre-unification wrapper tools, so</span>
+<span class="dl-add">+  // the fallback is the only reliable bare name for them.</span>
+<span class="dl-add">+  return tool.fallbackCommand || tool.command;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function refreshLaunchAssets(projectPath) {</span>
+<span class="dl-ctx">   const written = [];</span>
+<span class="dl-ctx">   if (!projectPath) return { written };</span>
+<span class="dl-hunk">@@ -673,23 +710,32 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const injection = (tool.injection &amp;&amp; tool.injection.type) || INJECTION_WRAPPER;</span>
+<span class="dl-add">+  const declared = (tool.injection &amp;&amp; tool.injection.type) || INJECTION_WRAPPER;</span>
+<span class="dl-ctx">   const flags = [];</span>
+<span class="dl-del">-  let command = tool.command;</span>
+<span class="dl-add">+  let command = bareCommandFor(tool);</span>
+<span class="dl-add">+  let injection = &#39;none&#39;;</span>
+<span class="dl-ctx">   let preamble = &#39;&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-add">+    // Written immediately before the command is composed, so a dispatched</span>
+<span class="dl-add">+    // launch is never staler than a hand-typed one.</span>
+<span class="dl-ctx">     const assets = prepareLaunchAssets(projectPath, tool);</span>
+<span class="dl-ctx">     preamble = assets.preamble;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-    if (!preamble) {</span>
+<span class="dl-del">-      // Nothing to inject — launch bare rather than pass an empty prompt.</span>
+<span class="dl-del">-      command = tool.fallbackCommand &amp;&amp; injection === INJECTION_WRAPPER ? tool.fallbackCommand : tool.command;</span>
+<span class="dl-del">-    } else if (injection === INJECTION_FLAG) {</span>
+<span class="dl-add">+    const viaWrapper = wrapperLaunchCommand(projectPath, tool);</span>
+<span class="dl-add">+    if (viaWrapper) {</span>
+<span class="dl-add">+      // The wrapper emits this tool&#39;s flags from the files just written, so</span>
+<span class="dl-add">+      // Frame contributes none of its own here — that is what keeps the two</span>
+<span class="dl-add">+      // injection paths from stacking now that both exist for every tool.</span>
+<span class="dl-add">+      command = viaWrapper;</span>
+<span class="dl-add">+      injection = preamble ? INJECTION_WRAPPER : &#39;none&#39;;</span>
+<span class="dl-add">+    } else if (preamble &amp;&amp; declared === INJECTION_FLAG) {</span>
+<span class="dl-add">+      // No wrapper on this platform: compose inline, exactly as before.</span>
+<span class="dl-ctx">       flags.push(tool.injection.promptFlag, preamble);</span>
+<span class="dl-ctx">       if (assets.settingsPath) {</span>
+<span class="dl-ctx">         flags.push(tool.injection.settingsFlag, assets.settingsPath);</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-add">+      injection = INJECTION_FLAG;</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   } catch (err) {</span>
+<span class="dl-ctx">     // A read-only or full disk must not cost the user their agent; drop the</span>
+<span class="dl-hunk">@@ -708,7 +754,7 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     command,</span>
+<span class="dl-ctx">     launchFlags,</span>
+<span class="dl-ctx">     resolvedCommand: composeLaunchCommand(command, launchFlags),</span>
+<span class="dl-del">-    injection: preamble ? injection : &#39;none&#39;</span>
+<span class="dl-add">+    injection</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>

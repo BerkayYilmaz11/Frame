@@ -64,6 +64,12 @@ const AI_TOOLS = {
     id: 'claude',
     name: 'Claude Code',
     command: 'claude',
+    // Same value as `command`, and it earns its place: once a launch goes
+    // through `.frame/bin/claude`, the availability probe would find the
+    // wrapper and stop there. `fallbackCommand` is what it probes *behind* a
+    // wrapper, so this is how "is Claude Code actually installed" keeps being
+    // asked. Same reason codex and gemini carry it.
+    fallbackCommand: 'claude',
     description: 'Anthropic Claude Code CLI',
     injection: {
       type: INJECTION_FLAG,
@@ -417,23 +423,28 @@ function setupIPC() {
       name
     });
 
-    const primary = await isCommandAvailable(tool.command, projectPath);
+    // The dispatch types what a launch types: the project's wrapper where one
+    // exists, the tool's own command otherwise. Composed here rather than
+    // taken from `tool.command` so the dispatched line and `getLaunchCommand`
+    // can never disagree about which of the two is running.
+    const primaryCommand = wrapperLaunchCommand(projectPath, tool) || tool.command;
+    const primary = await isCommandAvailable(primaryCommand, projectPath);
 
     // When the primary is a path-based wrapper script and the tool
     // declares a fallback, the wrapper almost always `exec`s the
     // fallback (see .frame/bin/codex). Treat the fallback as a hard
     // dependency in that case — wrapper presence alone isn't enough.
-    if (primary.found && tool.fallbackCommand && isPathLike(tool.command)) {
+    if (primary.found && tool.fallbackCommand && isPathLike(primaryCommand)) {
       const fallback = await isCommandAvailable(tool.fallbackCommand, projectPath);
       if (fallback.found) {
-        return ok(tool.command, tool.name);
+        return ok(primaryCommand, tool.name);
       }
       trackProbeFailure(fallback.reason);
       return { available: false, resolvedCommand: null, name: tool.name, reason: fallback.reason };
     }
 
     if (primary.found) {
-      return ok(tool.command, tool.name);
+      return ok(primaryCommand, tool.name);
     }
 
     if (tool.fallbackCommand) {
@@ -630,6 +641,32 @@ function prepareLaunchAssets(projectPath, tool) {
  * Non-fatal per tool: a read-only checkout costs the user their context, never
  * their project.
  */
+/**
+ * The command a launch types for this tool — the wrapper wherever Frame can
+ * write one, the bare CLI otherwise.
+ *
+ * Relative on purpose (`./.frame/bin/<id>`). A dispatch that typed the bare
+ * name would resolve through `PATH` to the same wrapper, and Frame's own flags
+ * would then land on top of the ones the wrapper emits; a relative path can
+ * only ever mean this project's wrapper, so there is no window in which both
+ * are applied.
+ *
+ * Falls back the moment the file is not there: the availability probe can run
+ * before anything has been written, and a path that does not exist reads as
+ * "CLI not installed" — a wrong and very confusing answer.
+ */
+function wrapperLaunchCommand(projectPath, tool) {
+  if (!projectPath || !launchEnv.supportsWrappers()) return '';
+  const rel = `./${FRAME_DIR}/${FRAME_BIN_DIR}/${tool.id}`;
+  return fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id)) ? rel : '';
+}
+
+function bareCommandFor(tool) {
+  // `command` is the wrapper path for the pre-unification wrapper tools, so
+  // the fallback is the only reliable bare name for them.
+  return tool.fallbackCommand || tool.command;
+}
+
 function refreshLaunchAssets(projectPath) {
   const written = [];
   if (!projectPath) return { written };
@@ -673,23 +710,32 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {
     };
   }
 
-  const injection = (tool.injection && tool.injection.type) || INJECTION_WRAPPER;
+  const declared = (tool.injection && tool.injection.type) || INJECTION_WRAPPER;
   const flags = [];
-  let command = tool.command;
+  let command = bareCommandFor(tool);
+  let injection = 'none';
   let preamble = '';
 
   try {
+    // Written immediately before the command is composed, so a dispatched
+    // launch is never staler than a hand-typed one.
     const assets = prepareLaunchAssets(projectPath, tool);
     preamble = assets.preamble;
 
-    if (!preamble) {
-      // Nothing to inject — launch bare rather than pass an empty prompt.
-      command = tool.fallbackCommand && injection === INJECTION_WRAPPER ? tool.fallbackCommand : tool.command;
-    } else if (injection === INJECTION_FLAG) {
+    const viaWrapper = wrapperLaunchCommand(projectPath, tool);
+    if (viaWrapper) {
+      // The wrapper emits this tool's flags from the files just written, so
+      // Frame contributes none of its own here — that is what keeps the two
+      // injection paths from stacking now that both exist for every tool.
+      command = viaWrapper;
+      injection = preamble ? INJECTION_WRAPPER : 'none';
+    } else if (preamble && declared === INJECTION_FLAG) {
+      // No wrapper on this platform: compose inline, exactly as before.
       flags.push(tool.injection.promptFlag, preamble);
       if (assets.settingsPath) {
         flags.push(tool.injection.settingsFlag, assets.settingsPath);
       }
+      injection = INJECTION_FLAG;
     }
   } catch (err) {
     // A read-only or full disk must not cost the user their agent; drop the
@@ -708,7 +754,7 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {
     command,
     launchFlags,
     resolvedCommand: composeLaunchCommand(command, launchFlags),
-    injection: preamble ? injection : 'none'
+    injection
   };
 }
 

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:40:18.561Z",
+  "lastUpdated": "2026-08-01T08:43:15.494Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4756,13 +4756,13 @@
       "title": "Return `./.frame/bin/<id>` from `getLaunchCommand` for every tool on POSIX with a fallback to the bare command plus flags elsewhere, refreshing preamble and settings immediately before the command is composed.",
       "description": "",
       "source": "spec:terminal-context-boundary:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:43:15.494Z",
+      "completedAt": "2026-08-01T08:43:15.494Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T08",

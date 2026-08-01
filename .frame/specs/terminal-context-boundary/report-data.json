@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "441/441 pass"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Dispatch through the wrapper on POSIX",
+      "commit": "88c4667",
+      "whatChanged": "getLaunchCommand now returns `./.frame/bin/<id>` with no Frame flags of its own for every tool on POSIX, and falls back to the bare command plus inline flags where no wrapper exists. New wrapperLaunchCommand() and bareCommandFor() are the one place that choice is made, and CHECK_AI_TOOL_AVAILABLE composes its dispatched line from the same helper. Claude gained fallbackCommand: 'claude'.",
+      "whyChanged": "The dispatched command is a relative path, not the bare name: a bare `claude` would resolve through PATH to the same wrapper once T09 lands, and Frame's flags would stack on the wrapper's. Beyond the task as written, the availability handler had to move too — it, not getLaunchCommand, composes the line agentDispatch actually types, so leaving it on tool.command would have made the two disagree. Claude's fallbackCommand exists so the probe still asks whether the real CLI is installed instead of stopping at the wrapper it always finds.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass; all three tools verified to compose ./.frame/bin/<id> with a dispatch's extra flags appended"
+      }
     }
   ]
 }

@@ -46,3 +46,11 @@ Called `aiToolManager.refreshLaunchAssets(projectPath)` from `CHECK_IS_FRAME_PRO
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T07 — Dispatch through the wrapper
+
+`getLaunchCommand` returns `./.frame/bin/<id>` and contributes no flags of its own on POSIX, falling back to the bare command plus inline flags elsewhere; `wrapperLaunchCommand()` is the single place that choice is made and falls back the moment the file is absent. Beyond the task as written, `CHECK_AI_TOOL_AVAILABLE` had to move to the same helper — it, not `getLaunchCommand`, composes the line `agentDispatch` types — and `claude` gained `fallbackCommand: 'claude'` so the probe still asks whether the real CLI is installed rather than stopping at the wrapper it will now always find. Verified: all three tools compose `./.frame/bin/<id>` with a dispatch's extra flags appended.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---
