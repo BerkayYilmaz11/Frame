@@ -70,3 +70,11 @@ Composed the spawn env in `src/main/pty.js` and `src/main/ptyManager.js` through
 _Captured: 2026-08-01 · 2 file changes_
 
 ---
+
+## T10 — The boundary, stated, with a working escape
+
+Added a "Terminal" section to Settings stating the rule and the escape hatch, hidden off-POSIX by `settingsModal.js` because the statement is false where Frame writes no wrappers. Divergence from plan.md: the planned escape `command claude` does not work — `command` bypasses functions and aliases, not a `PATH` lookup, so it resolves to the wrapper as well (verified by running it). The wrapper now honours `FRAME_NO_WRAP=1` and execs the real CLI bare; that is what Settings documents, and a new executed test covers it.
+
+_Captured: 2026-08-01 · 4 file changes_
+
+---

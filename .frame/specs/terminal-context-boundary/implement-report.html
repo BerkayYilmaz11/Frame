@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">9 tasks</span>
-    <span class="pill good">9 verified</span>
+    <span class="pill">10 tasks</span>
+    <span class="pill good">10 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">9 of 12 tasks done · next: <span class="rs-task">T10 — Add a Settings row in `index.html` and `src/renderer/settingsModal.js`…</span></span>
+  <span class="rs-count">10 of 12 tasks done · next: <span class="rs-task">T11 — Add the matching boundary line to `getReferenceTemplate` so a new…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1394,6 +1394,125 @@
 <span class="dl-ctx">       // Orchestration: FRAME_ORCH_BUS / FRAME_ORCH_SLUG let conductor + worker</span>
 <span class="dl-ctx">       // terminals reach Frame&#39;s command bus from any worktree (see</span>
 <span class="dl-ctx">       // orchestrationManager). Null for normal terminals.</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T10</span>
+    <h2>State the boundary in Settings, with an escape hatch that works</h2>
+    <span class="card-meta"><span class="chip">3eb5c4b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">442/442 pass (1 new); renderer bundle rebuilt</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New &quot;Terminal&quot; section in index.html states the rule in one sentence — sessions started inside Frame are pointed at this project&#39;s context, sessions started elsewhere get the tool&#39;s own defaults — and names the escape hatch beside it. settingsModal.js hides the section off-POSIX, where the statement would be false. The wrapper template gained the escape itself: FRAME_NO_WRAP=1 execs the real CLI bare, covered by a new executed test.</p></div>
+    <div class="field"><span class="label">Why</span><p>Divergence from plan.md, which named `command claude` as the escape. It does not work: `command` bypasses shell functions and aliases, not a PATH lookup, so it finds the wrapper too — verified by running it. Success criterion 6 asks for a documented escape that works, so the wrapper now honours FRAME_NO_WRAP, which is one env var, needs no shell knowledge, and reads the same in every shell.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/index.html b/index.html</span>
+<span class="dl-meta">index 5252c78..e68d795 100644</span>
+<span class="dl-file">--- a/index.html</span>
+<span class="dl-file">+++ b/index.html</span>
+<span class="dl-hunk">@@ -1412,6 +1412,25 @@</span>
+<span class="dl-ctx">           &lt;/div&gt;</span>
+<span class="dl-ctx">         &lt;/div&gt;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+        &lt;div class=&quot;settings-section&quot; id=&quot;settings-terminal-boundary-section&quot;&gt;</span>
+<span class="dl-add">+          &lt;h4 class=&quot;settings-section-title&quot;&gt;Terminal&lt;/h4&gt;</span>
+<span class="dl-add">+          &lt;div class=&quot;settings-row&quot;&gt;</span>
+<span class="dl-add">+            &lt;div class=&quot;settings-row-text&quot;&gt;</span>
+<span class="dl-add">+              &lt;span class=&quot;settings-row-label&quot;&gt;Frame&#39;s context follows Frame&#39;s terminal&lt;/span&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot;&gt;</span>
+<span class="dl-add">+                Agents started inside Frame — whether Frame launched them or you typed</span>
+<span class="dl-add">+                &lt;code&gt;claude&lt;/code&gt;, &lt;code&gt;codex&lt;/code&gt; or &lt;code&gt;gemini&lt;/code&gt; yourself — are pointed at this</span>
+<span class="dl-add">+                project&#39;s Frame context. A session started in any other terminal gets the tool&#39;s own</span>
+<span class="dl-add">+                defaults; Frame changes nothing outside itself.</span>
+<span class="dl-add">+              &lt;/p&gt;</span>
+<span class="dl-add">+              &lt;p class=&quot;settings-row-desc&quot;&gt;</span>
+<span class="dl-add">+                To run a CLI unwrapped in a Frame terminal, prefix it:</span>
+<span class="dl-add">+                &lt;code&gt;FRAME_NO_WRAP=1 claude&lt;/code&gt;.</span>
+<span class="dl-add">+              &lt;/p&gt;</span>
+<span class="dl-add">+            &lt;/div&gt;</span>
+<span class="dl-add">+          &lt;/div&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">         &lt;div class=&quot;settings-section&quot;&gt;</span>
+<span class="dl-ctx">           &lt;h4 class=&quot;settings-section-title&quot;&gt;About&lt;/h4&gt;</span>
+<span class="dl-ctx">           &lt;div class=&quot;settings-about&quot;&gt;</span>
+<span class="dl-meta">diff --git a/src/renderer/settingsModal.js b/src/renderer/settingsModal.js</span>
+<span class="dl-meta">index 74b51dc..f130054 100644</span>
+<span class="dl-file">--- a/src/renderer/settingsModal.js</span>
+<span class="dl-file">+++ b/src/renderer/settingsModal.js</span>
+<span class="dl-hunk">@@ -29,6 +29,21 @@ let updateLinkEl = null;</span>
+<span class="dl-ctx"> let updateDismissBtn = null;</span>
+<span class="dl-ctx"> let currentUpdateInfo = null;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The terminal boundary is stated only where it is true.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Frame&#39;s wrappers are bash scripts, so `PATH` injection is POSIX-only and a</span>
+<span class="dl-add">+ * Windows terminal genuinely does get the tool&#39;s own defaults. Showing the</span>
+<span class="dl-add">+ * statement there would be the one thing this section exists to prevent: a</span>
+<span class="dl-add">+ * user unable to tell a boundary from a bug.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function syncTerminalBoundarySection() {</span>
+<span class="dl-add">+  const section = document.getElementById(&#39;settings-terminal-boundary-section&#39;);</span>
+<span class="dl-add">+  if (!section) return;</span>
+<span class="dl-add">+  const supported = typeof process !== &#39;undefined&#39; &amp;&amp; process.platform !== &#39;win32&#39;;</span>
+<span class="dl-add">+  section.style.display = supported ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function init() {</span>
+<span class="dl-ctx">   overlayEl = document.getElementById(&#39;settings-overlay&#39;);</span>
+<span class="dl-ctx">   toggleEl = document.getElementById(&#39;settings-telemetry-toggle&#39;);</span>
+<span class="dl-hunk">@@ -49,6 +64,8 @@ function init() {</span>
+<span class="dl-ctx">     return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  syncTerminalBoundarySection();</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   // Load current value</span>
+<span class="dl-ctx">   syncToggleFromSettings();</span>
+<span class="dl-ctx">   initAboutSection();</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index ca44988..3208337 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -946,6 +946,12 @@ if [ -z &quot;$REAL_CLI&quot; ]; then</span>
+<span class="dl-ctx">   exit 127</span>
+<span class="dl-ctx"> fi</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+# The escape hatch. \`command ${toolCommand}\` is not one — it bypasses shell</span>
+<span class="dl-add">+# functions and aliases, not a PATH lookup, so it finds this script too.</span>
+<span class="dl-add">+if [ -n &quot;$FRAME_NO_WRAP&quot; ]; then</span>
+<span class="dl-add">+  exec &quot;$REAL_CLI&quot; &quot;$@&quot;</span>
+<span class="dl-add">+fi</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> # Locate the project root by walking up to the directory holding .frame/</span>
+<span class="dl-ctx"> find_project_root() {</span>
+<span class="dl-ctx">   local dir=&quot;$PWD&quot;</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index 6874ec4..5daac75 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -148,6 +148,17 @@ test(&#39;a missing preamble degrades to the bare CLI&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-ctx">   assert.equal(out.trim(), &#39;ARG:--model\nARG:o3&#39;, &#39;the preamble-less wrapper still injected something&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+test(&#39;FRAME_NO_WRAP runs the CLI with no Frame context&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+  const staged = stageWrapper(&#39;claude&#39;, { promptFlag: &#39;--append-system-prompt&#39; });</span>
+<span class="dl-add">+  const out = execFileSync(&#39;bash&#39;, [&#39;-c&#39;, &#39;FRAME_NO_WRAP=1 claude --resume x&#39;], {</span>
+<span class="dl-add">+    cwd: staged.projectDir,</span>
+<span class="dl-add">+    env: { ...process.env, PATH: `${staged.binDir}:${staged.realDir}:/usr/bin:/bin` },</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    timeout: 10000</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.equal(out.trim(), &#39;ARG:--resume\nARG:x&#39;, &#39;the escape hatch still injected context&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;the settings flag is skipped when the settings file is absent&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-ctx">   const staged = stageWrapper(&#39;claude&#39;, {</span>
+<span class="dl-ctx">     promptFlag: &#39;--append-system-prompt&#39;,</span></pre>
     </details>
   </div>
 </section>

@@ -111,6 +111,18 @@
         "status": "pass",
         "detail": "441/441 pass; PATH ordering checked against a real interactive login zsh"
       }
+    },
+    {
+      "id": "T10",
+      "title": "State the boundary in Settings, with an escape hatch that works",
+      "commit": "3eb5c4b",
+      "whatChanged": "New \"Terminal\" section in index.html states the rule in one sentence — sessions started inside Frame are pointed at this project's context, sessions started elsewhere get the tool's own defaults — and names the escape hatch beside it. settingsModal.js hides the section off-POSIX, where the statement would be false. The wrapper template gained the escape itself: FRAME_NO_WRAP=1 execs the real CLI bare, covered by a new executed test.",
+      "whyChanged": "Divergence from plan.md, which named `command claude` as the escape. It does not work: `command` bypasses shell functions and aliases, not a PATH lookup, so it finds the wrapper too — verified by running it. Success criterion 6 asks for a documented escape that works, so the wrapper now honours FRAME_NO_WRAP, which is one env var, needs no shell knowledge, and reads the same in every shell.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "442/442 pass (1 new); renderer bundle rebuilt"
+      }
     }
   ]
 }

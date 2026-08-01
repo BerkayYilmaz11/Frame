@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:48:11.563Z",
+  "lastUpdated": "2026-08-01T08:49:58.200Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4795,13 +4795,13 @@
       "title": "Add a Settings row in `index.html` and `src/renderer/settingsModal.js` stating the terminal boundary in one sentence with the `command claude` escape hatch beside it.",
       "description": "",
       "source": "spec:terminal-context-boundary:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:49:58.200Z",
+      "completedAt": "2026-08-01T08:49:58.200Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T11",

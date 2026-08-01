@@ -946,6 +946,12 @@ if [ -z "$REAL_CLI" ]; then
   exit 127
 fi
 
+# The escape hatch. \`command ${toolCommand}\` is not one — it bypasses shell
+# functions and aliases, not a PATH lookup, so it finds this script too.
+if [ -n "$FRAME_NO_WRAP" ]; then
+  exec "$REAL_CLI" "$@"
+fi
+
 # Locate the project root by walking up to the directory holding .frame/
 find_project_root() {
   local dir="$PWD"

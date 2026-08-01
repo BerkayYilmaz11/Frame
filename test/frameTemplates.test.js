@@ -148,6 +148,17 @@ test('a missing preamble degrades to the bare CLI', { skip: !POSIX }, () => {
   assert.equal(out.trim(), 'ARG:--model\nARG:o3', 'the preamble-less wrapper still injected something');
 });
 
+test('FRAME_NO_WRAP runs the CLI with no Frame context', { skip: !POSIX }, () => {
+  const staged = stageWrapper('claude', { promptFlag: '--append-system-prompt' });
+  const out = execFileSync('bash', ['-c', 'FRAME_NO_WRAP=1 claude --resume x'], {
+    cwd: staged.projectDir,
+    env: { ...process.env, PATH: `${staged.binDir}:${staged.realDir}:/usr/bin:/bin` },
+    encoding: 'utf8',
+    timeout: 10000
+  });
+  assert.equal(out.trim(), 'ARG:--resume\nARG:x', 'the escape hatch still injected context');
+});
+
 test('the settings flag is skipped when the settings file is absent', { skip: !POSIX }, () => {
   const staged = stageWrapper('claude', {
     promptFlag: '--append-system-prompt',

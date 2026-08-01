@@ -7472,20 +7472,24 @@
         "../package.json"
       ],
       "functions": {
+        "syncTerminalBoundarySection": {
+          "line": 40,
+          "purpose": "The terminal boundary is stated only where it is true."
+        },
         "init": {
-          "line": 32
+          "line": 47
         },
         "initAboutSection": {
-          "line": 96
+          "line": 113
         },
         "runCheck": {
-          "line": 181,
+          "line": 198,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 220,
+          "line": 237,
           "params": [
             "{ checked",
             "found",
@@ -7497,34 +7501,34 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 244,
+          "line": 261,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 255
+          "line": 272
         },
         "hideSidebarDot": {
-          "line": 259
+          "line": 276
         },
         "formatRelative": {
-          "line": 266,
+          "line": 283,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 277
+          "line": 294
         },
         "open": {
-          "line": 290
+          "line": 307
         },
         "close": {
-          "line": 297
+          "line": 314
         },
         "toggle": {
-          "line": 304
+          "line": 321
         }
       },
       "ipc": {
@@ -9723,14 +9727,14 @@
           "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
         "getSpecHintSettings": {
-          "line": 983,
+          "line": 989,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getCodexWrapperTemplate": {
-          "line": 999
+          "line": 1005
         },
         "getGenericWrapperTemplate": {
-          "line": 1036,
+          "line": 1042,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -9738,27 +9742,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1082
+          "line": 1088
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1109,
+          "line": 1115,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1132,
+          "line": 1138,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1144,
+          "line": 1150,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1164
+          "line": 1170
         },
         "getOrchBinScripts": {
-          "line": 1182,
+          "line": 1188,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }
