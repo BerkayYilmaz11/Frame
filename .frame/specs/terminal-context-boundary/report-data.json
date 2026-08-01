@@ -15,6 +15,18 @@
         "status": "pass",
         "detail": "423/423 pass"
       }
+    },
+    {
+      "id": "T02",
+      "title": "Add `test/launchEnv.test.js` covering idempotent prepending, the platform separator and an untouched PATH off-POSIX",
+      "commit": "d15005b",
+      "whatChanged": "12 cases in test/launchEnv.test.js: frameBinDir with and without a project, the POSIX gate, prepend puts the bin dir first, prepending twice is a no-op, an entry sitting behind /usr/local/bin is moved rather than duplicated, the win32 PATH comes back byte-identical, an absent PATH becomes just the bin dir, and empty segments are dropped.",
+      "whyChanged": "The purity case does more than grep the source: it reloads the module through a poisoned Module._load that throws on fs/electron and then exercises prependFrameBin, so a require added later fails the test rather than passing a string match. The move-not-duplicate case is the one that would otherwise regress quietly — a present-but-not-first entry still loses to a real CLI earlier on PATH.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "435/435 pass (12 new)"
+      }
     }
   ]
 }

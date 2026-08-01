@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:28:48.474Z",
+  "lastUpdated": "2026-08-01T08:30:43.961Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4691,13 +4691,13 @@
       "title": "Add `test/launchEnv.test.js` covering idempotent prepending, the platform separator, an untouched `PATH` on a non-wrapper platform, and no disk access.",
       "description": "",
       "source": "spec:terminal-context-boundary:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:30:43.961Z",
+      "completedAt": "2026-08-01T08:30:43.961Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T03",

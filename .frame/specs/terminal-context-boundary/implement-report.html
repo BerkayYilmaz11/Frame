@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">1 of 12 tasks done · next: <span class="rs-task">T02 — Add `test/launchEnv.test.js` covering idempotent prepending, the…</span></span>
+  <span class="rs-count">2 of 12 tasks done · next: <span class="rs-task">T03 — Rewrite `getWrapperTemplate` in `src/shared/frameTemplates.js` to strip…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -272,6 +272,140 @@
 <span class="dl-add">+  frameBinDir,</span>
 <span class="dl-add">+  prependFrameBin</span>
 <span class="dl-add">+};</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Add `test/launchEnv.test.js` covering idempotent prepending, the platform separator and an untouched PATH off-POSIX</h2>
+    <span class="card-meta"><span class="chip">d15005b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">435/435 pass (12 new)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>12 cases in test/launchEnv.test.js: frameBinDir with and without a project, the POSIX gate, prepend puts the bin dir first, prepending twice is a no-op, an entry sitting behind /usr/local/bin is moved rather than duplicated, the win32 PATH comes back byte-identical, an absent PATH becomes just the bin dir, and empty segments are dropped.</p></div>
+    <div class="field"><span class="label">Why</span><p>The purity case does more than grep the source: it reloads the module through a poisoned Module._load that throws on fs/electron and then exercises prependFrameBin, so a require added later fails the test rather than passing a string match. The move-not-duplicate case is the one that would otherwise regress quietly — a present-but-not-first entry still loses to a real CLI earlier on PATH.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/test/launchEnv.test.js b/test/launchEnv.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..7a5c8fd</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/launchEnv.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,113 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * launchEnv tests (T02): the `PATH` entry that makes Frame&#39;s terminal carry</span>
+<span class="dl-add">+ * Frame&#39;s context.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The load-bearing assertions are that prepending is idempotent — a PTY can be</span>
+<span class="dl-add">+ * respawned any number of times and must not grow a duplicate entry each time</span>
+<span class="dl-add">+ * — and that the bin directory ends up **first**, since a real `claude`</span>
+<span class="dl-add">+ * earlier on the path would win and the session would silently lose the</span>
+<span class="dl-add">+ * wrapper.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const Module = require(&#39;module&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const launchEnv = require(&#39;../src/main/launchEnv&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const PROJECT = &#39;/tmp/some project&#39;;</span>
+<span class="dl-add">+const BIN = path.join(PROJECT, &#39;.frame&#39;, &#39;bin&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── frameBinDir ──────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;frameBinDir points at the project\&#39;s .frame/bin&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.frameBinDir(PROJECT), BIN);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;frameBinDir has nothing to say without a project&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.frameBinDir(&#39;&#39;), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(launchEnv.frameBinDir(null), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(launchEnv.frameBinDir(undefined), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── supportsWrappers ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;wrappers are a POSIX affair&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.supportsWrappers(&#39;darwin&#39;), true);</span>
+<span class="dl-add">+  assert.equal(launchEnv.supportsWrappers(&#39;linux&#39;), true);</span>
+<span class="dl-add">+  assert.equal(launchEnv.supportsWrappers(&#39;win32&#39;), false);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── prependFrameBin ──────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the bin directory lands in front of the existing PATH&#39;, () =&gt; {</span>
+<span class="dl-add">+  const result = launchEnv.prependFrameBin(&#39;/usr/bin:/bin&#39;, PROJECT, &#39;darwin&#39;);</span>
+<span class="dl-add">+  assert.equal(result, `${BIN}:/usr/bin:/bin`);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;prepending twice changes nothing the second time&#39;, () =&gt; {</span>
+<span class="dl-add">+  const once = launchEnv.prependFrameBin(&#39;/usr/bin:/bin&#39;, PROJECT, &#39;darwin&#39;);</span>
+<span class="dl-add">+  const twice = launchEnv.prependFrameBin(once, PROJECT, &#39;darwin&#39;);</span>
+<span class="dl-add">+  assert.equal(twice, once, &#39;a respawned PTY would accumulate duplicates&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an entry sitting behind a real CLI is moved to the front, not left there&#39;, () =&gt; {</span>
+<span class="dl-add">+  // Present-but-not-first is the dangerous case: /usr/local/bin&#39;s real</span>
+<span class="dl-add">+  // `claude` would resolve first and Frame&#39;s context would vanish silently.</span>
+<span class="dl-add">+  const result = launchEnv.prependFrameBin(`/usr/local/bin:${BIN}:/bin`, PROJECT, &#39;darwin&#39;);</span>
+<span class="dl-add">+  assert.equal(result, `${BIN}:/usr/local/bin:/bin`);</span>
+<span class="dl-add">+  assert.equal(result.split(&#39;:&#39;).filter((e) =&gt; e === BIN).length, 1, &#39;duplicated instead of moved&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the platform separator is respected&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(</span>
+<span class="dl-add">+    launchEnv.prependFrameBin(&#39;/usr/bin:/bin&#39;, PROJECT, &#39;linux&#39;),</span>
+<span class="dl-add">+    `${BIN}:/usr/bin:/bin`</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a non-wrapper platform gets its PATH back untouched&#39;, () =&gt; {</span>
+<span class="dl-add">+  const original = &#39;C:\\Windows\\System32;C:\\bin&#39;;</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(original, PROJECT, &#39;win32&#39;), original);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;no project means no injection&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(&#39;/usr/bin:/bin&#39;, &#39;&#39;, &#39;darwin&#39;), &#39;/usr/bin:/bin&#39;);</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(&#39;/usr/bin:/bin&#39;, null, &#39;darwin&#39;), &#39;/usr/bin:/bin&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an absent PATH becomes just the bin directory&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(undefined, PROJECT, &#39;darwin&#39;), BIN);</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(&#39;&#39;, PROJECT, &#39;darwin&#39;), BIN);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;empty segments are dropped rather than carried along&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(launchEnv.prependFrameBin(&#39;/usr/bin::/bin&#39;, PROJECT, &#39;darwin&#39;), `${BIN}:/usr/bin:/bin`);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── purity ───────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the module touches neither the filesystem nor Electron&#39;, () =&gt; {</span>
+<span class="dl-add">+  const source = require(&#39;fs&#39;).readFileSync(require.resolve(&#39;../src/main/launchEnv&#39;), &#39;utf8&#39;);</span>
+<span class="dl-add">+  for (const forbidden of [&#39;electron&#39;, &#39;node:fs&#39;, &quot;require(&#39;fs&#39;)&quot;, &#39;child_process&#39;]) {</span>
+<span class="dl-add">+    assert.ok(!source.includes(`require(&#39;${forbidden}&#39;)`), `launchEnv requires ${forbidden}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Belt and braces: load it with fs and electron poisoned, and exercise it.</span>
+<span class="dl-add">+  const realLoad = Module._load;</span>
+<span class="dl-add">+  Module._load = function (request, parent, isMain) {</span>
+<span class="dl-add">+    if (request === &#39;fs&#39; || request === &#39;node:fs&#39; || request === &#39;electron&#39;) {</span>
+<span class="dl-add">+      throw new Error(`launchEnv must not require ${request}`);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    return realLoad(request, parent, isMain);</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    delete require.cache[require.resolve(&#39;../src/main/launchEnv&#39;)];</span>
+<span class="dl-add">+    const fresh = require(&#39;../src/main/launchEnv&#39;);</span>
+<span class="dl-add">+    assert.equal(fresh.prependFrameBin(&#39;/usr/bin&#39;, PROJECT, &#39;darwin&#39;), `${BIN}:/usr/bin`);</span>
+<span class="dl-add">+  } finally {</span>
+<span class="dl-add">+    Module._load = realLoad;</span>
+<span class="dl-add">+    delete require.cache[require.resolve(&#39;../src/main/launchEnv&#39;)];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>
