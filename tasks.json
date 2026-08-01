@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:38:47.633Z",
+  "lastUpdated": "2026-08-01T08:40:18.561Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4743,13 +4743,13 @@
       "title": "Call `refreshLaunchAssets` from `frameProject`'s `CHECK_IS_FRAME_PROJECT` handler beside `gitSharing.ensureOnOpen` and `instructionDiscovery.refresh`, so an older Frame's wrapper cannot survive a project open.",
       "description": "",
       "source": "spec:terminal-context-boundary:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:40:18.561Z",
+      "completedAt": "2026-08-01T08:40:18.561Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T07",

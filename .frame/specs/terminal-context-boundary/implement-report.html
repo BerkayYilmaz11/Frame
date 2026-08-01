@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">5 of 12 tasks done · next: <span class="rs-task">T06 — Call `refreshLaunchAssets` from `frameProject`&#39;s…</span></span>
+  <span class="rs-count">6 of 12 tasks done · next: <span class="rs-task">T07 — Return `./.frame/bin/&lt;id&gt;` from `getLaunchCommand` for every tool on…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -965,6 +965,73 @@
 <span class="dl-ctx">   composeLaunchCommand,</span>
 <span class="dl-ctx">   addCustomTool,</span>
 <span class="dl-ctx">   removeCustomTool,</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Refresh launch assets on project open</h2>
+    <span class="card-meta"><span class="chip">8c7339d</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>frameProject&#39;s CHECK_IS_FRAME_PROJECT handler now calls aiToolManager.refreshLaunchAssets(projectPath) beside gitSharing.ensureOnOpen and instructionDiscovery.refresh, gated on isFrame and wrapped non-fatally. Init&#39;s own loop — which wrote codex/gemini wrappers directly from getWrapperTemplate — was replaced by the same call.</p></div>
+    <div class="field"><span class="label">Why</span><p>Beyond the task as written: init had a second wrapper generator that knew nothing about injection records, so a freshly initialized project and a re-opened one would have produced different wrappers until the first open. One generator, or the shapes drift — which is the exact failure this spec exists to close. Both call sites are lazy requires, since aiToolManager pulls telemetry and init&#39;s module graph is deliberately flat.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/frameProject.js b/src/main/frameProject.js</span>
+<span class="dl-meta">index 68c34f5..20ee8de 100644</span>
+<span class="dl-file">--- a/src/main/frameProject.js</span>
+<span class="dl-file">+++ b/src/main/frameProject.js</span>
+<span class="dl-hunk">@@ -268,16 +268,14 @@ async function runProjectInit(projectPath, projectName, options = {}) {</span>
+<span class="dl-ctx">   const binDirPath = path.join(frameDirPath, FRAME_BIN_DIR);</span>
+<span class="dl-ctx">   await fsp.mkdir(binDirPath, { recursive: true });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  // Wrapper scripts for the CLIs that cannot take a system prompt by flag.</span>
+<span class="dl-del">-  // Written unconditionally, not only when missing: the shape changed with</span>
+<span class="dl-del">-  // the overlay (the old wrappers hunted for a root AGENTS.md that no longer</span>
+<span class="dl-del">-  // exists), and aiToolManager rewrites them at every launch anyway.</span>
+<span class="dl-del">-  for (const toolId of [&#39;codex&#39;, &#39;gemini&#39;]) {</span>
+<span class="dl-del">-    await fsp.writeFile(</span>
+<span class="dl-del">-      path.join(binDirPath, toolId),</span>
+<span class="dl-del">-      templates.getWrapperTemplate(toolId, {}),</span>
+<span class="dl-del">-      { mode: 0o755 }</span>
+<span class="dl-del">-    );</span>
+<span class="dl-add">+  // Wrapper scripts for every configured tool, from the one generator that</span>
+<span class="dl-add">+  // knows each tool&#39;s injection record. Written through aiToolManager rather</span>
+<span class="dl-add">+  // than here so a fresh init and a re-open produce byte-identical wrappers —</span>
+<span class="dl-add">+  // a second generator is how the shapes drift apart in the first place.</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    require(&#39;./aiToolManager&#39;).refreshLaunchAssets(projectPath);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    console.warn(&#39;[frame] launch asset generation failed (non-fatal):&#39;, err.message);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Bootstrap STRUCTURE.json auto-fill: ship parser scripts to .frame/bin/,</span>
+<span class="dl-hunk">@@ -577,6 +575,22 @@ function setupIPC(ipcMain) {</span>
+<span class="dl-ctx">     const discovery = instructionDiscovery.refresh(projectPath);</span>
+<span class="dl-ctx">     instructionDiscovery.startWatching(projectPath);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    // Wrappers and preambles are regenerated here, not only when Frame</span>
+<span class="dl-add">+    // launches a given tool. That is what keeps a stale one out of reach:</span>
+<span class="dl-add">+    // generation used to be launch-only, so a project never opened with a</span>
+<span class="dl-add">+    // given CLI kept whatever wrapper an older Frame wrote — harmless while</span>
+<span class="dl-add">+    // nothing could resolve it, and a script shadowing the real CLI the</span>
+<span class="dl-add">+    // moment `.frame/bin` joined the terminal&#39;s PATH. Writes only when the</span>
+<span class="dl-add">+    // content differs, so a second open touches nothing. Non-fatal.</span>
+<span class="dl-add">+    if (isFrame) {</span>
+<span class="dl-add">+      try {</span>
+<span class="dl-add">+        // Lazy require — aiToolManager pulls telemetry; keep the graph flat.</span>
+<span class="dl-add">+        require(&#39;./aiToolManager&#39;).refreshLaunchAssets(projectPath);</span>
+<span class="dl-add">+      } catch (err) {</span>
+<span class="dl-add">+        console.warn(&#39;[frame] launch asset refresh failed (non-fatal):&#39;, err.message);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     // A pre-overlay project still has its Frame files at the root, where</span>
+<span class="dl-ctx">     // nothing reads them any more. Frame migrates it rather than warning about</span>
+<span class="dl-ctx">     // it — a condition the tool resolves by itself does not get a banner.</span></pre>
     </details>
   </div>
 </section>

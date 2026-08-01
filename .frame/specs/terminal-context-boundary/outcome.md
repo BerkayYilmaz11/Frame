@@ -38,3 +38,11 @@ _Captured: 2026-08-01 · 1 file change_
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T06 — Refresh launch assets on project open
+
+Called `aiToolManager.refreshLaunchAssets(projectPath)` from `CHECK_IS_FRAME_PROJECT`, beside `gitSharing.ensureOnOpen` and `instructionDiscovery.refresh`, gated on `isFrame` and non-fatal. Also replaced init's own codex/gemini wrapper loop with the same call — it was a second generator that knew nothing about injection records, so an initialized project and a re-opened one would have carried different wrappers until the first open. Lazy `require` at both sites, matching the existing `installSpecHintHook` pattern that keeps init's module graph flat.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---

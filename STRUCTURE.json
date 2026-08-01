@@ -1152,60 +1152,60 @@
           ]
         },
         "installSpecHintHook": {
-          "line": 341,
+          "line": 339,
           "params": [
             "projectPath"
           ],
           "purpose": "Make the spec-hint hooks available to Claude Code."
         },
         "isSpecDrivenEnabled": {
-          "line": 372,
+          "line": 370,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 377,
+          "line": 375,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 404,
+          "line": 402,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag. The next launch composes a preamble"
         },
         "setSpecDrivenEnabled": {
-          "line": 418,
+          "line": 416,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 422,
+          "line": 420,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 430,
+          "line": 428,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 474,
+          "line": 472,
           "params": [
             "projectPath"
           ]
         },
         "runForegroundMigration": {
-          "line": 519,
+          "line": 517,
           "params": [
             "sender",
             "projectPath"
@@ -1213,7 +1213,7 @@
           "purpose": "Migrate a project the user is waiting on, reporting to the modal."
         },
         "setupIPC": {
-          "line": 559,
+          "line": 557,
           "params": [
             "ipcMain"
           ],

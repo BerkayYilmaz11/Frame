@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "441/441 pass; refreshLaunchAssets exercised against a temp project — 3 wrappers at 0755, 3 per-tool preambles, no rewrite on a second open"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Refresh launch assets on project open",
+      "commit": "8c7339d",
+      "whatChanged": "frameProject's CHECK_IS_FRAME_PROJECT handler now calls aiToolManager.refreshLaunchAssets(projectPath) beside gitSharing.ensureOnOpen and instructionDiscovery.refresh, gated on isFrame and wrapped non-fatally. Init's own loop — which wrote codex/gemini wrappers directly from getWrapperTemplate — was replaced by the same call.",
+      "whyChanged": "Beyond the task as written: init had a second wrapper generator that knew nothing about injection records, so a freshly initialized project and a re-opened one would have produced different wrappers until the first open. One generator, or the shapes drift — which is the exact failure this spec exists to close. Both call sites are lazy requires, since aiToolManager pulls telemetry and init's module graph is deliberately flat.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass"
+      }
     }
   ]
 }
