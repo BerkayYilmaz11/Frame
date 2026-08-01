@@ -855,32 +855,96 @@ function getFrameConfigTemplate(projectName, options = {}) {
  * Instructs Codex to read AGENTS.md as initial prompt
  */
 /**
- * Wrapper script for a tool with no flag to inject a system prompt.
+ * Wrapper script that hands a tool Frame's launch context.
  *
  * The old wrappers hunted for a root `AGENTS.md` and told the tool to read it.
- * The overlay plants no such file, so the wrapper now passes Frame's launch
- * preamble as the initial prompt instead.
+ * The overlay plants no such file, so the wrapper passes Frame's launch
+ * preamble instead — as a flag when the CLI has one, positionally when it does
+ * not.
+ *
+ * Since `terminal-context-boundary` this is the **only** injection path:
+ * `.frame/bin` goes first on the `PATH` of every terminal Frame spawns, so a
+ * hand-typed `claude` and a Frame-composed dispatch resolve to the same
+ * script. Two consequences shape the template:
+ *
+ *   1. **It must not exec itself.** With its own directory first on `PATH`,
+ *      `exec claude` from a wrapper named `claude` is an infinite loop. The
+ *      real binary is resolved at run time with the wrapper's own directory
+ *      removed from the search path — at run time, not baked in at write
+ *      time, so a version-manager switch or a reinstall is picked up instead
+ *      of going stale until the next project open.
+ *   2. **It emits the tool's own flags**, from the injection record, so
+ *      Claude's `--append-system-prompt` / `--settings` are produced here
+ *      rather than composed a second time by `aiToolManager`.
  *
  * The preamble is read from a file rather than baked into the script: it is
  * multi-line prose containing quotes and backticks, and every one of those is
- * a way to break a generated shell script. Frame rewrites that file at each
- * launch, so the wrapper itself stays static and correct.
+ * a way to break a generated shell script. A missing preamble degrades to
+ * `exec <real> "$@"`, so a half-written `.frame/` costs the user their context
+ * but never their terminal. The user's own arguments always ride through as
+ * `"$@"`.
  *
- * @param {string} toolCommand - the real CLI to exec
+ * @param {string} toolCommand - the real CLI to resolve and exec
  * @param {object} [options]
  * @param {string} [options.promptFlag] - flag carrying the prompt, '' for positional
+ * @param {string} [options.settingsFlag] - flag carrying the settings file, '' for none
  * @param {string} [options.preambleFile] - project-relative preamble path
+ * @param {string} [options.settingsFile] - project-relative settings path
  */
 function getWrapperTemplate(toolCommand, options) {
   const opts = options || {};
   const promptFlag = opts.promptFlag || '';
+  const settingsFlag = opts.settingsFlag || '';
   const preambleFile = opts.preambleFile || '.frame/runtime/preamble.txt';
-  const flagPart = promptFlag ? `${promptFlag} ` : '';
+  const settingsFile = opts.settingsFile || '.frame/runtime/claude-settings.json';
+
+  // A tool with no prompt flag takes the preamble positionally; one with a
+  // flag gets `<flag> <preamble>`. Either way it is one array element per
+  // argument, so nothing depends on word splitting.
+  const promptArgs = promptFlag
+    ? `("${promptFlag}" "$(cat "$PREAMBLE_FILE")")`
+    : `("$(cat "$PREAMBLE_FILE")")`;
+
+  const settingsBlock = settingsFlag
+    ? `
+# ${settingsFlag} rides along only when the file is actually there — the
+# settings payload is optional, the preamble is not.
+if [ -n "$PROJECT_ROOT" ] && [ -f "$SETTINGS_FILE" ]; then
+  frame_args+=("${settingsFlag}" "$SETTINGS_FILE")
+fi
+`
+    : '';
 
   return `#!/usr/bin/env bash
 # Frame AI Tool Wrapper for ${toolCommand}
-# Passes Frame's launch preamble as the initial prompt. Generated file —
-# Frame rewrites it on every launch; edits will be lost.
+# Hands ${toolCommand} Frame's launch context. Generated file — Frame rewrites
+# it whenever the content changes; edits will be lost.
+
+# This wrapper's own directory is first on PATH, so resolving the real CLI by
+# name would find this script again. Drop that directory, then look.
+self_dir() {
+  cd "$(dirname "\${BASH_SOURCE[0]}")" 2>/dev/null && pwd
+}
+
+SELF_DIR="$(self_dir)"
+
+path_without_self() {
+  local out="" entry
+  local IFS=:
+  for entry in $PATH; do
+    [ -z "$entry" ] && continue
+    [ "$entry" = "$SELF_DIR" ] && continue
+    out="\${out:+$out:}$entry"
+  done
+  printf '%s' "$out"
+}
+
+REAL_CLI="$(PATH="$(path_without_self)" command -v ${toolCommand} 2>/dev/null)"
+
+if [ -z "$REAL_CLI" ]; then
+  echo "Frame: ${toolCommand} was not found on PATH." >&2
+  exit 127
+fi
 
 # Locate the project root by walking up to the directory holding .frame/
 find_project_root() {
@@ -897,11 +961,13 @@ find_project_root() {
 
 PROJECT_ROOT=$(find_project_root)
 PREAMBLE_FILE="$PROJECT_ROOT/${preambleFile}"
+SETTINGS_FILE="$PROJECT_ROOT/${settingsFile}"
 
 if [ -n "$PROJECT_ROOT" ] && [ -f "$PREAMBLE_FILE" ]; then
-  exec ${toolCommand} ${flagPart}"$(cat "$PREAMBLE_FILE")" "$@"
+  frame_args=${promptArgs}
+${settingsBlock}  exec "$REAL_CLI" "\${frame_args[@]}" "$@"
 else
-  exec ${toolCommand} "$@"
+  exec "$REAL_CLI" "$@"
 fi
 `;
 }

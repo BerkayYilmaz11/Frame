@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "435/435 pass (12 new)"
       }
+    },
+    {
+      "id": "T03",
+      "title": "Rewrite `getWrapperTemplate` to be recursion-safe and emit its tool's flags",
+      "commit": "c687f6b",
+      "whatChanged": "The wrapper now resolves the real CLI at run time with its own directory filtered out of PATH (`PATH=\"$(path_without_self)\" command -v <tool>`) and execs \"$REAL_CLI\", so a wrapper named after its tool cannot re-enter itself. It builds a frame_args array from the injection record — promptFlag in front of the preamble or the preamble positionally, settingsFlag appended only when that file exists — and keeps `exec \"$REAL_CLI\" \"$@\"` when the preamble is missing. A missing CLI exits 127 with a named message instead of looping.",
+      "whyChanged": "Resolution is at run time rather than baked in at write time so a version-manager switch or reinstall is picked up immediately; an absolute path written at project open would go stale silently. The settings flag is conditional on the file existing because the payload is optional while the preamble is not. Deviation from plan.md's sequencing: the three existing wrapper assertions in test/frameTemplates.test.js asserted the old `exec codex ...` shape and were updated here rather than in T04 — a rewrite that leaves the suite red is not a finished task. T04 still adds the four new cases.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "435/435 pass; wrapper also exercised end-to-end in a sandbox — self-exec, arg passthrough, missing preamble, missing settings, absent CLI"
+      }
     }
   ]
 }

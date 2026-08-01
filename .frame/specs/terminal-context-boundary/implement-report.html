@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">2 of 12 tasks done · next: <span class="rs-task">T03 — Rewrite `getWrapperTemplate` in `src/shared/frameTemplates.js` to strip…</span></span>
+  <span class="rs-count">3 of 12 tasks done · next: <span class="rs-task">T04 — Extend `test/frameTemplates.test.js` with wrapper cases: a wrapper…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -406,6 +406,178 @@
 <span class="dl-add">+    delete require.cache[require.resolve(&#39;../src/main/launchEnv&#39;)];</span>
 <span class="dl-add">+  }</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Rewrite `getWrapperTemplate` to be recursion-safe and emit its tool&#39;s flags</h2>
+    <span class="card-meta"><span class="chip">c687f6b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">435/435 pass; wrapper also exercised end-to-end in a sandbox — self-exec, arg passthrough, missing preamble, missing settings, absent CLI</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>The wrapper now resolves the real CLI at run time with its own directory filtered out of PATH (`PATH=&quot;$(path_without_self)&quot; command -v &lt;tool&gt;`) and execs &quot;$REAL_CLI&quot;, so a wrapper named after its tool cannot re-enter itself. It builds a frame_args array from the injection record — promptFlag in front of the preamble or the preamble positionally, settingsFlag appended only when that file exists — and keeps `exec &quot;$REAL_CLI&quot; &quot;$@&quot;` when the preamble is missing. A missing CLI exits 127 with a named message instead of looping.</p></div>
+    <div class="field"><span class="label">Why</span><p>Resolution is at run time rather than baked in at write time so a version-manager switch or reinstall is picked up immediately; an absolute path written at project open would go stale silently. The settings flag is conditional on the file existing because the payload is optional while the preamble is not. Deviation from plan.md&#39;s sequencing: the three existing wrapper assertions in test/frameTemplates.test.js asserted the old `exec codex ...` shape and were updated here rather than in T04 — a rewrite that leaves the suite red is not a finished task. T04 still adds the four new cases.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 0d04d5e..ca44988 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -855,32 +855,96 @@ function getFrameConfigTemplate(projectName, options = {}) {</span>
+<span class="dl-ctx">  * Instructs Codex to read AGENTS.md as initial prompt</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Wrapper script for a tool with no flag to inject a system prompt.</span>
+<span class="dl-add">+ * Wrapper script that hands a tool Frame&#39;s launch context.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * The old wrappers hunted for a root `AGENTS.md` and told the tool to read it.</span>
+<span class="dl-del">- * The overlay plants no such file, so the wrapper now passes Frame&#39;s launch</span>
+<span class="dl-del">- * preamble as the initial prompt instead.</span>
+<span class="dl-add">+ * The overlay plants no such file, so the wrapper passes Frame&#39;s launch</span>
+<span class="dl-add">+ * preamble instead — as a flag when the CLI has one, positionally when it does</span>
+<span class="dl-add">+ * not.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Since `terminal-context-boundary` this is the **only** injection path:</span>
+<span class="dl-add">+ * `.frame/bin` goes first on the `PATH` of every terminal Frame spawns, so a</span>
+<span class="dl-add">+ * hand-typed `claude` and a Frame-composed dispatch resolve to the same</span>
+<span class="dl-add">+ * script. Two consequences shape the template:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   1. **It must not exec itself.** With its own directory first on `PATH`,</span>
+<span class="dl-add">+ *      `exec claude` from a wrapper named `claude` is an infinite loop. The</span>
+<span class="dl-add">+ *      real binary is resolved at run time with the wrapper&#39;s own directory</span>
+<span class="dl-add">+ *      removed from the search path — at run time, not baked in at write</span>
+<span class="dl-add">+ *      time, so a version-manager switch or a reinstall is picked up instead</span>
+<span class="dl-add">+ *      of going stale until the next project open.</span>
+<span class="dl-add">+ *   2. **It emits the tool&#39;s own flags**, from the injection record, so</span>
+<span class="dl-add">+ *      Claude&#39;s `--append-system-prompt` / `--settings` are produced here</span>
+<span class="dl-add">+ *      rather than composed a second time by `aiToolManager`.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * The preamble is read from a file rather than baked into the script: it is</span>
+<span class="dl-ctx">  * multi-line prose containing quotes and backticks, and every one of those is</span>
+<span class="dl-del">- * a way to break a generated shell script. Frame rewrites that file at each</span>
+<span class="dl-del">- * launch, so the wrapper itself stays static and correct.</span>
+<span class="dl-add">+ * a way to break a generated shell script. A missing preamble degrades to</span>
+<span class="dl-add">+ * `exec &lt;real&gt; &quot;$@&quot;`, so a half-written `.frame/` costs the user their context</span>
+<span class="dl-add">+ * but never their terminal. The user&#39;s own arguments always ride through as</span>
+<span class="dl-add">+ * `&quot;$@&quot;`.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * @param {string} toolCommand - the real CLI to exec</span>
+<span class="dl-add">+ * @param {string} toolCommand - the real CLI to resolve and exec</span>
+<span class="dl-ctx">  * @param {object} [options]</span>
+<span class="dl-ctx">  * @param {string} [options.promptFlag] - flag carrying the prompt, &#39;&#39; for positional</span>
+<span class="dl-add">+ * @param {string} [options.settingsFlag] - flag carrying the settings file, &#39;&#39; for none</span>
+<span class="dl-ctx">  * @param {string} [options.preambleFile] - project-relative preamble path</span>
+<span class="dl-add">+ * @param {string} [options.settingsFile] - project-relative settings path</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function getWrapperTemplate(toolCommand, options) {</span>
+<span class="dl-ctx">   const opts = options || {};</span>
+<span class="dl-ctx">   const promptFlag = opts.promptFlag || &#39;&#39;;</span>
+<span class="dl-add">+  const settingsFlag = opts.settingsFlag || &#39;&#39;;</span>
+<span class="dl-ctx">   const preambleFile = opts.preambleFile || &#39;.frame/runtime/preamble.txt&#39;;</span>
+<span class="dl-del">-  const flagPart = promptFlag ? `${promptFlag} ` : &#39;&#39;;</span>
+<span class="dl-add">+  const settingsFile = opts.settingsFile || &#39;.frame/runtime/claude-settings.json&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // A tool with no prompt flag takes the preamble positionally; one with a</span>
+<span class="dl-add">+  // flag gets `&lt;flag&gt; &lt;preamble&gt;`. Either way it is one array element per</span>
+<span class="dl-add">+  // argument, so nothing depends on word splitting.</span>
+<span class="dl-add">+  const promptArgs = promptFlag</span>
+<span class="dl-add">+    ? `(&quot;${promptFlag}&quot; &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot;)`</span>
+<span class="dl-add">+    : `(&quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot;)`;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const settingsBlock = settingsFlag</span>
+<span class="dl-add">+    ? `</span>
+<span class="dl-add">+# ${settingsFlag} rides along only when the file is actually there — the</span>
+<span class="dl-add">+# settings payload is optional, the preamble is not.</span>
+<span class="dl-add">+if [ -n &quot;$PROJECT_ROOT&quot; ] &amp;&amp; [ -f &quot;$SETTINGS_FILE&quot; ]; then</span>
+<span class="dl-add">+  frame_args+=(&quot;${settingsFlag}&quot; &quot;$SETTINGS_FILE&quot;)</span>
+<span class="dl-add">+fi</span>
+<span class="dl-add">+`</span>
+<span class="dl-add">+    : &#39;&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   return `#!/usr/bin/env bash</span>
+<span class="dl-ctx"> # Frame AI Tool Wrapper for ${toolCommand}</span>
+<span class="dl-del">-# Passes Frame&#39;s launch preamble as the initial prompt. Generated file —</span>
+<span class="dl-del">-# Frame rewrites it on every launch; edits will be lost.</span>
+<span class="dl-add">+# Hands ${toolCommand} Frame&#39;s launch context. Generated file — Frame rewrites</span>
+<span class="dl-add">+# it whenever the content changes; edits will be lost.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# This wrapper&#39;s own directory is first on PATH, so resolving the real CLI by</span>
+<span class="dl-add">+# name would find this script again. Drop that directory, then look.</span>
+<span class="dl-add">+self_dir() {</span>
+<span class="dl-add">+  cd &quot;$(dirname &quot;\${BASH_SOURCE[0]}&quot;)&quot; 2&gt;/dev/null &amp;&amp; pwd</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+SELF_DIR=&quot;$(self_dir)&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+path_without_self() {</span>
+<span class="dl-add">+  local out=&quot;&quot; entry</span>
+<span class="dl-add">+  local IFS=:</span>
+<span class="dl-add">+  for entry in $PATH; do</span>
+<span class="dl-add">+    [ -z &quot;$entry&quot; ] &amp;&amp; continue</span>
+<span class="dl-add">+    [ &quot;$entry&quot; = &quot;$SELF_DIR&quot; ] &amp;&amp; continue</span>
+<span class="dl-add">+    out=&quot;\${out:+$out:}$entry&quot;</span>
+<span class="dl-add">+  done</span>
+<span class="dl-add">+  printf &#39;%s&#39; &quot;$out&quot;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+REAL_CLI=&quot;$(PATH=&quot;$(path_without_self)&quot; command -v ${toolCommand} 2&gt;/dev/null)&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+if [ -z &quot;$REAL_CLI&quot; ]; then</span>
+<span class="dl-add">+  echo &quot;Frame: ${toolCommand} was not found on PATH.&quot; &gt;&amp;2</span>
+<span class="dl-add">+  exit 127</span>
+<span class="dl-add">+fi</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> # Locate the project root by walking up to the directory holding .frame/</span>
+<span class="dl-ctx"> find_project_root() {</span>
+<span class="dl-hunk">@@ -897,11 +961,13 @@ find_project_root() {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> PROJECT_ROOT=$(find_project_root)</span>
+<span class="dl-ctx"> PREAMBLE_FILE=&quot;$PROJECT_ROOT/${preambleFile}&quot;</span>
+<span class="dl-add">+SETTINGS_FILE=&quot;$PROJECT_ROOT/${settingsFile}&quot;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> if [ -n &quot;$PROJECT_ROOT&quot; ] &amp;&amp; [ -f &quot;$PREAMBLE_FILE&quot; ]; then</span>
+<span class="dl-del">-  exec ${toolCommand} ${flagPart}&quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;</span>
+<span class="dl-add">+  frame_args=${promptArgs}</span>
+<span class="dl-add">+${settingsBlock}  exec &quot;$REAL_CLI&quot; &quot;\${frame_args[@]}&quot; &quot;$@&quot;</span>
+<span class="dl-ctx"> else</span>
+<span class="dl-del">-  exec ${toolCommand} &quot;$@&quot;</span>
+<span class="dl-add">+  exec &quot;$REAL_CLI&quot; &quot;$@&quot;</span>
+<span class="dl-ctx"> fi</span>
+<span class="dl-ctx"> `;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index 6a3ce90..fe9eee1 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -18,21 +18,22 @@ const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> test(&#39;the wrapper execs the real CLI with the preamble as initial prompt&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const script = templates.getWrapperTemplate(&#39;codex&#39;, {});</span>
+<span class="dl-ctx">   assert.ok(script.startsWith(&#39;#!/usr/bin/env bash&#39;));</span>
+<span class="dl-del">-  assert.ok(script.includes(&#39;exec codex &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;&#39;));</span>
+<span class="dl-del">-  assert.ok(script.includes(&#39;exec codex &quot;$@&quot;&#39;), &#39;no fallback when the preamble is missing&#39;);</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;frame_args=(&quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot;)&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exec &quot;$REAL_CLI&quot; &quot;${frame_args[@]}&quot; &quot;$@&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exec &quot;$REAL_CLI&quot; &quot;$@&quot;&#39;), &#39;no fallback when the preamble is missing&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;the wrapper is generalized per tool, not written per CLI&#39;, () =&gt; {</span>
+<span class="dl-ctx">   for (const tool of [&#39;codex&#39;, &#39;gemini&#39;, &#39;some-future-cli&#39;]) {</span>
+<span class="dl-ctx">     const script = templates.getWrapperTemplate(tool, {});</span>
+<span class="dl-del">-    assert.ok(script.includes(`exec ${tool} `), `${tool} is not execed`);</span>
+<span class="dl-add">+    assert.ok(script.includes(`command -v ${tool} `), `${tool} is not resolved`);</span>
+<span class="dl-ctx">     assert.ok(script.includes(`Frame AI Tool Wrapper for ${tool}`));</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;a tool with a prompt flag gets it in front of the prompt&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const script = templates.getWrapperTemplate(&#39;sometool&#39;, { promptFlag: &#39;--prompt&#39; });</span>
+<span class="dl-del">-  assert.ok(script.includes(&#39;exec sometool --prompt &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot; &quot;$@&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;frame_args=(&quot;--prompt&quot; &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot;)&#39;));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;the wrapper reads the preamble from a file, never inlines it&#39;, () =&gt; {</span></pre>
     </details>
   </div>
 </section>

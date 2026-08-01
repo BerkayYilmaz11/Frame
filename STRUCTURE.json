@@ -9627,22 +9627,22 @@
           "purpose": ".frame/config.json template"
         },
         "getWrapperTemplate": {
-          "line": 874,
+          "line": 894,
           "params": [
             "toolCommand",
             "options"
           ],
-          "purpose": "Wrapper script for a tool with no flag to inject a system prompt."
+          "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
         "getSpecHintSettings": {
-          "line": 917,
+          "line": 983,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getCodexWrapperTemplate": {
-          "line": 933
+          "line": 999
         },
         "getGenericWrapperTemplate": {
-          "line": 970,
+          "line": 1036,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -9650,27 +9650,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1016
+          "line": 1082
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1043,
+          "line": 1109,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1066,
+          "line": 1132,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1078,
+          "line": 1144,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1098
+          "line": 1164
         },
         "getOrchBinScripts": {
-          "line": 1116,
+          "line": 1182,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

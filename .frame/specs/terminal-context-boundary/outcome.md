@@ -14,3 +14,11 @@ Added 12 cases: `frameBinDir` with and without a project, the POSIX gate, first-
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T03 — Recursion-safe wrapper that emits its tool's flags
+
+Rewrote `getWrapperTemplate`: it resolves the real CLI at run time via `PATH="$(path_without_self)" command -v <tool>` and execs `"$REAL_CLI"`, builds a `frame_args` array from `promptFlag`/`settingsFlag` (settings only when that file exists), keeps the bare-exec fallback, and exits 127 with a named message when the CLI is absent. Run-time resolution over a write-time absolute path so a version-manager switch is picked up at once. Deviation from plan.md: the three existing wrapper assertions in `test/frameTemplates.test.js` encoded the old `exec codex …` shape and were updated here rather than in T04, since a task that leaves the suite red is not finished — T04 still adds the new cases. Verified end to end in a sandbox: no self-exec with the wrapper first on `PATH`, `--resume`/`-p` pass through, missing preamble and missing settings both degrade correctly.
+
+_Captured: 2026-08-01 · 2 file changes_
+
+---

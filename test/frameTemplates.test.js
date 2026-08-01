@@ -18,21 +18,22 @@ const templates = require('../src/shared/frameTemplates');
 test('the wrapper execs the real CLI with the preamble as initial prompt', () => {
   const script = templates.getWrapperTemplate('codex', {});
   assert.ok(script.startsWith('#!/usr/bin/env bash'));
-  assert.ok(script.includes('exec codex "$(cat "$PREAMBLE_FILE")" "$@"'));
-  assert.ok(script.includes('exec codex "$@"'), 'no fallback when the preamble is missing');
+  assert.ok(script.includes('frame_args=("$(cat "$PREAMBLE_FILE")")'));
+  assert.ok(script.includes('exec "$REAL_CLI" "${frame_args[@]}" "$@"'));
+  assert.ok(script.includes('exec "$REAL_CLI" "$@"'), 'no fallback when the preamble is missing');
 });
 
 test('the wrapper is generalized per tool, not written per CLI', () => {
   for (const tool of ['codex', 'gemini', 'some-future-cli']) {
     const script = templates.getWrapperTemplate(tool, {});
-    assert.ok(script.includes(`exec ${tool} `), `${tool} is not execed`);
+    assert.ok(script.includes(`command -v ${tool} `), `${tool} is not resolved`);
     assert.ok(script.includes(`Frame AI Tool Wrapper for ${tool}`));
   }
 });
 
 test('a tool with a prompt flag gets it in front of the prompt', () => {
   const script = templates.getWrapperTemplate('sometool', { promptFlag: '--prompt' });
-  assert.ok(script.includes('exec sometool --prompt "$(cat "$PREAMBLE_FILE")" "$@"'));
+  assert.ok(script.includes('frame_args=("--prompt" "$(cat "$PREAMBLE_FILE")")'));
 });
 
 test('the wrapper reads the preamble from a file, never inlines it', () => {
