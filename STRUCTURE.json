@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-07-31",
+  "lastUpdated": "2026-08-01",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -2284,6 +2284,44 @@
         },
         "stopAll": {
           "line": 196
+        }
+      }
+    },
+    "main/launchEnv": {
+      "file": "src/main/launchEnv.js",
+      "description": "launchEnv — where Frame's own `PATH` entry comes from.",
+      "exports": [
+        "supportsWrappers",
+        "frameBinDir",
+        "prependFrameBin"
+      ],
+      "depends": [
+        "path",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "supportsWrappers": {
+          "line": 36,
+          "params": [
+            "platform = process.platform"
+          ],
+          "purpose": "Whether this platform can run the wrappers Frame writes."
+        },
+        "frameBinDir": {
+          "line": 46,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Absolute path to a project's `.frame/bin`, or '' without a project."
+        },
+        "prependFrameBin": {
+          "line": 62,
+          "params": [
+            "pathValue",
+            "projectPath",
+            "platform = process.platform"
+          ],
+          "purpose": "`pathValue` with the project's `.frame/bin` in front."
         }
       }
     },
@@ -11054,6 +11092,18 @@
         "module": "shared/ipcChannels",
         "file": "src/shared/ipcChannels.js",
         "description": "IPC Channel Constants"
+      }
+    ],
+    "launch": [
+      {
+        "module": "main/launchEnv",
+        "file": "src/main/launchEnv.js",
+        "description": "launchEnv — where Frame's own `PATH` entry comes from."
+      },
+      {
+        "module": "templates/bin/implement-launch",
+        "file": "src/templates/bin/implement-launch.js",
+        "description": ""
       }
     ],
     "manager": [

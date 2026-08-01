@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "terminal-context-boundary",
+    "title": "Terminal Context Boundary — Frame's context follows Frame's terminal"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Add pure `src/main/launchEnv.js` with `frameBinDir`, idempotent `prependFrameBin` and `supportsWrappers`",
+      "commit": "007c58a",
+      "whatChanged": "New pure module src/main/launchEnv.js exporting supportsWrappers(platform), frameBinDir(projectPath) and prependFrameBin(pathValue, projectPath, platform). It requires only node:path and frameConstants — no fs, no Electron. Nothing consumes it yet; T09 wires it into the PTY spawn env.",
+      "whyChanged": "PATH composition is the one piece of this spec that is pure logic, so it was extracted rather than inlined into pty.js/ptyManager.js, which the testing record says stay untested. supportsWrappers() is the single POSIX gate so no call site does its own process.platform check. prependFrameBin drops any later copy of the bin dir instead of returning early on a match anywhere: a real `claude` earlier on PATH would win and the session would silently lose Frame's context, so the entry must be first, not merely present.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "423/423 pass"
+      }
+    }
+  ]
+}
