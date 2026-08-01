@@ -3280,47 +3280,48 @@
       "depends": [
         "node-pty",
         "shared/ipcChannels",
+        "launchEnv",
         "child_process"
       ],
       "functions": {
         "init": {
-          "line": 19,
+          "line": 20,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY module with window reference"
         },
         "getProjectPath": {
-          "line": 26,
+          "line": 27,
           "purpose": "Get current project path"
         },
         "setProjectPath": {
-          "line": 33,
+          "line": 34,
           "params": [
             "path"
           ],
           "purpose": "Set current project path"
         },
         "getShell": {
-          "line": 40,
+          "line": 41,
           "purpose": "Determine shell based on platform"
         },
         "startPTY": {
-          "line": 62,
+          "line": 63,
           "params": [
             "workingDir = null"
           ],
           "purpose": "Start PTY process"
         },
         "writeToPTY": {
-          "line": 114,
+          "line": 120,
           "params": [
             "data"
           ],
           "purpose": "Write data to PTY"
         },
         "resizePTY": {
-          "line": 123,
+          "line": 129,
           "params": [
             "cols",
             "rows"
@@ -3328,15 +3329,15 @@
           "purpose": "Resize PTY"
         },
         "killPTY": {
-          "line": 132,
+          "line": 138,
           "purpose": "Kill PTY process"
         },
         "getCurrentPTY": {
-          "line": 145,
+          "line": 151,
           "purpose": "Get current PTY process"
         },
         "setupIPC": {
-          "line": 152,
+          "line": 158,
           "params": [
             "ipcMain"
           ],
@@ -3381,26 +3382,27 @@
         "promptLogger",
         "telemetry",
         "pollGate",
+        "launchEnv",
         "child_process",
         "fs"
       ],
       "functions": {
         "flushOutput": {
-          "line": 26,
+          "line": 27,
           "params": [
             "terminalId"
           ],
           "purpose": "Flush a terminal's buffered output as one coalesced send."
         },
         "init": {
-          "line": 46,
+          "line": 47,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY manager with window reference"
         },
         "getForegroundCommand": {
-          "line": 61,
+          "line": 62,
           "params": [
             "shellPid",
             "callback"
@@ -3408,14 +3410,14 @@
           "purpose": "Resolve the full command line of the terminal's foreground process."
         },
         "getDefaultShell": {
-          "line": 80
+          "line": 81
         },
         "getAvailableShells": {
-          "line": 97,
+          "line": 98,
           "purpose": "Get available shells on the system"
         },
         "createTerminal": {
-          "line": 183,
+          "line": 184,
           "params": [
             "workingDir = null",
             "projectPath = null",
@@ -3425,28 +3427,28 @@
           "purpose": "Create a new terminal instance"
         },
         "getTerminalsByProject": {
-          "line": 321,
+          "line": 328,
           "params": [
             "projectPath"
           ],
           "purpose": "Get terminals for a specific project"
         },
         "getTerminalInfo": {
-          "line": 336,
+          "line": 343,
           "params": [
             "terminalId"
           ],
           "purpose": "Get terminal info"
         },
         "getLastOutputAt": {
-          "line": 348,
+          "line": 355,
           "params": [
             "terminalId"
           ],
           "purpose": "Last time this terminal produced output (epoch ms), or null if unknown."
         },
         "writeToTerminal": {
-          "line": 356,
+          "line": 363,
           "params": [
             "terminalId",
             "data"
@@ -3454,7 +3456,7 @@
           "purpose": "Write data to specific terminal"
         },
         "resizeTerminal": {
-          "line": 366,
+          "line": 373,
           "params": [
             "terminalId",
             "cols",
@@ -3463,40 +3465,40 @@
           "purpose": "Resize specific terminal"
         },
         "destroyTerminal": {
-          "line": 376,
+          "line": 383,
           "params": [
             "terminalId"
           ],
           "purpose": "Destroy specific terminal"
         },
         "destroyAll": {
-          "line": 394,
+          "line": 401,
           "purpose": "Destroy all terminals"
         },
         "getTerminalCount": {
-          "line": 411,
+          "line": 418,
           "purpose": "Get terminal count"
         },
         "getTerminalIds": {
-          "line": 418,
+          "line": 425,
           "purpose": "Get all terminal IDs"
         },
         "destroyExcept": {
-          "line": 428,
+          "line": 435,
           "params": [
             "knownIds"
           ],
           "purpose": "Destroy every PTY the renderer doesn't know about. A renderer reload"
         },
         "hasTerminal": {
-          "line": 438,
+          "line": 445,
           "params": [
             "terminalId"
           ],
           "purpose": "Check if terminal exists"
         },
         "setupIPC": {
-          "line": 445,
+          "line": 452,
           "params": [
             "ipcMain"
           ],

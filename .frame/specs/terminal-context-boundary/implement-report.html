@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">8 tasks</span>
-    <span class="pill good">8 verified</span>
+    <span class="pill">9 tasks</span>
+    <span class="pill good">9 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">8 of 12 tasks done · next: <span class="rs-task">T09 — Compose the spawn env in `src/main/pty.js` and `src/main/ptyManager.js`…</span></span>
+  <span class="rs-count">9 of 12 tasks done · next: <span class="rs-task">T10 — Add a Settings row in `index.html` and `src/renderer/settingsModal.js`…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1328,6 +1328,72 @@
 <span class="dl-ctx">   return {</span>
 <span class="dl-ctx">     command,</span>
 <span class="dl-ctx">     launchFlags,</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T09</span>
+    <h2>Compose the PTY spawn env through `launchEnv.prependFrameBin`</h2>
+    <span class="card-meta"><span class="chip">059dc93</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass; PATH ordering checked against a real interactive login zsh</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Both PTY spawn sites now set PATH through launchEnv.prependFrameBin: src/main/pty.js uses workingDir || currentProjectPath, src/main/ptyManager.js uses projectPath || workingDir, both scoped to the spawned child. From here a hand-typed claude, codex or gemini inside a Frame terminal resolves to the same wrapper a dispatch runs.</p></div>
+    <div class="field"><span class="label">Why</span><p>Verified against a real `zsh -i -l`, because the shell sources the user&#39;s rc files after this env is set: on this machine nvm&#39;s rc prepends its own bin and .frame/bin no longer leads, but both `claude` and `codex` still resolve to the wrapper because no rc-prepended directory holds those names. That is the actual limit of an env-scoped PATH entry — an rc that prepends the directory holding the CLI would shadow the wrapper — and it is why the entry cannot be made unconditional without writing to a file Frame was not invited into. Followup: an opt-in shell integration (ZDOTDIR-style, still inside .frame/) is the only way to win that ordering; worth its own spec.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/pty.js b/src/main/pty.js</span>
+<span class="dl-meta">index 230c920..bd2131e 100644</span>
+<span class="dl-file">--- a/src/main/pty.js</span>
+<span class="dl-file">+++ b/src/main/pty.js</span>
+<span class="dl-hunk">@@ -5,6 +5,7 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const pty = require(&#39;node-pty&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+const launchEnv = require(&#39;./launchEnv&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let ptyProcess = null;</span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-hunk">@@ -79,7 +80,12 @@ function startPTY(workingDir = null) {</span>
+<span class="dl-ctx">     env: {</span>
+<span class="dl-ctx">       ...process.env,</span>
+<span class="dl-ctx">       TERM: &#39;xterm-256color&#39;,</span>
+<span class="dl-del">-      COLORTERM: &#39;truecolor&#39;</span>
+<span class="dl-add">+      COLORTERM: &#39;truecolor&#39;,</span>
+<span class="dl-add">+      // Frame&#39;s terminal carries Frame&#39;s context: `.frame/bin` goes first on</span>
+<span class="dl-add">+      // PATH, so a hand-typed `claude` resolves to the same wrapper a Frame</span>
+<span class="dl-add">+      // dispatch runs. Scoped to this child process — nothing machine-wide is</span>
+<span class="dl-add">+      // touched, and a shell started outside Frame is unaffected.</span>
+<span class="dl-add">+      PATH: launchEnv.prependFrameBin(process.env.PATH, workingDir || currentProjectPath)</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-meta">diff --git a/src/main/ptyManager.js b/src/main/ptyManager.js</span>
+<span class="dl-meta">index ec43ca8..43e565e 100644</span>
+<span class="dl-file">--- a/src/main/ptyManager.js</span>
+<span class="dl-file">+++ b/src/main/ptyManager.js</span>
+<span class="dl-hunk">@@ -9,6 +9,7 @@ const logger = require(&#39;./logger&#39;);</span>
+<span class="dl-ctx"> const promptLogger = require(&#39;./promptLogger&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-ctx"> const pollGate = require(&#39;./pollGate&#39;);</span>
+<span class="dl-add">+const launchEnv = require(&#39;./launchEnv&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Store multiple PTY instances</span>
+<span class="dl-ctx"> const ptyInstances = new Map(); // Map&lt;terminalId, {pty, cwd, projectPath}&gt;</span>
+<span class="dl-hunk">@@ -223,6 +224,12 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">       // `ELECTRON_RUN_AS_NODE=1 &quot;$FRAME_NODE&quot; script.mjs` — quote it, the</span>
+<span class="dl-ctx">       // packaged macOS path contains spaces.</span>
+<span class="dl-ctx">       FRAME_NODE: process.execPath,</span>
+<span class="dl-add">+      // Frame&#39;s terminal carries Frame&#39;s context: `.frame/bin` goes first on</span>
+<span class="dl-add">+      // PATH, so a hand-typed `claude`, `codex` or `gemini` resolves to the</span>
+<span class="dl-add">+      // same wrapper a dispatch runs. Scoped to this child process — nothing</span>
+<span class="dl-add">+      // machine-wide is touched, and `command claude` still runs the real CLI</span>
+<span class="dl-add">+      // for anyone who wants it unwrapped.</span>
+<span class="dl-add">+      PATH: launchEnv.prependFrameBin(process.env.PATH, projectPath || workingDir),</span>
+<span class="dl-ctx">       // Orchestration: FRAME_ORCH_BUS / FRAME_ORCH_SLUG let conductor + worker</span>
+<span class="dl-ctx">       // terminals reach Frame&#39;s command bus from any worktree (see</span>
+<span class="dl-ctx">       // orchestrationManager). Null for normal terminals.</span></pre>
     </details>
   </div>
 </section>

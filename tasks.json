@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:45:48.682Z",
+  "lastUpdated": "2026-08-01T08:48:11.563Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4782,13 +4782,13 @@
       "title": "Compose the spawn env in `src/main/pty.js` and `src/main/ptyManager.js` through `launchEnv.prependFrameBin`, scoping the `PATH` entry to Frame's own child processes.",
       "description": "",
       "source": "spec:terminal-context-boundary:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:48:11.563Z",
+      "completedAt": "2026-08-01T08:48:11.563Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T10",

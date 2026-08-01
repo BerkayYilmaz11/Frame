@@ -99,6 +99,18 @@
         "status": "pass",
         "detail": "441/441 pass; merge verified against a real implement-permissions.json, inline JSON, and a settingsFlag-less tool (pair left untouched)"
       }
+    },
+    {
+      "id": "T09",
+      "title": "Compose the PTY spawn env through `launchEnv.prependFrameBin`",
+      "commit": "059dc93",
+      "whatChanged": "Both PTY spawn sites now set PATH through launchEnv.prependFrameBin: src/main/pty.js uses workingDir || currentProjectPath, src/main/ptyManager.js uses projectPath || workingDir, both scoped to the spawned child. From here a hand-typed claude, codex or gemini inside a Frame terminal resolves to the same wrapper a dispatch runs.",
+      "whyChanged": "Verified against a real `zsh -i -l`, because the shell sources the user's rc files after this env is set: on this machine nvm's rc prepends its own bin and .frame/bin no longer leads, but both `claude` and `codex` still resolve to the wrapper because no rc-prepended directory holds those names. That is the actual limit of an env-scoped PATH entry — an rc that prepends the directory holding the CLI would shadow the wrapper — and it is why the entry cannot be made unconditional without writing to a file Frame was not invited into. Followup: an opt-in shell integration (ZDOTDIR-style, still inside .frame/) is the only way to win that ordering; worth its own spec.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass; PATH ordering checked against a real interactive login zsh"
+      }
     }
   ]
 }

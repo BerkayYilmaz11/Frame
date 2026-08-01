@@ -62,3 +62,11 @@ _Captured: 2026-08-01 · 1 file change_
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T09 — `PATH` injection into Frame's terminals
+
+Composed the spawn env in `src/main/pty.js` and `src/main/ptyManager.js` through `launchEnv.prependFrameBin`, scoped to the child process. Checked against a real `zsh -i -l`, since rc files run after the env is set: on this machine nvm's rc prepends its own bin so `.frame/bin` no longer leads, yet `claude` and `codex` still resolve to the wrapper because no rc-prepended directory holds those names. That is the honest limit of an env-scoped entry. Followup: an opt-in shell integration (a `ZDOTDIR` pointing inside `.frame/`) is the only way to win the ordering outright, and it deserves its own spec.
+
+_Captured: 2026-08-01 · 2 file changes_
+
+---
