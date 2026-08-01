@@ -30,3 +30,11 @@ Added six cases: declared-vs-undeclared flag emission, an assertion that the scr
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T05 — Launch assets for every tool, refreshable
+
+`aiToolManager` gained `writeIfChanged`, `prepareLaunchAssets(projectPath, tool)` and `refreshLaunchAssets(projectPath)`: every configured tool — Claude and custom tools included — now gets a wrapper behind `launchEnv.supportsWrappers()`, a preamble file, and a settings file when it declares `settingsFlag`. Deviation from plan.md: preambles are per tool (`.frame/runtime/preamble-<id>.txt`) rather than one shared `preamble.txt`, because the text differs by tool and a hand-typed launch has no dispatch to rewrite a shared file first; settings follow the same rule and `claude-settings.json` is unchanged in name. Verified against a temp project: three wrappers at 0755, three preambles, and a second refresh rewrites nothing.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---

@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">4 tasks</span>
-    <span class="pill good">4 verified</span>
+    <span class="pill">5 tasks</span>
+    <span class="pill good">5 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">4 of 12 tasks done · next: <span class="rs-task">T05 — Make `aiToolManager` write the wrapper, preamble and settings file for…</span></span>
+  <span class="rs-count">5 of 12 tasks done · next: <span class="rs-task">T06 — Call `refreshLaunchAssets` from `frameProject`&#39;s…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -714,6 +714,257 @@
 <span class="dl-ctx"> // ─── spec-hint settings ───────────────────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;the spec-hint settings carry both hook events&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T05</span>
+    <h2>Write launch assets for every tool and expose `refreshLaunchAssets(projectPath)`</h2>
+    <span class="card-meta"><span class="chip">e244396</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass; refreshLaunchAssets exercised against a temp project — 3 wrappers at 0755, 3 per-tool preambles, no rewrite on a second open</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>aiToolManager now writes a wrapper for every configured tool (Claude included, custom tools included) behind launchEnv.supportsWrappers(), alongside a per-tool preamble file and, for a tool declaring settingsFlag, its settings file. New writeIfChanged skips identical content; new prepareLaunchAssets(projectPath, tool) is the single writer; new refreshLaunchAssets(projectPath) walks every tool and is non-fatal per tool. getLaunchCommand now goes through prepareLaunchAssets and keeps composing flags as before — T07 changes what it returns.</p></div>
+    <div class="field"><span class="label">Why</span><p>Deviation from plan.md: the preamble is now `.frame/runtime/preamble-&lt;tool&gt;.txt`, not the single preamble.txt. The preamble differs by tool (a native reader gets different text), so one shared file meant whichever tool launched last decided what the next one read — tolerable while Frame composed every launch, wrong now that a tool can be hand-typed with no launch to rewrite the file first. Settings files follow the same rule, and `claude-settings.json` is what `${id}-settings.json` produces for Claude, so no existing path moved.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index 8fd952d..b98ddf8 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -32,6 +32,7 @@ const contextPreamble = require(&#39;../shared/contextPreamble&#39;);</span>
+<span class="dl-ctx"> const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const globalLayer = require(&#39;./globalLayer&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-add">+const launchEnv = require(&#39;./launchEnv&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-ctx"> let configPath = null;</span>
+<span class="dl-hunk">@@ -465,15 +466,34 @@ function getStartCommand() {</span>
+<span class="dl-ctx"> // ─── Launch-time context injection ────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const RUNTIME_DIR = &#39;runtime&#39;;</span>
+<span class="dl-del">-const PREAMBLE_FILE = &#39;preamble.txt&#39;;</span>
+<span class="dl-del">-const CLAUDE_SETTINGS_FILE = &#39;claude-settings.json&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> function runtimeDir(projectPath) {</span>
+<span class="dl-ctx">   return path.join(projectPath, FRAME_DIR, RUNTIME_DIR);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function preambleRelPath() {</span>
+<span class="dl-del">-  return `${FRAME_DIR}/${RUNTIME_DIR}/${PREAMBLE_FILE}`;</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Runtime files are named per tool, not shared.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The preamble differs by tool — a native reader is only pointed at Frame&#39;s</span>
+<span class="dl-add">+ * layers, a tool without that convention is told to read the repo&#39;s file too</span>
+<span class="dl-add">+ * — so one `preamble.txt` meant whichever tool launched last decided what the</span>
+<span class="dl-add">+ * next one read. Harmless while Frame composed every launch; not harmless now</span>
+<span class="dl-add">+ * that any tool can be typed by hand at any moment, with no launch to</span>
+<span class="dl-add">+ * rewrite the file first.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `claude` keeps the settings name it already had (`claude-settings.json`),</span>
+<span class="dl-add">+ * so nothing that grew to expect that path notices the generalization.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function preambleFileName(toolId) {</span>
+<span class="dl-add">+  return `preamble-${toolId}.txt`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function settingsFileName(toolId) {</span>
+<span class="dl-add">+  return `${toolId}-settings.json`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function runtimeRelPath(name) {</span>
+<span class="dl-add">+  return `${FRAME_DIR}/${RUNTIME_DIR}/${name}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -506,11 +526,27 @@ function safeGlobalPath() {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function writeRuntimeFile(projectPath, name, content) {</span>
+<span class="dl-del">-  const dir = runtimeDir(projectPath);</span>
+<span class="dl-del">-  fs.mkdirSync(dir, { recursive: true });</span>
+<span class="dl-del">-  const target = path.join(dir, name);</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Write only when the content differs.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * These files are regenerated on every project open as well as every launch,</span>
+<span class="dl-add">+ * and an unconditional write would touch mtimes — and wake the watchers that</span>
+<span class="dl-add">+ * hang off `.frame/` — on each one. Same reasoning, same shape as</span>
+<span class="dl-add">+ * `commandStaging.copyIfChanged`.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeIfChanged(target, content, mode) {</span>
+<span class="dl-add">+  let existing = null;</span>
+<span class="dl-add">+  try { existing = fs.readFileSync(target, &#39;utf8&#39;); } catch (_) { /* new file */ }</span>
+<span class="dl-add">+  if (existing === content) return false;</span>
+<span class="dl-add">+  fs.mkdirSync(path.dirname(target), { recursive: true });</span>
+<span class="dl-ctx">   fs.writeFileSync(target, content, &#39;utf8&#39;);</span>
+<span class="dl-add">+  if (mode) fs.chmodSync(target, mode);</span>
+<span class="dl-add">+  return true;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function writeRuntimeFile(projectPath, name, content) {</span>
+<span class="dl-add">+  const target = path.join(runtimeDir(projectPath), name);</span>
+<span class="dl-add">+  writeIfChanged(target, content);</span>
+<span class="dl-ctx">   return target;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -522,36 +558,94 @@ function writeRuntimeFile(projectPath, name, content) {</span>
+<span class="dl-ctx">  * stop passing the flag and the hooks are gone, with nothing left behind in</span>
+<span class="dl-ctx">  * the repo to clean up.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function writeClaudeSettings(projectPath) {</span>
+<span class="dl-add">+function writeToolSettings(projectPath, tool) {</span>
+<span class="dl-ctx">   return writeRuntimeFile(</span>
+<span class="dl-ctx">     projectPath,</span>
+<span class="dl-del">-    CLAUDE_SETTINGS_FILE,</span>
+<span class="dl-add">+    settingsFileName(tool.id),</span>
+<span class="dl-ctx">     JSON.stringify(templates.getSpecHintSettings(), null, 2) + &#39;\n&#39;</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-del">- * Regenerate `.frame/bin/&lt;id&gt;` for a wrapper tool, alongside the preamble file</span>
+<span class="dl-del">- * it reads. Rewritten per launch so the preamble is never one session stale.</span>
+<span class="dl-add">+ * Regenerate `.frame/bin/&lt;id&gt;` for a tool.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Written for **every** tool since `terminal-context-boundary`, not only the</span>
+<span class="dl-add">+ * ones with no prompt flag. With `.frame/bin` first on the terminal&#39;s `PATH`,</span>
+<span class="dl-add">+ * a hand-typed `claude` has to find something there or the boundary is only</span>
+<span class="dl-add">+ * enforced for the tools Frame happened to wrap; and a dispatch that composed</span>
+<span class="dl-add">+ * flags itself would then inject them a second time on top of the wrapper&#39;s.</span>
+<span class="dl-add">+ * One path, not two guarded ones — which is why `injection` is now data the</span>
+<span class="dl-add">+ * wrapper reads rather than a switch between two mechanisms.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function writeWrapper(projectPath, tool, preamble) {</span>
+<span class="dl-del">-  const binDir = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR);</span>
+<span class="dl-del">-  fs.mkdirSync(binDir, { recursive: true });</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-  const target = path.join(binDir, tool.id);</span>
+<span class="dl-del">-  const realCommand = tool.fallbackCommand || tool.id;</span>
+<span class="dl-del">-  fs.writeFileSync(</span>
+<span class="dl-add">+function writeWrapper(projectPath, tool) {</span>
+<span class="dl-add">+  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id);</span>
+<span class="dl-add">+  const realCommand = tool.fallbackCommand || tool.command || tool.id;</span>
+<span class="dl-add">+  const injection = tool.injection || {};</span>
+<span class="dl-add">+  writeIfChanged(</span>
+<span class="dl-ctx">     target,</span>
+<span class="dl-ctx">     templates.getWrapperTemplate(realCommand, {</span>
+<span class="dl-del">-      promptFlag: tool.injection.promptFlag || &#39;&#39;,</span>
+<span class="dl-del">-      preambleFile: preambleRelPath()</span>
+<span class="dl-add">+      promptFlag: injection.promptFlag || &#39;&#39;,</span>
+<span class="dl-add">+      settingsFlag: injection.settingsFlag || &#39;&#39;,</span>
+<span class="dl-add">+      preambleFile: runtimeRelPath(preambleFileName(tool.id)),</span>
+<span class="dl-add">+      settingsFile: runtimeRelPath(settingsFileName(tool.id))</span>
+<span class="dl-ctx">     }),</span>
+<span class="dl-del">-    { mode: 0o755 }</span>
+<span class="dl-add">+    0o755</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-del">-  writeRuntimeFile(projectPath, PREAMBLE_FILE, preamble);</span>
+<span class="dl-ctx">   return target;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Everything a launch of `tool` reads: its preamble, its settings file when it</span>
+<span class="dl-add">+ * declares one, and its wrapper. Returns the composed preamble so a caller</span>
+<span class="dl-add">+ * that still injects inline (a platform with no wrappers) can use it.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function prepareLaunchAssets(projectPath, tool) {</span>
+<span class="dl-add">+  let preamble = &#39;&#39;;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    preamble = buildPreamble(projectPath, tool.id);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, &#39;preamble composition failed (launching without it):&#39;, err.message);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  let settingsPath = &#39;&#39;;</span>
+<span class="dl-add">+  if (preamble) writeRuntimeFile(projectPath, preambleFileName(tool.id), preamble);</span>
+<span class="dl-add">+  if (tool.injection &amp;&amp; tool.injection.settingsFlag) {</span>
+<span class="dl-add">+    settingsPath = writeToolSettings(projectPath, tool);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : &#39;&#39;;</span>
+<span class="dl-add">+  return { preamble, settingsPath, wrapperPath };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Regenerate every configured tool&#39;s launch assets for a project.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Called on project open, beside `gitSharing.ensureOnOpen`. Generation used to</span>
+<span class="dl-add">+ * happen only when Frame launched a given tool, which is exactly why a wrapper</span>
+<span class="dl-add">+ * written by a Frame from three months ago could still be sitting in</span>
+<span class="dl-add">+ * `.frame/bin/` — unreachable then, shadowing the real CLI the moment</span>
+<span class="dl-add">+ * `.frame/bin` joined `PATH`. Refreshing on open makes a stale wrapper</span>
+<span class="dl-add">+ * impossible rather than unlikely.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Non-fatal per tool: a read-only checkout costs the user their context, never</span>
+<span class="dl-add">+ * their project.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function refreshLaunchAssets(projectPath) {</span>
+<span class="dl-add">+  const written = [];</span>
+<span class="dl-add">+  if (!projectPath) return { written };</span>
+<span class="dl-add">+  if (!fs.existsSync(path.join(projectPath, FRAME_DIR))) return { written };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const tool of Object.values(getAvailableTools())) {</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      prepareLaunchAssets(projectPath, tool);</span>
+<span class="dl-add">+      written.push(tool.id);</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      logger.warn(&#39;aiToolManager&#39;, `launch asset refresh failed for &quot;${tool.id}&quot;:`, err.message);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return { written };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * The command a lane should actually type, with Frame&#39;s context attached.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -579,28 +673,23 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  let preamble = &#39;&#39;;</span>
+<span class="dl-del">-  try {</span>
+<span class="dl-del">-    preamble = buildPreamble(projectPath, tool.id);</span>
+<span class="dl-del">-  } catch (err) {</span>
+<span class="dl-del">-    logger.warn(&#39;aiToolManager&#39;, &#39;preamble composition failed (launching without it):&#39;, err.message);</span>
+<span class="dl-del">-  }</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx">   const injection = (tool.injection &amp;&amp; tool.injection.type) || INJECTION_WRAPPER;</span>
+<span class="dl-ctx">   const flags = [];</span>
+<span class="dl-ctx">   let command = tool.command;</span>
+<span class="dl-add">+  let preamble = &#39;&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-add">+    const assets = prepareLaunchAssets(projectPath, tool);</span>
+<span class="dl-add">+    preamble = assets.preamble;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     if (!preamble) {</span>
+<span class="dl-ctx">       // Nothing to inject — launch bare rather than pass an empty prompt.</span>
+<span class="dl-ctx">       command = tool.fallbackCommand &amp;&amp; injection === INJECTION_WRAPPER ? tool.fallbackCommand : tool.command;</span>
+<span class="dl-ctx">     } else if (injection === INJECTION_FLAG) {</span>
+<span class="dl-ctx">       flags.push(tool.injection.promptFlag, preamble);</span>
+<span class="dl-del">-      if (tool.injection.settingsFlag) {</span>
+<span class="dl-del">-        flags.push(tool.injection.settingsFlag, writeClaudeSettings(projectPath));</span>
+<span class="dl-add">+      if (assets.settingsPath) {</span>
+<span class="dl-add">+        flags.push(tool.injection.settingsFlag, assets.settingsPath);</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-del">-    } else {</span>
+<span class="dl-del">-      writeWrapper(projectPath, tool, preamble);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   } catch (err) {</span>
+<span class="dl-ctx">     // A read-only or full disk must not cost the user their agent; drop the</span>
+<span class="dl-hunk">@@ -632,6 +721,7 @@ module.exports = {</span>
+<span class="dl-ctx">   getCommand,</span>
+<span class="dl-ctx">   getStartCommand,</span>
+<span class="dl-ctx">   getLaunchCommand,</span>
+<span class="dl-add">+  refreshLaunchAssets,</span>
+<span class="dl-ctx">   composeLaunchCommand,</span>
+<span class="dl-ctx">   addCustomTool,</span>
+<span class="dl-ctx">   removeCustomTool,</span></pre>
     </details>
   </div>
 </section>

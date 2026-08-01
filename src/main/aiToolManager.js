@@ -32,6 +32,7 @@ const contextPreamble = require('../shared/contextPreamble');
 const frameStore = require('./frameStore');
 const globalLayer = require('./globalLayer');
 const instructionDiscovery = require('./instructionDiscovery');
+const launchEnv = require('./launchEnv');
 
 let mainWindow = null;
 let configPath = null;
@@ -465,15 +466,34 @@ function getStartCommand() {
 // ─── Launch-time context injection ────────────────────────────
 
 const RUNTIME_DIR = 'runtime';
-const PREAMBLE_FILE = 'preamble.txt';
-const CLAUDE_SETTINGS_FILE = 'claude-settings.json';
 
 function runtimeDir(projectPath) {
   return path.join(projectPath, FRAME_DIR, RUNTIME_DIR);
 }
 
-function preambleRelPath() {
-  return `${FRAME_DIR}/${RUNTIME_DIR}/${PREAMBLE_FILE}`;
+/**
+ * Runtime files are named per tool, not shared.
+ *
+ * The preamble differs by tool — a native reader is only pointed at Frame's
+ * layers, a tool without that convention is told to read the repo's file too
+ * — so one `preamble.txt` meant whichever tool launched last decided what the
+ * next one read. Harmless while Frame composed every launch; not harmless now
+ * that any tool can be typed by hand at any moment, with no launch to
+ * rewrite the file first.
+ *
+ * `claude` keeps the settings name it already had (`claude-settings.json`),
+ * so nothing that grew to expect that path notices the generalization.
+ */
+function preambleFileName(toolId) {
+  return `preamble-${toolId}.txt`;
+}
+
+function settingsFileName(toolId) {
+  return `${toolId}-settings.json`;
+}
+
+function runtimeRelPath(name) {
+  return `${FRAME_DIR}/${RUNTIME_DIR}/${name}`;
 }
 
 /**
@@ -506,11 +526,27 @@ function safeGlobalPath() {
   }
 }
 
-function writeRuntimeFile(projectPath, name, content) {
-  const dir = runtimeDir(projectPath);
-  fs.mkdirSync(dir, { recursive: true });
-  const target = path.join(dir, name);
+/**
+ * Write only when the content differs.
+ *
+ * These files are regenerated on every project open as well as every launch,
+ * and an unconditional write would touch mtimes — and wake the watchers that
+ * hang off `.frame/` — on each one. Same reasoning, same shape as
+ * `commandStaging.copyIfChanged`.
+ */
+function writeIfChanged(target, content, mode) {
+  let existing = null;
+  try { existing = fs.readFileSync(target, 'utf8'); } catch (_) { /* new file */ }
+  if (existing === content) return false;
+  fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, content, 'utf8');
+  if (mode) fs.chmodSync(target, mode);
+  return true;
+}
+
+function writeRuntimeFile(projectPath, name, content) {
+  const target = path.join(runtimeDir(projectPath), name);
+  writeIfChanged(target, content);
   return target;
 }
 
@@ -522,34 +558,92 @@ function writeRuntimeFile(projectPath, name, content) {
  * stop passing the flag and the hooks are gone, with nothing left behind in
  * the repo to clean up.
  */
-function writeClaudeSettings(projectPath) {
+function writeToolSettings(projectPath, tool) {
   return writeRuntimeFile(
     projectPath,
-    CLAUDE_SETTINGS_FILE,
+    settingsFileName(tool.id),
     JSON.stringify(templates.getSpecHintSettings(), null, 2) + '\n'
   );
 }
 
 /**
- * Regenerate `.frame/bin/<id>` for a wrapper tool, alongside the preamble file
- * it reads. Rewritten per launch so the preamble is never one session stale.
+ * Regenerate `.frame/bin/<id>` for a tool.
+ *
+ * Written for **every** tool since `terminal-context-boundary`, not only the
+ * ones with no prompt flag. With `.frame/bin` first on the terminal's `PATH`,
+ * a hand-typed `claude` has to find something there or the boundary is only
+ * enforced for the tools Frame happened to wrap; and a dispatch that composed
+ * flags itself would then inject them a second time on top of the wrapper's.
+ * One path, not two guarded ones — which is why `injection` is now data the
+ * wrapper reads rather than a switch between two mechanisms.
  */
-function writeWrapper(projectPath, tool, preamble) {
-  const binDir = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR);
-  fs.mkdirSync(binDir, { recursive: true });
-
-  const target = path.join(binDir, tool.id);
-  const realCommand = tool.fallbackCommand || tool.id;
-  fs.writeFileSync(
+function writeWrapper(projectPath, tool) {
+  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id);
+  const realCommand = tool.fallbackCommand || tool.command || tool.id;
+  const injection = tool.injection || {};
+  writeIfChanged(
     target,
     templates.getWrapperTemplate(realCommand, {
-      promptFlag: tool.injection.promptFlag || '',
-      preambleFile: preambleRelPath()
+      promptFlag: injection.promptFlag || '',
+      settingsFlag: injection.settingsFlag || '',
+      preambleFile: runtimeRelPath(preambleFileName(tool.id)),
+      settingsFile: runtimeRelPath(settingsFileName(tool.id))
     }),
-    { mode: 0o755 }
+    0o755
   );
-  writeRuntimeFile(projectPath, PREAMBLE_FILE, preamble);
   return target;
+}
+
+/**
+ * Everything a launch of `tool` reads: its preamble, its settings file when it
+ * declares one, and its wrapper. Returns the composed preamble so a caller
+ * that still injects inline (a platform with no wrappers) can use it.
+ */
+function prepareLaunchAssets(projectPath, tool) {
+  let preamble = '';
+  try {
+    preamble = buildPreamble(projectPath, tool.id);
+  } catch (err) {
+    logger.warn('aiToolManager', 'preamble composition failed (launching without it):', err.message);
+  }
+
+  let settingsPath = '';
+  if (preamble) writeRuntimeFile(projectPath, preambleFileName(tool.id), preamble);
+  if (tool.injection && tool.injection.settingsFlag) {
+    settingsPath = writeToolSettings(projectPath, tool);
+  }
+
+  const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : '';
+  return { preamble, settingsPath, wrapperPath };
+}
+
+/**
+ * Regenerate every configured tool's launch assets for a project.
+ *
+ * Called on project open, beside `gitSharing.ensureOnOpen`. Generation used to
+ * happen only when Frame launched a given tool, which is exactly why a wrapper
+ * written by a Frame from three months ago could still be sitting in
+ * `.frame/bin/` — unreachable then, shadowing the real CLI the moment
+ * `.frame/bin` joined `PATH`. Refreshing on open makes a stale wrapper
+ * impossible rather than unlikely.
+ *
+ * Non-fatal per tool: a read-only checkout costs the user their context, never
+ * their project.
+ */
+function refreshLaunchAssets(projectPath) {
+  const written = [];
+  if (!projectPath) return { written };
+  if (!fs.existsSync(path.join(projectPath, FRAME_DIR))) return { written };
+
+  for (const tool of Object.values(getAvailableTools())) {
+    try {
+      prepareLaunchAssets(projectPath, tool);
+      written.push(tool.id);
+    } catch (err) {
+      logger.warn('aiToolManager', `launch asset refresh failed for "${tool.id}":`, err.message);
+    }
+  }
+  return { written };
 }
 
 /**
@@ -579,28 +673,23 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {
     };
   }
 
-  let preamble = '';
-  try {
-    preamble = buildPreamble(projectPath, tool.id);
-  } catch (err) {
-    logger.warn('aiToolManager', 'preamble composition failed (launching without it):', err.message);
-  }
-
   const injection = (tool.injection && tool.injection.type) || INJECTION_WRAPPER;
   const flags = [];
   let command = tool.command;
+  let preamble = '';
 
   try {
+    const assets = prepareLaunchAssets(projectPath, tool);
+    preamble = assets.preamble;
+
     if (!preamble) {
       // Nothing to inject — launch bare rather than pass an empty prompt.
       command = tool.fallbackCommand && injection === INJECTION_WRAPPER ? tool.fallbackCommand : tool.command;
     } else if (injection === INJECTION_FLAG) {
       flags.push(tool.injection.promptFlag, preamble);
-      if (tool.injection.settingsFlag) {
-        flags.push(tool.injection.settingsFlag, writeClaudeSettings(projectPath));
+      if (assets.settingsPath) {
+        flags.push(tool.injection.settingsFlag, assets.settingsPath);
       }
-    } else {
-      writeWrapper(projectPath, tool, preamble);
     }
   } catch (err) {
     // A read-only or full disk must not cost the user their agent; drop the
@@ -632,6 +721,7 @@ module.exports = {
   getCommand,
   getStartCommand,
   getLaunchCommand,
+  refreshLaunchAssets,
   composeLaunchCommand,
   addCustomTool,
   removeCustomTool,

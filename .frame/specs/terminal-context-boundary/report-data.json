@@ -51,6 +51,18 @@
         "status": "pass",
         "detail": "441/441 pass (6 new)"
       }
+    },
+    {
+      "id": "T05",
+      "title": "Write launch assets for every tool and expose `refreshLaunchAssets(projectPath)`",
+      "commit": "e244396",
+      "whatChanged": "aiToolManager now writes a wrapper for every configured tool (Claude included, custom tools included) behind launchEnv.supportsWrappers(), alongside a per-tool preamble file and, for a tool declaring settingsFlag, its settings file. New writeIfChanged skips identical content; new prepareLaunchAssets(projectPath, tool) is the single writer; new refreshLaunchAssets(projectPath) walks every tool and is non-fatal per tool. getLaunchCommand now goes through prepareLaunchAssets and keeps composing flags as before — T07 changes what it returns.",
+      "whyChanged": "Deviation from plan.md: the preamble is now `.frame/runtime/preamble-<tool>.txt`, not the single preamble.txt. The preamble differs by tool (a native reader gets different text), so one shared file meant whichever tool launched last decided what the next one read — tolerable while Frame composed every launch, wrong now that a tool can be hand-typed with no launch to rewrite the file first. Settings files follow the same rule, and `claude-settings.json` is what `${id}-settings.json` produces for Claude, so no existing path moved.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass; refreshLaunchAssets exercised against a temp project — 3 wrappers at 0755, 3 per-tool preambles, no rewrite on a second open"
+      }
     }
   ]
 }

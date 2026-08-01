@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:35:09.199Z",
+  "lastUpdated": "2026-08-01T08:38:47.633Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4730,13 +4730,13 @@
       "title": "Make `aiToolManager` write the wrapper, preamble and settings file for every configured tool including flag-tools behind `supportsWrappers()`, and expose `refreshLaunchAssets(projectPath)` that rewrites only when content differs.",
       "description": "",
       "source": "spec:terminal-context-boundary:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:38:47.633Z",
+      "completedAt": "2026-08-01T08:38:47.633Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T06",

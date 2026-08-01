@@ -154,6 +154,7 @@
         "getCommand",
         "getStartCommand",
         "getLaunchCommand",
+        "refreshLaunchAssets",
         "composeLaunchCommand",
         "addCustomTool",
         "removeCustomTool",
@@ -174,7 +175,8 @@
         "shared/contextPreamble",
         "frameStore",
         "globalLayer",
-        "instructionDiscovery"
+        "instructionDiscovery",
+        "launchEnv"
       ],
       "functions": {
         "loginShell": {
@@ -182,7 +184,7 @@
           "purpose": "The user's real login shell. In a GUI-launched (packaged) app, process.env.SHELL"
         },
         "init": {
-          "line": 126,
+          "line": 127,
           "params": [
             "window",
             "app"
@@ -190,72 +192,72 @@
           "purpose": "Initialize the AI Tool Manager"
         },
         "detectDefaultTool": {
-          "line": 140,
+          "line": 141,
           "purpose": "First run only: default the active tool to a CLI that is actually"
         },
         "loadConfig": {
-          "line": 156,
+          "line": 157,
           "purpose": "Load configuration from file"
         },
         "saveConfig": {
-          "line": 183,
+          "line": 184,
           "purpose": "Save configuration to file"
         },
         "getAvailableTools": {
-          "line": 194,
+          "line": 195,
           "purpose": "Get all available AI tools"
         },
         "getActiveTool": {
-          "line": 201,
+          "line": 202,
           "purpose": "Get the currently active tool"
         },
         "setActiveTool": {
-          "line": 209,
+          "line": 210,
           "params": [
             "toolId"
           ],
           "purpose": "Set the active AI tool"
         },
         "getConfig": {
-          "line": 229,
+          "line": 230,
           "purpose": "Get full configuration for renderer"
         },
         "addCustomTool": {
-          "line": 239,
+          "line": 240,
           "params": [
             "tool"
           ],
           "purpose": "Add a custom AI tool"
         },
         "removeCustomTool": {
-          "line": 256,
+          "line": 257,
           "params": [
             "toolId"
           ],
           "purpose": "Remove a custom AI tool"
         },
         "quoteArg": {
-          "line": 276,
+          "line": 277,
           "params": [
             "arg"
           ],
           "purpose": "Compose the command line a lane actually types: the resolved CLI plus any"
         },
         "composeLaunchCommand": {
-          "line": 284,
+          "line": 285,
           "params": [
             "command",
             "launchFlags"
           ]
         },
         "isPathLike": {
-          "line": 289,
+          "line": 290,
           "params": [
             "command"
           ]
         },
         "isCommandAvailable": {
-          "line": 307,
+          "line": 308,
           "params": [
             "command",
             "projectPath"
@@ -263,37 +265,53 @@
           "purpose": "Check whether a CLI command can actually be launched on this system."
         },
         "trackProbeFailure": {
-          "line": 373,
+          "line": 374,
           "params": [
             "reason"
           ]
         },
         "setupIPC": {
-          "line": 381,
+          "line": 382,
           "purpose": "Setup IPC handlers"
         },
         "getCommand": {
-          "line": 453,
+          "line": 454,
           "params": [
             "action"
           ],
           "purpose": "Get command for specific action"
         },
         "getStartCommand": {
-          "line": 461,
+          "line": 462,
           "purpose": "Get the start command for active tool"
         },
         "runtimeDir": {
-          "line": 471,
+          "line": 470,
           "params": [
             "projectPath"
           ]
         },
-        "preambleRelPath": {
-          "line": 475
+        "preambleFileName": {
+          "line": 487,
+          "params": [
+            "toolId"
+          ],
+          "purpose": "Runtime files are named per tool, not shared."
+        },
+        "settingsFileName": {
+          "line": 491,
+          "params": [
+            "toolId"
+          ]
+        },
+        "runtimeRelPath": {
+          "line": 495,
+          "params": [
+            "name"
+          ]
         },
         "buildPreamble": {
-          "line": 487,
+          "line": 507,
           "params": [
             "projectPath",
             "toolId"
@@ -301,34 +319,58 @@
           "purpose": "Build the preamble for this project and tool."
         },
         "safeGlobalPath": {
-          "line": 501
+          "line": 521
+        },
+        "writeIfChanged": {
+          "line": 537,
+          "params": [
+            "target",
+            "content",
+            "mode"
+          ],
+          "purpose": "Write only when the content differs."
         },
         "writeRuntimeFile": {
-          "line": 509,
+          "line": 547,
           "params": [
             "projectPath",
             "name",
             "content"
           ]
         },
-        "writeClaudeSettings": {
-          "line": 525,
+        "writeToolSettings": {
+          "line": 561,
           "params": [
-            "projectPath"
+            "projectPath",
+            "tool"
           ],
           "purpose": "The spec-hint hooks, as a settings file inside Frame's own footprint."
         },
         "writeWrapper": {
-          "line": 537,
+          "line": 580,
           "params": [
             "projectPath",
-            "tool",
-            "preamble"
+            "tool"
           ],
-          "purpose": "Regenerate `.frame/bin/<id>` for a wrapper tool, alongside the preamble file"
+          "purpose": "Regenerate `.frame/bin/<id>` for a tool."
+        },
+        "prepareLaunchAssets": {
+          "line": 602,
+          "params": [
+            "projectPath",
+            "tool"
+          ],
+          "purpose": "Everything a launch of `tool` reads: its preamble, its settings file when it"
+        },
+        "refreshLaunchAssets": {
+          "line": 633,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Regenerate every configured tool's launch assets for a project."
         },
         "getLaunchCommand": {
-          "line": 567,
+          "line": 661,
           "params": [
             "projectPath",
             "toolId",
