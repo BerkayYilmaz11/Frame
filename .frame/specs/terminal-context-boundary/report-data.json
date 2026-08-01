@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "441/441 pass; all three tools verified to compose ./.frame/bin/<id> with a dispatch's extra flags appended"
       }
+    },
+    {
+      "id": "T08",
+      "title": "One `--settings`: merge the dispatch's payload instead of passing it twice",
+      "commit": "7818eb2",
+      "whatChanged": "getLaunchCommand splits `--settings <value>` pairs out of extraFlags (takeSettingsFlags) and merges each payload into the settings file it writes for the tool (mergeSettings + readSettingsSource, which accepts a path or inline JSON). The remaining flags — `--permission-mode auto` — are appended as before, so an autonomous implement launch now carries exactly one --settings and the spec-hint hooks survive it.",
+      "whyChanged": "Merging where the file is written keeps hooks Claude-only for free: only a tool declaring settingsFlag ever reaches that code. Arrays concatenate rather than replace, since two hook lists are both wanted. An unreadable payload merges nothing and logs, rather than failing the launch — losing permissions costs the run, losing the launch costs the session. Verified that a launch without extra flags rewrites the file back to hooks-only, so permissions never leak into the next session.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass; merge verified against a real implement-permissions.json, inline JSON, and a settingsFlag-less tool (pair left untouched)"
+      }
     }
   ]
 }

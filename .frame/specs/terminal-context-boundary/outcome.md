@@ -54,3 +54,11 @@ _Captured: 2026-08-01 · 1 file change_
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T08 — One `--settings`
+
+`getLaunchCommand` now pulls `--settings <value>` pairs out of `extraFlags` and merges each payload into the file it writes for the tool (`takeSettingsFlags`, `mergeSettings`, `readSettingsSource` — path or inline JSON), leaving `--permission-mode auto` to ride along. An autonomous implement launch therefore passes the flag once and keeps the spec-hint hooks. Merging at the write point keeps hooks Claude-only for free, since only a tool declaring `settingsFlag` reaches it; arrays concatenate so two hook lists are both kept; an unreadable payload merges nothing and logs rather than failing the launch. A later launch without extra flags rewrites the file back to hooks-only, so permissions never outlive their run.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---

@@ -569,12 +569,80 @@ function writeRuntimeFile(projectPath, name, content) {
  * stop passing the flag and the hooks are gone, with nothing left behind in
  * the repo to clean up.
  */
-function writeToolSettings(projectPath, tool) {
+function writeToolSettings(projectPath, tool, extraSettings) {
+  let payload = templates.getSpecHintSettings();
+  for (const source of extraSettings || []) {
+    payload = mergeSettings(payload, readSettingsSource(source));
+  }
   return writeRuntimeFile(
     projectPath,
     settingsFileName(tool.id),
-    JSON.stringify(templates.getSpecHintSettings(), null, 2) + '\n'
+    JSON.stringify(payload, null, 2) + '\n'
   );
+}
+
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Deep-merge a settings payload. Objects merge key by key, arrays concatenate
+ * (two hook lists are both wanted, not one instead of the other), scalars take
+ * the incoming value.
+ */
+function mergeSettings(base, incoming) {
+  if (!isPlainObject(incoming)) return base;
+  const out = { ...base };
+  for (const [key, value] of Object.entries(incoming)) {
+    if (Array.isArray(value) && Array.isArray(out[key])) out[key] = [...out[key], ...value];
+    else if (isPlainObject(value) && isPlainObject(out[key])) out[key] = mergeSettings(out[key], value);
+    else out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * A `--settings` value is either a path or inline JSON — the CLI takes both,
+ * so both are read here. An unreadable one merges nothing rather than failing
+ * the launch: losing a payload costs the run its permissions, losing the
+ * launch costs the user the session.
+ */
+function readSettingsSource(source) {
+  if (!source) return null;
+  const text = String(source).trim();
+  if (text.startsWith('{')) {
+    try { return JSON.parse(text); } catch (_) { return null; }
+  }
+  try { return JSON.parse(fs.readFileSync(text, 'utf8')); } catch (err) {
+    logger.warn('aiToolManager', `settings payload at ${text} could not be merged:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Split a dispatch's extra flags into the `--settings` payloads to merge and
+ * everything else.
+ *
+ * The autonomous implement launch passes its permissions this way, and the
+ * wrapper (or the inline composition, off-POSIX) already passes Frame's own
+ * settings file. Two `--settings` on one command line means the last one wins
+ * and the spec-hint hooks vanish for exactly the runs nobody is watching —
+ * so the payload is merged into the file Frame writes and the duplicate pair
+ * is dropped.
+ */
+function takeSettingsFlags(extra, settingsFlag) {
+  const rest = [];
+  const payloads = [];
+  if (!settingsFlag) return { rest: [...extra], payloads };
+  for (let i = 0; i < extra.length; i += 1) {
+    if (extra[i] === settingsFlag && i + 1 < extra.length) {
+      payloads.push(extra[i + 1]);
+      i += 1;
+      continue;
+    }
+    rest.push(extra[i]);
+  }
+  return { rest, payloads };
 }
 
 /**
@@ -610,7 +678,7 @@ function writeWrapper(projectPath, tool) {
  * declares one, and its wrapper. Returns the composed preamble so a caller
  * that still injects inline (a platform with no wrappers) can use it.
  */
-function prepareLaunchAssets(projectPath, tool) {
+function prepareLaunchAssets(projectPath, tool, extraSettings) {
   let preamble = '';
   try {
     preamble = buildPreamble(projectPath, tool.id);
@@ -621,7 +689,7 @@ function prepareLaunchAssets(projectPath, tool) {
   let settingsPath = '';
   if (preamble) writeRuntimeFile(projectPath, preambleFileName(tool.id), preamble);
   if (tool.injection && tool.injection.settingsFlag) {
-    settingsPath = writeToolSettings(projectPath, tool);
+    settingsPath = writeToolSettings(projectPath, tool, extraSettings);
   }
 
   const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : '';
@@ -716,10 +784,17 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {
   let injection = 'none';
   let preamble = '';
 
+  // A caller's own `--settings` is merged into the file Frame writes, not
+  // passed a second time; `remaining` is what is left to append verbatim.
+  const { rest: remaining, payloads } = takeSettingsFlags(
+    extra,
+    (tool.injection && tool.injection.settingsFlag) || ''
+  );
+
   try {
     // Written immediately before the command is composed, so a dispatched
     // launch is never staler than a hand-typed one.
-    const assets = prepareLaunchAssets(projectPath, tool);
+    const assets = prepareLaunchAssets(projectPath, tool, payloads);
     preamble = assets.preamble;
 
     const viaWrapper = wrapperLaunchCommand(projectPath, tool);
@@ -749,7 +824,7 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {
     };
   }
 
-  const launchFlags = [...flags, ...extra];
+  const launchFlags = [...flags, ...remaining];
   return {
     command,
     launchFlags,

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:43:15.494Z",
+  "lastUpdated": "2026-08-01T08:45:48.682Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4769,13 +4769,13 @@
       "title": "Merge a `--settings <path>` pair found in `extraFlags` into the settings payload `aiToolManager` writes and drop the duplicate pair, so an autonomous implement launch passes the flag once and the spec-hint hooks survive.",
       "description": "",
       "source": "spec:terminal-context-boundary:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:45:48.682Z",
+      "completedAt": "2026-08-01T08:45:48.682Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T09",

@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">7 of 12 tasks done · next: <span class="rs-task">T08 — Merge a `--settings &lt;path&gt;` pair found in `extraFlags` into the…</span></span>
+  <span class="rs-count">8 of 12 tasks done · next: <span class="rs-task">T09 — Compose the spawn env in `src/main/pty.js` and `src/main/ptyManager.js`…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1178,6 +1178,156 @@
 <span class="dl-ctx">   };</span>
 <span class="dl-ctx"> }</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>One `--settings`: merge the dispatch&#39;s payload instead of passing it twice</h2>
+    <span class="card-meta"><span class="chip">7818eb2</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass; merge verified against a real implement-permissions.json, inline JSON, and a settingsFlag-less tool (pair left untouched)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getLaunchCommand splits `--settings &lt;value&gt;` pairs out of extraFlags (takeSettingsFlags) and merges each payload into the settings file it writes for the tool (mergeSettings + readSettingsSource, which accepts a path or inline JSON). The remaining flags — `--permission-mode auto` — are appended as before, so an autonomous implement launch now carries exactly one --settings and the spec-hint hooks survive it.</p></div>
+    <div class="field"><span class="label">Why</span><p>Merging where the file is written keeps hooks Claude-only for free: only a tool declaring settingsFlag ever reaches that code. Arrays concatenate rather than replace, since two hook lists are both wanted. An unreadable payload merges nothing and logs, rather than failing the launch — losing permissions costs the run, losing the launch costs the session. Verified that a launch without extra flags rewrites the file back to hooks-only, so permissions never leak into the next session.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index db4af06..c6af631 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -569,14 +569,82 @@ function writeRuntimeFile(projectPath, name, content) {</span>
+<span class="dl-ctx">  * stop passing the flag and the hooks are gone, with nothing left behind in</span>
+<span class="dl-ctx">  * the repo to clean up.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function writeToolSettings(projectPath, tool) {</span>
+<span class="dl-add">+function writeToolSettings(projectPath, tool, extraSettings) {</span>
+<span class="dl-add">+  let payload = templates.getSpecHintSettings();</span>
+<span class="dl-add">+  for (const source of extraSettings || []) {</span>
+<span class="dl-add">+    payload = mergeSettings(payload, readSettingsSource(source));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-ctx">   return writeRuntimeFile(</span>
+<span class="dl-ctx">     projectPath,</span>
+<span class="dl-ctx">     settingsFileName(tool.id),</span>
+<span class="dl-del">-    JSON.stringify(templates.getSpecHintSettings(), null, 2) + &#39;\n&#39;</span>
+<span class="dl-add">+    JSON.stringify(payload, null, 2) + &#39;\n&#39;</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+function isPlainObject(value) {</span>
+<span class="dl-add">+  return !!value &amp;&amp; typeof value === &#39;object&#39; &amp;&amp; !Array.isArray(value);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Deep-merge a settings payload. Objects merge key by key, arrays concatenate</span>
+<span class="dl-add">+ * (two hook lists are both wanted, not one instead of the other), scalars take</span>
+<span class="dl-add">+ * the incoming value.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function mergeSettings(base, incoming) {</span>
+<span class="dl-add">+  if (!isPlainObject(incoming)) return base;</span>
+<span class="dl-add">+  const out = { ...base };</span>
+<span class="dl-add">+  for (const [key, value] of Object.entries(incoming)) {</span>
+<span class="dl-add">+    if (Array.isArray(value) &amp;&amp; Array.isArray(out[key])) out[key] = [...out[key], ...value];</span>
+<span class="dl-add">+    else if (isPlainObject(value) &amp;&amp; isPlainObject(out[key])) out[key] = mergeSettings(out[key], value);</span>
+<span class="dl-add">+    else out[key] = value;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return out;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * A `--settings` value is either a path or inline JSON — the CLI takes both,</span>
+<span class="dl-add">+ * so both are read here. An unreadable one merges nothing rather than failing</span>
+<span class="dl-add">+ * the launch: losing a payload costs the run its permissions, losing the</span>
+<span class="dl-add">+ * launch costs the user the session.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function readSettingsSource(source) {</span>
+<span class="dl-add">+  if (!source) return null;</span>
+<span class="dl-add">+  const text = String(source).trim();</span>
+<span class="dl-add">+  if (text.startsWith(&#39;{&#39;)) {</span>
+<span class="dl-add">+    try { return JSON.parse(text); } catch (_) { return null; }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  try { return JSON.parse(fs.readFileSync(text, &#39;utf8&#39;)); } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, `settings payload at ${text} could not be merged:`, err.message);</span>
+<span class="dl-add">+    return null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Split a dispatch&#39;s extra flags into the `--settings` payloads to merge and</span>
+<span class="dl-add">+ * everything else.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The autonomous implement launch passes its permissions this way, and the</span>
+<span class="dl-add">+ * wrapper (or the inline composition, off-POSIX) already passes Frame&#39;s own</span>
+<span class="dl-add">+ * settings file. Two `--settings` on one command line means the last one wins</span>
+<span class="dl-add">+ * and the spec-hint hooks vanish for exactly the runs nobody is watching —</span>
+<span class="dl-add">+ * so the payload is merged into the file Frame writes and the duplicate pair</span>
+<span class="dl-add">+ * is dropped.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function takeSettingsFlags(extra, settingsFlag) {</span>
+<span class="dl-add">+  const rest = [];</span>
+<span class="dl-add">+  const payloads = [];</span>
+<span class="dl-add">+  if (!settingsFlag) return { rest: [...extra], payloads };</span>
+<span class="dl-add">+  for (let i = 0; i &lt; extra.length; i += 1) {</span>
+<span class="dl-add">+    if (extra[i] === settingsFlag &amp;&amp; i + 1 &lt; extra.length) {</span>
+<span class="dl-add">+      payloads.push(extra[i + 1]);</span>
+<span class="dl-add">+      i += 1;</span>
+<span class="dl-add">+      continue;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+    rest.push(extra[i]);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return { rest, payloads };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Regenerate `.frame/bin/&lt;id&gt;` for a tool.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -610,7 +678,7 @@ function writeWrapper(projectPath, tool) {</span>
+<span class="dl-ctx">  * declares one, and its wrapper. Returns the composed preamble so a caller</span>
+<span class="dl-ctx">  * that still injects inline (a platform with no wrappers) can use it.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-del">-function prepareLaunchAssets(projectPath, tool) {</span>
+<span class="dl-add">+function prepareLaunchAssets(projectPath, tool, extraSettings) {</span>
+<span class="dl-ctx">   let preamble = &#39;&#39;;</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     preamble = buildPreamble(projectPath, tool.id);</span>
+<span class="dl-hunk">@@ -621,7 +689,7 @@ function prepareLaunchAssets(projectPath, tool) {</span>
+<span class="dl-ctx">   let settingsPath = &#39;&#39;;</span>
+<span class="dl-ctx">   if (preamble) writeRuntimeFile(projectPath, preambleFileName(tool.id), preamble);</span>
+<span class="dl-ctx">   if (tool.injection &amp;&amp; tool.injection.settingsFlag) {</span>
+<span class="dl-del">-    settingsPath = writeToolSettings(projectPath, tool);</span>
+<span class="dl-add">+    settingsPath = writeToolSettings(projectPath, tool, extraSettings);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : &#39;&#39;;</span>
+<span class="dl-hunk">@@ -716,10 +784,17 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">   let injection = &#39;none&#39;;</span>
+<span class="dl-ctx">   let preamble = &#39;&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // A caller&#39;s own `--settings` is merged into the file Frame writes, not</span>
+<span class="dl-add">+  // passed a second time; `remaining` is what is left to append verbatim.</span>
+<span class="dl-add">+  const { rest: remaining, payloads } = takeSettingsFlags(</span>
+<span class="dl-add">+    extra,</span>
+<span class="dl-add">+    (tool.injection &amp;&amp; tool.injection.settingsFlag) || &#39;&#39;</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     // Written immediately before the command is composed, so a dispatched</span>
+<span class="dl-ctx">     // launch is never staler than a hand-typed one.</span>
+<span class="dl-del">-    const assets = prepareLaunchAssets(projectPath, tool);</span>
+<span class="dl-add">+    const assets = prepareLaunchAssets(projectPath, tool, payloads);</span>
+<span class="dl-ctx">     preamble = assets.preamble;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     const viaWrapper = wrapperLaunchCommand(projectPath, tool);</span>
+<span class="dl-hunk">@@ -749,7 +824,7 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const launchFlags = [...flags, ...extra];</span>
+<span class="dl-add">+  const launchFlags = [...flags, ...remaining];</span>
+<span class="dl-ctx">   return {</span>
+<span class="dl-ctx">     command,</span>
+<span class="dl-ctx">     launchFlags,</span></pre>
     </details>
   </div>
 </section>

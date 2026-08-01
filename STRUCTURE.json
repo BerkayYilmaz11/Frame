@@ -342,12 +342,42 @@
           "line": 572,
           "params": [
             "projectPath",
-            "tool"
+            "tool",
+            "extraSettings"
           ],
           "purpose": "The spec-hint hooks, as a settings file inside Frame's own footprint."
         },
+        "isPlainObject": {
+          "line": 584,
+          "params": [
+            "value"
+          ]
+        },
+        "mergeSettings": {
+          "line": 593,
+          "params": [
+            "base",
+            "incoming"
+          ],
+          "purpose": "Deep-merge a settings payload. Objects merge key by key, arrays concatenate"
+        },
+        "readSettingsSource": {
+          "line": 610,
+          "params": [
+            "source"
+          ],
+          "purpose": "A `--settings` value is either a path or inline JSON — the CLI takes both,"
+        },
+        "takeSettingsFlags": {
+          "line": 633,
+          "params": [
+            "extra",
+            "settingsFlag"
+          ],
+          "purpose": "Split a dispatch's extra flags into the `--settings` payloads to merge and"
+        },
         "writeWrapper": {
-          "line": 591,
+          "line": 659,
           "params": [
             "projectPath",
             "tool"
@@ -355,15 +385,16 @@
           "purpose": "Regenerate `.frame/bin/<id>` for a tool."
         },
         "prepareLaunchAssets": {
-          "line": 613,
+          "line": 681,
           "params": [
             "projectPath",
-            "tool"
+            "tool",
+            "extraSettings"
           ],
           "purpose": "Everything a launch of `tool` reads: its preamble, its settings file when it"
         },
         "wrapperLaunchCommand": {
-          "line": 658,
+          "line": 726,
           "params": [
             "projectPath",
             "tool"
@@ -371,19 +402,19 @@
           "purpose": "The command a launch types for this tool — the wrapper wherever Frame can"
         },
         "bareCommandFor": {
-          "line": 664,
+          "line": 732,
           "params": [
             "tool"
           ]
         },
         "refreshLaunchAssets": {
-          "line": 670,
+          "line": 738,
           "params": [
             "projectPath"
           ]
         },
         "getLaunchCommand": {
-          "line": 698,
+          "line": 766,
           "params": [
             "projectPath",
             "toolId",
