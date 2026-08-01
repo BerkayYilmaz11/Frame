@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:33:27.934Z",
+  "lastUpdated": "2026-08-01T08:35:09.199Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4717,13 +4717,13 @@
       "title": "Extend `test/frameTemplates.test.js` with wrapper cases: a wrapper named after its tool does not re-enter itself, declared flags appear and undeclared ones do not, `\"$@\"` survives, a missing preamble yields `exec <real> \"$@\"`.",
       "description": "",
       "source": "spec:terminal-context-boundary:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:35:09.199Z",
+      "completedAt": "2026-08-01T08:35:09.199Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T05",

@@ -22,3 +22,11 @@ Rewrote `getWrapperTemplate`: it resolves the real CLI at run time via `PATH="$(
 _Captured: 2026-08-01 · 2 file changes_
 
 ---
+
+## T04 — Wrapper cases in `test/frameTemplates.test.js`
+
+Added six cases: declared-vs-undeclared flag emission, an assertion that the script never `exec`s the CLI by name, and four executed cases that stage a wrapper and a fake real CLI in a temp dir and run them with `.frame/bin` first on `PATH` — no self-exec, argument passthrough, missing-preamble fallback, absent settings file. The executed ones exist because success criterion 3 asks for a test that would loop if the wrapper re-entered itself; they run under a 10s `execFileSync` timeout so a regression fails rather than wedges the suite, and skip off-POSIX.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---

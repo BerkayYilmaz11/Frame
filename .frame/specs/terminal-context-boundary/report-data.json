@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "435/435 pass; wrapper also exercised end-to-end in a sandbox — self-exec, arg passthrough, missing preamble, missing settings, absent CLI"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Extend `test/frameTemplates.test.js` with the wrapper cases",
+      "commit": "0471cd3",
+      "whatChanged": "Six cases added: declared flags appear and undeclared ones do not (a codex-style wrapper must not acquire Claude's flags), the script never execs the CLI by name, and four executed cases that stage a wrapper plus a fake real CLI in a temp dir and run it with .frame/bin first on PATH — no self-exec, `--resume/-p` passthrough, a missing preamble degrading to the bare CLI, and the settings flag skipped when the file is absent.",
+      "whyChanged": "Success criterion 3 asks for a test that would hang or loop if the wrapper re-entered itself, which no string match can provide — so these four run bash for real, under a 10s execFileSync timeout so a recursion regression fails the suite instead of wedging it. They are skipped off-POSIX, where Frame writes no wrappers at all.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "441/441 pass (6 new)"
+      }
     }
   ]
 }

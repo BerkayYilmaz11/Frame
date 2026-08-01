@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">3 of 12 tasks done · next: <span class="rs-task">T04 — Extend `test/frameTemplates.test.js` with wrapper cases: a wrapper…</span></span>
+  <span class="rs-count">4 of 12 tasks done · next: <span class="rs-task">T05 — Make `aiToolManager` write the wrapper, preamble and settings file for…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -578,6 +578,142 @@
 <span class="dl-ctx"> });</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;the wrapper reads the preamble from a file, never inlines it&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Extend `test/frameTemplates.test.js` with the wrapper cases</h2>
+    <span class="card-meta"><span class="chip">0471cd3</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">441/441 pass (6 new)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Six cases added: declared flags appear and undeclared ones do not (a codex-style wrapper must not acquire Claude&#39;s flags), the script never execs the CLI by name, and four executed cases that stage a wrapper plus a fake real CLI in a temp dir and run it with .frame/bin first on PATH — no self-exec, `--resume/-p` passthrough, a missing preamble degrading to the bare CLI, and the settings flag skipped when the file is absent.</p></div>
+    <div class="field"><span class="label">Why</span><p>Success criterion 3 asks for a test that would hang or loop if the wrapper re-entered itself, which no string match can provide — so these four run bash for real, under a 10s execFileSync timeout so a recursion regression fails the suite instead of wedging it. They are skipped off-POSIX, where Frame writes no wrappers at all.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index fe9eee1..6874ec4 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -10,6 +10,10 @@</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-ctx"> const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const os = require(&#39;os&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { execFileSync } = require(&#39;child_process&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const templates = require(&#39;../src/shared/frameTemplates&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -55,6 +59,105 @@ test(&#39;a custom preamble location is honoured&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(script.includes(&#39;.frame/runtime/other.txt&#39;));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+test(&#39;only the flags the tool declares are emitted&#39;, () =&gt; {</span>
+<span class="dl-add">+  const claudeLike = templates.getWrapperTemplate(&#39;claude&#39;, {</span>
+<span class="dl-add">+    promptFlag: &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+    settingsFlag: &#39;--settings&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.ok(claudeLike.includes(&#39;&quot;--append-system-prompt&quot; &quot;$(cat &quot;$PREAMBLE_FILE&quot;)&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(claudeLike.includes(&#39;frame_args+=(&quot;--settings&quot; &quot;$SETTINGS_FILE&quot;)&#39;));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // A tool that declares neither must not acquire Claude&#39;s flags by accident —</span>
+<span class="dl-add">+  // an unknown flag makes most CLIs refuse to start at all.</span>
+<span class="dl-add">+  const bare = templates.getWrapperTemplate(&#39;codex&#39;, {});</span>
+<span class="dl-add">+  assert.ok(!bare.includes(&#39;--append-system-prompt&#39;), &#39;undeclared prompt flag leaked in&#39;);</span>
+<span class="dl-add">+  assert.ok(!bare.includes(&#39;--settings&#39;), &#39;undeclared settings flag leaked in&#39;);</span>
+<span class="dl-add">+  assert.ok(!bare.includes(&#39;SETTINGS_FILE&quot;&#39;), &#39;settings block emitted for a tool without the flag&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the wrapper resolves the real CLI with its own directory off PATH&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = templates.getWrapperTemplate(&#39;claude&#39;, { promptFlag: &#39;--append-system-prompt&#39; });</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;path_without_self&#39;), &#39;no PATH stripping — this wrapper would exec itself&#39;);</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;[ &quot;$entry&quot; = &quot;$SELF_DIR&quot; ] &amp;&amp; continue&#39;));</span>
+<span class="dl-add">+  assert.ok(!/exec claude\b/.test(script), &#39;execs the CLI by name, which is this script&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── wrapper behaviour, executed ──────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The assertions above read the script; these run it. A wrapper that re-enters</span>
+<span class="dl-add">+// itself would recurse until the process table or the timeout gives out, which</span>
+<span class="dl-add">+// no string match can catch — the whole reason for the run-time resolution.</span>
+<span class="dl-add">+const POSIX = process.platform !== &#39;win32&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function stageWrapper(toolId, options, { preamble = &#39;PREAMBLE &quot;quoted&quot; `ticked`&#39;, settings = &#39;{}&#39; } = {}) {</span>
+<span class="dl-add">+  const root = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-wrapper-&#39;));</span>
+<span class="dl-add">+  const binDir = path.join(root, &#39;project&#39;, &#39;.frame&#39;, &#39;bin&#39;);</span>
+<span class="dl-add">+  const runtimeDir = path.join(root, &#39;project&#39;, &#39;.frame&#39;, &#39;runtime&#39;);</span>
+<span class="dl-add">+  const realDir = path.join(root, &#39;real&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(binDir, { recursive: true });</span>
+<span class="dl-add">+  fs.mkdirSync(runtimeDir, { recursive: true });</span>
+<span class="dl-add">+  fs.mkdirSync(realDir, { recursive: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  fs.writeFileSync(path.join(binDir, toolId), templates.getWrapperTemplate(toolId, options), { mode: 0o755 });</span>
+<span class="dl-add">+  if (preamble !== null) fs.writeFileSync(path.join(runtimeDir, &#39;preamble.txt&#39;), preamble);</span>
+<span class="dl-add">+  if (settings !== null) fs.writeFileSync(path.join(runtimeDir, &#39;claude-settings.json&#39;), settings);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The &quot;real&quot; CLI just prints its arguments, one per line, tagged so the</span>
+<span class="dl-add">+  // wrapper&#39;s own output could never be mistaken for it.</span>
+<span class="dl-add">+  fs.writeFileSync(</span>
+<span class="dl-add">+    path.join(realDir, toolId),</span>
+<span class="dl-add">+    &#39;#!/usr/bin/env bash\nfor a in &quot;$@&quot;; do echo &quot;ARG:$a&quot;; done\n&#39;,</span>
+<span class="dl-add">+    { mode: 0o755 }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return { root, binDir, realDir, projectDir: path.join(root, &#39;project&#39;) };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function runWrapper(staged, toolId, args) {</span>
+<span class="dl-add">+  return execFileSync(&#39;bash&#39;, [&#39;-c&#39;, [toolId, ...args].join(&#39; &#39;)], {</span>
+<span class="dl-add">+    cwd: staged.projectDir,</span>
+<span class="dl-add">+    env: { ...process.env, PATH: `${staged.binDir}:${staged.realDir}:/usr/bin:/bin` },</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    timeout: 10000</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a wrapper named after its tool does not re-enter itself&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+  const staged = stageWrapper(&#39;claude&#39;, {</span>
+<span class="dl-add">+    promptFlag: &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+    settingsFlag: &#39;--settings&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  // .frame/bin is first on PATH and the wrapper is called `claude`: without</span>
+<span class="dl-add">+  // the strip, this call never returns.</span>
+<span class="dl-add">+  const out = runWrapper(staged, &#39;claude&#39;, []);</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;ARG:--append-system-prompt&#39;), out);</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;ARG:PREAMBLE &quot;quoted&quot; `ticked`&#39;), out);</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;ARG:--settings&#39;), out);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&quot;the user&#39;s own arguments reach the real CLI unchanged&quot;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+  const staged = stageWrapper(&#39;claude&#39;, { promptFlag: &#39;--append-system-prompt&#39; });</span>
+<span class="dl-add">+  const out = runWrapper(staged, &#39;claude&#39;, [&#39;--resume&#39;, &#39;abc123&#39;, &#39;-p&#39;, &#39;&quot;two words&quot;&#39;]);</span>
+<span class="dl-add">+  const args = out.trim().split(&#39;\n&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(args.slice(-4), [&#39;ARG:--resume&#39;, &#39;ARG:abc123&#39;, &#39;ARG:-p&#39;, &#39;ARG:two words&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a missing preamble degrades to the bare CLI&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+  const staged = stageWrapper(&#39;codex&#39;, {}, { preamble: null });</span>
+<span class="dl-add">+  const out = runWrapper(staged, &#39;codex&#39;, [&#39;--model&#39;, &#39;o3&#39;]);</span>
+<span class="dl-add">+  assert.equal(out.trim(), &#39;ARG:--model\nARG:o3&#39;, &#39;the preamble-less wrapper still injected something&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the settings flag is skipped when the settings file is absent&#39;, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+  const staged = stageWrapper(&#39;claude&#39;, {</span>
+<span class="dl-add">+    promptFlag: &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+    settingsFlag: &#39;--settings&#39;</span>
+<span class="dl-add">+  }, { settings: null });</span>
+<span class="dl-add">+  const out = runWrapper(staged, &#39;claude&#39;, []);</span>
+<span class="dl-add">+  assert.ok(!out.includes(&#39;ARG:--settings&#39;), out);</span>
+<span class="dl-add">+  assert.ok(out.includes(&#39;ARG:--append-system-prompt&#39;), out);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── spec-hint settings ───────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;the spec-hint settings carry both hook events&#39;, () =&gt; {</span></pre>
     </details>
   </div>
 </section>
