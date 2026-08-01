@@ -354,9 +354,7 @@ ${record}`;
  *   specDriven:    include the short Spec-Driven Development section.
  *   global:        render Frame's single user-scoped copy instead of a
  *                  per-project file — no Project Facts (there is no one
- *                  project to state facts about), no creation stamp, and no
- *                  claim that a CLAUDE.md symlink exists, because the overlay
- *                  never plants one.
+ *                  project to state facts about) and no creation stamp.
  *   referencePath: where the maintenance reference lives, since the global
  *                  copy sits beside this file rather than in `.frame/docs/`.
  */
@@ -457,10 +455,6 @@ ${isGlobal ? '' : `
 
 *This file was automatically created by Frame.*
 *Creation date: ${date}*
-
----
-
-**Note:** This file is named \`AGENTS.md\` to be AI-tool agnostic. A \`CLAUDE.md\` symlink is provided for Claude Code compatibility.
 `}`;
 }
 
@@ -862,15 +856,6 @@ function getFrameConfigTemplate(projectName, options = {}) {
 }
 
 /**
- * AI Tool Wrapper Script Templates
- * These wrappers inject AGENTS.md as system prompt for non-Claude tools
- */
-
-/**
- * Codex CLI wrapper script
- * Instructs Codex to read AGENTS.md as initial prompt
- */
-/**
  * Wrapper script that hands a tool Frame's launch context.
  *
  * The old wrappers hunted for a root `AGENTS.md` and told the tool to read it.
@@ -1018,75 +1003,6 @@ function getSpecHintSettings() {
   };
 }
 
-function getCodexWrapperTemplate() {
-  return `#!/usr/bin/env bash
-# Frame AI Tool Wrapper for Codex CLI
-# This script injects AGENTS.md as initial prompt
-
-AGENTS_FILE="AGENTS.md"
-
-# Find AGENTS.md in current directory or parent directories
-find_agents_file() {
-  local dir="$PWD"
-  while [ "$dir" != "/" ]; do
-    if [ -f "$dir/$AGENTS_FILE" ]; then
-      echo "$dir/$AGENTS_FILE"
-      return 0
-    fi
-    dir="$(dirname "$dir")"
-  done
-  return 1
-}
-
-AGENTS_PATH=$(find_agents_file)
-
-# Run codex with initial prompt to read AGENTS.md
-if [ -n "$AGENTS_PATH" ]; then
-  exec codex "Please read AGENTS.md and follow the project instructions. This file contains important rules for this project." "$@"
-else
-  exec codex "$@"
-fi
-`;
-}
-
-/**
- * Generic AI tool wrapper template
- * Can be customized for other AI tools in the future
- * @param {string} toolCommand - The CLI command to run
- * @param {string} promptFlag - Flag to pass initial prompt (e.g., '--prompt' or empty for positional)
- */
-function getGenericWrapperTemplate(toolCommand, promptFlag = '') {
-  const flagPart = promptFlag ? `${promptFlag} ` : '';
-  return `#!/usr/bin/env bash
-# Frame AI Tool Wrapper for ${toolCommand}
-# This script injects AGENTS.md as initial prompt
-
-AGENTS_FILE="AGENTS.md"
-
-# Find AGENTS.md in current directory or parent directories
-find_agents_file() {
-  local dir="$PWD"
-  while [ "$dir" != "/" ]; do
-    if [ -f "$dir/$AGENTS_FILE" ]; then
-      echo "$dir/$AGENTS_FILE"
-      return 0
-    fi
-    dir="$(dirname "$dir")"
-  done
-  return 1
-}
-
-AGENTS_PATH=$(find_agents_file)
-
-# Run tool with initial prompt to read AGENTS.md
-if [ -n "$AGENTS_PATH" ]; then
-  exec ${toolCommand} ${flagPart}"Please read AGENTS.md and follow the project instructions." "$@"
-else
-  exec ${toolCommand} "$@"
-fi
-`;
-}
-
 /**
  * Pre-commit hook snippet that keeps STRUCTURE.json in sync with staged JS
  * changes. Designed to be safe in any environment:
@@ -1230,8 +1146,6 @@ module.exports = {
   AGENTS_SPEC_LEGACY_MATCHERS,
   getWrapperTemplate,
   getSpecHintSettings,
-  getCodexWrapperTemplate,
-  getGenericWrapperTemplate,
   getStructureHookSnippet,
   getStructurePreCommitHookTemplate,
   getOrchBinScripts,

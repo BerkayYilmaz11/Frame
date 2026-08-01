@@ -86,3 +86,11 @@ Added a "Where Frame's context reaches" section to `getReferenceTemplate`, stati
 _Captured: 2026-08-01 · 1 file change_
 
 ---
+
+## T12 — Delete what the overlay left behind
+
+Deleted `src/templates/CLAUDE.md`, `getCodexWrapperTemplate` and `getGenericWrapperTemplate` plus their stale header comments, and removed the project `AGENTS.md` template's closing note promising a `CLAUDE.md → AGENTS.md` symlink — the last shipped template describing the pre-overlay layout, which survived because the existing negative assertion covered only the global copy. Added a test over the project copy too. Also untracked this repository's own `.frame/bin/codex` (the 29-April wrapper the spec named) and regenerated all three wrappers: `.frame/.gitignore` already declares `bin/` machine-local, so a tracked wrapper was both stale and against the repo's own rule.
+
+_Captured: 2026-08-01 · 4 file changes_
+
+---

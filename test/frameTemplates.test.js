@@ -194,6 +194,13 @@ test('every spec-hint command runs from inside .frame/', () => {
 
 // ─── the global layer's content ───────────────────────────────
 
+test('no AGENTS template claims a planted symlink', () => {
+  // The project-layer copy carried this note until the overlay stopped
+  // planting the symlink it described.
+  const project = templates.getAgentsTemplate('Demo', {});
+  assert.ok(!/symlink/i.test(project), 'the project AGENTS layer still promises a symlink');
+});
+
 test('the global AGENTS core references no root file and no symlink', () => {
   const text = templates.getAgentsTemplate('Frame', {
     global: true,

@@ -135,6 +135,18 @@
         "status": "pass",
         "detail": "442/442 pass; rendered section inspected"
       }
+    },
+    {
+      "id": "T12",
+      "title": "Delete what the overlay left behind",
+      "commit": "e48a2c0",
+      "whatChanged": "Deleted src/templates/CLAUDE.md, getCodexWrapperTemplate and getGenericWrapperTemplate (and the stale header comments above getWrapperTemplate). Removed the project AGENTS.md template's closing note promising a CLAUDE.md → AGENTS.md symlink, with a new test asserting no AGENTS template claims one. Untracked this repository's own .frame/bin/codex — the 29-April pre-overlay wrapper the spec named — and regenerated all three wrappers from the current generator.",
+      "whyChanged": "The symlink note was the last shipped template describing the pre-overlay layout; the negative assertion covered only the global copy, which is why the project copy survived the overlay. .frame/.gitignore already declares bin/ machine-local, so the tracked codex wrapper was both stale and against the repo's own rule — untracking it is what makes it regenerable rather than committed.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "443/443 pass (1 new); templates swept for root-meta and symlink claims"
+      }
     }
   ]
 }

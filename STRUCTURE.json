@@ -9629,8 +9629,6 @@
         "AGENTS_SPEC_LEGACY_MATCHERS",
         "getWrapperTemplate",
         "getSpecHintSettings",
-        "getCodexWrapperTemplate",
-        "getGenericWrapperTemplate",
         "getStructureHookSnippet",
         "getStructurePreCommitHookTemplate",
         "getOrchBinScripts",
@@ -9666,7 +9664,7 @@
           "purpose": "Render the Project Facts section for AGENTS.md from the detected project"
         },
         "getAgentsTemplate": {
-          "line": 363,
+          "line": 361,
           "params": [
             "projectName",
             "options"
@@ -9674,14 +9672,14 @@
           "purpose": "options:"
         },
         "getReferenceTemplate": {
-          "line": 473,
+          "line": 467,
           "params": [
             "projectName"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 664,
+          "line": 658,
           "params": [
             "projectName",
             "project"
@@ -9689,21 +9687,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 689,
+          "line": 683,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 709,
+          "line": 703,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 755,
+          "line": 749,
           "params": [
             "projectName",
             "project"
@@ -9711,7 +9709,7 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 836,
+          "line": 830,
           "params": [
             "projectName",
             "options = {}"
@@ -9719,7 +9717,7 @@
           "purpose": ".frame/config.json template"
         },
         "getWrapperTemplate": {
-          "line": 910,
+          "line": 895,
           "params": [
             "toolCommand",
             "options"
@@ -9727,42 +9725,31 @@
           "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
         "getSpecHintSettings": {
-          "line": 1005,
+          "line": 990,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
-        "getCodexWrapperTemplate": {
-          "line": 1021
-        },
-        "getGenericWrapperTemplate": {
-          "line": 1058,
-          "params": [
-            "toolCommand",
-            "promptFlag = ''"
-          ],
-          "purpose": "Generic AI tool wrapper template"
-        },
         "getStructureHookSnippet": {
-          "line": 1104
+          "line": 1020
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1131,
+          "line": 1047,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1154,
+          "line": 1070,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1166,
+          "line": 1082,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1186
+          "line": 1102
         },
         "getOrchBinScripts": {
-          "line": 1204,
+          "line": 1120,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

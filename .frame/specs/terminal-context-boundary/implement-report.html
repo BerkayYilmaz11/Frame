@@ -155,18 +155,17 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">11 tasks</span>
-    <span class="pill good">11 verified</span>
+    <span class="pill">12 tasks</span>
+    <span class="pill good">12 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
 </header>
 
 <div class="wrap">
-<div class="run-status live">
-  <span class="rs-badge">In progress</span>
-  <span class="rs-count">11 of 12 tasks done · next: <span class="rs-task">T12 — Delete `src/templates/CLAUDE.md` and the dead `getCodexWrapperTemplate`…</span></span>
-  <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
+<div class="run-status done">
+  <span class="rs-badge">Complete</span>
+  <span class="rs-count">12 of 12 tasks done</span>
 </div>
 <section class="report-head">
   <h1>Terminal Context Boundary — Frame&#39;s context follows Frame&#39;s terminal</h1>
@@ -1555,6 +1554,258 @@
 <span class="dl-ctx"> ## General Rules</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> 1. **Language:** Write documentation in English (except code examples)</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T12</span>
+    <h2>Delete what the overlay left behind</h2>
+    <span class="card-meta"><span class="chip">e48a2c0</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">443/443 pass (1 new); templates swept for root-meta and symlink claims</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Deleted src/templates/CLAUDE.md, getCodexWrapperTemplate and getGenericWrapperTemplate (and the stale header comments above getWrapperTemplate). Removed the project AGENTS.md template&#39;s closing note promising a CLAUDE.md → AGENTS.md symlink, with a new test asserting no AGENTS template claims one. Untracked this repository&#39;s own .frame/bin/codex — the 29-April pre-overlay wrapper the spec named — and regenerated all three wrappers from the current generator.</p></div>
+    <div class="field"><span class="label">Why</span><p>The symlink note was the last shipped template describing the pre-overlay layout; the negative assertion covered only the global copy, which is why the project copy survived the overlay. .frame/.gitignore already declares bin/ machine-local, so the tracked codex wrapper was both stale and against the repo&#39;s own rule — untracking it is what makes it regenerable rather than committed.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 5ffc0c4..3fd5a94 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -354,9 +354,7 @@ ${record}`;</span>
+<span class="dl-ctx">  *   specDriven:    include the short Spec-Driven Development section.</span>
+<span class="dl-ctx">  *   global:        render Frame&#39;s single user-scoped copy instead of a</span>
+<span class="dl-ctx">  *                  per-project file — no Project Facts (there is no one</span>
+<span class="dl-del">- *                  project to state facts about), no creation stamp, and no</span>
+<span class="dl-del">- *                  claim that a CLAUDE.md symlink exists, because the overlay</span>
+<span class="dl-del">- *                  never plants one.</span>
+<span class="dl-add">+ *                  project to state facts about) and no creation stamp.</span>
+<span class="dl-ctx">  *   referencePath: where the maintenance reference lives, since the global</span>
+<span class="dl-ctx">  *                  copy sits beside this file rather than in `.frame/docs/`.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-hunk">@@ -457,10 +455,6 @@ ${isGlobal ? &#39;&#39; : `</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> *This file was automatically created by Frame.*</span>
+<span class="dl-ctx"> *Creation date: ${date}*</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Note:** This file is named \`AGENTS.md\` to be AI-tool agnostic. A \`CLAUDE.md\` symlink is provided for Claude Code compatibility.</span>
+<span class="dl-ctx"> `}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -861,15 +855,6 @@ function getFrameConfigTemplate(projectName, options = {}) {</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-/**</span>
+<span class="dl-del">- * AI Tool Wrapper Script Templates</span>
+<span class="dl-del">- * These wrappers inject AGENTS.md as system prompt for non-Claude tools</span>
+<span class="dl-del">- */</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-/**</span>
+<span class="dl-del">- * Codex CLI wrapper script</span>
+<span class="dl-del">- * Instructs Codex to read AGENTS.md as initial prompt</span>
+<span class="dl-del">- */</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Wrapper script that hands a tool Frame&#39;s launch context.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -1018,75 +1003,6 @@ function getSpecHintSettings() {</span>
+<span class="dl-ctx">   };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-function getCodexWrapperTemplate() {</span>
+<span class="dl-del">-  return `#!/usr/bin/env bash</span>
+<span class="dl-del">-# Frame AI Tool Wrapper for Codex CLI</span>
+<span class="dl-del">-# This script injects AGENTS.md as initial prompt</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-AGENTS_FILE=&quot;AGENTS.md&quot;</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-# Find AGENTS.md in current directory or parent directories</span>
+<span class="dl-del">-find_agents_file() {</span>
+<span class="dl-del">-  local dir=&quot;$PWD&quot;</span>
+<span class="dl-del">-  while [ &quot;$dir&quot; != &quot;/&quot; ]; do</span>
+<span class="dl-del">-    if [ -f &quot;$dir/$AGENTS_FILE&quot; ]; then</span>
+<span class="dl-del">-      echo &quot;$dir/$AGENTS_FILE&quot;</span>
+<span class="dl-del">-      return 0</span>
+<span class="dl-del">-    fi</span>
+<span class="dl-del">-    dir=&quot;$(dirname &quot;$dir&quot;)&quot;</span>
+<span class="dl-del">-  done</span>
+<span class="dl-del">-  return 1</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-AGENTS_PATH=$(find_agents_file)</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-# Run codex with initial prompt to read AGENTS.md</span>
+<span class="dl-del">-if [ -n &quot;$AGENTS_PATH&quot; ]; then</span>
+<span class="dl-del">-  exec codex &quot;Please read AGENTS.md and follow the project instructions. This file contains important rules for this project.&quot; &quot;$@&quot;</span>
+<span class="dl-del">-else</span>
+<span class="dl-del">-  exec codex &quot;$@&quot;</span>
+<span class="dl-del">-fi</span>
+<span class="dl-del">-`;</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-/**</span>
+<span class="dl-del">- * Generic AI tool wrapper template</span>
+<span class="dl-del">- * Can be customized for other AI tools in the future</span>
+<span class="dl-del">- * @param {string} toolCommand - The CLI command to run</span>
+<span class="dl-del">- * @param {string} promptFlag - Flag to pass initial prompt (e.g., &#39;--prompt&#39; or empty for positional)</span>
+<span class="dl-del">- */</span>
+<span class="dl-del">-function getGenericWrapperTemplate(toolCommand, promptFlag = &#39;&#39;) {</span>
+<span class="dl-del">-  const flagPart = promptFlag ? `${promptFlag} ` : &#39;&#39;;</span>
+<span class="dl-del">-  return `#!/usr/bin/env bash</span>
+<span class="dl-del">-# Frame AI Tool Wrapper for ${toolCommand}</span>
+<span class="dl-del">-# This script injects AGENTS.md as initial prompt</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-AGENTS_FILE=&quot;AGENTS.md&quot;</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-# Find AGENTS.md in current directory or parent directories</span>
+<span class="dl-del">-find_agents_file() {</span>
+<span class="dl-del">-  local dir=&quot;$PWD&quot;</span>
+<span class="dl-del">-  while [ &quot;$dir&quot; != &quot;/&quot; ]; do</span>
+<span class="dl-del">-    if [ -f &quot;$dir/$AGENTS_FILE&quot; ]; then</span>
+<span class="dl-del">-      echo &quot;$dir/$AGENTS_FILE&quot;</span>
+<span class="dl-del">-      return 0</span>
+<span class="dl-del">-    fi</span>
+<span class="dl-del">-    dir=&quot;$(dirname &quot;$dir&quot;)&quot;</span>
+<span class="dl-del">-  done</span>
+<span class="dl-del">-  return 1</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-AGENTS_PATH=$(find_agents_file)</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-# Run tool with initial prompt to read AGENTS.md</span>
+<span class="dl-del">-if [ -n &quot;$AGENTS_PATH&quot; ]; then</span>
+<span class="dl-del">-  exec ${toolCommand} ${flagPart}&quot;Please read AGENTS.md and follow the project instructions.&quot; &quot;$@&quot;</span>
+<span class="dl-del">-else</span>
+<span class="dl-del">-  exec ${toolCommand} &quot;$@&quot;</span>
+<span class="dl-del">-fi</span>
+<span class="dl-del">-`;</span>
+<span class="dl-del">-}</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Pre-commit hook snippet that keeps STRUCTURE.json in sync with staged JS</span>
+<span class="dl-ctx">  * changes. Designed to be safe in any environment:</span>
+<span class="dl-hunk">@@ -1230,8 +1146,6 @@ module.exports = {</span>
+<span class="dl-ctx">   AGENTS_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   getWrapperTemplate,</span>
+<span class="dl-ctx">   getSpecHintSettings,</span>
+<span class="dl-del">-  getCodexWrapperTemplate,</span>
+<span class="dl-del">-  getGenericWrapperTemplate,</span>
+<span class="dl-ctx">   getStructureHookSnippet,</span>
+<span class="dl-ctx">   getStructurePreCommitHookTemplate,</span>
+<span class="dl-ctx">   getOrchBinScripts,</span>
+<span class="dl-meta">diff --git a/src/templates/CLAUDE.md b/src/templates/CLAUDE.md</span>
+<span class="dl-meta">deleted file mode 100644</span>
+<span class="dl-meta">index d8e71c4..0000000</span>
+<span class="dl-file">--- a/src/templates/CLAUDE.md</span>
+<span class="dl-file">+++ /dev/null</span>
+<span class="dl-hunk">@@ -1,86 +0,0 @@</span>
+<span class="dl-del">-# {{PROJECT_NAME}} - Frame Project</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-This project is managed with **Frame**: durable, structured context that keeps</span>
+<span class="dl-del">-AI agents oriented across sessions. This file is the always-on core.</span>
+<span class="dl-del">-**Before writing any Frame meta file, read the matching section of</span>
+<span class="dl-del">-`.frame/docs/REFERENCE.md`** — the maintenance rules live there, not here.</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-## Core Working Principle</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Only do what the user asks.** Do not go beyond the scope of the request.</span>
+<span class="dl-del">-Additional ideas are suggestions, presented after the request is done — never</span>
+<span class="dl-del">-implemented without approval.</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-## Project Navigation</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Read these at the start of each session:**</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-1. **STRUCTURE.json** — module map, which file is where</span>
+<span class="dl-del">-2. **PROJECT_NOTES.md** — project vision, past decisions, session notes</span>
+<span class="dl-del">-3. **tasks.json** — pending tasks</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Fast file lookup** — before manual grep/glob, run:</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-```bash</span>
+<span class="dl-del">-node .frame/bin/find-module.js &lt;keyword&gt;   # concept/synonym → files</span>
+<span class="dl-del">-node .frame/bin/find-module.js --list      # all features</span>
+<span class="dl-del">-```</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Spec history** — before working a topic or changing a file, check what</span>
+<span class="dl-del">-earlier specs did there and why (Claude Code sessions also get this injected</span>
+<span class="dl-del">-automatically via hooks; other CLIs: run it yourself):</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-```bash</span>
+<span class="dl-del">-node .frame/bin/spec-context.js &lt;keyword&gt;       # topic → related specs</span>
+<span class="dl-del">-node .frame/bin/spec-context.js --file &lt;path&gt;   # file → who changed it, why</span>
+<span class="dl-del">-```</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-On a hit, read the chain (`spec.md → plan.md → tasks.md → outcome.md`)</span>
+<span class="dl-del">-before working — respect recorded decisions or overturn them explicitly,</span>
+<span class="dl-del">-never silently.</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Freshness** — `node .frame/bin/check-freshness.js` reports when this</span>
+<span class="dl-del">-context is likely to mislead (phantom modules, stale STRUCTURE/notes, stuck</span>
+<span class="dl-del">-tasks). Trust its warnings over stale entries.</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-## Spec-Driven Development</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-Significant work flows through a spec (`spec.md` → `plan.md` → `tasks.md`)</span>
+<span class="dl-del">-before code. Rough ladder: *trivial → just do it · small but worth tracking →</span>
+<span class="dl-del">-task · sizable feature or multi-file change → spec.* Offer a spec once for</span>
+<span class="dl-del">-meaningful new work — never force it.</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-Full workflow (file layout, lifecycle, slash commands): see</span>
+<span class="dl-del">-**&quot;Spec-Driven Development&quot;** in `.frame/docs/REFERENCE.md`.</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-## Writing Frame meta files — read the reference first</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-| Before writing…  | Read in `.frame/docs/REFERENCE.md` |</span>
+<span class="dl-del">-| ---------------- | ------------------------------------ |</span>
+<span class="dl-del">-| tasks.json       | &quot;Task Management&quot; (schema + rules)   |</span>
+<span class="dl-del">-| PROJECT_NOTES.md | &quot;PROJECT_NOTES.md Rules&quot;             |</span>
+<span class="dl-del">-| STRUCTURE.json   | &quot;STRUCTURE.json Rules&quot;               |</span>
+<span class="dl-del">-| QUICKSTART.md    | &quot;QUICKSTART.md Rules&quot;                |</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-Quick reminders that always apply:</span>
+<span class="dl-del">-- Task work: `status: &quot;in_progress&quot;` when starting, `&quot;completed&quot;` +</span>
+<span class="dl-del">-  `completedAt` when done; re-check statuses after commits.</span>
+<span class="dl-del">-- Important decisions: append to PROJECT_NOTES.md as</span>
+<span class="dl-del">-  `### [YYYY-MM-DD] Title` with the conversation&#39;s context (not a summary).</span>
+<span class="dl-del">-- Documentation in English; dates in ISO 8601.</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-*This file was automatically created by Frame.*</span>
+<span class="dl-del">-</span>
+<span class="dl-file">----</span>
+<span class="dl-del">-</span>
+<span class="dl-del">-**Note:** This file is named `AGENTS.md` to be AI-tool agnostic. A `CLAUDE.md` symlink is provided for Claude Code compatibility.</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index 5daac75..a6b78b9 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -194,6 +194,13 @@ test(&#39;every spec-hint command runs from inside .frame/&#39;, () =&gt; {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // ─── the global layer&#39;s content ───────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+test(&#39;no AGENTS template claims a planted symlink&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The project-layer copy carried this note until the overlay stopped</span>
+<span class="dl-add">+  // planting the symlink it described.</span>
+<span class="dl-add">+  const project = templates.getAgentsTemplate(&#39;Demo&#39;, {});</span>
+<span class="dl-add">+  assert.ok(!/symlink/i.test(project), &#39;the project AGENTS layer still promises a symlink&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> test(&#39;the global AGENTS core references no root file and no symlink&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const text = templates.getAgentsTemplate(&#39;Frame&#39;, {</span>
+<span class="dl-ctx">     global: true,</span></pre>
     </details>
   </div>
 </section>
