@@ -9681,7 +9681,7 @@
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 648,
+          "line": 664,
           "params": [
             "projectName",
             "project"
@@ -9689,21 +9689,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 673,
+          "line": 689,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 693,
+          "line": 709,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 739,
+          "line": 755,
           "params": [
             "projectName",
             "project"
@@ -9711,7 +9711,7 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 820,
+          "line": 836,
           "params": [
             "projectName",
             "options = {}"
@@ -9719,7 +9719,7 @@
           "purpose": ".frame/config.json template"
         },
         "getWrapperTemplate": {
-          "line": 894,
+          "line": 910,
           "params": [
             "toolCommand",
             "options"
@@ -9727,14 +9727,14 @@
           "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
         "getSpecHintSettings": {
-          "line": 989,
+          "line": 1005,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getCodexWrapperTemplate": {
-          "line": 1005
+          "line": 1021
         },
         "getGenericWrapperTemplate": {
-          "line": 1042,
+          "line": 1058,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -9742,27 +9742,27 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1088
+          "line": 1104
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1115,
+          "line": 1131,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1138,
+          "line": 1154,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1150,
+          "line": 1166,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1170
+          "line": 1186
         },
         "getOrchBinScripts": {
-          "line": 1188,
+          "line": 1204,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

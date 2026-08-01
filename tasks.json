@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-01T08:49:58.200Z",
+  "lastUpdated": "2026-08-01T08:51:28.423Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4808,13 +4808,13 @@
       "title": "Add the matching boundary line to `getReferenceTemplate` so a new project's `.frame/docs/REFERENCE.md` carries the rule for the agent.",
       "description": "",
       "source": "spec:terminal-context-boundary:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-context-boundary",
       "createdAt": "2026-08-01T08:22:21.098Z",
-      "updatedAt": "2026-08-01T08:22:21.098Z",
-      "completedAt": null
+      "updatedAt": "2026-08-01T08:51:28.423Z",
+      "completedAt": "2026-08-01T08:51:28.423Z"
     },
     {
       "id": "task-spec-terminal-context-boundary-T12",

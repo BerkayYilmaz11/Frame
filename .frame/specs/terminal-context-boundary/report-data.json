@@ -123,6 +123,18 @@
         "status": "pass",
         "detail": "442/442 pass (1 new); renderer bundle rebuilt"
       }
+    },
+    {
+      "id": "T11",
+      "title": "Carry the boundary into `getReferenceTemplate`",
+      "commit": "548a8f1",
+      "whatChanged": "getReferenceTemplate gained a \"Where Frame's context reaches\" section before General Rules: sessions started inside Frame are pointed at the project's Frame layers because .frame/bin leads that terminal's PATH, sessions started elsewhere get the tool's defaults, and FRAME_NO_WRAP=1 crosses back the other way.",
+      "whyChanged": "Written for the reader who arrives without context — it says outright that a session which knew nothing about Frame is on the far side of a boundary, not looking at a bug, which is the failure the spec names. The same template backs the global layer (globalLayer.getReferenceTemplate('Frame')), so this reaches existing installs on the next global-layer write, not only new projects as plan.md assumed.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "442/442 pass; rendered section inspected"
+      }
     }
   ]
 }

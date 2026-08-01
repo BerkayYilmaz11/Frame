@@ -628,6 +628,22 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
+## Where Frame's context reaches
+
+Frame's context follows Frame's terminal. A session started **inside Frame** —
+whether Frame composed the command or you typed \`claude\`, \`codex\` or
+\`gemini\` yourself — is pointed at this project's Frame layers at launch,
+because \`.frame/bin\` is first on that terminal's \`PATH\` and the wrapper
+there hands the real CLI Frame's preamble. A session started in any other
+terminal gets the tool's own defaults: Frame writes nothing to your shell
+configuration and nothing outside \`.frame/\`.
+
+If you are reading this in a session that knew nothing about Frame until now,
+that is the boundary, not a bug — and \`FRAME_NO_WRAP=1 <tool>\` is how you
+cross back the other way, running the CLI unwrapped inside Frame.
+
+---
+
 ## General Rules
 
 1. **Language:** Write documentation in English (except code examples)

@@ -78,3 +78,11 @@ Added a "Terminal" section to Settings stating the rule and the escape hatch, hi
 _Captured: 2026-08-01 · 4 file changes_
 
 ---
+
+## T11 — The boundary in `REFERENCE.md`
+
+Added a "Where Frame's context reaches" section to `getReferenceTemplate`, stating the rule for the agent and naming `FRAME_NO_WRAP=1` as the way out. Written for the reader who arrives with no context: it says plainly that a session which knew nothing about Frame is on the far side of a boundary rather than looking at a bug. Note against plan.md's stated limit — the same template backs the global layer (`globalLayer` calls it with `'Frame'`), so this reaches existing installs when the global layer is next written, not only new projects.
+
+_Captured: 2026-08-01 · 1 file change_
+
+---

@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">10 tasks</span>
-    <span class="pill good">10 verified</span>
+    <span class="pill">11 tasks</span>
+    <span class="pill good">11 verified</span>
     
     <span class="chip">2026-08-01</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">10 of 12 tasks done · next: <span class="rs-task">T11 — Add the matching boundary line to `getReferenceTemplate` so a new…</span></span>
+  <span class="rs-count">11 of 12 tasks done · next: <span class="rs-task">T12 — Delete `src/templates/CLAUDE.md` and the dead `getCodexWrapperTemplate`…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1513,6 +1513,48 @@
 <span class="dl-ctx"> test(&#39;the settings flag is skipped when the settings file is absent&#39;, { skip: !POSIX }, () =&gt; {</span>
 <span class="dl-ctx">   const staged = stageWrapper(&#39;claude&#39;, {</span>
 <span class="dl-ctx">     promptFlag: &#39;--append-system-prompt&#39;,</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T11</span>
+    <h2>Carry the boundary into `getReferenceTemplate`</h2>
+    <span class="card-meta"><span class="chip">548a8f1</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">442/442 pass; rendered section inspected</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getReferenceTemplate gained a &quot;Where Frame&#39;s context reaches&quot; section before General Rules: sessions started inside Frame are pointed at the project&#39;s Frame layers because .frame/bin leads that terminal&#39;s PATH, sessions started elsewhere get the tool&#39;s defaults, and FRAME_NO_WRAP=1 crosses back the other way.</p></div>
+    <div class="field"><span class="label">Why</span><p>Written for the reader who arrives without context — it says outright that a session which knew nothing about Frame is on the far side of a boundary, not looking at a bug, which is the failure the spec names. The same template backs the global layer (globalLayer.getReferenceTemplate(&#39;Frame&#39;)), so this reaches existing installs on the next global-layer write, not only new projects as plan.md assumed.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 3208337..5ffc0c4 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -628,6 +628,22 @@ No problem, continue. The user can also say what they consider important themsel</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> ---</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+## Where Frame&#39;s context reaches</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+Frame&#39;s context follows Frame&#39;s terminal. A session started **inside Frame** —</span>
+<span class="dl-add">+whether Frame composed the command or you typed \`claude\`, \`codex\` or</span>
+<span class="dl-add">+\`gemini\` yourself — is pointed at this project&#39;s Frame layers at launch,</span>
+<span class="dl-add">+because \`.frame/bin\` is first on that terminal&#39;s \`PATH\` and the wrapper</span>
+<span class="dl-add">+there hands the real CLI Frame&#39;s preamble. A session started in any other</span>
+<span class="dl-add">+terminal gets the tool&#39;s own defaults: Frame writes nothing to your shell</span>
+<span class="dl-add">+configuration and nothing outside \`.frame/\`.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+If you are reading this in a session that knew nothing about Frame until now,</span>
+<span class="dl-add">+that is the boundary, not a bug — and \`FRAME_NO_WRAP=1 &lt;tool&gt;\` is how you</span>
+<span class="dl-add">+cross back the other way, running the CLI unwrapped inside Frame.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+---</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> ## General Rules</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> 1. **Language:** Write documentation in English (except code examples)</span></pre>
     </details>
   </div>
 </section>
