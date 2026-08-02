@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "488 tests, 0 failures"
       }
+    },
+    {
+      "id": "T03",
+      "title": "Write .frame/runtime/shell/init.sh and init.fish from aiToolManager",
+      "commit": "8bfddff",
+      "whatChanged": "Added writeShellInit(projectPath) to src/main/aiToolManager.js: gated on launchEnv.supportsWrappers(), it writes both family files through the existing writeIfChanged, using shellSetup.shellInitPath for the layout and every registered tool id for the functions. Called from refreshLaunchAssets behind the existing .frame/ check, and once per composed launch from getLaunchCommand.",
+      "whyChanged": "Both families are written regardless of the user own shell — which file a lane reads is decided per terminal at spawn, so a user switching from zsh to fish should not have to reopen the project. Both call sites swallow their own failure and warn: a read-only checkout costs the user their shell functions, never their project, and .frame/bin on PATH is still there underneath.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "488 tests, 0 failures"
+      }
     }
   ]
 }

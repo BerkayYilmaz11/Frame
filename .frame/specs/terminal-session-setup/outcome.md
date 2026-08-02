@@ -32,3 +32,19 @@ fallback. Files: `src/shared/frameTemplates.js`, `test/frameTemplates.test.js`.
 _Captured: 2026-08-02 · 2 file changes_
 
 ---
+
+## T03 — Write the init files from `aiToolManager`
+
+Added `writeShellInit(projectPath)`: both family files written through the
+existing `writeIfChanged`, gated on `launchEnv.supportsWrappers()`, with the
+layout taken from `shellSetup.shellInitPath` and a function per registered
+tool id. Called from `refreshLaunchAssets` behind the existing `.frame/`
+check as T03 asked, and additionally once per composed launch from
+`getLaunchCommand` — plan.md wants these regenerated on the wrappers'
+schedule, which is what gets a mid-session custom tool its function without a
+project reopen. Both call sites warn and continue on failure. Files:
+`src/main/aiToolManager.js`.
+
+_Captured: 2026-08-02 · 1 file change_
+
+---

@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">2 of 8 tasks done · next: <span class="rs-task">T03 — Write `.frame/runtime/shell/init.sh` and `init.fish` from…</span></span>
+  <span class="rs-count">3 of 8 tasks done · next: <span class="rs-task">T04 — Deliver setup at spawn in `src/main/ptyManager.js` — resolve the…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -948,6 +948,115 @@
 <span class="dl-add">+    assert.equal(out.trim(), &#39;REAL:claude:fallback&#39;, &#39;a missing wrapper cost the user their CLI&#39;);</span>
 <span class="dl-add">+  });</span>
 <span class="dl-add">+}</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Write .frame/runtime/shell/init.sh and init.fish from aiToolManager</h2>
+    <span class="card-meta"><span class="chip">8bfddff</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">488 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added writeShellInit(projectPath) to src/main/aiToolManager.js: gated on launchEnv.supportsWrappers(), it writes both family files through the existing writeIfChanged, using shellSetup.shellInitPath for the layout and every registered tool id for the functions. Called from refreshLaunchAssets behind the existing .frame/ check, and once per composed launch from getLaunchCommand.</p></div>
+    <div class="field"><span class="label">Why</span><p>Both families are written regardless of the user own shell — which file a lane reads is decided per terminal at spawn, so a user switching from zsh to fish should not have to reopen the project. Both call sites swallow their own failure and warn: a read-only checkout costs the user their shell functions, never their project, and .frame/bin on PATH is still there underneath.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index c6af631..c655272 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -33,6 +33,7 @@ const frameStore = require(&#39;./frameStore&#39;);</span>
+<span class="dl-ctx"> const globalLayer = require(&#39;./globalLayer&#39;);</span>
+<span class="dl-ctx"> const instructionDiscovery = require(&#39;./instructionDiscovery&#39;);</span>
+<span class="dl-ctx"> const launchEnv = require(&#39;./launchEnv&#39;);</span>
+<span class="dl-add">+const shellSetup = require(&#39;./shellSetup&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> let mainWindow = null;</span>
+<span class="dl-ctx"> let configPath = null;</span>
+<span class="dl-hunk">@@ -673,6 +674,40 @@ function writeWrapper(projectPath, tool) {</span>
+<span class="dl-ctx">   return target;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Regenerate the shell init files every lane in this project sources.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * A launch asset like any other, written beside the wrappers and preambles and</span>
+<span class="dl-add">+ * through the same `writeIfChanged`, so a project open does not touch mtimes</span>
+<span class="dl-add">+ * and wake the `.frame/` watchers. Both families are written regardless of the</span>
+<span class="dl-add">+ * user&#39;s own shell: which one a lane reads is decided per terminal at spawn,</span>
+<span class="dl-add">+ * and a user who switches from zsh to fish should not have to reopen the</span>
+<span class="dl-add">+ * project to get their functions.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Every tool in the registry gets a function, so a newly configured custom tool</span>
+<span class="dl-add">+ * is routed through its wrapper the next time this runs rather than after a</span>
+<span class="dl-add">+ * restart.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns the paths written. Silent no-op where Frame writes no wrappers —</span>
+<span class="dl-add">+ * there would be nothing for a function to delegate to.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function writeShellInit(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath || !launchEnv.supportsWrappers()) return [];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const binDir = launchEnv.frameBinDir(projectPath);</span>
+<span class="dl-add">+  const toolIds = Object.values(getAvailableTools()).map((tool) =&gt; tool.id);</span>
+<span class="dl-add">+  const written = [];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  for (const family of Object.keys(shellSetup.INIT_FILES)) {</span>
+<span class="dl-add">+    const content = templates.getShellInitTemplate({ family, binDir, toolIds });</span>
+<span class="dl-add">+    if (!content) continue;</span>
+<span class="dl-add">+    const target = shellSetup.shellInitPath(projectPath, family);</span>
+<span class="dl-add">+    writeIfChanged(target, content);</span>
+<span class="dl-add">+    written.push(target);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return written;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Everything a launch of `tool` reads: its preamble, its settings file when it</span>
+<span class="dl-ctx">  * declares one, and its wrapper. Returns the composed preamble so a caller</span>
+<span class="dl-hunk">@@ -740,6 +775,15 @@ function refreshLaunchAssets(projectPath) {</span>
+<span class="dl-ctx">   if (!projectPath) return { written };</span>
+<span class="dl-ctx">   if (!fs.existsSync(path.join(projectPath, FRAME_DIR))) return { written };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    writeShellInit(projectPath);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    // Same bargain as the per-tool failure below: a read-only checkout costs</span>
+<span class="dl-add">+    // the user their shell functions, never their project. `.frame/bin` on</span>
+<span class="dl-add">+    // PATH is still there underneath.</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, &#39;shell init refresh failed:&#39;, err.message);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   for (const tool of Object.values(getAvailableTools())) {</span>
+<span class="dl-ctx">     try {</span>
+<span class="dl-ctx">       prepareLaunchAssets(projectPath, tool);</span>
+<span class="dl-hunk">@@ -791,6 +835,16 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     (tool.injection &amp;&amp; tool.injection.settingsFlag) || &#39;&#39;</span>
+<span class="dl-ctx">   );</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // The lane&#39;s shell functions are refreshed on the same schedule as the</span>
+<span class="dl-add">+  // wrappers they delegate to, so a tool configured mid-session is routed</span>
+<span class="dl-add">+  // through its wrapper without waiting for a project reopen. Its own failure</span>
+<span class="dl-add">+  // is not the launch&#39;s — `.frame/bin` is still on PATH underneath.</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    writeShellInit(projectPath);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;aiToolManager&#39;, &#39;shell init refresh failed:&#39;, err.message);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-ctx">     // Written immediately before the command is composed, so a dispatched</span>
+<span class="dl-ctx">     // launch is never staler than a hand-typed one.</span>
+<span class="dl-hunk">@@ -843,6 +897,7 @@ module.exports = {</span>
+<span class="dl-ctx">   getStartCommand,</span>
+<span class="dl-ctx">   getLaunchCommand,</span>
+<span class="dl-ctx">   refreshLaunchAssets,</span>
+<span class="dl-add">+  writeShellInit,</span>
+<span class="dl-ctx">   composeLaunchCommand,</span>
+<span class="dl-ctx">   addCustomTool,</span>
+<span class="dl-ctx">   removeCustomTool,</span></pre>
     </details>
   </div>
 </section>

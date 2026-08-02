@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:16:58.297Z",
+  "lastUpdated": "2026-08-02T10:19:54.054Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4860,13 +4860,13 @@
       "title": "Write `.frame/runtime/shell/init.sh` and `init.fish` from `src/main/aiToolManager.js` through the existing `writeIfChanged`, called from `refreshLaunchAssets` behind `launchEnv.supportsWrappers()` and the existing `.frame/` check, so every write stays inside the project's own overlay.",
       "description": "",
       "source": "spec:terminal-session-setup:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:19:54.054Z",
+      "completedAt": "2026-08-02T10:19:54.054Z"
     },
     {
       "id": "task-spec-terminal-session-setup-T04",
