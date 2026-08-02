@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:03:40.884Z",
+  "lastUpdated": "2026-08-02T10:13:19.191Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4834,13 +4834,13 @@
       "title": "Add pure `src/main/shellSetup.js` — shell family from a shell path, `deliveryFor()` returning the typed line (leading space, marker printed from two adjacent quoted fragments) / fish `-C` args / `none`, per-attempt marker minting, and the post-marker output split — with `test/shellSetup.test.js` covering family resolution, the `win32` and non-Frame-project gates, marker uniqueness across attempts, and the invariant that the delivered line never contains the literal marker.",
       "description": "",
       "source": "spec:terminal-session-setup:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:13:19.191Z",
+      "completedAt": "2026-08-02T10:13:19.191Z"
     },
     {
       "id": "task-spec-terminal-session-setup-T02",

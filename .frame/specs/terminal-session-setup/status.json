@@ -1,7 +1,7 @@
 {
   "slug": "terminal-session-setup",
   "title": "Terminal Session Setup — the lane Frame opens is a lane Frame set up",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "ai_tool": "claude-code",
   "generated_task_ids": [
     "task-spec-terminal-session-setup-T01",
@@ -14,7 +14,7 @@
     "task-spec-terminal-session-setup-T08"
   ],
   "created_at": "2026-08-02T09:30:00.380Z",
-  "updated_at": "2026-08-02T10:06:27.974Z",
-  "last_phase_at": "2026-08-02T10:03:44.234Z",
+  "updated_at": "2026-08-02T10:11:10.116Z",
+  "last_phase_at": "2026-08-02T10:11:10.116Z",
   "implement_mode": "autonomous"
 }

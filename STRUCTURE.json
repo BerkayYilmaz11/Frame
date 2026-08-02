@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-08-01",
+  "lastUpdated": "2026-08-02",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -3518,6 +3518,80 @@
           "TERMINAL_DESTROYED",
           "TERMINAL_PROCESS_DATA"
         ]
+      }
+    },
+    "main/shellSetup": {
+      "file": "src/main/shellSetup.js",
+      "description": "shellSetup — how a lane Frame opens gets told about Frame.",
+      "exports": [
+        "SHELL_DIR",
+        "INIT_FILES",
+        "MARKER_PREFIX",
+        "shellFamily",
+        "shellInitPath",
+        "mintMarker",
+        "deliveryFor",
+        "splitOnMarker"
+      ],
+      "depends": [
+        "path",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "shellFamily": {
+          "line": 66,
+          "params": [
+            "shellPath"
+          ],
+          "purpose": "The shell family a shell path belongs to, or '' when Frame has no init file"
+        },
+        "shellInitPath": {
+          "line": 81,
+          "params": [
+            "projectPath",
+            "family"
+          ],
+          "purpose": "Absolute path to a project's generated init file for a family, or '' when"
+        },
+        "mintMarker": {
+          "line": 96,
+          "params": [
+            "terminalId",
+            "attempt = 1"
+          ]
+        },
+        "singleQuote": {
+          "line": 109,
+          "params": [
+            "value"
+          ],
+          "purpose": "Single-quote a value for a POSIX or fish command line."
+        },
+        "markerEcho": {
+          "line": 123,
+          "params": [
+            "marker"
+          ],
+          "purpose": "The `printf` that announces the marker — never containing it."
+        },
+        "deliveryFor": {
+          "line": 146,
+          "params": [
+            "shellPath",
+            "platform = process.platform",
+            "projectPath = ''",
+            "options = {}"
+          ],
+          "purpose": "How setup reaches one lane's shell."
+        },
+        "splitOnMarker": {
+          "line": 181,
+          "params": [
+            "chunk",
+            "marker"
+          ],
+          "purpose": "What survives the marker in a buffered chunk."
+        }
       }
     },
     "main/specManager": {

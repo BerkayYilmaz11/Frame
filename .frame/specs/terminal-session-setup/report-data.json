@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "terminal-session-setup",
+    "title": "Terminal Session Setup — the lane Frame opens is a lane Frame set up"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Add pure src/main/shellSetup.js — the delivery table for terminal session setup",
+      "commit": "f3cf5a2",
+      "whatChanged": "New pure module src/main/shellSetup.js: shellFamily() maps a shell path to posix/fish/none, shellInitPath() spells the .frame/runtime/shell/ layout once, mintMarker() mints a per-terminal per-attempt token, deliveryFor() returns the fish -C args / the typed POSIX line / none behind the win32, no-project and not-a-Frame-project gates, and splitOnMarker() says what part of a buffered chunk survives the marker. test/shellSetup.test.js covers all of it.",
+      "whyChanged": "The marker is emitted as two adjacent single-quoted fragments so the literal token never appears in the line the tty echoes back — otherwise a scan of the output would match the echo and report setup installed before the shell had run anything. Markers are minted per attempt for the same reason in reverse: a retry reusing the first token would be resolved by output still in flight.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "468 tests, 0 failures"
+      }
+    }
+  ]
+}
