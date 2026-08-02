@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:19:54.054Z",
+  "lastUpdated": "2026-08-02T10:22:35.516Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4873,13 +4873,13 @@
       "title": "Deliver setup at spawn in `src/main/ptyManager.js` — resolve the delivery shape per terminal, append fish's `-C` args to `shellArgs`, write the typed line for POSIX shells, and record per-terminal setup state — leaving the setup output visible for now.",
       "description": "",
       "source": "spec:terminal-session-setup:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:22:35.516Z",
+      "completedAt": "2026-08-02T10:22:35.516Z"
     },
     {
       "id": "task-spec-terminal-session-setup-T05",

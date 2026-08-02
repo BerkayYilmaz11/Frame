@@ -3,13 +3,17 @@
  * Manages multiple PTY instances for multi-terminal support
  */
 
+const fs = require('fs');
+const path = require('path');
 const pty = require('node-pty');
 const { IPC } = require('../shared/ipcChannels');
+const { FRAME_DIR } = require('../shared/frameConstants');
 const logger = require('./logger');
 const promptLogger = require('./promptLogger');
 const telemetry = require('./telemetry');
 const pollGate = require('./pollGate');
 const launchEnv = require('./launchEnv');
+const shellSetup = require('./shellSetup');
 
 // Store multiple PTY instances
 const ptyInstances = new Map(); // Map<terminalId, {pty, cwd, projectPath}>
@@ -175,6 +179,43 @@ function getAvailableShells() {
 }
 
 /**
+ * Whether this lane's folder is a Frame project.
+ *
+ * The fs half of the setup gate — `shellSetup` is pure and cannot answer it.
+ * A folder with no `.frame/` has no init file to source and no wrappers to
+ * route to, so nothing is sent and no function or variable is defined.
+ */
+function isFrameProject(projectPath) {
+  if (!projectPath) return false;
+  try {
+    return fs.existsSync(path.join(projectPath, FRAME_DIR));
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * How this lane's shell gets set up, and with which marker.
+ *
+ * Never throws: a resolution failure returns `none`, which leaves the spawn
+ * exactly as it was before this existed — `.frame/bin` on `PATH` and nothing
+ * else. Losing context is acceptable; losing the terminal is not.
+ */
+function resolveSetup(terminalId, shell, projectPath, attempt) {
+  try {
+    const marker = shellSetup.mintMarker(terminalId, attempt);
+    const delivery = shellSetup.deliveryFor(shell, process.platform, projectPath, {
+      marker,
+      isFrameProject: isFrameProject(projectPath)
+    });
+    return delivery;
+  } catch (err) {
+    logger.warn('ptyManager', `shell setup resolution failed for ${terminalId}:`, err.message);
+    return { mode: 'none', reason: 'error' };
+  }
+}
+
+/**
  * Create a new terminal instance
  * @param {string|null} workingDir - Working directory (defaults to HOME)
  * @param {string|null} projectPath - Associated project path (null = global)
@@ -208,6 +249,19 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,
     } else {
       shellArgs = ['-i', '-l'];
     }
+  }
+
+  // Frame configures the session it creates. `.frame/bin` first on PATH (below)
+  // is set *before* the user's rc files run, and those files reorder PATH
+  // afterwards — which is how a `codex` from nvm's bin came to win. The init
+  // file this delivers runs last and defines a function per tool, resolved
+  // before any PATH search, so the ordering stops mattering. Nothing of the
+  // user's own configuration is touched or rerouted.
+  const setupProjectPath = projectPath || workingDir;
+  const setup = resolveSetup(terminalId, shell, setupProjectPath, 1);
+  if (setup.mode === 'flag') {
+    // fish takes it at spawn: nothing is typed into the terminal at all.
+    shellArgs = [...shellArgs, ...setup.args];
   }
 
   const ptyProcess = pty.spawn(shell, shellArgs, {
@@ -313,9 +367,34 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,
     outputChunks: [],
     outputBytes: 0,
     flushTimer: null,
-    paused: false
+    paused: false,
+    // Per-lane setup state. `pending` until the marker confirms it (or a
+    // timeout gives up); `unsupported` the moment there was nothing to send.
+    setup: {
+      state: setup.mode === 'none' ? 'unsupported' : 'pending',
+      mode: setup.mode,
+      reason: setup.reason || '',
+      marker: setup.marker || '',
+      attempt: 1,
+      shell,
+      projectPath: setupProjectPath
+    }
   });
   console.log(`Created terminal ${terminalId} in ${cwd} (project: ${projectPath || 'global'})`);
+
+  // zsh, bash and sh have no post-startup flag that does not reroute the
+  // user's own startup files, so the line is typed instead. It goes in
+  // immediately: the tty holds type-ahead until the shell reads it, and a line
+  // that does get lost is what the retry exists for.
+  if (setup.mode === 'type') {
+    try {
+      ptyProcess.write(`${setup.line}\n`);
+    } catch (err) {
+      logger.warn('ptyManager', `shell setup delivery failed for ${terminalId}:`, err.message);
+      const inst = ptyInstances.get(terminalId);
+      if (inst) inst.setup.state = 'failed';
+    }
+  }
 
   return terminalId;
 }
@@ -355,6 +434,15 @@ function getTerminalInfo(terminalId) {
 function getLastOutputAt(terminalId) {
   const instance = ptyInstances.get(terminalId);
   return instance ? (instance.lastOutputAt || null) : null;
+}
+
+/**
+ * This lane's context state: `pending`, `installed`, `failed` or `unsupported`.
+ * Null for a terminal that no longer exists.
+ */
+function getSetupState(terminalId) {
+  const instance = ptyInstances.get(terminalId);
+  return instance && instance.setup ? instance.setup.state : null;
 }
 
 /**
@@ -519,6 +607,7 @@ module.exports = {
   getTerminalsByProject,
   getTerminalInfo,
   getLastOutputAt,
+  getSetupState,
   getAvailableShells,
   setupIPC
 };

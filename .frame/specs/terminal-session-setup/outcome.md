@@ -48,3 +48,18 @@ project reopen. Both call sites warn and continue on failure. Files:
 _Captured: 2026-08-02 · 1 file change_
 
 ---
+
+## T04 — Deliver setup at spawn in `ptyManager`
+
+`createTerminal` resolves a per-lane delivery through `resolveSetup()`, a
+never-throwing wrapper that supplies the fs half of the gate
+(`isFrameProject()`); fish's `-C` args are appended to `shellArgs` before
+spawn, the POSIX line is typed once the instance is registered, and each
+instance carries a `setup` record exposed by `getSetupState()`. Typed
+immediately rather than after a delay — the tty holds type-ahead, and a lost
+line is what T05's retry is for. Setup output is still visible, as the task
+specified. Files: `src/main/ptyManager.js`.
+
+_Captured: 2026-08-02 · 1 file change_
+
+---

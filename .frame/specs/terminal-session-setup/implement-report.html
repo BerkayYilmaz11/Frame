@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">3 of 8 tasks done · next: <span class="rs-task">T04 — Deliver setup at spawn in `src/main/ptyManager.js` — resolve the…</span></span>
+  <span class="rs-count">4 of 8 tasks done · next: <span class="rs-task">T05 — Buffer output (capped) and queue input in `writeToTerminal` while a…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1057,6 +1057,168 @@
 <span class="dl-ctx">   composeLaunchCommand,</span>
 <span class="dl-ctx">   addCustomTool,</span>
 <span class="dl-ctx">   removeCustomTool,</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Deliver setup at spawn in src/main/ptyManager.js</h2>
+    <span class="card-meta"><span class="chip">dd6369b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">488 tests, 0 failures; delivered line also driven through a real zsh and bash — marker resolves, wrapper routes</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>createTerminal now resolves a delivery shape per lane through resolveSetup() — a never-throwing wrapper around shellSetup.deliveryFor() that supplies the fs half of the gate via isFrameProject(). fish gets its -C args appended to shellArgs before spawn; zsh/bash/sh get the line typed straight after the instance is registered. Each instance carries a setup record (state, mode, marker, attempt, shell, projectPath) and getSetupState() exposes it. Setup output is still visible — suppression is T05.</p></div>
+    <div class="field"><span class="label">Why</span><p>The typed line goes in immediately rather than after a delay: the tty holds type-ahead until the shell reads it, and a line that does get lost is precisely what the retry in T05 is for — a fixed delay would slow every lane to insure against the rare one. Every failure path leaves the spawn exactly as it was before this existed: PATH still carries .frame/bin.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/ptyManager.js b/src/main/ptyManager.js</span>
+<span class="dl-meta">index 43e565e..3a4d5ed 100644</span>
+<span class="dl-file">--- a/src/main/ptyManager.js</span>
+<span class="dl-file">+++ b/src/main/ptyManager.js</span>
+<span class="dl-hunk">@@ -3,13 +3,17 @@</span>
+<span class="dl-ctx">  * Manages multiple PTY instances for multi-terminal support</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-ctx"> const pty = require(&#39;node-pty&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+const { FRAME_DIR } = require(&#39;../shared/frameConstants&#39;);</span>
+<span class="dl-ctx"> const logger = require(&#39;./logger&#39;);</span>
+<span class="dl-ctx"> const promptLogger = require(&#39;./promptLogger&#39;);</span>
+<span class="dl-ctx"> const telemetry = require(&#39;./telemetry&#39;);</span>
+<span class="dl-ctx"> const pollGate = require(&#39;./pollGate&#39;);</span>
+<span class="dl-ctx"> const launchEnv = require(&#39;./launchEnv&#39;);</span>
+<span class="dl-add">+const shellSetup = require(&#39;./shellSetup&#39;);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Store multiple PTY instances</span>
+<span class="dl-ctx"> const ptyInstances = new Map(); // Map&lt;terminalId, {pty, cwd, projectPath}&gt;</span>
+<span class="dl-hunk">@@ -174,6 +178,43 @@ function getAvailableShells() {</span>
+<span class="dl-ctx">   return shells;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Whether this lane&#39;s folder is a Frame project.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The fs half of the setup gate — `shellSetup` is pure and cannot answer it.</span>
+<span class="dl-add">+ * A folder with no `.frame/` has no init file to source and no wrappers to</span>
+<span class="dl-add">+ * route to, so nothing is sent and no function or variable is defined.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function isFrameProject(projectPath) {</span>
+<span class="dl-add">+  if (!projectPath) return false;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    return fs.existsSync(path.join(projectPath, FRAME_DIR));</span>
+<span class="dl-add">+  } catch (_) {</span>
+<span class="dl-add">+    return false;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * How this lane&#39;s shell gets set up, and with which marker.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Never throws: a resolution failure returns `none`, which leaves the spawn</span>
+<span class="dl-add">+ * exactly as it was before this existed — `.frame/bin` on `PATH` and nothing</span>
+<span class="dl-add">+ * else. Losing context is acceptable; losing the terminal is not.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function resolveSetup(terminalId, shell, projectPath, attempt) {</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    const marker = shellSetup.mintMarker(terminalId, attempt);</span>
+<span class="dl-add">+    const delivery = shellSetup.deliveryFor(shell, process.platform, projectPath, {</span>
+<span class="dl-add">+      marker,</span>
+<span class="dl-add">+      isFrameProject: isFrameProject(projectPath)</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+    return delivery;</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;ptyManager&#39;, `shell setup resolution failed for ${terminalId}:`, err.message);</span>
+<span class="dl-add">+    return { mode: &#39;none&#39;, reason: &#39;error&#39; };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Create a new terminal instance</span>
+<span class="dl-ctx">  * @param {string|null} workingDir - Working directory (defaults to HOME)</span>
+<span class="dl-hunk">@@ -210,6 +251,19 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // Frame configures the session it creates. `.frame/bin` first on PATH (below)</span>
+<span class="dl-add">+  // is set *before* the user&#39;s rc files run, and those files reorder PATH</span>
+<span class="dl-add">+  // afterwards — which is how a `codex` from nvm&#39;s bin came to win. The init</span>
+<span class="dl-add">+  // file this delivers runs last and defines a function per tool, resolved</span>
+<span class="dl-add">+  // before any PATH search, so the ordering stops mattering. Nothing of the</span>
+<span class="dl-add">+  // user&#39;s own configuration is touched or rerouted.</span>
+<span class="dl-add">+  const setupProjectPath = projectPath || workingDir;</span>
+<span class="dl-add">+  const setup = resolveSetup(terminalId, shell, setupProjectPath, 1);</span>
+<span class="dl-add">+  if (setup.mode === &#39;flag&#39;) {</span>
+<span class="dl-add">+    // fish takes it at spawn: nothing is typed into the terminal at all.</span>
+<span class="dl-add">+    shellArgs = [...shellArgs, ...setup.args];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   const ptyProcess = pty.spawn(shell, shellArgs, {</span>
+<span class="dl-ctx">     name: &#39;xterm-256color&#39;,</span>
+<span class="dl-ctx">     cols: 80,</span>
+<span class="dl-hunk">@@ -313,10 +367,35 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">     outputChunks: [],</span>
+<span class="dl-ctx">     outputBytes: 0,</span>
+<span class="dl-ctx">     flushTimer: null,</span>
+<span class="dl-del">-    paused: false</span>
+<span class="dl-add">+    paused: false,</span>
+<span class="dl-add">+    // Per-lane setup state. `pending` until the marker confirms it (or a</span>
+<span class="dl-add">+    // timeout gives up); `unsupported` the moment there was nothing to send.</span>
+<span class="dl-add">+    setup: {</span>
+<span class="dl-add">+      state: setup.mode === &#39;none&#39; ? &#39;unsupported&#39; : &#39;pending&#39;,</span>
+<span class="dl-add">+      mode: setup.mode,</span>
+<span class="dl-add">+      reason: setup.reason || &#39;&#39;,</span>
+<span class="dl-add">+      marker: setup.marker || &#39;&#39;,</span>
+<span class="dl-add">+      attempt: 1,</span>
+<span class="dl-add">+      shell,</span>
+<span class="dl-add">+      projectPath: setupProjectPath</span>
+<span class="dl-add">+    }</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx">   console.log(`Created terminal ${terminalId} in ${cwd} (project: ${projectPath || &#39;global&#39;})`);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // zsh, bash and sh have no post-startup flag that does not reroute the</span>
+<span class="dl-add">+  // user&#39;s own startup files, so the line is typed instead. It goes in</span>
+<span class="dl-add">+  // immediately: the tty holds type-ahead until the shell reads it, and a line</span>
+<span class="dl-add">+  // that does get lost is what the retry exists for.</span>
+<span class="dl-add">+  if (setup.mode === &#39;type&#39;) {</span>
+<span class="dl-add">+    try {</span>
+<span class="dl-add">+      ptyProcess.write(`${setup.line}\n`);</span>
+<span class="dl-add">+    } catch (err) {</span>
+<span class="dl-add">+      logger.warn(&#39;ptyManager&#39;, `shell setup delivery failed for ${terminalId}:`, err.message);</span>
+<span class="dl-add">+      const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+      if (inst) inst.setup.state = &#39;failed&#39;;</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   return terminalId;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -357,6 +436,15 @@ function getLastOutputAt(terminalId) {</span>
+<span class="dl-ctx">   return instance ? (instance.lastOutputAt || null) : null;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * This lane&#39;s context state: `pending`, `installed`, `failed` or `unsupported`.</span>
+<span class="dl-add">+ * Null for a terminal that no longer exists.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getSetupState(terminalId) {</span>
+<span class="dl-add">+  const instance = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  return instance &amp;&amp; instance.setup ? instance.setup.state : null;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Write data to specific terminal</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-hunk">@@ -519,6 +607,7 @@ module.exports = {</span>
+<span class="dl-ctx">   getTerminalsByProject,</span>
+<span class="dl-ctx">   getTerminalInfo,</span>
+<span class="dl-ctx">   getLastOutputAt,</span>
+<span class="dl-add">+  getSetupState,</span>
+<span class="dl-ctx">   getAvailableShells,</span>
+<span class="dl-ctx">   setupIPC</span>
+<span class="dl-ctx"> };</span></pre>
     </details>
   </div>
 </section>

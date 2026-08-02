@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "488 tests, 0 failures"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Deliver setup at spawn in src/main/ptyManager.js",
+      "commit": "dd6369b",
+      "whatChanged": "createTerminal now resolves a delivery shape per lane through resolveSetup() — a never-throwing wrapper around shellSetup.deliveryFor() that supplies the fs half of the gate via isFrameProject(). fish gets its -C args appended to shellArgs before spawn; zsh/bash/sh get the line typed straight after the instance is registered. Each instance carries a setup record (state, mode, marker, attempt, shell, projectPath) and getSetupState() exposes it. Setup output is still visible — suppression is T05.",
+      "whyChanged": "The typed line goes in immediately rather than after a delay: the tty holds type-ahead until the shell reads it, and a line that does get lost is precisely what the retry in T05 is for — a fixed delay would slow every lane to insure against the rare one. Every failure path leaves the spawn exactly as it was before this existed: PATH still carries .frame/bin.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "488 tests, 0 failures; delivered line also driven through a real zsh and bash — marker resolves, wrapper routes"
+      }
     }
   ]
 }

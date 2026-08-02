@@ -3381,37 +3381,41 @@
         "getTerminalsByProject",
         "getTerminalInfo",
         "getLastOutputAt",
+        "getSetupState",
         "getAvailableShells",
         "setupIPC"
       ],
       "depends": [
+        "fs",
+        "path",
         "node-pty",
         "shared/ipcChannels",
+        "shared/frameConstants",
         "logger",
         "promptLogger",
         "telemetry",
         "pollGate",
         "launchEnv",
-        "child_process",
-        "fs"
+        "shellSetup",
+        "child_process"
       ],
       "functions": {
         "flushOutput": {
-          "line": 27,
+          "line": 31,
           "params": [
             "terminalId"
           ],
           "purpose": "Flush a terminal's buffered output as one coalesced send."
         },
         "init": {
-          "line": 47,
+          "line": 51,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY manager with window reference"
         },
         "getForegroundCommand": {
-          "line": 62,
+          "line": 66,
           "params": [
             "shellPid",
             "callback"
@@ -3419,14 +3423,31 @@
           "purpose": "Resolve the full command line of the terminal's foreground process."
         },
         "getDefaultShell": {
-          "line": 81
+          "line": 85
         },
         "getAvailableShells": {
-          "line": 98,
+          "line": 102,
           "purpose": "Get available shells on the system"
         },
+        "isFrameProject": {
+          "line": 188,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Whether this lane's folder is a Frame project."
+        },
+        "resolveSetup": {
+          "line": 204,
+          "params": [
+            "terminalId",
+            "shell",
+            "projectPath",
+            "attempt"
+          ],
+          "purpose": "How this lane's shell gets set up, and with which marker."
+        },
         "createTerminal": {
-          "line": 184,
+          "line": 225,
           "params": [
             "workingDir = null",
             "projectPath = null",
@@ -3436,28 +3457,35 @@
           "purpose": "Create a new terminal instance"
         },
         "getTerminalsByProject": {
-          "line": 328,
+          "line": 407,
           "params": [
             "projectPath"
           ],
           "purpose": "Get terminals for a specific project"
         },
         "getTerminalInfo": {
-          "line": 343,
+          "line": 422,
           "params": [
             "terminalId"
           ],
           "purpose": "Get terminal info"
         },
         "getLastOutputAt": {
-          "line": 355,
+          "line": 434,
           "params": [
             "terminalId"
           ],
           "purpose": "Last time this terminal produced output (epoch ms), or null if unknown."
         },
+        "getSetupState": {
+          "line": 443,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "This lane's context state: `pending`, `installed`, `failed` or `unsupported`."
+        },
         "writeToTerminal": {
-          "line": 363,
+          "line": 451,
           "params": [
             "terminalId",
             "data"
@@ -3465,7 +3493,7 @@
           "purpose": "Write data to specific terminal"
         },
         "resizeTerminal": {
-          "line": 373,
+          "line": 461,
           "params": [
             "terminalId",
             "cols",
@@ -3474,40 +3502,40 @@
           "purpose": "Resize specific terminal"
         },
         "destroyTerminal": {
-          "line": 383,
+          "line": 471,
           "params": [
             "terminalId"
           ],
           "purpose": "Destroy specific terminal"
         },
         "destroyAll": {
-          "line": 401,
+          "line": 489,
           "purpose": "Destroy all terminals"
         },
         "getTerminalCount": {
-          "line": 418,
+          "line": 506,
           "purpose": "Get terminal count"
         },
         "getTerminalIds": {
-          "line": 425,
+          "line": 513,
           "purpose": "Get all terminal IDs"
         },
         "destroyExcept": {
-          "line": 435,
+          "line": 523,
           "params": [
             "knownIds"
           ],
           "purpose": "Destroy every PTY the renderer doesn't know about. A renderer reload"
         },
         "hasTerminal": {
-          "line": 445,
+          "line": 533,
           "params": [
             "terminalId"
           ],
           "purpose": "Check if terminal exists"
         },
         "setupIPC": {
-          "line": 452,
+          "line": 540,
           "params": [
             "ipcMain"
           ],
