@@ -22,6 +22,7 @@
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const laneStatus = require('./laneStatus');
+const laneContext = require('./laneContext');
 const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 const notify = require('./notify');
@@ -301,7 +302,12 @@ async function _startAgentIn(terminalId, { fresh = false } = {}) {
   ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', {
     tool: currentTool ? currentTool.id : null
   });
-  setTimeout(() => multiTerminalUI.sendCommand(startCommand, terminalId), fresh ? 800 : 50);
+  // A freshly spawned shell used to get 800 ms and an existing one 50 ms,
+  // both guesses at when the shell would accept input. The lane's own setup
+  // marker answers it; each number stays as that call's fallback, so an
+  // unsupported or failed lane behaves exactly as it does today.
+  await laneContext.whenReady(terminalId, fresh ? 800 : 50);
+  multiTerminalUI.sendCommand(startCommand, terminalId);
 }
 
 /**

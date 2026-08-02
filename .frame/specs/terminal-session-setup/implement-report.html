@@ -155,18 +155,17 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
 </header>
 
 <div class="wrap">
-<div class="run-status live">
-  <span class="rs-badge">In progress</span>
-  <span class="rs-count">7 of 8 tasks done · next: <span class="rs-task">T08 — Replace the fixed delays with `laneContext.whenReady(terminalId, &lt;the…</span></span>
-  <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
+<div class="run-status done">
+  <span class="rs-badge">Complete</span>
+  <span class="rs-count">8 of 8 tasks done</span>
 </div>
 <section class="report-head">
   <h1>Terminal Session Setup — the lane Frame opens is a lane Frame set up</h1>
@@ -2101,6 +2100,95 @@
 <span class="dl-ctx"> // ─── splitOnMarker ────────────────────────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;output before and including the marker line is dropped, the rest survives&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>Replace the fixed delays with laneContext.whenReady</h2>
+    <span class="card-meta"><span class="chip">8a2ec1e</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">490 tests, 0 failures; renderer bundle builds</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>agentDispatch._startAgentIn awaits whenReady(terminalId, fresh ? 800 : 50), index.js startAiSession awaits whenReady(id, 1000) and multiTerminalUI.sendCommand create-then-send path awaits whenReady(newId, 300). Each site keeps its own number as the fallback; the setTimeout wrappers are gone.</p></div>
+    <div class="field"><span class="label">Why</span><p>Every one of those numbers was a guess at when the shell would accept input, made once and never revisited. The setup marker is proof, so a confirmed lane types immediately and a lane that cannot confirm waits exactly as long as it always did — nothing gets slower, and the common case stops paying for a worst case that already passed.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/agentDispatch.js b/src/renderer/agentDispatch.js</span>
+<span class="dl-meta">index 9d8bf9c..889025b 100644</span>
+<span class="dl-file">--- a/src/renderer/agentDispatch.js</span>
+<span class="dl-file">+++ b/src/renderer/agentDispatch.js</span>
+<span class="dl-hunk">@@ -22,6 +22,7 @@</span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> const laneStatus = require(&#39;./laneStatus&#39;);</span>
+<span class="dl-add">+const laneContext = require(&#39;./laneContext&#39;);</span>
+<span class="dl-ctx"> const state = require(&#39;./state&#39;);</span>
+<span class="dl-ctx"> const { escapeHtml } = require(&#39;./htmlUtils&#39;);</span>
+<span class="dl-ctx"> const notify = require(&#39;./notify&#39;);</span>
+<span class="dl-hunk">@@ -301,7 +302,12 @@ async function _startAgentIn(terminalId, { fresh = false } = {}) {</span>
+<span class="dl-ctx">   ipcRenderer.send(IPC.TELEMETRY_TRACK, &#39;agent_run_started&#39;, {</span>
+<span class="dl-ctx">     tool: currentTool ? currentTool.id : null</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-del">-  setTimeout(() =&gt; multiTerminalUI.sendCommand(startCommand, terminalId), fresh ? 800 : 50);</span>
+<span class="dl-add">+  // A freshly spawned shell used to get 800 ms and an existing one 50 ms,</span>
+<span class="dl-add">+  // both guesses at when the shell would accept input. The lane&#39;s own setup</span>
+<span class="dl-add">+  // marker answers it; each number stays as that call&#39;s fallback, so an</span>
+<span class="dl-add">+  // unsupported or failed lane behaves exactly as it does today.</span>
+<span class="dl-add">+  await laneContext.whenReady(terminalId, fresh ? 800 : 50);</span>
+<span class="dl-add">+  multiTerminalUI.sendCommand(startCommand, terminalId);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-meta">diff --git a/src/renderer/index.js b/src/renderer/index.js</span>
+<span class="dl-meta">index b36cefd..f85ada8 100644</span>
+<span class="dl-file">--- a/src/renderer/index.js</span>
+<span class="dl-file">+++ b/src/renderer/index.js</span>
+<span class="dl-hunk">@@ -33,6 +33,7 @@ const orchestrator = require(&#39;./orchestrator&#39;);</span>
+<span class="dl-ctx"> const editor = require(&#39;./editor&#39;);</span>
+<span class="dl-ctx"> const sidebarResize = require(&#39;./sidebarResize&#39;);</span>
+<span class="dl-ctx"> const aiToolSelector = require(&#39;./aiToolSelector&#39;);</span>
+<span class="dl-add">+const laneContext = require(&#39;./laneContext&#39;);</span>
+<span class="dl-ctx"> const commandRegistry = require(&#39;./commandRegistry&#39;);</span>
+<span class="dl-ctx"> const commandPalette = require(&#39;./commandPalette&#39;);</span>
+<span class="dl-ctx"> const cheatSheet = require(&#39;./cheatSheet&#39;);</span>
+<span class="dl-hunk">@@ -747,9 +748,11 @@ async function startAiSession() {</span>
+<span class="dl-ctx">   // attached. The board&#39;s agent chip is derived live from the foreground</span>
+<span class="dl-ctx">   // process, not tagged here.</span>
+<span class="dl-ctx">   const startCommand = await aiToolSelector.getLaunchCommand(projectPath);</span>
+<span class="dl-del">-  setTimeout(() =&gt; {</span>
+<span class="dl-del">-    terminal.sendCommand(startCommand, newTerminalId);</span>
+<span class="dl-del">-  }, 1000);</span>
+<span class="dl-add">+  // The shell&#39;s own setup marker says when it is processing input, which is</span>
+<span class="dl-add">+  // what the 1000 ms here used to guess. That number stays as the fallback,</span>
+<span class="dl-add">+  // so a lane that cannot confirm behaves exactly as it did before.</span>
+<span class="dl-add">+  await laneContext.whenReady(newTerminalId, 1000);</span>
+<span class="dl-add">+  terminal.sendCommand(startCommand, newTerminalId);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-meta">diff --git a/src/renderer/multiTerminalUI.js b/src/renderer/multiTerminalUI.js</span>
+<span class="dl-meta">index d4d8a8f..e14fa63 100644</span>
+<span class="dl-file">--- a/src/renderer/multiTerminalUI.js</span>
+<span class="dl-file">+++ b/src/renderer/multiTerminalUI.js</span>
+<span class="dl-hunk">@@ -527,11 +527,13 @@ class MultiTerminalUI {</span>
+<span class="dl-ctx">     if (!targetId) {</span>
+<span class="dl-ctx">       // Lanes belong to a project — without one there is nowhere to send</span>
+<span class="dl-ctx">       if (!this.manager.getCurrentProject()) return;</span>
+<span class="dl-del">-      this.createTerminalForCurrentProject().then((newId) =&gt; {</span>
+<span class="dl-add">+      this.createTerminalForCurrentProject().then(async (newId) =&gt; {</span>
+<span class="dl-ctx">         if (!newId) return;</span>
+<span class="dl-ctx">         this.enterLane(newId);</span>
+<span class="dl-del">-        // Give the shell a moment to be ready before the first command</span>
+<span class="dl-del">-        setTimeout(() =&gt; this.manager.sendCommand(command, newId), 300);</span>
+<span class="dl-add">+        // The lane&#39;s setup marker says when the shell is ready; the 300 ms</span>
+<span class="dl-add">+        // this used to wait unconditionally is now only the fallback.</span>
+<span class="dl-add">+        await laneContext.whenReady(newId, 300);</span>
+<span class="dl-add">+        this.manager.sendCommand(command, newId);</span>
+<span class="dl-ctx">       });</span>
+<span class="dl-ctx">       return;</span>
+<span class="dl-ctx">     }</span></pre>
     </details>
   </div>
 </section>

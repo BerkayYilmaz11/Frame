@@ -527,11 +527,13 @@ class MultiTerminalUI {
     if (!targetId) {
       // Lanes belong to a project — without one there is nowhere to send
       if (!this.manager.getCurrentProject()) return;
-      this.createTerminalForCurrentProject().then((newId) => {
+      this.createTerminalForCurrentProject().then(async (newId) => {
         if (!newId) return;
         this.enterLane(newId);
-        // Give the shell a moment to be ready before the first command
-        setTimeout(() => this.manager.sendCommand(command, newId), 300);
+        // The lane's setup marker says when the shell is ready; the 300 ms
+        // this used to wait unconditionally is now only the fallback.
+        await laneContext.whenReady(newId, 300);
+        this.manager.sendCommand(command, newId);
       });
       return;
     }

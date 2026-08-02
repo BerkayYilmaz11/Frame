@@ -4707,6 +4707,7 @@
         "electron",
         "shared/ipcChannels",
         "laneStatus",
+        "laneContext",
         "state",
         "htmlUtils",
         "notify",
@@ -4715,14 +4716,14 @@
       ],
       "functions": {
         "init": {
-          "line": 46,
+          "line": 47,
           "params": [
             "ui"
           ],
           "purpose": "Initialize with the MultiTerminalUI instance."
         },
         "dispatch": {
-          "line": 91,
+          "line": 92,
           "params": [
             "{ terminalId = null",
             "createNew = false",
@@ -4736,11 +4737,11 @@
           "purpose": "Deliver a prompt to an agent in a lane."
         },
         "startDefaultAgent": {
-          "line": 255,
+          "line": 256,
           "purpose": "Start the default agent (the active AI tool) from the sidebar shortcut —"
         },
         "_startAgentIn": {
-          "line": 290,
+          "line": 291,
           "params": [
             "terminalId",
             "{ fresh = false } = {}"
@@ -4748,17 +4749,17 @@
           "purpose": "Start the active tool's CLI in an existing lane. `fresh` allows a newly"
         },
         "startAgentInLane": {
-          "line": 315,
+          "line": 321,
           "params": [
             "terminalId"
           ],
           "purpose": "Start the active tool's CLI in an existing lane, from outside this module."
         },
         "_startAgentInNewFrame": {
-          "line": 319
+          "line": 325
         },
         "_askNewOrRestart": {
-          "line": 337,
+          "line": 343,
           "params": [
             "frameName",
             "hasAgent"
@@ -4766,7 +4767,7 @@
           "purpose": "\"Open a new Frame / Kill & restart here\" — asked when the focused Frame is"
         },
         "dispatchSpecCommand": {
-          "line": 394,
+          "line": 400,
           "params": [
             "{ slug",
             "title = null",
@@ -4775,7 +4776,7 @@
           "purpose": "Run a spec command in the spec's assigned lane — or a new Frame."
         },
         "_dispatchImplement": {
-          "line": 461,
+          "line": 467,
           "params": [
             "{ slug",
             "title",
@@ -4785,79 +4786,79 @@
           "purpose": "The spec.implement path: modal → record implement_mode → stage → dispatch."
         },
         "getSpecLaneInfo": {
-          "line": 552,
+          "line": 558,
           "params": [
             "slug"
           ],
           "purpose": "Live info about the lane a spec is assigned to, or null when unassigned"
         },
         "getTaskLaneInfo": {
-          "line": 576,
+          "line": 582,
           "params": [
             "taskId"
           ],
           "purpose": "Live info about the lane working on a task, or null. Unlike specs there"
         },
         "specStatusDotHtml": {
-          "line": 597,
+          "line": 603,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 601,
+          "line": 607,
           "params": [
             "taskId"
           ]
         },
         "_activityDotHtml": {
-          "line": 605,
+          "line": 611,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 622,
+          "line": 628,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 630,
+          "line": 636,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 653,
+          "line": 659,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 661,
+          "line": 667,
           "params": [
             "taskId"
           ]
         },
         "_assignedLane": {
-          "line": 679,
+          "line": 685,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 689,
+          "line": 695,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 698,
+          "line": 704,
           "params": [
             "frameName",
             "specName"
@@ -4865,14 +4866,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 739,
+          "line": 745,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 768,
+          "line": 774,
           "params": [
             "terminalId",
             "message"
@@ -6042,6 +6043,7 @@
         "editor",
         "sidebarResize",
         "aiToolSelector",
+        "laneContext",
         "commandRegistry",
         "commandPalette",
         "cheatSheet",
@@ -6059,34 +6061,34 @@
       ],
       "functions": {
         "init": {
-          "line": 52,
+          "line": 53,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 253,
+          "line": 254,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 318,
+          "line": 319,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 407,
+          "line": 408,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 438,
+          "line": 439,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 464,
+          "line": 465,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 736,
+          "line": 737,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },

@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "490 tests, 0 failures; renderer bundle builds"
       }
+    },
+    {
+      "id": "T08",
+      "title": "Replace the fixed delays with laneContext.whenReady",
+      "commit": "8a2ec1e",
+      "whatChanged": "agentDispatch._startAgentIn awaits whenReady(terminalId, fresh ? 800 : 50), index.js startAiSession awaits whenReady(id, 1000) and multiTerminalUI.sendCommand create-then-send path awaits whenReady(newId, 300). Each site keeps its own number as the fallback; the setTimeout wrappers are gone.",
+      "whyChanged": "Every one of those numbers was a guess at when the shell would accept input, made once and never revisited. The setup marker is proof, so a confirmed lane types immediately and a lane that cannot confirm waits exactly as long as it always did — nothing gets slower, and the common case stops paying for a worst case that already passed.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "490 tests, 0 failures; renderer bundle builds"
+      }
     }
   ]
 }

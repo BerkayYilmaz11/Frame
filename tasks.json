@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:35:09.003Z",
+  "lastUpdated": "2026-08-02T10:36:58.161Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4925,13 +4925,13 @@
       "title": "Replace the fixed delays with `laneContext.whenReady(terminalId, <the site's current delay>)` in `agentDispatch._startAgentIn` (800/50 ms), `index.js` `startAiSession` (1000 ms) and `multiTerminalUI.sendCommand`'s create-then-send path (300 ms), keeping each number as the fallback.",
       "description": "",
       "source": "spec:terminal-session-setup:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:36:58.161Z",
+      "completedAt": "2026-08-02T10:36:58.161Z"
     }
   ],
   "metadata": {

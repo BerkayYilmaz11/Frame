@@ -118,3 +118,17 @@ list. Files: `src/renderer/agentDispatch.js`, `src/renderer/laneBoard.js`,
 _Captured: 2026-08-02 · 7 file changes_
 
 ---
+
+## T08 — Retire the fixed delays
+
+`_startAgentIn` (800/50 ms), `startAiSession` (1000 ms) and
+`multiTerminalUI.sendCommand`'s create-then-send path (300 ms) now await
+`laneContext.whenReady(id, <their old number>)` instead of a `setTimeout`.
+Each keeps its number as the fallback, so an unsupported or failed lane
+behaves exactly as it did and only a confirmed lane gets faster. Files:
+`src/renderer/agentDispatch.js`, `src/renderer/index.js`,
+`src/renderer/multiTerminalUI.js`.
+
+_Captured: 2026-08-02 · 3 file changes_
+
+---
