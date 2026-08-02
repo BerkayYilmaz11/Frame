@@ -51,6 +51,18 @@
         "status": "pass",
         "detail": "488 tests, 0 failures; delivered line also driven through a real zsh and bash — marker resolves, wrapper routes"
       }
+    },
+    {
+      "id": "T05",
+      "title": "Make setup invisible and verified in ptyManager, with the TERMINAL_CONTEXT_STATE channel",
+      "commit": "d480d58",
+      "whatChanged": "While a lane setup is pending, output is buffered (capped at 256KB) instead of forwarded and writeToTerminal queues input instead of writing it. The marker is looked for in the accumulated buffer, resolves the lane to installed by dropping everything through its line, and the remainder enters the normal pipeline. A 4s timeout flushes the held output verbatim and retypes with a fresh marker; a second one ends in failed. finishSetup() is the single exit path — it flushes the input queue in order and emits the new TERMINAL_CONTEXT_STATE channel, including the immediate unsupported. pushOutput() now fronts the coalescing pipeline so the setup buffer flushes through the same backpressure.",
+      "whyChanged": "The marker is matched against the accumulated buffer, not the chunk: a PTY will split it across two reads and a per-chunk scan would time out a lane that had actually worked. Input is queued rather than passed through because the buffer in front of it is about to be discarded — a keystroke written now would be echoed into output the user never sees, so they would watch their own typing vanish. fish gets no retry: its setup went in as a spawn flag, so there is no line to type again.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "488 tests, 0 failures; state machine also driven end to end against a stubbed node-pty — invisible window, split marker, queued input, timeout retry, failed, unsupported"
+      }
     }
   ]
 }

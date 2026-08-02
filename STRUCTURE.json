@@ -3401,21 +3401,67 @@
       ],
       "functions": {
         "flushOutput": {
-          "line": 31,
+          "line": 41,
           "params": [
             "terminalId"
           ],
           "purpose": "Flush a terminal's buffered output as one coalesced send."
         },
+        "pushOutput": {
+          "line": 64,
+          "params": [
+            "terminalId",
+            "data"
+          ],
+          "purpose": "Hand data to the coalescing pipeline."
+        },
+        "emitContextState": {
+          "line": 81,
+          "params": [
+            "terminalId",
+            "state"
+          ],
+          "purpose": "Tell the renderer what this lane's context state is."
+        },
+        "finishSetup": {
+          "line": 99,
+          "params": [
+            "terminalId",
+            "state",
+            "forward = ''"
+          ],
+          "purpose": "End a lane's setup, whatever the outcome."
+        },
+        "onSetupTimeout": {
+          "line": 137,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "An attempt did not confirm in time — or flooded the buffer, which amounts to"
+        },
+        "armSetupTimer": {
+          "line": 173,
+          "params": [
+            "terminalId"
+          ]
+        },
+        "consumeSetupOutput": {
+          "line": 191,
+          "params": [
+            "terminalId",
+            "chunk"
+          ],
+          "purpose": "Filter one chunk of output through a pending setup. Returns what the"
+        },
         "init": {
-          "line": 51,
+          "line": 220,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY manager with window reference"
         },
         "getForegroundCommand": {
-          "line": 66,
+          "line": 235,
           "params": [
             "shellPid",
             "callback"
@@ -3423,21 +3469,21 @@
           "purpose": "Resolve the full command line of the terminal's foreground process."
         },
         "getDefaultShell": {
-          "line": 85
+          "line": 254
         },
         "getAvailableShells": {
-          "line": 102,
+          "line": 271,
           "purpose": "Get available shells on the system"
         },
         "isFrameProject": {
-          "line": 188,
+          "line": 357,
           "params": [
             "projectPath"
           ],
           "purpose": "Whether this lane's folder is a Frame project."
         },
         "resolveSetup": {
-          "line": 204,
+          "line": 373,
           "params": [
             "terminalId",
             "shell",
@@ -3447,7 +3493,7 @@
           "purpose": "How this lane's shell gets set up, and with which marker."
         },
         "createTerminal": {
-          "line": 225,
+          "line": 394,
           "params": [
             "workingDir = null",
             "projectPath = null",
@@ -3457,35 +3503,35 @@
           "purpose": "Create a new terminal instance"
         },
         "getTerminalsByProject": {
-          "line": 407,
+          "line": 598,
           "params": [
             "projectPath"
           ],
           "purpose": "Get terminals for a specific project"
         },
         "getTerminalInfo": {
-          "line": 422,
+          "line": 613,
           "params": [
             "terminalId"
           ],
           "purpose": "Get terminal info"
         },
         "getLastOutputAt": {
-          "line": 434,
+          "line": 625,
           "params": [
             "terminalId"
           ],
           "purpose": "Last time this terminal produced output (epoch ms), or null if unknown."
         },
         "getSetupState": {
-          "line": 443,
+          "line": 634,
           "params": [
             "terminalId"
           ],
           "purpose": "This lane's context state: `pending`, `installed`, `failed` or `unsupported`."
         },
         "writeToTerminal": {
-          "line": 451,
+          "line": 642,
           "params": [
             "terminalId",
             "data"
@@ -3493,7 +3539,7 @@
           "purpose": "Write data to specific terminal"
         },
         "resizeTerminal": {
-          "line": 461,
+          "line": 660,
           "params": [
             "terminalId",
             "cols",
@@ -3502,40 +3548,40 @@
           "purpose": "Resize specific terminal"
         },
         "destroyTerminal": {
-          "line": 471,
+          "line": 670,
           "params": [
             "terminalId"
           ],
           "purpose": "Destroy specific terminal"
         },
         "destroyAll": {
-          "line": 489,
+          "line": 689,
           "purpose": "Destroy all terminals"
         },
         "getTerminalCount": {
-          "line": 506,
+          "line": 707,
           "purpose": "Get terminal count"
         },
         "getTerminalIds": {
-          "line": 513,
+          "line": 714,
           "purpose": "Get all terminal IDs"
         },
         "destroyExcept": {
-          "line": 523,
+          "line": 724,
           "params": [
             "knownIds"
           ],
           "purpose": "Destroy every PTY the renderer doesn't know about. A renderer reload"
         },
         "hasTerminal": {
-          "line": 533,
+          "line": 734,
           "params": [
             "terminalId"
           ],
           "purpose": "Check if terminal exists"
         },
         "setupIPC": {
-          "line": 540,
+          "line": 741,
           "params": [
             "ipcMain"
           ],
@@ -3552,6 +3598,7 @@
         ],
         "emits": [
           "TERMINAL_OUTPUT_ID",
+          "TERMINAL_CONTEXT_STATE",
           "TERMINAL_DESTROYED",
           "TERMINAL_PROCESS_DATA"
         ]
@@ -10355,6 +10402,11 @@
       },
       "TERMINAL_RESIZE": {
         "name": "terminal-resize",
+        "direction": "",
+        "description": ""
+      },
+      "TERMINAL_CONTEXT_STATE": {
+        "name": "terminal-context-state",
         "direction": "",
         "description": ""
       }

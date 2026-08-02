@@ -63,3 +63,24 @@ specified. Files: `src/main/ptyManager.js`.
 _Captured: 2026-08-02 · 1 file change_
 
 ---
+
+## T05 — Make setup invisible and verified
+
+Buffered output (capped) and queued input while a lane's setup is pending,
+resolved on the marker by dropping everything through its line, flushed
+verbatim and retyped with a fresh marker on a 4s timeout, `failed` on the
+second; `finishSetup()` is the single exit path and emits the new
+`TERMINAL_CONTEXT_STATE` channel, immediate `unsupported` included. The
+marker is matched against the accumulated buffer rather than the chunk —
+a PTY splits it across reads, and a per-chunk scan would time out lanes that
+worked. Deviation from plan.md: fish gets no retry, because its setup went in
+as a spawn flag and there is no line to type again. Files:
+`src/main/ptyManager.js`, `src/shared/ipcChannels.js`.
+
+Followup: the PTY wiring stays untested per plan.md, but the throwaway
+stubbed-node-pty harness used to verify it would make a real `test/` file
+cheaply.
+
+_Captured: 2026-08-02 · 2 file changes_
+
+---

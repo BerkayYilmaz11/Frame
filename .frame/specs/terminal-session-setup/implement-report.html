@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">4 tasks</span>
-    <span class="pill good">4 verified</span>
+    <span class="pill">5 tasks</span>
+    <span class="pill good">5 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">4 of 8 tasks done · next: <span class="rs-task">T05 — Buffer output (capped) and queue input in `writeToTerminal` while a…</span></span>
+  <span class="rs-count">5 of 8 tasks done · next: <span class="rs-task">T06 — Add `src/renderer/laneContext.js` — per-terminal context-state cache…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1219,6 +1219,338 @@
 <span class="dl-ctx">   getAvailableShells,</span>
 <span class="dl-ctx">   setupIPC</span>
 <span class="dl-ctx"> };</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T05</span>
+    <h2>Make setup invisible and verified in ptyManager, with the TERMINAL_CONTEXT_STATE channel</h2>
+    <span class="card-meta"><span class="chip">d480d58</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">488 tests, 0 failures; state machine also driven end to end against a stubbed node-pty — invisible window, split marker, queued input, timeout retry, failed, unsupported</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>While a lane setup is pending, output is buffered (capped at 256KB) instead of forwarded and writeToTerminal queues input instead of writing it. The marker is looked for in the accumulated buffer, resolves the lane to installed by dropping everything through its line, and the remainder enters the normal pipeline. A 4s timeout flushes the held output verbatim and retypes with a fresh marker; a second one ends in failed. finishSetup() is the single exit path — it flushes the input queue in order and emits the new TERMINAL_CONTEXT_STATE channel, including the immediate unsupported. pushOutput() now fronts the coalescing pipeline so the setup buffer flushes through the same backpressure.</p></div>
+    <div class="field"><span class="label">Why</span><p>The marker is matched against the accumulated buffer, not the chunk: a PTY will split it across two reads and a per-chunk scan would time out a lane that had actually worked. Input is queued rather than passed through because the buffer in front of it is about to be discarded — a keystroke written now would be echoed into output the user never sees, so they would watch their own typing vanish. fish gets no retry: its setup went in as a spawn flag, so there is no line to type again.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/ptyManager.js b/src/main/ptyManager.js</span>
+<span class="dl-meta">index 3a4d5ed..f4951c2 100644</span>
+<span class="dl-file">--- a/src/main/ptyManager.js</span>
+<span class="dl-file">+++ b/src/main/ptyManager.js</span>
+<span class="dl-hunk">@@ -27,6 +27,16 @@ const MAX_TERMINALS = 9;</span>
+<span class="dl-ctx"> const FLUSH_INTERVAL_MS = 16;</span>
+<span class="dl-ctx"> const OUTPUT_HIGH_WATER_BYTES = 1024 * 1024;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// Shell setup: how long one attempt may stay invisible, and how much output</span>
+<span class="dl-add">+// may pile up behind it. The timeout is generous next to a warm shell&#39;s</span>
+<span class="dl-add">+// startup and short enough that a lane which will never confirm does not sit</span>
+<span class="dl-add">+// blank while the user waits. The cap is the same promise from the other side:</span>
+<span class="dl-add">+// a shell that floods (an rc file printing a banner, an MOTD) stops being</span>
+<span class="dl-add">+// suppressed rather than swallowing megabytes nobody will ever see.</span>
+<span class="dl-add">+const SETUP_TIMEOUT_MS = 4000;</span>
+<span class="dl-add">+const SETUP_BUFFER_MAX_BYTES = 256 * 1024;</span>
+<span class="dl-add">+const SETUP_MAX_ATTEMPTS = 2;</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /** Flush a terminal&#39;s buffered output as one coalesced send. */</span>
+<span class="dl-ctx"> function flushOutput(terminalId) {</span>
+<span class="dl-ctx">   const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-hunk">@@ -45,6 +55,165 @@ function flushOutput(terminalId) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Hand data to the coalescing pipeline.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The one door into it, so the setup buffer can flush through exactly the same</span>
+<span class="dl-add">+ * backpressure the PTY&#39;s own output goes through.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function pushOutput(terminalId, data) {</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  if (!inst || !data) return;</span>
+<span class="dl-add">+  inst.outputChunks.push(data);</span>
+<span class="dl-add">+  inst.outputBytes += data.length;</span>
+<span class="dl-add">+  // Backpressure: past the high-water mark, pause the PTY until the next</span>
+<span class="dl-add">+  // flush drains the buffer — a runaway `yes`-style stream can no longer</span>
+<span class="dl-add">+  // grow the buffer faster than the renderer consumes it.</span>
+<span class="dl-add">+  if (inst.outputBytes &gt;= OUTPUT_HIGH_WATER_BYTES &amp;&amp; !inst.paused) {</span>
+<span class="dl-add">+    try { inst.pty.pause(); inst.paused = true; } catch (_) { /* older node-pty */ }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  if (!inst.flushTimer) {</span>
+<span class="dl-add">+    inst.flushTimer = setTimeout(() =&gt; flushOutput(terminalId), FLUSH_INTERVAL_MS);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Tell the renderer what this lane&#39;s context state is. */</span>
+<span class="dl-add">+function emitContextState(terminalId, state) {</span>
+<span class="dl-add">+  if (mainWindow &amp;&amp; !mainWindow.isDestroyed()) {</span>
+<span class="dl-add">+    mainWindow.webContents.send(IPC.TERMINAL_CONTEXT_STATE, {</span>
+<span class="dl-add">+      terminalId,</span>
+<span class="dl-add">+      state,</span>
+<span class="dl-add">+      ready: state === &#39;installed&#39;</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * End a lane&#39;s setup, whatever the outcome.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Every exit path runs through here, because every exit path owes the user the</span>
+<span class="dl-add">+ * same two things: the input they typed into the invisible window, in the order</span>
+<span class="dl-add">+ * they typed it, and a terminal that is not left blank. Returns the output that</span>
+<span class="dl-add">+ * should reach the renderer.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function finishSetup(terminalId, state, forward = &#39;&#39;) {</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  if (!inst || !inst.setup) return forward;</span>
+<span class="dl-add">+  const setup = inst.setup;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (setup.timer) {</span>
+<span class="dl-add">+    clearTimeout(setup.timer);</span>
+<span class="dl-add">+    setup.timer = null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  setup.state = state;</span>
+<span class="dl-add">+  setup.suppress = false;</span>
+<span class="dl-add">+  setup.buffer = [];</span>
+<span class="dl-add">+  setup.bytes = 0;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const queued = setup.inputQueue;</span>
+<span class="dl-add">+  setup.inputQueue = [];</span>
+<span class="dl-add">+  for (const data of queued) {</span>
+<span class="dl-add">+    try { inst.pty.write(data); } catch (err) {</span>
+<span class="dl-add">+      logger.warn(&#39;ptyManager&#39;, `queued input lost for ${terminalId}:`, err.message);</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  emitContextState(terminalId, state);</span>
+<span class="dl-add">+  return forward;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * An attempt did not confirm in time — or flooded the buffer, which amounts to</span>
+<span class="dl-add">+ * the same thing.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The held output goes out verbatim first: whatever went wrong, the user is</span>
+<span class="dl-add">+ * looking at a terminal that must not be blank. Then one retry with a fresh</span>
+<span class="dl-add">+ * marker, typed visibly this time, and a second silence is `failed` — a</span>
+<span class="dl-add">+ * working terminal with no Frame context, which is exactly what a lane had</span>
+<span class="dl-add">+ * before this feature existed.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns the buffered output to flush.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function onSetupTimeout(terminalId) {</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  if (!inst || !inst.setup || inst.setup.state !== &#39;pending&#39;) return &#39;&#39;;</span>
+<span class="dl-add">+  const setup = inst.setup;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const buffered = setup.buffer.join(&#39;&#39;);</span>
+<span class="dl-add">+  setup.buffer = [];</span>
+<span class="dl-add">+  setup.bytes = 0;</span>
+<span class="dl-add">+  setup.suppress = false;</span>
+<span class="dl-add">+  if (setup.timer) {</span>
+<span class="dl-add">+    clearTimeout(setup.timer);</span>
+<span class="dl-add">+    setup.timer = null;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Only a typed line can be typed again. fish took its setup as a spawn flag,</span>
+<span class="dl-add">+  // so there is nothing to retry — a silent `-C` is a failure straight away.</span>
+<span class="dl-add">+  if (setup.mode !== &#39;type&#39; || setup.attempt &gt;= SETUP_MAX_ATTEMPTS) {</span>
+<span class="dl-add">+    return finishSetup(terminalId, &#39;failed&#39;, buffered);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const attempt = setup.attempt + 1;</span>
+<span class="dl-add">+  const retry = resolveSetup(terminalId, setup.shell, setup.projectPath, attempt);</span>
+<span class="dl-add">+  if (retry.mode !== &#39;type&#39;) return finishSetup(terminalId, &#39;failed&#39;, buffered);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  setup.attempt = attempt;</span>
+<span class="dl-add">+  setup.marker = retry.marker;</span>
+<span class="dl-add">+  try {</span>
+<span class="dl-add">+    inst.pty.write(`${retry.line}\n`);</span>
+<span class="dl-add">+  } catch (err) {</span>
+<span class="dl-add">+    logger.warn(&#39;ptyManager&#39;, `shell setup retry failed for ${terminalId}:`, err.message);</span>
+<span class="dl-add">+    return finishSetup(terminalId, &#39;failed&#39;, buffered);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  armSetupTimer(terminalId);</span>
+<span class="dl-add">+  return buffered;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function armSetupTimer(terminalId) {</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  if (!inst || !inst.setup) return;</span>
+<span class="dl-add">+  if (inst.setup.timer) clearTimeout(inst.setup.timer);</span>
+<span class="dl-add">+  inst.setup.timer = setTimeout(() =&gt; {</span>
+<span class="dl-add">+    const flushed = onSetupTimeout(terminalId);</span>
+<span class="dl-add">+    if (flushed) pushOutput(terminalId, flushed);</span>
+<span class="dl-add">+  }, SETUP_TIMEOUT_MS);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Filter one chunk of output through a pending setup. Returns what the</span>
+<span class="dl-add">+ * renderer should see — &#39;&#39; while setup is still invisible.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The marker is looked for in the accumulated buffer rather than the chunk,</span>
+<span class="dl-add">+ * because a PTY will happily split it across two reads and a per-chunk scan</span>
+<span class="dl-add">+ * would then miss it and time out a lane that had actually worked.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function consumeSetupOutput(terminalId, chunk) {</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  if (!inst || !inst.setup) return chunk;</span>
+<span class="dl-add">+  const setup = inst.setup;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!setup.suppress) {</span>
+<span class="dl-add">+    // Past the first timeout: output flows, but the marker can still land and</span>
+<span class="dl-add">+    // turn the lane `installed`.</span>
+<span class="dl-add">+    const seen = shellSetup.splitOnMarker(chunk, setup.marker);</span>
+<span class="dl-add">+    return seen.found ? finishSetup(terminalId, &#39;installed&#39;, seen.rest) : chunk;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  setup.buffer.push(chunk);</span>
+<span class="dl-add">+  setup.bytes += chunk.length;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const joined = setup.buffer.join(&#39;&#39;);</span>
+<span class="dl-add">+  const { found, rest } = shellSetup.splitOnMarker(joined, setup.marker);</span>
+<span class="dl-add">+  if (found) {</span>
+<span class="dl-add">+    // Everything through the marker&#39;s own line is setup noise the user never</span>
+<span class="dl-add">+    // asked to see; what follows is their real first prompt.</span>
+<span class="dl-add">+    return finishSetup(terminalId, &#39;installed&#39;, rest);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  if (setup.bytes &gt;= SETUP_BUFFER_MAX_BYTES) return onSetupTimeout(terminalId);</span>
+<span class="dl-add">+  return &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Initialize PTY manager with window reference</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-hunk">@@ -300,17 +469,16 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">     const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-ctx">     if (!inst) return;</span>
+<span class="dl-ctx">     inst.lastOutputAt = Date.now();</span>
+<span class="dl-del">-    inst.outputChunks.push(data);</span>
+<span class="dl-del">-    inst.outputBytes += data.length;</span>
+<span class="dl-del">-    // Backpressure: past the high-water mark, pause the PTY until the next</span>
+<span class="dl-del">-    // flush drains the buffer — a runaway `yes`-style stream can no longer</span>
+<span class="dl-del">-    // grow the buffer faster than the renderer consumes it.</span>
+<span class="dl-del">-    if (inst.outputBytes &gt;= OUTPUT_HIGH_WATER_BYTES &amp;&amp; !inst.paused) {</span>
+<span class="dl-del">-      try { ptyProcess.pause(); inst.paused = true; } catch (_) { /* older node-pty */ }</span>
+<span class="dl-del">-    }</span>
+<span class="dl-del">-    if (!inst.flushTimer) {</span>
+<span class="dl-del">-      inst.flushTimer = setTimeout(() =&gt; flushOutput(terminalId), FLUSH_INTERVAL_MS);</span>
+<span class="dl-add">+    // Setup is held in front of the pipeline, not inside it: the user&#39;s first</span>
+<span class="dl-add">+    // prompt should be the one that follows setup, so none of it may reach the</span>
+<span class="dl-add">+    // renderer even coalesced.</span>
+<span class="dl-add">+    if (inst.setup &amp;&amp; inst.setup.state === &#39;pending&#39;) {</span>
+<span class="dl-add">+      const visible = consumeSetupOutput(terminalId, data);</span>
+<span class="dl-add">+      if (!visible) return;</span>
+<span class="dl-add">+      pushOutput(terminalId, visible);</span>
+<span class="dl-add">+      return;</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-add">+    pushOutput(terminalId, data);</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // Handle PTY exit</span>
+<span class="dl-hunk">@@ -319,6 +487,14 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">     const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-ctx">     if (inst) {</span>
+<span class="dl-ctx">       if (inst.processPoll) inst.processPoll.dispose();</span>
+<span class="dl-add">+      // A shell that died during setup still owes the user whatever it printed</span>
+<span class="dl-add">+      // on the way out — an rc-file error, most likely, which is the one thing</span>
+<span class="dl-add">+      // worth reading here.</span>
+<span class="dl-add">+      if (inst.setup &amp;&amp; inst.setup.state === &#39;pending&#39;) {</span>
+<span class="dl-add">+        const held = inst.setup.buffer.join(&#39;&#39;);</span>
+<span class="dl-add">+        finishSetup(terminalId, &#39;failed&#39;);</span>
+<span class="dl-add">+        if (held) pushOutput(terminalId, held);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-ctx">       flushOutput(terminalId); // trailing output must land before DESTROYED</span>
+<span class="dl-ctx">       if (inst.flushTimer) clearTimeout(inst.flushTimer);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-hunk">@@ -377,7 +553,15 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">       marker: setup.marker || &#39;&#39;,</span>
+<span class="dl-ctx">       attempt: 1,</span>
+<span class="dl-ctx">       shell,</span>
+<span class="dl-del">-      projectPath: setupProjectPath</span>
+<span class="dl-add">+      projectPath: setupProjectPath,</span>
+<span class="dl-add">+      // While `suppress` holds, output is buffered here instead of forwarded</span>
+<span class="dl-add">+      // and input is queued instead of written — the window in which setup is</span>
+<span class="dl-add">+      // invisible. Both are flushed by `finishSetup`, in order.</span>
+<span class="dl-add">+      suppress: setup.mode !== &#39;none&#39;,</span>
+<span class="dl-add">+      buffer: [],</span>
+<span class="dl-add">+      bytes: 0,</span>
+<span class="dl-add">+      inputQueue: [],</span>
+<span class="dl-add">+      timer: null</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   });</span>
+<span class="dl-ctx">   console.log(`Created terminal ${terminalId} in ${cwd} (project: ${projectPath || &#39;global&#39;})`);</span>
+<span class="dl-hunk">@@ -391,11 +575,18 @@ function createTerminal(workingDir = null, projectPath = null, shellPath = null,</span>
+<span class="dl-ctx">       ptyProcess.write(`${setup.line}\n`);</span>
+<span class="dl-ctx">     } catch (err) {</span>
+<span class="dl-ctx">       logger.warn(&#39;ptyManager&#39;, `shell setup delivery failed for ${terminalId}:`, err.message);</span>
+<span class="dl-del">-      const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-del">-      if (inst) inst.setup.state = &#39;failed&#39;;</span>
+<span class="dl-add">+      finishSetup(terminalId, &#39;failed&#39;);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  if (setup.mode === &#39;none&#39;) {</span>
+<span class="dl-add">+    // Nothing to wait for. Emitted a tick late so the renderer has its</span>
+<span class="dl-add">+    // TERMINAL_CREATED reply — and therefore the lane — before its state.</span>
+<span class="dl-add">+    setImmediate(() =&gt; emitContextState(terminalId, &#39;unsupported&#39;));</span>
+<span class="dl-add">+  } else if (ptyInstances.get(terminalId)?.setup.state === &#39;pending&#39;) {</span>
+<span class="dl-add">+    armSetupTimer(terminalId);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   return terminalId;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -450,9 +641,17 @@ function getSetupState(terminalId) {</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function writeToTerminal(terminalId, data) {</span>
+<span class="dl-ctx">   const instance = ptyInstances.get(terminalId);</span>
+<span class="dl-del">-  if (instance) {</span>
+<span class="dl-del">-    instance.pty.write(data);</span>
+<span class="dl-add">+  if (!instance) return;</span>
+<span class="dl-add">+  // Held, not passed through, while setup is invisible: the buffer in front of</span>
+<span class="dl-add">+  // it is about to be discarded, so a keystroke written now would be echoed</span>
+<span class="dl-add">+  // into output the user never sees — they would watch their own typing</span>
+<span class="dl-add">+  // vanish. The queue goes through in order the moment setup resolves.</span>
+<span class="dl-add">+  const setup = instance.setup;</span>
+<span class="dl-add">+  if (setup &amp;&amp; setup.state === &#39;pending&#39; &amp;&amp; setup.suppress) {</span>
+<span class="dl-add">+    setup.inputQueue.push(data);</span>
+<span class="dl-add">+    return;</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-add">+  instance.pty.write(data);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -473,6 +672,7 @@ function destroyTerminal(terminalId) {</span>
+<span class="dl-ctx">   if (instance) {</span>
+<span class="dl-ctx">     if (instance.processPoll) instance.processPoll.dispose();</span>
+<span class="dl-ctx">     if (instance.flushTimer) clearTimeout(instance.flushTimer);</span>
+<span class="dl-add">+    if (instance.setup &amp;&amp; instance.setup.timer) clearTimeout(instance.setup.timer);</span>
+<span class="dl-ctx">     try {</span>
+<span class="dl-ctx">       instance.pty.kill();</span>
+<span class="dl-ctx">     } catch (e) {</span>
+<span class="dl-hunk">@@ -490,6 +690,7 @@ function destroyAll() {</span>
+<span class="dl-ctx">   for (const [terminalId, instance] of ptyInstances) {</span>
+<span class="dl-ctx">     if (instance.processPoll) instance.processPoll.dispose();</span>
+<span class="dl-ctx">     if (instance.flushTimer) clearTimeout(instance.flushTimer);</span>
+<span class="dl-add">+    if (instance.setup &amp;&amp; instance.setup.timer) clearTimeout(instance.setup.timer);</span>
+<span class="dl-ctx">     try {</span>
+<span class="dl-ctx">       instance.pty.kill();</span>
+<span class="dl-ctx">     } catch (e) {</span>
+<span class="dl-meta">diff --git a/src/shared/ipcChannels.js b/src/shared/ipcChannels.js</span>
+<span class="dl-meta">index 460333c..63e74d4 100644</span>
+<span class="dl-file">--- a/src/shared/ipcChannels.js</span>
+<span class="dl-file">+++ b/src/shared/ipcChannels.js</span>
+<span class="dl-hunk">@@ -64,6 +64,9 @@ const IPC = {</span>
+<span class="dl-ctx">   TERMINAL_RESIZE_ID: &#39;terminal-resize-id&#39;,</span>
+<span class="dl-ctx">   TERMINAL_PROCESS_DATA: &#39;terminal-process-data&#39;,</span>
+<span class="dl-ctx">   TERMINAL_FOCUS: &#39;terminal-focus&#39;,</span>
+<span class="dl-add">+  // Whether this lane&#39;s shell was set up with Frame&#39;s context:</span>
+<span class="dl-add">+  // { terminalId, state: &#39;installed&#39; | &#39;failed&#39; | &#39;unsupported&#39;, ready }</span>
+<span class="dl-add">+  TERMINAL_CONTEXT_STATE: &#39;terminal-context-state&#39;,</span>
+<span class="dl-ctx">   GET_AVAILABLE_SHELLS: &#39;get-available-shells&#39;,</span>
+<span class="dl-ctx">   AVAILABLE_SHELLS_DATA: &#39;available-shells-data&#39;,</span>
+<span class="dl-ctx">   RECONCILE_TERMINALS: &#39;reconcile-terminals&#39;,</span></pre>
     </details>
   </div>
 </section>
