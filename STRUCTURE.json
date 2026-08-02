@@ -3416,7 +3416,7 @@
           "purpose": "Hand data to the coalescing pipeline."
         },
         "emitContextState": {
-          "line": 81,
+          "line": 88,
           "params": [
             "terminalId",
             "state"
@@ -3424,7 +3424,7 @@
           "purpose": "Tell the renderer what this lane's context state is."
         },
         "finishSetup": {
-          "line": 99,
+          "line": 108,
           "params": [
             "terminalId",
             "state",
@@ -3433,20 +3433,20 @@
           "purpose": "End a lane's setup, whatever the outcome."
         },
         "onSetupTimeout": {
-          "line": 137,
+          "line": 146,
           "params": [
             "terminalId"
           ],
           "purpose": "An attempt did not confirm in time — or flooded the buffer, which amounts to"
         },
         "armSetupTimer": {
-          "line": 173,
+          "line": 182,
           "params": [
             "terminalId"
           ]
         },
         "consumeSetupOutput": {
-          "line": 191,
+          "line": 200,
           "params": [
             "terminalId",
             "chunk"
@@ -3454,14 +3454,14 @@
           "purpose": "Filter one chunk of output through a pending setup. Returns what the"
         },
         "init": {
-          "line": 220,
+          "line": 229,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY manager with window reference"
         },
         "getForegroundCommand": {
-          "line": 235,
+          "line": 244,
           "params": [
             "shellPid",
             "callback"
@@ -3469,21 +3469,21 @@
           "purpose": "Resolve the full command line of the terminal's foreground process."
         },
         "getDefaultShell": {
-          "line": 254
+          "line": 263
         },
         "getAvailableShells": {
-          "line": 271,
+          "line": 280,
           "purpose": "Get available shells on the system"
         },
         "isFrameProject": {
-          "line": 357,
+          "line": 366,
           "params": [
             "projectPath"
           ],
           "purpose": "Whether this lane's folder is a Frame project."
         },
         "resolveSetup": {
-          "line": 373,
+          "line": 382,
           "params": [
             "terminalId",
             "shell",
@@ -3493,7 +3493,7 @@
           "purpose": "How this lane's shell gets set up, and with which marker."
         },
         "createTerminal": {
-          "line": 394,
+          "line": 403,
           "params": [
             "workingDir = null",
             "projectPath = null",
@@ -3503,35 +3503,35 @@
           "purpose": "Create a new terminal instance"
         },
         "getTerminalsByProject": {
-          "line": 598,
+          "line": 607,
           "params": [
             "projectPath"
           ],
           "purpose": "Get terminals for a specific project"
         },
         "getTerminalInfo": {
-          "line": 613,
+          "line": 622,
           "params": [
             "terminalId"
           ],
           "purpose": "Get terminal info"
         },
         "getLastOutputAt": {
-          "line": 625,
+          "line": 634,
           "params": [
             "terminalId"
           ],
           "purpose": "Last time this terminal produced output (epoch ms), or null if unknown."
         },
         "getSetupState": {
-          "line": 634,
+          "line": 643,
           "params": [
             "terminalId"
           ],
           "purpose": "This lane's context state: `pending`, `installed`, `failed` or `unsupported`."
         },
         "writeToTerminal": {
-          "line": 642,
+          "line": 651,
           "params": [
             "terminalId",
             "data"
@@ -3539,7 +3539,7 @@
           "purpose": "Write data to specific terminal"
         },
         "resizeTerminal": {
-          "line": 660,
+          "line": 669,
           "params": [
             "terminalId",
             "cols",
@@ -3548,40 +3548,40 @@
           "purpose": "Resize specific terminal"
         },
         "destroyTerminal": {
-          "line": 670,
+          "line": 679,
           "params": [
             "terminalId"
           ],
           "purpose": "Destroy specific terminal"
         },
         "destroyAll": {
-          "line": 689,
+          "line": 698,
           "purpose": "Destroy all terminals"
         },
         "getTerminalCount": {
-          "line": 707,
+          "line": 716,
           "purpose": "Get terminal count"
         },
         "getTerminalIds": {
-          "line": 714,
+          "line": 723,
           "purpose": "Get all terminal IDs"
         },
         "destroyExcept": {
-          "line": 724,
+          "line": 733,
           "params": [
             "knownIds"
           ],
           "purpose": "Destroy every PTY the renderer doesn't know about. A renderer reload"
         },
         "hasTerminal": {
-          "line": 734,
+          "line": 743,
           "params": [
             "terminalId"
           ],
           "purpose": "Check if terminal exists"
         },
         "setupIPC": {
-          "line": 741,
+          "line": 750,
           "params": [
             "ipcMain"
           ],
@@ -3615,6 +3615,7 @@
         "shellInitPath",
         "mintMarker",
         "deliveryFor",
+        "manualCommand",
         "splitOnMarker"
       ],
       "depends": [
@@ -3668,8 +3669,15 @@
           ],
           "purpose": "How setup reaches one lane's shell."
         },
+        "manualCommand": {
+          "line": 179,
+          "params": [
+            "shellPath"
+          ],
+          "purpose": "The line a user can paste into a lane to set it up by hand."
+        },
         "splitOnMarker": {
-          "line": 181,
+          "line": 195,
           "params": [
             "chunk",
             "marker"
@@ -4686,6 +4694,7 @@
         "init",
         "dispatch",
         "startDefaultAgent",
+        "startAgentInLane",
         "dispatchSpecCommand",
         "getSpecLaneInfo",
         "getTaskLaneInfo",
@@ -4738,11 +4747,18 @@
           ],
           "purpose": "Start the active tool's CLI in an existing lane. `fresh` allows a newly"
         },
+        "startAgentInLane": {
+          "line": 315,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "Start the active tool's CLI in an existing lane, from outside this module."
+        },
         "_startAgentInNewFrame": {
-          "line": 307
+          "line": 319
         },
         "_askNewOrRestart": {
-          "line": 325,
+          "line": 337,
           "params": [
             "frameName",
             "hasAgent"
@@ -4750,7 +4766,7 @@
           "purpose": "\"Open a new Frame / Kill & restart here\" — asked when the focused Frame is"
         },
         "dispatchSpecCommand": {
-          "line": 382,
+          "line": 394,
           "params": [
             "{ slug",
             "title = null",
@@ -4759,7 +4775,7 @@
           "purpose": "Run a spec command in the spec's assigned lane — or a new Frame."
         },
         "_dispatchImplement": {
-          "line": 449,
+          "line": 461,
           "params": [
             "{ slug",
             "title",
@@ -4769,79 +4785,79 @@
           "purpose": "The spec.implement path: modal → record implement_mode → stage → dispatch."
         },
         "getSpecLaneInfo": {
-          "line": 540,
+          "line": 552,
           "params": [
             "slug"
           ],
           "purpose": "Live info about the lane a spec is assigned to, or null when unassigned"
         },
         "getTaskLaneInfo": {
-          "line": 564,
+          "line": 576,
           "params": [
             "taskId"
           ],
           "purpose": "Live info about the lane working on a task, or null. Unlike specs there"
         },
         "specStatusDotHtml": {
-          "line": 585,
+          "line": 597,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 589,
+          "line": 601,
           "params": [
             "taskId"
           ]
         },
         "_activityDotHtml": {
-          "line": 593,
+          "line": 605,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 610,
+          "line": 622,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 618,
+          "line": 630,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 641,
+          "line": 653,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 649,
+          "line": 661,
           "params": [
             "taskId"
           ]
         },
         "_assignedLane": {
-          "line": 667,
+          "line": 679,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 677,
+          "line": 689,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 686,
+          "line": 698,
           "params": [
             "frameName",
             "specName"
@@ -4849,14 +4865,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 727,
+          "line": 739,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 756,
+          "line": 768,
           "params": [
             "terminalId",
             "message"
@@ -6165,16 +6181,18 @@
         "electron",
         "shared/ipcChannels",
         "laneStatus",
+        "laneContext",
         "laneRail",
         "lucide",
         "htmlUtils",
         "notify",
         "orchestrator",
-        "openProjectModal"
+        "openProjectModal",
+        "agentDispatch"
       ],
       "functions": {
         "statusLabel": {
-          "line": 37,
+          "line": 38,
           "params": [
             "status",
             "foreground",
@@ -6183,34 +6201,34 @@
           "purpose": "\"Running · npm run dev\" beats a bare \"Running\" when we know what's"
         },
         "cleanCommand": {
-          "line": 48,
+          "line": 49,
           "params": [
             "commandLine"
           ],
           "purpose": "\"/usr/local/bin/node /Users/x/proj/server.js --port 3000\""
         },
         "assignmentIcon": {
-          "line": 62,
+          "line": 63,
           "params": [
             "assignment"
           ],
           "purpose": "Assignment chip (what the lane works on): the icon already says spec vs"
         },
         "assignmentText": {
-          "line": 66,
+          "line": 67,
           "params": [
             "assignment"
           ]
         },
         "lucideIcon": {
-          "line": 71,
+          "line": 72,
           "params": [
             "data",
             "size = 14"
           ]
         },
         "formatRelativeTime": {
-          "line": 79,
+          "line": 80,
           "params": [
             "ts"
           ]
@@ -6231,6 +6249,7 @@
         "onChange",
         "getState",
         "isReady",
+        "getManualCommand",
         "whenReady",
         "remove"
       ],
@@ -6240,32 +6259,39 @@
       ],
       "functions": {
         "init": {
-          "line": 43,
+          "line": 45,
           "purpose": "Start listening. Init-once: a re-init must not stack a second set of"
         },
         "onChange": {
-          "line": 65,
+          "line": 68,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to context-state changes. Returns an unsubscribe function."
         },
         "getState": {
-          "line": 73,
+          "line": 76,
           "params": [
             "terminalId"
           ],
           "purpose": "This lane's context state, or 'pending' if it has not resolved yet."
         },
         "isReady": {
-          "line": 78,
+          "line": 81,
           "params": [
             "terminalId"
           ],
           "purpose": "True only for a lane whose setup was confirmed."
         },
+        "getManualCommand": {
+          "line": 89,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "The one-liner that would set this lane up by hand, or '' when there is"
+        },
         "whenReady": {
-          "line": 94,
+          "line": 105,
           "params": [
             "terminalId",
             "fallbackMs = 0"
@@ -6273,14 +6299,14 @@
           "purpose": "Resolve once this lane is ready to be typed into."
         },
         "remove": {
-          "line": 123,
+          "line": 134,
           "params": [
             "terminalId"
           ],
           "purpose": "Forget a lane. Called on TERMINAL_DESTROYED so the maps don't grow."
         },
         "_wake": {
-          "line": 134,
+          "line": 146,
           "params": [
             "terminalId"
           ]

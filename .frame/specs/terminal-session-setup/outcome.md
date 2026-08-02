@@ -100,3 +100,21 @@ settle. No consumer yet. Files: `src/renderer/laneContext.js`,
 _Captured: 2026-08-02 · 2 file changes_
 
 ---
+
+## T07 — The failure row on a lane card
+
+`agentDispatch` exports `startAgentInLane` (a named export of the existing
+`_startAgentIn`, so there is still one launcher); `laneBoard` renders a
+context row that stays hidden unless the lane is `failed`, refreshed through
+the existing `_updateCardStatus` plus a `laneContext.onChange`
+subscription, with styling in `lane-board.css`. Deviation from plan.md: the
+manual one-liner is per shell family and only the main process knows the
+lane's shell, so `shellSetup.manualCommand()` was added and the
+`TERMINAL_CONTEXT_STATE` payload carries a `command` field the plan did not
+list. Files: `src/renderer/agentDispatch.js`, `src/renderer/laneBoard.js`,
+`src/renderer/laneContext.js`, `src/renderer/styles/components/lane-board.css`,
+`src/main/shellSetup.js`, `src/main/ptyManager.js`, `test/shellSetup.test.js`.
+
+_Captured: 2026-08-02 · 7 file changes_
+
+---

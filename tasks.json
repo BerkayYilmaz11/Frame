@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:30:55.283Z",
+  "lastUpdated": "2026-08-02T10:35:09.003Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4912,13 +4912,13 @@
       "title": "Render the failure row on a `failed` lane card in `src/renderer/laneBoard.js` — the statement that context could not be installed, a Start agent button wired to a new `startAgentInLane` export from `src/renderer/agentDispatch.js` that calls the existing `_startAgentIn`, and the manual one-line command — with styling in `src/renderer/styles/components/lane-board.css` and live refresh through the existing per-card status update.",
       "description": "",
       "source": "spec:terminal-session-setup:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:35:09.003Z",
+      "completedAt": "2026-08-02T10:35:09.003Z"
     },
     {
       "id": "task-spec-terminal-session-setup-T08",

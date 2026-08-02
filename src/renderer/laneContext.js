@@ -32,6 +32,8 @@ let initialized = false;
 
 // Map<terminalId, 'installed' | 'failed' | 'unsupported'>
 const states = new Map();
+// Map<terminalId, string> — the one-liner a `failed` lane can be fixed with
+const commands = new Map();
 // Map<terminalId, Set<resolve>> — callers parked in whenReady
 const waiters = new Map();
 const listeners = new Set();
@@ -44,9 +46,10 @@ function init() {
   if (initialized) return;
   initialized = true;
 
-  ipcRenderer.on(IPC.TERMINAL_CONTEXT_STATE, (event, { terminalId, state }) => {
+  ipcRenderer.on(IPC.TERMINAL_CONTEXT_STATE, (event, { terminalId, state, command }) => {
     if (!terminalId || !state) return;
     states.set(terminalId, state);
+    if (command) commands.set(terminalId, command);
     _wake(terminalId);
     for (const cb of listeners) {
       try { cb(terminalId, state); } catch (_) { /* a bad listener is not the lane's problem */ }
@@ -77,6 +80,14 @@ function getState(terminalId) {
 /** True only for a lane whose setup was confirmed. */
 function isReady(terminalId) {
   return states.get(terminalId) === 'installed';
+}
+
+/**
+ * The one-liner that would set this lane up by hand, or '' when there is
+ * nothing to suggest. Only a `failed` lane has one.
+ */
+function getManualCommand(terminalId) {
+  return commands.get(terminalId) || '';
 }
 
 /**
@@ -122,6 +133,7 @@ function whenReady(terminalId, fallbackMs = 0) {
 /** Forget a lane. Called on TERMINAL_DESTROYED so the maps don't grow. */
 function remove(terminalId) {
   states.delete(terminalId);
+  commands.delete(terminalId);
   const parked = waiters.get(terminalId);
   if (parked) {
     // A destroyed lane will never be ready; release anyone still waiting
@@ -143,6 +155,7 @@ module.exports = {
   onChange,
   getState,
   isReady,
+  getManualCommand,
   whenReady,
   remove
 };

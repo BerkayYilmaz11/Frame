@@ -77,15 +77,24 @@ function pushOutput(terminalId, data) {
   }
 }
 
-/** Tell the renderer what this lane's context state is. */
+/**
+ * Tell the renderer what this lane's context state is.
+ *
+ * `command` rides along on the payload because the failure row offers the user
+ * the one-liner they could run themselves, and only this side knows which
+ * shell the lane actually got. It is '' for every state but `failed`, where
+ * there is nothing to suggest.
+ */
 function emitContextState(terminalId, state) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(IPC.TERMINAL_CONTEXT_STATE, {
-      terminalId,
-      state,
-      ready: state === 'installed'
-    });
-  }
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const inst = ptyInstances.get(terminalId);
+  const shell = inst && inst.setup ? inst.setup.shell : '';
+  mainWindow.webContents.send(IPC.TERMINAL_CONTEXT_STATE, {
+    terminalId,
+    state,
+    ready: state === 'installed',
+    command: state === 'failed' ? shellSetup.manualCommand(shell) : ''
+  });
 }
 
 /**

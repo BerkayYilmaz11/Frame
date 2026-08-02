@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "488 tests, 0 failures; renderer bundle builds"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Render the failure row on a failed lane card",
+      "commit": "7221263",
+      "whatChanged": "agentDispatch exports startAgentInLane (a named export of the existing _startAgentIn). laneBoard renders a context row on every card — hidden unless the lane state is failed — carrying the statement, a Start agent button wired to that export, and the manual one-liner, refreshed through the existing _updateCardStatus and a laneContext.onChange subscription. Styling in lane-board.css. Beyond the plan: shellSetup.manualCommand() and a command field on the TERMINAL_CONTEXT_STATE payload.",
+      "whyChanged": "The manual one-liner has to be per shell family (. init.sh vs source init.fish) and only the main process knows which shell the lane got, so the command rides on the state payload rather than being guessed renderer-side — the plan documented the payload as terminalId/state/ready and did not account for it. Cards for installed and unsupported lanes are unchanged: a chip that always reads the same trains the eye to ignore the one time it does not.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "490 tests, 0 failures; renderer bundle builds"
+      }
     }
   ]
 }

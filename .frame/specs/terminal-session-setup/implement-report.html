@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">6 of 8 tasks done · next: <span class="rs-task">T07 — Render the failure row on a `failed` lane card in…</span></span>
+  <span class="rs-count">7 of 8 tasks done · next: <span class="rs-task">T08 — Replace the fixed delays with `laneContext.whenReady(terminalId, &lt;the…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1743,6 +1743,364 @@
 <span class="dl-ctx">     // Agent dispatch delivers prompts into lanes through us</span>
 <span class="dl-ctx">     agentDispatch.init(this);</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Render the failure row on a failed lane card</h2>
+    <span class="card-meta"><span class="chip">7221263</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">490 tests, 0 failures; renderer bundle builds</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>agentDispatch exports startAgentInLane (a named export of the existing _startAgentIn). laneBoard renders a context row on every card — hidden unless the lane state is failed — carrying the statement, a Start agent button wired to that export, and the manual one-liner, refreshed through the existing _updateCardStatus and a laneContext.onChange subscription. Styling in lane-board.css. Beyond the plan: shellSetup.manualCommand() and a command field on the TERMINAL_CONTEXT_STATE payload.</p></div>
+    <div class="field"><span class="label">Why</span><p>The manual one-liner has to be per shell family (. init.sh vs source init.fish) and only the main process knows which shell the lane got, so the command rides on the state payload rather than being guessed renderer-side — the plan documented the payload as terminalId/state/ready and did not account for it. Cards for installed and unsupported lanes are unchanged: a chip that always reads the same trains the eye to ignore the one time it does not.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/ptyManager.js b/src/main/ptyManager.js</span>
+<span class="dl-meta">index f4951c2..2e54b4d 100644</span>
+<span class="dl-file">--- a/src/main/ptyManager.js</span>
+<span class="dl-file">+++ b/src/main/ptyManager.js</span>
+<span class="dl-hunk">@@ -77,15 +77,24 @@ function pushOutput(terminalId, data) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-/** Tell the renderer what this lane&#39;s context state is. */</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Tell the renderer what this lane&#39;s context state is.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `command` rides along on the payload because the failure row offers the user</span>
+<span class="dl-add">+ * the one-liner they could run themselves, and only this side knows which</span>
+<span class="dl-add">+ * shell the lane actually got. It is &#39;&#39; for every state but `failed`, where</span>
+<span class="dl-add">+ * there is nothing to suggest.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-ctx"> function emitContextState(terminalId, state) {</span>
+<span class="dl-del">-  if (mainWindow &amp;&amp; !mainWindow.isDestroyed()) {</span>
+<span class="dl-del">-    mainWindow.webContents.send(IPC.TERMINAL_CONTEXT_STATE, {</span>
+<span class="dl-del">-      terminalId,</span>
+<span class="dl-del">-      state,</span>
+<span class="dl-del">-      ready: state === &#39;installed&#39;</span>
+<span class="dl-del">-    });</span>
+<span class="dl-del">-  }</span>
+<span class="dl-add">+  if (!mainWindow || mainWindow.isDestroyed()) return;</span>
+<span class="dl-add">+  const inst = ptyInstances.get(terminalId);</span>
+<span class="dl-add">+  const shell = inst &amp;&amp; inst.setup ? inst.setup.shell : &#39;&#39;;</span>
+<span class="dl-add">+  mainWindow.webContents.send(IPC.TERMINAL_CONTEXT_STATE, {</span>
+<span class="dl-add">+    terminalId,</span>
+<span class="dl-add">+    state,</span>
+<span class="dl-add">+    ready: state === &#39;installed&#39;,</span>
+<span class="dl-add">+    command: state === &#39;failed&#39; ? shellSetup.manualCommand(shell) : &#39;&#39;</span>
+<span class="dl-add">+  });</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-meta">diff --git a/src/main/shellSetup.js b/src/main/shellSetup.js</span>
+<span class="dl-meta">index ffa45ea..914373a 100644</span>
+<span class="dl-file">--- a/src/main/shellSetup.js</span>
+<span class="dl-file">+++ b/src/main/shellSetup.js</span>
+<span class="dl-hunk">@@ -169,6 +169,20 @@ function deliveryFor(shellPath, platform = process.platform, projectPath = &#39;&#39;, o</span>
+<span class="dl-ctx">   return { mode: &#39;type&#39;, line: ` . ${initFile} &amp;&amp; ${echo}`, marker };</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The line a user can paste into a lane to set it up by hand.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * What the failure row on a lane card offers next to its button — the honest</span>
+<span class="dl-add">+ * answer to &quot;what would Frame have done here?&quot;. Project-relative, because a</span>
+<span class="dl-add">+ * lane&#39;s cwd is its project and a pasted absolute path is unreadable.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function manualCommand(shellPath) {</span>
+<span class="dl-add">+  const family = shellFamily(shellPath);</span>
+<span class="dl-add">+  if (!family) return &#39;&#39;;</span>
+<span class="dl-add">+  const rel = `${FRAME_DIR}/${SHELL_DIR}/${INIT_FILES[family]}`;</span>
+<span class="dl-add">+  return family === &#39;fish&#39; ? `source ${rel}` : `. ${rel}`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * What survives the marker in a buffered chunk.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -197,5 +211,6 @@ module.exports = {</span>
+<span class="dl-ctx">   shellInitPath,</span>
+<span class="dl-ctx">   mintMarker,</span>
+<span class="dl-ctx">   deliveryFor,</span>
+<span class="dl-add">+  manualCommand,</span>
+<span class="dl-ctx">   splitOnMarker</span>
+<span class="dl-ctx"> };</span>
+<span class="dl-meta">diff --git a/src/renderer/agentDispatch.js b/src/renderer/agentDispatch.js</span>
+<span class="dl-meta">index aa731a7..9d8bf9c 100644</span>
+<span class="dl-file">--- a/src/renderer/agentDispatch.js</span>
+<span class="dl-file">+++ b/src/renderer/agentDispatch.js</span>
+<span class="dl-hunk">@@ -304,6 +304,18 @@ async function _startAgentIn(terminalId, { fresh = false } = {}) {</span>
+<span class="dl-ctx">   setTimeout(() =&gt; multiTerminalUI.sendCommand(startCommand, terminalId), fresh ? 800 : 50);</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Start the active tool&#39;s CLI in an existing lane, from outside this module.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The lane board&#39;s &quot;context could not be installed&quot; row calls this. It is a</span>
+<span class="dl-add">+ * named export of `_startAgentIn` and nothing more: a lane whose shell setup</span>
+<span class="dl-add">+ * failed still needs an agent started the one way Frame starts agents, and a</span>
+<span class="dl-add">+ * second launch path would be a second place for the composition to drift.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+async function startAgentInLane(terminalId) {</span>
+<span class="dl-add">+  return _startAgentIn(terminalId);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> async function _startAgentInNewFrame() {</span>
+<span class="dl-ctx">   let id = null;</span>
+<span class="dl-ctx">   try {</span>
+<span class="dl-hunk">@@ -762,6 +774,7 @@ module.exports = {</span>
+<span class="dl-ctx">   init,</span>
+<span class="dl-ctx">   dispatch,</span>
+<span class="dl-ctx">   startDefaultAgent,</span>
+<span class="dl-add">+  startAgentInLane,</span>
+<span class="dl-ctx">   dispatchSpecCommand,</span>
+<span class="dl-ctx">   getSpecLaneInfo,</span>
+<span class="dl-ctx">   getTaskLaneInfo,</span>
+<span class="dl-meta">diff --git a/src/renderer/laneBoard.js b/src/renderer/laneBoard.js</span>
+<span class="dl-meta">index 53e2a23..b87b79f 100644</span>
+<span class="dl-file">--- a/src/renderer/laneBoard.js</span>
+<span class="dl-file">+++ b/src/renderer/laneBoard.js</span>
+<span class="dl-hunk">@@ -19,6 +19,7 @@</span>
+<span class="dl-ctx"> const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-ctx"> const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-ctx"> const laneStatus = require(&#39;./laneStatus&#39;);</span>
+<span class="dl-add">+const laneContext = require(&#39;./laneContext&#39;);</span>
+<span class="dl-ctx"> const laneRail = require(&#39;./laneRail&#39;);</span>
+<span class="dl-ctx"> const { Plus, Pencil, X, FolderOpen, GitBranch, Bot, FileText, CheckSquare } = require(&#39;lucide&#39;);</span>
+<span class="dl-ctx"> const { escapeHtml } = require(&#39;./htmlUtils&#39;);</span>
+<span class="dl-hunk">@@ -113,6 +114,12 @@ class LaneBoard {</span>
+<span class="dl-ctx">       if (this._isVisible()) this._updateCardStatus(terminalId);</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    // Context state arrives a moment after a lane is created, so the failure</span>
+<span class="dl-add">+    // row appears through the same per-card refresh rather than a re-render.</span>
+<span class="dl-add">+    laneContext.onChange((terminalId) =&gt; {</span>
+<span class="dl-add">+      if (this._isVisible()) this._updateCardStatus(terminalId);</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     // Current branch comes from the git status watcher fileTreeUI already</span>
+<span class="dl-ctx">     // starts per project — cards show it instead of the (redundant) project.</span>
+<span class="dl-ctx">     // Init-once across instances: LaneBoard is a singleton; a second</span>
+<span class="dl-hunk">@@ -200,13 +207,17 @@ class LaneBoard {</span>
+<span class="dl-ctx">         &lt;span class=&quot;lane-card-status-label ${status}&quot; title=&quot;${escapeHtml(commandLine || &#39;&#39;)}&quot;&gt;${escapeHtml(statusLabel(status, foreground, commandLine))}&lt;/span&gt;</span>
+<span class="dl-ctx">         &lt;span class=&quot;lane-card-activity&quot; data-ts=&quot;${lastActivityAt || &#39;&#39;}&quot;&gt;${formatRelativeTime(lastActivityAt)}&lt;/span&gt;</span>
+<span class="dl-ctx">       &lt;/div&gt;</span>
+<span class="dl-add">+      ${this._contextRowHtml(t.id)}</span>
+<span class="dl-ctx">     `;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">     card.addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-ctx">       if (e.target.closest(&#39;.lane-card-action&#39;) || e.target.closest(&#39;.lane-rename-input&#39;)) return;</span>
+<span class="dl-add">+      if (e.target.closest(&#39;.lane-card-context&#39;)) return;</span>
+<span class="dl-ctx">       this.onEnterLane(t.id);</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    this._attachContextRow(card, t.id);</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     card.querySelector(&#39;.lane-card-close&#39;).addEventListener(&#39;click&#39;, () =&gt; {</span>
+<span class="dl-ctx">       this.manager.closeTerminal(t.id);</span>
+<span class="dl-ctx">     });</span>
+<span class="dl-hunk">@@ -363,6 +374,46 @@ class LaneBoard {</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   // ─── Live updates ───────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  // ─── Context (shell setup) row ──────────────────────────</span>
+<span class="dl-add">+  //</span>
+<span class="dl-add">+  // Shown only on a lane whose setup failed. An `installed` lane is the normal</span>
+<span class="dl-add">+  // case and says nothing — a permanent chip that always reads the same trains</span>
+<span class="dl-add">+  // the eye to ignore the one time it doesn&#39;t — and `unsupported` is not a</span>
+<span class="dl-add">+  // failure, so it says nothing either.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  _contextRowHtml(terminalId) {</span>
+<span class="dl-add">+    const failed = laneContext.getState(terminalId) === &#39;failed&#39;;</span>
+<span class="dl-add">+    const command = laneContext.getManualCommand(terminalId);</span>
+<span class="dl-add">+    return `</span>
+<span class="dl-add">+      &lt;div class=&quot;lane-card-context&quot; style=&quot;${failed ? &#39;&#39; : &#39;display:none&#39;}&quot;&gt;</span>
+<span class="dl-add">+        &lt;span class=&quot;lane-card-context-note&quot;&gt;Frame context could not be installed in this shell.&lt;/span&gt;</span>
+<span class="dl-add">+        &lt;div class=&quot;lane-card-context-actions&quot;&gt;</span>
+<span class="dl-add">+          &lt;button class=&quot;lane-card-context-start&quot;&gt;Start agent&lt;/button&gt;</span>
+<span class="dl-add">+          &lt;code class=&quot;lane-card-context-cmd&quot; title=&quot;Run this in the lane to set it up by hand&quot;&gt;${escapeHtml(command)}&lt;/code&gt;</span>
+<span class="dl-add">+        &lt;/div&gt;</span>
+<span class="dl-add">+      &lt;/div&gt;</span>
+<span class="dl-add">+    `;</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  _attachContextRow(card, terminalId) {</span>
+<span class="dl-add">+    card.querySelector(&#39;.lane-card-context-start&#39;)?.addEventListener(&#39;click&#39;, (e) =&gt; {</span>
+<span class="dl-add">+      e.stopPropagation();</span>
+<span class="dl-add">+      // Through agentDispatch&#39;s own launcher — this is not a second way to</span>
+<span class="dl-add">+      // start an agent, it is the same one reached from a different button.</span>
+<span class="dl-add">+      // Required lazily: agentDispatch is initialised with the UI that owns</span>
+<span class="dl-add">+      // this board, so a top-level require would be a cycle.</span>
+<span class="dl-add">+      require(&#39;./agentDispatch&#39;).startAgentInLane(terminalId);</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  _updateContextRow(card, terminalId) {</span>
+<span class="dl-add">+    const row = card.querySelector(&#39;.lane-card-context&#39;);</span>
+<span class="dl-add">+    if (!row) return;</span>
+<span class="dl-add">+    row.style.display = laneContext.getState(terminalId) === &#39;failed&#39; ? &#39;&#39; : &#39;none&#39;;</span>
+<span class="dl-add">+    const cmd = row.querySelector(&#39;.lane-card-context-cmd&#39;);</span>
+<span class="dl-add">+    if (cmd) cmd.textContent = laneContext.getManualCommand(terminalId);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   _isVisible() {</span>
+<span class="dl-ctx">     return !!(this.boardEl &amp;&amp; this.boardEl.isConnected);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-hunk">@@ -402,6 +453,8 @@ class LaneBoard {</span>
+<span class="dl-ctx">       activity.dataset.ts = lastActivityAt || &#39;&#39;;</span>
+<span class="dl-ctx">       activity.textContent = formatRelativeTime(lastActivityAt);</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    this._updateContextRow(card, terminalId);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   _updateBranchChips() {</span>
+<span class="dl-meta">diff --git a/src/renderer/laneContext.js b/src/renderer/laneContext.js</span>
+<span class="dl-meta">index 2136d8f..480ea91 100644</span>
+<span class="dl-file">--- a/src/renderer/laneContext.js</span>
+<span class="dl-file">+++ b/src/renderer/laneContext.js</span>
+<span class="dl-hunk">@@ -32,6 +32,8 @@ let initialized = false;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Map&lt;terminalId, &#39;installed&#39; | &#39;failed&#39; | &#39;unsupported&#39;&gt;</span>
+<span class="dl-ctx"> const states = new Map();</span>
+<span class="dl-add">+// Map&lt;terminalId, string&gt; — the one-liner a `failed` lane can be fixed with</span>
+<span class="dl-add">+const commands = new Map();</span>
+<span class="dl-ctx"> // Map&lt;terminalId, Set&lt;resolve&gt;&gt; — callers parked in whenReady</span>
+<span class="dl-ctx"> const waiters = new Map();</span>
+<span class="dl-ctx"> const listeners = new Set();</span>
+<span class="dl-hunk">@@ -44,9 +46,10 @@ function init() {</span>
+<span class="dl-ctx">   if (initialized) return;</span>
+<span class="dl-ctx">   initialized = true;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  ipcRenderer.on(IPC.TERMINAL_CONTEXT_STATE, (event, { terminalId, state }) =&gt; {</span>
+<span class="dl-add">+  ipcRenderer.on(IPC.TERMINAL_CONTEXT_STATE, (event, { terminalId, state, command }) =&gt; {</span>
+<span class="dl-ctx">     if (!terminalId || !state) return;</span>
+<span class="dl-ctx">     states.set(terminalId, state);</span>
+<span class="dl-add">+    if (command) commands.set(terminalId, command);</span>
+<span class="dl-ctx">     _wake(terminalId);</span>
+<span class="dl-ctx">     for (const cb of listeners) {</span>
+<span class="dl-ctx">       try { cb(terminalId, state); } catch (_) { /* a bad listener is not the lane&#39;s problem */ }</span>
+<span class="dl-hunk">@@ -79,6 +82,14 @@ function isReady(terminalId) {</span>
+<span class="dl-ctx">   return states.get(terminalId) === &#39;installed&#39;;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The one-liner that would set this lane up by hand, or &#39;&#39; when there is</span>
+<span class="dl-add">+ * nothing to suggest. Only a `failed` lane has one.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getManualCommand(terminalId) {</span>
+<span class="dl-add">+  return commands.get(terminalId) || &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * Resolve once this lane is ready to be typed into.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -122,6 +133,7 @@ function whenReady(terminalId, fallbackMs = 0) {</span>
+<span class="dl-ctx"> /** Forget a lane. Called on TERMINAL_DESTROYED so the maps don&#39;t grow. */</span>
+<span class="dl-ctx"> function remove(terminalId) {</span>
+<span class="dl-ctx">   states.delete(terminalId);</span>
+<span class="dl-add">+  commands.delete(terminalId);</span>
+<span class="dl-ctx">   const parked = waiters.get(terminalId);</span>
+<span class="dl-ctx">   if (parked) {</span>
+<span class="dl-ctx">     // A destroyed lane will never be ready; release anyone still waiting</span>
+<span class="dl-hunk">@@ -143,6 +155,7 @@ module.exports = {</span>
+<span class="dl-ctx">   onChange,</span>
+<span class="dl-ctx">   getState,</span>
+<span class="dl-ctx">   isReady,</span>
+<span class="dl-add">+  getManualCommand,</span>
+<span class="dl-ctx">   whenReady,</span>
+<span class="dl-ctx">   remove</span>
+<span class="dl-ctx"> };</span>
+<span class="dl-meta">diff --git a/src/renderer/styles/components/lane-board.css b/src/renderer/styles/components/lane-board.css</span>
+<span class="dl-meta">index a735f18..8b863e9 100644</span>
+<span class="dl-file">--- a/src/renderer/styles/components/lane-board.css</span>
+<span class="dl-file">+++ b/src/renderer/styles/components/lane-board.css</span>
+<span class="dl-hunk">@@ -252,6 +252,58 @@</span>
+<span class="dl-ctx">   flex-shrink: 0;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/* Shell setup failed for this lane: the statement, a one-click start that goes</span>
+<span class="dl-add">+   through the normal launcher, and the command the user could run themselves.</span>
+<span class="dl-add">+   Only ever rendered on a failed lane — a lane that was set up says nothing. */</span>
+<span class="dl-add">+.lane-card-context {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  flex-direction: column;</span>
+<span class="dl-add">+  gap: 6px;</span>
+<span class="dl-add">+  margin-top: 8px;</span>
+<span class="dl-add">+  padding-top: 8px;</span>
+<span class="dl-add">+  border-top: 1px solid var(--border-color, rgba(128, 128, 128, 0.2));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.lane-card-context-note {</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  line-height: 1.4;</span>
+<span class="dl-add">+  color: var(--warning, #e5a50a);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.lane-card-context-actions {</span>
+<span class="dl-add">+  display: flex;</span>
+<span class="dl-add">+  align-items: center;</span>
+<span class="dl-add">+  gap: 8px;</span>
+<span class="dl-add">+  min-width: 0;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.lane-card-context-start {</span>
+<span class="dl-add">+  flex-shrink: 0;</span>
+<span class="dl-add">+  padding: 3px 9px;</span>
+<span class="dl-add">+  font-size: 11px;</span>
+<span class="dl-add">+  font-weight: 500;</span>
+<span class="dl-add">+  color: var(--text-primary);</span>
+<span class="dl-add">+  background: var(--bg-tertiary, rgba(128, 128, 128, 0.12));</span>
+<span class="dl-add">+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.25));</span>
+<span class="dl-add">+  border-radius: 5px;</span>
+<span class="dl-add">+  cursor: pointer;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.lane-card-context-start:hover {</span>
+<span class="dl-add">+  background: var(--bg-hover, rgba(128, 128, 128, 0.2));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+.lane-card-context-cmd {</span>
+<span class="dl-add">+  font-family: var(--font-mono, ui-monospace, monospace);</span>
+<span class="dl-add">+  font-size: 10px;</span>
+<span class="dl-add">+  color: var(--text-secondary);</span>
+<span class="dl-add">+  white-space: nowrap;</span>
+<span class="dl-add">+  overflow: hidden;</span>
+<span class="dl-add">+  text-overflow: ellipsis;</span>
+<span class="dl-add">+  min-width: 0;</span>
+<span class="dl-add">+  user-select: text;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> .lane-card-status-label.agent-working  { color: var(--accent-primary); }</span>
+<span class="dl-ctx"> .lane-card-status-label.agent-approval { color: var(--error, #d45555); font-weight: 600; }</span>
+<span class="dl-ctx"> .lane-card-status-label.agent-input    { color: var(--warning, #e5a50a); }</span>
+<span class="dl-meta">diff --git a/test/shellSetup.test.js b/test/shellSetup.test.js</span>
+<span class="dl-meta">index 545b706..3392346 100644</span>
+<span class="dl-file">--- a/test/shellSetup.test.js</span>
+<span class="dl-file">+++ b/test/shellSetup.test.js</span>
+<span class="dl-hunk">@@ -164,6 +164,20 @@ test(&#39;the fish command carries the split marker too&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(!delivery.args[1].includes(marker));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── manualCommand ────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the manual command is project-relative and per family&#39;, () =&gt; {</span>
+<span class="dl-add">+  // It is offered on a failed lane card for the user to paste into that lane,</span>
+<span class="dl-add">+  // whose cwd is the project — an absolute path would be unreadable.</span>
+<span class="dl-add">+  assert.equal(shellSetup.manualCommand(&#39;/bin/zsh&#39;), &#39;. .frame/runtime/shell/init.sh&#39;);</span>
+<span class="dl-add">+  assert.equal(shellSetup.manualCommand(&#39;/opt/homebrew/bin/fish&#39;), &#39;source .frame/runtime/shell/init.fish&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a shell Frame cannot set up has no command to suggest&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(shellSetup.manualCommand(&#39;/usr/local/bin/nu&#39;), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(shellSetup.manualCommand(&#39;&#39;), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── splitOnMarker ────────────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;output before and including the marker line is dropped, the rest survives&#39;, () =&gt; {</span></pre>
     </details>
   </div>
 </section>

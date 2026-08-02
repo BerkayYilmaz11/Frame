@@ -164,6 +164,20 @@ test('the fish command carries the split marker too', () => {
   assert.ok(!delivery.args[1].includes(marker));
 });
 
+// ─── manualCommand ────────────────────────────────────────────
+
+test('the manual command is project-relative and per family', () => {
+  // It is offered on a failed lane card for the user to paste into that lane,
+  // whose cwd is the project — an absolute path would be unreadable.
+  assert.equal(shellSetup.manualCommand('/bin/zsh'), '. .frame/runtime/shell/init.sh');
+  assert.equal(shellSetup.manualCommand('/opt/homebrew/bin/fish'), 'source .frame/runtime/shell/init.fish');
+});
+
+test('a shell Frame cannot set up has no command to suggest', () => {
+  assert.equal(shellSetup.manualCommand('/usr/local/bin/nu'), '');
+  assert.equal(shellSetup.manualCommand(''), '');
+});
+
 // ─── splitOnMarker ────────────────────────────────────────────
 
 test('output before and including the marker line is dropped, the rest survives', () => {

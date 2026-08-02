@@ -170,6 +170,20 @@ function deliveryFor(shellPath, platform = process.platform, projectPath = '', o
 }
 
 /**
+ * The line a user can paste into a lane to set it up by hand.
+ *
+ * What the failure row on a lane card offers next to its button — the honest
+ * answer to "what would Frame have done here?". Project-relative, because a
+ * lane's cwd is its project and a pasted absolute path is unreadable.
+ */
+function manualCommand(shellPath) {
+  const family = shellFamily(shellPath);
+  if (!family) return '';
+  const rel = `${FRAME_DIR}/${SHELL_DIR}/${INIT_FILES[family]}`;
+  return family === 'fish' ? `source ${rel}` : `. ${rel}`;
+}
+
+/**
  * What survives the marker in a buffered chunk.
  *
  * Setup output is held back until the marker proves the shell processed it, at
@@ -197,5 +211,6 @@ module.exports = {
   shellInitPath,
   mintMarker,
   deliveryFor,
+  manualCommand,
   splitOnMarker
 };
