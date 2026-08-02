@@ -9702,6 +9702,7 @@
         "REFERENCE_SPEC_LEGACY_MATCHERS",
         "AGENTS_SPEC_LEGACY_MATCHERS",
         "getWrapperTemplate",
+        "getShellInitTemplate",
         "getSpecHintSettings",
         "getStructureHookSnippet",
         "getStructurePreCommitHookTemplate",
@@ -9798,32 +9799,67 @@
           ],
           "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
-        "getSpecHintSettings": {
+        "isDefinableToolId": {
           "line": 990,
+          "params": [
+            "id"
+          ],
+          "purpose": "A shell function name Frame is willing to define."
+        },
+        "shellQuote": {
+          "line": 997,
+          "params": [
+            "value"
+          ],
+          "purpose": "Single-quote for a generated shell file. Both POSIX shells and fish treat"
+        },
+        "getShellInitTemplate": {
+          "line": 1029,
+          "params": [
+            "options"
+          ],
+          "purpose": "The init file a lane sources at startup."
+        },
+        "posixInitTemplate": {
+          "line": 1041,
+          "params": [
+            "binDir",
+            "toolIds"
+          ]
+        },
+        "fishInitTemplate": {
+          "line": 1090,
+          "params": [
+            "binDir",
+            "toolIds"
+          ]
+        },
+        "getSpecHintSettings": {
+          "line": 1132,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getStructureHookSnippet": {
-          "line": 1020
+          "line": 1162
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1047,
+          "line": 1189,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1070,
+          "line": 1212,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1082,
+          "line": 1224,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1102
+          "line": 1244
         },
         "getOrchBinScripts": {
-          "line": 1120,
+          "line": 1262,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

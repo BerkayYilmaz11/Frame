@@ -15,6 +15,18 @@
         "status": "pass",
         "detail": "468 tests, 0 failures"
       }
+    },
+    {
+      "id": "T02",
+      "title": "Add getShellInitTemplate() to src/shared/frameTemplates.js — the generated init files",
+      "commit": "da41e20",
+      "whatChanged": "getShellInitTemplate({ family, binDir, toolIds }) generates the POSIX and fish init files: FRAME_BIN exported, .frame/bin moved (not duplicated) to the front of an exported PATH, and one function per configured tool delegating to \"$FRAME_BIN/<id>\" with a command <id> fallback. Ids that would not parse as a function name are skipped. test/frameTemplates.test.js gained string cases plus executed ones that source the real file in bash, sh and zsh.",
+      "whyChanged": "The POSIX PATH rebuild uses prefix/suffix removal instead of splitting on \":\" because zsh does not word-split unquoted parameters and the same file is sourced by zsh and bash — a for-loop over $PATH would have treated the whole list as one entry in zsh. FRAME_NO_WRAP is deliberately not handled here: the function routes to the wrapper, which already honours it, so the escape hatch behaves the same through the function and through PATH.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "488 tests, 0 failures"
+      }
     }
   ]
 }

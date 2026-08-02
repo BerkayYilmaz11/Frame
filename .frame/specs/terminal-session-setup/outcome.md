@@ -15,3 +15,20 @@ derive — the minted marker and the fs-answered `isFrameProject`. Files:
 _Captured: 2026-08-02 · 2 file changes_
 
 ---
+
+## T02 — Add `getShellInitTemplate` to `src/shared/frameTemplates.js`
+
+Generated the POSIX and fish init files: `FRAME_BIN` exported, `.frame/bin`
+moved rather than duplicated to the front of an exported `PATH`, and one
+function per configured tool delegating to `"$FRAME_BIN/<id>"` with a
+`command <id>` fallback; unparseable tool ids are skipped rather than
+escaped. Rebuilt `PATH` with prefix/suffix removal instead of splitting on
+`:` — zsh does not word-split unquoted parameters, so the obvious
+`for e in $PATH` would have seen one entry there. Beside the string cases,
+`test/frameTemplates.test.js` now sources the real file in bash, sh and zsh
+and checks routing, PATH order, subshell reach and the missing-wrapper
+fallback. Files: `src/shared/frameTemplates.js`, `test/frameTemplates.test.js`.
+
+_Captured: 2026-08-02 · 2 file changes_
+
+---

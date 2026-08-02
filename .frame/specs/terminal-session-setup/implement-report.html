@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">1 of 8 tasks done · next: <span class="rs-task">T02 — Add `getShellInitTemplate({ family, binDir, toolIds })` to…</span></span>
+  <span class="rs-count">2 of 8 tasks done · next: <span class="rs-task">T03 — Write `.frame/runtime/shell/init.sh` and `init.fish` from…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -613,6 +613,341 @@
 <span class="dl-add">+    delete require.cache[require.resolve(&#39;../src/main/shellSetup&#39;)];</span>
 <span class="dl-add">+  }</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Add getShellInitTemplate() to src/shared/frameTemplates.js — the generated init files</h2>
+    <span class="card-meta"><span class="chip">da41e20</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">488 tests, 0 failures</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getShellInitTemplate({ family, binDir, toolIds }) generates the POSIX and fish init files: FRAME_BIN exported, .frame/bin moved (not duplicated) to the front of an exported PATH, and one function per configured tool delegating to &quot;$FRAME_BIN/&lt;id&gt;&quot; with a command &lt;id&gt; fallback. Ids that would not parse as a function name are skipped. test/frameTemplates.test.js gained string cases plus executed ones that source the real file in bash, sh and zsh.</p></div>
+    <div class="field"><span class="label">Why</span><p>The POSIX PATH rebuild uses prefix/suffix removal instead of splitting on &quot;:&quot; because zsh does not word-split unquoted parameters and the same file is sourced by zsh and bash — a for-loop over $PATH would have treated the whole list as one entry in zsh. FRAME_NO_WRAP is deliberately not handled here: the function routes to the wrapper, which already honours it, so the escape hatch behaves the same through the function and through PATH.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 3fd5a94..6903bc0 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -979,6 +979,148 @@ fi</span>
+<span class="dl-ctx"> `;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * A shell function name Frame is willing to define.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Tool ids come from a registry the user can add to, and a custom id is free</span>
+<span class="dl-add">+ * text. Anything that would not parse as a function name is skipped rather</span>
+<span class="dl-add">+ * than escaped: a broken definition would take the whole init file down with</span>
+<span class="dl-add">+ * it, and losing one tool&#39;s function is cheaper than losing every tool&#39;s.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function isDefinableToolId(id) {</span>
+<span class="dl-add">+  return typeof id === &#39;string&#39; &amp;&amp; /^[A-Za-z_][A-Za-z0-9_-]*$/.test(id);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Single-quote for a generated shell file. Both POSIX shells and fish treat</span>
+<span class="dl-add">+// `&#39;` as fully literal with no escape inside it, so a quote in the path is</span>
+<span class="dl-add">+// closed, escaped and reopened.</span>
+<span class="dl-add">+function shellQuote(value) {</span>
+<span class="dl-add">+  return `&#39;${String(value == null ? &#39;&#39; : value).replace(/&#39;/g, &quot;&#39;\\&#39;&#39;&quot;)}&#39;`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The init file a lane sources at startup.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `.frame/bin` first on `PATH` was never enough on its own: rc files run</span>
+<span class="dl-add">+ * *after* Frame sets the environment, and nvm, Homebrew and pyenv all prepend</span>
+<span class="dl-add">+ * their own directory — so a `codex` installed by `npm i -g` won not because</span>
+<span class="dl-add">+ * anything was wrong, but because it got to reorder the list last. This file</span>
+<span class="dl-add">+ * runs last instead, and does two things:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * 1. Moves `.frame/bin` back to the front of an **exported** `PATH`, so</span>
+<span class="dl-add">+ *    subshells — where functions do not reach — keep the base guarantee.</span>
+<span class="dl-add">+ * 2. Defines one function per configured tool. A function is resolved before</span>
+<span class="dl-add">+ *    any `PATH` search, which removes the ordering question entirely.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Each function is a **router**, not a second injection point: it delegates to</span>
+<span class="dl-add">+ * `&quot;$FRAME_BIN/&lt;id&gt;&quot;`, which stays the only thing that composes the preamble</span>
+<span class="dl-add">+ * and the only thing that honours `FRAME_NO_WRAP=1` — so the escape hatch</span>
+<span class="dl-add">+ * behaves identically whether the tool was reached through the function or</span>
+<span class="dl-add">+ * through `PATH`. When the wrapper file is missing the function falls back to</span>
+<span class="dl-add">+ * `command &lt;id&gt;`, which bypasses shell functions (so it cannot recurse into</span>
+<span class="dl-add">+ * itself) while still going through `PATH`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {object} options</span>
+<span class="dl-add">+ * @param {string} options.family - &#39;posix&#39; (zsh/bash/sh) or &#39;fish&#39;</span>
+<span class="dl-add">+ * @param {string} options.binDir - absolute path to the project&#39;s .frame/bin</span>
+<span class="dl-add">+ * @param {string[]} options.toolIds - configured tool ids, one function each</span>
+<span class="dl-add">+ * @returns {string} the file&#39;s content, or &#39;&#39; for a family Frame cannot serve</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getShellInitTemplate(options) {</span>
+<span class="dl-add">+  const opts = options || {};</span>
+<span class="dl-add">+  const family = opts.family || &#39;&#39;;</span>
+<span class="dl-add">+  const binDir = opts.binDir || &#39;&#39;;</span>
+<span class="dl-add">+  const toolIds = (Array.isArray(opts.toolIds) ? opts.toolIds : []).filter(isDefinableToolId);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!binDir) return &#39;&#39;;</span>
+<span class="dl-add">+  if (family === &#39;fish&#39;) return fishInitTemplate(binDir, toolIds);</span>
+<span class="dl-add">+  if (family === &#39;posix&#39;) return posixInitTemplate(binDir, toolIds);</span>
+<span class="dl-add">+  return &#39;&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function posixInitTemplate(binDir, toolIds) {</span>
+<span class="dl-add">+  const functions = toolIds</span>
+<span class="dl-add">+    .map(</span>
+<span class="dl-add">+      (id) =&gt; `${id}() {</span>
+<span class="dl-add">+  if [ -x &quot;$FRAME_BIN/${id}&quot; ]; then</span>
+<span class="dl-add">+    &quot;$FRAME_BIN/${id}&quot; &quot;$@&quot;</span>
+<span class="dl-add">+  else</span>
+<span class="dl-add">+    command ${id} &quot;$@&quot;</span>
+<span class="dl-add">+  fi</span>
+<span class="dl-add">+}`</span>
+<span class="dl-add">+    )</span>
+<span class="dl-add">+    .join(&#39;\n\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return `# Frame shell setup — sourced by zsh, bash and sh in terminals Frame opens.</span>
+<span class="dl-add">+# Generated file; Frame rewrites it whenever the content changes. Nothing</span>
+<span class="dl-add">+# outside .frame/ is touched, and nothing here runs in a shell Frame did not</span>
+<span class="dl-add">+# open.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+FRAME_BIN=${shellQuote(binDir)}</span>
+<span class="dl-add">+export FRAME_BIN</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# Move FRAME_BIN to the front of PATH — the reason this file exists. Written</span>
+<span class="dl-add">+# with prefix/suffix removal instead of splitting on &quot;:&quot;, because zsh does not</span>
+<span class="dl-add">+# word-split unquoted parameters and this same file is sourced by zsh and bash.</span>
+<span class="dl-add">+__frame_path_front() {</span>
+<span class="dl-add">+  __frame_rest=&quot;$PATH&quot;</span>
+<span class="dl-add">+  __frame_out=&quot;&quot;</span>
+<span class="dl-add">+  while [ -n &quot;$__frame_rest&quot; ]; do</span>
+<span class="dl-add">+    case &quot;$__frame_rest&quot; in</span>
+<span class="dl-add">+      *:*) __frame_item=&quot;\${__frame_rest%%:*}&quot;; __frame_rest=&quot;\${__frame_rest#*:}&quot; ;;</span>
+<span class="dl-add">+      *) __frame_item=&quot;$__frame_rest&quot;; __frame_rest=&quot;&quot; ;;</span>
+<span class="dl-add">+    esac</span>
+<span class="dl-add">+    [ -z &quot;$__frame_item&quot; ] &amp;&amp; continue</span>
+<span class="dl-add">+    [ &quot;$__frame_item&quot; = &quot;$FRAME_BIN&quot; ] &amp;&amp; continue</span>
+<span class="dl-add">+    __frame_out=&quot;\${__frame_out:+$__frame_out:}$__frame_item&quot;</span>
+<span class="dl-add">+  done</span>
+<span class="dl-add">+  PATH=&quot;$FRAME_BIN\${__frame_out:+:$__frame_out}&quot;</span>
+<span class="dl-add">+  export PATH</span>
+<span class="dl-add">+  unset __frame_rest __frame_out __frame_item</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+__frame_path_front</span>
+<span class="dl-add">+unset -f __frame_path_front 2&gt;/dev/null</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# One function per configured tool. Resolved before any PATH search, so where</span>
+<span class="dl-add">+# the user&#39;s rc files put their own directories stops mattering.</span>
+<span class="dl-add">+${functions}</span>
+<span class="dl-add">+`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function fishInitTemplate(binDir, toolIds) {</span>
+<span class="dl-add">+  const functions = toolIds</span>
+<span class="dl-add">+    .map(</span>
+<span class="dl-add">+      (id) =&gt; `function ${id} --wraps ${id}</span>
+<span class="dl-add">+    if test -x &quot;$FRAME_BIN/${id}&quot;</span>
+<span class="dl-add">+        &quot;$FRAME_BIN/${id}&quot; $argv</span>
+<span class="dl-add">+    else</span>
+<span class="dl-add">+        command ${id} $argv</span>
+<span class="dl-add">+    end</span>
+<span class="dl-add">+end`</span>
+<span class="dl-add">+    )</span>
+<span class="dl-add">+    .join(&#39;\n\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return `# Frame shell setup — sourced by fish in terminals Frame opens.</span>
+<span class="dl-add">+# Generated file; Frame rewrites it whenever the content changes.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+set -gx FRAME_BIN ${shellQuote(binDir)}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# Move FRAME_BIN to the front of PATH. fish&#39;s PATH is a list, so this is a</span>
+<span class="dl-add">+# rebuild rather than string surgery — but the intent is the one the POSIX</span>
+<span class="dl-add">+# file has: exported, and first.</span>
+<span class="dl-add">+set -l __frame_rest</span>
+<span class="dl-add">+for __frame_entry in $PATH</span>
+<span class="dl-add">+    if test &quot;$__frame_entry&quot; != &quot;$FRAME_BIN&quot;</span>
+<span class="dl-add">+        set -a __frame_rest $__frame_entry</span>
+<span class="dl-add">+    end</span>
+<span class="dl-add">+end</span>
+<span class="dl-add">+set -gx PATH $FRAME_BIN $__frame_rest</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# One function per configured tool, each delegating to the wrapper.</span>
+<span class="dl-add">+${functions}</span>
+<span class="dl-add">+`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * The spec-hint hooks, as a Claude Code settings object.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -1145,6 +1287,7 @@ module.exports = {</span>
+<span class="dl-ctx">   REFERENCE_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   AGENTS_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   getWrapperTemplate,</span>
+<span class="dl-add">+  getShellInitTemplate,</span>
+<span class="dl-ctx">   getSpecHintSettings,</span>
+<span class="dl-ctx">   getStructureHookSnippet,</span>
+<span class="dl-ctx">   getStructurePreCommitHookTemplate,</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index a6b78b9..353bcec 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -257,3 +257,154 @@ test(&#39;an invalid gitSharing option falls back to local&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const config = templates.getFrameConfigTemplate(&#39;MyProject&#39;, { gitSharing: &#39;team&#39; });</span>
+<span class="dl-ctx">   assert.equal(config.settings.gitSharing, &#39;local&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── shell init template (T02) ────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// `.frame/bin` first on PATH is set before the user&#39;s rc files run, and those</span>
+<span class="dl-add">+// files reorder PATH afterwards — which is how a `codex` installed by</span>
+<span class="dl-add">+// `npm i -g` came to win. These functions are what makes the ordering</span>
+<span class="dl-add">+// irrelevant, so the assertions that matter are: a function per tool, each</span>
+<span class="dl-add">+// delegating to the *wrapper* rather than re-execing the tool name (which</span>
+<span class="dl-add">+// would recurse), and PATH moved rather than duplicated.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const INIT_BIN = &#39;/tmp/some project/.frame/bin&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the POSIX init file defines one function per configured tool&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({</span>
+<span class="dl-add">+    family: &#39;posix&#39;,</span>
+<span class="dl-add">+    binDir: INIT_BIN,</span>
+<span class="dl-add">+    toolIds: [&#39;claude&#39;, &#39;codex&#39;, &#39;gemini&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  for (const id of [&#39;claude&#39;, &#39;codex&#39;, &#39;gemini&#39;]) {</span>
+<span class="dl-add">+    assert.ok(init.includes(`${id}() {`), `no function for ${id}`);</span>
+<span class="dl-add">+    assert.ok(init.includes(`&quot;$FRAME_BIN/${id}&quot; &quot;$@&quot;`), `${id} does not delegate to the wrapper`);</span>
+<span class="dl-add">+    assert.ok(init.includes(`command ${id} &quot;$@&quot;`), `${id} has no missing-wrapper fallback`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a custom tool gets its function in both files&#39;, () =&gt; {</span>
+<span class="dl-add">+  const posix = templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir: INIT_BIN, toolIds: [&#39;my-cli&#39;] });</span>
+<span class="dl-add">+  const fish = templates.getShellInitTemplate({ family: &#39;fish&#39;, binDir: INIT_BIN, toolIds: [&#39;my-cli&#39;] });</span>
+<span class="dl-add">+  assert.ok(posix.includes(&#39;my-cli() {&#39;));</span>
+<span class="dl-add">+  assert.ok(fish.includes(&#39;function my-cli&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a function never re-execs the bare tool name outside `command`&#39;, () =&gt; {</span>
+<span class="dl-add">+  // `claude() { claude &quot;$@&quot;; }` would recurse forever. `command claude` is the</span>
+<span class="dl-add">+  // only bare form allowed: it bypasses functions while still using PATH.</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir: INIT_BIN, toolIds: [&#39;claude&#39;] });</span>
+<span class="dl-add">+  const body = init.slice(init.indexOf(&#39;claude() {&#39;));</span>
+<span class="dl-add">+  for (const line of body.split(&#39;\n&#39;)) {</span>
+<span class="dl-add">+    if (!line.includes(&#39;claude&#39;)) continue;</span>
+<span class="dl-add">+    assert.ok(</span>
+<span class="dl-add">+      line.includes(&#39;$FRAME_BIN/claude&#39;) || line.includes(&#39;command claude&#39;) || line.includes(&#39;claude() {&#39;),</span>
+<span class="dl-add">+      `bare re-exec would recurse: ${line}`</span>
+<span class="dl-add">+    );</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;an id that would not parse as a function name is skipped, not escaped&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({</span>
+<span class="dl-add">+    family: &#39;posix&#39;,</span>
+<span class="dl-add">+    binDir: INIT_BIN,</span>
+<span class="dl-add">+    toolIds: [&#39;claude&#39;, &#39;rm -rf /&#39;, &#39;2bad&#39;, &#39;&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;claude() {&#39;));</span>
+<span class="dl-add">+  assert.ok(!init.includes(&#39;rm -rf /&#39;), &#39;a broken definition takes the whole file down with it&#39;);</span>
+<span class="dl-add">+  assert.ok(!init.includes(&#39;2bad&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the bin directory is exported and quoted&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir: INIT_BIN, toolIds: [] });</span>
+<span class="dl-add">+  assert.ok(init.includes(`FRAME_BIN=&#39;${INIT_BIN}&#39;`), &#39;a path with a space would split&#39;);</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;export FRAME_BIN&#39;));</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;export PATH&#39;), &#39;subshells inherit PATH, not functions&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a path with a quote in it is escaped rather than breaking the file&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir: &quot;/tmp/o&#39;brien/.frame/bin&quot;, toolIds: [] });</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;&#39;\\&#39;&#39;&quot;), init.split(&#39;\n&#39;).find((l) =&gt; l.includes(&#39;FRAME_BIN=&#39;)));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the fish file uses fish syntax, not POSIX&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({ family: &#39;fish&#39;, binDir: INIT_BIN, toolIds: [&#39;claude&#39;] });</span>
+<span class="dl-add">+  assert.ok(init.includes(`set -gx FRAME_BIN &#39;${INIT_BIN}&#39;`));</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;set -gx PATH $FRAME_BIN $__frame_rest&#39;));</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;&quot;$FRAME_BIN/claude&quot; $argv&#39;));</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;command claude $argv&#39;));</span>
+<span class="dl-add">+  assert.ok(!init.includes(&#39;&quot;$@&quot;&#39;), &#39;POSIX argument syntax leaked into the fish file&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a family Frame has no file for, or no bin directory, produces nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(templates.getShellInitTemplate({ family: &#39;nushell&#39;, binDir: INIT_BIN, toolIds: [&#39;claude&#39;] }), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir: &#39;&#39;, toolIds: [&#39;claude&#39;] }), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(templates.getShellInitTemplate({}), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── shell init behaviour, executed ───────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// The string assertions above cannot tell a valid init file from one that</span>
+<span class="dl-add">+// makes the shell bail on a syntax error — and a file that fails to parse</span>
+<span class="dl-add">+// would leave the lane with no functions and no way to notice. These source it</span>
+<span class="dl-add">+// for real, in each shell family that takes it.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function stageInit(toolIds = [&#39;claude&#39;]) {</span>
+<span class="dl-add">+  const root = fs.mkdtempSync(path.join(os.tmpdir(), &#39;frame-init-&#39;));</span>
+<span class="dl-add">+  const binDir = path.join(root, &#39;project with space&#39;, &#39;.frame&#39;, &#39;bin&#39;);</span>
+<span class="dl-add">+  const shellDir = path.join(root, &#39;project with space&#39;, &#39;.frame&#39;, &#39;runtime&#39;, &#39;shell&#39;);</span>
+<span class="dl-add">+  const realDir = path.join(root, &#39;real&#39;);</span>
+<span class="dl-add">+  fs.mkdirSync(binDir, { recursive: true });</span>
+<span class="dl-add">+  fs.mkdirSync(shellDir, { recursive: true });</span>
+<span class="dl-add">+  fs.mkdirSync(realDir, { recursive: true });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const initFile = path.join(shellDir, &#39;init.sh&#39;);</span>
+<span class="dl-add">+  fs.writeFileSync(initFile, templates.getShellInitTemplate({ family: &#39;posix&#39;, binDir, toolIds }));</span>
+<span class="dl-add">+  for (const id of toolIds) {</span>
+<span class="dl-add">+    fs.writeFileSync(path.join(binDir, id), `#!/usr/bin/env bash\necho &quot;WRAPPER:${id}:$*&quot;\n`, { mode: 0o755 });</span>
+<span class="dl-add">+    fs.writeFileSync(path.join(realDir, id), `#!/usr/bin/env bash\necho &quot;REAL:${id}:$*&quot;\n`, { mode: 0o755 });</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return { root, binDir, realDir, initFile };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function sourceInit(shell, staged, script, extraPath = &#39;&#39;) {</span>
+<span class="dl-add">+  return execFileSync(shell, [&#39;-c&#39;, `. &#39;${staged.initFile}&#39;\n${script}`], {</span>
+<span class="dl-add">+    env: {</span>
+<span class="dl-add">+      ...process.env,</span>
+<span class="dl-add">+      PATH: `${extraPath ? `${extraPath}:` : &#39;&#39;}${staged.realDir}:/usr/bin:/bin`</span>
+<span class="dl-add">+    },</span>
+<span class="dl-add">+    encoding: &#39;utf8&#39;,</span>
+<span class="dl-add">+    timeout: 10000</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+for (const shell of [&#39;bash&#39;, &#39;sh&#39;, &#39;zsh&#39;]) {</span>
+<span class="dl-add">+  test(`the init file parses and routes ${shell} through the wrapper`, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+    const staged = stageInit([&#39;claude&#39;]);</span>
+<span class="dl-add">+    const out = sourceInit(shell, staged, &#39;claude --resume x&#39;);</span>
+<span class="dl-add">+    assert.equal(out.trim(), &#39;WRAPPER:claude:--resume x&#39;, `${shell} did not resolve the function`);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  test(`${shell} gets the bin directory first on PATH, even set up last`, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+    // The nvm case: a directory holding a real `claude` was prepended by the</span>
+<span class="dl-add">+    // user&#39;s rc files, i.e. after Frame set the environment.</span>
+<span class="dl-add">+    const staged = stageInit([&#39;claude&#39;]);</span>
+<span class="dl-add">+    const out = sourceInit(shell, staged, &#39;printf &quot;%s\\n&quot; &quot;$PATH&quot;&#39;, staged.realDir);</span>
+<span class="dl-add">+    const entries = out.trim().split(&#39;:&#39;);</span>
+<span class="dl-add">+    assert.equal(entries[0], staged.binDir, `${shell} PATH: ${out.trim()}`);</span>
+<span class="dl-add">+    assert.equal(entries.filter((e) =&gt; e === staged.binDir).length, 1, &#39;duplicated instead of moved&#39;);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  test(`a subshell of ${shell} still reaches the wrapper through PATH`, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+    // Functions do not survive a subshell; the exported PATH is what does.</span>
+<span class="dl-add">+    const staged = stageInit([&#39;claude&#39;]);</span>
+<span class="dl-add">+    const out = sourceInit(shell, staged, `${shell} -c &#39;claude sub&#39;`);</span>
+<span class="dl-add">+    assert.equal(out.trim(), &#39;WRAPPER:claude:sub&#39;, &#39;the base PATH layer did not reach the subshell&#39;);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  test(`${shell} falls back to the real CLI when the wrapper is missing`, { skip: !POSIX }, () =&gt; {</span>
+<span class="dl-add">+    const staged = stageInit([&#39;claude&#39;]);</span>
+<span class="dl-add">+    fs.rmSync(path.join(staged.binDir, &#39;claude&#39;));</span>
+<span class="dl-add">+    const out = sourceInit(shell, staged, &#39;claude fallback&#39;);</span>
+<span class="dl-add">+    assert.equal(out.trim(), &#39;REAL:claude:fallback&#39;, &#39;a missing wrapper cost the user their CLI&#39;);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span></pre>
     </details>
   </div>
 </section>

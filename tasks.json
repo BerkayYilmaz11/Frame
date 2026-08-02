@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-02T10:13:19.191Z",
+  "lastUpdated": "2026-08-02T10:16:58.297Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -4847,13 +4847,13 @@
       "title": "Add `getShellInitTemplate({ family, binDir, toolIds })` to `src/shared/frameTemplates.js` generating the POSIX and fish init files — `.frame/bin` moved to the front of an exported `PATH` so subshells still inherit it, one function per configured tool delegating to `\"$FRAME_BIN/<id>\"` with a `command <id>` fallback for a missing wrapper, and no handling of `FRAME_NO_WRAP` beyond delegating to the wrapper that already honours it — with cases in `test/frameTemplates.test.js`.",
       "description": "",
       "source": "spec:terminal-session-setup:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: terminal-session-setup",
       "createdAt": "2026-08-02T10:03:40.884Z",
-      "updatedAt": "2026-08-02T10:03:40.884Z",
-      "completedAt": null
+      "updatedAt": "2026-08-02T10:16:58.297Z",
+      "completedAt": "2026-08-02T10:16:58.297Z"
     },
     {
       "id": "task-spec-terminal-session-setup-T03",
