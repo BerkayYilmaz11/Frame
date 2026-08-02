@@ -6223,6 +6223,77 @@
         "emits": []
       }
     },
+    "renderer/laneContext": {
+      "file": "src/renderer/laneContext.js",
+      "description": "Lane Context Module",
+      "exports": [
+        "init",
+        "onChange",
+        "getState",
+        "isReady",
+        "whenReady",
+        "remove"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels"
+      ],
+      "functions": {
+        "init": {
+          "line": 43,
+          "purpose": "Start listening. Init-once: a re-init must not stack a second set of"
+        },
+        "onChange": {
+          "line": 65,
+          "params": [
+            "callback"
+          ],
+          "purpose": "Subscribe to context-state changes. Returns an unsubscribe function."
+        },
+        "getState": {
+          "line": 73,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "This lane's context state, or 'pending' if it has not resolved yet."
+        },
+        "isReady": {
+          "line": 78,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "True only for a lane whose setup was confirmed."
+        },
+        "whenReady": {
+          "line": 94,
+          "params": [
+            "terminalId",
+            "fallbackMs = 0"
+          ],
+          "purpose": "Resolve once this lane is ready to be typed into."
+        },
+        "remove": {
+          "line": 123,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "Forget a lane. Called on TERMINAL_DESTROYED so the maps don't grow."
+        },
+        "_wake": {
+          "line": 134,
+          "params": [
+            "terminalId"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "TERMINAL_CONTEXT_STATE",
+          "TERMINAL_DESTROYED"
+        ],
+        "emits": []
+      }
+    },
     "renderer/laneDetailRail": {
       "file": "src/renderer/laneDetailRail.js",
       "description": "Lane Detail Rail Module",
@@ -6603,6 +6674,7 @@
         "terminalGrid",
         "laneBoard",
         "laneStatus",
+        "laneContext",
         "agentDispatch",
         "laneDetailRail",
         "overviewPanel",
@@ -11206,6 +11278,18 @@
         "module": "renderer/commandRegistry",
         "file": "src/renderer/commandRegistry.js",
         "description": "Command Registry"
+      }
+    ],
+    "context": [
+      {
+        "module": "renderer/laneContext",
+        "file": "src/renderer/laneContext.js",
+        "description": "Lane Context Module"
+      },
+      {
+        "module": "shared/contextPreamble",
+        "file": "src/shared/contextPreamble.js",
+        "description": "contextPreamble — the short text Frame injects when it launches an AI tool."
       }
     ],
     "crash": [

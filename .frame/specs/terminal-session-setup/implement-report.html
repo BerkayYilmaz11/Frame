@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-08-02</span>
   </div>
@@ -165,7 +165,7 @@
 <div class="wrap">
 <div class="run-status live">
   <span class="rs-badge">In progress</span>
-  <span class="rs-count">5 of 8 tasks done · next: <span class="rs-task">T06 — Add `src/renderer/laneContext.js` — per-terminal context-state cache…</span></span>
+  <span class="rs-count">6 of 8 tasks done · next: <span class="rs-task">T07 — Render the failure row on a `failed` lane card in…</span></span>
   <span class="rs-note"><svg class="rs-info" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.7" r="1" fill="currentColor"/><rect x="7.15" y="6.9" width="1.7" height="5.2" rx="0.85" fill="currentColor"/></svg>Regenerated after each task. Reload for the latest.</span>
 </div>
 <section class="report-head">
@@ -1551,6 +1551,198 @@
 <span class="dl-ctx">   GET_AVAILABLE_SHELLS: &#39;get-available-shells&#39;,</span>
 <span class="dl-ctx">   AVAILABLE_SHELLS_DATA: &#39;available-shells-data&#39;,</span>
 <span class="dl-ctx">   RECONCILE_TERMINALS: &#39;reconcile-terminals&#39;,</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Add src/renderer/laneContext.js — the per-lane context-state cache</h2>
+    <span class="card-meta"><span class="chip">d0d4f31</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">488 tests, 0 failures; renderer bundle builds</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>New renderer module caching TERMINAL_CONTEXT_STATE per terminal, cleared on TERMINAL_DESTROYED, with an onChange subscription in laneStatus style and whenReady(terminalId, fallbackMs). Initialised from multiTerminalUI._setup() beside laneStatus.init and agentDispatch.init. No consumer yet — T07 and T08 are the consumers.</p></div>
+    <div class="field"><span class="label">Why</span><p>whenReady arms its fallback timer even for a lane already resolved to failed or unsupported: nothing confirmed the shell is listening there, so those lanes still owe their old delay. A destroyed lane releases its waiters immediately rather than leaving promises that could only be settled by a timeout.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/laneContext.js b/src/renderer/laneContext.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..2136d8f</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/src/renderer/laneContext.js</span>
+<span class="dl-hunk">@@ -0,0 +1,148 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Lane Context Module</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Whether a lane&#39;s shell was set up with Frame&#39;s context, renderer-side.</span>
+<span class="dl-add">+ * `ptyManager` decides it and pushes `TERMINAL_CONTEXT_STATE`; this module is</span>
+<span class="dl-add">+ * the single consumer, and everything that wants to know asks here.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Three states, from the main process:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   &#39;installed&#39;   — the shell confirmed setup; a hand-typed `claude` routes</span>
+<span class="dl-add">+ *                   through Frame&#39;s wrapper</span>
+<span class="dl-add">+ *   &#39;failed&#39;      — setup did not confirm after a retry. Working terminal, no</span>
+<span class="dl-add">+ *                   Frame context — the lane card says so and offers a start</span>
+<span class="dl-add">+ *                   button (see laneBoard)</span>
+<span class="dl-add">+ *   &#39;unsupported&#39; — nothing was sent: not a Frame project, Windows, or a shell</span>
+<span class="dl-add">+ *                   Frame has no init file for. Not a failure, so nothing is</span>
+<span class="dl-add">+ *                   shown</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * ── Why `whenReady` exists ──</span>
+<span class="dl-add">+ * Every flow that starts an agent used to wait a fixed number of milliseconds</span>
+<span class="dl-add">+ * for the shell to be ready — 800, 1000, 300, each a guess made once and never</span>
+<span class="dl-add">+ * revisited. The setup marker is *proof* the shell is processing input, so a</span>
+<span class="dl-add">+ * lane that confirms can be typed into immediately; one that cannot confirm</span>
+<span class="dl-add">+ * falls back to the number that call site already used. Nothing gets slower,</span>
+<span class="dl-add">+ * and the common case stops waiting for a worst case that already passed.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { ipcRenderer } = require(&#39;electron&#39;);</span>
+<span class="dl-add">+const { IPC } = require(&#39;../shared/ipcChannels&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+let initialized = false;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Map&lt;terminalId, &#39;installed&#39; | &#39;failed&#39; | &#39;unsupported&#39;&gt;</span>
+<span class="dl-add">+const states = new Map();</span>
+<span class="dl-add">+// Map&lt;terminalId, Set&lt;resolve&gt;&gt; — callers parked in whenReady</span>
+<span class="dl-add">+const waiters = new Map();</span>
+<span class="dl-add">+const listeners = new Set();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Start listening. Init-once: a re-init must not stack a second set of</span>
+<span class="dl-add">+ * ipcRenderer listeners (same reasoning as laneStatus.init).</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function init() {</span>
+<span class="dl-add">+  if (initialized) return;</span>
+<span class="dl-add">+  initialized = true;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  ipcRenderer.on(IPC.TERMINAL_CONTEXT_STATE, (event, { terminalId, state }) =&gt; {</span>
+<span class="dl-add">+    if (!terminalId || !state) return;</span>
+<span class="dl-add">+    states.set(terminalId, state);</span>
+<span class="dl-add">+    _wake(terminalId);</span>
+<span class="dl-add">+    for (const cb of listeners) {</span>
+<span class="dl-add">+      try { cb(terminalId, state); } catch (_) { /* a bad listener is not the lane&#39;s problem */ }</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  ipcRenderer.on(IPC.TERMINAL_DESTROYED, (event, { terminalId }) =&gt; {</span>
+<span class="dl-add">+    remove(terminalId);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Subscribe to context-state changes. Returns an unsubscribe function.</span>
+<span class="dl-add">+ * Callback signature: (terminalId, state)</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function onChange(callback) {</span>
+<span class="dl-add">+  listeners.add(callback);</span>
+<span class="dl-add">+  return () =&gt; listeners.delete(callback);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * This lane&#39;s context state, or &#39;pending&#39; if it has not resolved yet.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getState(terminalId) {</span>
+<span class="dl-add">+  return states.get(terminalId) || &#39;pending&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** True only for a lane whose setup was confirmed. */</span>
+<span class="dl-add">+function isReady(terminalId) {</span>
+<span class="dl-add">+  return states.get(terminalId) === &#39;installed&#39;;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Resolve once this lane is ready to be typed into.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Resolves immediately for a lane already `installed`, on the state message</span>
+<span class="dl-add">+ * for one still pending, and after `fallbackMs` for a lane that will never</span>
+<span class="dl-add">+ * confirm — an unsupported shell, or setup that failed. The fallback is the</span>
+<span class="dl-add">+ * delay the call site used before this module existed, so the un-confirmable</span>
+<span class="dl-add">+ * case behaves exactly as it always did.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Never rejects: a caller waiting to type into a terminal is not helped by an</span>
+<span class="dl-add">+ * error, only by eventually going ahead.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function whenReady(terminalId, fallbackMs = 0) {</span>
+<span class="dl-add">+  if (!terminalId) return Promise.resolve(false);</span>
+<span class="dl-add">+  if (isReady(terminalId)) return Promise.resolve(true);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return new Promise((resolve) =&gt; {</span>
+<span class="dl-add">+    let done = false;</span>
+<span class="dl-add">+    const finish = (ready) =&gt; {</span>
+<span class="dl-add">+      if (done) return;</span>
+<span class="dl-add">+      done = true;</span>
+<span class="dl-add">+      const parked = waiters.get(terminalId);</span>
+<span class="dl-add">+      if (parked) {</span>
+<span class="dl-add">+        parked.delete(finish);</span>
+<span class="dl-add">+        if (parked.size === 0) waiters.delete(terminalId);</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+      clearTimeout(timer);</span>
+<span class="dl-add">+      resolve(ready);</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    // The fallback is armed even for a lane that has already resolved to</span>
+<span class="dl-add">+    // `failed` or `unsupported`: those lanes still need their old delay before</span>
+<span class="dl-add">+    // anything is typed, because nothing has confirmed the shell is listening.</span>
+<span class="dl-add">+    const timer = setTimeout(() =&gt; finish(false), Math.max(0, fallbackMs));</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+    if (!waiters.has(terminalId)) waiters.set(terminalId, new Set());</span>
+<span class="dl-add">+    waiters.get(terminalId).add(finish);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/** Forget a lane. Called on TERMINAL_DESTROYED so the maps don&#39;t grow. */</span>
+<span class="dl-add">+function remove(terminalId) {</span>
+<span class="dl-add">+  states.delete(terminalId);</span>
+<span class="dl-add">+  const parked = waiters.get(terminalId);</span>
+<span class="dl-add">+  if (parked) {</span>
+<span class="dl-add">+    // A destroyed lane will never be ready; release anyone still waiting</span>
+<span class="dl-add">+    // rather than leaving a promise that can only be settled by its timeout.</span>
+<span class="dl-add">+    for (const finish of Array.from(parked)) finish(false);</span>
+<span class="dl-add">+    waiters.delete(terminalId);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function _wake(terminalId) {</span>
+<span class="dl-add">+  if (!isReady(terminalId)) return;</span>
+<span class="dl-add">+  const parked = waiters.get(terminalId);</span>
+<span class="dl-add">+  if (!parked) return;</span>
+<span class="dl-add">+  for (const finish of Array.from(parked)) finish(true);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = {</span>
+<span class="dl-add">+  init,</span>
+<span class="dl-add">+  onChange,</span>
+<span class="dl-add">+  getState,</span>
+<span class="dl-add">+  isReady,</span>
+<span class="dl-add">+  whenReady,</span>
+<span class="dl-add">+  remove</span>
+<span class="dl-add">+};</span>
+<span class="dl-meta">diff --git a/src/renderer/multiTerminalUI.js b/src/renderer/multiTerminalUI.js</span>
+<span class="dl-meta">index f78a5a2..d4d8a8f 100644</span>
+<span class="dl-file">--- a/src/renderer/multiTerminalUI.js</span>
+<span class="dl-file">+++ b/src/renderer/multiTerminalUI.js</span>
+<span class="dl-hunk">@@ -14,6 +14,7 @@ const { TerminalTabBar } = require(&#39;./terminalTabBar&#39;);</span>
+<span class="dl-ctx"> const { TerminalGrid } = require(&#39;./terminalGrid&#39;);</span>
+<span class="dl-ctx"> const { LaneBoard } = require(&#39;./laneBoard&#39;);</span>
+<span class="dl-ctx"> const laneStatus = require(&#39;./laneStatus&#39;);</span>
+<span class="dl-add">+const laneContext = require(&#39;./laneContext&#39;);</span>
+<span class="dl-ctx"> const agentDispatch = require(&#39;./agentDispatch&#39;);</span>
+<span class="dl-ctx"> const laneDetailRail = require(&#39;./laneDetailRail&#39;);</span>
+<span class="dl-ctx"> const overviewPanel = require(&#39;./overviewPanel&#39;);</span>
+<span class="dl-hunk">@@ -62,6 +63,10 @@ class MultiTerminalUI {</span>
+<span class="dl-ctx">     // Lane activity detection needs the manager to read xterm buffers</span>
+<span class="dl-ctx">     laneStatus.init(this.manager);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+    // Whether each lane&#39;s shell carries Frame&#39;s context — the signal that</span>
+<span class="dl-add">+    // replaces the fixed waits before anything is typed into a lane.</span>
+<span class="dl-add">+    laneContext.init();</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">     // Agent dispatch delivers prompts into lanes through us</span>
+<span class="dl-ctx">     agentDispatch.init(this);</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>

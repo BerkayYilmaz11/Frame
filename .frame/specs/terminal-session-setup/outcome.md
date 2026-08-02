@@ -84,3 +84,19 @@ cheaply.
 _Captured: 2026-08-02 · 2 file changes_
 
 ---
+
+## T06 — Add `src/renderer/laneContext.js`
+
+Per-terminal context-state cache fed by `TERMINAL_CONTEXT_STATE`, cleared on
+`TERMINAL_DESTROYED`, with `onChange` in `laneStatus`'s style and
+`whenReady(terminalId, fallbackMs)`; initialised from
+`multiTerminalUI._setup()`. `whenReady` arms its fallback even for a lane
+already `failed` or `unsupported` — nothing confirmed the shell is
+listening there, so those lanes still owe their old delay — and a destroyed
+lane releases its waiters instead of leaving promises only a timeout could
+settle. No consumer yet. Files: `src/renderer/laneContext.js`,
+`src/renderer/multiTerminalUI.js`.
+
+_Captured: 2026-08-02 · 2 file changes_
+
+---

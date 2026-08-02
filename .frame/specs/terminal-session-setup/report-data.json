@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "488 tests, 0 failures; state machine also driven end to end against a stubbed node-pty — invisible window, split marker, queued input, timeout retry, failed, unsupported"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Add src/renderer/laneContext.js — the per-lane context-state cache",
+      "commit": "d0d4f31",
+      "whatChanged": "New renderer module caching TERMINAL_CONTEXT_STATE per terminal, cleared on TERMINAL_DESTROYED, with an onChange subscription in laneStatus style and whenReady(terminalId, fallbackMs). Initialised from multiTerminalUI._setup() beside laneStatus.init and agentDispatch.init. No consumer yet — T07 and T08 are the consumers.",
+      "whyChanged": "whenReady arms its fallback timer even for a lane already resolved to failed or unsupported: nothing confirmed the shell is listening there, so those lanes still owe their old delay. A destroyed lane releases its waiters immediately rather than leaving promises that could only be settled by a timeout.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "488 tests, 0 failures; renderer bundle builds"
+      }
     }
   ]
 }
