@@ -9938,6 +9938,7 @@
         "REFERENCE_SPEC_LEGACY_MATCHERS",
         "AGENTS_SPEC_LEGACY_MATCHERS",
         "getWrapperTemplate",
+        "getCmdWrapperTemplate",
         "getShellInitTemplate",
         "getSpecHintSettings",
         "getStructureHookSnippet",
@@ -10036,74 +10037,89 @@
           ],
           "purpose": "Wrapper script that hands a tool Frame's launch context."
         },
+        "getCmdWrapperTemplate": {
+          "line": 1025,
+          "params": [
+            "toolCommand",
+            "options"
+          ],
+          "purpose": "The Windows wrapper: `.frame\\bin\\<id>.cmd`."
+        },
+        "toBackslashes": {
+          "line": 1122,
+          "params": [
+            "value"
+          ],
+          "purpose": "A project-relative path as batch spells it. The rest of Frame carries these"
+        },
         "isDefinableToolId": {
-          "line": 990,
+          "line": 1134,
           "params": [
             "id"
           ],
           "purpose": "A shell function name Frame is willing to define."
         },
         "shellQuote": {
-          "line": 997,
+          "line": 1141,
           "params": [
             "value"
           ],
           "purpose": "Single-quote for a generated shell file. Both POSIX shells and fish treat"
         },
         "getShellInitTemplate": {
-          "line": 1029,
+          "line": 1173,
           "params": [
             "options"
           ],
           "purpose": "The init file a lane sources at startup."
         },
         "posixInitTemplate": {
-          "line": 1041,
+          "line": 1185,
           "params": [
             "binDir",
             "toolIds"
           ]
         },
         "fishInitTemplate": {
-          "line": 1090,
+          "line": 1234,
           "params": [
             "binDir",
             "toolIds"
           ]
         },
         "getSpecHintSettings": {
-          "line": 1132,
+          "line": 1276,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getStructureHookSnippet": {
-          "line": 1162
+          "line": 1306
         },
         "replaceManagedHookBlock": {
-          "line": 1202,
+          "line": 1346,
           "params": [
             "content"
           ],
           "purpose": "Swap the managed block inside an existing hook file for the current snippet."
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1224,
+          "line": 1368,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1247,
+          "line": 1391,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1259,
+          "line": 1403,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1279
+          "line": 1423
         },
         "getOrchBinScripts": {
-          "line": 1297,
+          "line": 1441,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

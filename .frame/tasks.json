@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:12:34.615Z",
+  "lastUpdated": "2026-08-20T13:18:03.993Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5039,13 +5039,13 @@
       "title": "Add `getCmdWrapperTemplate(toolCommand, options)` to `src/shared/frameTemplates.js`: resolve the real CLI via `for /f … in ('where <tool>')` skipping any hit whose `%%~dpI` matches `%~dp0`, exit 127 with `Frame: <tool> was not found on PATH.` when none remains, pass through untouched under `FRAME_NO_WRAP` and when `promptFileFlag` is already in `%*`, walk up from `%CD%` to the directory holding `.frame\\`, quote every path so a space is safe, and route every branch through one `call`/`exit /b` label — with string assertions in `test/frameTemplates.test.js` including that no `%ERRORLEVEL%` appears inside a parenthesised block.",
       "description": "",
       "source": "spec:windows-claude-context:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:18:03.993Z",
+      "completedAt": "2026-08-20T13:18:03.993Z"
     },
     {
       "id": "task-spec-windows-claude-context-T04",

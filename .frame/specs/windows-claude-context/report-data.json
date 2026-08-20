@@ -27,6 +27,18 @@
         "status": "pass",
         "detail": "545 tests pass, 0 fail (12 new in test/aiToolLaunch.test.js)"
       }
+    },
+    {
+      "id": "T03",
+      "title": "Write the .frame/bin/<id>.cmd wrapper template",
+      "commit": "f9bb6fb",
+      "whatChanged": "Added getCmdWrapperTemplate(toolCommand, options) to src/shared/frameTemplates.js. It generates plain batch that resolves the real CLI with `for /f … in ('where <tool>')` skipping any hit whose %%~dpI is %~dp0, exits 127 with a stderr message when nothing remains, passes through under FRAME_NO_WRAP and when promptFileFlag is already on the line, walks up from %CD% to the directory holding .frame\\, and routes every branch to one `call \"%FRAME_REAL%\" %FRAME_FLAGS% %*` followed by a bare `exit /b`. It returns '' for a tool with no promptFileFlag. 15 string assertions landed in test/frameTemplates.test.js.",
+      "whyChanged": "The already-composed check scans arguments one at a time in a :frame_scan_args subroutine using %~1 rather than searching the whole of %* with substring substitution — that is a deviation from the plan's wording, taken because %* expands during parsing and a user argument carrying & or | would be re-parsed as syntax; %~1 strips cmd's quotes and compares a value. Exit-code propagation is goto-shaped rather than %ERRORLEVEL%-shaped because cmd.exe expands variables when it parses a parenthesised block, so the variable never appears in the file at all. Nothing executes in the tests: cmd.exe is not on this machine, and the real verification is T10's protocol.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "559 tests pass, 0 fail (14 new in test/frameTemplates.test.js)"
+      }
     }
   ]
 }

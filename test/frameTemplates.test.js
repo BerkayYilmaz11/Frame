@@ -169,6 +169,155 @@ test('the settings flag is skipped when the settings file is absent', { skip: !P
   assert.ok(out.includes('ARG:--append-system-prompt'), out);
 });
 
+// ─── cmd wrapper template ─────────────────────────────────────
+
+// Nothing here executes: cmd.exe is not on this machine and the real
+// verification is the Windows test protocol this spec ships. These are string
+// assertions on the batch Frame generates, and they exist to pin the handful
+// of details a later edit would quietly break.
+
+const CMD_OPTS = {
+  promptFileFlag: '--append-system-prompt-file',
+  settingsFlag: '--settings',
+  preambleFile: '.frame/runtime/preamble-claude.txt',
+  settingsFile: '.frame/runtime/claude-settings.json'
+};
+
+function cmdWrapper(tool = 'claude', options = CMD_OPTS) {
+  return templates.getCmdWrapperTemplate(tool, options);
+}
+
+test('a tool with no file flag gets no cmd wrapper at all', () => {
+  // There is no batch spelling of --append-system-prompt with a 9-line,
+  // backtick-bearing preamble, and a wrapper that cannot do its job still
+  // shadows a working CLI.
+  assert.equal(templates.getCmdWrapperTemplate('codex', {}), '');
+  assert.equal(templates.getCmdWrapperTemplate('gemini', { settingsFlag: '--settings' }), '');
+});
+
+test('the cmd wrapper names its tool and disables echo', () => {
+  const script = cmdWrapper();
+  assert.ok(script.startsWith('@echo off\nsetlocal EnableExtensions\n'));
+  assert.ok(script.includes('Frame AI Tool Wrapper for claude (Windows).'));
+});
+
+test('the where loop skips any hit living in the wrapper\'s own directory', () => {
+  // .frame\bin leads PATH, so `where claude` reports this very file first.
+  const script = cmdWrapper();
+  assert.ok(script.includes(`for /f "delims=" %%I in ('where "claude" 2^>nul') do (`));
+  assert.ok(script.includes('if not defined FRAME_REAL if /i not "%%~dpI"=="%FRAME_SELF%" set "FRAME_REAL=%%I"'));
+  assert.ok(script.includes('set "FRAME_SELF=%~dp0"'));
+});
+
+test('a CLI that is not installed exits 127 and shadows nothing', () => {
+  const script = cmdWrapper();
+  assert.ok(script.includes('>&2 echo Frame: claude was not found on PATH.'));
+  assert.ok(script.includes('exit /b 127'));
+  // The message goes to stderr before the exit, and neither is inside a block.
+  assert.ok(!/\(\s*[^)]*not found on PATH/.test(script));
+});
+
+test('FRAME_NO_WRAP reaches the same pass-through every other branch uses', () => {
+  const script = cmdWrapper();
+  assert.ok(script.includes('if defined FRAME_NO_WRAP goto :frame_run'));
+});
+
+test('a line that already carries Frame\'s flag is left alone', () => {
+  // C1: one injection route. A launch Frame composed resolves through this
+  // file too, so its flags are already there — the two must never stack.
+  const script = cmdWrapper();
+  assert.ok(script.includes('call :frame_scan_args %*'));
+  assert.ok(script.includes('if defined FRAME_COMPOSED goto :frame_run'));
+  assert.ok(script.includes('if /i "%~1"=="--append-system-prompt-file" set "FRAME_COMPOSED=1"'));
+});
+
+test('arguments are compared one at a time, not by searching the whole line', () => {
+  // %~1 strips cmd's quotes, so `claude "a & b"` is compared as a value
+  // instead of being re-parsed as syntax.
+  const script = cmdWrapper();
+  assert.ok(script.includes('if "%~1"=="" goto :eof'));
+  assert.ok(script.includes('\nshift\ngoto :frame_scan_args'));
+  assert.ok(!script.includes('%FRAME_ARGS:'), 'a whole-line substring search is quote-fragile');
+});
+
+test('the project root is found by walking up to the directory holding .frame', () => {
+  const script = cmdWrapper();
+  assert.ok(script.includes('call :frame_find_root "%CD%"'));
+  assert.ok(script.includes('if exist "%FRAME_TRY%\\.frame\\" goto :frame_find_root_hit'));
+  assert.ok(script.includes('for %%P in ("%FRAME_TRY%\\..") do set "FRAME_UP=%%~fP"'));
+  // The walk has to stop at the filesystem root or it never returns.
+  assert.ok(script.includes('if /i "%FRAME_UP%"=="%FRAME_TRY%" goto :eof'));
+  assert.ok(script.includes('if not defined FRAME_ROOT goto :frame_run'));
+});
+
+test('the flags carry backslash paths, and every path is quoted', () => {
+  const script = cmdWrapper();
+  assert.ok(script.includes('set "FRAME_PREAMBLE=%FRAME_ROOT%\\.frame\\runtime\\preamble-claude.txt"'));
+  assert.ok(script.includes('set FRAME_FLAGS=--append-system-prompt-file "%FRAME_PREAMBLE%"'));
+  assert.ok(script.includes('set "FRAME_SETTINGS=%FRAME_ROOT%\\.frame\\runtime\\claude-settings.json"'));
+  assert.ok(script.includes('set FRAME_FLAGS=%FRAME_FLAGS% --settings "%FRAME_SETTINGS%"'));
+  // A project under Documents has a space in it as often as not.
+  assert.ok(!/%FRAME_ROOT%\\[^\n"]*[^"]\n/.test(script), 'an unquoted root path would break on a space');
+  assert.ok(!script.includes('.frame/runtime'), 'forward slashes leaked into the batch file');
+});
+
+test('the settings pair is dropped for a tool that declares no settings flag', () => {
+  const script = cmdWrapper('claude', { ...CMD_OPTS, settingsFlag: '' });
+  assert.ok(script.includes('--append-system-prompt-file'));
+  assert.ok(!script.includes('FRAME_SETTINGS'));
+});
+
+test('the settings file is optional in a way the preamble is not', () => {
+  const script = cmdWrapper();
+  // A missing preamble means there is nothing to inject; a missing settings
+  // file costs the hooks and keeps the preamble.
+  const preambleGuard = script.indexOf('if not exist "%FRAME_PREAMBLE%" goto :frame_run');
+  const settingsGuard = script.indexOf('if not exist "%FRAME_SETTINGS%" goto :frame_run');
+  const flagsSet = script.indexOf('set FRAME_FLAGS=--append-system-prompt-file');
+  assert.ok(preambleGuard > -1 && settingsGuard > -1 && flagsSet > -1);
+  assert.ok(preambleGuard < flagsSet, 'the preamble guard must precede the flags it guards');
+  assert.ok(flagsSet < settingsGuard, 'a missing settings file must not cost the preamble');
+});
+
+test('every branch reaches one call, and the tail is a bare exit /b', () => {
+  // S5: the child's exit code must arrive unchanged.
+  const script = cmdWrapper();
+  const calls = script.split('\n').filter((line) => line.startsWith('call "%FRAME_REAL%"'));
+  assert.equal(calls.length, 1, 'more than one call site means more than one place to lose the code');
+  assert.equal(calls[0], 'call "%FRAME_REAL%" %FRAME_FLAGS% %*');
+  assert.ok(script.includes('call "%FRAME_REAL%" %FRAME_FLAGS% %*\nexit /b\n'));
+});
+
+test('%ERRORLEVEL% appears nowhere, least of all inside a block', () => {
+  // cmd.exe expands variables when it *parses* a parenthesised block, so an
+  // `exit /b %ERRORLEVEL%` inside an `if (…)` reports the code from before
+  // the call. The goto-shaped tail is what makes the variable unnecessary.
+  const script = cmdWrapper();
+  assert.ok(!/%ERRORLEVEL%/i.test(script));
+  for (const line of script.split('\n')) {
+    if (!/^\s*(if|for)\b.*\($/.test(line)) continue;
+    assert.ok(!/%ERRORLEVEL%/i.test(line));
+  }
+});
+
+test('every goto has a label to land on', () => {
+  const script = cmdWrapper();
+  const labels = new Set(
+    script.split('\n')
+      .filter((line) => /^:[a-z_]/i.test(line))
+      .map((line) => line.trim().slice(1))
+  );
+  labels.add('eof');
+  for (const match of script.matchAll(/goto :([a-z_]+)/gi)) {
+    assert.ok(labels.has(match[1]), `goto :${match[1]} has no label`);
+  }
+  // And every label is reachable, so a rename cannot orphan a whole branch.
+  for (const label of labels) {
+    if (label === 'eof' || label === 'frame_scan_args' || label === 'frame_find_root') continue;
+    assert.ok(script.includes(`goto :${label}`), `:${label} is never jumped to`);
+  }
+});
+
 // ─── spec-hint settings ───────────────────────────────────────
 
 test('the spec-hint settings carry both hook events', () => {

@@ -31,3 +31,22 @@ deviation from `plan.md`.
 _Captured: 2026-08-20 · 2 file changes_
 
 ---
+
+## T03 — Write the `.frame/bin/<id>.cmd` wrapper template
+
+Added `getCmdWrapperTemplate(toolCommand, options)` to `frameTemplates.js`:
+self-excluding `where` resolution, exit 127 when the CLI is absent,
+`FRAME_NO_WRAP` and already-composed pass-throughs, a `%CD%`-upward walk to
+`.frame\`, quoted paths throughout, and one `call`/bare `exit /b` tail so the
+child's exit code arrives unchanged. Returns `''` for a tool with no
+`promptFileFlag`. **Deviation:** the already-composed check scans `%~1` one
+argument at a time in a `:frame_scan_args` subroutine instead of the plan's
+substring search over `%*` — `%*` expands at parse time, so a user argument
+carrying `&` or `|` would be re-parsed as syntax. Files:
+`src/shared/frameTemplates.js`, `test/frameTemplates.test.js` (14 new tests,
+string-only — cmd.exe is not on this machine and T10's protocol is the real
+verification).
+
+_Captured: 2026-08-20 · 2 file changes_
+
+---

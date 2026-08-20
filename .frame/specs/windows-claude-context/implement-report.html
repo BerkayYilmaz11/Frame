@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">2 tasks</span>
-    <span class="pill good">2 verified</span>
+    <span class="pill">3 tasks</span>
+    <span class="pill good">3 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -686,6 +686,344 @@
 <span class="dl-add">+  assert.deepEqual(once, twice);</span>
 <span class="dl-add">+  assert.notEqual(once, twice, &#39;a shared array would let one caller mutate another\&#39;s flags&#39;);</span>
 <span class="dl-add">+});</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T03</span>
+    <h2>Write the .frame/bin/&lt;id&gt;.cmd wrapper template</h2>
+    <span class="card-meta"><span class="chip">f9bb6fb</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">559 tests pass, 0 fail (14 new in test/frameTemplates.test.js)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added getCmdWrapperTemplate(toolCommand, options) to src/shared/frameTemplates.js. It generates plain batch that resolves the real CLI with `for /f … in (&#39;where &lt;tool&gt;&#39;)` skipping any hit whose %%~dpI is %~dp0, exits 127 with a stderr message when nothing remains, passes through under FRAME_NO_WRAP and when promptFileFlag is already on the line, walks up from %CD% to the directory holding .frame\, and routes every branch to one `call &quot;%FRAME_REAL%&quot; %FRAME_FLAGS% %*` followed by a bare `exit /b`. It returns &#39;&#39; for a tool with no promptFileFlag. 15 string assertions landed in test/frameTemplates.test.js.</p></div>
+    <div class="field"><span class="label">Why</span><p>The already-composed check scans arguments one at a time in a :frame_scan_args subroutine using %~1 rather than searching the whole of %* with substring substitution — that is a deviation from the plan&#39;s wording, taken because %* expands during parsing and a user argument carrying &amp; or | would be re-parsed as syntax; %~1 strips cmd&#39;s quotes and compares a value. Exit-code propagation is goto-shaped rather than %ERRORLEVEL%-shaped because cmd.exe expands variables when it parses a parenthesised block, so the variable never appears in the file at all. Nothing executes in the tests: cmd.exe is not on this machine, and the real verification is T10&#39;s protocol.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 4983815..5bd0334 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -979,6 +979,150 @@ fi</span>
+<span class="dl-ctx"> `;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The Windows wrapper: `.frame\bin\&lt;id&gt;.cmd`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Same job as `getWrapperTemplate` — catch a hand-typed `claude` and hand it</span>
+<span class="dl-add">+ * Frame&#39;s launch context — but it exists on different terms:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   * **`.cmd`, not `.ps1`.** Only `.cmd` is in the default `PATHEXT`, and</span>
+<span class="dl-add">+ *     `PATHEXT` is what makes a bare `claude` resolve to a file that is not an</span>
+<span class="dl-add">+ *     executable. `cmd`, `powershell` and `pwsh` consult it; Git Bash does</span>
+<span class="dl-add">+ *     not — it looks for an exact filename, so that lane gets its context from</span>
+<span class="dl-add">+ *     the launch Frame composes and nothing from here.</span>
+<span class="dl-add">+ *   * **It passes a path, never the prose.** Which is the only reason this can</span>
+<span class="dl-add">+ *     stay plain batch. A wrapper that had to embed a 9-line preamble carrying</span>
+<span class="dl-add">+ *     backticks would need a Node trampoline between the shell and an</span>
+<span class="dl-add">+ *     interactive CLI; one that passes two paths needs nothing.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns `&#39;&#39;` for a tool with no `promptFileFlag`. There is no batch spelling</span>
+<span class="dl-add">+ * of the string form, and a wrapper that cannot do its job would still shadow</span>
+<span class="dl-add">+ * a working CLI — worse than no wrapper at all.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Three details are load-bearing and easy to lose in a later edit:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   1. **It must not find itself.** `.frame\bin` leads `PATH`, so `where`</span>
+<span class="dl-add">+ *      reports this file before the real CLI. The loop takes the first hit</span>
+<span class="dl-add">+ *      whose directory is not `%~dp0`, resolved at run time so a</span>
+<span class="dl-add">+ *      version-manager switch is picked up without a rewrite.</span>
+<span class="dl-add">+ *   2. **It defers when Frame&#39;s flag is already on the line.** A launch Frame</span>
+<span class="dl-add">+ *      composed resolves through here too, so finding `promptFileFlag` in `%*`</span>
+<span class="dl-add">+ *      means someone already owns the injection. One route, never two.</span>
+<span class="dl-add">+ *   3. **Every branch jumps to one `call` and a bare `exit /b`.** `cmd.exe`</span>
+<span class="dl-add">+ *      expands variables when it *parses* a parenthesised block, so an</span>
+<span class="dl-add">+ *      `exit /b %ERRORLEVEL%` inside an `if (…)` would report the code from</span>
+<span class="dl-add">+ *      before the `call`. Jumping to a single tail leaves the child&#39;s exit</span>
+<span class="dl-add">+ *      code untouched — and `%ERRORLEVEL%` never appears in this file.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * @param {string} toolCommand - the real CLI to resolve and run</span>
+<span class="dl-add">+ * @param {object} [options]</span>
+<span class="dl-add">+ * @param {string} [options.promptFileFlag] - flag taking the preamble&#39;s path; &#39;&#39; means no wrapper</span>
+<span class="dl-add">+ * @param {string} [options.settingsFlag] - flag taking the settings file, &#39;&#39; for none</span>
+<span class="dl-add">+ * @param {string} [options.preambleFile] - project-relative preamble path</span>
+<span class="dl-add">+ * @param {string} [options.settingsFile] - project-relative settings path</span>
+<span class="dl-add">+ * @returns {string} the file&#39;s content, or &#39;&#39; for a tool that cannot be wrapped here</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function getCmdWrapperTemplate(toolCommand, options) {</span>
+<span class="dl-add">+  const opts = options || {};</span>
+<span class="dl-add">+  const promptFileFlag = opts.promptFileFlag || &#39;&#39;;</span>
+<span class="dl-add">+  if (!promptFileFlag) return &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const settingsFlag = opts.settingsFlag || &#39;&#39;;</span>
+<span class="dl-add">+  const preambleFile = toBackslashes(opts.preambleFile || &#39;.frame/runtime/preamble.txt&#39;);</span>
+<span class="dl-add">+  const settingsFile = toBackslashes(opts.settingsFile || &#39;.frame/runtime/claude-settings.json&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // The settings file is optional in a way the preamble is not: without it a</span>
+<span class="dl-add">+  // session loses its hooks, without the preamble there is nothing to inject.</span>
+<span class="dl-add">+  const settingsBlock = settingsFlag</span>
+<span class="dl-add">+    ? `</span>
+<span class="dl-add">+set &quot;FRAME_SETTINGS=%FRAME_ROOT%\\${settingsFile}&quot;</span>
+<span class="dl-add">+if not exist &quot;%FRAME_SETTINGS%&quot; goto :frame_run</span>
+<span class="dl-add">+set FRAME_FLAGS=%FRAME_FLAGS% ${settingsFlag} &quot;%FRAME_SETTINGS%&quot;</span>
+<span class="dl-add">+`</span>
+<span class="dl-add">+    : &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return `@echo off</span>
+<span class="dl-add">+setlocal EnableExtensions</span>
+<span class="dl-add">+rem Frame AI Tool Wrapper for ${toolCommand} (Windows).</span>
+<span class="dl-add">+rem Hands ${toolCommand} Frame&#39;s launch context. Generated file — Frame rewrites</span>
+<span class="dl-add">+rem it whenever the content changes; edits will be lost.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+set &quot;FRAME_SELF=%~dp0&quot;</span>
+<span class="dl-add">+set &quot;FRAME_REAL=&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+rem This file&#39;s own directory leads PATH, so \`where\` reports it before the real</span>
+<span class="dl-add">+rem CLI. Take the first hit that does not live here.</span>
+<span class="dl-add">+for /f &quot;delims=&quot; %%I in (&#39;where &quot;${toolCommand}&quot; 2^&gt;nul&#39;) do (</span>
+<span class="dl-add">+  if not defined FRAME_REAL if /i not &quot;%%~dpI&quot;==&quot;%FRAME_SELF%&quot; set &quot;FRAME_REAL=%%I&quot;</span>
+<span class="dl-add">+)</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+if defined FRAME_REAL goto :frame_resolved</span>
+<span class="dl-add">+&gt;&amp;2 echo Frame: ${toolCommand} was not found on PATH.</span>
+<span class="dl-add">+exit /b 127</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+:frame_resolved</span>
+<span class="dl-add">+set &quot;FRAME_FLAGS=&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+rem The escape hatch, honoured here exactly as in the POSIX wrapper.</span>
+<span class="dl-add">+if defined FRAME_NO_WRAP goto :frame_run</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+rem One injection route, not two: a launch Frame composed resolves through this</span>
+<span class="dl-add">+rem file as well, so its flags are already on the line. Whoever composed first</span>
+<span class="dl-add">+rem owns the injection.</span>
+<span class="dl-add">+set &quot;FRAME_COMPOSED=&quot;</span>
+<span class="dl-add">+call :frame_scan_args %*</span>
+<span class="dl-add">+if defined FRAME_COMPOSED goto :frame_run</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+set &quot;FRAME_ROOT=&quot;</span>
+<span class="dl-add">+call :frame_find_root &quot;%CD%&quot;</span>
+<span class="dl-add">+if not defined FRAME_ROOT goto :frame_run</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+set &quot;FRAME_PREAMBLE=%FRAME_ROOT%\\${preambleFile}&quot;</span>
+<span class="dl-add">+if not exist &quot;%FRAME_PREAMBLE%&quot; goto :frame_run</span>
+<span class="dl-add">+set FRAME_FLAGS=${promptFileFlag} &quot;%FRAME_PREAMBLE%&quot;</span>
+<span class="dl-add">+${settingsBlock}</span>
+<span class="dl-add">+:frame_run</span>
+<span class="dl-add">+call &quot;%FRAME_REAL%&quot; %FRAME_FLAGS% %*</span>
+<span class="dl-add">+exit /b</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+:frame_scan_args</span>
+<span class="dl-add">+rem Is Frame&#39;s own flag already on the line? Compared one argument at a time</span>
+<span class="dl-add">+rem with %~1 rather than by searching the whole of %*: %~1 strips the quotes</span>
+<span class="dl-add">+rem cmd put there, so a user argument containing a space, an ampersand or a</span>
+<span class="dl-add">+rem pipe is compared as a value instead of being re-parsed as syntax.</span>
+<span class="dl-add">+if &quot;%~1&quot;==&quot;&quot; goto :eof</span>
+<span class="dl-add">+if /i &quot;%~1&quot;==&quot;${promptFileFlag}&quot; set &quot;FRAME_COMPOSED=1&quot;</span>
+<span class="dl-add">+shift</span>
+<span class="dl-add">+goto :frame_scan_args</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+:frame_find_root</span>
+<span class="dl-add">+rem Walk up from %1 to the directory holding .frame\\, the same walk the POSIX</span>
+<span class="dl-add">+rem wrapper does. Leaves FRAME_ROOT empty outside a Frame project. Every path</span>
+<span class="dl-add">+rem stays quoted, because a project under Documents has a space in it as often</span>
+<span class="dl-add">+rem as not.</span>
+<span class="dl-add">+set &quot;FRAME_TRY=%~1&quot;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+:frame_find_root_step</span>
+<span class="dl-add">+if exist &quot;%FRAME_TRY%\\.frame\\&quot; goto :frame_find_root_hit</span>
+<span class="dl-add">+for %%P in (&quot;%FRAME_TRY%\\..&quot;) do set &quot;FRAME_UP=%%~fP&quot;</span>
+<span class="dl-add">+if /i &quot;%FRAME_UP%&quot;==&quot;%FRAME_TRY%&quot; goto :eof</span>
+<span class="dl-add">+set &quot;FRAME_TRY=%FRAME_UP%&quot;</span>
+<span class="dl-add">+goto :frame_find_root_step</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+:frame_find_root_hit</span>
+<span class="dl-add">+set &quot;FRAME_ROOT=%FRAME_TRY%&quot;</span>
+<span class="dl-add">+goto :eof</span>
+<span class="dl-add">+`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// A project-relative path as batch spells it. The rest of Frame carries these</span>
+<span class="dl-add">+// with forward slashes — Windows file APIs accept them in arguments — but a</span>
+<span class="dl-add">+// generated batch file reads better, and `if exist` behaves more predictably,</span>
+<span class="dl-add">+// with the native separator.</span>
+<span class="dl-add">+function toBackslashes(value) {</span>
+<span class="dl-add">+  return String(value == null ? &#39;&#39; : value).replace(/\//g, &#39;\\&#39;);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * A shell function name Frame is willing to define.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -1322,6 +1466,7 @@ module.exports = {</span>
+<span class="dl-ctx">   REFERENCE_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   AGENTS_SPEC_LEGACY_MATCHERS,</span>
+<span class="dl-ctx">   getWrapperTemplate,</span>
+<span class="dl-add">+  getCmdWrapperTemplate,</span>
+<span class="dl-ctx">   getShellInitTemplate,</span>
+<span class="dl-ctx">   getSpecHintSettings,</span>
+<span class="dl-ctx">   getStructureHookSnippet,</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index ee55f1e..4b16d03 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -169,6 +169,155 @@ test(&#39;the settings flag is skipped when the settings file is absent&#39;, { skip: !P</span>
+<span class="dl-ctx">   assert.ok(out.includes(&#39;ARG:--append-system-prompt&#39;), out);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── cmd wrapper template ─────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Nothing here executes: cmd.exe is not on this machine and the real</span>
+<span class="dl-add">+// verification is the Windows test protocol this spec ships. These are string</span>
+<span class="dl-add">+// assertions on the batch Frame generates, and they exist to pin the handful</span>
+<span class="dl-add">+// of details a later edit would quietly break.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const CMD_OPTS = {</span>
+<span class="dl-add">+  promptFileFlag: &#39;--append-system-prompt-file&#39;,</span>
+<span class="dl-add">+  settingsFlag: &#39;--settings&#39;,</span>
+<span class="dl-add">+  preambleFile: &#39;.frame/runtime/preamble-claude.txt&#39;,</span>
+<span class="dl-add">+  settingsFile: &#39;.frame/runtime/claude-settings.json&#39;</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function cmdWrapper(tool = &#39;claude&#39;, options = CMD_OPTS) {</span>
+<span class="dl-add">+  return templates.getCmdWrapperTemplate(tool, options);</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tool with no file flag gets no cmd wrapper at all&#39;, () =&gt; {</span>
+<span class="dl-add">+  // There is no batch spelling of --append-system-prompt with a 9-line,</span>
+<span class="dl-add">+  // backtick-bearing preamble, and a wrapper that cannot do its job still</span>
+<span class="dl-add">+  // shadows a working CLI.</span>
+<span class="dl-add">+  assert.equal(templates.getCmdWrapperTemplate(&#39;codex&#39;, {}), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(templates.getCmdWrapperTemplate(&#39;gemini&#39;, { settingsFlag: &#39;--settings&#39; }), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the cmd wrapper names its tool and disables echo&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.startsWith(&#39;@echo off\nsetlocal EnableExtensions\n&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;Frame AI Tool Wrapper for claude (Windows).&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the where loop skips any hit living in the wrapper\&#39;s own directory&#39;, () =&gt; {</span>
+<span class="dl-add">+  // .frame\bin leads PATH, so `where claude` reports this very file first.</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(`for /f &quot;delims=&quot; %%I in (&#39;where &quot;claude&quot; 2^&gt;nul&#39;) do (`));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if not defined FRAME_REAL if /i not &quot;%%~dpI&quot;==&quot;%FRAME_SELF%&quot; set &quot;FRAME_REAL=%%I&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;set &quot;FRAME_SELF=%~dp0&quot;&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a CLI that is not installed exits 127 and shadows nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;&gt;&amp;2 echo Frame: claude was not found on PATH.&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;exit /b 127&#39;));</span>
+<span class="dl-add">+  // The message goes to stderr before the exit, and neither is inside a block.</span>
+<span class="dl-add">+  assert.ok(!/\(\s*[^)]*not found on PATH/.test(script));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;FRAME_NO_WRAP reaches the same pass-through every other branch uses&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if defined FRAME_NO_WRAP goto :frame_run&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a line that already carries Frame\&#39;s flag is left alone&#39;, () =&gt; {</span>
+<span class="dl-add">+  // C1: one injection route. A launch Frame composed resolves through this</span>
+<span class="dl-add">+  // file too, so its flags are already there — the two must never stack.</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;call :frame_scan_args %*&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if defined FRAME_COMPOSED goto :frame_run&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if /i &quot;%~1&quot;==&quot;--append-system-prompt-file&quot; set &quot;FRAME_COMPOSED=1&quot;&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;arguments are compared one at a time, not by searching the whole line&#39;, () =&gt; {</span>
+<span class="dl-add">+  // %~1 strips cmd&#39;s quotes, so `claude &quot;a &amp; b&quot;` is compared as a value</span>
+<span class="dl-add">+  // instead of being re-parsed as syntax.</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if &quot;%~1&quot;==&quot;&quot; goto :eof&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;\nshift\ngoto :frame_scan_args&#39;));</span>
+<span class="dl-add">+  assert.ok(!script.includes(&#39;%FRAME_ARGS:&#39;), &#39;a whole-line substring search is quote-fragile&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the project root is found by walking up to the directory holding .frame&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;call :frame_find_root &quot;%CD%&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if exist &quot;%FRAME_TRY%\\.frame\\&quot; goto :frame_find_root_hit&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;for %%P in (&quot;%FRAME_TRY%\\..&quot;) do set &quot;FRAME_UP=%%~fP&quot;&#39;));</span>
+<span class="dl-add">+  // The walk has to stop at the filesystem root or it never returns.</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if /i &quot;%FRAME_UP%&quot;==&quot;%FRAME_TRY%&quot; goto :eof&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;if not defined FRAME_ROOT goto :frame_run&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the flags carry backslash paths, and every path is quoted&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;set &quot;FRAME_PREAMBLE=%FRAME_ROOT%\\.frame\\runtime\\preamble-claude.txt&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;set FRAME_FLAGS=--append-system-prompt-file &quot;%FRAME_PREAMBLE%&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;set &quot;FRAME_SETTINGS=%FRAME_ROOT%\\.frame\\runtime\\claude-settings.json&quot;&#39;));</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;set FRAME_FLAGS=%FRAME_FLAGS% --settings &quot;%FRAME_SETTINGS%&quot;&#39;));</span>
+<span class="dl-add">+  // A project under Documents has a space in it as often as not.</span>
+<span class="dl-add">+  assert.ok(!/%FRAME_ROOT%\\[^\n&quot;]*[^&quot;]\n/.test(script), &#39;an unquoted root path would break on a space&#39;);</span>
+<span class="dl-add">+  assert.ok(!script.includes(&#39;.frame/runtime&#39;), &#39;forward slashes leaked into the batch file&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the settings pair is dropped for a tool that declares no settings flag&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper(&#39;claude&#39;, { ...CMD_OPTS, settingsFlag: &#39;&#39; });</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;--append-system-prompt-file&#39;));</span>
+<span class="dl-add">+  assert.ok(!script.includes(&#39;FRAME_SETTINGS&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the settings file is optional in a way the preamble is not&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  // A missing preamble means there is nothing to inject; a missing settings</span>
+<span class="dl-add">+  // file costs the hooks and keeps the preamble.</span>
+<span class="dl-add">+  const preambleGuard = script.indexOf(&#39;if not exist &quot;%FRAME_PREAMBLE%&quot; goto :frame_run&#39;);</span>
+<span class="dl-add">+  const settingsGuard = script.indexOf(&#39;if not exist &quot;%FRAME_SETTINGS%&quot; goto :frame_run&#39;);</span>
+<span class="dl-add">+  const flagsSet = script.indexOf(&#39;set FRAME_FLAGS=--append-system-prompt-file&#39;);</span>
+<span class="dl-add">+  assert.ok(preambleGuard &gt; -1 &amp;&amp; settingsGuard &gt; -1 &amp;&amp; flagsSet &gt; -1);</span>
+<span class="dl-add">+  assert.ok(preambleGuard &lt; flagsSet, &#39;the preamble guard must precede the flags it guards&#39;);</span>
+<span class="dl-add">+  assert.ok(flagsSet &lt; settingsGuard, &#39;a missing settings file must not cost the preamble&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;every branch reaches one call, and the tail is a bare exit /b&#39;, () =&gt; {</span>
+<span class="dl-add">+  // S5: the child&#39;s exit code must arrive unchanged.</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  const calls = script.split(&#39;\n&#39;).filter((line) =&gt; line.startsWith(&#39;call &quot;%FRAME_REAL%&quot;&#39;));</span>
+<span class="dl-add">+  assert.equal(calls.length, 1, &#39;more than one call site means more than one place to lose the code&#39;);</span>
+<span class="dl-add">+  assert.equal(calls[0], &#39;call &quot;%FRAME_REAL%&quot; %FRAME_FLAGS% %*&#39;);</span>
+<span class="dl-add">+  assert.ok(script.includes(&#39;call &quot;%FRAME_REAL%&quot; %FRAME_FLAGS% %*\nexit /b\n&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;%ERRORLEVEL% appears nowhere, least of all inside a block&#39;, () =&gt; {</span>
+<span class="dl-add">+  // cmd.exe expands variables when it *parses* a parenthesised block, so an</span>
+<span class="dl-add">+  // `exit /b %ERRORLEVEL%` inside an `if (…)` reports the code from before</span>
+<span class="dl-add">+  // the call. The goto-shaped tail is what makes the variable unnecessary.</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  assert.ok(!/%ERRORLEVEL%/i.test(script));</span>
+<span class="dl-add">+  for (const line of script.split(&#39;\n&#39;)) {</span>
+<span class="dl-add">+    if (!/^\s*(if|for)\b.*\($/.test(line)) continue;</span>
+<span class="dl-add">+    assert.ok(!/%ERRORLEVEL%/i.test(line));</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;every goto has a label to land on&#39;, () =&gt; {</span>
+<span class="dl-add">+  const script = cmdWrapper();</span>
+<span class="dl-add">+  const labels = new Set(</span>
+<span class="dl-add">+    script.split(&#39;\n&#39;)</span>
+<span class="dl-add">+      .filter((line) =&gt; /^:[a-z_]/i.test(line))</span>
+<span class="dl-add">+      .map((line) =&gt; line.trim().slice(1))</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+  labels.add(&#39;eof&#39;);</span>
+<span class="dl-add">+  for (const match of script.matchAll(/goto :([a-z_]+)/gi)) {</span>
+<span class="dl-add">+    assert.ok(labels.has(match[1]), `goto :${match[1]} has no label`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  // And every label is reachable, so a rename cannot orphan a whole branch.</span>
+<span class="dl-add">+  for (const label of labels) {</span>
+<span class="dl-add">+    if (label === &#39;eof&#39; || label === &#39;frame_scan_args&#39; || label === &#39;frame_find_root&#39;) continue;</span>
+<span class="dl-add">+    assert.ok(script.includes(`goto :${label}`), `:${label} is never jumped to`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── spec-hint settings ───────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;the spec-hint settings carry both hook events&#39;, () =&gt; {</span></pre>
     </details>
   </div>
 </section>
