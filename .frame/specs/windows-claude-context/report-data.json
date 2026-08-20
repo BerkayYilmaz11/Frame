@@ -123,6 +123,18 @@
         "status": "pass",
         "detail": "577 tests pass, 0 fail — this task ships a document, and its own verification is a teammate running it (T11)"
       }
+    },
+    {
+      "id": "T11",
+      "title": "Close the spec with the Windows run unrecorded",
+      "commit": "cef2280",
+      "whatChanged": "Closed T11 by decision rather than by result. No Windows machine ran test-protocol.md, so outcome.md records the absence explicitly instead of a per-step table: the protocol exists, is unrun, and the Claude Code version it was designed against (2.1.237) is the only version fact on file. Wrote digest.md and moved the spec phase to done.",
+      "whyChanged": "The task asked for a teammate's run to be written down, and the honest close is to say it did not happen — a fabricated pass table would be worse than an empty one, because the next reader would trust it. What ships is therefore verified in one dimension and not the other: every decision is asserted from pure modules with platform as a parameter, and no line of it has touched a real Windows machine. digest.md carries that limit forward so a future session inherits the caveat rather than the conclusion.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "577 tests pass, 0 fail — a docs-and-state task; the Windows behaviour it was meant to certify remains unexercised"
+      }
     }
   ]
 }

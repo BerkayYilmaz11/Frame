@@ -175,3 +175,29 @@ line verbatim, 9 lines, 6 backticks — and the local CLI is 2.1.237. Files:
 _Captured: 2026-08-20 · 1 file change_
 
 ---
+
+## T11 — Closed with the Windows run unrecorded
+
+**No Windows machine ran `test-protocol.md`.** This task asked for a
+teammate's result and was closed by decision instead, so there is no per-step
+table here — an invented one would be worse than none, because the next reader
+would trust it. The only version fact on file is the one the design was
+verified against on macOS: Claude Code **2.1.237**, where
+`--append-system-prompt-file` exists and a bad path reports `Append system
+prompt file not found`.
+
+What that leaves: every decision in this spec is asserted from pure modules
+with `platform` as a parameter (577 tests, three legs configured), and not one
+line of the Windows behaviour — the `.cmd`, `init.ps1`, the composed launch
+line, `PATHEXT` resolution, exit-code propagation — has been exercised on
+Windows. The protocol is written and ready; running it is still the thing that
+would turn this from designed to verified.
+
+Followup: run `test-protocol.md` on Windows and append the result here.
+Followup (from T09): the `windows-latest` CI leg has never executed — it needs
+a push — and two known risks sit under it, `fs.symlinkSync` in
+`test/embeddedMigration.test.js` and the missing `.gitattributes`.
+
+_Captured: 2026-08-20 · 0 file changes_
+
+---

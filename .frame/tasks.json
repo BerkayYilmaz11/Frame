@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:34:07.717Z",
+  "lastUpdated": "2026-08-20T13:45:39.229Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5143,13 +5143,13 @@
       "title": "Record the Windows run in `outcome.md` once a teammate has executed the protocol: the Claude Code version used and the per-step result, since the file flag's availability is version-dependent and the spec does not close until a real result is written down.",
       "description": "",
       "source": "spec:windows-claude-context:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:45:39.229Z",
+      "completedAt": "2026-08-20T13:45:39.229Z"
     }
   ],
   "metadata": {

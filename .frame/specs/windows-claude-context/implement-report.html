@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">10 tasks</span>
-    <span class="pill good">10 verified</span>
+    <span class="pill">11 tasks</span>
+    <span class="pill good">11 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1904,6 +1904,22 @@
   <div class="card-body">
     <div class="field"><span class="label">What changed</span><p>Added .frame/specs/windows-claude-context/test-protocol.md: ten numbered steps with the exact command and the exact expected output for each — preconditions and the CLI version, the composed launch&#39;s single line and byte-for-byte preamble, both spec-hint hook blocks, a hand-typed claude in cmd and in PowerShell (including the nvm-windows race), the lane states, where-shadowing and the 127 case, FRAME_NO_WRAP and an exit-code round trip, a project path with a space and one with an apostrophe, and the older-CLI bare relaunch. It closes with a fill-in block to paste into outcome.md under T11.</p></div>
     <div class="field"><span class="label">Why</span><p>Everything this spec ships was asserted from pure modules with platform as a parameter, which proves the decisions and nothing about the machine — so the protocol is the deliverable that closes the gap, not documentation of one. It states plainly that a hand-typed launch has no bare-retry (that lives in agentDispatch, which only sees launches Frame composed) and that Group Policy can defeat -ExecutionPolicy Bypass, in which case the lane reports failed by design. Git Bash and WSL are named as deliberately out of scope so a tester does not file their absence as a bug. Step 1&#39;s expected counts were checked against the real preamble: first line verbatim, 9 lines, 6 backticks, and the local CLI is 2.1.237.</p></div>
+    <details open>
+      <summary>Diff</summary>
+      <p class="muted">No diff — this commit touched only Frame bookkeeping.</p>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T11</span>
+    <h2>Close the spec with the Windows run unrecorded</h2>
+    <span class="card-meta"><span class="chip">cef2280</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">577 tests pass, 0 fail — a docs-and-state task; the Windows behaviour it was meant to certify remains unexercised</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Closed T11 by decision rather than by result. No Windows machine ran test-protocol.md, so outcome.md records the absence explicitly instead of a per-step table: the protocol exists, is unrun, and the Claude Code version it was designed against (2.1.237) is the only version fact on file. Wrote digest.md and moved the spec phase to done.</p></div>
+    <div class="field"><span class="label">Why</span><p>The task asked for a teammate&#39;s run to be written down, and the honest close is to say it did not happen — a fabricated pass table would be worse than an empty one, because the next reader would trust it. What ships is therefore verified in one dimension and not the other: every decision is asserted from pure modules with platform as a parameter, and no line of it has touched a real Windows machine. digest.md carries that limit forward so a future session inherits the caveat rather than the conclusion.</p></div>
     <details open>
       <summary>Diff</summary>
       <p class="muted">No diff — this commit touched only Frame bookkeeping.</p>
