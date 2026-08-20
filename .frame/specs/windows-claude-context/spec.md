@@ -83,13 +83,28 @@ knows, and nothing that a shell has to parse is ever typed into the terminal.
    This alone satisfies most of the acceptance bar, is a small change, and is
    fully unit-testable with `platform` as a parameter — no Windows machine
    required to write or test it.
-2. **A `.cmd` wrapper covers the hand-typed launch.** `.frame/bin/claude.cmd`
-   resolves the real CLI with its own directory removed from the lookup, then
-   runs it with the same two path flags. `.cmd` rather than `.ps1` because only
-   `.cmd` is in the default `PATHEXT`, which is what makes a bare `claude`
-   resolve to it. Because it passes paths, it stays plain batch — no Node
-   process between the shell and an interactive CLI, and so no question about
-   whether the terminal survives the hop.
+
+   It is also **shell-agnostic**, which is what keeps the rest of this spec
+   small. The line depends on no wrapper, no `PATH` entry and no shell
+   feature — only on a CLI being on `PATH` and two files existing. Written as
+   project-relative paths with forward slashes, it is a line every shell in
+   Frame's Windows list can run: `cmd`, `powershell`, `pwsh` and Git Bash
+   alike. Windows file APIs accept forward slashes in arguments, and a
+   relative path sidesteps both the `\` escaping that would break it in a
+   POSIX shell and any question about spaces in the project path.
+2. **A `.cmd` wrapper covers the hand-typed launch**, for the shells that
+   resolve one. `.frame/bin/claude.cmd` resolves the real CLI with its own
+   directory removed from the lookup, then runs it with the same two path
+   flags. `.cmd` rather than `.ps1` because only `.cmd` is in the default
+   `PATHEXT`, which is what makes a bare `claude` resolve to it. Because it
+   passes paths, it stays plain batch — no Node process between the shell and
+   an interactive CLI, and so no question about whether the terminal survives
+   the hop.
+
+   `PATHEXT` is a Windows-shell mechanism: `cmd`, `powershell` and `pwsh` use
+   it, Git Bash does not — bash looks for an exact filename and would not find
+   `claude.cmd` from a bare `claude`. Git Bash therefore gets goal 1 and not
+   goal 2, which is a real and stated limit rather than an oversight.
 3. **The `PATH` entry is ungated.** `launchEnv.prependFrameBin` already carries
    the `;` separator (`launchEnv.js:69`); it is reached only after a platform
    check that is about wrappers, not about `PATH`.
@@ -159,6 +174,25 @@ knows, and nothing that a shell has to parse is ever typed into the terminal.
   and changing it in the same breath as adding a platform would put a
   version-dependent flag on the path that currently has no such dependency.
   Worth its own follow-up.
+- **WSL.** It stays in the shell list (`ptyManager.js:311-315`) and keeps
+  opening lanes exactly as it does now; this spec simply does not promise it
+  context, and a WSL lane that ends up without any is an accepted outcome.
+  The reason is that WSL is not a shell but a second machine: the project's
+  Windows path is `/mnt/c/…` there, the execute bit on a DrvFs mount is
+  usually not honoured, `node` is a separate Linux install, and the `claude`
+  that starts is a different binary with its own config and auth. Frame's
+  model — one machine, one filesystem, one toolchain — does not hold across
+  that boundary, and goal 2's `.cmd` would be exactly the unrunnable script
+  `launchEnv.js:18-20` warns about. Worth recording for whoever picks it up:
+  the supported way to use Frame with WSL is to run Frame *inside* WSL, where
+  `process.platform` is `linux` and every mechanism in this spec already
+  works untouched.
+- **A hand-typed `claude` in Git Bash.** Covered by goal 1 when Frame composes
+  the launch, not covered when the user types it, for the `PATHEXT` reason
+  above. Closing it would mean writing the extensionless POSIX wrapper on
+  Windows as well and choosing a carrier per lane shell — which also drags
+  `prependFrameBin`'s separator from the platform to the shell, since Git Bash
+  uses `:`. That is a coherent follow-up and not this spec's bar.
 - Changing the preamble's content, the global layer, or the spec-driven flag.
 - `cmd.exe` function-equivalent behaviour. `cmd` has no functions and `doskey`
   macros are too fragile; `cmd` gets the `PATH` entry and `PATHEXT` resolution,
@@ -173,18 +207,17 @@ knows, and nothing that a shell has to parse is ever typed into the terminal.
   whole design leans on it. If it is recent, Frame needs a fallback for older
   installs — and the honest fallback on Windows may be "launch without context
   and say so", since the string form does not survive the shell there anyway.
-- **What does Git Bash / MSYS / WSL get?** `shellFamily()` already resolves
-  `C:\…\Git\bin\bash.exe` to `bash` (it strips `.exe` and lowercases), so the
-  POSIX wrapper would plausibly run there — it is the platform check upstream
-  that stops it, and `test/shellSetup.test.js:94` pins that behaviour with a
-  Git Bash path on purpose. Options: write both carriers and pick by lane
-  shell, write only the `.cmd`, or keep Git Bash out of scope. Picking by lane
-  shell is the most correct and the most machinery; `prependFrameBin`'s
-  separator would then have to follow the shell rather than the platform, since
-  Git Bash uses `:`.
 - **Does the `.cmd` survive a space in the project path?** `%~dp0` quoting is
   the classic failure, and Frame projects live under `Documents` as often as
-  not. Needs a real test, not reasoning.
+  not. Goal 1 sidesteps it by staying relative; goal 2 cannot, since the
+  wrapper has to locate the project from wherever it was invoked. Needs a real
+  test, not reasoning.
+- **Which lanes should report `unsupported`, and should the user see it?**
+  `shellSetup` currently answers `none` for all of Windows. After this spec it
+  should answer for the shells goal 4 sets up and keep answering `none` for
+  the rest — but `unsupported` is silent on the lane card today (only `failed`
+  shows), so a WSL lane with no context looks identical to a working one. That
+  may be right, or it may be the one place this spec should surface a limit.
 - **How does the `.cmd` find the real `claude` without finding itself?**
   `where.exe` searches `PATH`, which now leads with `.frame\bin`. The POSIX
   wrapper strips its own directory and re-runs the lookup; batch needs the
