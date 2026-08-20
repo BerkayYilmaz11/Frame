@@ -75,6 +75,18 @@
         "status": "pass",
         "detail": "577 tests pass, 0 fail (7 new in test/frameTemplates.test.js)"
       }
+    },
+    {
+      "id": "T07",
+      "title": "Make a rejected flag cost the context, not the session",
+      "commit": "e62bb93",
+      "whatChanged": "The bare relaunch in agentDispatch now fires on the composed flag set rather than the caller's own launchFlags, and its notice branches: dropped permission flags keep today's guided-mode wording, while a dispatch that came up bare with no caller flags says Frame's context could not be attached and suggests updating the CLI. flagsDropped is still set only for caller flags, so the prompt's guided-mode note and the autonomous-lane pin are unchanged.",
+      "whyChanged": "The composed set is where Frame's own injection rides, and since T02 that can be --append-system-prompt-file — a flag with no --help row of its own, so an older CLI rejects it outright instead of ignoring it. With the old narrow gate a stale Windows install would have gone from losing its context to losing its session, which is strictly worse than the problem this spec set out to fix. This is the recorded answer to the spec's first open question. Untested by design: src/renderer/ has no DOM harness, which the plan records as the convention here.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "577 tests pass, 0 fail — this change is renderer-side and carries no test of its own"
+      }
     }
   ]
 }

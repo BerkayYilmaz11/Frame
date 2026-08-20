@@ -102,3 +102,19 @@ deviation from `plan.md`.
 _Captured: 2026-08-20 · 3 file changes_
 
 ---
+
+## T07 — Make a rejected flag cost the context, not the session
+
+Widened `agentDispatch`'s bare relaunch to fire on the composed flag set
+rather than the caller's own `launchFlags`, and branched the notice: dropped
+permission flags keep the guided-mode wording, a dispatch that came up bare
+with no caller flags now says Frame's context could not be attached.
+`flagsDropped` still tracks only caller flags, so the prompt note and the
+autonomous-lane pin behave as before. This is the recorded answer to the
+spec's first open question — without it, a stale CLI would go from losing its
+context to losing its session. Files: `src/renderer/agentDispatch.js`. No test:
+`src/renderer/` has no DOM harness, which `plan.md` records as the convention.
+
+_Captured: 2026-08-20 · 1 file change_
+
+---

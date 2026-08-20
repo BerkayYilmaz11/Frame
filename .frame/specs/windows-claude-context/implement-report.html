@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">6 tasks</span>
-    <span class="pill good">6 verified</span>
+    <span class="pill">7 tasks</span>
+    <span class="pill good">7 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1674,6 +1674,59 @@
 <span class="dl-ctx"> // ─── shell init behaviour, executed ───────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> // The string assertions above cannot tell a valid init file from one that</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T07</span>
+    <h2>Make a rejected flag cost the context, not the session</h2>
+    <span class="card-meta"><span class="chip">e62bb93</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">577 tests pass, 0 fail — this change is renderer-side and carries no test of its own</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>The bare relaunch in agentDispatch now fires on the composed flag set rather than the caller&#39;s own launchFlags, and its notice branches: dropped permission flags keep today&#39;s guided-mode wording, while a dispatch that came up bare with no caller flags says Frame&#39;s context could not be attached and suggests updating the CLI. flagsDropped is still set only for caller flags, so the prompt&#39;s guided-mode note and the autonomous-lane pin are unchanged.</p></div>
+    <div class="field"><span class="label">Why</span><p>The composed set is where Frame&#39;s own injection rides, and since T02 that can be --append-system-prompt-file — a flag with no --help row of its own, so an older CLI rejects it outright instead of ignoring it. With the old narrow gate a stale Windows install would have gone from losing its context to losing its session, which is strictly worse than the problem this spec set out to fix. This is the recorded answer to the spec&#39;s first open question. Untested by design: src/renderer/ has no DOM harness, which the plan records as the convention here.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/renderer/agentDispatch.js b/src/renderer/agentDispatch.js</span>
+<span class="dl-meta">index 889025b..4103c15 100644</span>
+<span class="dl-file">--- a/src/renderer/agentDispatch.js</span>
+<span class="dl-file">+++ b/src/renderer/agentDispatch.js</span>
+<span class="dl-hunk">@@ -194,7 +194,16 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p</span>
+<span class="dl-ctx">     // So the flags are treated as best-effort: retry bare, once. The guard</span>
+<span class="dl-ctx">     // is that no agent process is in the foreground — a merely slow CLI is</span>
+<span class="dl-ctx">     // already detected by name, so this only fires when the launch died.</span>
+<span class="dl-del">-    if (!ready &amp;&amp; launchFlags &amp;&amp; launchFlags.length &amp;&amp; !laneStatus.getStatus(targetId).agentName) {</span>
+<span class="dl-add">+    //</span>
+<span class="dl-add">+    // The gate is the **composed** set, not the caller&#39;s own. Frame&#39;s own</span>
+<span class="dl-add">+    // injection rides in there too, and on a wrapper-less platform that now</span>
+<span class="dl-add">+    // means `--append-system-prompt-file` — a flag with no `--help` row of</span>
+<span class="dl-add">+    // its own, so an older CLI rejects it outright rather than ignoring it.</span>
+<span class="dl-add">+    // Without this widening, a stale install would go from losing its context</span>
+<span class="dl-add">+    // to losing its session, which is strictly worse than what this was for.</span>
+<span class="dl-add">+    const composed = Array.isArray(composedFlags) ? composedFlags : [];</span>
+<span class="dl-add">+    const hadCallerFlags = !!(launchFlags &amp;&amp; launchFlags.length);</span>
+<span class="dl-add">+    if (!ready &amp;&amp; composed.length &amp;&amp; !laneStatus.getStatus(targetId).agentName) {</span>
+<span class="dl-ctx">       const bareReady = _waitForAgentReady(targetId);</span>
+<span class="dl-ctx">       if (enter) {</span>
+<span class="dl-ctx">         multiTerminalUI.sendCommand(check.bareCommand || check.resolvedCommand, targetId);</span>
+<span class="dl-hunk">@@ -203,8 +212,13 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx">       ready = await bareReady;</span>
+<span class="dl-ctx">       if (ready) {</span>
+<span class="dl-del">-        flagsDropped = true;</span>
+<span class="dl-del">-        notify.info(&#39;Autonomous permissions were refused by this CLI — continuing in guided mode (same loop and report, paced by the CLI’s own prompts)&#39;);</span>
+<span class="dl-add">+        // Only the caller&#39;s own flags being dropped changes what this run can</span>
+<span class="dl-add">+        // promise; losing Frame&#39;s context costs the session what it knows, not</span>
+<span class="dl-add">+        // what it is allowed to do. Two different facts, two different notices.</span>
+<span class="dl-add">+        flagsDropped = hadCallerFlags;</span>
+<span class="dl-add">+        notify.info(hadCallerFlags</span>
+<span class="dl-add">+          ? &#39;Autonomous permissions were refused by this CLI — continuing in guided mode (same loop and report, paced by the CLI’s own prompts)&#39;</span>
+<span class="dl-add">+          : &#39;This CLI refused Frame’s launch flags — the agent started without Frame’s context (no preamble, no spec-history hooks). Updating the CLI usually fixes it.&#39;);</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx"> </span></pre>
     </details>
   </div>
 </section>

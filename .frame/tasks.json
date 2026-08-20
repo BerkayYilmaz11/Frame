@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:26:10.179Z",
+  "lastUpdated": "2026-08-20T13:27:50.726Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5091,13 +5091,13 @@
       "title": "Widen the bare relaunch in `src/renderer/agentDispatch.js` to fire on the composed flag set rather than the caller's own `launchFlags`, and branch its notice so a dispatch that lost Frame's context says so instead of promising guided mode.",
       "description": "",
       "source": "spec:windows-claude-context:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:27:50.726Z",
+      "completedAt": "2026-08-20T13:27:50.726Z"
     },
     {
       "id": "task-spec-windows-claude-context-T08",
