@@ -156,3 +156,22 @@ workaround. Both are outside this plan's Files list.
 _Captured: 2026-08-20 · 1 file change_
 
 ---
+
+## T10 — Write the Windows verification handoff
+
+Added `test-protocol.md`: ten numbered steps, each with the exact command and
+the exact expected output — the composed launch's single line and byte-for-byte
+preamble, both spec-hint hook blocks, a hand-typed `claude` in cmd and
+PowerShell (including the nvm-windows race `init.ps1` exists for), the lane
+states, `where`-shadowing and the 127 case, `FRAME_NO_WRAP` and an exit-code
+round trip, a path with a space and one with an apostrophe, and the older-CLI
+bare relaunch. It states plainly that a hand-typed launch has no bare-retry and
+that Group Policy defeats `-ExecutionPolicy Bypass` (lane reports `failed`, by
+design), and names Git Bash and WSL as out of scope so their absence is not
+filed as a bug. Step 1's counts were checked against the real preamble — first
+line verbatim, 9 lines, 6 backticks — and the local CLI is 2.1.237. Files:
+`.frame/specs/windows-claude-context/test-protocol.md`.
+
+_Captured: 2026-08-20 · 1 file change_
+
+---

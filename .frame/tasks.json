@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:31:53.706Z",
+  "lastUpdated": "2026-08-20T13:34:07.717Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5130,13 +5130,13 @@
       "title": "Write `.frame/specs/windows-claude-context/test-protocol.md`: numbered steps with the exact command and exact expected output for the composed launch's preamble and hook blocks, a hand-typed `claude` in cmd and PowerShell, the `where`-shadowing and `FRAME_NO_WRAP` cases, an exit-code round-trip, the lane reporting `installed` on PowerShell and nothing on cmd, and a project path containing a space — stating plainly that a hand-typed launch has no bare-retry and that Group Policy can defeat `-ExecutionPolicy Bypass`.",
       "description": "",
       "source": "spec:windows-claude-context:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:34:07.717Z",
+      "completedAt": "2026-08-20T13:34:07.717Z"
     },
     {
       "id": "task-spec-windows-claude-context-T11",
