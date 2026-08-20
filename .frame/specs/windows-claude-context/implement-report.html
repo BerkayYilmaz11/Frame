@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">1 task</span>
-    <span class="pill good">1 verified</span>
+    <span class="pill">2 tasks</span>
+    <span class="pill good">2 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -367,6 +367,325 @@
 <span class="dl-ctx"> });</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;no project means no injection&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T02</span>
+    <h2>Teach Claude&#39;s launch to pass paths instead of prose</h2>
+    <span class="card-meta"><span class="chip">defcd9b</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">545 tests pass, 0 fail (12 new in test/aiToolLaunch.test.js)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Claude&#39;s injection record gained promptFileFlag: &#39;--append-system-prompt-file&#39;. prepareLaunchAssets now also returns preambleRel and settingsRel — the same two files as project-relative, forward-slash paths. A new exported pure inlineInjectionFlags(tool, assets, platform) composes the wrapper-less branch and getLaunchCommand delegates to it, dropping its own flags.push pair and the now-unused `declared` local.</p></div>
+    <div class="field"><span class="label">Why</span><p>The composed line is typed into the PTY, and the preamble is 9 lines with 6 backticks: cmd.exe submits at the first newline and PowerShell reads a backtick as an escape, so --settings — and with it the spec-hint hooks — is the first thing lost. Two paths make the line single-line and quote-free. The paths are relative because the PTY&#39;s cwd is the project, which sidesteps a space in the path and the backslash a POSIX shell would eat. The file flag is chosen only where !supportsWrappers(platform): it has no --help row of its own, so an older CLI rejects it outright, and the POSIX path that works today must not acquire that version dependency (C3).</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index c655272..1eba446 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -55,6 +55,16 @@ let configPath = null;</span>
+<span class="dl-ctx">  * `--settings &lt;file-or-json&gt;`, verified against the shipping CLI. A build that</span>
+<span class="dl-ctx">  * does not know them degrades to the wrapper path rather than passing an</span>
+<span class="dl-ctx">  * unknown flag, which would make the CLI refuse to start at all.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `promptFileFlag` is the same append, taking a **path** instead of the prose.</span>
+<span class="dl-add">+ * It matters only where Frame writes no wrapper and the composed line is typed</span>
+<span class="dl-add">+ * into a PTY: the preamble is 9 lines and carries 6 backticks, which `cmd.exe`</span>
+<span class="dl-add">+ * submits at the first newline and PowerShell reads as escapes, so on Windows</span>
+<span class="dl-add">+ * the string form loses `--settings` and with it the spec-hint hooks. Passing</span>
+<span class="dl-add">+ * two paths makes the line single-line and quote-free, and every Windows shell</span>
+<span class="dl-add">+ * runs it unchanged. It is deliberately *not* preferred on POSIX: the flag has</span>
+<span class="dl-add">+ * no `--help` row of its own, so an older CLI may reject it, and the path that</span>
+<span class="dl-add">+ * works today must not acquire a version dependency it does not need.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> const INJECTION_FLAG = &#39;flag&#39;;</span>
+<span class="dl-ctx"> const INJECTION_WRAPPER = &#39;wrapper&#39;;</span>
+<span class="dl-hunk">@@ -75,6 +85,7 @@ const AI_TOOLS = {</span>
+<span class="dl-ctx">     injection: {</span>
+<span class="dl-ctx">       type: INJECTION_FLAG,</span>
+<span class="dl-ctx">       promptFlag: &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+      promptFileFlag: &#39;--append-system-prompt-file&#39;,</span>
+<span class="dl-ctx">       settingsFlag: &#39;--settings&#39;</span>
+<span class="dl-ctx">     },</span>
+<span class="dl-ctx">     commands: {</span>
+<span class="dl-hunk">@@ -712,6 +723,13 @@ function writeShellInit(projectPath) {</span>
+<span class="dl-ctx">  * Everything a launch of `tool` reads: its preamble, its settings file when it</span>
+<span class="dl-ctx">  * declares one, and its wrapper. Returns the composed preamble so a caller</span>
+<span class="dl-ctx">  * that still injects inline (a platform with no wrappers) can use it.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `preambleRel`/`settingsRel` are the same two files as project-relative,</span>
+<span class="dl-add">+ * forward-slash paths — what a line typed into a PTY should carry. Relative</span>
+<span class="dl-add">+ * because the PTY&#39;s cwd is the project, which sidesteps both a space in the</span>
+<span class="dl-add">+ * project path and the backslash a POSIX shell would eat; forward slashes</span>
+<span class="dl-add">+ * because Windows file APIs accept them in arguments and every shell in</span>
+<span class="dl-add">+ * Frame&#39;s Windows list passes them through untouched.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function prepareLaunchAssets(projectPath, tool, extraSettings) {</span>
+<span class="dl-ctx">   let preamble = &#39;&#39;;</span>
+<span class="dl-hunk">@@ -728,7 +746,56 @@ function prepareLaunchAssets(projectPath, tool, extraSettings) {</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : &#39;&#39;;</span>
+<span class="dl-del">-  return { preamble, settingsPath, wrapperPath };</span>
+<span class="dl-add">+  return {</span>
+<span class="dl-add">+    preamble,</span>
+<span class="dl-add">+    settingsPath,</span>
+<span class="dl-add">+    wrapperPath,</span>
+<span class="dl-add">+    preambleRel: preamble ? runtimeRelPath(preambleFileName(tool.id)) : &#39;&#39;,</span>
+<span class="dl-add">+    settingsRel: settingsPath ? runtimeRelPath(settingsFileName(tool.id)) : &#39;&#39;</span>
+<span class="dl-add">+  };</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The flags a launch adds itself, for a tool Frame could not wrap here.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Pure, exported and platform-parameterised, so Windows behaviour is asserted</span>
+<span class="dl-add">+ * from a Mac. Two shapes, chosen by whether this platform writes wrappers:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   no wrappers  — `promptFileFlag` with the two project-relative paths. One</span>
+<span class="dl-add">+ *                  line, nothing for a shell to parse (see the injection note</span>
+<span class="dl-add">+ *                  at the top of this file).</span>
+<span class="dl-add">+ *   wrappers     — `promptFlag` with the preamble text and the absolute</span>
+<span class="dl-add">+ *                  settings path, exactly as before. This branch is only</span>
+<span class="dl-add">+ *                  reached when the wrapper file is missing, and it keeps the</span>
+<span class="dl-add">+ *                  POSIX path free of a version-dependent flag.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns `[]` whenever there is nothing to inject — a wrapper-type tool, a</span>
+<span class="dl-add">+ * preamble that failed to compose, or a file-flag platform where the file was</span>
+<span class="dl-add">+ * never written. The caller reads an empty array as &quot;no injection&quot;.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function inlineInjectionFlags(tool, assets, platform = process.platform) {</span>
+<span class="dl-add">+  const injection = (tool &amp;&amp; tool.injection) || {};</span>
+<span class="dl-add">+  if (injection.type !== INJECTION_FLAG) return [];</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const written = assets || {};</span>
+<span class="dl-add">+  const byFile = !launchEnv.supportsWrappers(platform)</span>
+<span class="dl-add">+    &amp;&amp; !!injection.promptFileFlag</span>
+<span class="dl-add">+    &amp;&amp; !!written.preambleRel;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const flags = [];</span>
+<span class="dl-add">+  if (byFile) {</span>
+<span class="dl-add">+    flags.push(injection.promptFileFlag, written.preambleRel);</span>
+<span class="dl-add">+  } else if (written.preamble &amp;&amp; injection.promptFlag) {</span>
+<span class="dl-add">+    flags.push(injection.promptFlag, written.preamble);</span>
+<span class="dl-add">+  } else {</span>
+<span class="dl-add">+    return [];</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const settings = byFile ? written.settingsRel : written.settingsPath;</span>
+<span class="dl-add">+  if (injection.settingsFlag &amp;&amp; settings) {</span>
+<span class="dl-add">+    flags.push(injection.settingsFlag, settings);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  return flags;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -822,7 +889,6 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">     };</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const declared = (tool.injection &amp;&amp; tool.injection.type) || INJECTION_WRAPPER;</span>
+<span class="dl-ctx">   const flags = [];</span>
+<span class="dl-ctx">   let command = bareCommandFor(tool);</span>
+<span class="dl-ctx">   let injection = &#39;none&#39;;</span>
+<span class="dl-hunk">@@ -858,13 +924,14 @@ function getLaunchCommand(projectPath, toolId, extraFlags) {</span>
+<span class="dl-ctx">       // injection paths from stacking now that both exist for every tool.</span>
+<span class="dl-ctx">       command = viaWrapper;</span>
+<span class="dl-ctx">       injection = preamble ? INJECTION_WRAPPER : &#39;none&#39;;</span>
+<span class="dl-del">-    } else if (preamble &amp;&amp; declared === INJECTION_FLAG) {</span>
+<span class="dl-del">-      // No wrapper on this platform: compose inline, exactly as before.</span>
+<span class="dl-del">-      flags.push(tool.injection.promptFlag, preamble);</span>
+<span class="dl-del">-      if (assets.settingsPath) {</span>
+<span class="dl-del">-        flags.push(tool.injection.settingsFlag, assets.settingsPath);</span>
+<span class="dl-add">+    } else {</span>
+<span class="dl-add">+      // No wrapper for this tool here: compose inline. Which flag pair that</span>
+<span class="dl-add">+      // means is `inlineInjectionFlags`&#39; call, not this function&#39;s.</span>
+<span class="dl-add">+      const inline = inlineInjectionFlags(tool, assets);</span>
+<span class="dl-add">+      if (inline.length) {</span>
+<span class="dl-add">+        flags.push(...inline);</span>
+<span class="dl-add">+        injection = INJECTION_FLAG;</span>
+<span class="dl-ctx">       }</span>
+<span class="dl-del">-      injection = INJECTION_FLAG;</span>
+<span class="dl-ctx">     }</span>
+<span class="dl-ctx">   } catch (err) {</span>
+<span class="dl-ctx">     // A read-only or full disk must not cost the user their agent; drop the</span>
+<span class="dl-hunk">@@ -899,6 +966,7 @@ module.exports = {</span>
+<span class="dl-ctx">   refreshLaunchAssets,</span>
+<span class="dl-ctx">   writeShellInit,</span>
+<span class="dl-ctx">   composeLaunchCommand,</span>
+<span class="dl-add">+  inlineInjectionFlags,</span>
+<span class="dl-ctx">   addCustomTool,</span>
+<span class="dl-ctx">   removeCustomTool,</span>
+<span class="dl-ctx">   AI_TOOLS</span>
+<span class="dl-meta">diff --git a/test/aiToolLaunch.test.js b/test/aiToolLaunch.test.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..872b577</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/test/aiToolLaunch.test.js</span>
+<span class="dl-hunk">@@ -0,0 +1,160 @@</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * aiToolManager launch-composition tests: `inlineInjectionFlags`, the pure</span>
+<span class="dl-add">+ * decision behind the line a lane types when Frame wrote no wrapper for the</span>
+<span class="dl-add">+ * tool.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The whole point of the function being pure and taking `platform` is that</span>
+<span class="dl-add">+ * Windows behaviour is assertable from a Mac — nobody on this side of the work</span>
+<span class="dl-add">+ * has a Windows machine, and the real verification is a written handoff. What</span>
+<span class="dl-add">+ * these tests pin down is that Windows gets two *paths* and POSIX keeps the</span>
+<span class="dl-add">+ * string form, because the version-dependent flag must not spread to the</span>
+<span class="dl-add">+ * platform that works today.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `aiToolManager` requires `electron` at load, so the module is loaded once</span>
+<span class="dl-add">+ * with `electron` stubbed. Nothing here touches the filesystem: the asset</span>
+<span class="dl-add">+ * object is the fixture.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { test } = require(&#39;node:test&#39;);</span>
+<span class="dl-add">+const assert = require(&#39;node:assert/strict&#39;);</span>
+<span class="dl-add">+const Module = require(&#39;module&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const realLoad = Module._load;</span>
+<span class="dl-add">+Module._load = function (request, parent, isMain) {</span>
+<span class="dl-add">+  if (request === &#39;electron&#39;) return { ipcMain: { handle() {}, on() {} } };</span>
+<span class="dl-add">+  return realLoad(request, parent, isMain);</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+let aiToolManager;</span>
+<span class="dl-add">+try {</span>
+<span class="dl-add">+  aiToolManager = require(&#39;../src/main/aiToolManager&#39;);</span>
+<span class="dl-add">+} finally {</span>
+<span class="dl-add">+  Module._load = realLoad;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const { inlineInjectionFlags, AI_TOOLS } = aiToolManager;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// What `prepareLaunchAssets` hands back for a project at /tmp/some project.</span>
+<span class="dl-add">+const ASSETS = {</span>
+<span class="dl-add">+  preamble: &#39;Frame context for this session.\n\n- `AGENTS.md`\n&#39;,</span>
+<span class="dl-add">+  settingsPath: &#39;/tmp/some project/.frame/runtime/claude-settings.json&#39;,</span>
+<span class="dl-add">+  preambleRel: &#39;.frame/runtime/preamble-claude.txt&#39;,</span>
+<span class="dl-add">+  settingsRel: &#39;.frame/runtime/claude-settings.json&#39;,</span>
+<span class="dl-add">+  wrapperPath: &#39;&#39;</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// A flag-type tool that never learned the file form — a custom tool, or Claude</span>
+<span class="dl-add">+// on a build where the flag was not worth declaring.</span>
+<span class="dl-add">+const STRING_ONLY = {</span>
+<span class="dl-add">+  id: &#39;stringy&#39;,</span>
+<span class="dl-add">+  injection: { type: &#39;flag&#39;, promptFlag: &#39;--append-system-prompt&#39;, settingsFlag: &#39;--settings&#39; }</span>
+<span class="dl-add">+};</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── the record ───────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;Claude declares both the string flag and the file flag&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(AI_TOOLS.claude.injection.promptFlag, &#39;--append-system-prompt&#39;);</span>
+<span class="dl-add">+  assert.equal(AI_TOOLS.claude.injection.promptFileFlag, &#39;--append-system-prompt-file&#39;);</span>
+<span class="dl-add">+  assert.equal(AI_TOOLS.claude.injection.settingsFlag, &#39;--settings&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;Codex and Gemini declare no file flag, so nothing here changes for them&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(AI_TOOLS.codex.injection.promptFileFlag, undefined);</span>
+<span class="dl-add">+  assert.equal(AI_TOOLS.gemini.injection.promptFileFlag, undefined);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── win32: paths, not prose ──────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a wrapper-less platform passes the file flag and two relative paths&#39;, () =&gt; {</span>
+<span class="dl-add">+  const flags = inlineInjectionFlags(AI_TOOLS.claude, ASSETS, &#39;win32&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(flags, [</span>
+<span class="dl-add">+    &#39;--append-system-prompt-file&#39;,</span>
+<span class="dl-add">+    &#39;.frame/runtime/preamble-claude.txt&#39;,</span>
+<span class="dl-add">+    &#39;--settings&#39;,</span>
+<span class="dl-add">+    &#39;.frame/runtime/claude-settings.json&#39;</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;nothing a Windows shell has to parse survives into the line&#39;, () =&gt; {</span>
+<span class="dl-add">+  const flags = inlineInjectionFlags(AI_TOOLS.claude, ASSETS, &#39;win32&#39;);</span>
+<span class="dl-add">+  for (const value of flags) {</span>
+<span class="dl-add">+    assert.ok(!value.includes(&#39;\n&#39;), `a newline reached the typed line: ${value}`);</span>
+<span class="dl-add">+    assert.ok(!value.includes(&#39;`&#39;), `a backtick reached the typed line: ${value}`);</span>
+<span class="dl-add">+    assert.ok(!value.includes(&#39;\\&#39;), `a backslash reached the typed line: ${value}`);</span>
+<span class="dl-add">+    assert.ok(!/\s/.test(value), `whitespace reached the typed line: ${value}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  // The preamble text itself is the thing that must not be there.</span>
+<span class="dl-add">+  assert.ok(!flags.includes(ASSETS.preamble));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── POSIX: unchanged ─────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;POSIX keeps the string flag and the absolute settings path&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const platform of [&#39;darwin&#39;, &#39;linux&#39;]) {</span>
+<span class="dl-add">+    assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, ASSETS, platform), [</span>
+<span class="dl-add">+      &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+      ASSETS.preamble,</span>
+<span class="dl-add">+      &#39;--settings&#39;,</span>
+<span class="dl-add">+      ASSETS.settingsPath</span>
+<span class="dl-add">+    ]);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the file flag does not leak onto the platform that works today&#39;, () =&gt; {</span>
+<span class="dl-add">+  // C3: it has no --help row of its own, so an older CLI rejects it outright.</span>
+<span class="dl-add">+  const flags = inlineInjectionFlags(AI_TOOLS.claude, ASSETS, &#39;darwin&#39;);</span>
+<span class="dl-add">+  assert.ok(!flags.includes(&#39;--append-system-prompt-file&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── a tool with no file flag ─────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tool with no promptFileFlag gets the string form on both platforms&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const platform of [&#39;darwin&#39;, &#39;win32&#39;]) {</span>
+<span class="dl-add">+    assert.deepEqual(inlineInjectionFlags(STRING_ONLY, ASSETS, platform), [</span>
+<span class="dl-add">+      &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+      ASSETS.preamble,</span>
+<span class="dl-add">+      &#39;--settings&#39;,</span>
+<span class="dl-add">+      ASSETS.settingsPath</span>
+<span class="dl-add">+    ]);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── nothing to inject ────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a wrapper-type tool composes no flags of its own&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.codex, ASSETS, &#39;win32&#39;), []);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.gemini, ASSETS, &#39;darwin&#39;), []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a preamble that failed to compose injects nothing anywhere&#39;, () =&gt; {</span>
+<span class="dl-add">+  const empty = { ...ASSETS, preamble: &#39;&#39;, preambleRel: &#39;&#39; };</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, empty, &#39;win32&#39;), []);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, empty, &#39;darwin&#39;), []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a settings file that was never written costs the settings flag, not the prompt&#39;, () =&gt; {</span>
+<span class="dl-add">+  const noSettings = { ...ASSETS, settingsPath: &#39;&#39;, settingsRel: &#39;&#39; };</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, noSettings, &#39;win32&#39;), [</span>
+<span class="dl-add">+    &#39;--append-system-prompt-file&#39;,</span>
+<span class="dl-add">+    &#39;.frame/runtime/preamble-claude.txt&#39;</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, noSettings, &#39;darwin&#39;), [</span>
+<span class="dl-add">+    &#39;--append-system-prompt&#39;,</span>
+<span class="dl-add">+    ASSETS.preamble</span>
+<span class="dl-add">+  ]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;missing tool or assets is answered, not thrown&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(null, ASSETS, &#39;win32&#39;), []);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags({ id: &#39;x&#39; }, ASSETS, &#39;win32&#39;), []);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, null, &#39;win32&#39;), []);</span>
+<span class="dl-add">+  assert.deepEqual(inlineInjectionFlags(AI_TOOLS.claude, undefined, &#39;darwin&#39;), []);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── purity ───────────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the flags come out the same however often they are composed&#39;, () =&gt; {</span>
+<span class="dl-add">+  const once = inlineInjectionFlags(AI_TOOLS.claude, ASSETS, &#39;win32&#39;);</span>
+<span class="dl-add">+  const twice = inlineInjectionFlags(AI_TOOLS.claude, ASSETS, &#39;win32&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(once, twice);</span>
+<span class="dl-add">+  assert.notEqual(once, twice, &#39;a shared array would let one caller mutate another\&#39;s flags&#39;);</span>
+<span class="dl-add">+});</span></pre>
     </details>
   </div>
 </section>

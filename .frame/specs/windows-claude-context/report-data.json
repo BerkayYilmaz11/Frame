@@ -15,6 +15,18 @@
         "status": "pass",
         "detail": "533 tests pass, 0 fail (19 in test/launchEnv.test.js, 8 of them new)"
       }
+    },
+    {
+      "id": "T02",
+      "title": "Teach Claude's launch to pass paths instead of prose",
+      "commit": "defcd9b",
+      "whatChanged": "Claude's injection record gained promptFileFlag: '--append-system-prompt-file'. prepareLaunchAssets now also returns preambleRel and settingsRel — the same two files as project-relative, forward-slash paths. A new exported pure inlineInjectionFlags(tool, assets, platform) composes the wrapper-less branch and getLaunchCommand delegates to it, dropping its own flags.push pair and the now-unused `declared` local.",
+      "whyChanged": "The composed line is typed into the PTY, and the preamble is 9 lines with 6 backticks: cmd.exe submits at the first newline and PowerShell reads a backtick as an escape, so --settings — and with it the spec-hint hooks — is the first thing lost. Two paths make the line single-line and quote-free. The paths are relative because the PTY's cwd is the project, which sidesteps a space in the path and the backslash a POSIX shell would eat. The file flag is chosen only where !supportsWrappers(platform): it has no --help row of its own, so an older CLI rejects it outright, and the POSIX path that works today must not acquire that version dependency (C3).",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "545 tests pass, 0 fail (12 new in test/aiToolLaunch.test.js)"
+      }
     }
   ]
 }

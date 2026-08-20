@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:09:12.386Z",
+  "lastUpdated": "2026-08-20T13:12:34.615Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5026,13 +5026,13 @@
       "title": "Add `promptFileFlag: '--append-system-prompt-file'` to Claude's injection record, return `preambleRel`/`settingsRel` from `prepareLaunchAssets`, and compose the wrapper-less branch through a new exported pure `inlineInjectionFlags(tool, assets, platform)` that picks the file flag with project-relative forward-slash paths only where `!supportsWrappers(platform)` — POSIX keeps the string flag — with `test/aiToolLaunch.test.js` asserting win32, darwin and the no-`promptFileFlag` case.",
       "description": "",
       "source": "spec:windows-claude-context:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:12:34.615Z",
+      "completedAt": "2026-08-20T13:12:34.615Z"
     },
     {
       "id": "task-spec-windows-claude-context-T03",
