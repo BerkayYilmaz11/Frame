@@ -87,6 +87,18 @@
         "status": "pass",
         "detail": "577 tests pass, 0 fail — this change is renderer-side and carries no test of its own"
       }
+    },
+    {
+      "id": "T08",
+      "title": "Give npm test a Node launcher",
+      "commit": "e2f6d66",
+      "whatChanged": "Added scripts/run-tests.js — it sets FRAME_ACTIVITY_HOME, lists test/*.test.js from readdirSync itself (files only, so test/fixtures/ is excluded by rule rather than by what a glob happens to match), spawns node --test and forwards the child's exit code, treating a signal as a failure. package.json's test script now points at it. An optional substring filter argument runs a subset.",
+      "whyChanged": "The old script was a POSIX invocation wearing an npm script's clothes: cmd.exe sets no inline environment variable and expands no glob, and Node 20 does not expand it either — so the Windows CI leg added in T09 would have run zero tests while reporting success. CI deliberately runs no npm ci, so a cross-env dependency was not an option. Verified locally: the full suite still runs 577 tests, an unmatched filter exits 1, and a deliberately red test file makes the launcher exit 1.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "577 tests pass, 0 fail through the new launcher; a red suite was confirmed to exit 1"
+      }
     }
   ]
 }

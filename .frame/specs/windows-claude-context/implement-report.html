@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">7 tasks</span>
-    <span class="pill good">7 verified</span>
+    <span class="pill">8 tasks</span>
+    <span class="pill good">8 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1727,6 +1727,124 @@
 <span class="dl-ctx">       }</span>
 <span class="dl-ctx">     }</span>
 <span class="dl-ctx"> </span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T08</span>
+    <h2>Give npm test a Node launcher</h2>
+    <span class="card-meta"><span class="chip">e2f6d66</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">577 tests pass, 0 fail through the new launcher; a red suite was confirmed to exit 1</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>Added scripts/run-tests.js — it sets FRAME_ACTIVITY_HOME, lists test/*.test.js from readdirSync itself (files only, so test/fixtures/ is excluded by rule rather than by what a glob happens to match), spawns node --test and forwards the child&#39;s exit code, treating a signal as a failure. package.json&#39;s test script now points at it. An optional substring filter argument runs a subset.</p></div>
+    <div class="field"><span class="label">Why</span><p>The old script was a POSIX invocation wearing an npm script&#39;s clothes: cmd.exe sets no inline environment variable and expands no glob, and Node 20 does not expand it either — so the Windows CI leg added in T09 would have run zero tests while reporting success. CI deliberately runs no npm ci, so a cross-env dependency was not an option. Verified locally: the full suite still runs 577 tests, an unmatched filter exits 1, and a deliberately red test file makes the launcher exit 1.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/package.json b/package.json</span>
+<span class="dl-meta">index 3c393f6..0b09bb5 100644</span>
+<span class="dl-file">--- a/package.json</span>
+<span class="dl-file">+++ b/package.json</span>
+<span class="dl-hunk">@@ -9,7 +9,7 @@</span>
+<span class="dl-ctx">     &quot;build&quot;: &quot;esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron&quot;,</span>
+<span class="dl-ctx">     &quot;watch&quot;: &quot;esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron --watch&quot;,</span>
+<span class="dl-ctx">     &quot;start&quot;: &quot;npm run build &amp;&amp; electron .&quot;,</span>
+<span class="dl-del">-    &quot;test&quot;: &quot;FRAME_ACTIVITY_HOME=.frame/runtime/test-activity node --test test/*.test.js&quot;,</span>
+<span class="dl-add">+    &quot;test&quot;: &quot;node scripts/run-tests.js&quot;,</span>
+<span class="dl-ctx">     &quot;dev&quot;: &quot;npm run watch &amp; electron .&quot;,</span>
+<span class="dl-ctx">     &quot;structure&quot;: &quot;node scripts/update-structure.js&quot;,</span>
+<span class="dl-ctx">     &quot;structure:changed&quot;: &quot;node scripts/update-structure.js --changed&quot;,</span>
+<span class="dl-meta">diff --git a/scripts/run-tests.js b/scripts/run-tests.js</span>
+<span class="dl-meta">new file mode 100644</span>
+<span class="dl-meta">index 0000000..b6b3861</span>
+<span class="dl-file">--- /dev/null</span>
+<span class="dl-file">+++ b/scripts/run-tests.js</span>
+<span class="dl-hunk">@@ -0,0 +1,84 @@</span>
+<span class="dl-add">+#!/usr/bin/env node</span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Cross-platform test launcher.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * `FRAME_ACTIVITY_HOME=… node --test test/*.test.js` is a POSIX invocation</span>
+<span class="dl-add">+ * wearing an npm script&#39;s clothes: `cmd.exe` sets no inline environment</span>
+<span class="dl-add">+ * variable, does not expand the glob, and Node 20 does not expand it either —</span>
+<span class="dl-add">+ * so the Windows leg of CI would have run zero tests while reporting success.</span>
+<span class="dl-add">+ * CI deliberately installs nothing (see .github/workflows/ci.yml), so a</span>
+<span class="dl-add">+ * `cross-env`-shaped dependency is not available to fix it.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * This does the three things the shell was doing, in Node:</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ *   1. sets FRAME_ACTIVITY_HOME, so a test run never writes to the real</span>
+<span class="dl-add">+ *      activity log;</span>
+<span class="dl-add">+ *   2. lists the test files itself — which makes the `test/fixtures/`</span>
+<span class="dl-add">+ *      exclusion an explicit rule rather than an accident of what a glob</span>
+<span class="dl-add">+ *      happens to match;</span>
+<span class="dl-add">+ *   3. forwards the child&#39;s exit code, so a red suite is still a red build.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Usage:</span>
+<span class="dl-add">+ *   node scripts/run-tests.js                  # the whole suite</span>
+<span class="dl-add">+ *   node scripts/run-tests.js shellSetup       # only matching files</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const fs = require(&#39;fs&#39;);</span>
+<span class="dl-add">+const path = require(&#39;path&#39;);</span>
+<span class="dl-add">+const { spawn } = require(&#39;child_process&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const ROOT_DIR = path.join(__dirname, &#39;..&#39;);</span>
+<span class="dl-add">+const TEST_DIR = path.join(ROOT_DIR, &#39;test&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// Only files directly in test/. `test/fixtures/` holds whole sample projects</span>
+<span class="dl-add">+// the suite runs *against*; a recursive walk would try to execute them.</span>
+<span class="dl-add">+function testFiles(filters) {</span>
+<span class="dl-add">+  const names = fs.readdirSync(TEST_DIR, { withFileTypes: true })</span>
+<span class="dl-add">+    .filter((entry) =&gt; entry.isFile() &amp;&amp; entry.name.endsWith(&#39;.test.js&#39;))</span>
+<span class="dl-add">+    .map((entry) =&gt; entry.name)</span>
+<span class="dl-add">+    .sort();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!filters.length) return names;</span>
+<span class="dl-add">+  return names.filter((name) =&gt; filters.some((f) =&gt; name.toLowerCase().includes(f.toLowerCase())));</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function main() {</span>
+<span class="dl-add">+  const filters = process.argv.slice(2).filter((arg) =&gt; !arg.startsWith(&#39;-&#39;));</span>
+<span class="dl-add">+  const files = testFiles(filters);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  if (!files.length) {</span>
+<span class="dl-add">+    console.error(filters.length</span>
+<span class="dl-add">+      ? `No test files match: ${filters.join(&#39;, &#39;)}`</span>
+<span class="dl-add">+      : &#39;No test files found in test/&#39;);</span>
+<span class="dl-add">+    process.exit(1);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const child = spawn(</span>
+<span class="dl-add">+    process.execPath,</span>
+<span class="dl-add">+    [&#39;--test&#39;, ...files.map((name) =&gt; path.join(&#39;test&#39;, name))],</span>
+<span class="dl-add">+    {</span>
+<span class="dl-add">+      cwd: ROOT_DIR,</span>
+<span class="dl-add">+      stdio: &#39;inherit&#39;,</span>
+<span class="dl-add">+      env: {</span>
+<span class="dl-add">+        ...process.env,</span>
+<span class="dl-add">+        // A relative path, resolved by each test against the repo root, so the</span>
+<span class="dl-add">+        // value reads the same on every platform.</span>
+<span class="dl-add">+        FRAME_ACTIVITY_HOME: process.env.FRAME_ACTIVITY_HOME || path.join(&#39;.frame&#39;, &#39;runtime&#39;, &#39;test-activity&#39;)</span>
+<span class="dl-add">+      }</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+  );</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  // Exit code first, signal second: a suite killed by SIGINT must not look</span>
+<span class="dl-add">+  // like a pass to CI.</span>
+<span class="dl-add">+  child.on(&#39;exit&#39;, (code, signal) =&gt; {</span>
+<span class="dl-add">+    process.exit(signal ? 1 : (code == null ? 1 : code));</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  child.on(&#39;error&#39;, (err) =&gt; {</span>
+<span class="dl-add">+    console.error(`Could not start the test runner: ${err.message}`);</span>
+<span class="dl-add">+    process.exit(1);</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+if (require.main === module) main();</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+module.exports = { testFiles };</span></pre>
     </details>
   </div>
 </section>

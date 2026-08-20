@@ -118,3 +118,19 @@ context to losing its session. Files: `src/renderer/agentDispatch.js`. No test:
 _Captured: 2026-08-20 · 1 file change_
 
 ---
+
+## T08 — Give `npm test` a Node launcher
+
+Added `scripts/run-tests.js`: sets `FRAME_ACTIVITY_HOME`, lists
+`test/*.test.js` itself so the `test/fixtures/` exclusion is a rule rather
+than a property of the shell, spawns `node --test` and forwards the child's
+exit code (a signal counts as failure). `package.json`'s `test` script points
+at it, and an optional substring argument runs a subset. Confirmed a red test
+file makes it exit 1 and an unmatched filter exits 1. Files:
+`scripts/run-tests.js` (new), `package.json`. No deviation from `plan.md`;
+the recorded footprint collision with `audit-q3-performance-resources` still
+holds — this touches only the `test` script line.
+
+_Captured: 2026-08-20 · 2 file changes_
+
+---
