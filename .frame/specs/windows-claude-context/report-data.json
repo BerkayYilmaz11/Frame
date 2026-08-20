@@ -99,6 +99,18 @@
         "status": "pass",
         "detail": "577 tests pass, 0 fail through the new launcher; a red suite was confirmed to exit 1"
       }
+    },
+    {
+      "id": "T09",
+      "title": "Give the suite a Windows leg",
+      "commit": "54c1e12",
+      "whatChanged": "windows-latest joined the CI matrix in .github/workflows/ci.yml, with a comment recording why the leg exists and why npm test now runs through the Node launcher. Audited every test that shells out: the only bash/sh/zsh calls in the suite are in test/frameTemplates.test.js, and all four call sites already sit inside tests carrying { skip: !POSIX }, so no new guards were needed.",
+      "whyChanged": "The new Windows behaviour is asserted from pure modules with platform as a parameter, so this leg's real value is the reverse — it catches POSIX assumptions the suite itself makes. Two residual risks could not be settled from a Mac and are recorded as a followup rather than guessed at: fs.symlinkSync in test/embeddedMigration.test.js (Windows needs a privilege for file symlinks) and line-ending normalisation (the repo has no .gitattributes, so a CRLF checkout could break content comparisons). Adding .gitattributes is outside plan.md's Files list, so it is flagged, not done. The leg itself cannot be confirmed green from here: that needs a push, and this loop never pushes.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "577 tests pass, 0 fail, 0 skipped on macOS; the windows-latest leg is unverified until the branch is pushed"
+      }
     }
   ]
 }

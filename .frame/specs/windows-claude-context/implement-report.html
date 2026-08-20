@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">8 tasks</span>
-    <span class="pill good">8 verified</span>
+    <span class="pill">9 tasks</span>
+    <span class="pill good">9 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1845,6 +1845,52 @@
 <span class="dl-add">+if (require.main === module) main();</span>
 <span class="dl-add">+</span>
 <span class="dl-add">+module.exports = { testFiles };</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T09</span>
+    <h2>Give the suite a Windows leg</h2>
+    <span class="card-meta"><span class="chip">54c1e12</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">577 tests pass, 0 fail, 0 skipped on macOS; the windows-latest leg is unverified until the branch is pushed</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>windows-latest joined the CI matrix in .github/workflows/ci.yml, with a comment recording why the leg exists and why npm test now runs through the Node launcher. Audited every test that shells out: the only bash/sh/zsh calls in the suite are in test/frameTemplates.test.js, and all four call sites already sit inside tests carrying { skip: !POSIX }, so no new guards were needed.</p></div>
+    <div class="field"><span class="label">Why</span><p>The new Windows behaviour is asserted from pure modules with platform as a parameter, so this leg&#39;s real value is the reverse — it catches POSIX assumptions the suite itself makes. Two residual risks could not be settled from a Mac and are recorded as a followup rather than guessed at: fs.symlinkSync in test/embeddedMigration.test.js (Windows needs a privilege for file symlinks) and line-ending normalisation (the repo has no .gitattributes, so a CRLF checkout could break content comparisons). Adding .gitattributes is outside plan.md&#39;s Files list, so it is flagged, not done. The leg itself cannot be confirmed green from here: that needs a push, and this loop never pushes.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml</span>
+<span class="dl-meta">index 4e79545..ff7dff2 100644</span>
+<span class="dl-file">--- a/.github/workflows/ci.yml</span>
+<span class="dl-file">+++ b/.github/workflows/ci.yml</span>
+<span class="dl-hunk">@@ -8,6 +8,17 @@</span>
+<span class="dl-ctx"> # repo-local modules only (verified by running it without node_modules),</span>
+<span class="dl-ctx"> # and postinstall (electron-rebuild) would need Electron binaries — slow</span>
+<span class="dl-ctx"> # and fragile for zero benefit here.</span>
+<span class="dl-add">+#</span>
+<span class="dl-add">+# windows-latest joined the matrix with windows-claude-context, which is the</span>
+<span class="dl-add">+# first spec to ship Windows behaviour: a .cmd wrapper, a PowerShell init file</span>
+<span class="dl-add">+# and a launch line composed for shells that parse nothing. Those are asserted</span>
+<span class="dl-add">+# from pure modules with `platform` as a parameter, so the value of this leg is</span>
+<span class="dl-add">+# the opposite — it catches the POSIX assumptions the suite itself makes.</span>
+<span class="dl-add">+# `npm test` runs through scripts/run-tests.js for the same reason: cmd.exe</span>
+<span class="dl-add">+# would neither set the inline environment variable nor expand the glob the</span>
+<span class="dl-add">+# script used to carry, and the leg would have passed while running nothing.</span>
+<span class="dl-add">+# The tests that genuinely need a POSIX shell (executing a generated wrapper or</span>
+<span class="dl-add">+# sourcing init.sh) carry `{ skip: !POSIX }` and report as skipped here.</span>
+<span class="dl-ctx"> name: CI</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> on:</span>
+<span class="dl-hunk">@@ -20,7 +31,7 @@ jobs:</span>
+<span class="dl-ctx">     strategy:</span>
+<span class="dl-ctx">       fail-fast: false</span>
+<span class="dl-ctx">       matrix:</span>
+<span class="dl-del">-        os: [ubuntu-latest, macos-latest]</span>
+<span class="dl-add">+        os: [ubuntu-latest, macos-latest, windows-latest]</span>
+<span class="dl-ctx">     runs-on: ${{ matrix.os }}</span>
+<span class="dl-ctx">     steps:</span>
+<span class="dl-ctx">       - uses: actions/checkout@v4</span></pre>
     </details>
   </div>
 </section>

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:29:36.284Z",
+  "lastUpdated": "2026-08-20T13:31:53.706Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5117,13 +5117,13 @@
       "title": "Add `windows-latest` to the CI matrix in `.github/workflows/ci.yml` and guard the remaining tests that shell out to `bash`, `sh` or `zsh` with `{ skip: !POSIX }`, until all three legs are green.",
       "description": "",
       "source": "spec:windows-claude-context:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:31:53.706Z",
+      "completedAt": "2026-08-20T13:31:53.706Z"
     },
     {
       "id": "task-spec-windows-claude-context-T10",

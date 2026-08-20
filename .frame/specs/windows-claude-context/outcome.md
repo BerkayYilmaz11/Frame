@@ -134,3 +134,25 @@ holds — this touches only the `test` script line.
 _Captured: 2026-08-20 · 2 file changes_
 
 ---
+
+## T09 — Give the suite a Windows leg
+
+Added `windows-latest` to the CI matrix and audited every test that shells
+out: the only `bash`/`sh`/`zsh` calls in the suite are the four helper call
+sites in `test/frameTemplates.test.js`, and all of them already sit inside
+tests carrying `{ skip: !POSIX }` — no new guards were needed. **The leg is
+not verified green:** confirming that needs a push, and this loop never
+pushes. Two residual Windows risks were found and deliberately not guessed
+at: `fs.symlinkSync` in `test/embeddedMigration.test.js` (a file symlink needs
+a privilege on Windows) and line endings (the repo has no `.gitattributes`, so
+a CRLF checkout could break content comparisons). Files:
+`.github/workflows/ci.yml`.
+
+Followup: add `.gitattributes` with `* text=auto eol=lf`, and decide whether
+the legacy-symlink migration tests should carry `{ skip: !POSIX }` — Frame
+never planted a symlink on Windows, so guarding them would be semantic, not a
+workaround. Both are outside this plan's Files list.
+
+_Captured: 2026-08-20 · 1 file change_
+
+---
