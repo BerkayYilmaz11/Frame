@@ -201,3 +201,24 @@ a push — and two known risks sit under it, `fs.symlinkSync` in
 _Captured: 2026-08-20 · 0 file changes_
 
 ---
+
+## Post-close fix — `test/aiToolLaunch.test.js` crashed on CI
+
+The first CI run after the branch was pushed failed on **all three** legs,
+which is the tell: the cause was environmental, not the Windows code. T02's
+new test file stubbed `electron` by name, but `aiToolManager` also pulls in
+`@aptabase/electron/main` at module scope through `telemetry`, and CI runs no
+`npm ci` — so the file threw `MODULE_NOT_FOUND`, `node --test` exited
+non-zero, and every leg went red. It passed locally only because
+`node_modules` was there.
+
+Reproduced without touching the tree, by making any resolution into
+`node_modules` throw the way it does on CI, then fixed generically: the stub
+now intercepts every non-builtin, non-relative request for the duration of the
+load rather than naming dependencies one at a time — naming them is what broke,
+since the list grows with the require graph. Under the simulation the full
+suite is 577/577.
+
+_Captured: 2026-08-20 · 1 file change_
+
+---

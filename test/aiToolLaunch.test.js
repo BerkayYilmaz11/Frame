@@ -10,18 +10,34 @@
  * string form, because the version-dependent flag must not spread to the
  * platform that works today.
  *
- * `aiToolManager` requires `electron` at load, so the module is loaded once
- * with `electron` stubbed. Nothing here touches the filesystem: the asset
- * object is the fixture.
+ * `aiToolManager` is a main-process module: it requires `electron` directly
+ * and, through `telemetry`, `@aptabase/electron/main` at module scope. CI runs
+ * no `npm ci` on purpose, so requiring any packaged dependency for real fails
+ * there while passing locally — which is exactly how this file once turned all
+ * three CI legs red. Every non-builtin, non-relative request is therefore
+ * stubbed for the duration of the load, rather than `electron` alone: naming
+ * them one by one is what broke, since the list grows with the require graph.
+ *
+ * Stubbing them is safe here because nothing under test needs one —
+ * `inlineInjectionFlags` is pure and `AI_TOOLS` is data.
+ *
+ * Nothing here touches the filesystem either: the asset object is the fixture.
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const path = require('path');
 const Module = require('module');
+
+const BUILTINS = new Set(Module.builtinModules);
+const PACKAGED_STUB = { ipcMain: { handle() {}, on() {} } };
 
 const realLoad = Module._load;
 Module._load = function (request, parent, isMain) {
-  if (request === 'electron') return { ipcMain: { handle() {}, on() {} } };
+  const bare = String(request).replace(/^node:/, '').split('/')[0];
+  if (!String(request).startsWith('.') && !path.isAbsolute(request) && !BUILTINS.has(bare)) {
+    return PACKAGED_STUB;
+  }
   return realLoad(request, parent, isMain);
 };
 let aiToolManager;
