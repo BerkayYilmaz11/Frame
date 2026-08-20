@@ -85,3 +85,20 @@ deviation from `plan.md`.
 _Captured: 2026-08-20 · 2 file changes_
 
 ---
+
+## T06 — Write `init.ps1`, and let `initFamilies` decide what gets written
+
+Added the `powershell` branch to `getShellInitTemplate` — `$env:FRAME_BIN`,
+`PATH` rebuilt with it first, one function per tool routing to
+`"$env:FRAME_BIN\<id>.cmd"` with a `Get-Command -CommandType Application`
+fallback that excludes functions and so cannot recurse. `writeShellInit` now
+loops over `shellSetup.initFamilies()` instead of `Object.keys(INIT_FILES)`
+behind a `supportsWrappers()` gate, and passes only the tool ids that have a
+wrapper on this platform, so Windows gets a `claude` function and nothing for
+Codex or Gemini. Files: `src/shared/frameTemplates.js`,
+`src/main/aiToolManager.js`, `test/frameTemplates.test.js` (7 new). No
+deviation from `plan.md`.
+
+_Captured: 2026-08-20 · 3 file changes_
+
+---

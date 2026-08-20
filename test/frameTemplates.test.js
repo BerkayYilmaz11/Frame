@@ -490,6 +490,69 @@ test('a family Frame has no file for, or no bin directory, produces nothing', ()
   assert.equal(templates.getShellInitTemplate({}), '');
 });
 
+// ─── shell init template · PowerShell ─────────────────────────
+
+const PS_BIN = 'C:\\Users\\dev\\my project\\.frame\\bin';
+
+function psInit(toolIds = ['claude']) {
+  return templates.getShellInitTemplate({ family: 'powershell', binDir: PS_BIN, toolIds });
+}
+
+test('the PowerShell file exports FRAME_BIN and puts it first on PATH', () => {
+  const init = psInit();
+  assert.ok(init.includes(`$env:FRAME_BIN = '${PS_BIN}'`));
+  assert.ok(init.includes("$env:PATH = (@($env:FRAME_BIN) + $frameRest) -join ';'"));
+  // Any later copy is dropped rather than left behind, or the rebuild would
+  // duplicate the entry every time a lane opens.
+  assert.ok(init.includes("Where-Object { $_ -and $_ -ne $env:FRAME_BIN }"));
+  assert.ok(init.includes("-split ';'"), 'the POSIX separator would split nothing on Windows');
+});
+
+test('the PowerShell file defines one function per tool, routed to its .cmd', () => {
+  const init = psInit(['claude', 'somecli']);
+  for (const id of ['claude', 'somecli']) {
+    assert.ok(init.includes(`function ${id} {`), `${id} has no function`);
+    assert.ok(init.includes(`Join-Path $env:FRAME_BIN '${id}.cmd'`), `${id} is not routed to its wrapper`);
+  }
+  assert.ok(init.includes('& $frameWrapper @args'), 'arguments are not forwarded');
+});
+
+test('the PowerShell fallback resolves an application, so it cannot recurse', () => {
+  // A function named `claude` looking up `claude` would find itself.
+  // -CommandType Application excludes functions and aliases — the PowerShell
+  // spelling of the POSIX file's `command <id>`.
+  const init = psInit();
+  assert.ok(init.includes("Get-Command 'claude' -CommandType Application -ErrorAction SilentlyContinue"));
+  assert.ok(init.includes('& $frameReal.Source @args'));
+  assert.ok(!/&\s*claude\b/.test(init), 'the fallback calls the tool by name, which is this function');
+});
+
+test('a tool that is missing entirely gets a message, not a stack trace', () => {
+  assert.ok(psInit().includes("Write-Error 'Frame: claude was not found on PATH.'"));
+});
+
+test('the PowerShell file uses PowerShell syntax, not POSIX', () => {
+  const init = psInit();
+  assert.ok(!init.includes('"$@"'), 'POSIX argument syntax leaked into the PowerShell file');
+  assert.ok(!init.includes('export '), 'POSIX export leaked into the PowerShell file');
+  assert.ok(init.startsWith('# Frame shell setup'));
+});
+
+test('a project path with an apostrophe is escaped the PowerShell way', () => {
+  const init = templates.getShellInitTemplate({
+    family: 'powershell',
+    binDir: "C:\\Users\\o'brien\\.frame\\bin",
+    toolIds: ['claude']
+  });
+  assert.ok(init.includes("'C:\\Users\\o''brien\\.frame\\bin'"), init.split('\n')[4]);
+  assert.ok(!init.includes("'\\''"), 'POSIX quoting leaked into the PowerShell file');
+});
+
+test('a family Frame has no file for still gets nothing', () => {
+  assert.equal(templates.getShellInitTemplate({ family: 'cmd', binDir: PS_BIN, toolIds: ['claude'] }), '');
+  assert.equal(templates.getShellInitTemplate({ family: 'powershell', binDir: '', toolIds: ['claude'] }), '');
+});
+
 // ─── shell init behaviour, executed ───────────────────────────
 
 // The string assertions above cannot tell a valid init file from one that

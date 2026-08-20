@@ -388,14 +388,14 @@
           "purpose": "Regenerate `.frame/bin/<id>` for a tool."
         },
         "writeShellInit": {
-          "line": 726,
+          "line": 731,
           "params": [
             "projectPath"
           ],
           "purpose": "Regenerate the shell init files every lane in this project sources."
         },
         "prepareLaunchAssets": {
-          "line": 755,
+          "line": 764,
           "params": [
             "projectPath",
             "tool",
@@ -404,7 +404,7 @@
           "purpose": "Everything a launch of `tool` reads: its preamble, its settings file when it"
         },
         "inlineInjectionFlags": {
-          "line": 797,
+          "line": 806,
           "params": [
             "tool",
             "assets",
@@ -413,7 +413,7 @@
           "purpose": "The flags a launch adds itself, for a tool Frame could not wrap here."
         },
         "wrapperLaunchCommand": {
-          "line": 856,
+          "line": 865,
           "params": [
             "projectPath",
             "tool"
@@ -421,19 +421,19 @@
           "purpose": "The command a launch types for this tool — the wrapper wherever Frame can"
         },
         "bareCommandFor": {
-          "line": 862,
+          "line": 871,
           "params": [
             "tool"
           ]
         },
         "refreshLaunchAssets": {
-          "line": 868,
+          "line": 877,
           "params": [
             "projectPath"
           ]
         },
         "getLaunchCommand": {
-          "line": 905,
+          "line": 914,
           "params": [
             "projectPath",
             "toolId",
@@ -10088,60 +10088,75 @@
           ],
           "purpose": "Single-quote for a generated shell file. Both POSIX shells and fish treat"
         },
+        "psQuote": {
+          "line": 1148,
+          "params": [
+            "value"
+          ],
+          "purpose": "The same job for PowerShell, whose single-quoted string is literal too — no"
+        },
         "getShellInitTemplate": {
-          "line": 1173,
+          "line": 1180,
           "params": [
             "options"
           ],
           "purpose": "The init file a lane sources at startup."
         },
         "posixInitTemplate": {
-          "line": 1185,
+          "line": 1193,
           "params": [
             "binDir",
             "toolIds"
           ]
         },
+        "powershellInitTemplate": {
+          "line": 1256,
+          "params": [
+            "binDir",
+            "toolIds"
+          ],
+          "purpose": "The PowerShell init file, dot-sourced at spawn by `powershell` and `pwsh`."
+        },
         "fishInitTemplate": {
-          "line": 1234,
+          "line": 1297,
           "params": [
             "binDir",
             "toolIds"
           ]
         },
         "getSpecHintSettings": {
-          "line": 1276,
+          "line": 1339,
           "purpose": "The spec-hint hooks, as a Claude Code settings object."
         },
         "getStructureHookSnippet": {
-          "line": 1306
+          "line": 1369
         },
         "replaceManagedHookBlock": {
-          "line": 1346,
+          "line": 1409,
           "params": [
             "content"
           ],
           "purpose": "Swap the managed block inside an existing hook file for the current snippet."
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1368,
+          "line": 1431,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "getOrchBusHeader": {
-          "line": 1391,
+          "line": 1454,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1403,
+          "line": 1466,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1423
+          "line": 1486
         },
         "getOrchBinScripts": {
-          "line": 1441,
+          "line": 1504,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       }

@@ -1142,6 +1142,13 @@ function shellQuote(value) {
   return `'${String(value == null ? '' : value).replace(/'/g, "'\\''")}'`;
 }
 
+// The same job for PowerShell, whose single-quoted string is literal too — no
+// backtick escapes inside it, which is exactly why it is used here — and
+// escapes a quote by doubling it.
+function psQuote(value) {
+  return `'${String(value == null ? '' : value).replace(/'/g, "''")}'`;
+}
+
 /**
  * The init file a lane sources at startup.
  *
@@ -1165,7 +1172,7 @@ function shellQuote(value) {
  * itself) while still going through `PATH`.
  *
  * @param {object} options
- * @param {string} options.family - 'posix' (zsh/bash/sh) or 'fish'
+ * @param {string} options.family - 'posix' (zsh/bash/sh), 'fish' or 'powershell'
  * @param {string} options.binDir - absolute path to the project's .frame/bin
  * @param {string[]} options.toolIds - configured tool ids, one function each
  * @returns {string} the file's content, or '' for a family Frame cannot serve
@@ -1179,6 +1186,7 @@ function getShellInitTemplate(options) {
   if (!binDir) return '';
   if (family === 'fish') return fishInitTemplate(binDir, toolIds);
   if (family === 'posix') return posixInitTemplate(binDir, toolIds);
+  if (family === 'powershell') return powershellInitTemplate(binDir, toolIds);
   return '';
 }
 
@@ -1227,6 +1235,61 @@ unset -f __frame_path_front 2>/dev/null
 
 # One function per configured tool. Resolved before any PATH search, so where
 # the user's rc files put their own directories stops mattering.
+${functions}
+`;
+}
+
+/**
+ * The PowerShell init file, dot-sourced at spawn by `powershell` and `pwsh`.
+ *
+ * Same argument as the POSIX one, with a Windows name attached: nvm-windows
+ * prepends its own directory when the user's profile runs, which is *after*
+ * Frame set the environment, so `.frame\bin` leading `PATH` is a guarantee the
+ * profile can quietly undo. A function is resolved before any `PATH` search,
+ * so it cannot be.
+ *
+ * The fallback resolves with `-CommandType Application`, which excludes
+ * functions and aliases. That is what keeps a function named `claude` from
+ * finding itself and recursing until the stack gives out — the PowerShell
+ * spelling of the POSIX file's `command <id>`.
+ */
+function powershellInitTemplate(binDir, toolIds) {
+  const functions = toolIds
+    .map(
+      (id) => `function ${id} {
+    $frameWrapper = Join-Path $env:FRAME_BIN '${id}.cmd'
+    if (Test-Path -LiteralPath $frameWrapper) {
+        & $frameWrapper @args
+    } else {
+        $frameReal = Get-Command '${id}' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($frameReal) {
+            & $frameReal.Source @args
+        } else {
+            Write-Error 'Frame: ${id} was not found on PATH.'
+        }
+    }
+}`
+    )
+    .join('\n\n');
+
+  return `# Frame shell setup — dot-sourced by PowerShell in terminals Frame opens.
+# Generated file; Frame rewrites it whenever the content changes. Nothing
+# outside .frame\\ is touched, and nothing here runs in a shell Frame did not
+# open.
+
+$env:FRAME_BIN = ${psQuote(binDir)}
+
+# Move FRAME_BIN to the front of PATH — the reason this file exists. The
+# profile that just ran may have prepended a version manager's directory, and
+# a real claude.cmd found there would win.
+$frameRest = @($env:PATH -split ';' | Where-Object { $_ -and $_ -ne $env:FRAME_BIN })
+$env:PATH = (@($env:FRAME_BIN) + $frameRest) -join ';'
+Remove-Variable frameRest -ErrorAction SilentlyContinue
+
+# One function per tool that has a wrapper here. Resolved before any PATH
+# search, so where the user's profile put its own directories stops mattering.
+# Each is a router, not a second injection point: the .cmd remains the only
+# thing that composes the flags and the only thing honouring FRAME_NO_WRAP.
 ${functions}
 `;
 }

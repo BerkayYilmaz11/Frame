@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">5 tasks</span>
-    <span class="pill good">5 verified</span>
+    <span class="pill">6 tasks</span>
+    <span class="pill good">6 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1445,6 +1445,235 @@
 <span class="dl-ctx"> // ─── manualCommand ────────────────────────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;the manual command is project-relative and per family&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T06</span>
+    <h2>Write init.ps1, and let initFamilies decide what gets written</h2>
+    <span class="card-meta"><span class="chip">c2cd083</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">577 tests pass, 0 fail (7 new in test/frameTemplates.test.js)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>getShellInitTemplate grew a powershell branch: $env:FRAME_BIN, PATH rebuilt with FRAME_BIN first and any later copy dropped, and one function per tool routing to &quot;$env:FRAME_BIN\&lt;id&gt;.cmd&quot; with a Get-Command -CommandType Application fallback. writeShellInit replaced its supportsWrappers() gate with shellSetup.initFamilies() and now passes only the tool ids that have a wrapper on this platform.</p></div>
+    <div class="field"><span class="label">Why</span><p>-CommandType Application excludes functions and aliases, which is what keeps a function named claude from finding itself — the PowerShell spelling of the POSIX file&#39;s `command &lt;id&gt;`. The tool-id filter matters on Windows specifically: Codex and Gemini get no .cmd there, so a function for them would delegate to a file that does not exist. Driving the loop from initFamilies rather than Object.keys(INIT_FILES) is what stops init.sh being written on Windows, where its functions would point at extensionless wrappers Frame never writes. Verified by simulation: a forced win32 run writes only init.ps1 and only a claude function; the POSIX run still writes init.sh and init.fish with all three.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index 33e5221..020520d 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -716,21 +716,30 @@ function writeWrapper(projectPath, tool) {</span>
+<span class="dl-ctx">  * and a user who switches from zsh to fish should not have to reopen the</span>
+<span class="dl-ctx">  * project to get their functions.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * Every tool in the registry gets a function, so a newly configured custom tool</span>
+<span class="dl-del">- * is routed through its wrapper the next time this runs rather than after a</span>
+<span class="dl-del">- * restart.</span>
+<span class="dl-add">+ * Every tool that has a wrapper *here* gets a function, so a newly configured</span>
+<span class="dl-add">+ * custom tool is routed through its wrapper the next time this runs rather</span>
+<span class="dl-add">+ * than after a restart — and a tool Frame cannot wrap on this platform gets no</span>
+<span class="dl-add">+ * function, since there would be nothing for it to delegate to.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * Returns the paths written. Silent no-op where Frame writes no wrappers —</span>
+<span class="dl-del">- * there would be nothing for a function to delegate to.</span>
+<span class="dl-add">+ * Which families are written is `shellSetup.initFamilies`&#39; answer, not a</span>
+<span class="dl-add">+ * platform check of this function&#39;s own: on Windows that is `init.ps1` alone,</span>
+<span class="dl-add">+ * and writing `init.sh` there would produce functions pointing at</span>
+<span class="dl-add">+ * extensionless wrappers that do not exist.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Returns the paths written.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function writeShellInit(projectPath) {</span>
+<span class="dl-del">-  if (!projectPath || !launchEnv.supportsWrappers()) return [];</span>
+<span class="dl-add">+  if (!projectPath) return [];</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const binDir = launchEnv.frameBinDir(projectPath);</span>
+<span class="dl-del">-  const toolIds = Object.values(getAvailableTools()).map((tool) =&gt; tool.id);</span>
+<span class="dl-add">+  const toolIds = Object.values(getAvailableTools())</span>
+<span class="dl-add">+    .filter((tool) =&gt; !!launchEnv.wrapperFileName(tool.id, {</span>
+<span class="dl-add">+      canPassPaths: !!(tool.injection &amp;&amp; tool.injection.promptFileFlag)</span>
+<span class="dl-add">+    }))</span>
+<span class="dl-add">+    .map((tool) =&gt; tool.id);</span>
+<span class="dl-ctx">   const written = [];</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  for (const family of Object.keys(shellSetup.INIT_FILES)) {</span>
+<span class="dl-add">+  for (const family of shellSetup.initFamilies()) {</span>
+<span class="dl-ctx">     const content = templates.getShellInitTemplate({ family, binDir, toolIds });</span>
+<span class="dl-ctx">     if (!content) continue;</span>
+<span class="dl-ctx">     const target = shellSetup.shellInitPath(projectPath, family);</span>
+<span class="dl-meta">diff --git a/src/shared/frameTemplates.js b/src/shared/frameTemplates.js</span>
+<span class="dl-meta">index 5bd0334..46f5b99 100644</span>
+<span class="dl-file">--- a/src/shared/frameTemplates.js</span>
+<span class="dl-file">+++ b/src/shared/frameTemplates.js</span>
+<span class="dl-hunk">@@ -1142,6 +1142,13 @@ function shellQuote(value) {</span>
+<span class="dl-ctx">   return `&#39;${String(value == null ? &#39;&#39; : value).replace(/&#39;/g, &quot;&#39;\\&#39;&#39;&quot;)}&#39;`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// The same job for PowerShell, whose single-quoted string is literal too — no</span>
+<span class="dl-add">+// backtick escapes inside it, which is exactly why it is used here — and</span>
+<span class="dl-add">+// escapes a quote by doubling it.</span>
+<span class="dl-add">+function psQuote(value) {</span>
+<span class="dl-add">+  return `&#39;${String(value == null ? &#39;&#39; : value).replace(/&#39;/g, &quot;&#39;&#39;&quot;)}&#39;`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * The init file a lane sources at startup.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -1165,7 +1172,7 @@ function shellQuote(value) {</span>
+<span class="dl-ctx">  * itself) while still going through `PATH`.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * @param {object} options</span>
+<span class="dl-del">- * @param {string} options.family - &#39;posix&#39; (zsh/bash/sh) or &#39;fish&#39;</span>
+<span class="dl-add">+ * @param {string} options.family - &#39;posix&#39; (zsh/bash/sh), &#39;fish&#39; or &#39;powershell&#39;</span>
+<span class="dl-ctx">  * @param {string} options.binDir - absolute path to the project&#39;s .frame/bin</span>
+<span class="dl-ctx">  * @param {string[]} options.toolIds - configured tool ids, one function each</span>
+<span class="dl-ctx">  * @returns {string} the file&#39;s content, or &#39;&#39; for a family Frame cannot serve</span>
+<span class="dl-hunk">@@ -1179,6 +1186,7 @@ function getShellInitTemplate(options) {</span>
+<span class="dl-ctx">   if (!binDir) return &#39;&#39;;</span>
+<span class="dl-ctx">   if (family === &#39;fish&#39;) return fishInitTemplate(binDir, toolIds);</span>
+<span class="dl-ctx">   if (family === &#39;posix&#39;) return posixInitTemplate(binDir, toolIds);</span>
+<span class="dl-add">+  if (family === &#39;powershell&#39;) return powershellInitTemplate(binDir, toolIds);</span>
+<span class="dl-ctx">   return &#39;&#39;;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -1231,6 +1239,61 @@ ${functions}</span>
+<span class="dl-ctx"> `;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The PowerShell init file, dot-sourced at spawn by `powershell` and `pwsh`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Same argument as the POSIX one, with a Windows name attached: nvm-windows</span>
+<span class="dl-add">+ * prepends its own directory when the user&#39;s profile runs, which is *after*</span>
+<span class="dl-add">+ * Frame set the environment, so `.frame\bin` leading `PATH` is a guarantee the</span>
+<span class="dl-add">+ * profile can quietly undo. A function is resolved before any `PATH` search,</span>
+<span class="dl-add">+ * so it cannot be.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The fallback resolves with `-CommandType Application`, which excludes</span>
+<span class="dl-add">+ * functions and aliases. That is what keeps a function named `claude` from</span>
+<span class="dl-add">+ * finding itself and recursing until the stack gives out — the PowerShell</span>
+<span class="dl-add">+ * spelling of the POSIX file&#39;s `command &lt;id&gt;`.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function powershellInitTemplate(binDir, toolIds) {</span>
+<span class="dl-add">+  const functions = toolIds</span>
+<span class="dl-add">+    .map(</span>
+<span class="dl-add">+      (id) =&gt; `function ${id} {</span>
+<span class="dl-add">+    $frameWrapper = Join-Path $env:FRAME_BIN &#39;${id}.cmd&#39;</span>
+<span class="dl-add">+    if (Test-Path -LiteralPath $frameWrapper) {</span>
+<span class="dl-add">+        &amp; $frameWrapper @args</span>
+<span class="dl-add">+    } else {</span>
+<span class="dl-add">+        $frameReal = Get-Command &#39;${id}&#39; -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1</span>
+<span class="dl-add">+        if ($frameReal) {</span>
+<span class="dl-add">+            &amp; $frameReal.Source @args</span>
+<span class="dl-add">+        } else {</span>
+<span class="dl-add">+            Write-Error &#39;Frame: ${id} was not found on PATH.&#39;</span>
+<span class="dl-add">+        }</span>
+<span class="dl-add">+    }</span>
+<span class="dl-add">+}`</span>
+<span class="dl-add">+    )</span>
+<span class="dl-add">+    .join(&#39;\n\n&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  return `# Frame shell setup — dot-sourced by PowerShell in terminals Frame opens.</span>
+<span class="dl-add">+# Generated file; Frame rewrites it whenever the content changes. Nothing</span>
+<span class="dl-add">+# outside .frame\\ is touched, and nothing here runs in a shell Frame did not</span>
+<span class="dl-add">+# open.</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+$env:FRAME_BIN = ${psQuote(binDir)}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# Move FRAME_BIN to the front of PATH — the reason this file exists. The</span>
+<span class="dl-add">+# profile that just ran may have prepended a version manager&#39;s directory, and</span>
+<span class="dl-add">+# a real claude.cmd found there would win.</span>
+<span class="dl-add">+$frameRest = @($env:PATH -split &#39;;&#39; | Where-Object { $_ -and $_ -ne $env:FRAME_BIN })</span>
+<span class="dl-add">+$env:PATH = (@($env:FRAME_BIN) + $frameRest) -join &#39;;&#39;</span>
+<span class="dl-add">+Remove-Variable frameRest -ErrorAction SilentlyContinue</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+# One function per tool that has a wrapper here. Resolved before any PATH</span>
+<span class="dl-add">+# search, so where the user&#39;s profile put its own directories stops mattering.</span>
+<span class="dl-add">+# Each is a router, not a second injection point: the .cmd remains the only</span>
+<span class="dl-add">+# thing that composes the flags and the only thing honouring FRAME_NO_WRAP.</span>
+<span class="dl-add">+${functions}</span>
+<span class="dl-add">+`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> function fishInitTemplate(binDir, toolIds) {</span>
+<span class="dl-ctx">   const functions = toolIds</span>
+<span class="dl-ctx">     .map(</span>
+<span class="dl-meta">diff --git a/test/frameTemplates.test.js b/test/frameTemplates.test.js</span>
+<span class="dl-meta">index 4b16d03..e18a8d2 100644</span>
+<span class="dl-file">--- a/test/frameTemplates.test.js</span>
+<span class="dl-file">+++ b/test/frameTemplates.test.js</span>
+<span class="dl-hunk">@@ -490,6 +490,69 @@ test(&#39;a family Frame has no file for, or no bin directory, produces nothing&#39;, ()</span>
+<span class="dl-ctx">   assert.equal(templates.getShellInitTemplate({}), &#39;&#39;);</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── shell init template · PowerShell ─────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const PS_BIN = &#39;C:\\Users\\dev\\my project\\.frame\\bin&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+function psInit(toolIds = [&#39;claude&#39;]) {</span>
+<span class="dl-add">+  return templates.getShellInitTemplate({ family: &#39;powershell&#39;, binDir: PS_BIN, toolIds });</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the PowerShell file exports FRAME_BIN and puts it first on PATH&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = psInit();</span>
+<span class="dl-add">+  assert.ok(init.includes(`$env:FRAME_BIN = &#39;${PS_BIN}&#39;`));</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;$env:PATH = (@($env:FRAME_BIN) + $frameRest) -join &#39;;&#39;&quot;));</span>
+<span class="dl-add">+  // Any later copy is dropped rather than left behind, or the rebuild would</span>
+<span class="dl-add">+  // duplicate the entry every time a lane opens.</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;Where-Object { $_ -and $_ -ne $env:FRAME_BIN }&quot;));</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;-split &#39;;&#39;&quot;), &#39;the POSIX separator would split nothing on Windows&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the PowerShell file defines one function per tool, routed to its .cmd&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = psInit([&#39;claude&#39;, &#39;somecli&#39;]);</span>
+<span class="dl-add">+  for (const id of [&#39;claude&#39;, &#39;somecli&#39;]) {</span>
+<span class="dl-add">+    assert.ok(init.includes(`function ${id} {`), `${id} has no function`);</span>
+<span class="dl-add">+    assert.ok(init.includes(`Join-Path $env:FRAME_BIN &#39;${id}.cmd&#39;`), `${id} is not routed to its wrapper`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;&amp; $frameWrapper @args&#39;), &#39;arguments are not forwarded&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the PowerShell fallback resolves an application, so it cannot recurse&#39;, () =&gt; {</span>
+<span class="dl-add">+  // A function named `claude` looking up `claude` would find itself.</span>
+<span class="dl-add">+  // -CommandType Application excludes functions and aliases — the PowerShell</span>
+<span class="dl-add">+  // spelling of the POSIX file&#39;s `command &lt;id&gt;`.</span>
+<span class="dl-add">+  const init = psInit();</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;Get-Command &#39;claude&#39; -CommandType Application -ErrorAction SilentlyContinue&quot;));</span>
+<span class="dl-add">+  assert.ok(init.includes(&#39;&amp; $frameReal.Source @args&#39;));</span>
+<span class="dl-add">+  assert.ok(!/&amp;\s*claude\b/.test(init), &#39;the fallback calls the tool by name, which is this function&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a tool that is missing entirely gets a message, not a stack trace&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.ok(psInit().includes(&quot;Write-Error &#39;Frame: claude was not found on PATH.&#39;&quot;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the PowerShell file uses PowerShell syntax, not POSIX&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = psInit();</span>
+<span class="dl-add">+  assert.ok(!init.includes(&#39;&quot;$@&quot;&#39;), &#39;POSIX argument syntax leaked into the PowerShell file&#39;);</span>
+<span class="dl-add">+  assert.ok(!init.includes(&#39;export &#39;), &#39;POSIX export leaked into the PowerShell file&#39;);</span>
+<span class="dl-add">+  assert.ok(init.startsWith(&#39;# Frame shell setup&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project path with an apostrophe is escaped the PowerShell way&#39;, () =&gt; {</span>
+<span class="dl-add">+  const init = templates.getShellInitTemplate({</span>
+<span class="dl-add">+    family: &#39;powershell&#39;,</span>
+<span class="dl-add">+    binDir: &quot;C:\\Users\\o&#39;brien\\.frame\\bin&quot;,</span>
+<span class="dl-add">+    toolIds: [&#39;claude&#39;]</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  assert.ok(init.includes(&quot;&#39;C:\\Users\\o&#39;&#39;brien\\.frame\\bin&#39;&quot;), init.split(&#39;\n&#39;)[4]);</span>
+<span class="dl-add">+  assert.ok(!init.includes(&quot;&#39;\\&#39;&#39;&quot;), &#39;POSIX quoting leaked into the PowerShell file&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a family Frame has no file for still gets nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(templates.getShellInitTemplate({ family: &#39;cmd&#39;, binDir: PS_BIN, toolIds: [&#39;claude&#39;] }), &#39;&#39;);</span>
+<span class="dl-add">+  assert.equal(templates.getShellInitTemplate({ family: &#39;powershell&#39;, binDir: &#39;&#39;, toolIds: [&#39;claude&#39;] }), &#39;&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── shell init behaviour, executed ───────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // The string assertions above cannot tell a valid init file from one that</span></pre>
     </details>
   </div>
 </section>

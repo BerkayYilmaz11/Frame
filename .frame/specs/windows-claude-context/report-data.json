@@ -63,6 +63,18 @@
         "status": "pass",
         "detail": "570 tests pass, 0 fail (11 new in test/shellSetup.test.js; the old 'win32 gets nothing sent' test is gone and the no-family test no longer claims pwsh)"
       }
+    },
+    {
+      "id": "T06",
+      "title": "Write init.ps1, and let initFamilies decide what gets written",
+      "commit": "c2cd083",
+      "whatChanged": "getShellInitTemplate grew a powershell branch: $env:FRAME_BIN, PATH rebuilt with FRAME_BIN first and any later copy dropped, and one function per tool routing to \"$env:FRAME_BIN\\<id>.cmd\" with a Get-Command -CommandType Application fallback. writeShellInit replaced its supportsWrappers() gate with shellSetup.initFamilies() and now passes only the tool ids that have a wrapper on this platform.",
+      "whyChanged": "-CommandType Application excludes functions and aliases, which is what keeps a function named claude from finding itself — the PowerShell spelling of the POSIX file's `command <id>`. The tool-id filter matters on Windows specifically: Codex and Gemini get no .cmd there, so a function for them would delegate to a file that does not exist. Driving the loop from initFamilies rather than Object.keys(INIT_FILES) is what stops init.sh being written on Windows, where its functions would point at extensionless wrappers Frame never writes. Verified by simulation: a forced win32 run writes only init.ps1 and only a claude function; the POSIX run still writes init.sh and init.fish with all three.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "577 tests pass, 0 fail (7 new in test/frameTemplates.test.js)"
+      }
     }
   ]
 }

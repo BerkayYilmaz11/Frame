@@ -716,21 +716,30 @@ function writeWrapper(projectPath, tool) {
  * and a user who switches from zsh to fish should not have to reopen the
  * project to get their functions.
  *
- * Every tool in the registry gets a function, so a newly configured custom tool
- * is routed through its wrapper the next time this runs rather than after a
- * restart.
+ * Every tool that has a wrapper *here* gets a function, so a newly configured
+ * custom tool is routed through its wrapper the next time this runs rather
+ * than after a restart — and a tool Frame cannot wrap on this platform gets no
+ * function, since there would be nothing for it to delegate to.
  *
- * Returns the paths written. Silent no-op where Frame writes no wrappers —
- * there would be nothing for a function to delegate to.
+ * Which families are written is `shellSetup.initFamilies`' answer, not a
+ * platform check of this function's own: on Windows that is `init.ps1` alone,
+ * and writing `init.sh` there would produce functions pointing at
+ * extensionless wrappers that do not exist.
+ *
+ * Returns the paths written.
  */
 function writeShellInit(projectPath) {
-  if (!projectPath || !launchEnv.supportsWrappers()) return [];
+  if (!projectPath) return [];
 
   const binDir = launchEnv.frameBinDir(projectPath);
-  const toolIds = Object.values(getAvailableTools()).map((tool) => tool.id);
+  const toolIds = Object.values(getAvailableTools())
+    .filter((tool) => !!launchEnv.wrapperFileName(tool.id, {
+      canPassPaths: !!(tool.injection && tool.injection.promptFileFlag)
+    }))
+    .map((tool) => tool.id);
   const written = [];
 
-  for (const family of Object.keys(shellSetup.INIT_FILES)) {
+  for (const family of shellSetup.initFamilies()) {
     const content = templates.getShellInitTemplate({ family, binDir, toolIds });
     if (!content) continue;
     const target = shellSetup.shellInitPath(projectPath, family);
