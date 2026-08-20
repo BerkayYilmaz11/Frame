@@ -39,7 +39,9 @@ Mode — and Claude Code read it natively with no flags and no quoting. The
 overlay removed that delivery without putting the replacement within reach of
 the platform.
 
-**Half the replacement is already there.** `prepareLaunchAssets`
+### Two findings that make this much smaller than it looks
+
+**The payload is already written on Windows.** `prepareLaunchAssets`
 (`aiToolManager.js:716-732`) gates only its last line on `supportsWrappers()`:
 
     if (preamble) writeRuntimeFile(projectPath, preambleFileName(tool.id), preamble);
@@ -51,124 +53,141 @@ the platform.
 So on Windows today, opening a Frame project already writes a correct
 `.frame/runtime/preamble-claude.txt` and a correct
 `.frame/runtime/claude-settings.json`. Preamble composition, the global layer,
-the spec-driven flag and the hook registration are all platform-neutral and
-all working. What is missing is not a mechanism — it is a **carrier**: an
-executable on Windows that reads those two files and starts Claude with them.
+the spec-driven flag and the hook registration are all platform-neutral and all
+working. What is missing is not a mechanism — it is a **carrier**.
+
+**Claude Code can take the preamble as a file.** `--append-system-prompt-file`
+accepts a path where `--append-system-prompt` takes a string. Verified against
+the installed CLI: a bad path reports `Append system prompt file not found`,
+and a real file's contents reach the session (a codeword planted in the file
+came back in the reply). It is not listed as its own row in `--help` — it
+appears only inside the `--bare` option's description — so it is documented but
+low-profile.
+
+That flag removes the entire problem rather than working around it. Both
+arguments become plain paths, the typed line becomes single-line, and every
+hazard in this spec's first section — newlines, backticks, quote nesting —
+stops existing. It also means the carrier does **not** need to embed a
+993-byte string, which is what would otherwise have forced a Node trampoline
+between the shell and an interactive CLI.
 
 ## Goal
 
 A Claude Code session on Windows knows exactly what one on macOS or Linux
-knows, by the same route, with nothing typed into the terminal that a shell
-has to parse.
+knows, and nothing that a shell has to parse is ever typed into the terminal.
 
-1. **A Node launcher does the work.** A script under `.frame/bin/` resolves the
-   real CLI with its own directory removed from `PATH`, reads the preamble and
-   settings paths from the runtime files, and starts Claude with
-   `spawn(cli, [...frameArgs, ...userArgs], { stdio: 'inherit' })`. Passing
-   argv as an array is the point: it removes the shell-quoting layer entirely
-   rather than trying to survive it, so backticks, newlines and quotes in the
-   preamble stop being a category of bug. Node is already a hard dependency —
-   the spec-hint hooks shell out to it.
-2. **A `.cmd` trampoline makes it reachable.** `.frame/bin/claude.cmd` is a
-   three-line file that hands off to the launcher. `.cmd` rather than `.ps1`
-   because only `.cmd` is in the default `PATHEXT`, which is what makes a
-   hand-typed `claude` resolve to it.
+1. **The composed launch passes paths, not prose.** Claude's injection config
+   gains a file-taking prompt flag, and the inline branch prefers it: the
+   typed line becomes
+   `claude --append-system-prompt-file <path> --settings <path>`.
+   This alone satisfies most of the acceptance bar, is a small change, and is
+   fully unit-testable with `platform` as a parameter — no Windows machine
+   required to write or test it.
+2. **A `.cmd` wrapper covers the hand-typed launch.** `.frame/bin/claude.cmd`
+   resolves the real CLI with its own directory removed from the lookup, then
+   runs it with the same two path flags. `.cmd` rather than `.ps1` because only
+   `.cmd` is in the default `PATHEXT`, which is what makes a bare `claude`
+   resolve to it. Because it passes paths, it stays plain batch — no Node
+   process between the shell and an interactive CLI, and so no question about
+   whether the terminal survives the hop.
 3. **The `PATH` entry is ungated.** `launchEnv.prependFrameBin` already carries
-   the `;` separator (`launchEnv.js:69`); it is reached only after a
-   platform check that is about wrappers, not about `PATH`.
-4. **The composed line gets short again.** `wrapperLaunchCommand`
-   (`aiToolManager.js:761-765`) returns the wrapper on Windows too, so the
-   typed line is a path and the 993-byte preamble never reaches a shell.
-5. **A shell that reorders `PATH` does not win.** The reason
+   the `;` separator (`launchEnv.js:69`); it is reached only after a platform
+   check that is about wrappers, not about `PATH`.
+4. **A shell that reorders `PATH` does not win.** The reason
    `terminal-session-setup` exists — `.frame/bin` pushed to sixth place by a
-   version manager — has a direct Windows analogue in nvm-windows. The
-   PowerShell equivalent of the init file (a profile-shaped script sourced at
-   spawn via `-NoExit -Command`, defining one function per tool) closes it the
-   same way, and lets the lane report `installed` rather than `unsupported`.
+   version manager — has a direct Windows analogue in nvm-windows. A PowerShell
+   init script sourced at spawn via `-NoExit -Command`, defining one function
+   per tool, closes it the same way and lets the lane report `installed`
+   instead of `unsupported`.
+5. **A test protocol is a deliverable.** Nobody on this side of the work has a
+   Windows machine; verification is a handoff. The spec is not closed by code
+   passing CI but by a written, step-by-step protocol a teammate can run and
+   report against, with the expected output stated for each step.
 
 ## Constraints
 
 - **One injection route, not two.** `terminal-context-boundary` removed the
-  second route rather than guarding it; a Windows path that reintroduces
-  inline flags alongside a wrapper would rebuild exactly the double-injection
-  this project already decided against. Where a wrapper exists, Frame
-  contributes no flags of its own.
+  second route rather than guarding it. Where a wrapper exists, Frame
+  contributes no flags of its own; the file flag is what the wrapper passes,
+  not a parallel path around it.
 - **A wrapper that cannot run is worse than no wrapper.** `launchEnv.js:18-20`
-  states it: shadowing a working CLI with a broken script is the failure to
-  avoid. The Windows carrier must pass through transparently when the real CLI
-  is not found, and must propagate the child's exit code — there is no `exec`
-  to inherit the process the way the POSIX wrapper does.
-- `FRAME_NO_WRAP=1` stays the escape hatch, honoured in the Windows carrier as
-  it is in the POSIX wrapper, and honoured nowhere else.
-- Nothing is written outside `.frame/`. The footprint test
-  (`test/frameProjectInit.test.js`) is the standing check and must hold on
-  Windows too.
-- Generation stays on **project open**, write-if-changed, per tool — the rule
-  `terminal-context-boundary` set after a wrapper from three months earlier was
-  found still sitting in `.frame/bin/`.
-- The launcher's logic must be testable without a Windows machine: platform,
-  `PATH` and paths are parameters, not `process` reads, the same shape
-  `launchEnv` and `shellSetup` already use.
-- No change to what the preamble says or how it is composed. This spec moves
-  an existing payload to a platform that cannot currently receive it.
+  states it. The `.cmd` must pass through transparently when the real CLI is
+  not found, and must propagate the child's exit code.
+- **The file flag is lower-profile than the string flag.** It does not have its
+  own `--help` row, so an older Claude Code may reject it as unknown and fail
+  the launch outright. Windows may depend on it — the alternative there is
+  already broken — but the POSIX path must not be made to depend on it in the
+  same change.
+- `FRAME_NO_WRAP=1` stays the escape hatch, honoured in the `.cmd` as it is in
+  the POSIX wrapper, and honoured nowhere else.
+- Nothing is written outside `.frame/`; `test/frameProjectInit.test.js` is the
+  standing check and must hold on Windows.
+- Generation stays on **project open**, write-if-changed, per tool.
+- Logic is testable without Windows: platform, `PATH` and paths are parameters,
+  not `process` reads — the shape `launchEnv` and `shellSetup` already use.
+- No change to what the preamble says or how it is composed.
 
 ## Success Criteria
 
 - On Windows, a Claude session Frame starts receives the preamble **byte for
-  byte** — all 9 lines, all 6 backticks — verified against
-  `.frame/runtime/preamble-claude.txt`.
+  byte** — all 9 lines, all 6 backticks — with nothing typed into the PTY
+  containing a newline.
 - The same session receives `--settings`, and the spec-hint hooks fire: a
   prompt produces the spec-context block, and an edit to a file with spec
   history produces the file-history block.
 - A hand-typed `claude` in a Frame lane on Windows gets both of the above.
-- No line typed into a Windows PTY contains a newline.
-- With the real `claude` absent from `PATH`, the carrier exits with a clear
-  message and does not shadow anything; with `FRAME_NO_WRAP=1` set, it starts
-  the real CLI with no Frame arguments.
+- With the real `claude` absent from `PATH`, the `.cmd` exits with a clear
+  message and shadows nothing; with `FRAME_NO_WRAP=1`, it starts the real CLI
+  with no Frame arguments.
 - The child's exit code reaches the shell unchanged.
 - A lane on a Windows shell Frame can set up reports `installed`, not
   `unsupported`, so `laneContext.whenReady` stops paying the fallback delay.
 - `npm test` passes on `windows-latest` in CI.
-- The init footprint test passes on Windows.
+- The test protocol exists, was run by someone on Windows, and its result is
+  recorded in `outcome.md` — including which Claude Code version was used,
+  since the file flag's availability is version-dependent.
 
 ## Out of Scope
 
 - **Codex and Gemini.** Both declare `INJECTION_WRAPPER` and both currently get
   nothing on Windows. That is a real gap and is deliberately deferred: Claude
-  parity is the acceptance bar for this spec. The launcher should not be
-  designed in a way that blocks them later, but no work is done for them here.
+  parity is the acceptance bar. The design should not block them later — and
+  the file-flag finding does not transfer, since neither has an equivalent
+  flag — but no work is done for them here.
+- **Rewriting the POSIX wrapper to use the file flag.** It would be simpler
+  there too, and it would remove a `$(cat …)` expansion. It also works today,
+  and changing it in the same breath as adding a platform would put a
+  version-dependent flag on the path that currently has no such dependency.
+  Worth its own follow-up.
 - Changing the preamble's content, the global layer, or the spec-driven flag.
 - `cmd.exe` function-equivalent behaviour. `cmd` has no functions and `doskey`
-  macros are too fragile to build on; `cmd` gets the `PATH` entry and the
-  `PATHEXT` resolution, and nothing more.
+  macros are too fragile; `cmd` gets the `PATH` entry and `PATHEXT` resolution,
+  nothing more.
 - Windows packaging and release artifacts. `package.json` builds `mac` only
-  today while the README advertises three platforms; that contradiction is
-  real but it is a release-engineering question, not this spec's.
-- Rewriting the POSIX wrapper. It works; this spec adds a sibling.
+  while the README advertises three platforms; that contradiction is real but
+  it is release engineering, not this spec.
 
 ## Open Questions
 
-- **Is there a Windows machine to verify on?** Unit tests can prove the
-  launcher composes the right argv, but nothing short of a real PTY proves a
-  line was typed and a shell accepted it. Without one, the spec can be
-  implemented but not closed — its central claim is exactly the part a unit
-  test cannot reach.
+- **Which Claude Code version introduced `--append-system-prompt-file`?** The
+  whole design leans on it. If it is recent, Frame needs a fallback for older
+  installs — and the honest fallback on Windows may be "launch without context
+  and say so", since the string form does not survive the shell there anyway.
 - **What does Git Bash / MSYS / WSL get?** `shellFamily()` already resolves
   `C:\…\Git\bin\bash.exe` to `bash` (it strips `.exe` and lowercases), so the
   POSIX wrapper would plausibly run there — it is the platform check upstream
   that stops it, and `test/shellSetup.test.js:94` pins that behaviour with a
-  Git Bash path on purpose. Options: write both carriers on Windows and pick by
-  lane shell, write only the `.cmd` and let Git Bash run it, or keep Git Bash
-  out of scope. Picking by lane shell is the most correct and the most
-  machinery; note that `prependFrameBin`'s separator would then have to follow
-  the shell rather than the platform, since Git Bash uses `:`.
-- **Does the `.cmd` trampoline need to survive a space in the project path?**
-  `%~dp0` quoting is the classic failure. Likely yes and likely cheap, but it
-  needs a real test, not reasoning.
-- **PowerShell vs pwsh.** Windows PowerShell 5.1 and PowerShell 7 differ in
-  profile handling and in `-Command` parsing. Which are targeted, and does the
-  init script have to work in both?
-- **Does `spawn` with `stdio: 'inherit'` give Claude a real TTY on Windows?**
-  Claude Code is interactive; if the extra Node process between the shell and
-  the CLI degrades the terminal (raw mode, resize, Ctrl-C), the trampoline
-  design has to be revisited. This is the largest design risk in the spec.
+  Git Bash path on purpose. Options: write both carriers and pick by lane
+  shell, write only the `.cmd`, or keep Git Bash out of scope. Picking by lane
+  shell is the most correct and the most machinery; `prependFrameBin`'s
+  separator would then have to follow the shell rather than the platform, since
+  Git Bash uses `:`.
+- **Does the `.cmd` survive a space in the project path?** `%~dp0` quoting is
+  the classic failure, and Frame projects live under `Documents` as often as
+  not. Needs a real test, not reasoning.
+- **How does the `.cmd` find the real `claude` without finding itself?**
+  `where.exe` searches `PATH`, which now leads with `.frame\bin`. The POSIX
+  wrapper strips its own directory and re-runs the lookup; batch needs the
+  equivalent, and it is the fiddliest part of an otherwise plain file.
+- **PowerShell 5.1 vs pwsh 7.** They differ in profile handling and `-Command`
+  parsing. Which are targeted, and must the init script work in both?
