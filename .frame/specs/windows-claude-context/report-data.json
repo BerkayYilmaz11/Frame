@@ -1,0 +1,20 @@
+{
+  "spec": {
+    "slug": "windows-claude-context",
+    "title": "Windows context parity for Claude Code"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Put .frame/bin on Windows PATH and name what lives there",
+      "commit": "6968791",
+      "whatChanged": "launchEnv.prependFrameBin lost its supportsWrappers gate, so .frame/bin now leads the PATH of every PTY Frame spawns on Windows too — the ';' separator the function already carried finally gets reached. Two siblings joined it: wrapperFamily(platform) answers 'posix' or 'cmd', and wrapperFileName(toolId, { platform, canPassPaths }) returns the filename a tool's wrapper takes here, or '' when it earns none.",
+      "whyChanged": "The gate was a category error: supportsWrappers asks whether this platform gets a POSIX wrapper for every tool, and PATH ordering is a different question — a .frame/bin that happens to be empty is a harmless first entry. wrapperFileName takes canPassPaths rather than a hardcoded 'claude only' list because a file-taking prompt flag is precisely what lets a batch wrapper stay plain; canPassPaths defaults to false so Windows opts a tool in explicitly and Codex/Gemini keep today's behaviour by construction. Both new functions take platform as a parameter, so Windows behaviour is asserted from a Mac.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "533 tests pass, 0 fail (19 in test/launchEnv.test.js, 8 of them new)"
+      }
+    }
+  ]
+}

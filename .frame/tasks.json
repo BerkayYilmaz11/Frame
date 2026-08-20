@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:04:41.936Z",
+  "lastUpdated": "2026-08-20T13:09:12.386Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5013,13 +5013,13 @@
       "title": "Drop the `supportsWrappers` gate from `launchEnv.prependFrameBin` so `.frame/bin` leads the `PATH` of every Windows PTY, add `wrapperFamily(platform)` and `wrapperFileName(toolId, { platform, canPassPaths })` beside it, and cover all three in `test/launchEnv.test.js` with platform as a parameter.",
       "description": "",
       "source": "spec:windows-claude-context:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:09:12.386Z",
+      "completedAt": "2026-08-20T13:09:12.386Z"
     },
     {
       "id": "task-spec-windows-claude-context-T02",

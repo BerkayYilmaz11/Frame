@@ -2396,6 +2396,8 @@
       "description": "launchEnv — where Frame's own `PATH` entry comes from.",
       "exports": [
         "supportsWrappers",
+        "wrapperFamily",
+        "wrapperFileName",
         "frameBinDir",
         "prependFrameBin"
       ],
@@ -2405,21 +2407,36 @@
       ],
       "functions": {
         "supportsWrappers": {
-          "line": 36,
+          "line": 46,
           "params": [
             "platform = process.platform"
           ],
-          "purpose": "Whether this platform can run the wrappers Frame writes."
+          "purpose": "Whether this platform gets a POSIX wrapper for every tool."
+        },
+        "wrapperFamily": {
+          "line": 55,
+          "params": [
+            "platform = process.platform"
+          ],
+          "purpose": "Which flavour of wrapper this platform runs: `'posix'` or `'cmd'`."
+        },
+        "wrapperFileName": {
+          "line": 68,
+          "params": [
+            "toolId",
+            "options = {}"
+          ],
+          "purpose": "The filename a tool's wrapper takes here, or `''` when it gets none."
         },
         "frameBinDir": {
-          "line": 46,
+          "line": 84,
           "params": [
             "projectPath"
           ],
           "purpose": "Absolute path to a project's `.frame/bin`, or '' without a project."
         },
         "prependFrameBin": {
-          "line": 62,
+          "line": 102,
           "params": [
             "pathValue",
             "projectPath",
