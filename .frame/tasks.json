@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:20:08.857Z",
+  "lastUpdated": "2026-08-20T13:23:35.123Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5065,13 +5065,13 @@
       "title": "Give `src/main/shellSetup.js` a `powershell` family: `INIT_FILES.powershell = 'init.ps1'`, `powershell`/`pwsh` in `FAMILY_BY_SHELL`, a new `initFamilies(platform)`, a PowerShell single-quoter that doubles `'`, and a `Write-Output ('<prefix>' + '<token>')` marker echo whose halves are never adjacent; replace `deliveryFor`'s win32 short-circuit with an `initFamilies` check that answers `unsupported-shell` for cmd, Git Bash and WSL, verify `manualCommand` yields a valid dot-source line for the new family, and extend `test/shellSetup.test.js` across both platforms.",
       "description": "",
       "source": "spec:windows-claude-context:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:23:35.123Z",
+      "completedAt": "2026-08-20T13:23:35.123Z"
     },
     {
       "id": "task-spec-windows-claude-context-T06",

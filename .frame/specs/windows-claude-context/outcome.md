@@ -67,3 +67,21 @@ launch line. Files: `src/main/aiToolManager.js`. No deviation from `plan.md`.
 _Captured: 2026-08-20 · 1 file change_
 
 ---
+
+## T05 — Give `shellSetup` a PowerShell family
+
+Added `INIT_FILES.powershell`, `powershell`/`pwsh` in `FAMILY_BY_SHELL`, an
+exported `initFamilies(platform)`, a PowerShell quoter that doubles `'`, and a
+`Write-Output ('<prefix>' + '<token>')` marker echo whose halves stay apart.
+`deliveryFor` dropped its blanket win32 short-circuit for an `initFamilies`
+check — Git Bash is refused for its *family*, not its name, since its
+`init.sh` points at wrappers Windows never writes — and answers PowerShell
+with `-ExecutionPolicy Bypass -NoExit -Command ". '<init.ps1>'; <echo>"`.
+`cmd`, Git Bash and WSL now read `unsupported-shell`, which is silent by
+design. Files: `src/main/shellSetup.js`, `test/shellSetup.test.js` (11 new;
+the `reason: 'platform'` test is gone with the branch it covered). No
+deviation from `plan.md`.
+
+_Captured: 2026-08-20 · 2 file changes_
+
+---

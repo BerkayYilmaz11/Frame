@@ -3647,6 +3647,7 @@
         "SHELL_DIR",
         "INIT_FILES",
         "MARKER_PREFIX",
+        "initFamilies",
         "shellFamily",
         "shellInitPath",
         "mintMarker",
@@ -3659,15 +3660,22 @@
         "shared/frameConstants"
       ],
       "functions": {
+        "initFamilies": {
+          "line": 53,
+          "params": [
+            "platform = process.platform"
+          ],
+          "purpose": "Which families Frame can actually deliver on a platform."
+        },
         "shellFamily": {
-          "line": 66,
+          "line": 88,
           "params": [
             "shellPath"
           ],
           "purpose": "The shell family a shell path belongs to, or '' when Frame has no init file"
         },
         "shellInitPath": {
-          "line": 81,
+          "line": 103,
           "params": [
             "projectPath",
             "family"
@@ -3675,28 +3683,42 @@
           "purpose": "Absolute path to a project's generated init file for a family, or '' when"
         },
         "mintMarker": {
-          "line": 96,
+          "line": 118,
           "params": [
             "terminalId",
             "attempt = 1"
           ]
         },
         "singleQuote": {
-          "line": 109,
+          "line": 131,
           "params": [
             "value"
           ],
           "purpose": "Single-quote a value for a POSIX or fish command line."
         },
+        "psQuote": {
+          "line": 142,
+          "params": [
+            "value"
+          ],
+          "purpose": "Single-quote a value for a PowerShell command line."
+        },
         "markerEcho": {
-          "line": 123,
+          "line": 156,
           "params": [
             "marker"
           ],
           "purpose": "The `printf` that announces the marker — never containing it."
         },
+        "psMarkerEcho": {
+          "line": 169,
+          "params": [
+            "marker"
+          ],
+          "purpose": "The same trick in PowerShell: `Write-Output ('<prefix>' + '<token>')`."
+        },
         "deliveryFor": {
-          "line": 146,
+          "line": 195,
           "params": [
             "shellPath",
             "platform = process.platform",
@@ -3706,14 +3728,14 @@
           "purpose": "How setup reaches one lane's shell."
         },
         "manualCommand": {
-          "line": 179,
+          "line": 247,
           "params": [
             "shellPath"
           ],
           "purpose": "The line a user can paste into a lane to set it up by hand."
         },
         "splitOnMarker": {
-          "line": 195,
+          "line": 265,
           "params": [
             "chunk",
             "marker"

@@ -51,6 +51,18 @@
         "status": "pass",
         "detail": "559 tests pass, 0 fail"
       }
+    },
+    {
+      "id": "T05",
+      "title": "Give shellSetup a PowerShell family",
+      "commit": "1b87f6d",
+      "whatChanged": "shellSetup gained INIT_FILES.powershell = 'init.ps1', powershell/pwsh in FAMILY_BY_SHELL, a new exported initFamilies(platform), a PowerShell single-quoter that doubles ', and psMarkerEcho building Write-Output ('<prefix>' + '<token>'). deliveryFor lost its blanket win32 short-circuit and instead answers unsupported-shell for any family initFamilies does not list here, then answers PowerShell with a spawn-flag delivery: -ExecutionPolicy Bypass -NoExit -Command \". '<init.ps1>'; <marker echo>\".",
+      "whyChanged": "The old short-circuit conflated 'a family Frame knows' with 'a family Frame can deliver here'. Git Bash resolves to the posix family, whose init file defines functions pointing at extensionless wrappers Windows never writes — delivering it would set the lane up to fail rather than leave it alone; the reverse guard keeps init.ps1 off a Mac. -ExecutionPolicy Bypass is there because a Windows client machine defaults to Restricted, which blocks dot-sourcing an unsigned local .ps1; it lifts the policy for one process and touches nothing machine-wide. cmd, Git Bash and WSL now report unsupported-shell, which is silent on the lane card by design — the gate decision was that a permanently-present row reading the same thing trains the eye to ignore it.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "570 tests pass, 0 fail (11 new in test/shellSetup.test.js; the old 'win32 gets nothing sent' test is gone and the no-family test no longer claims pwsh)"
+      }
     }
   ]
 }

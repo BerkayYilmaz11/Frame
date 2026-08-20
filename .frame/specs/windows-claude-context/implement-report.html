@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">4 tasks</span>
-    <span class="pill good">4 verified</span>
+    <span class="pill">5 tasks</span>
+    <span class="pill good">5 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1117,6 +1117,334 @@
 <span class="dl-ctx">  */</span>
 <span class="dl-ctx"> function wrapperLaunchCommand(projectPath, tool) {</span>
 <span class="dl-ctx">   if (!projectPath || !launchEnv.supportsWrappers()) return &#39;&#39;;</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T05</span>
+    <h2>Give shellSetup a PowerShell family</h2>
+    <span class="card-meta"><span class="chip">1b87f6d</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">570 tests pass, 0 fail (11 new in test/shellSetup.test.js; the old &#39;win32 gets nothing sent&#39; test is gone and the no-family test no longer claims pwsh)</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>shellSetup gained INIT_FILES.powershell = &#39;init.ps1&#39;, powershell/pwsh in FAMILY_BY_SHELL, a new exported initFamilies(platform), a PowerShell single-quoter that doubles &#39;, and psMarkerEcho building Write-Output (&#39;&lt;prefix&gt;&#39; + &#39;&lt;token&gt;&#39;). deliveryFor lost its blanket win32 short-circuit and instead answers unsupported-shell for any family initFamilies does not list here, then answers PowerShell with a spawn-flag delivery: -ExecutionPolicy Bypass -NoExit -Command &quot;. &#39;&lt;init.ps1&gt;&#39;; &lt;marker echo&gt;&quot;.</p></div>
+    <div class="field"><span class="label">Why</span><p>The old short-circuit conflated &#39;a family Frame knows&#39; with &#39;a family Frame can deliver here&#39;. Git Bash resolves to the posix family, whose init file defines functions pointing at extensionless wrappers Windows never writes — delivering it would set the lane up to fail rather than leave it alone; the reverse guard keeps init.ps1 off a Mac. -ExecutionPolicy Bypass is there because a Windows client machine defaults to Restricted, which blocks dot-sourcing an unsigned local .ps1; it lifts the policy for one process and touches nothing machine-wide. cmd, Git Bash and WSL now report unsupported-shell, which is silent on the lane card by design — the gate decision was that a permanently-present row reading the same thing trains the eye to ignore it.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/shellSetup.js b/src/main/shellSetup.js</span>
+<span class="dl-meta">index 914373a..3e0f1ed 100644</span>
+<span class="dl-file">--- a/src/main/shellSetup.js</span>
+<span class="dl-file">+++ b/src/main/shellSetup.js</span>
+<span class="dl-hunk">@@ -36,24 +36,46 @@ const SHELL_DIR = &#39;runtime/shell&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> const INIT_FILES = {</span>
+<span class="dl-ctx">   posix: &#39;init.sh&#39;,</span>
+<span class="dl-del">-  fish: &#39;init.fish&#39;</span>
+<span class="dl-add">+  fish: &#39;init.fish&#39;,</span>
+<span class="dl-add">+  powershell: &#39;init.ps1&#39;</span>
+<span class="dl-ctx"> };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Which families Frame can actually deliver on a platform.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * A family being *known* and a family being *deliverable here* are different</span>
+<span class="dl-add">+ * questions, and conflating them is what the old blanket win32 short-circuit</span>
+<span class="dl-add">+ * did. Git Bash on Windows resolves to the `posix` family, but its init file</span>
+<span class="dl-add">+ * defines functions pointing at extensionless wrappers Windows never writes —</span>
+<span class="dl-add">+ * delivering it would set the lane up to fail rather than leave it alone. The</span>
+<span class="dl-add">+ * reverse holds too: `init.ps1` must never be offered to a Mac.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function initFamilies(platform = process.platform) {</span>
+<span class="dl-add">+  return platform === &#39;win32&#39; ? [&#39;powershell&#39;] : [&#39;posix&#39;, &#39;fish&#39;];</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // The marker&#39;s fixed half. The minted half follows it, and the two are never</span>
+<span class="dl-ctx"> // adjacent in anything sent to a shell — see `deliveryFor`.</span>
+<span class="dl-ctx"> const MARKER_PREFIX = &#39;__frame_ready_&#39;;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // Shell basenames Frame can set up. `sh` and `dash` take the POSIX file;</span>
+<span class="dl-del">-// `nu`, `pwsh` and `cmd` are deliberately absent — Windows has no `.cmd`</span>
+<span class="dl-del">-// wrappers to point a function at, and nushell&#39;s function and `PATH` model</span>
+<span class="dl-del">-// matches neither generated file. That is `unsupported`, not a failure.</span>
+<span class="dl-add">+// `powershell` and `pwsh` take the PowerShell one, which exists because</span>
+<span class="dl-add">+// nvm-windows reorders `PATH` exactly as nvm does and a function wins over</span>
+<span class="dl-add">+// any ordering. `nu` and `cmd` are deliberately absent: nushell&#39;s function</span>
+<span class="dl-add">+// and `PATH` model matches no generated file here, and `cmd` has no functions</span>
+<span class="dl-add">+// at all — `doskey` macros are too fragile to build on, so `cmd` gets the</span>
+<span class="dl-add">+// `PATH` entry and `PATHEXT` resolution and nothing more. Both are</span>
+<span class="dl-add">+// `unsupported`, which is silent by design: the lane works, it simply has no</span>
+<span class="dl-add">+// Frame context.</span>
+<span class="dl-ctx"> const FAMILY_BY_SHELL = {</span>
+<span class="dl-ctx">   zsh: &#39;posix&#39;,</span>
+<span class="dl-ctx">   bash: &#39;posix&#39;,</span>
+<span class="dl-ctx">   sh: &#39;posix&#39;,</span>
+<span class="dl-ctx">   dash: &#39;posix&#39;,</span>
+<span class="dl-ctx">   ksh: &#39;posix&#39;,</span>
+<span class="dl-del">-  fish: &#39;fish&#39;</span>
+<span class="dl-add">+  fish: &#39;fish&#39;,</span>
+<span class="dl-add">+  powershell: &#39;powershell&#39;,</span>
+<span class="dl-add">+  pwsh: &#39;powershell&#39;</span>
+<span class="dl-ctx"> };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-hunk">@@ -110,6 +132,17 @@ function singleQuote(value) {</span>
+<span class="dl-ctx">   return `&#39;${String(value).replace(/&#39;/g, &quot;&#39;\\&#39;&#39;&quot;)}&#39;`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * Single-quote a value for a PowerShell command line.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * PowerShell&#39;s single-quoted string is literal too — no backtick escapes</span>
+<span class="dl-add">+ * inside it, which is the whole reason to use it here — and a quote is escaped</span>
+<span class="dl-add">+ * by doubling rather than by the POSIX close-escape-reopen dance.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function psQuote(value) {</span>
+<span class="dl-add">+  return `&#39;${String(value).replace(/&#39;/g, &quot;&#39;&#39;&quot;)}&#39;`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * The `printf` that announces the marker — never containing it.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -125,6 +158,19 @@ function markerEcho(marker) {</span>
+<span class="dl-ctx">   return `printf &#39;%s\\n&#39; ${singleQuote(marker.slice(0, cut))}${singleQuote(marker.slice(cut))}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+/**</span>
+<span class="dl-add">+ * The same trick in PowerShell: `Write-Output (&#39;&lt;prefix&gt;&#39; + &#39;&lt;token&gt;&#39;)`.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Concatenated at run time, so the literal marker exists only in real output.</span>
+<span class="dl-add">+ * PowerShell&#39;s delivery is a spawn flag and echoes nothing, but the halves</span>
+<span class="dl-add">+ * stay apart anyway — the property is the invariant, not the mode that</span>
+<span class="dl-add">+ * happens to need it today.</span>
+<span class="dl-add">+ */</span>
+<span class="dl-add">+function psMarkerEcho(marker) {</span>
+<span class="dl-add">+  const cut = MARKER_PREFIX.length;</span>
+<span class="dl-add">+  return `Write-Output (${psQuote(marker.slice(0, cut))} + ${psQuote(marker.slice(cut))})`;</span>
+<span class="dl-add">+}</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> /**</span>
+<span class="dl-ctx">  * How setup reaches one lane&#39;s shell.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-hunk">@@ -134,26 +180,48 @@ function markerEcho(marker) {</span>
+<span class="dl-ctx">  *   { mode: &#39;type&#39;, line: &#39; . …&#39;, marker }        zsh/bash/sh — typed at spawn</span>
+<span class="dl-ctx">  *   { mode: &#39;none&#39;, reason }                      nothing is sent</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-del">- * `mode: &#39;none&#39;` is the answer for Windows, for a lane with no project, for a</span>
+<span class="dl-del">- * folder that is not a Frame project, and for a shell Frame has no init file</span>
+<span class="dl-del">- * for. In every one of those cases nothing is sent and no function or variable</span>
+<span class="dl-del">- * is defined — the lane behaves exactly as it did before this module existed.</span>
+<span class="dl-add">+ * `mode: &#39;none&#39;` is the answer for a lane with no project, for a folder that</span>
+<span class="dl-add">+ * is not a Frame project, and for a shell whose family Frame cannot deliver</span>
+<span class="dl-add">+ * *here* — `cmd` and WSL on Windows, Git Bash too, since its `posix` init</span>
+<span class="dl-add">+ * file points at wrappers Windows does not write. In every one of those cases</span>
+<span class="dl-add">+ * nothing is sent and no function or variable is defined; the lane behaves</span>
+<span class="dl-add">+ * exactly as it did before this module existed, which is what `unsupported`</span>
+<span class="dl-add">+ * has always meant.</span>
+<span class="dl-ctx">  *</span>
+<span class="dl-ctx">  * zsh and bash get a typed line rather than a flag because the only</span>
+<span class="dl-ctx">  * post-startup hook they offer reroutes the user&#39;s own startup files, which</span>
+<span class="dl-del">- * Frame does not do.</span>
+<span class="dl-add">+ * Frame does not do. PowerShell takes a flag, so like fish it types nothing.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function deliveryFor(shellPath, platform = process.platform, projectPath = &#39;&#39;, options = {}) {</span>
+<span class="dl-ctx">   const { marker = &#39;&#39;, isFrameProject = true } = options;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  if (platform === &#39;win32&#39;) return { mode: &#39;none&#39;, reason: &#39;platform&#39; };</span>
+<span class="dl-ctx">   if (!projectPath) return { mode: &#39;none&#39;, reason: &#39;no-project&#39; };</span>
+<span class="dl-ctx">   if (!isFrameProject) return { mode: &#39;none&#39;, reason: &#39;not-a-frame-project&#39; };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx">   const family = shellFamily(shellPath);</span>
+<span class="dl-ctx">   if (!family) return { mode: &#39;none&#39;, reason: &#39;unsupported-shell&#39; };</span>
+<span class="dl-add">+  if (!initFamilies(platform).includes(family)) return { mode: &#39;none&#39;, reason: &#39;unsupported-shell&#39; };</span>
+<span class="dl-ctx">   if (!marker) return { mode: &#39;none&#39;, reason: &#39;no-marker&#39; };</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+  if (family === &#39;powershell&#39;) {</span>
+<span class="dl-add">+    // -ExecutionPolicy Bypass because a Windows client machine defaults to</span>
+<span class="dl-add">+    // Restricted, which blocks dot-sourcing an unsigned local .ps1. It lifts</span>
+<span class="dl-add">+    // the policy for this one process and touches nothing machine-wide — the</span>
+<span class="dl-add">+    // same bargain launchEnv already makes for PATH. Where Group Policy</span>
+<span class="dl-add">+    // overrides it the marker never arrives and the lane reports `failed`,</span>
+<span class="dl-add">+    // which is the designed path rather than a new failure mode.</span>
+<span class="dl-add">+    return {</span>
+<span class="dl-add">+      mode: &#39;flag&#39;,</span>
+<span class="dl-add">+      args: [</span>
+<span class="dl-add">+        &#39;-ExecutionPolicy&#39;, &#39;Bypass&#39;,</span>
+<span class="dl-add">+        &#39;-NoExit&#39;,</span>
+<span class="dl-add">+        &#39;-Command&#39;,</span>
+<span class="dl-add">+        `. ${psQuote(shellInitPath(projectPath, family))}; ${psMarkerEcho(marker)}`</span>
+<span class="dl-add">+      ],</span>
+<span class="dl-add">+      marker</span>
+<span class="dl-add">+    };</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx">   const initFile = singleQuote(shellInitPath(projectPath, family));</span>
+<span class="dl-ctx">   const echo = markerEcho(marker);</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -180,6 +248,8 @@ function manualCommand(shellPath) {</span>
+<span class="dl-ctx">   const family = shellFamily(shellPath);</span>
+<span class="dl-ctx">   if (!family) return &#39;&#39;;</span>
+<span class="dl-ctx">   const rel = `${FRAME_DIR}/${SHELL_DIR}/${INIT_FILES[family]}`;</span>
+<span class="dl-add">+  // PowerShell dot-sources with the same operator POSIX does, and resolves a</span>
+<span class="dl-add">+  // relative path with forward slashes without complaint.</span>
+<span class="dl-ctx">   return family === &#39;fish&#39; ? `source ${rel}` : `. ${rel}`;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -207,6 +277,7 @@ module.exports = {</span>
+<span class="dl-ctx">   SHELL_DIR,</span>
+<span class="dl-ctx">   INIT_FILES,</span>
+<span class="dl-ctx">   MARKER_PREFIX,</span>
+<span class="dl-add">+  initFamilies,</span>
+<span class="dl-ctx">   shellFamily,</span>
+<span class="dl-ctx">   shellInitPath,</span>
+<span class="dl-ctx">   mintMarker,</span>
+<span class="dl-meta">diff --git a/test/shellSetup.test.js b/test/shellSetup.test.js</span>
+<span class="dl-meta">index 3392346..e2e8d56 100644</span>
+<span class="dl-file">--- a/test/shellSetup.test.js</span>
+<span class="dl-file">+++ b/test/shellSetup.test.js</span>
+<span class="dl-hunk">@@ -46,10 +46,10 @@ test(&#39;a login-shell argv0 is still the same shell&#39;, () =&gt; {</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;shells Frame has no init file for get no family&#39;, () =&gt; {</span>
+<span class="dl-del">-  // Not a failure: nushell&#39;s function model matches neither generated file and</span>
+<span class="dl-del">-  // Windows has no .cmd wrappers to point one at.</span>
+<span class="dl-add">+  // Not a failure: nushell&#39;s function and PATH model matches no generated</span>
+<span class="dl-add">+  // file, and cmd has no functions at all — doskey macros are too fragile to</span>
+<span class="dl-add">+  // build on, so cmd gets the PATH entry and PATHEXT resolution and no more.</span>
+<span class="dl-ctx">   assert.equal(shellSetup.shellFamily(&#39;/usr/local/bin/nu&#39;), &#39;&#39;);</span>
+<span class="dl-del">-  assert.equal(shellSetup.shellFamily(&#39;/usr/bin/pwsh&#39;), &#39;&#39;);</span>
+<span class="dl-ctx">   assert.equal(shellSetup.shellFamily(&#39;C:\\Windows\\System32\\cmd.exe&#39;), &#39;&#39;);</span>
+<span class="dl-ctx">   assert.equal(shellSetup.shellFamily(&#39;&#39;), &#39;&#39;);</span>
+<span class="dl-ctx">   assert.equal(shellSetup.shellFamily(null), &#39;&#39;);</span>
+<span class="dl-hunk">@@ -91,12 +91,6 @@ test(&#39;a marker carries the shared prefix and nothing that needs quoting&#39;, () =&gt;</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> // ─── deliveryFor · gates ──────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-test(&#39;win32 gets nothing sent&#39;, () =&gt; {</span>
+<span class="dl-del">-  const delivery = deliver(&#39;C:\\Program Files\\Git\\bin\\bash.exe&#39;, { platform: &#39;win32&#39; });</span>
+<span class="dl-del">-  assert.equal(delivery.mode, &#39;none&#39;);</span>
+<span class="dl-del">-  assert.equal(delivery.reason, &#39;platform&#39;);</span>
+<span class="dl-del">-});</span>
+<span class="dl-del">-</span>
+<span class="dl-ctx"> test(&#39;a folder that is not a Frame project gets nothing sent&#39;, () =&gt; {</span>
+<span class="dl-ctx">   const delivery = deliver(&#39;/bin/zsh&#39;, { isFrameProject: false });</span>
+<span class="dl-ctx">   assert.equal(delivery.mode, &#39;none&#39;);</span>
+<span class="dl-hunk">@@ -164,6 +158,115 @@ test(&#39;the fish command carries the split marker too&#39;, () =&gt; {</span>
+<span class="dl-ctx">   assert.ok(!delivery.args[1].includes(marker));</span>
+<span class="dl-ctx"> });</span>
+<span class="dl-ctx"> </span>
+<span class="dl-add">+// ─── initFamilies ─────────────────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;each platform delivers only the families it can actually serve&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.deepEqual(shellSetup.initFamilies(&#39;darwin&#39;), [&#39;posix&#39;, &#39;fish&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(shellSetup.initFamilies(&#39;linux&#39;), [&#39;posix&#39;, &#39;fish&#39;]);</span>
+<span class="dl-add">+  assert.deepEqual(shellSetup.initFamilies(&#39;win32&#39;), [&#39;powershell&#39;]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── deliveryFor · PowerShell ─────────────────────────────────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const PS_PROJECT = &#39;C:\\Users\\dev\\my project&#39;;</span>
+<span class="dl-add">+const INIT_PS1 = path.join(PS_PROJECT, &#39;.frame&#39;, &#39;runtime&#39;, &#39;shell&#39;, &#39;init.ps1&#39;);</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+const deliverPs = (shellPath, overrides = {}) =&gt;</span>
+<span class="dl-add">+  shellSetup.deliveryFor(shellPath, &#39;win32&#39;, &#39;projectPath&#39; in overrides ? overrides.projectPath : PS_PROJECT, {</span>
+<span class="dl-add">+    marker: &#39;marker&#39; in overrides ? overrides.marker : &#39;__frame_ready_t1_1_a&#39;,</span>
+<span class="dl-add">+    ...(&#39;isFrameProject&#39; in overrides ? { isFrameProject: overrides.isFrameProject } : {})</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;powershell and pwsh are one family&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(shellSetup.shellFamily(&#39;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe&#39;), &#39;powershell&#39;);</span>
+<span class="dl-add">+  assert.equal(shellSetup.shellFamily(&#39;C:\\Program Files\\PowerShell\\7\\pwsh.exe&#39;), &#39;powershell&#39;);</span>
+<span class="dl-add">+  assert.equal(shellSetup.shellFamily(&#39;pwsh&#39;), &#39;powershell&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a PowerShell lane is set up at spawn, with nothing typed&#39;, () =&gt; {</span>
+<span class="dl-add">+  const delivery = deliverPs(&#39;powershell.exe&#39;);</span>
+<span class="dl-add">+  assert.equal(delivery.mode, &#39;flag&#39;);</span>
+<span class="dl-add">+  assert.ok(!(&#39;line&#39; in delivery), &#39;a typed line would be echoed into the user\&#39;s terminal&#39;);</span>
+<span class="dl-add">+  assert.deepEqual(delivery.args.slice(0, 4), [&#39;-ExecutionPolicy&#39;, &#39;Bypass&#39;, &#39;-NoExit&#39;, &#39;-Command&#39;]);</span>
+<span class="dl-add">+  assert.equal(delivery.args.length, 5);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the execution policy is lifted for this process and nothing else&#39;, () =&gt; {</span>
+<span class="dl-add">+  // A Windows client machine defaults to Restricted, which blocks</span>
+<span class="dl-add">+  // dot-sourcing an unsigned local .ps1 — the same bargain launchEnv makes</span>
+<span class="dl-add">+  // for PATH, scoped to a process Frame spawned.</span>
+<span class="dl-add">+  const args = deliverPs(&#39;pwsh.exe&#39;).args;</span>
+<span class="dl-add">+  assert.equal(args[0], &#39;-ExecutionPolicy&#39;);</span>
+<span class="dl-add">+  assert.equal(args[1], &#39;Bypass&#39;);</span>
+<span class="dl-add">+  assert.ok(!args.includes(&#39;-Scope&#39;), &#39;nothing machine-wide is touched&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the PowerShell command dot-sources the init file it was given&#39;, () =&gt; {</span>
+<span class="dl-add">+  const command = deliverPs(&#39;powershell.exe&#39;).args[4];</span>
+<span class="dl-add">+  assert.ok(command.startsWith(`. &#39;${INIT_PS1}&#39;; `), command);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a project path with an apostrophe is quoted the PowerShell way&#39;, () =&gt; {</span>
+<span class="dl-add">+  // PowerShell escapes a quote inside a literal string by doubling it, not by</span>
+<span class="dl-add">+  // the POSIX close-escape-reopen dance.</span>
+<span class="dl-add">+  const weird = &quot;C:\\Users\\o&#39;brien\\proj&quot;;</span>
+<span class="dl-add">+  const command = shellSetup.deliveryFor(&#39;pwsh.exe&#39;, &#39;win32&#39;, weird, { marker: &#39;__frame_ready_x&#39; }).args[4];</span>
+<span class="dl-add">+  assert.ok(command.includes(&quot;o&#39;&#39;brien&quot;), command);</span>
+<span class="dl-add">+  assert.ok(!command.includes(&quot;&#39;\\&#39;&#39;&quot;), &#39;POSIX quoting leaked into the PowerShell line&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the literal marker never appears in what is delivered&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The invariant that predates PowerShell: the two halves are concatenated</span>
+<span class="dl-add">+  // at run time, so a match can only come from real output.</span>
+<span class="dl-add">+  const marker = &#39;__frame_ready_t1_1_a&#39;;</span>
+<span class="dl-add">+  const delivery = deliverPs(&#39;powershell.exe&#39;);</span>
+<span class="dl-add">+  assert.equal(delivery.marker, marker);</span>
+<span class="dl-add">+  for (const arg of delivery.args) {</span>
+<span class="dl-add">+    assert.ok(!arg.includes(marker), `the marker is spelled out in: ${arg}`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+  assert.ok(delivery.args[4].includes(&quot;Write-Output (&#39;__frame_ready_&#39; + &#39;t1_1_a&#39;)&quot;), delivery.args[4]);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;a PowerShell lane outside a Frame project still gets nothing&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(deliverPs(&#39;powershell.exe&#39;, { isFrameProject: false }).reason, &#39;not-a-frame-project&#39;);</span>
+<span class="dl-add">+  assert.equal(deliverPs(&#39;powershell.exe&#39;, { projectPath: &#39;&#39; }).reason, &#39;no-project&#39;);</span>
+<span class="dl-add">+  assert.equal(deliverPs(&#39;powershell.exe&#39;, { marker: &#39;&#39; }).reason, &#39;no-marker&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+// ─── deliveryFor · the Windows shells Frame leaves alone ──────</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;cmd, Git Bash and WSL are unsupported on Windows, not failures&#39;, () =&gt; {</span>
+<span class="dl-add">+  // The gate decision: `unsupported` stays silent — the lane works, it simply</span>
+<span class="dl-add">+  // has no Frame context, exactly as `nu` behaves on macOS.</span>
+<span class="dl-add">+  for (const shell of [&#39;cmd.exe&#39;, &#39;C:\\Program Files\\Git\\bin\\bash.exe&#39;, &#39;wsl.exe&#39;]) {</span>
+<span class="dl-add">+    const delivery = deliverPs(shell);</span>
+<span class="dl-add">+    assert.equal(delivery.mode, &#39;none&#39;, shell);</span>
+<span class="dl-add">+    assert.equal(delivery.reason, &#39;unsupported-shell&#39;, shell);</span>
+<span class="dl-add">+    assert.ok(!(&#39;line&#39; in delivery) &amp;&amp; !(&#39;args&#39; in delivery), `${shell} was sent something`);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;Git Bash is refused for its family, not for its name&#39;, () =&gt; {</span>
+<span class="dl-add">+  // bash.exe resolves to `posix`, whose init file defines functions pointing</span>
+<span class="dl-add">+  // at extensionless wrappers Windows never writes. Delivering it would set</span>
+<span class="dl-add">+  // the lane up to fail rather than leave it alone.</span>
+<span class="dl-add">+  assert.equal(shellSetup.shellFamily(&#39;C:\\Program Files\\Git\\bin\\bash.exe&#39;), &#39;posix&#39;);</span>
+<span class="dl-add">+  assert.ok(!shellSetup.initFamilies(&#39;win32&#39;).includes(&#39;posix&#39;));</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;init.ps1 is never offered to a Mac&#39;, () =&gt; {</span>
+<span class="dl-add">+  for (const shell of [&#39;pwsh&#39;, &#39;powershell.exe&#39;]) {</span>
+<span class="dl-add">+    const delivery = shellSetup.deliveryFor(shell, &#39;darwin&#39;, PROJECT, { marker: &#39;__frame_ready_x&#39; });</span>
+<span class="dl-add">+    assert.equal(delivery.mode, &#39;none&#39;, shell);</span>
+<span class="dl-add">+    assert.equal(delivery.reason, &#39;unsupported-shell&#39;, shell);</span>
+<span class="dl-add">+  }</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+test(&#39;the POSIX families keep working now that the win32 short-circuit is gone&#39;, () =&gt; {</span>
+<span class="dl-add">+  assert.equal(deliver(&#39;/bin/zsh&#39;).mode, &#39;type&#39;);</span>
+<span class="dl-add">+  assert.equal(deliver(&#39;/opt/homebrew/bin/fish&#39;).mode, &#39;flag&#39;);</span>
+<span class="dl-add">+});</span>
+<span class="dl-add">+</span>
+<span class="dl-ctx"> // ─── manualCommand ────────────────────────────────────────────</span>
+<span class="dl-ctx"> </span>
+<span class="dl-ctx"> test(&#39;the manual command is project-relative and per family&#39;, () =&gt; {</span></pre>
     </details>
   </div>
 </section>
