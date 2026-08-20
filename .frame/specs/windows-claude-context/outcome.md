@@ -50,3 +50,20 @@ verification).
 _Captured: 2026-08-20 · 2 file changes_
 
 ---
+
+## T04 — Let `writeWrapper` choose its family and self-gate
+
+`writeWrapper` now takes its filename and family from `launchEnv`
+(`wrapperFileName` with `canPassPaths: !!injection.promptFileFlag`,
+`wrapperFamily`), picks `getCmdWrapperTemplate` or `getWrapperTemplate`, skips
+the `0o755` chmod for the `cmd` family, and returns `''` for a tool that earns
+no wrapper; `prepareLaunchAssets` dropped its `supportsWrappers()` call and
+just calls it. Verified by forcing win32 through `launchEnv` in a scratch
+project: only `.frame/bin/claude.cmd` is written, and the POSIX run still
+produces all three wrappers at mode 755. Also recorded, in
+`wrapperLaunchCommand`, why the `.cmd` is deliberately *not* the composed
+launch line. Files: `src/main/aiToolManager.js`. No deviation from `plan.md`.
+
+_Captured: 2026-08-20 · 1 file change_
+
+---

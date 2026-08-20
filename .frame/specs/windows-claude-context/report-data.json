@@ -39,6 +39,18 @@
         "status": "pass",
         "detail": "559 tests pass, 0 fail (14 new in test/frameTemplates.test.js)"
       }
+    },
+    {
+      "id": "T04",
+      "title": "Let writeWrapper choose its family and self-gate",
+      "commit": "81b375d",
+      "whatChanged": "writeWrapper now asks launchEnv for the filename (wrapperFileName with canPassPaths: !!injection.promptFileFlag) and the family (wrapperFamily), picks getCmdWrapperTemplate or getWrapperTemplate accordingly, skips the 0o755 chmod for the cmd family, and returns '' for a tool that earns no wrapper here. prepareLaunchAssets dropped its own supportsWrappers() call and simply calls it. wrapperLaunchCommand gained a comment recording why the .cmd is deliberately not the composed launch line.",
+      "whyChanged": "Self-gating is what keeps generation on project open, write-if-changed and per tool (C6) while making Codex and Gemini a condition rather than a special case: they declare no promptFileFlag, so on Windows they get no file and behave exactly as they do today. The chmod is skipped because Windows resolves a .cmd through PATHEXT and fs.chmodSync there is a no-op at best. Verified by simulation: forcing win32 through launchEnv writes only .frame/bin/claude.cmd, and the POSIX path still writes all three wrappers at mode 755.",
+      "verification": {
+        "command": "npm test",
+        "status": "pass",
+        "detail": "559 tests pass, 0 fail"
+      }
     }
   ]
 }

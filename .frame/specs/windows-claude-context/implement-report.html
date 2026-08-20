@@ -155,8 +155,8 @@
     </div>
   </div>
   <div class="topbar-meta">
-    <span class="pill">3 tasks</span>
-    <span class="pill good">3 verified</span>
+    <span class="pill">4 tasks</span>
+    <span class="pill good">4 verified</span>
     
     <span class="chip">2026-08-20</span>
   </div>
@@ -1024,6 +1024,99 @@
 <span class="dl-ctx"> // ─── spec-hint settings ───────────────────────────────────────</span>
 <span class="dl-ctx"> </span>
 <span class="dl-ctx"> test(&#39;the spec-hint settings carry both hook events&#39;, () =&gt; {</span></pre>
+    </details>
+  </div>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <span class="card-id">T04</span>
+    <h2>Let writeWrapper choose its family and self-gate</h2>
+    <span class="card-meta"><span class="chip">81b375d</span><span class="pill good">pass</span> <code>npm test</code> <span class="muted">559 tests pass, 0 fail</span></span>
+  </header>
+  <div class="card-body">
+    <div class="field"><span class="label">What changed</span><p>writeWrapper now asks launchEnv for the filename (wrapperFileName with canPassPaths: !!injection.promptFileFlag) and the family (wrapperFamily), picks getCmdWrapperTemplate or getWrapperTemplate accordingly, skips the 0o755 chmod for the cmd family, and returns &#39;&#39; for a tool that earns no wrapper here. prepareLaunchAssets dropped its own supportsWrappers() call and simply calls it. wrapperLaunchCommand gained a comment recording why the .cmd is deliberately not the composed launch line.</p></div>
+    <div class="field"><span class="label">Why</span><p>Self-gating is what keeps generation on project open, write-if-changed and per tool (C6) while making Codex and Gemini a condition rather than a special case: they declare no promptFileFlag, so on Windows they get no file and behave exactly as they do today. The chmod is skipped because Windows resolves a .cmd through PATHEXT and fs.chmodSync there is a no-op at best. Verified by simulation: forcing win32 through launchEnv writes only .frame/bin/claude.cmd, and the POSIX path still writes all three wrappers at mode 755.</p></div>
+    <details>
+      <summary>Diff</summary>
+      <pre class="diff"><span class="dl-meta">diff --git a/src/main/aiToolManager.js b/src/main/aiToolManager.js</span>
+<span class="dl-meta">index 1eba446..33e5221 100644</span>
+<span class="dl-file">--- a/src/main/aiToolManager.js</span>
+<span class="dl-file">+++ b/src/main/aiToolManager.js</span>
+<span class="dl-hunk">@@ -667,21 +667,42 @@ function takeSettingsFlags(extra, settingsFlag) {</span>
+<span class="dl-ctx">  * flags itself would then inject them a second time on top of the wrapper&#39;s.</span>
+<span class="dl-ctx">  * One path, not two guarded ones — which is why `injection` is now data the</span>
+<span class="dl-ctx">  * wrapper reads rather than a switch between two mechanisms.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * Self-gating since Windows joined: the filename, the family and whether this</span>
+<span class="dl-add">+ * tool earns a wrapper at all are `launchEnv`&#39;s answers, and `&#39;&#39;` comes back</span>
+<span class="dl-add">+ * for a tool that gets none — a Windows tool with no file-taking prompt flag,</span>
+<span class="dl-add">+ * where a batch wrapper could not carry the preamble and would shadow a</span>
+<span class="dl-add">+ * working CLI for nothing. Callers no longer ask the platform first.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * The executable bit is POSIX-only. Windows resolves a `.cmd` through</span>
+<span class="dl-add">+ * `PATHEXT`, and `fs.chmodSync` there is a no-op at best.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function writeWrapper(projectPath, tool) {</span>
+<span class="dl-del">-  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id);</span>
+<span class="dl-del">-  const realCommand = tool.fallbackCommand || tool.command || tool.id;</span>
+<span class="dl-ctx">   const injection = tool.injection || {};</span>
+<span class="dl-del">-  writeIfChanged(</span>
+<span class="dl-del">-    target,</span>
+<span class="dl-del">-    templates.getWrapperTemplate(realCommand, {</span>
+<span class="dl-add">+  const fileName = launchEnv.wrapperFileName(tool.id, {</span>
+<span class="dl-add">+    canPassPaths: !!injection.promptFileFlag</span>
+<span class="dl-add">+  });</span>
+<span class="dl-add">+  if (!fileName) return &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const realCommand = tool.fallbackCommand || tool.command || tool.id;</span>
+<span class="dl-add">+  const isCmd = launchEnv.wrapperFamily() === &#39;cmd&#39;;</span>
+<span class="dl-add">+  const content = isCmd</span>
+<span class="dl-add">+    ? templates.getCmdWrapperTemplate(realCommand, {</span>
+<span class="dl-add">+      promptFileFlag: injection.promptFileFlag || &#39;&#39;,</span>
+<span class="dl-add">+      settingsFlag: injection.settingsFlag || &#39;&#39;,</span>
+<span class="dl-add">+      preambleFile: runtimeRelPath(preambleFileName(tool.id)),</span>
+<span class="dl-add">+      settingsFile: runtimeRelPath(settingsFileName(tool.id))</span>
+<span class="dl-add">+    })</span>
+<span class="dl-add">+    : templates.getWrapperTemplate(realCommand, {</span>
+<span class="dl-ctx">       promptFlag: injection.promptFlag || &#39;&#39;,</span>
+<span class="dl-ctx">       settingsFlag: injection.settingsFlag || &#39;&#39;,</span>
+<span class="dl-ctx">       preambleFile: runtimeRelPath(preambleFileName(tool.id)),</span>
+<span class="dl-ctx">       settingsFile: runtimeRelPath(settingsFileName(tool.id))</span>
+<span class="dl-del">-    }),</span>
+<span class="dl-del">-    0o755</span>
+<span class="dl-del">-  );</span>
+<span class="dl-add">+    });</span>
+<span class="dl-add">+  if (!content) return &#39;&#39;;</span>
+<span class="dl-add">+</span>
+<span class="dl-add">+  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, fileName);</span>
+<span class="dl-add">+  writeIfChanged(target, content, isCmd ? undefined : 0o755);</span>
+<span class="dl-ctx">   return target;</span>
+<span class="dl-ctx"> }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-hunk">@@ -745,7 +766,7 @@ function prepareLaunchAssets(projectPath, tool, extraSettings) {</span>
+<span class="dl-ctx">     settingsPath = writeToolSettings(projectPath, tool, extraSettings);</span>
+<span class="dl-ctx">   }</span>
+<span class="dl-ctx"> </span>
+<span class="dl-del">-  const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : &#39;&#39;;</span>
+<span class="dl-add">+  const wrapperPath = writeWrapper(projectPath, tool);</span>
+<span class="dl-ctx">   return {</span>
+<span class="dl-ctx">     preamble,</span>
+<span class="dl-ctx">     settingsPath,</span>
+<span class="dl-hunk">@@ -824,6 +845,13 @@ function inlineInjectionFlags(tool, assets, platform = process.platform) {</span>
+<span class="dl-ctx">  * Falls back the moment the file is not there: the availability probe can run</span>
+<span class="dl-ctx">  * before anything has been written, and a path that does not exist reads as</span>
+<span class="dl-ctx">  * &quot;CLI not installed&quot; — a wrong and very confusing answer.</span>
+<span class="dl-add">+ *</span>
+<span class="dl-add">+ * POSIX only, deliberately, even though Windows now has a `.cmd` to point at.</span>
+<span class="dl-add">+ * There is no single spelling of that path every Windows shell accepts:</span>
+<span class="dl-add">+ * `./.frame/bin/claude.cmd` reads as a switch to `cmd.exe` and</span>
+<span class="dl-add">+ * `.\.frame\bin\claude.cmd` has its backslashes eaten by Git Bash. The</span>
+<span class="dl-add">+ * composed line there is the bare CLI plus two path flags instead — shell-</span>
+<span class="dl-add">+ * agnostic, and it holds even where the `.cmd` was never written.</span>
+<span class="dl-ctx">  */</span>
+<span class="dl-ctx"> function wrapperLaunchCommand(projectPath, tool) {</span>
+<span class="dl-ctx">   if (!projectPath || !launchEnv.supportsWrappers()) return &#39;&#39;;</span></pre>
     </details>
   </div>
 </section>

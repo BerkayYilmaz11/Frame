@@ -667,21 +667,42 @@ function takeSettingsFlags(extra, settingsFlag) {
  * flags itself would then inject them a second time on top of the wrapper's.
  * One path, not two guarded ones — which is why `injection` is now data the
  * wrapper reads rather than a switch between two mechanisms.
+ *
+ * Self-gating since Windows joined: the filename, the family and whether this
+ * tool earns a wrapper at all are `launchEnv`'s answers, and `''` comes back
+ * for a tool that gets none — a Windows tool with no file-taking prompt flag,
+ * where a batch wrapper could not carry the preamble and would shadow a
+ * working CLI for nothing. Callers no longer ask the platform first.
+ *
+ * The executable bit is POSIX-only. Windows resolves a `.cmd` through
+ * `PATHEXT`, and `fs.chmodSync` there is a no-op at best.
  */
 function writeWrapper(projectPath, tool) {
-  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, tool.id);
-  const realCommand = tool.fallbackCommand || tool.command || tool.id;
   const injection = tool.injection || {};
-  writeIfChanged(
-    target,
-    templates.getWrapperTemplate(realCommand, {
+  const fileName = launchEnv.wrapperFileName(tool.id, {
+    canPassPaths: !!injection.promptFileFlag
+  });
+  if (!fileName) return '';
+
+  const realCommand = tool.fallbackCommand || tool.command || tool.id;
+  const isCmd = launchEnv.wrapperFamily() === 'cmd';
+  const content = isCmd
+    ? templates.getCmdWrapperTemplate(realCommand, {
+      promptFileFlag: injection.promptFileFlag || '',
+      settingsFlag: injection.settingsFlag || '',
+      preambleFile: runtimeRelPath(preambleFileName(tool.id)),
+      settingsFile: runtimeRelPath(settingsFileName(tool.id))
+    })
+    : templates.getWrapperTemplate(realCommand, {
       promptFlag: injection.promptFlag || '',
       settingsFlag: injection.settingsFlag || '',
       preambleFile: runtimeRelPath(preambleFileName(tool.id)),
       settingsFile: runtimeRelPath(settingsFileName(tool.id))
-    }),
-    0o755
-  );
+    });
+  if (!content) return '';
+
+  const target = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, fileName);
+  writeIfChanged(target, content, isCmd ? undefined : 0o755);
   return target;
 }
 
@@ -745,7 +766,7 @@ function prepareLaunchAssets(projectPath, tool, extraSettings) {
     settingsPath = writeToolSettings(projectPath, tool, extraSettings);
   }
 
-  const wrapperPath = launchEnv.supportsWrappers() ? writeWrapper(projectPath, tool) : '';
+  const wrapperPath = writeWrapper(projectPath, tool);
   return {
     preamble,
     settingsPath,
@@ -824,6 +845,13 @@ function inlineInjectionFlags(tool, assets, platform = process.platform) {
  * Falls back the moment the file is not there: the availability probe can run
  * before anything has been written, and a path that does not exist reads as
  * "CLI not installed" — a wrong and very confusing answer.
+ *
+ * POSIX only, deliberately, even though Windows now has a `.cmd` to point at.
+ * There is no single spelling of that path every Windows shell accepts:
+ * `./.frame/bin/claude.cmd` reads as a switch to `cmd.exe` and
+ * `.\.frame\bin\claude.cmd` has its backslashes eaten by Git Bash. The
+ * composed line there is the bare CLI plus two path flags instead — shell-
+ * agnostic, and it holds even where the `.cmd` was never written.
  */
 function wrapperLaunchCommand(projectPath, tool) {
   if (!projectPath || !launchEnv.supportsWrappers()) return '';

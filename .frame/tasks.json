@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-20T13:18:03.993Z",
+  "lastUpdated": "2026-08-20T13:20:08.857Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -5052,13 +5052,13 @@
       "title": "Make `writeWrapper` choose filename and template through `launchEnv`, return `''` for any tool whose injection record has no `promptFileFlag` (so Codex and Gemini are unchanged on Windows), and skip the `0o755` chmod for the `cmd` family; drop the `supportsWrappers()` call from `prepareLaunchAssets` and let `writeWrapper` self-gate, keeping generation on project open, write-if-changed, per tool.",
       "description": "",
       "source": "spec:windows-claude-context:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: windows-claude-context",
       "createdAt": "2026-08-20T13:04:41.936Z",
-      "updatedAt": "2026-08-20T13:04:41.936Z",
-      "completedAt": null
+      "updatedAt": "2026-08-20T13:20:08.857Z",
+      "completedAt": "2026-08-20T13:20:08.857Z"
     },
     {
       "id": "task-spec-windows-claude-context-T05",

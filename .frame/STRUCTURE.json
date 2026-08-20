@@ -380,7 +380,7 @@
           "purpose": "Split a dispatch's extra flags into the `--settings` payloads to merge and"
         },
         "writeWrapper": {
-          "line": 671,
+          "line": 680,
           "params": [
             "projectPath",
             "tool"
@@ -388,14 +388,14 @@
           "purpose": "Regenerate `.frame/bin/<id>` for a tool."
         },
         "writeShellInit": {
-          "line": 705,
+          "line": 726,
           "params": [
             "projectPath"
           ],
           "purpose": "Regenerate the shell init files every lane in this project sources."
         },
         "prepareLaunchAssets": {
-          "line": 734,
+          "line": 755,
           "params": [
             "projectPath",
             "tool",
@@ -404,7 +404,7 @@
           "purpose": "Everything a launch of `tool` reads: its preamble, its settings file when it"
         },
         "inlineInjectionFlags": {
-          "line": 776,
+          "line": 797,
           "params": [
             "tool",
             "assets",
@@ -413,7 +413,7 @@
           "purpose": "The flags a launch adds itself, for a tool Frame could not wrap here."
         },
         "wrapperLaunchCommand": {
-          "line": 828,
+          "line": 856,
           "params": [
             "projectPath",
             "tool"
@@ -421,19 +421,19 @@
           "purpose": "The command a launch types for this tool — the wrapper wherever Frame can"
         },
         "bareCommandFor": {
-          "line": 834,
+          "line": 862,
           "params": [
             "tool"
           ]
         },
         "refreshLaunchAssets": {
-          "line": 840,
+          "line": 868,
           "params": [
             "projectPath"
           ]
         },
         "getLaunchCommand": {
-          "line": 877,
+          "line": 905,
           "params": [
             "projectPath",
             "toolId",
