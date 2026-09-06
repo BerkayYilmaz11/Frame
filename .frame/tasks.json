@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T10:04:02.492Z",
+  "lastUpdated": "2026-09-06T10:05:34.257Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7050,13 +7050,13 @@
       "title": "Reduce `getSpecsRoot` and `getSpecDir` in `src/main/specManager.js` to one-line delegates and delete the module's `SPECS_DIR_NAME`, leaving every call site and every `mkdirSync` — including the `isLegacyLayout`-gated one at line 1270 — untouched",
       "description": "",
       "source": "spec:frame-storage-seam:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T10:05:34.257Z",
+      "completedAt": "2026-09-06T10:05:34.257Z"
     },
     {
       "id": "task-spec-frame-storage-seam-T05",

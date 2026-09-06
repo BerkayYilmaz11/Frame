@@ -35,3 +35,14 @@ against. File now runs 15 tests, all passing.
 _Captured: 2026-09-06 · 1 file change_
 
 ---
+## T04 — Point specManager's helpers at frameStore
+
+Reduced `getSpecsRoot` and `getSpecDir` in `src/main/specManager.js` to one-line
+delegates and deleted the module's `SPECS_DIR_NAME`; the 17 call sites, every
+`mkdirSync` and the `isLegacyLayout` gate at line 1267 are untouched. No
+`path.join` carrying `'specs'` remains in the file. The five spec suites
+(49 tests) pass without edits, which is what S5 asks for.
+
+_Captured: 2026-09-06 · 1 file change_
+
+---
