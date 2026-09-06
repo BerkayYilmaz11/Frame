@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T10:05:34.257Z",
+  "lastUpdated": "2026-09-06T10:07:22.439Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7063,13 +7063,13 @@
       "title": "Replace the two joins at `src/main/frameProject.js:241` and `:933` with `frameStore.specsRoot(projectPath)`, keeping both sites' `mkdir` and `.gitkeep` writes as they are",
       "description": "",
       "source": "spec:frame-storage-seam:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T10:07:22.439Z",
+      "completedAt": "2026-09-06T10:07:22.439Z"
     },
     {
       "id": "task-spec-frame-storage-seam-T06",

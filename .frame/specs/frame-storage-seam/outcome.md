@@ -46,3 +46,15 @@ delegates and deleted the module's `SPECS_DIR_NAME`; the 17 call sites, every
 _Captured: 2026-09-06 · 1 file change_
 
 ---
+## T05 — Point frameProject's two creation sites at the resolver
+
+Replaced the joins at `src/main/frameProject.js:241` (async, in
+`runProjectInit`) and `:933` (sync, in `ensureSpecDrivenArtifacts`) with
+`frameStore.specsRoot(projectPath)`; both keep their own `mkdir` and `.gitkeep`
+writes, and neither changes I/O shape. Two lines changed. With this, no
+`path.join` carrying `'specs'` remains anywhere in `src/main` or `src/shared`.
+The init, open, toggle and migration suites (62 tests) pass unchanged.
+
+_Captured: 2026-09-06 · 1 file change_
+
+---
