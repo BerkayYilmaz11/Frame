@@ -76,3 +76,17 @@ unexempted guard; correct them or record the exemption there.
 _Captured: 2026-09-06 · 1 file change_
 
 ---
+## T07 — Pin the shipped mirrors to the resolver
+
+Added the drift test to `test/metaPathGuard.test.js`: it extracts the joined
+segments from every spec-path join in `scripts/spec-index.js`,
+`scripts/spec-command-hint.js` and `src/templates/bin/implement-launch.js`
+(resolving each file's own `FRAME_DIR` constant) and asserts each carries the
+`['.frame', 'specs']` pair that `frameStore.specsRoot()` produces, failing too
+when a mirror stops building a spec path at all. Verified by rewriting
+`spec-index.js:37` to `.framev2` and watching it name the file, line and both
+segment lists. Full suite: 581 tests, all passing.
+
+_Captured: 2026-09-06 · 1 file change_
+
+---

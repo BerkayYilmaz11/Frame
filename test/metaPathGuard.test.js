@@ -1,5 +1,5 @@
 /**
- * Meta-path doctrine guard (frame-storage-seam T06).
+ * Meta-path doctrine guard and mirror drift test (frame-storage-seam T06/T07).
  *
  * `frameStore` is the one module that knows where a project's meta files live.
  * `non-invasive-overlay` excepted `specManager.js` from that rule "for specs",
@@ -31,6 +31,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
+
+const frameStore = require('../src/main/frameStore');
 
 const REPO_ROOT = path.join(__dirname, '..');
 const SRC_DIR = 'src';
@@ -81,4 +83,87 @@ test('the guard is live — it still finds the joins in the exempt shipped tree'
   // real spec-path joins that are meant to be there.
   const shipped = jsFilesUnder(SHIPPED_TREE).flatMap(specPathLines);
   assert.ok(shipped.length > 0, 'the scanner matched nothing at all — it is broken, not the tree clean');
+});
+
+// ─── Mirror drift ─────────────────────────────────────────────
+//
+// These three ship into a user project's `.frame/bin/` and each carries its
+// own copy of the `.frame/specs` literal, because none of them can require
+// frameStore from there. Coupling is impossible, so the answer is a test: the
+// segments they join must be the ones frameStore resolves to.
+
+const MIRRORS = [
+  path.join('scripts', 'spec-index.js'),
+  path.join('scripts', 'spec-command-hint.js'),
+  path.join('src', 'templates', 'bin', 'implement-launch.js')
+];
+
+/** The segments frameStore puts between a project and its specs: ['.frame', 'specs']. */
+function expectedSegments() {
+  const projectPath = path.join(path.sep, 'p');
+  return path.relative(projectPath, frameStore.specsRoot(projectPath)).split(path.sep);
+}
+
+/**
+ * The arguments of the `path.join(` call starting at `from`, as a flat list.
+ * String literals become their value; anything else stays as written, so an
+ * identifier can be resolved (or not) by the caller.
+ */
+function joinArguments(line, from) {
+  const open = line.indexOf('(', from);
+  let depth = 0;
+  let end = open;
+  for (let i = open; i < line.length; i += 1) {
+    if (line[i] === '(') depth += 1;
+    else if (line[i] === ')') {
+      depth -= 1;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  return line
+    .slice(open + 1, end)
+    .split(',')
+    .map((arg) => arg.trim())
+    .filter(Boolean)
+    .map((arg) => (/^(['"`]).*\1$/.test(arg) ? arg.slice(1, -1) : arg));
+}
+
+/** Every spec-path join in `relFile`, with its segments resolved where we can. */
+function specPathJoins(relFile) {
+  const source = fs.readFileSync(path.join(REPO_ROOT, relFile), 'utf8');
+  // A shipped script declares its own FRAME_DIR; resolve it so the comparison
+  // sees the same '.frame' the literal-carrying scripts write inline.
+  const frameDirConst = source.match(/const FRAME_DIR = ['"`]([^'"`]+)['"`]/);
+  const joins = [];
+  source.split('\n').forEach((line, i) => {
+    const match = JOIN_CALL.exec(line);
+    if (!match || !SPECS_LITERAL.test(line)) return;
+    const segments = joinArguments(line, match.index).map(
+      (arg) => (arg === 'FRAME_DIR' && frameDirConst ? frameDirConst[1] : arg)
+    );
+    joins.push({ where: `${relFile}:${i + 1}`, segments });
+  });
+  return joins;
+}
+
+test('the .frame/bin mirrors join the same segments frameStore resolves to', () => {
+  const expected = expectedSegments();
+
+  for (const relFile of MIRRORS) {
+    const joins = specPathJoins(relFile);
+    // A mirror that stopped building a spec path would otherwise make this
+    // test vacuous rather than red.
+    assert.ok(joins.length > 0, `${relFile} builds no spec path any more — the mirror moved`);
+
+    for (const { where, segments } of joins) {
+      const at = segments.findIndex(
+        (_, i) => expected.every((seg, k) => segments[i + k] === seg)
+      );
+      assert.ok(
+        at !== -1,
+        `${where} joins [${segments.join(', ')}], which does not carry ` +
+        `[${expected.join(', ')}] — the shipped literal has drifted from frameStore.specsRoot()`
+      );
+    }
+  }
 });

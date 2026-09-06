@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T10:10:40.793Z",
+  "lastUpdated": "2026-09-06T10:13:03.725Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7089,13 +7089,13 @@
       "title": "Add the drift test to `test/metaPathGuard.test.js` asserting `frameStore.specsRoot()` agrees with the `.frame/bin` literal used by `scripts/spec-index.js`, `scripts/spec-command-hint.js` and `src/templates/bin/implement-launch.js`",
       "description": "",
       "source": "spec:frame-storage-seam:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T10:13:03.725Z",
+      "completedAt": "2026-09-06T10:13:03.725Z"
     }
   ],
   "metadata": {
