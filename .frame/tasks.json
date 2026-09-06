@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T10:07:22.439Z",
+  "lastUpdated": "2026-09-06T10:10:40.793Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7076,13 +7076,13 @@
       "title": "Add `test/metaPathGuard.test.js` with the source-scanning guard: no `.js` file under `src/` other than `frameStore.js` has a line that both calls `path.join` and carries the `'specs'` literal, excluding `src/templates/bin/` because those files ship into `.frame/bin/` under the same rule as `scripts/`",
       "description": "",
       "source": "spec:frame-storage-seam:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T10:10:40.793Z",
+      "completedAt": "2026-09-06T10:10:40.793Z"
     },
     {
       "id": "task-spec-frame-storage-seam-T07",

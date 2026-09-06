@@ -58,3 +58,21 @@ The init, open, toggle and migration suites (62 tests) pass unchanged.
 _Captured: 2026-09-06 · 1 file change_
 
 ---
+## T06 — Add the meta-path doctrine guard
+
+Added `test/metaPathGuard.test.js`: a recursive `src/` scan flagging any line
+that calls `path.join` / `path.posix.join` and carries a `'specs'` literal,
+exempting `src/main/frameStore.js` (the owner) and `src/templates/bin/` (ships
+into `.frame/bin/`, cannot require frameStore — the same answer `scripts/`
+gets). Verified by injecting a violation into `specManager.js` and watching the
+test name it, then reverting. **Diverges from plan.md step 4**, which says
+"every `.js` under `src/`" with no exemption: `implement-launch.js:33,174`
+would make that guard permanently red. A second test asserts the scanner still
+matches the exempt copies, so it cannot pass by matching nothing.
+
+Followup: plan.md step 4 and the plan report's S1 row still describe the
+unexempted guard; correct them or record the exemption there.
+
+_Captured: 2026-09-06 · 1 file change_
+
+---
