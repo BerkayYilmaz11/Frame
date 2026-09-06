@@ -5,7 +5,8 @@
  * Projects initialized before that keep the root layout until the user
  * consents to migrate, so both layouts have to work at once. Every read and
  * write of AGENTS.md / PROJECT_NOTES.md / QUICKSTART.md / STRUCTURE.json /
- * tasks.json goes through here; no other module joins those paths.
+ * tasks.json goes through here, and so does every `.frame/specs/<slug>` path;
+ * no other module joins those paths.
  *
  * Resolution rule (mirrored by the .frame/bin scripts):
  *
@@ -21,6 +22,13 @@
  *
  * `.frame/config.json` itself is never resolved: it has always lived in
  * `.frame/`, and it is the record the rule reads.
+ *
+ * Spec folders answer to `specsRoot` / `resolveSpecDir` rather than to the
+ * rule above, and they are flat — see the Specs section for why a legacy
+ * fallback would be wrong there. `non-invasive-overlay` originally excepted
+ * `specManager.js` from this doctrine "for specs"; that exception is
+ * withdrawn, and `test/metaPathGuard.test.js` now fails when a spec path is
+ * built outside this module.
  *
  * Files are the source of truth. Every read hits disk — agents edit these
  * files with their own tools and Frame must see the result immediately — so

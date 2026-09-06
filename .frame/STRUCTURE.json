@@ -1166,20 +1166,20 @@
       ],
       "functions": {
         "configPath": {
-          "line": 41,
+          "line": 49,
           "params": [
             "projectPath"
           ]
         },
         "readConfig": {
-          "line": 49,
+          "line": 57,
           "params": [
             "projectPath"
           ],
           "purpose": "Read `.frame/config.json`. Returns null when it is missing or unreadable —"
         },
         "writeConfig": {
-          "line": 58,
+          "line": 66,
           "params": [
             "projectPath",
             "config"
@@ -1187,14 +1187,14 @@
           "purpose": "Write `.frame/config.json` atomically. Throws on failure, like fsSafe."
         },
         "legacyFileNames": {
-          "line": 68,
+          "line": 76,
           "params": [
             "projectPath"
           ],
           "purpose": "The names a legacy project recorded at init. Empty for a project written"
         },
         "resolvePath": {
-          "line": 81,
+          "line": 89,
           "params": [
             "projectPath",
             "name"
@@ -1202,28 +1202,28 @@
           "purpose": "Absolute path Frame should use for meta file `name` in this project."
         },
         "isLegacyLayout": {
-          "line": 96,
+          "line": 104,
           "params": [
             "projectPath"
           ],
           "purpose": "True while the project still carries Frame's pre-overlay layout: the"
         },
         "metaDir": {
-          "line": 105,
+          "line": 113,
           "params": [
             "projectPath"
           ],
           "purpose": "Directory to watch for tasks.json — the root for an unmigrated project,"
         },
         "specsRoot": {
-          "line": 120,
+          "line": 128,
           "params": [
             "projectPath"
           ],
           "purpose": "Root of a project's spec folders: `<project>/.frame/specs`."
         },
         "resolveSpecDir": {
-          "line": 125,
+          "line": 133,
           "params": [
             "projectPath",
             "slug"
@@ -1231,14 +1231,14 @@
           "purpose": "One spec's folder: `<project>/.frame/specs/<slug>`."
         },
         "readText": {
-          "line": 131,
+          "line": 139,
           "params": [
             "projectPath",
             "name"
           ]
         },
         "writeText": {
-          "line": 139,
+          "line": 147,
           "params": [
             "projectPath",
             "name",
@@ -1246,41 +1246,41 @@
           ]
         },
         "getTasks": {
-          "line": 152,
+          "line": 160,
           "params": [
             "projectPath"
           ],
           "purpose": "tasks.json, with fsSafe's corruption recovery. Returns the recovery record"
         },
         "saveTasks": {
-          "line": 156,
+          "line": 164,
           "params": [
             "projectPath",
             "data"
           ]
         },
         "getStructure": {
-          "line": 161,
+          "line": 169,
           "params": [
             "projectPath"
           ],
           "purpose": "STRUCTURE.json parsed, or null when it is missing or unparseable."
         },
         "saveStructure": {
-          "line": 171,
+          "line": 179,
           "params": [
             "projectPath",
             "structure"
           ]
         },
         "readNotes": {
-          "line": 175,
+          "line": 183,
           "params": [
             "projectPath"
           ]
         },
         "appendNote": {
-          "line": 183,
+          "line": 191,
           "params": [
             "projectPath",
             "text"
@@ -1288,40 +1288,40 @@
           "purpose": "Append an entry to PROJECT_NOTES.md, keeping one blank line between it and"
         },
         "readQuickstart": {
-          "line": 192,
+          "line": 200,
           "params": [
             "projectPath"
           ]
         },
         "readAgents": {
-          "line": 196,
+          "line": 204,
           "params": [
             "projectPath"
           ]
         },
         "writeAgents": {
-          "line": 200,
+          "line": 208,
           "params": [
             "projectPath",
             "text"
           ]
         },
         "getProjectId": {
-          "line": 207,
+          "line": 215,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's stable id, or null if it has none yet."
         },
         "ensureProjectId": {
-          "line": 219,
+          "line": 227,
           "params": [
             "projectPath"
           ],
           "purpose": "Stamp a UUID into `.frame/config.json` once and return it; a project that"
         },
         "setupIPC": {
-          "line": 236,
+          "line": 244,
           "params": [
             "ipcMain"
           ],

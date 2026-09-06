@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T09:14:48.353Z",
+  "lastUpdated": "2026-09-06T09:59:51.512Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7024,13 +7024,13 @@
       "title": "Extend `src/main/frameStore.js`'s header to name spec folders alongside the meta files it already lists, recording that `non-invasive-overlay`'s `specManager.js` exception is withdrawn",
       "description": "",
       "source": "spec:frame-storage-seam:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T09:59:51.512Z",
+      "completedAt": "2026-09-06T09:59:51.512Z"
     },
     {
       "id": "task-spec-frame-storage-seam-T03",
