@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T09:59:51.512Z",
+  "lastUpdated": "2026-09-06T10:04:02.492Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7037,13 +7037,13 @@
       "title": "Add resolver unit tests to `test/frameStore.test.js`: each returns the flat `.frame/specs[/slug]` answer, and a legacy project carrying a `config.files` record plus a root-level `specs/` directory still resolves to the overlay",
       "description": "",
       "source": "spec:frame-storage-seam:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-storage-seam",
       "createdAt": "2026-09-04T10:47:08.107Z",
-      "updatedAt": "2026-09-04T10:47:08.107Z",
-      "completedAt": null
+      "updatedAt": "2026-09-06T10:04:02.492Z",
+      "completedAt": "2026-09-06T10:04:02.492Z"
     },
     {
       "id": "task-spec-frame-storage-seam-T04",

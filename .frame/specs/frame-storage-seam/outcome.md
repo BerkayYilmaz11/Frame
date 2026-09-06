@@ -22,3 +22,16 @@ the sentence is false until that lands.
 _Captured: 2026-09-06 · 1 file change_
 
 ---
+## T03 — Cover the spec resolvers in frameStore's tests
+
+Added a `Spec paths` section to `test/frameStore.test.js` with two tests: the
+flat shape of both resolvers, and that neither moves when every condition
+`resolvePath`'s legacy branch needs is present at once — the `config.files`
+record, a root file making `isLegacyLayout` true, and a root-level `specs/`
+directory. The second test asserts `isLegacyLayout` is true first, so it fails
+loudly if the fixture stops reproducing the legacy state it is guarding
+against. File now runs 15 tests, all passing.
+
+_Captured: 2026-09-06 · 1 file change_
+
+---

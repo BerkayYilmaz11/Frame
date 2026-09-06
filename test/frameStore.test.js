@@ -127,6 +127,33 @@ test('metaDir points at the directory tasks.json actually lives in', () => {
   assert.equal(frameStore.metaDir(projectDir), frameDir(), 'overlay layout: watch .frame/');
 });
 
+// ─── Spec paths ───────────────────────────────────────────────
+
+test('spec paths are flat joins under .frame/specs', () => {
+  assert.equal(frameStore.specsRoot(projectDir), path.join(frameDir(), 'specs'));
+  assert.equal(
+    frameStore.resolveSpecDir(projectDir, 'frame-storage-seam'),
+    path.join(frameDir(), 'specs', 'frame-storage-seam')
+  );
+});
+
+test('spec paths never fall back to the project root, legacy record or not', () => {
+  // Everything resolvePath's legacy branch asks for, all at once: the
+  // config.files fingerprint plus a real directory at the root. Specs were
+  // never in that record, so the answer must not move.
+  writeConfig({ version: '1.0', files: legacyFilesRecord() });
+  writeRootFile(FRAME_FILES.STRUCTURE, '{}');
+  fs.mkdirSync(path.join(projectDir, 'specs', 'legacy-slug'), { recursive: true });
+
+  assert.equal(frameStore.isLegacyLayout(projectDir), true, 'the fallback conditions really are met');
+  assert.equal(frameStore.specsRoot(projectDir), path.join(frameDir(), 'specs'));
+  assert.equal(
+    frameStore.resolveSpecDir(projectDir, 'legacy-slug'),
+    path.join(frameDir(), 'specs', 'legacy-slug'),
+    'a root-level specs/ is not a legacy spec store'
+  );
+});
+
 // ─── Typed read/write ─────────────────────────────────────────
 
 test('typed read/write round-trips', () => {
