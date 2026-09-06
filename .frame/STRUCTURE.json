@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-01",
+  "lastUpdated": "2026-09-06",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -1137,6 +1137,8 @@
       "description": "frameStore — the one module that knows where a project's meta files live.",
       "exports": [
         "resolvePath",
+        "specsRoot",
+        "resolveSpecDir",
         "setupIPC",
         "metaDir",
         "isLegacyLayout",
@@ -1213,15 +1215,30 @@
           ],
           "purpose": "Directory to watch for tasks.json — the root for an unmigrated project,"
         },
+        "specsRoot": {
+          "line": 120,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Root of a project's spec folders: `<project>/.frame/specs`."
+        },
+        "resolveSpecDir": {
+          "line": 125,
+          "params": [
+            "projectPath",
+            "slug"
+          ],
+          "purpose": "One spec's folder: `<project>/.frame/specs/<slug>`."
+        },
         "readText": {
-          "line": 111,
+          "line": 131,
           "params": [
             "projectPath",
             "name"
           ]
         },
         "writeText": {
-          "line": 119,
+          "line": 139,
           "params": [
             "projectPath",
             "name",
@@ -1229,41 +1246,41 @@
           ]
         },
         "getTasks": {
-          "line": 132,
+          "line": 152,
           "params": [
             "projectPath"
           ],
           "purpose": "tasks.json, with fsSafe's corruption recovery. Returns the recovery record"
         },
         "saveTasks": {
-          "line": 136,
+          "line": 156,
           "params": [
             "projectPath",
             "data"
           ]
         },
         "getStructure": {
-          "line": 141,
+          "line": 161,
           "params": [
             "projectPath"
           ],
           "purpose": "STRUCTURE.json parsed, or null when it is missing or unparseable."
         },
         "saveStructure": {
-          "line": 151,
+          "line": 171,
           "params": [
             "projectPath",
             "structure"
           ]
         },
         "readNotes": {
-          "line": 155,
+          "line": 175,
           "params": [
             "projectPath"
           ]
         },
         "appendNote": {
-          "line": 163,
+          "line": 183,
           "params": [
             "projectPath",
             "text"
@@ -1271,40 +1288,40 @@
           "purpose": "Append an entry to PROJECT_NOTES.md, keeping one blank line between it and"
         },
         "readQuickstart": {
-          "line": 172,
+          "line": 192,
           "params": [
             "projectPath"
           ]
         },
         "readAgents": {
-          "line": 176,
+          "line": 196,
           "params": [
             "projectPath"
           ]
         },
         "writeAgents": {
-          "line": 180,
+          "line": 200,
           "params": [
             "projectPath",
             "text"
           ]
         },
         "getProjectId": {
-          "line": 187,
+          "line": 207,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's stable id, or null if it has none yet."
         },
         "ensureProjectId": {
-          "line": 199,
+          "line": 219,
           "params": [
             "projectPath"
           ],
           "purpose": "Stamp a UUID into `.frame/config.json` once and return it; a project that"
         },
         "setupIPC": {
-          "line": 216,
+          "line": 236,
           "params": [
             "ipcMain"
           ],

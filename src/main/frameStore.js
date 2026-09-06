@@ -106,6 +106,26 @@ function metaDir(projectPath) {
   return path.dirname(resolvePath(projectPath, FRAME_FILES.TASKS));
 }
 
+// ─── Specs ────────────────────────────────────────────────────
+//
+// A spec is a folder of files rather than one of the FRAME_FILES names, so it
+// gets its own named pair instead of a case inside resolvePath. Deliberately
+// flat: the overlay-then-root branch above answers only for names a legacy
+// project recorded in `config.files`, and specs were never in that record, so
+// routing them through it would invent a legacy lookup that has never existed.
+
+const SPECS_DIR_NAME = 'specs';
+
+/** Root of a project's spec folders: `<project>/.frame/specs`. */
+function specsRoot(projectPath) {
+  return path.join(projectPath, FRAME_DIR, SPECS_DIR_NAME);
+}
+
+/** One spec's folder: `<project>/.frame/specs/<slug>`. */
+function resolveSpecDir(projectPath, slug) {
+  return path.join(specsRoot(projectPath), slug);
+}
+
 // ─── Typed read/write ─────────────────────────────────────────
 
 function readText(projectPath, name) {
@@ -224,6 +244,8 @@ function setupIPC(ipcMain) {
 
 module.exports = {
   resolvePath,
+  specsRoot,
+  resolveSpecDir,
   setupIPC,
   metaDir,
   isLegacyLayout,
