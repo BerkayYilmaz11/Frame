@@ -24,7 +24,6 @@ const telemetry = require('./telemetry');
 const activityLog = require('./activityLog');
 const perfMonitor = require('./perfMonitor');
 
-const SPECS_DIR_NAME = 'specs';
 const STATUS_FILE = 'status.json';
 const SPEC_FILE = 'spec.md';
 const PLAN_FILE = 'plan.md';
@@ -59,12 +58,15 @@ const busySpecSlugs = new Set();
 
 // ─── Path helpers ──────────────────────────────────────────
 
+// Delegates, not joins: frameStore owns every meta path, spec folders
+// included. Kept as local names so the call sites below read unchanged.
+
 function getSpecsRoot(projectPath) {
-  return path.join(projectPath, FRAME_DIR, SPECS_DIR_NAME);
+  return frameStore.specsRoot(projectPath);
 }
 
 function getSpecDir(projectPath, slug) {
-  return path.join(getSpecsRoot(projectPath), slug);
+  return frameStore.resolveSpecDir(projectPath, slug);
 }
 
 // ─── Validation ────────────────────────────────────────────

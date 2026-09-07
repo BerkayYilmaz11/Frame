@@ -238,7 +238,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   // .frame/specs/ — Spec-Driven Development is on for new projects, so the
   // folder exists from the start (tracked by .gitkeep) instead of appearing
   // the first time someone opts in.
-  const specsDirPath = path.join(frameDirPath, 'specs');
+  const specsDirPath = frameStore.specsRoot(projectPath);
   await fsp.mkdir(specsDirPath, { recursive: true });
   await createFileIfNotExists(path.join(specsDirPath, '.gitkeep'), '');
 
@@ -930,7 +930,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   }
 
   // Make sure .frame/specs/ exists with a .gitkeep so it's version-tracked
-  const specsDir = path.join(projectPath, FRAME_DIR, 'specs');
+  const specsDir = frameStore.specsRoot(projectPath);
   fs.mkdirSync(specsDir, { recursive: true });
   const gitkeepPath = path.join(specsDir, '.gitkeep');
   if (!fs.existsSync(gitkeepPath)) {

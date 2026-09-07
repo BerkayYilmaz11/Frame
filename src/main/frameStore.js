@@ -5,7 +5,8 @@
  * Projects initialized before that keep the root layout until the user
  * consents to migrate, so both layouts have to work at once. Every read and
  * write of AGENTS.md / PROJECT_NOTES.md / QUICKSTART.md / STRUCTURE.json /
- * tasks.json goes through here; no other module joins those paths.
+ * tasks.json goes through here, and so does every `.frame/specs/<slug>` path;
+ * no other module joins those paths.
  *
  * Resolution rule (mirrored by the .frame/bin scripts):
  *
@@ -21,6 +22,13 @@
  *
  * `.frame/config.json` itself is never resolved: it has always lived in
  * `.frame/`, and it is the record the rule reads.
+ *
+ * Spec folders answer to `specsRoot` / `resolveSpecDir` rather than to the
+ * rule above, and they are flat — see the Specs section for why a legacy
+ * fallback would be wrong there. `non-invasive-overlay` originally excepted
+ * `specManager.js` from this doctrine "for specs"; that exception is
+ * withdrawn, and `test/metaPathGuard.test.js` now fails when a spec path is
+ * built outside this module.
  *
  * Files are the source of truth. Every read hits disk — agents edit these
  * files with their own tools and Frame must see the result immediately — so
@@ -104,6 +112,26 @@ function isLegacyLayout(projectPath) {
  */
 function metaDir(projectPath) {
   return path.dirname(resolvePath(projectPath, FRAME_FILES.TASKS));
+}
+
+// ─── Specs ────────────────────────────────────────────────────
+//
+// A spec is a folder of files rather than one of the FRAME_FILES names, so it
+// gets its own named pair instead of a case inside resolvePath. Deliberately
+// flat: the overlay-then-root branch above answers only for names a legacy
+// project recorded in `config.files`, and specs were never in that record, so
+// routing them through it would invent a legacy lookup that has never existed.
+
+const SPECS_DIR_NAME = 'specs';
+
+/** Root of a project's spec folders: `<project>/.frame/specs`. */
+function specsRoot(projectPath) {
+  return path.join(projectPath, FRAME_DIR, SPECS_DIR_NAME);
+}
+
+/** One spec's folder: `<project>/.frame/specs/<slug>`. */
+function resolveSpecDir(projectPath, slug) {
+  return path.join(specsRoot(projectPath), slug);
 }
 
 // ─── Typed read/write ─────────────────────────────────────────
@@ -224,6 +252,8 @@ function setupIPC(ipcMain) {
 
 module.exports = {
   resolvePath,
+  specsRoot,
+  resolveSpecDir,
   setupIPC,
   metaDir,
   isLegacyLayout,

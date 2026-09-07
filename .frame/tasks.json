@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-08-31T21:33:41.054Z",
+  "lastUpdated": "2026-09-06T10:13:03.725Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7005,10 +7005,101 @@
       "createdAt": "2026-09-01T05:57:13.685Z",
       "updatedAt": "2026-09-01T05:57:13.685Z",
       "completedAt": null
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T01",
+      "title": "Add `specsRoot(projectPath)` and `resolveSpecDir(projectPath, slug)` to `src/main/frameStore.js` as flat joins over `FRAME_DIR`, never routed through `resolvePath`, and export both",
+      "description": "",
+      "source": "spec:frame-storage-seam:T01",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T09:14:48.353Z",
+      "completedAt": "2026-09-06T09:14:48.353Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T02",
+      "title": "Extend `src/main/frameStore.js`'s header to name spec folders alongside the meta files it already lists, recording that `non-invasive-overlay`'s `specManager.js` exception is withdrawn",
+      "description": "",
+      "source": "spec:frame-storage-seam:T02",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T09:59:51.512Z",
+      "completedAt": "2026-09-06T09:59:51.512Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T03",
+      "title": "Add resolver unit tests to `test/frameStore.test.js`: each returns the flat `.frame/specs[/slug]` answer, and a legacy project carrying a `config.files` record plus a root-level `specs/` directory still resolves to the overlay",
+      "description": "",
+      "source": "spec:frame-storage-seam:T03",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T10:04:02.492Z",
+      "completedAt": "2026-09-06T10:04:02.492Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T04",
+      "title": "Reduce `getSpecsRoot` and `getSpecDir` in `src/main/specManager.js` to one-line delegates and delete the module's `SPECS_DIR_NAME`, leaving every call site and every `mkdirSync` — including the `isLegacyLayout`-gated one at line 1270 — untouched",
+      "description": "",
+      "source": "spec:frame-storage-seam:T04",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T10:05:34.257Z",
+      "completedAt": "2026-09-06T10:05:34.257Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T05",
+      "title": "Replace the two joins at `src/main/frameProject.js:241` and `:933` with `frameStore.specsRoot(projectPath)`, keeping both sites' `mkdir` and `.gitkeep` writes as they are",
+      "description": "",
+      "source": "spec:frame-storage-seam:T05",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T10:07:22.439Z",
+      "completedAt": "2026-09-06T10:07:22.439Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T06",
+      "title": "Add `test/metaPathGuard.test.js` with the source-scanning guard: no `.js` file under `src/` other than `frameStore.js` has a line that both calls `path.join` and carries the `'specs'` literal, excluding `src/templates/bin/` because those files ship into `.frame/bin/` under the same rule as `scripts/`",
+      "description": "",
+      "source": "spec:frame-storage-seam:T06",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T10:10:40.793Z",
+      "completedAt": "2026-09-06T10:10:40.793Z"
+    },
+    {
+      "id": "task-spec-frame-storage-seam-T07",
+      "title": "Add the drift test to `test/metaPathGuard.test.js` asserting `frameStore.specsRoot()` agrees with the `.frame/bin` literal used by `scripts/spec-index.js`, `scripts/spec-command-hint.js` and `src/templates/bin/implement-launch.js`",
+      "description": "",
+      "source": "spec:frame-storage-seam:T07",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-storage-seam",
+      "createdAt": "2026-09-04T10:47:08.107Z",
+      "updatedAt": "2026-09-06T10:13:03.725Z",
+      "completedAt": "2026-09-06T10:13:03.725Z"
     }
   ],
   "metadata": {
-    "totalCreated": 505,
+    "totalCreated": 512,
     "totalCompleted": 28
   },
   "categories": {
