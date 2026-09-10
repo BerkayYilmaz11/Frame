@@ -1,0 +1,206 @@
+/* ==================== DOCK ==================== */
+/* The VS Code-style panel beside the center (dock-panel-readonly-views
+   spec). `#dock` is the last child of `#terminal-container`, which is a
+   flex column: the dock sits under the center by default and, when the
+   container carries `.dock-right`, the column becomes a row and the dock
+   sits beside it. One element, one class — the sidebar is outside the
+   container, so a bottom dock never runs under it (D7).
+
+   Sizing is inline (`height` when bottom, `width` when right), written by
+   dock.js from dockState's clamped value; nothing here fixes a size. */
+
+#terminal-container.dock-right {
+  flex-direction: row;
+}
+
+/* The center must be allowed to shrink on the dock's axis, or the dock
+   overflows the container instead of taking room from it (C1). */
+#terminal-container.dock-open > #terminal {
+  min-height: 0;
+  min-width: 0;
+}
+
+#terminal-container.dock-right > #terminal {
+  width: auto;
+}
+
+#dock {
+  display: none;
+  position: relative;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+#dock.open {
+  display: flex;
+}
+
+#terminal-container.dock-bottom > #dock {
+  margin-top: var(--space-sm);
+}
+
+#terminal-container.dock-right > #dock {
+  margin-left: var(--space-sm);
+}
+
+/* ---------- Resize handle ---------- */
+/* On the dock's inner edge: its top when docked at the bottom, its left
+   when docked on the right. Same treatment as the sidebar's handle. */
+.dock-resize-handle {
+  position: absolute;
+  z-index: 5;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+#terminal-container.dock-bottom .dock-resize-handle {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+#terminal-container.dock-right .dock-resize-handle {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+.dock-resize-handle:hover,
+.dock-resize-handle.dragging {
+  background: var(--accent-primary);
+}
+
+body.dock-resizing {
+  user-select: none;
+}
+
+body.dock-resizing-ns,
+body.dock-resizing-ns * {
+  cursor: ns-resize !important;
+}
+
+body.dock-resizing-ew,
+body.dock-resizing-ew * {
+  cursor: ew-resize !important;
+}
+
+/* ---------- Header: tab strip + actions ---------- */
+.dock-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-xs) 0 var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+}
+
+.dock-tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dock-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.dock-tab {
+  flex: 0 0 auto;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.dock-tab:hover {
+  color: var(--text-secondary);
+}
+
+.dock-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.dock-tab:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: -1px;
+}
+
+.dock-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dock-action-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.dock-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.dock-action-btn:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* ---------- Body: one slot per tab, only the active one shown ---------- */
+.dock-body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  background: var(--bg-deep);
+}
+
+.dock-slot {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dock-slot.active {
+  display: flex;
+  flex-direction: column;
+}

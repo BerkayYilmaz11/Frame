@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T08:32:59.762Z",
+  "lastUpdated": "2026-09-10T12:26:05.942Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7115,25 +7115,25 @@
       "title": "Add the `#dock` shell to `index.html` inside `#terminal-container`, `src/renderer/styles/components/dock.css` (+ `main.css` import) and `src/renderer/dock.js` — tab strip, ×, move control, drag handle with rAF-applied size and a single `terminal.fitTerminal()` on mouseup, `#terminal-container.dock-right`, persistence through dockState with clamping on every apply, `onChange`; register `dock.toggle` (CmdOrCtrl+J), `dock.moveRight`, `dock.moveBottom` and call `dock.init()` in `src/renderer/index.js`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T02",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:32:59.762Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:26:05.942Z",
+      "completedAt": "2026-09-10T12:26:05.942Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T03",
       "title": "Host Prompts, Activity and Feedback in the dock: `DOCK_TABS` entries that re-parent `#prompts-panel` / `#activity-panel` / `#feedback-panel` into their slot, call the module's show()/hide(), and observe `.visible` to close the dock; width overrides in `panels.css`, `activity.css`, `feedback.css`; commands `dock.prompts` (replacing `panel.togglePrompts`, CmdOrCtrl+Shift+L), `dock.activity`, `dock.feedback`; remove the three entries from `PANEL_REGISTRY`, the `TOGGLE_HISTORY_PANEL` listener in `promptsPanel.js`, and the stale header comment in `feedbackPanel.js`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T03",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:26:05.942Z",
       "completedAt": null
     },
     {

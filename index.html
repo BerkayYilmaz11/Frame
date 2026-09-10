@@ -252,8 +252,24 @@
   <!-- Main Content Area -->
   <div id="main-content">
     <!-- Terminal -->
-    <div id="terminal-container">
+    <div id="terminal-container" class="dock-bottom">
       <div id="terminal"></div>
+      <!-- Dock: the VS Code-style panel beside the center
+           (dock-panel-readonly-views spec). Hosts the read-only surfaces —
+           Decisions, Structure, Prompts, Activity — and Feedback, one at a
+           time. Bottom by default, to the right with .dock-right on the
+           container; tabs and slots are built by dock.js. -->
+      <div id="dock" class="dock" aria-hidden="true">
+        <div class="dock-resize-handle" title="Drag to resize"></div>
+        <div class="dock-header">
+          <div class="dock-tabs" role="tablist" aria-label="Panel tabs"></div>
+          <div class="dock-actions">
+            <button type="button" class="dock-action-btn dock-move" tabindex="-1" title="Move Panel Right" aria-label="Move Panel Right"></button>
+            <button type="button" class="dock-action-btn dock-close" tabindex="-1" title="Close Panel (⌘J)" aria-label="Close Panel"></button>
+          </div>
+        </div>
+        <div class="dock-body"></div>
+      </div>
     </div>
 
     <!-- Tasks Panel -->

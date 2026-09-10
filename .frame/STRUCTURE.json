@@ -5135,6 +5135,145 @@
         }
       }
     },
+    "renderer/dock": {
+      "file": "src/renderer/dock.js",
+      "description": "Dock — the VS Code-style panel beside the center (dock-panel-readonly-views",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "toggleTab",
+        "setPosition",
+        "isOpen",
+        "activeTab",
+        "position",
+        "remountActive",
+        "onChange",
+        "DOCK_TABS",
+        "lucideIcon"
+      ],
+      "depends": [
+        "dock/dockState",
+        "lucide",
+        "terminal"
+      ],
+      "functions": {
+        "lucideIcon": {
+          "line": 37,
+          "params": [
+            "data",
+            "size = 14"
+          ],
+          "purpose": "Inline SVG for a lucide icon's data (the shape sectionRail.js uses)."
+        },
+        "loadState": {
+          "line": 74
+        },
+        "persist": {
+          "line": 82
+        },
+        "init": {
+          "line": 92
+        },
+        "available": {
+          "line": 147,
+          "params": [
+            "position = state.position"
+          ],
+          "purpose": "The center's extent on the dock's axis, for the size ceiling."
+        },
+        "applySize": {
+          "line": 156
+        },
+        "apply": {
+          "line": 173,
+          "params": [
+            "{ refit = false } = {}"
+          ],
+          "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
+        },
+        "mountTab": {
+          "line": 211,
+          "params": [
+            "tab"
+          ]
+        },
+        "unmountTab": {
+          "line": 225
+        },
+        "refitCenter": {
+          "line": 240,
+          "purpose": "Terminals refit through the existing fit path (D13)."
+        },
+        "refitTab": {
+          "line": 247,
+          "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
+        },
+        "emit": {
+          "line": 258
+        },
+        "snapshotState": {
+          "line": 269
+        },
+        "bindResize": {
+          "line": 275,
+          "params": [
+            "handle"
+          ]
+        },
+        "ensureReady": {
+          "line": 335
+        },
+        "open": {
+          "line": 344,
+          "params": [
+            "tab"
+          ],
+          "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
+        },
+        "close": {
+          "line": 351
+        },
+        "toggle": {
+          "line": 359,
+          "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
+        },
+        "toggleTab": {
+          "line": 365,
+          "params": [
+            "tab"
+          ],
+          "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
+        },
+        "setPosition": {
+          "line": 372,
+          "params": [
+            "position"
+          ]
+        },
+        "isOpen": {
+          "line": 380
+        },
+        "activeTab": {
+          "line": 384
+        },
+        "position": {
+          "line": 388
+        },
+        "remountActive": {
+          "line": 397,
+          "purpose": "Re-run the active tab's mount (the project changed under an open"
+        },
+        "onChange": {
+          "line": 405,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Follow the dock: fn({ open, position, tab }) after every change."
+        }
+      }
+    },
     "renderer/dock/dockState": {
       "file": "src/renderer/dock/dockState.js",
       "description": "Dock state — pure (dock-panel-readonly-views spec, D2).",
@@ -6584,6 +6723,7 @@
         "docsHealthHint",
         "migrationModal",
         "sampleBanner",
+        "dock",
         "ipcWatchdog",
         "../package.json",
         "statusBar",
@@ -6592,34 +6732,34 @@
       ],
       "functions": {
         "init": {
-          "line": 50,
+          "line": 51,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 254,
+          "line": 259,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 325,
+          "line": 330,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 436,
+          "line": 441,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 467,
+          "line": 472,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 490,
+          "line": 495,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 769,
+          "line": 801,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -12044,6 +12184,18 @@
         "module": "renderer/healthNotice",
         "file": "src/renderer/healthNotice.js",
         "description": "Health Notice Banner"
+      }
+    ],
+    "dock": [
+      {
+        "module": "renderer/dock",
+        "file": "src/renderer/dock.js",
+        "description": "Dock — the VS Code-style panel beside the center (dock-panel-readonly-views"
+      },
+      {
+        "module": "renderer/dock/dockState",
+        "file": "src/renderer/dock/dockState.js",
+        "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
       }
     ],
     "docs": [

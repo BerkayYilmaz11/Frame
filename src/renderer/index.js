@@ -43,6 +43,7 @@ const specDrivenHint = require('./specDrivenHint');
 const docsHealthHint = require('./docsHealthHint');
 const migrationModal = require('./migrationModal');
 const sampleBanner = require('./sampleBanner');
+const dock = require('./dock');
 
 /**
  * Initialize all modules
@@ -99,6 +100,10 @@ function init() {
   // as badges on the project rows.
   projectStatusBadges.init(multiTerminalUI);
 
+
+  // The dock beside the center (dock-panel-readonly-views spec): hosts the
+  // read-only surfaces and Feedback; restores its last position / tab / size.
+  dock.init();
 
   // Status bar at the foot of the window: Claude usage meters today
   // (status-bar spec).
@@ -607,6 +612,33 @@ function registerCommands() {
     category: 'Panel',
     shortcut: 'CmdOrCtrl+Shift+L',
     run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('prompts')
+  });
+
+  // ---------- View: the dock ----------
+  // Every entry point — status bar, native View menu, palette, shortcut —
+  // runs these same ids (dock-panel-readonly-views spec, D12). The View
+  // menu in src/main/menu.js lists the same ids and accelerators; keep the
+  // two in step.
+  r({
+    id: 'dock.toggle',
+    title: 'Toggle Panel',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+J',
+    run: () => dock.toggle()
+  });
+  r({
+    id: 'dock.moveRight',
+    title: 'Move Panel Right',
+    category: 'View',
+    when: () => dock.position() !== 'right',
+    run: () => dock.setPosition('right')
+  });
+  r({
+    id: 'dock.moveBottom',
+    title: 'Move Panel to Bottom',
+    category: 'View',
+    when: () => dock.position() !== 'bottom',
+    run: () => dock.setPosition('bottom')
   });
 
   // ---------- Focus ----------
