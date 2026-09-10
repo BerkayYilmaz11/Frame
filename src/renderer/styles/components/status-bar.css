@@ -41,6 +41,52 @@
   position: relative;
 }
 
+/* ─── The dock's icons (dock-panel-readonly-views spec) ─── */
+/* Icons, not labelled buttons: the bar stays 26px and quiet (C4). Secondary
+   at rest, primary on hover, accent when that tab is the open one. */
+.sb-dock {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.sb-dock-btn {
+  width: 22px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sb-dock-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-dock-btn.on {
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.sb-dock-btn:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* A hairline between the icon group and the agents indicator. */
+.sb-dock + .sb-agents {
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--border-subtle);
+}
+
 /* ─── Agents in the other projects (D14) ─── */
 /* Quiet by default: it is the bar, not a toolbar. It gets loud only when
    something is actually waiting on the user, in the same two colours every

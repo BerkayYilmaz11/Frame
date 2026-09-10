@@ -48,3 +48,11 @@ _Captured: 2026-09-10 · 1 file change(s)_
 
 ---
 
+## T07 — Status-bar dock icons
+
+Added `_buildDockIcons()` to `src/renderer/statusBar.js`, run before `_buildAgentSlot()` so the five icons sit ahead of the other-projects indicator: buttons built from `dock.DOCK_TABS`' icons, each click going through `commandRegistry.runById`, tooltips with the shortcut through `platform.formatShortcut`, `.on` driven by `dock.onChange` and painted once at build from `dock.isOpen()` / `activeTab()`, `console.error` when `.status-bar-left` is missing. `status-bar.css` gained the `.sb-dock` group and a hairline before `.sb-agents`. Deviation from plan.md: the icons are read from `DOCK_TABS` rather than listed a second time in the status bar; only the command id, tooltip and shortcut live here.
+
+_Captured: 2026-09-10 · 2 file change(s)_
+
+---
+

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:34:57.276Z",
+  "lastUpdated": "2026-09-10T12:36:25.929Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7180,25 +7180,25 @@
       "title": "Add the status-bar dock icons: `statusBar._buildDockIcons()` with the five lucide icons (ScrollText, Waypoints, SquareTerminal, Activity, MessageSquarePlus) inserted before the agents indicator, `.on` driven by `dock.onChange`, tooltips carrying shortcuts, `console.error` when `.status-bar-left` is missing; the `.sb-dock` group in `status-bar.css`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T07",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T12:34:57.276Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:36:25.929Z",
+      "completedAt": "2026-09-10T12:36:25.929Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T08",
       "title": "Trim `WORKSPACE_NAV_GROUPS` in `projectListUI.js` to Work (Terminals, Orchestration, Claude) and Context (Specs, Tasks), remove the Frame group, and add the pinned Project Settings foot row (`.workspace-nav-foot`, running `settings.openProject`) with its CSS beside the existing `.workspace-nav-*` rules",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T08",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:36:25.929Z",
       "completedAt": null
     },
     {

@@ -9,8 +9,11 @@
  * refresh, main's reason shown on error, and warning/critical fills at 50%
  * and 80%.
  *
- * On the left, the slot the status-bar spec declared and left empty: agents
- * running in **the other projects**, and only them (D14). This project's
+ * On the left, the slot the status-bar spec declared and left empty — now
+ * taken, in order, by the dock's icons (dock-panel-readonly-views spec: one
+ * monochrome icon per dock tab, click toggles that tab, the open tab's icon
+ * reads as active) and then the agents running in **the other projects**,
+ * and only them (D14), which keeps its place. This project's
  * agents are already on screen in Overview and in the sidebar's ◆ chip;
  * repeating them here would earn the obvious "I have 5 agents, why does it
  * say 2?". The label says its scope out loud for the same reason.
@@ -27,7 +30,22 @@ const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const laneStatus = require('./laneStatus');
 const state = require('./state');
+const dock = require('./dock');
+const commandRegistry = require('./commandRegistry');
+const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
+
+// One button per dock tab, in the strip's order; each runs the same
+// registered command the View menu, the palette and the shortcut run (D12).
+// The shortcut shown in the tooltip is the registry's, typed here because the
+// bar is built before registerCommands() runs.
+const DOCK_ICONS = [
+  { tab: 'decisions', command: 'dock.decisions', tooltip: 'Decisions' },
+  { tab: 'structure', command: 'dock.structure', tooltip: 'Structure Map' },
+  { tab: 'prompts', command: 'dock.prompts', tooltip: 'Prompts', shortcut: 'CmdOrCtrl+Shift+L' },
+  { tab: 'activity', command: 'dock.activity', tooltip: 'Activity' },
+  { tab: 'feedback', command: 'dock.feedback', tooltip: 'Feedback' }
+];
 
 // A hover menu needs both: long enough that a pointer crossing the slot does
 // not open it, forgiving enough that reaching the menu never loses it.
@@ -61,7 +79,58 @@ function init() {
   ipcRenderer.on(IPC.CLAUDE_USAGE_DATA, (event, data) => updateUsage(data));
   ipcRenderer.send(IPC.LOAD_CLAUDE_USAGE);
 
+  _buildDockIcons();
   _buildAgentSlot();
+}
+
+// ─── The left slot, first: the dock's icons ─────────────────
+
+function _buildDockIcons() {
+  const slot = barEl.querySelector('.status-bar-left');
+  if (!slot) {
+    // C7: five icons that never appear must not pass for a bar with nothing
+    // to show.
+    console.error('statusBar: .status-bar-left not found — the dock icons will not render');
+    return;
+  }
+
+  const group = document.createElement('div');
+  group.className = 'sb-dock';
+  group.setAttribute('role', 'toolbar');
+  group.setAttribute('aria-label', 'Panel');
+
+  const buttons = new Map();
+  DOCK_ICONS.forEach(({ tab, command, tooltip, shortcut }) => {
+    const entry = dock.DOCK_TABS[tab];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sb-dock-btn';
+    btn.dataset.tab = tab;
+    btn.tabIndex = -1;
+    const label = shortcut ? `${tooltip} (${formatShortcut(shortcut)})` : tooltip;
+    btn.title = label;
+    btn.setAttribute('aria-label', tooltip);
+    btn.innerHTML = entry ? dock.lucideIcon(entry.icon, 14) : '';
+    btn.addEventListener('click', () => {
+      if (!commandRegistry.runById(command)) {
+        console.error(`statusBar: command '${command}' did not run`);
+      }
+    });
+    group.appendChild(btn);
+    buttons.set(tab, btn);
+  });
+
+  slot.appendChild(group);
+
+  const paint = ({ open, tab }) => {
+    buttons.forEach((btn, key) => {
+      const on = open && key === tab;
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  };
+  dock.onChange(paint);
+  paint({ open: dock.isOpen(), tab: dock.activeTab() });
 }
 
 // ─── The left slot: agents in the other projects ────────────
