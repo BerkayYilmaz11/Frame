@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T08:11:59.147Z",
+  "lastUpdated": "2026-09-10T08:32:59.762Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7102,25 +7102,25 @@
       "title": "Write `src/renderer/dock/dockState.js` (defaults, TABS, LIMITS, load, toggleTab, open, close, setPosition, resize, serialize) and `test/dockState.test.js` covering defaults, garbage input, every toggleTab transition, clamping at both ends for both sides, and a serialize → load round-trip",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T08:32:59.762Z",
+      "completedAt": "2026-09-10T08:32:59.762Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T02",
       "title": "Add the `#dock` shell to `index.html` inside `#terminal-container`, `src/renderer/styles/components/dock.css` (+ `main.css` import) and `src/renderer/dock.js` — tab strip, ×, move control, drag handle with rAF-applied size and a single `terminal.fitTerminal()` on mouseup, `#terminal-container.dock-right`, persistence through dockState with clamping on every apply, `onChange`; register `dock.toggle` (CmdOrCtrl+J), `dock.moveRight`, `dock.moveBottom` and call `dock.init()` in `src/renderer/index.js`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T02",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T08:32:59.762Z",
       "completedAt": null
     },
     {

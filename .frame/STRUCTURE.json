@@ -5135,6 +5135,118 @@
         }
       }
     },
+    "renderer/dock/dockState": {
+      "file": "src/renderer/dock/dockState.js",
+      "description": "Dock state — pure (dock-panel-readonly-views spec, D2).",
+      "exports": [
+        "STORAGE_KEY",
+        "TABS",
+        "POSITIONS",
+        "LIMITS",
+        "defaults",
+        "load",
+        "open",
+        "close",
+        "toggle",
+        "toggleTab",
+        "setPosition",
+        "resize",
+        "clampSize",
+        "serialize"
+      ],
+      "depends": [],
+      "functions": {
+        "defaults": {
+          "line": 33
+        },
+        "isTab": {
+          "line": 42,
+          "params": [
+            "tab"
+          ]
+        },
+        "isPosition": {
+          "line": 46,
+          "params": [
+            "position"
+          ]
+        },
+        "clampSize": {
+          "line": 55,
+          "params": [
+            "position",
+            "px",
+            "available"
+          ],
+          "purpose": "Clamp a size for one side. Without `available` (the center's extent on"
+        },
+        "load": {
+          "line": 71,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A valid state from anything: a JSON string, a parsed object, garbage,"
+        },
+        "copy": {
+          "line": 95,
+          "params": [
+            "state"
+          ]
+        },
+        "open": {
+          "line": 105,
+          "params": [
+            "state",
+            "tab"
+          ],
+          "purpose": "Open on `tab` (or the current tab when omitted)."
+        },
+        "close": {
+          "line": 115,
+          "params": [
+            "state"
+          ]
+        },
+        "toggleTab": {
+          "line": 125,
+          "params": [
+            "state",
+            "tab"
+          ],
+          "purpose": "The status-bar icon / menu item semantics: open on that tab → closed;"
+        },
+        "toggle": {
+          "line": 132,
+          "params": [
+            "state"
+          ],
+          "purpose": "Toggle open/closed, keeping the tab."
+        },
+        "setPosition": {
+          "line": 136,
+          "params": [
+            "state",
+            "position"
+          ]
+        },
+        "resize": {
+          "line": 148,
+          "params": [
+            "state",
+            "px",
+            "available"
+          ],
+          "purpose": "Resize the current side to `px`, clamped to `[min, maxShare × available]`."
+        },
+        "serialize": {
+          "line": 155,
+          "params": [
+            "state"
+          ],
+          "purpose": "The string written to localStorage."
+        }
+      }
+    },
     "renderer/docsHealthHint": {
       "file": "src/renderer/docsHealthHint.js",
       "description": "Doc-health hint",
@@ -12394,6 +12506,18 @@
         "module": "renderer/specSection",
         "file": "src/renderer/specSection.js",
         "description": "Spec Section Module"
+      }
+    ],
+    "state": [
+      {
+        "module": "renderer/dock/dockState",
+        "file": "src/renderer/dock/dockState.js",
+        "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
+      },
+      {
+        "module": "renderer/state",
+        "file": "src/renderer/state.js",
+        "description": "Application State Module"
       }
     ],
     "status": [
