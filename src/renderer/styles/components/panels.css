@@ -5430,7 +5430,7 @@
 /* Inline mode (center-specs-tasks-views spec): rendered inside the center
    content area instead of the full-window overlay. */
 .specs-dashboard.inline {
-  position: static;
+  position: relative;   /* the full-page detail drawer is positioned against it */
   inset: auto;
   z-index: auto;
   height: 100%;
@@ -5625,12 +5625,6 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-md);
   align-content: start;
-  transition: padding-right var(--transition-normal);
-}
-
-.specs-dashboard-detail.has-selection ~ .specs-dashboard-grid,
-.specs-dashboard-body:has(.specs-dashboard-detail.has-selection) .specs-dashboard-grid {
-  padding-right: calc(480px + var(--space-xl));
 }
 
 .specs-card {
@@ -5765,33 +5759,74 @@
   max-width: 400px;
 }
 
-/* Detail aside — slides in over the right side of the grid when a card
-   is selected. Absolute positioning (vs. flex sibling) avoids width-
-   transition flicker and ensures the aside is always above the grid. */
+/* Detail drawer — a full-page panel that slides in from the right over the
+   whole dashboard (header, toolbar and grid) when a card is selected. It is
+   always in the DOM, parked off-screen, so opening and closing animate; the
+   grid underneath keeps its scroll position for when the drawer closes. */
 .specs-dashboard-detail {
-  display: none;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 480px;
-  max-width: 90%;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-subtle);
+  inset: 0;
+  display: flex;
   flex-direction: column;
+  background: var(--bg-deep);
   overflow: hidden;
-  z-index: 2;
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  z-index: 3;
+  transform: translateX(100%);
+  visibility: hidden;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s linear 220ms;
 }
 
 .specs-dashboard-detail.has-selection {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specs-dashboard-detail,
+  .specs-dashboard-detail.has-selection {
+    transition: none;
+  }
+}
+
+/* Drawer top bar: "‹ Specs" on the left, × on the right. Mirrors the
+   dashboard header's height so the swap reads as the same screen. */
+.specs-dashboard-detail-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+}
+
+.specs-dashboard-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.specs-dashboard-detail-back:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-color: var(--border-subtle);
 }
 
 .specs-dashboard-detail-close {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
   background: transparent;
   border: none;
   color: var(--text-tertiary);
@@ -5803,7 +5838,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
 }
 
 .specs-dashboard-detail-close:hover {
@@ -5811,119 +5845,12 @@
   background: var(--bg-hover);
 }
 
-.specs-dashboard-detail-empty {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl);
-  color: var(--text-muted);
-  font-size: 12px;
-  font-style: italic;
-}
-
-.specs-dashboard-detail.has-selection .specs-dashboard-detail-empty {
-  display: none;
-}
-
+/* The scrolling body. The spec detail inside uses the shared
+   .spec-section / .spec-detail layout (specSection.js), so no dashboard-
+   specific typography lives here. */
 .specs-dashboard-detail-content {
-  display: none;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--space-xl);
-}
-
-.specs-dashboard-detail.has-selection .specs-dashboard-detail-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.specs-dashboard-detail-head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--space-md);
-}
-
-.specs-dashboard-detail-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.specs-dashboard-detail-slug {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.specs-dashboard-detail-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  line-height: 1.35;
-  letter-spacing: -0.2px;
-}
-
-.specs-dashboard-detail-tabs {
-  display: flex;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-}
-
-.specs-dashboard-detail-body {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.specs-dashboard-detail-body h1,
-.specs-dashboard-detail-body h2,
-.specs-dashboard-detail-body h3 {
-  color: var(--text-primary);
-  margin-top: var(--space-md);
-  margin-bottom: var(--space-sm);
-}
-
-.specs-dashboard-detail-body h1 { font-size: 14px; }
-.specs-dashboard-detail-body h2 { font-size: 13px; }
-.specs-dashboard-detail-body h3 { font-size: 12px; }
-
-.specs-dashboard-detail-body code {
-  font-family: var(--font-mono);
-  background: var(--bg-tertiary);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 11px;
-}
-
-.specs-dashboard-detail-body pre {
-  background: var(--bg-tertiary);
-  padding: var(--space-md);
-  border-radius: var(--radius-sm);
-  overflow-x: auto;
-}
-
-.specs-dashboard-detail-body ul,
-.specs-dashboard-detail-body ol {
-  padding-left: var(--space-lg);
-}
-
-.specs-dashboard-detail-body li {
-  margin-bottom: var(--space-xs);
-}
-
-@media (max-width: 900px) {
-  .specs-dashboard-detail.has-selection {
-    width: 100%;
-  }
-  .specs-dashboard-detail.has-selection ~ .specs-dashboard-grid,
-  .specs-dashboard-body:has(.specs-dashboard-detail.has-selection) .specs-dashboard-grid {
-    display: none;
-  }
 }
 

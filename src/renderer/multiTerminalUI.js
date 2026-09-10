@@ -15,8 +15,6 @@
  *                 _activePanelKey (retire-rail-and-panels spec)
  */
 
-const { ipcRenderer } = require('electron');
-const { IPC } = require('../shared/ipcChannels');
 
 const { TerminalManager } = require('./terminalManager');
 const { TerminalTabBar } = require('./terminalTabBar');
@@ -508,32 +506,14 @@ class MultiTerminalUI {
   }
 
   /**
-   * Specs entry point (sidebar nav): lifecycle-first. Opens the most relevant
-   * active spec in the linear detail surface (specSection, with its list
-   * rail); a project with no specs lands on the inline grid, which owns the
-   * New Spec flow.
+   * Specs entry point (sidebar nav): the full card grid. Every spec is
+   * visible at once; picking a card opens its detail in the grid's
+   * full-page drawer. (Earlier this opened the most relevant active spec
+   * straight in specSection — replaced 2026-09-10 so the entry point
+   * shows the whole set rather than one spec.)
    */
-  async showSpecs() {
-    const projectPath = this.manager.getCurrentProject();
-    if (!projectPath) {
-      this.showSpecsGrid(); // surfaces the "no project" notice
-      return;
-    }
-    let specs = [];
-    try {
-      specs = await ipcRenderer.invoke(IPC.LIST_SPECS, projectPath) || [];
-    } catch (_) { /* fall through to the grid */ }
-    const order = ['implementing', 'tasks_generated', 'planned', 'specified', 'draft'];
-    const top = specs
-      .filter(s => s.phase !== 'done' && !s.malformed)
-      .sort((a, b) => order.indexOf(a.phase) - order.indexOf(b.phase))[0]
-      || specs.find(s => !s.malformed)
-      || specs[0];
-    if (top) {
-      require('./specSection').open(top.slug);
-    } else {
-      this.showSpecsGrid();
-    }
+  showSpecs() {
+    this.showSpecsGrid();
   }
 
   /** Show the specs card grid inline (dashboard's own switch also lands here). */

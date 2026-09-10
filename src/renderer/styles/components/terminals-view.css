@@ -386,6 +386,10 @@ span.tv-pane-assign {
   background: color-mix(in srgb, var(--accent-primary) 85%, white);
 }
 
+[data-theme="light"] .tv-empty-cta {
+  color: #ffffff;
+}
+
 /* ─── Sidebar workspace nav (under the selected project) ─── */
 
 .project-workspace-nav {

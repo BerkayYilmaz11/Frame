@@ -263,25 +263,133 @@
 }
 
 /* Default Agent launcher, relocated from the retired sidebar Agent tab.
-   The divider + wide gap keep it visually apart from the session usage
-   bars sitting to its right. */
+   Two distinct controls: a picker ("AGENT · Claude ▾") and the accent Start
+   button, with an 8px gap so they read as choice → action rather than one
+   fused widget. The divider + wide gap keep the pair apart from the session
+   usage bars sitting to its right.
+
+   Selectors are nested under .lane-bar-launcher on purpose: the generic
+   `.terminal-tab-actions select` / `button` rules above (32px square, no
+   border, transparent) would otherwise flatten both controls. */
 .lane-bar-launcher {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin-right: 14px;
   padding-right: 14px;
   border-right: 1px solid var(--border-default);
 }
 
-.lane-bar-launcher .ai-tool-select {
-  height: 22px;
-  padding: 0 6px;
-  font-size: 10px;
+/* Picker: the <label> is the visible box; the native <select> inside is
+   stripped bare so the box, label text and chevron are ours. */
+.ai-tool-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px 0 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
+.ai-tool-picker:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.ai-tool-picker:focus-within {
+  border-color: var(--accent-primary);
+}
+
+.ai-tool-picker-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.lane-bar-launcher .ai-tool-select,
+.lane-bar-launcher .ai-tool-select:hover,
+.lane-bar-launcher .ai-tool-select:focus {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 100%;
+  margin: 0;
+  padding: 0 18px 0 0; /* room for the chevron */
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: none;
+}
+
+.lane-bar-launcher .ai-tool-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ai-tool-picker-chevron {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.ai-tool-picker:hover .ai-tool-picker-chevron,
+.ai-tool-picker:focus-within .ai-tool-picker-chevron {
+  color: var(--text-secondary);
+}
+
+/* Start: the one accent-filled control in the bar. Sized to the picker so
+   the pair sits on a shared 28px line inside the 42px bar. */
 .lane-bar-launcher .sidebar-agent-launch {
-  height: 22px;
-  padding: 0 8px;
-  font-size: 10px;
+  width: auto;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  gap: 6px;
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  color: var(--bg-deep);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.lane-bar-launcher .sidebar-agent-launch svg {
+  width: 11px;
+  height: 11px;
+}
+
+.lane-bar-launcher .sidebar-agent-launch:hover {
+  background: var(--accent-primary);
+  color: var(--bg-deep);
+  filter: brightness(1.08);
+}
+
+.lane-bar-launcher .sidebar-agent-launch:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }

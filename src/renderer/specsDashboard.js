@@ -5,10 +5,11 @@
  * with the tasksDashboard (Cmd+Shift+D) — opened via the Dashboard button
  * in the side Specs panel header.
  *
- * Layout: filterable grid on the left, sliding detail aside on the right.
- * Cards show title + phase badge + progress bar + slug + AI tool + relative
- * update time. Click a card → detail aside renders Spec / Plan / Tasks tabs
- * with an interactive tasks list (status flips routed through UPDATE_TASK).
+ * Layout: filterable card grid; clicking a card slides a full-page drawer
+ * in from the right over the grid. The drawer shows the same spec detail
+ * as specSection (lifecycle stepper, next-action bar, Spec / Plan / Tasks /
+ * Outcome tabs, interactive task rows routed through UPDATE_TASK) so the
+ * two surfaces read as one screen.
  *
  * State subscribes to the same SPEC_DATA + TASKS_DATA streams the side
  * panel uses, so dashboard, side panel, and disk all stay in sync.
@@ -51,7 +52,6 @@ let filtersEl = null;
 let searchInputEl = null;
 let searchWrapEl = null;
 let detailEl = null;
-let detailEmptyEl = null;
 let detailContentEl = null;
 
 function init() {
@@ -64,7 +64,6 @@ function init() {
   searchInputEl = document.getElementById('specs-dashboard-search-input');
   searchWrapEl = document.querySelector('.specs-dashboard-search');
   detailEl = document.getElementById('specs-dashboard-detail');
-  detailEmptyEl = detailEl.querySelector('.specs-dashboard-detail-empty');
   detailContentEl = detailEl.querySelector('.specs-dashboard-detail-content');
 
   // Header buttons
@@ -74,6 +73,7 @@ function init() {
     require('./specPanel').showNewSpecPrompt?.();
   });
   detailEl.querySelector('.specs-dashboard-detail-close')?.addEventListener('click', clearSelection);
+  detailEl.querySelector('.specs-dashboard-detail-back')?.addEventListener('click', clearSelection);
 
   renderFilters();
   setupSearch();
@@ -403,7 +403,10 @@ function clearSelection() {
   selectedSlug = null;
   selectedSpec = null;
   selectedTab = 'spec';
-  if (detailEl) detailEl.classList.remove('has-selection');
+  if (detailEl) {
+    detailEl.classList.remove('has-selection');
+    detailEl.setAttribute('aria-hidden', 'true');
+  }
   renderGrid();
 }
 
@@ -417,7 +420,12 @@ async function reloadDetail() {
     clearSelection();
     return;
   }
-  if (detailEl) detailEl.classList.add('has-selection');
+  if (detailEl) {
+    const opening = !detailEl.classList.contains('has-selection');
+    detailEl.classList.add('has-selection');
+    detailEl.setAttribute('aria-hidden', 'false');
+    if (opening && detailContentEl) detailContentEl.scrollTop = 0;
+  }
   renderDetailHeader();
   renderDetailBody();
   attachTaskActionHandlers();
@@ -426,41 +434,45 @@ async function reloadDetail() {
 function renderDetailHeader() {
   if (!detailContentEl || !selectedSpec) return;
   const { status, spec, plan, tasks, outcome } = selectedSpec;
-  const phaseLabel = status.phase.replace(/_/g, ' ');
   const aiLabel = status.ai_tool || '';
   const nextAction = specNextAction.nextActionForPhase(status.phase);
 
+  // Same layout as specSection's detail (title → meta → stepper → next
+  // action → tabs), centered in the spec-section column, so the drawer and
+  // the section viewport are one screen.
   detailContentEl.innerHTML = `
-    <div class="specs-dashboard-detail-head">
-      <div class="specs-dashboard-detail-meta">
-        <span class="specs-dashboard-detail-slug">${escapeHtml(status.slug)}</span>
-        <button class="spec-rename-btn" id="spec-rename-btn" title="Rename spec" aria-label="Rename spec">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-        </button>
-        ${aiLabel ? `<span class="specs-detail-ai">${escapeHtml(aiLabel)}</span>` : ''}
-      </div>
-      <h3 class="specs-dashboard-detail-title">${escapeHtml(status.title)}</h3>
-      <div class="specs-dashboard-detail-meta">
-        ${require('./agentDispatch').specStatusDotHtml(status.slug)}
-        <span class="spec-phase-badge phase-${status.phase}">${phaseLabel}</span>
-      </div>
-      ${nextAction ? specNextAction.renderNextActionBar({
-        action: nextAction,
-        lane: require('./agentDispatch').getSpecLaneInfo(status.slug),
-        hint: selectedSpec.implementHint,
-        counts: specNextAction.taskCounts(allTasks, status.slug)
-      }) : ''}
-      <div class="specs-dashboard-detail-tabs">
-        ${tabBtn('spec',  'Spec',  !!spec)}
-        ${tabBtn('plan',  'Plan',  !!plan)}
-        ${tabBtn('tasks', tasksTabLabel(!!tasks), !!tasks || hasSpecTasks())}
-        ${tabBtn('outcome', 'Outcome', !!outcome)}
+    <div class="spec-section">
+      <div class="spec-section-inner spec-detail">
+        <div class="spec-detail-header">
+          <h3 class="spec-detail-title">${escapeHtml(status.title)}</h3>
+          <div class="spec-detail-meta">
+            ${require('./agentDispatch').specStatusDotHtml(status.slug)}
+            <span class="spec-detail-slug">${escapeHtml(status.slug)}</span>
+            <button class="spec-rename-btn" id="spec-rename-btn" title="Rename spec" aria-label="Rename spec">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            ${aiLabel ? `<span class="spec-detail-ai">${escapeHtml(aiLabel)}</span>` : ''}
+          </div>
+        </div>
+        ${require('./specSection').renderStepper(status.phase)}
+        ${nextAction ? specNextAction.renderNextActionBar({
+          action: nextAction,
+          lane: require('./agentDispatch').getSpecLaneInfo(status.slug),
+          hint: selectedSpec.implementHint,
+          counts: specNextAction.taskCounts(allTasks, status.slug)
+        }) : ''}
+        <div class="spec-detail-tabs">
+          ${tabBtn('spec',  'Spec',  !!spec)}
+          ${tabBtn('plan',  'Plan',  !!plan)}
+          ${tabBtn('tasks', tasksTabLabel(!!tasks), !!tasks || hasSpecTasks())}
+          ${tabBtn('outcome', 'Outcome', !!outcome)}
+        </div>
+        <div class="spec-detail-body" id="specs-dashboard-detail-body"></div>
       </div>
     </div>
-    <div class="specs-dashboard-detail-body" id="specs-dashboard-detail-body"></div>
   `;
   detailContentEl.querySelectorAll('.spec-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

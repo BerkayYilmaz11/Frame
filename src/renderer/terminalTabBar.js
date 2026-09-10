@@ -151,12 +151,22 @@ class TerminalTabBar {
              from the real tool list, which is why a third tool (gemini) is not
              hardcoded here. #sidebar-agent-launch keeps its id and handler. -->
         <div class="lane-bar-launcher">
-          <select id="ai-tool-selector" class="ai-tool-select" tabindex="-1" title="Default agent">
-            <option value="claude">Claude</option>
-            <option value="codex">Codex</option>
-          </select>
+          <!-- The select is wrapped in a label so the visible control (label
+               text, agent name, chevron) is one styled box while the native
+               <select> stays the interactive element underneath — clicking
+               anywhere on the box opens the menu. -->
+          <label class="ai-tool-picker" title="Default agent — Start launches this one">
+            <span class="ai-tool-picker-label">Agent</span>
+            <select id="ai-tool-selector" class="ai-tool-select" tabindex="-1" aria-label="Default agent">
+              <option value="claude">Claude</option>
+              <option value="codex">Codex</option>
+            </select>
+            <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </label>
           <button id="sidebar-agent-launch" class="sidebar-agent-launch" tabindex="-1" title="Start default agent">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
               <path d="M8 5v14l11-7z"/>
             </svg>
             <span>Start</span>

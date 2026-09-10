@@ -1033,14 +1033,20 @@
       </div>
       <div class="specs-dashboard-body">
         <div id="specs-dashboard-grid" class="specs-dashboard-grid"></div>
-        <aside id="specs-dashboard-detail" class="specs-dashboard-detail">
-          <button class="specs-dashboard-detail-close" aria-label="Close detail">&#x2715;</button>
-          <div class="specs-dashboard-detail-empty">
-            <p>Select a spec to see its details, plan, and tasks.</p>
-          </div>
-          <div class="specs-dashboard-detail-content"></div>
-        </aside>
       </div>
+      <!-- Full-page drawer: slides in from the right over the whole
+           dashboard when a card is selected; shows the spec detail
+           (stepper, next action, spec / plan / tasks / outcome). -->
+      <aside id="specs-dashboard-detail" class="specs-dashboard-detail" aria-hidden="true">
+        <div class="specs-dashboard-detail-bar">
+          <button class="specs-dashboard-detail-back" aria-label="Back to all specs">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Specs</span>
+          </button>
+          <button class="specs-dashboard-detail-close" aria-label="Close detail">&#x2715;</button>
+        </div>
+        <div class="specs-dashboard-detail-content"></div>
+      </aside>
     </div>
 
     <!-- Create Branch Modal -->

@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-06",
+  "lastUpdated": "2026-09-10",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -6805,8 +6805,6 @@
         "MultiTerminalUI"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
         "terminalManager",
         "terminalTabBar",
         "terminalsView",
@@ -8536,7 +8534,8 @@
         "specNextAction",
         "specPanel",
         "agentDispatch",
-        "taskInfoModal"
+        "taskInfoModal",
+        "specSection"
       ],
       "functions": {
         "init": {
@@ -8614,19 +8613,19 @@
           "line": 402
         },
         "reloadDetail": {
-          "line": 410
+          "line": 413
         },
         "renderDetailHeader": {
-          "line": 426
+          "line": 434
         },
         "runSpecCommand": {
-          "line": 507,
+          "line": 519,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 518,
+          "line": 530,
           "params": [
             "tab",
             "label",
@@ -8634,50 +8633,50 @@
           ]
         },
         "renderDetailBody": {
-          "line": 524
+          "line": 536
         },
         "renderTasksTabBody": {
-          "line": 575
+          "line": 587
         },
         "renderSpecTaskRow": {
-          "line": 612,
+          "line": 624,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 661
+          "line": 673
         },
         "handleSpecTaskAction": {
-          "line": 674,
+          "line": 686,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 685
+          "line": 697
         },
         "tasksTabLabel": {
-          "line": 691,
+          "line": 703,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 700,
+          "line": 712,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 705,
+          "line": 717,
           "params": [
             "iso"
           ]
         },
         "displayProjectName": {
-          "line": 716,
+          "line": 728,
           "params": [
             "projectPath"
           ]
