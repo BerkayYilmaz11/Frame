@@ -290,20 +290,16 @@ function setupButtonHandlers() {
     fileTreeUI.refreshFileTree();
   });
 
-  // Sidebar activity rail (Projects / Files / Changes). Bound to the button,
-  // not e.target — clicks land on the inner SVG/path otherwise.
+  // Sidebar activity rail (Projects / Files / Changes / GitHub). Bound to the
+  // button, not e.target — clicks land on the inner SVG/path otherwise.
   document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
-  // The two settings surfaces, each from the control that names its scope:
-  // the project's from the sliders at the foot of the rail, Frame's own from
-  // the gear in the sidebar header (where the app menu entry and Cmd+, also
-  // land). Both toggle, so a second click on the same button closes it.
-  const projectSettingsBtn = document.getElementById('project-settings-btn');
-  if (projectSettingsBtn) {
-    projectSettingsBtn.addEventListener('click', () => projectSettingsModal.toggle());
-  }
+  // Frame's own settings, from the gear in the sidebar header (where the app
+  // menu entry and Cmd+, also land); toggles, so a second click closes it.
+  // The project's settings are a row under the project in the workspace nav
+  // (dock-panel-readonly-views spec), running `settings.openProject`.
   const frameSettingsBtn = document.getElementById('frame-settings-btn');
   if (frameSettingsBtn) {
     frameSettingsBtn.addEventListener('click', () => frameSettingsModal.toggle());
@@ -491,6 +487,9 @@ function revealSidebarTab(tabName) {
   const cp = document.getElementById('sidebar-current-project-wrap');
   if (cp) cp.style.display = '';
   if (tabName === 'changes') ipcRenderer.send(IPC.REFRESH_GIT_STATUS);
+  // GitHub loads on reveal the way Changes refreshes on reveal (D8); the
+  // panel's own show() owns the data and the .visible flag.
+  if (tabName === 'github') githubPanel.show();
 }
 
 /**
@@ -605,13 +604,8 @@ function registerCommands() {
     shortcut: 'CmdOrCtrl+Shift+X',
     run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('claude')
   });
-  r({
-    id: 'panel.toggleGitHub',
-    title: 'Toggle GitHub Panel',
-    category: 'Panel',
-    shortcut: 'CmdOrCtrl+Shift+G',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('github')
-  });
+  // 'panel.toggleGitHub' became 'sidebar.github' (View) when GitHub moved
+  // to the icon rail; the shortcut travelled with it.
   // 'panel.togglePrompts' became 'dock.prompts' (below) when Prompts moved
   // into the dock; the shortcut travelled with it.
 
@@ -657,6 +651,13 @@ function registerCommands() {
     title: 'Toggle Feedback',
     category: 'View',
     run: () => dock.toggleTab('feedback')
+  });
+  r({
+    id: 'sidebar.github',
+    title: 'Show GitHub',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+Shift+G',
+    run: () => revealSidebarTab('github')
   });
   r({
     id: 'dock.moveRight',

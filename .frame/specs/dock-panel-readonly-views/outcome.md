@@ -64,3 +64,11 @@ _Captured: 2026-09-10 · 2 file change(s)_
 
 ---
 
+## T09 — GitHub on the icon rail, Project Settings off it
+
+Moved `#github-panel` in `index.html` into a new `[data-sidebar-tab-content="github"]` block behind a fourth rail tab after Changes, and removed the rail's foot button; `layout.css` lost `.sidebar-rail-btn-foot`, `panels.css` makes the panel fill the tab regardless of `.visible`, hides `#github-close` and drops the slide-in geometry inside the tab. In `index.js`, `revealSidebarTab('github')` calls `githubPanel.show()` the way Changes refreshes on reveal, `sidebar.github` (CmdOrCtrl+Shift+G, View) replaces `panel.toggleGitHub`, and the foot-button binding is gone; `PANEL_REGISTRY` is `{ claude }`. No deviation from plan.md; the create-branch modal was already a body-level overlay and stayed where it was.
+
+_Captured: 2026-09-10 · 5 file change(s)_
+
+---
+

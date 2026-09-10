@@ -1357,6 +1357,35 @@
   pointer-events: none;
 }
 
+/* In the sidebar's GitHub tab (dock-panel-readonly-views spec, D8): the
+   panel fills the tab the way Files and Changes do. It is always displayed
+   there — .visible no longer gates it — and its × is hidden, since there is
+   nothing to close to. The slide-in geometry above is for the panel's old
+   life as a right-edge sibling of the center. */
+[data-sidebar-tab-content="github"] > #github-panel {
+  display: flex !important;
+  flex: 1;
+  width: auto;
+  min-height: 0;
+  border-left: none;
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: none;
+}
+
+[data-sidebar-tab-content="github"] > #github-panel::before {
+  display: none;
+}
+
+[data-sidebar-tab-content="github"] #github-close {
+  display: none;
+}
+
+[data-sidebar-tab-content="github"] #github-header {
+  padding: var(--space-sm) 0 var(--space-md);
+}
+
 #github-header {
   padding: var(--space-lg);
   border-bottom: 1px solid var(--border-subtle);
