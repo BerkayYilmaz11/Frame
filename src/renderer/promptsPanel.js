@@ -1,6 +1,9 @@
 /**
  * Prompts Panel Module
- * Displays per-project prompt history with search and expandable cards
+ * Displays per-project prompt history with search and expandable cards.
+ * Hosted in the dock's Prompts tab (dock.js re-parents #prompts-panel and
+ * drives show()/hide(); the × here only drops .visible, which the dock
+ * turns into a close).
  */
 
 const { ipcRenderer } = require('electron');
@@ -48,10 +51,9 @@ function setupIPC() {
     allPrompts = parseHistory(data);
     renderList(searchInput ? searchInput.value.trim().toLowerCase() : '');
   });
-
-  ipcRenderer.on(IPC.TOGGLE_HISTORY_PANEL, () => {
-    toggle();
-  });
+  // The menu's "Toggle Prompt History Panel" (TOGGLE_HISTORY_PANEL) retired
+  // with the dock: View → Prompts runs the `dock.prompts` command instead
+  // (dock-panel-readonly-views spec).
 }
 
 /**

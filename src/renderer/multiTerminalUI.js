@@ -10,9 +10,10 @@
  *   'specs'     — specs card-grid dashboard mounted inline in the center
  *   'tasks'     — tasks kanban dashboard mounted inline in the center
  *                 (both: center-specs-tasks-views spec)
- *   'panel'     — a legacy side panel (GitHub/Claude/Prompts/Activity/
- *                 History) mounted inline in the center; which one is in
- *                 _activePanelKey (retire-rail-and-panels spec)
+ *   'panel'     — a legacy side panel (GitHub/Claude) mounted inline in the
+ *                 center; which one is in _activePanelKey
+ *                 (retire-rail-and-panels spec). Prompts / Activity /
+ *                 Feedback live in the dock (dock.js), not here.
  */
 
 
@@ -33,12 +34,11 @@ const terminalChipNotice = require('./terminalChipNotice');
 // Legacy side panels hosted inline in the center (retire-rail-and-panels
 // spec). Each entry keeps the module's own show()/hide() as the data/close
 // contract — the host only re-parents the element and watches for closes.
+// Prompts, Activity and Feedback left for the dock (dock-panel-readonly-views
+// spec, dock.js hosts them the same way).
 const PANEL_REGISTRY = {
   github:   { elementId: 'github-panel',   module: () => require('./githubPanel') },
-  claude:   { elementId: 'plugins-panel',  module: () => require('./pluginsPanel') },
-  prompts:  { elementId: 'prompts-panel',  module: () => require('./promptsPanel') },
-  activity: { elementId: 'activity-panel', module: () => require('./activityPanel') },
-  feedback: { elementId: 'feedback-panel', module: () => require('./feedbackPanel') }
+  claude:   { elementId: 'plugins-panel',  module: () => require('./pluginsPanel') }
 };
 
 class MultiTerminalUI {

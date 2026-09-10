@@ -16,3 +16,11 @@ _Captured: 2026-09-10 · 5 file change(s)_
 
 ---
 
+## T03 — Prompts, Activity and Feedback hosted in the dock
+
+Added `panelTab()` to `src/renderer/dock.js` and used it for the Prompts, Activity and Feedback entries of `DOCK_TABS`: re-parent into the slot with `.dock-hosted`, call `show()`, observe `class` so the panel's own × closes the dock; `unmount` disconnects, calls `hide()` and returns the element home. Registered `dock.prompts` (CmdOrCtrl+Shift+L, replacing `panel.togglePrompts`), `dock.activity` and `dock.feedback` in `index.js` and moved `dock.init()` after the panels' `init()` so a dock restored open at boot can load. Removed the three entries from `PANEL_REGISTRY`, the `TOGGLE_HISTORY_PANEL` listener from `promptsPanel.js`, and rewrote `feedbackPanel.js`'s header. Deviation from plan.md: the width overrides are one `.dock-slot > .dock-hosted` rule in `dock.css` rather than three per-file rules in `panels.css` / `activity.css` / `feedback.css` — the same eight declarations for every re-parented panel belong in one place.
+
+_Captured: 2026-09-10 · 6 file change(s)_
+
+---
+

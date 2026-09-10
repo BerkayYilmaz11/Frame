@@ -1,8 +1,9 @@
 /**
  * Feedback Panel
  *
- * The surface behind the sidebar's Feedback row, in three tabs — one per kind
- * of feedback, and the kind decides everything else:
+ * The surface behind the dock's Feedback tab (status bar icon, View menu,
+ * palette), in three tabs — one per kind of feedback, and the kind decides
+ * everything else:
  *
  *   Bug           → a prefilled issue on Frame's tracker, with the Environment
  *                   section attached.
@@ -30,13 +31,12 @@
  * `index.html` — unlike `githubPanel`'s static tabs — so a kind cannot exist
  * in the markup and be unknown to the composer.
  *
- * A panel rather than a modal: the nav row's highlight is driven by
- * `getActiveSurface()`, which reports `panel:<key>` for PANEL_REGISTRY
- * entries and knows nothing about modals, so a modal could not light its own
- * row without inventing a second surface. The container contract is
+ * A panel rather than a modal, hosted in the dock (dock-panel-readonly-views
+ * spec): `dock.js` re-parents `#feedback-panel` into the Feedback tab's slot
+ * and calls `show()` / `hide()`. The container contract is
  * `#activity-panel`'s, exactly: hidden by default, `.visible` toggled here,
- * and a `×` that calls `hide()` — which is what `_renderPanelView`'s
- * MutationObserver watches to route back to the terminals view.
+ * and a `×` that calls `hide()` — which is what the dock's MutationObserver
+ * watches to close the panel.
  *
  * One draft per tab, all of them living for the app run and each cleared only
  * once its own delivery succeeds. That is what makes a failed send survivable,

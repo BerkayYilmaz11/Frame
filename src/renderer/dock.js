@@ -43,18 +43,78 @@ function lucideIcon(data, size = 14) {
 }
 
 /**
+ * A tab hosting one of the legacy side panels (D9). The element keeps its
+ * markup, its module keeps `show()/hide()` as the data / close contract;
+ * the dock only re-parents the element into the slot and returns it to its
+ * original parent on unmount — the `_panelHome` mechanism `PANEL_REGISTRY`
+ * used in the center. The panel's own close paths (its × button) only drop
+ * `.visible`; a MutationObserver on `class` turns that into a dock close, so
+ * no per-module host awareness is needed.
+ */
+function panelTab({ label, icon, elementId, module }) {
+  let home = null;
+  let observer = null;
+  return {
+    label,
+    icon,
+    mount(slot) {
+      const el = document.getElementById(elementId);
+      if (!el) {
+        console.error(`dock: #${elementId} not found — the ${label} tab is empty`);
+        return;
+      }
+      if (!home) home = el.parentNode;
+      el.classList.add('dock-hosted');
+      slot.appendChild(el);
+      try {
+        module().show();
+      } catch (err) {
+        console.error(`dock: failed to show ${label}:`, err);
+      }
+      observer = new MutationObserver(() => {
+        if (mountedTab && !el.classList.contains('visible')) close();
+      });
+      observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+    },
+    unmount() {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      try {
+        module().hide();
+      } catch (_) { /* already hidden */ }
+      el.classList.remove('dock-hosted');
+      if (home && el.parentNode !== home) home.appendChild(el);
+    }
+  };
+}
+
+/**
  * The hosting table. Each entry: `label` (tab strip), `icon` (lucide data,
  * for the status bar), `mount(slot)` when the tab becomes active,
  * `unmount(slot)` when it stops being active or the dock closes, and an
- * optional `refit()` after a resize-end or side change. Surfaces are added
- * by the tasks that move them (T03–T05).
+ * optional `refit()` after a resize-end or side change. Decisions and
+ * Structure render into their slot (T04, T05); the other three are
+ * re-parented panels.
  */
 const DOCK_TABS = {
   decisions: { label: 'Decisions', icon: ScrollText, mount() {}, unmount() {} },
   structure: { label: 'Structure', icon: Waypoints, mount() {}, unmount() {} },
-  prompts: { label: 'Prompts', icon: SquareTerminal, mount() {}, unmount() {} },
-  activity: { label: 'Activity', icon: Activity, mount() {}, unmount() {} },
-  feedback: { label: 'Feedback', icon: MessageSquarePlus, mount() {}, unmount() {} }
+  prompts: panelTab({
+    label: 'Prompts', icon: SquareTerminal,
+    elementId: 'prompts-panel', module: () => require('./promptsPanel')
+  }),
+  activity: panelTab({
+    label: 'Activity', icon: Activity,
+    elementId: 'activity-panel', module: () => require('./activityPanel')
+  }),
+  feedback: panelTab({
+    label: 'Feedback', icon: MessageSquarePlus,
+    elementId: 'feedback-panel', module: () => require('./feedbackPanel')
+  })
 };
 
 let state = dockState.defaults();

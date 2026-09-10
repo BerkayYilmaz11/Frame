@@ -5156,6 +5156,9 @@
       "depends": [
         "dock/dockState",
         "lucide",
+        "promptsPanel",
+        "activityPanel",
+        "feedbackPanel",
         "terminal"
       ],
       "functions": {
@@ -5167,106 +5170,116 @@
           ],
           "purpose": "Inline SVG for a lucide icon's data (the shape sectionRail.js uses)."
         },
+        "panelTab": {
+          "line": 54,
+          "params": [
+            "{ label",
+            "icon",
+            "elementId",
+            "module }"
+          ],
+          "purpose": "A tab hosting one of the legacy side panels (D9). The element keeps its"
+        },
         "loadState": {
-          "line": 74
+          "line": 134
         },
         "persist": {
-          "line": 82
+          "line": 142
         },
         "init": {
-          "line": 92
+          "line": 152
         },
         "available": {
-          "line": 147,
+          "line": 207,
           "params": [
             "position = state.position"
           ],
           "purpose": "The center's extent on the dock's axis, for the size ceiling."
         },
         "applySize": {
-          "line": 156
+          "line": 216
         },
         "apply": {
-          "line": 173,
+          "line": 233,
           "params": [
             "{ refit = false } = {}"
           ],
           "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
         },
         "mountTab": {
-          "line": 211,
+          "line": 271,
           "params": [
             "tab"
           ]
         },
         "unmountTab": {
-          "line": 225
+          "line": 285
         },
         "refitCenter": {
-          "line": 240,
+          "line": 300,
           "purpose": "Terminals refit through the existing fit path (D13)."
         },
         "refitTab": {
-          "line": 247,
+          "line": 307,
           "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
         },
         "emit": {
-          "line": 258
+          "line": 318
         },
         "snapshotState": {
-          "line": 269
+          "line": 329
         },
         "bindResize": {
-          "line": 275,
+          "line": 335,
           "params": [
             "handle"
           ]
         },
         "ensureReady": {
-          "line": 335
+          "line": 395
         },
         "open": {
-          "line": 344,
+          "line": 404,
           "params": [
             "tab"
           ],
           "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
         },
         "close": {
-          "line": 351
+          "line": 411
         },
         "toggle": {
-          "line": 359,
+          "line": 419,
           "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
         },
         "toggleTab": {
-          "line": 365,
+          "line": 425,
           "params": [
             "tab"
           ],
           "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
         },
         "setPosition": {
-          "line": 372,
+          "line": 432,
           "params": [
             "position"
           ]
         },
         "isOpen": {
-          "line": 380
+          "line": 440
         },
         "activeTab": {
-          "line": 384
+          "line": 444
         },
         "position": {
-          "line": 388
+          "line": 448
         },
         "remountActive": {
-          "line": 397,
+          "line": 457,
           "purpose": "Re-run the active tab's mount (the project changed under an open"
         },
         "onChange": {
-          "line": 405,
+          "line": 465,
           "params": [
             "fn"
           ],
@@ -6736,30 +6749,30 @@
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 259,
+          "line": 261,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 330,
+          "line": 332,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 441,
+          "line": 443,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 472,
+          "line": 474,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 495,
+          "line": 497,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 801,
+          "line": 817,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7072,9 +7085,6 @@
         "terminalChipNotice",
         "githubPanel",
         "pluginsPanel",
-        "promptsPanel",
-        "activityPanel",
-        "feedbackPanel",
         "structureMap",
         "specsDashboard",
         "tasksDashboard",
@@ -7991,66 +8001,65 @@
       ],
       "functions": {
         "init": {
-          "line": 18,
+          "line": 21,
           "purpose": "Initialize prompts panel"
         },
         "setupEventListeners": {
-          "line": 32,
+          "line": 35,
           "purpose": "Setup DOM event listeners"
         },
         "setupIPC": {
-          "line": 46,
+          "line": 49,
           "purpose": "Setup IPC listeners"
         },
         "parseHistory": {
-          "line": 62,
+          "line": 64,
           "params": [
             "raw"
           ],
           "purpose": "Parse raw history text into prompt objects"
         },
         "renderList": {
-          "line": 83,
+          "line": 85,
           "params": [
             "query"
           ],
           "purpose": "Render prompt list with optional search filter"
         },
         "createCard": {
-          "line": 107,
+          "line": 109,
           "params": [
             "prompt"
           ],
           "purpose": "Create a single prompt card element"
         },
         "formatTimestamp": {
-          "line": 148,
+          "line": 150,
           "params": [
             "iso"
           ],
           "purpose": "Format ISO timestamp to readable string"
         },
         "toggle": {
-          "line": 163,
+          "line": 165,
           "purpose": "Toggle panel visibility"
         },
         "show": {
-          "line": 170,
+          "line": 172,
           "purpose": "Show the panel and load data"
         },
         "hide": {
-          "line": 180,
+          "line": 182,
           "purpose": "Hide the panel"
         },
         "getIsVisible": {
-          "line": 189,
+          "line": 191,
           "purpose": "Whether the panel is currently visible"
         }
       },
       "ipc": {
         "listens": [
-          "PROMPT_HISTORY_DATA",
-          "TOGGLE_HISTORY_PANEL"
+          "PROMPT_HISTORY_DATA"
         ],
         "emits": [
           "LOAD_PROMPT_HISTORY"

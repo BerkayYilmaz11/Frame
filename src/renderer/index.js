@@ -101,10 +101,6 @@ function init() {
   projectStatusBadges.init(multiTerminalUI);
 
 
-  // The dock beside the center (dock-panel-readonly-views spec): hosts the
-  // read-only surfaces and Feedback; restores its last position / tab / size.
-  dock.init();
-
   // Status bar at the foot of the window: Claude usage meters today
   // (status-bar spec).
   require('./statusBar').init();
@@ -163,6 +159,12 @@ function init() {
 
   // Initialize specs dashboard (full-page card grid, opened from panel header)
   specsDashboard.init();
+
+  // The dock beside the center (dock-panel-readonly-views spec): hosts the
+  // read-only surfaces and Feedback; restores its last position / tab / size.
+  // After the panels it hosts have initialized, so a dock restored open at
+  // boot mounts a panel whose show() can already load.
+  dock.init();
 
   // Initialize sidebar resize
   sidebarResize.init(() => {
@@ -606,13 +608,8 @@ function registerCommands() {
     shortcut: 'CmdOrCtrl+Shift+G',
     run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('github')
   });
-  r({
-    id: 'panel.togglePrompts',
-    title: 'Toggle Prompts Panel',
-    category: 'Panel',
-    shortcut: 'CmdOrCtrl+Shift+L',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('prompts')
-  });
+  // 'panel.togglePrompts' became 'dock.prompts' (below) when Prompts moved
+  // into the dock; the shortcut travelled with it.
 
   // ---------- View: the dock ----------
   // Every entry point — status bar, native View menu, palette, shortcut —
@@ -625,6 +622,25 @@ function registerCommands() {
     category: 'View',
     shortcut: 'CmdOrCtrl+J',
     run: () => dock.toggle()
+  });
+  r({
+    id: 'dock.prompts',
+    title: 'Toggle Prompts',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+Shift+L',
+    run: () => dock.toggleTab('prompts')
+  });
+  r({
+    id: 'dock.activity',
+    title: 'Toggle Activity',
+    category: 'View',
+    run: () => dock.toggleTab('activity')
+  });
+  r({
+    id: 'dock.feedback',
+    title: 'Toggle Feedback',
+    category: 'View',
+    run: () => dock.toggleTab('feedback')
   });
   r({
     id: 'dock.moveRight',
