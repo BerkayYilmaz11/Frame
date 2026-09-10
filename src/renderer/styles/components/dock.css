@@ -228,3 +228,12 @@ body.dock-resizing-ew * {
 .dock-slot > .dock-hosted::before {
   display: none;
 }
+
+/* ---------- Rendered surfaces ---------- */
+/* Decisions renders its own .decisions-view (height: 100%) into the slot;
+   as a flex child it should fill by flex, not by percentage. */
+.dock-slot > .decisions-view {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}

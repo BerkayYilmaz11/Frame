@@ -2,8 +2,10 @@
  * Decisions View Module
  *
  * The project's decision log — every `### [YYYY-MM-DD] Title` entry in
- * PROJECT_NOTES.md — as a center view, the way Tasks and Specs are
- * (decisions-view spec, replacing the Overview dashboard's five-row card).
+ * PROJECT_NOTES.md — rendered into the dock's Decisions tab
+ * (dock-panel-readonly-views spec; it was a center view under the
+ * decisions-view spec before that). `render(container)` draws into
+ * whatever it is given, so the host decides where it lives.
  *
  * Rows are collapsed to date + title; clicking one expands that decision's
  * full body in place. A search box filters on date, title and body text.

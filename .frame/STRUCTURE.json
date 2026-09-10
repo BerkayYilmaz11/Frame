@@ -4957,25 +4957,25 @@
       ],
       "functions": {
         "render": {
-          "line": 25,
+          "line": 27,
           "params": [
             "container"
           ]
         },
         "load": {
-          "line": 57,
+          "line": 59,
           "params": [
             "projectPath"
           ]
         },
         "projectName": {
-          "line": 66,
+          "line": 68,
           "params": [
             "projectPath"
           ]
         },
         "renderShell": {
-          "line": 71,
+          "line": 73,
           "params": [
             "body",
             "name"
@@ -4983,48 +4983,48 @@
           "purpose": "Header + body frame; body is swapped as the view loads / filters."
         },
         "matches": {
-          "line": 92,
+          "line": 94,
           "params": [
             "decision"
           ]
         },
         "renderList": {
-          "line": 100
+          "line": 102
         },
         "renderRow": {
-          "line": 116,
+          "line": 118,
           "params": [
             "decision"
           ]
         },
         "renderEmpty": {
-          "line": 131,
+          "line": 133,
           "params": [
             "title",
             "message"
           ]
         },
         "rowKey": {
-          "line": 141,
+          "line": 143,
           "params": [
             "decision"
           ],
           "purpose": "date + line is stable across re-renders and unique per entry."
         },
         "wire": {
-          "line": 145,
+          "line": 147,
           "params": [
             "container"
           ]
         },
         "updateCount": {
-          "line": 178,
+          "line": 180,
           "params": [
             "countEl"
           ]
         },
         "renderMarkdown": {
-          "line": 186,
+          "line": 188,
           "params": [
             "md"
           ]
@@ -5156,6 +5156,7 @@
       "depends": [
         "dock/dockState",
         "lucide",
+        "decisionsView",
         "promptsPanel",
         "activityPanel",
         "feedbackPanel",
@@ -5181,105 +5182,105 @@
           "purpose": "A tab hosting one of the legacy side panels (D9). The element keeps its"
         },
         "loadState": {
-          "line": 134
+          "line": 148
         },
         "persist": {
-          "line": 142
+          "line": 156
         },
         "init": {
-          "line": 152
+          "line": 166
         },
         "available": {
-          "line": 207,
+          "line": 221,
           "params": [
             "position = state.position"
           ],
           "purpose": "The center's extent on the dock's axis, for the size ceiling."
         },
         "applySize": {
-          "line": 216
+          "line": 230
         },
         "apply": {
-          "line": 233,
+          "line": 247,
           "params": [
             "{ refit = false } = {}"
           ],
           "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
         },
         "mountTab": {
-          "line": 271,
+          "line": 285,
           "params": [
             "tab"
           ]
         },
         "unmountTab": {
-          "line": 285
+          "line": 299
         },
         "refitCenter": {
-          "line": 300,
+          "line": 314,
           "purpose": "Terminals refit through the existing fit path (D13)."
         },
         "refitTab": {
-          "line": 307,
+          "line": 321,
           "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
         },
         "emit": {
-          "line": 318
+          "line": 332
         },
         "snapshotState": {
-          "line": 329
+          "line": 343
         },
         "bindResize": {
-          "line": 335,
+          "line": 349,
           "params": [
             "handle"
           ]
         },
         "ensureReady": {
-          "line": 395
+          "line": 409
         },
         "open": {
-          "line": 404,
+          "line": 418,
           "params": [
             "tab"
           ],
           "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
         },
         "close": {
-          "line": 411
+          "line": 425
         },
         "toggle": {
-          "line": 419,
+          "line": 433,
           "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
         },
         "toggleTab": {
-          "line": 425,
+          "line": 439,
           "params": [
             "tab"
           ],
           "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
         },
         "setPosition": {
-          "line": 432,
+          "line": 446,
           "params": [
             "position"
           ]
         },
         "isOpen": {
-          "line": 440
+          "line": 454
         },
         "activeTab": {
-          "line": 444
+          "line": 458
         },
         "position": {
-          "line": 448
+          "line": 462
         },
         "remountActive": {
-          "line": 457,
+          "line": 471,
           "purpose": "Re-run the active tab's mount (the project changed under an open"
         },
         "onChange": {
-          "line": 465,
+          "line": 479,
           "params": [
             "fn"
           ],
@@ -6772,7 +6773,7 @@
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 817,
+          "line": 823,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7076,7 +7077,6 @@
         "homeBoard",
         "laneStatus",
         "agentDispatch",
-        "decisionsView",
         "taskSection",
         "specSection",
         "diffSection",

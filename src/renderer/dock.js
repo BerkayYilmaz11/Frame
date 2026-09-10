@@ -101,7 +101,21 @@ function panelTab({ label, icon, elementId, module }) {
  * re-parented panels.
  */
 const DOCK_TABS = {
-  decisions: { label: 'Decisions', icon: ScrollText, mount() {}, unmount() {} },
+  decisions: {
+    label: 'Decisions',
+    icon: ScrollText,
+    // decisionsView renders into whatever container it is given; the slot
+    // carries the class its CSS is scoped to. One LOAD_DECISIONS per mount,
+    // no subscription — the same contract it had as a center view.
+    mount(slot) {
+      slot.classList.add('decisions-view-host');
+      require('./decisionsView').render(slot);
+    },
+    unmount(slot) {
+      slot.innerHTML = '';
+      slot.classList.remove('decisions-view-host');
+    }
+  },
   structure: { label: 'Structure', icon: Waypoints, mount() {}, unmount() {} },
   prompts: panelTab({
     label: 'Prompts', icon: SquareTerminal,

@@ -23,7 +23,6 @@ const { TerminalsView } = require('./terminalsView');
 const { HomeBoard } = require('./homeBoard');
 const laneStatus = require('./laneStatus');
 const agentDispatch = require('./agentDispatch');
-const decisionsView = require('./decisionsView');
 const taskSection = require('./taskSection');
 const specSection = require('./specSection');
 const diffSection = require('./diffSection');
@@ -49,7 +48,6 @@ class MultiTerminalUI {
     this.board = null;
     this.contentContainer = null;
     this.initialized = false;
-    this.isDecisionsVisible = false; // Track if the decisions view is shown
     this.terminalsInStrip = true;   // Terminals sits in the top bar until dropped
     this.sections = [];             // Open section tabs (task/spec detail instances)
     this.activeSectionKey = null;   // Which section tab is focused
@@ -242,7 +240,6 @@ class MultiTerminalUI {
    * Return to the lane board.
    */
   goHome() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false; // section tabs stay open, just leave the screen
     this.manager.setViewMode('board');
     this._onStateChange(this._currentState());
@@ -400,7 +397,6 @@ class MultiTerminalUI {
   /** Show a legacy side panel as the center view. */
   showPanel(key) {
     if (!PANEL_REGISTRY[key]) return;
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this._activePanelKey = key;
     if (this.manager.viewMode === 'panel') {
@@ -414,8 +410,7 @@ class MultiTerminalUI {
   togglePanel(key) {
     const onIt = this.manager.viewMode === 'panel'
       && this._activePanelKey === key
-      && !this.isSectionVisible
-      && !this.isDecisionsVisible;
+      && !this.isSectionVisible;
     if (onIt) this.showTerminals();
     else this.showPanel(key);
   }
@@ -518,25 +513,23 @@ class MultiTerminalUI {
 
   /** Show the specs card grid inline (dashboard's own switch also lands here). */
   showSpecsGrid() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.manager.setViewMode('specs');
   }
 
   /** Show the tasks kanban inline as the center view. */
   showTasksBoard() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.manager.setViewMode('tasks');
   }
 
   /**
    * What the center currently shows: 'terminals' | 'board' | 'specs' |
-   * 'tasks' | 'decisions' | 'section:<type>'. Drives the sidebar
-   * nav's active states.
+   * 'tasks' | 'panel:<key>' | 'section:<type>'. Drives the sidebar nav's
+   * active states. The dock is not a surface — it reports its own state
+   * through dock.js (dock-panel-readonly-views spec, C2).
    */
   getActiveSurface() {
-    if (this.isDecisionsVisible) return 'decisions';
     if (this.isSectionVisible) {
       const s = this._activeSection();
       return s ? `section:${s.type}` : 'section';
@@ -572,7 +565,6 @@ class MultiTerminalUI {
    * back out. Enlarging again is enterLane's job.
    */
   showTerminals() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.terminalsInStrip = true;
     // Choose the body before the view mode, so the section draws once.
@@ -617,8 +609,7 @@ class MultiTerminalUI {
   dropTerminalsFromStrip() {
     this.terminalsInStrip = false;
     const onIt = this.manager.viewMode === 'terminals'
-      && !this.isSectionVisible
-      && !this.isDecisionsVisible;
+      && !this.isSectionVisible;
     if (onIt) this.goHome();
     else this._onStateChange(this._currentState());
   }
@@ -735,7 +726,7 @@ class MultiTerminalUI {
       return;
     }
 
-    if (this.manager.viewMode === 'board' && !this.isDecisionsVisible) {
+    if (this.manager.viewMode === 'board') {
       this.enterLane(targetId);
     }
     this.manager.sendCommand(command, targetId);
@@ -765,7 +756,7 @@ class MultiTerminalUI {
   /**
    * True when the Terminals section is the surface on screen and a terminal is
    * focused — in an Overview pane or in its own tab. Not Home, not an open
-   * section (task/spec) viewport, not the decisions list. Used by the sidebar
+   * section (task/spec) viewport. Used by the sidebar
    * launch shortcut to decide between "start in the focused terminal" and
    * "open a new one".
    *
@@ -775,45 +766,7 @@ class MultiTerminalUI {
   isViewingFrame() {
     return this.manager.viewMode === 'terminals'
       && !this.isSectionVisible
-      && !this.isDecisionsVisible
       && !!this.manager.activeTerminalId;
-  }
-
-  /**
-   * Show the Decisions view (decisions-view spec — replaces Overview)
-   */
-  showDecisions() {
-    // Rendering bypasses _onStateChange — park inline surfaces first so the
-    // container wipe below can't destroy their elements.
-    require('./specsDashboard').notifyDetached();
-    require('./tasksDashboard').notifyDetached();
-    this._detachPanel();
-
-    this.isDecisionsVisible = true;
-    this._mountedTerminalId = null;
-    this._lastViewMode = 'decisions';
-    this.contentContainer.innerHTML = '';
-    this.contentContainer.className = 'terminal-content decisions-view-host';
-    this._clearGridInlineStyles();
-
-    decisionsView.render(this.contentContainer);
-
-    // Rendering bypassed _onStateChange — refresh the sidebar nav ourselves
-    try {
-      require('./projectListUI').updateWorkspaceNav();
-    } catch (_) { /* sidebar not initialized yet */ }
-  }
-
-  /**
-   * Hide the Decisions view and return to the current view mode
-   */
-  hideDecisions() {
-    this.isDecisionsVisible = false;
-    this._onStateChange(this._currentState());
-  }
-
-  toggleDecisions() {
-    if (this.isDecisionsVisible) this.hideDecisions(); else this.showDecisions();
   }
 
   /**

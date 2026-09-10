@@ -24,3 +24,11 @@ _Captured: 2026-09-10 · 6 file change(s)_
 
 ---
 
+## T04 — Decisions hosted in the dock
+
+Filled `DOCK_TABS.decisions` in `src/renderer/dock.js`: mount adds `.decisions-view-host` to the slot and calls `decisionsView.render(slot)`, unmount clears it; `dock.css` lets the rendered `.decisions-view` fill the slot by flex rather than by percentage height. Registered `dock.decisions` in `index.js`. Removed `showDecisions` / `hideDecisions` / `toggleDecisions`, the `isDecisionsVisible` flag with its seven guards, the `decisionsView` import and the `'decisions'` branch of `getActiveSurface()` from `multiTerminalUI.js`; rewrote `decisionsView.js`'s header. No deviation from plan.md. The nav's Decisions row and the palette's "Go to Decisions" still call the retired method until T08 / T10 remove them.
+
+_Captured: 2026-09-10 · 5 file change(s)_
+
+---
+

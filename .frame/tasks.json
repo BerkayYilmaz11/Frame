@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:28:37.925Z",
+  "lastUpdated": "2026-09-10T12:30:16.992Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7141,25 +7141,25 @@
       "title": "Host Decisions in the dock: `DOCK_TABS.decisions` renders `decisionsView.render()` into a slot carrying `.decisions-view-host`, command `dock.decisions`; remove `showDecisions` / `hideDecisions` / `toggleDecisions` / `isDecisionsVisible`, the `decisionsView` import and the `'decisions'` branch of `getActiveSurface()` from `multiTerminalUI.js`; update the `decisionsView.js` header comment",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T04",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T12:28:37.925Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:30:16.992Z",
+      "completedAt": "2026-09-10T12:30:16.992Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T05",
       "title": "Host Structure in the dock: add `mount(host)` and `refit()` to `structureMap.js`, stop creating the overlay in `init()`, drop backdrop / Escape / close, re-scope the `#structure-map-overlay` rules in `panels.css` to the dock slot, render the inline no-project state, wire `refit()` to dock resize-end and side change, command `dock.structure`; remove `showStructureMap` and the `structureMap.init()` call from `multiTerminalUI.js`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T05",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:30:16.992Z",
       "completedAt": null
     },
     {
