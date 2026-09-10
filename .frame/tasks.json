@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:34:05.003Z",
+  "lastUpdated": "2026-09-10T12:34:57.276Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7167,25 +7167,25 @@
       "title": "Re-mount the active dock tab when the project changes, so an open Decisions or Structure tab follows the switcher the way the workspace nav does",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T06",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T12:34:05.003Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:34:57.276Z",
+      "completedAt": "2026-09-10T12:34:57.276Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T07",
       "title": "Add the status-bar dock icons: `statusBar._buildDockIcons()` with the five lucide icons (ScrollText, Waypoints, SquareTerminal, Activity, MessageSquarePlus) inserted before the agents indicator, `.on` driven by `dock.onChange`, tooltips carrying shortcuts, `console.error` when `.status-bar-left` is missing; the `.sb-dock` group in `status-bar.css`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T07",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:34:57.276Z",
       "completedAt": null
     },
     {

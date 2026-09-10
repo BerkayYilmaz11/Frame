@@ -192,6 +192,10 @@ function init() {
       fileTreeUI.clearFileTree({ unwatch: true });
       specPanel.stopWatching();
     }
+    // An open dock tab follows the switcher the way the workspace nav does:
+    // Decisions and Structure re-render for the new project, the
+    // re-parented panels reload through their own show().
+    dock.remountActive();
   });
 
   // Setup Frame status change listener

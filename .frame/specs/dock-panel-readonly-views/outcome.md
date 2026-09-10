@@ -40,3 +40,11 @@ _Captured: 2026-09-10 · 6 file change(s)_
 
 ---
 
+## T06 — Open dock tab follows the project switcher
+
+Added one call at the end of `index.js`'s `state.onProjectChange` handler: `dock.remountActive()`, which unmounts and re-mounts the active tab while the dock is open, so Decisions and Structure re-render for the new project and the re-parented panels reload through their own `hide()` / `show()`. It runs on the null-project edge too, which turns an open Structure tab into its inline no-project state. No deviation from plan.md.
+
+_Captured: 2026-09-10 · 1 file change(s)_
+
+---
+
