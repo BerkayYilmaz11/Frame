@@ -278,6 +278,15 @@ function setupButtonHandlers() {
     if (!consumed) alert('Clone failed:\n' + result.error);
   });
 
+  // The native View menu's one channel to the renderer: a command-registry
+  // id, run through the same registry the palette, the status bar and the
+  // shortcuts use (dock-panel-readonly-views spec, C6 / D12).
+  ipcRenderer.on(IPC.RUN_APP_COMMAND, (event, commandId) => {
+    if (!commandRegistry.runById(commandId)) {
+      console.error(`Menu command '${commandId}' did not run — unknown id or unavailable right now`);
+    }
+  });
+
   // Sidebar "Start default agent" shortcut — context decides whether it
   // starts in the focused Frame, a new Frame, or after a kill-and-restart
   // prompt (see agentDispatch.startDefaultAgent).

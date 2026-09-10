@@ -2380,36 +2380,39 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 110
+          "line": 128
         },
         "buildAICommandsSubmenu": {
-          "line": 119,
+          "line": 137,
           "params": [
             "tool"
           ],
           "purpose": "Build AI commands submenu based on active tool"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 229,
+          "line": 242,
           "purpose": "Build tool switcher submenu"
         },
         "sendCommand": {
-          "line": 248,
+          "line": 261,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
-        "toggleHistoryPanel": {
-          "line": 257,
-          "purpose": "Toggle history panel"
+        "sendAppCommand": {
+          "line": 271,
+          "params": [
+            "commandId"
+          ],
+          "purpose": "Run a renderer command by its command-registry id (the View menu's one"
         },
         "openHistoryFile": {
-          "line": 266,
+          "line": 280,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 280,
+          "line": 294,
           "purpose": "Create and set application menu"
         }
       },
@@ -2418,7 +2421,7 @@
         "emits": [
           "OPEN_SETTINGS",
           "RUN_COMMAND",
-          "TOGGLE_HISTORY_PANEL"
+          "RUN_APP_COMMAND"
         ]
       }
     },
@@ -6765,32 +6768,33 @@
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 332,
+          "line": 341,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 443,
+          "line": 452,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 474,
+          "line": 483,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 500,
+          "line": 509,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 834,
+          "line": 843,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
       "ipc": {
         "listens": [
           "CLONE_GITHUB_REPO_RESULT",
+          "RUN_APP_COMMAND",
           "UPDATE_AVAILABLE"
         ],
         "emits": [
@@ -7468,7 +7472,8 @@
           "line": 88
         },
         "viewItems": {
-          "line": 102
+          "line": 106,
+          "purpose": "Only the center surfaces without a registered command of their own."
         }
       },
       "ipc": {
@@ -12126,6 +12131,13 @@
     "codex": {
       "CODEX_HOOKS_UNTRUSTED": {
         "name": "codex-hooks-untrusted",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "app": {
+      "RUN_APP_COMMAND": {
+        "name": "run-app-command",
         "direction": "",
         "description": ""
       }

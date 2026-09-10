@@ -72,3 +72,11 @@ _Captured: 2026-09-10 · 5 file change(s)_
 
 ---
 
+## T10 — Native View menu wired through one channel; palette trimmed
+
+Added `RUN_APP_COMMAND` to `src/shared/ipcChannels.js` and removed `TOGGLE_HISTORY_PANEL`. In `src/main/menu.js` the View menu now leads with Decisions · Structure Map · Prompts (⌘⇧L) · Activity · Feedback / Toggle Panel (⌘J) · Move Panel Right · Move Panel to Bottom / GitHub (⌘⇧G) · Project Settings… ahead of the Electron roles, every item going through `sendAppCommand(id)`; the AI-tool submenu's "Toggle Prompt History Panel" and `toggleHistoryPanel()` are gone. `index.js` listens for `RUN_APP_COMMAND` and runs `commandRegistry.runById`, logging an id that does not run. `paletteSources.viewItems` keeps terminals / specs / tasks / claude, since the other five rows duplicated registered commands. No deviation from plan.md.
+
+_Captured: 2026-09-10 · 4 file change(s)_
+
+---
+

@@ -27,10 +27,10 @@ const IPC = {
   // History
   LOAD_PROMPT_HISTORY: 'load-prompt-history',
   PROMPT_HISTORY_DATA: 'prompt-history-data',
-  TOGGLE_HISTORY_PANEL: 'toggle-history-panel',
 
   // Commands
-  RUN_COMMAND: 'run-command',
+  RUN_COMMAND: 'run-command',                        // main → renderer: type this into the active terminal (menu accelerators)
+  RUN_APP_COMMAND: 'run-app-command',                // main → renderer: run this command-registry id (the View menu; dock-panel-readonly-views spec)
 
   // Workspace
   LOAD_WORKSPACE: 'load-workspace',

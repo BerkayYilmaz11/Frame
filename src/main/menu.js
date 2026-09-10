@@ -52,7 +52,25 @@ function getMenuTemplate() {
     },
     {
       label: 'View',
+      // Every destination here sends one command-registry id to the
+      // renderer (dock-panel-readonly-views spec): the same ids the status
+      // bar, the palette and the shortcuts run, registered in
+      // src/renderer/index.js registerCommands() — the accelerators shown
+      // are copied from there, keep the two in step.
       submenu: [
+        { label: 'Decisions', click: () => sendAppCommand('dock.decisions') },
+        { label: 'Structure Map', click: () => sendAppCommand('dock.structure') },
+        { label: 'Prompts', accelerator: 'CmdOrCtrl+Shift+L', click: () => sendAppCommand('dock.prompts') },
+        { label: 'Activity', click: () => sendAppCommand('dock.activity') },
+        { label: 'Feedback', click: () => sendAppCommand('dock.feedback') },
+        { type: 'separator' },
+        { label: 'Toggle Panel', accelerator: 'CmdOrCtrl+J', click: () => sendAppCommand('dock.toggle') },
+        { label: 'Move Panel Right', click: () => sendAppCommand('dock.moveRight') },
+        { label: 'Move Panel to Bottom', click: () => sendAppCommand('dock.moveBottom') },
+        { type: 'separator' },
+        { label: 'GitHub', accelerator: 'CmdOrCtrl+Shift+G', click: () => sendAppCommand('sidebar.github') },
+        { label: 'Project Settings…', click: () => sendAppCommand('settings.openProject') },
+        { type: 'separator' },
         { role: 'reload' },
         { role: 'forceReload' },
         { role: 'toggleDevTools' },
@@ -198,13 +216,8 @@ function buildAICommandsSubmenu(tool) {
 
   submenu.push({ type: 'separator' });
 
-  // History commands (universal)
-  submenu.push({
-    label: 'Toggle Prompt History Panel',
-    accelerator: 'CmdOrCtrl+Shift+H',
-    click: () => toggleHistoryPanel()
-  });
-
+  // History file (universal). The prompt history *panel* is View → Prompts
+  // now (dock-panel-readonly-views spec).
   submenu.push({
     label: 'Open History File',
     accelerator: 'CmdOrCtrl+H',
@@ -252,11 +265,12 @@ function sendCommand(command) {
 }
 
 /**
- * Toggle history panel
+ * Run a renderer command by its command-registry id (the View menu's one
+ * channel to the renderer — never a channel per item).
  */
-function toggleHistoryPanel() {
+function sendAppCommand(commandId) {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(IPC.TOGGLE_HISTORY_PANEL);
+    mainWindow.webContents.send(IPC.RUN_APP_COMMAND, commandId);
   }
 }
 

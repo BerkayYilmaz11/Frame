@@ -99,6 +99,10 @@ function specItems() {
   });
 }
 
+// Only the center surfaces without a registered command of their own.
+// Decisions, Structure, Prompts, Activity, Feedback (dock.*) and GitHub
+// (sidebar.github) are registered commands now, so a row here would list
+// each of them twice (dock-panel-readonly-views spec, D12).
 function viewItems() {
   if (!multiTerminalUI || !state.getProjectPath()) return [];
   const ui = multiTerminalUI;
@@ -106,12 +110,7 @@ function viewItems() {
     ['terminals', 'Go to Terminals', () => ui.showTerminals()],
     ['specs', 'Go to Specs', () => ui.showSpecs()],
     ['tasks', 'Go to Tasks', () => ui.showTasksBoard()],
-    ['decisions', 'Go to Decisions', () => ui.showDecisions()],
-    ['structure', 'Open Structure Map', () => ui.showStructureMap()],
-    ['github', 'Go to GitHub', () => ui.showPanel('github')],
-    ['claude', 'Go to Claude', () => ui.showPanel('claude')],
-    ['prompts', 'Go to Prompts', () => ui.showPanel('prompts')],
-    ['activity', 'Go to Activity', () => ui.showPanel('activity')]
+    ['claude', 'Go to Claude', () => ui.showPanel('claude')]
   ];
   return views.map(([key, title, run]) => ({
     id: `jump.view:${key}`,
