@@ -32,3 +32,11 @@ _Captured: 2026-09-10 · 5 file change(s)_
 
 ---
 
+## T05 — Structure map hosted in the dock, overlay retired
+
+Replaced the overlay lifecycle in `src/renderer/structureMap.js` with `mount(host)` / `show(projectPath)` / `refit()` / `hide()`: the container markup goes into the host given, `show()` abandons a load whose host unmounted meanwhile, `refit()` re-renders the current view, and the info-panel resize binds its document listeners once instead of per mount. Dropped `#structure-map-overlay` and `.structure-map-close` from `panels.css`; `dock.css` sizes the container to the slot, trims the 60px header to 36px and adds `.dock-empty`. `DOCK_TABS.structure` in `dock.js` mounts the map or the inline no-project state (D4), unmounts through `hide()`, and refits on resize-end / side change; `dock.structure` registered in `index.js`; `structureMap.init()` and `showStructureMap()` left `multiTerminalUI.js`. Deviation from plan.md: `init()` is removed rather than emptied, since nothing calls it. Followup: `panels.css` still carries `.structure-map-sidebar` / `.node-details` / `.map-control-*` rules that no markup has used for some time.
+
+_Captured: 2026-09-10 · 6 file change(s)_
+
+---
+

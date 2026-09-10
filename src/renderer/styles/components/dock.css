@@ -237,3 +237,49 @@ body.dock-resizing-ew * {
   height: auto;
   min-height: 0;
 }
+
+/* Structure: the map's own container fills the slot; its 60px overlay
+   header is trimmed to the dock's scale. */
+.dock-slot > .structure-map-container {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.dock-slot .structure-map-header {
+  height: 36px;
+  padding: 0 var(--space-md);
+  box-shadow: none;
+}
+
+.dock-slot .structure-map-header h2 {
+  font-size: 12px;
+}
+
+.dock-slot .structure-map-info {
+  height: 160px;
+}
+
+/* ---------- Empty state ---------- */
+/* The shape decisionsView.renderEmpty draws, for a tab with nothing to
+   show (D4: Structure with no project selected). */
+.dock-empty {
+  flex: 1;
+  padding: 48px var(--space-xl);
+  text-align: center;
+}
+
+.dock-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.dock-empty-message {
+  font-size: 13px;
+  color: var(--text-quaternary, var(--text-tertiary));
+  margin: 0 auto;
+  max-width: 420px;
+  line-height: 1.6;
+}

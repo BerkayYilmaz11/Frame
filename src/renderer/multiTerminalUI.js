@@ -97,9 +97,6 @@ class MultiTerminalUI {
       onEnterLane: (terminalId) => this.enterLane(terminalId)
     });
 
-    // Structure map overlay (its own sidebar item since Overview retired)
-    require('./structureMap').init();
-
     // Wire up top bar callbacks
     this.tabBar.onGoHome = () => this.goHome();
     this.tabBar.onEnterTerminals = () => this.showTerminals();
@@ -767,22 +764,6 @@ class MultiTerminalUI {
     return this.manager.viewMode === 'terminals'
       && !this.isSectionVisible
       && !!this.manager.activeTerminalId;
-  }
-
-  /**
-   * Open the interactive structure map. It is an overlay, not a center view,
-   * and since Overview retired this is its only entry point besides ⌘K.
-   */
-  showStructureMap() {
-    const projectPath = require('./state').getProjectPath();
-    if (!projectPath) {
-      require('./taskInfoModal').open({
-        title: 'No project selected',
-        message: 'Select a project from the switcher to open its structure map.'
-      });
-      return;
-    }
-    require('./structureMap').show(projectPath);
   }
 
 }

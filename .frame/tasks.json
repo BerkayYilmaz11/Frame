@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:30:16.992Z",
+  "lastUpdated": "2026-09-10T12:34:05.003Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7154,25 +7154,25 @@
       "title": "Host Structure in the dock: add `mount(host)` and `refit()` to `structureMap.js`, stop creating the overlay in `init()`, drop backdrop / Escape / close, re-scope the `#structure-map-overlay` rules in `panels.css` to the dock slot, render the inline no-project state, wire `refit()` to dock resize-end and side change, command `dock.structure`; remove `showStructureMap` and the `structureMap.init()` call from `multiTerminalUI.js`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T05",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T12:30:16.992Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:34:05.003Z",
+      "completedAt": "2026-09-10T12:34:05.003Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T06",
       "title": "Re-mount the active dock tab when the project changes, so an open Decisions or Structure tab follows the switcher the way the workspace nav does",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T06",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:34:05.003Z",
       "completedAt": null
     },
     {

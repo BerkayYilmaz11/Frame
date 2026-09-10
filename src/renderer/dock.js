@@ -42,6 +42,17 @@ function lucideIcon(data, size = 14) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex-shrink:0">${children}</svg>`;
 }
 
+/** The dock's inline empty state — the shape decisionsView.renderEmpty uses. */
+function emptyState(title, message) {
+  const { escapeHtml } = require('./htmlUtils');
+  return `
+    <div class="dock-empty">
+      <div class="dock-empty-title">${escapeHtml(title)}</div>
+      <p class="dock-empty-message">${escapeHtml(message)}</p>
+    </div>
+  `;
+}
+
 /**
  * A tab hosting one of the legacy side panels (D9). The element keeps its
  * markup, its module keeps `show()/hide()` as the data / close contract;
@@ -116,7 +127,33 @@ const DOCK_TABS = {
       slot.classList.remove('decisions-view-host');
     }
   },
-  structure: { label: 'Structure', icon: Waypoints, mount() {}, unmount() {} },
+  structure: {
+    label: 'Structure',
+    icon: Waypoints,
+    // The map renders straight into the slot (D3) — no overlay. With no
+    // project there is nothing to load, so the slot says so inline (D4)
+    // instead of raising a modal.
+    mount(slot) {
+      const projectPath = require('./state').getProjectPath();
+      if (!projectPath) {
+        slot.innerHTML = emptyState(
+          'No project selected',
+          'Pick a project from the switcher at the top of the sidebar to see its structure map.'
+        );
+        return;
+      }
+      const structureMap = require('./structureMap');
+      structureMap.mount(slot);
+      structureMap.show(projectPath);
+    },
+    unmount(slot) {
+      require('./structureMap').hide();
+      slot.innerHTML = '';
+    },
+    refit() {
+      require('./structureMap').refit();
+    }
+  },
   prompts: panelTab({
     label: 'Prompts', icon: SquareTerminal,
     elementId: 'prompts-panel', module: () => require('./promptsPanel')

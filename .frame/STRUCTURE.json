@@ -5156,7 +5156,10 @@
       "depends": [
         "dock/dockState",
         "lucide",
+        "htmlUtils",
         "decisionsView",
+        "state",
+        "structureMap",
         "promptsPanel",
         "activityPanel",
         "feedbackPanel",
@@ -5171,8 +5174,16 @@
           ],
           "purpose": "Inline SVG for a lucide icon's data (the shape sectionRail.js uses)."
         },
+        "emptyState": {
+          "line": 46,
+          "params": [
+            "title",
+            "message"
+          ],
+          "purpose": "The dock's inline empty state — the shape decisionsView.renderEmpty uses."
+        },
         "panelTab": {
-          "line": 54,
+          "line": 65,
           "params": [
             "{ label",
             "icon",
@@ -5182,105 +5193,105 @@
           "purpose": "A tab hosting one of the legacy side panels (D9). The element keeps its"
         },
         "loadState": {
-          "line": 148
+          "line": 185
         },
         "persist": {
-          "line": 156
+          "line": 193
         },
         "init": {
-          "line": 166
+          "line": 203
         },
         "available": {
-          "line": 221,
+          "line": 258,
           "params": [
             "position = state.position"
           ],
           "purpose": "The center's extent on the dock's axis, for the size ceiling."
         },
         "applySize": {
-          "line": 230
+          "line": 267
         },
         "apply": {
-          "line": 247,
+          "line": 284,
           "params": [
             "{ refit = false } = {}"
           ],
           "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
         },
         "mountTab": {
-          "line": 285,
+          "line": 322,
           "params": [
             "tab"
           ]
         },
         "unmountTab": {
-          "line": 299
+          "line": 336
         },
         "refitCenter": {
-          "line": 314,
+          "line": 351,
           "purpose": "Terminals refit through the existing fit path (D13)."
         },
         "refitTab": {
-          "line": 321,
+          "line": 358,
           "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
         },
         "emit": {
-          "line": 332
+          "line": 369
         },
         "snapshotState": {
-          "line": 343
+          "line": 380
         },
         "bindResize": {
-          "line": 349,
+          "line": 386,
           "params": [
             "handle"
           ]
         },
         "ensureReady": {
-          "line": 409
+          "line": 446
         },
         "open": {
-          "line": 418,
+          "line": 455,
           "params": [
             "tab"
           ],
           "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
         },
         "close": {
-          "line": 425
+          "line": 462
         },
         "toggle": {
-          "line": 433,
+          "line": 470,
           "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
         },
         "toggleTab": {
-          "line": 439,
+          "line": 476,
           "params": [
             "tab"
           ],
           "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
         },
         "setPosition": {
-          "line": 446,
+          "line": 483,
           "params": [
             "position"
           ]
         },
         "isOpen": {
-          "line": 454
+          "line": 491
         },
         "activeTab": {
-          "line": 458
+          "line": 495
         },
         "position": {
-          "line": 462
+          "line": 499
         },
         "remountActive": {
-          "line": 471,
+          "line": 508,
           "purpose": "Re-run the active tab's mount (the project changed under an open"
         },
         "onChange": {
-          "line": 479,
+          "line": 516,
           "params": [
             "fn"
           ],
@@ -6773,7 +6784,7 @@
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 823,
+          "line": 829,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7085,12 +7096,9 @@
         "terminalChipNotice",
         "githubPanel",
         "pluginsPanel",
-        "structureMap",
         "specsDashboard",
         "tasksDashboard",
-        "projectListUI",
-        "state",
-        "taskInfoModal"
+        "projectListUI"
       ],
       "functions": {}
     },
@@ -9241,9 +9249,10 @@
       "file": "src/renderer/structureMap.js",
       "description": "Structure Map Module",
       "exports": [
-        "init",
+        "mount",
         "show",
         "hide",
+        "refit",
         "isVisible"
       ],
       "depends": [
@@ -9253,87 +9262,96 @@
       ],
       "functions": {
         "stopSimulationLoop": {
-          "line": 21
+          "line": 31
         },
         "capGraphByDegree": {
-          "line": 30,
+          "line": 40,
           "params": [
             "graph",
             "cap"
           ],
           "purpose": "Bound a graph to its `cap` highest-degree nodes (links pruned to the kept"
         },
-        "init": {
-          "line": 64,
-          "purpose": "Initialize structure map"
-        },
-        "createOverlay": {
-          "line": 71,
-          "purpose": "Create overlay element"
+        "mount": {
+          "line": 77,
+          "params": [
+            "hostEl"
+          ],
+          "purpose": "Write the map's container into `host`. The markup — header with the"
         },
         "setupViewToggle": {
-          "line": 154,
+          "line": 139,
           "purpose": "Setup view toggle buttons"
         },
         "setupInfoPanelResize": {
-          "line": 182,
-          "purpose": "Setup info panel resize functionality"
+          "line": 166
+        },
+        "hasRoot": {
+          "line": 218,
+          "purpose": "True while the mounted container is still in the document."
+        },
+        "renderCurrentView": {
+          "line": 222
         },
         "show": {
-          "line": 237,
+          "line": 235,
           "params": [
             "projectPath"
           ],
-          "purpose": "Show structure map"
+          "purpose": "Show structure map: load the project's map and render it into the"
         },
         "hide": {
-          "line": 259,
-          "purpose": "Hide structure map"
+          "line": 258,
+          "purpose": "Hide structure map: stop the simulation. The host clears the markup."
+        },
+        "refit": {
+          "line": 270,
+          "purpose": "The host's box changed (dock resize-end, side change): re-render the"
         },
         "loadStructure": {
-          "line": 273,
+          "line": 278,
           "params": [
             "projectPath"
           ],
           "purpose": "Load structure data"
         },
         "showError": {
-          "line": 294,
+          "line": 299,
           "params": [
             "message"
           ],
           "purpose": "Show error in info panel"
         },
         "structureToGraph": {
-          "line": 302,
+          "line": 308,
           "params": [
             "data"
           ],
           "purpose": "Convert structure data to graph format"
         },
         "renderGraph": {
-          "line": 376,
+          "line": 382,
           "params": [
             "structureData"
           ],
           "purpose": "Render force-directed graph"
         },
         "renderTreeView": {
-          "line": 584,
+          "line": 590,
           "params": [
             "structureData"
           ],
           "purpose": "Render tree/hierarchy view using D3.js"
         },
         "buildHierarchy": {
-          "line": 895,
+          "line": 901,
           "params": [
             "structureData"
           ],
           "purpose": "Build hierarchy data for D3 tree"
         },
         "showModuleInfo": {
-          "line": 961,
+          "line": 967,
           "params": [
             "module",
             "showGitButton = true"
@@ -9341,7 +9359,7 @@
           "purpose": "Show module info in panel (1x3 grid layout)"
         },
         "selectNode": {
-          "line": 1123,
+          "line": 1130,
           "params": [
             "d",
             "nodeSelection"
@@ -9349,32 +9367,32 @@
           "purpose": "Select a node (visual indicator)"
         },
         "loadAndShowGitHistory": {
-          "line": 1131,
+          "line": 1138,
           "params": [
             "module"
           ],
           "purpose": "Load and show git history for a module"
         },
         "renderGitHistory": {
-          "line": 1214,
+          "line": 1221,
           "params": [
             "history"
           ],
           "purpose": "Render git history HTML (compact card format)"
         },
         "getInitials": {
-          "line": 1278,
+          "line": 1285,
           "params": [
             "name"
           ],
           "purpose": "Get initials from name"
         },
         "showPlaceholder": {
-          "line": 1288,
+          "line": 1295,
           "purpose": "Show placeholder in info panel"
         },
         "highlightConnections": {
-          "line": 1306,
+          "line": 1314,
           "params": [
             "d",
             "links",
@@ -9384,7 +9402,7 @@
           "purpose": "Highlight connections for a node"
         },
         "resetHighlight": {
-          "line": 1324,
+          "line": 1332,
           "params": [
             "nodeSelection",
             "linkSelection"
@@ -9392,7 +9410,7 @@
           "purpose": "Reset highlight"
         },
         "isMapVisible": {
-          "line": 1332,
+          "line": 1340,
           "purpose": "Check if visible"
         }
       }

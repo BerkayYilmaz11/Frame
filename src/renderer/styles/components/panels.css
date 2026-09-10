@@ -2640,22 +2640,11 @@
 }
 
 /* ==================== STRUCTURE MAP ==================== */
-#structure-map-overlay {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-deep);
-  z-index: 100;
-  flex-direction: column;
-  animation: fadeIn 0.3s ease-out;
-}
-
-#structure-map-overlay.visible {
-  display: flex !important;
-}
+/* Hosted in the dock's Structure tab (dock-panel-readonly-views spec):
+   structureMap.mount(slot) writes .structure-map-container into the slot,
+   and the container / canvas / info-panel rules below size it to that box.
+   The full-window #structure-map-overlay it used to build — backdrop,
+   Escape, × — is gone; the dock owns opening and closing. */
 
 /* Structure Map Header */
 .structure-map-header {
@@ -3270,26 +3259,6 @@
   height: 100%;
   color: var(--error);
   font-size: 12px;
-}
-
-/* Structure Map Close Button */
-.structure-map-close {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
-
-.structure-map-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
 }
 
 /* View Toggle */

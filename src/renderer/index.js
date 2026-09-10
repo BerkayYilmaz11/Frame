@@ -630,6 +630,12 @@ function registerCommands() {
     run: () => dock.toggleTab('decisions')
   });
   r({
+    id: 'dock.structure',
+    title: 'Toggle Structure Map',
+    category: 'View',
+    run: () => dock.toggleTab('structure')
+  });
+  r({
     id: 'dock.prompts',
     title: 'Toggle Prompts',
     category: 'View',
