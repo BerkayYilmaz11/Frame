@@ -2707,3 +2707,56 @@ branches merged on 2026-08-29 — `new-spec-agent-handoff` and
 `spec-reports-one-shell-two-themes-in-app` — are still unrecorded here; their
 sessions are not in this conversation, and reconstructing their reasoning from
 commit messages would be invention rather than context.
+
+### [2026-09-10] A VS Code-style dock for the readonly views (spec: dock-panel-readonly-views)
+
+The user, opening the session:
+
+> şimdi ciddi bir ui değişikliğine gideceğiz frame içinde. bazı kullanılmayan
+> ve readonly ekranlar var. Bunları proje altındaki menuden kaldıracağız.
+> vscode gibi bir yapıya geçmemiz lazım. ya native menu var ya edit view gibi
+> pencere üzerinde oradan açacağız ya da footer menusundeki iconlarla ya da
+> ikisi birden. açılacak yerler alttan ya da sağdan bir section ile açılmalı.
+> vscode terminal vs gibi. readonly ekranlar şu şekilde: decisions structure
+> prompts ve activity. feedback'i de bu menuden kaldırıp footer'a koyabiliriz.
+> ayrıca proje özelindeki ayarlar sol alt yerine proje altındaki menuye
+> konumlanmalı. ayrıca bunların tümü native menuden açılabilir olmalı. Github
+> menusunu de en sola alalım. Proje altından kaldıralım oraya koyalım.
+
+Three forks were put to the user before the spec was written, and two more
+at the plan's decision gate. Answers, all on 2026-09-10:
+
+- **Spec, not direct.** 10+ files and five prior spec decisions to reverse.
+- **Dock position:** bottom by default, movable to the right, persisted.
+  (Rejected: bottom-only, right-only.)
+- **Entry points:** native View menu **and** status-bar icons. No in-window
+  menu bar — on macOS it would duplicate the system menu.
+- **Project Settings in the nav:** a single ungrouped row pinned at the foot,
+  below Context. (Rejected: a one-row "Project" group.)
+- **Tests:** pure logic only — `dockState.js` + `test/dockState.test.js`,
+  the project's convention for renderer code.
+
+Decisions from earlier specs this reverses, on purpose and by name:
+`decisions-view` (Decisions as a center view, Structure as a nav item),
+`sidebar-nav-groups` (Frame group; Settings staying on the rail),
+`settings-by-scope` (Project Settings at the rail's foot — only its address
+changes), `in-app-feedback` (Feedback row in the Frame group), `status-bar`
+(the left slot "left empty" — it now takes the dock icons ahead of the
+other-projects agent indicator).
+
+One drift caught while planning: the spec named `RUN_COMMAND` as the
+menu→renderer message, but that channel types its payload into the active
+terminal (`menu.js:250` → `terminal.js:135`). The plan adds
+`RUN_APP_COMMAND` carrying a command-registry id, and every entry point —
+menu, status bar, palette, shortcut, nav row — goes through the registry.
+`TOGGLE_HISTORY_PANEL` retires with its only sender.
+
+Two dormant specs list files this plan touches (`audit-q3-performance-resources`
+on `index.html` / `structureMap.js`, `audit-q3-cross-platform` on
+`ipcChannels.js` / `index.js`); neither has a worktree or activity in two
+weeks, so the overlap is accepted and `terminalManager.js` is kept out of the
+footprint. The uncommitted specs-drawer / agent-picker work in the tree that
+day is unrelated and left alone.
+
+Spec chain: `.frame/specs/dock-panel-readonly-views/` — `spec.md`,
+`plan.md`, `plan-report.html`; phase `planned`, next `/spec.tasks`.

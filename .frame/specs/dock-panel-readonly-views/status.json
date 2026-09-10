@@ -1,0 +1,22 @@
+{
+  "slug": "dock-panel-readonly-views",
+  "title": "Dock panel — readonly views leave the sidebar nav",
+  "phase": "tasks_generated",
+  "generated_task_ids": [
+    "task-spec-dock-panel-readonly-views-T01",
+    "task-spec-dock-panel-readonly-views-T02",
+    "task-spec-dock-panel-readonly-views-T03",
+    "task-spec-dock-panel-readonly-views-T04",
+    "task-spec-dock-panel-readonly-views-T05",
+    "task-spec-dock-panel-readonly-views-T06",
+    "task-spec-dock-panel-readonly-views-T07",
+    "task-spec-dock-panel-readonly-views-T08",
+    "task-spec-dock-panel-readonly-views-T09",
+    "task-spec-dock-panel-readonly-views-T10"
+  ],
+  "ai_tool": "claude-code",
+  "created_at": "2026-09-10T00:00:00Z",
+  "updated_at": "2026-09-10T08:21:09.970Z",
+  "last_phase_at": "2026-09-10T08:11:58.860Z",
+  "implement_mode": "guided"
+}
