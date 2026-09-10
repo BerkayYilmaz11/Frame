@@ -9,6 +9,7 @@ const { IPC } = require('../shared/ipcChannels');
 
 // Import modules
 const logger = require('./logger');
+const envPath = require('./envPath');
 const perfMonitor = require('./perfMonitor');
 const activityLog = require('./activityLog');
 const crashGuard = require('./crashGuard');
@@ -334,6 +335,11 @@ telemetry.init();
 app.whenReady().then(() => {
   // macOS'ta menü bar'da "Frame" görünsün
   app.setName('Frame');
+
+  // Ask the login shell for the real PATH now, in the background, so the first
+  // child process that needs it doesn't pay for a shell startup. Safe to skip
+  // — callers resolve it on demand — this only moves the cost off the click.
+  envPath.primeLoginPath();
 
   // Unpackaged, macOS shows Electron's own icon in the dock — the bundle's
   // icns only applies once built. Set it explicitly so `npm start` looks like
