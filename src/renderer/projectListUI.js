@@ -266,11 +266,13 @@ let workspaceNavEl = null;
 let navSpecsCount = 0;
 let navTasksCount = 0;
 
-// Workspace destinations, grouped (sidebar-nav-groups spec). Ten flat rows
-// read as a list of everything; three named groups say what each row is for:
-// Work is where you act, Context is what the project knows about itself,
-// Frame is the tool watching itself. `open` receives the multiTerminalUI
-// instance. `surfaces` are the getActiveSurface() values that light the row.
+// Workspace destinations, grouped (sidebar-nav-groups spec): Work is where
+// you act, Context is what the project knows about itself. The read-only
+// surfaces — Decisions, Structure, Prompts, Activity — and Feedback left for
+// the dock (status bar, View menu, palette), and GitHub for the icon rail,
+// so the Frame group retired with its rows (dock-panel-readonly-views spec).
+// `open` receives the multiTerminalUI instance. `surfaces` are the
+// getActiveSurface() values that light the row.
 const WORKSPACE_NAV_GROUPS = [
   {
     key: 'work',
@@ -278,7 +280,6 @@ const WORKSPACE_NAV_GROUPS = [
     items: [
       { view: 'terminals', icon: '›_', label: 'Terminals', open: ui => ui.showTerminals(), surfaces: ['terminals'] },
       { view: 'orchestrator', icon: '⚙', label: 'Orchestration', open: () => require('./orchestrator').open(), surfaces: ['section:orchestrator'] },
-      { view: 'github', icon: '◇', label: 'GitHub', open: ui => ui.togglePanel('github'), surfaces: ['panel:github'] },
       { view: 'claude', icon: '✦', label: 'Claude', open: ui => ui.togglePanel('claude'), surfaces: ['panel:claude'] }
     ]
   },
@@ -287,24 +288,26 @@ const WORKSPACE_NAV_GROUPS = [
     label: 'Context',
     items: [
       { view: 'specs', icon: '≡', label: 'Specs', count: true, open: ui => ui.showSpecs(), surfaces: ['specs', 'section:spec'] },
-      { view: 'tasks', icon: '✓', label: 'Tasks', count: true, open: ui => ui.showTasksBoard(), surfaces: ['tasks', 'section:task'] },
-      { view: 'decisions', icon: '◈', label: 'Decisions', open: ui => ui.showDecisions(), surfaces: ['decisions'] },
-      { view: 'structure', icon: '◎', label: 'Structure', open: ui => ui.showStructureMap(), surfaces: [] },
-      { view: 'prompts', icon: '❯', label: 'Prompts', open: ui => ui.togglePanel('prompts'), surfaces: ['panel:prompts'] }
-    ]
-  },
-  {
-    key: 'frame',
-    label: 'Frame',
-    items: [
-      { view: 'activity', icon: '∿', label: 'Activity', open: ui => ui.togglePanel('activity'), surfaces: ['panel:activity'] },
-      { view: 'feedback', icon: '✎', label: 'Feedback', open: ui => ui.togglePanel('feedback'), surfaces: ['panel:feedback'] }
+      { view: 'tasks', icon: '✓', label: 'Tasks', count: true, open: ui => ui.showTasksBoard(), surfaces: ['tasks', 'section:task'] }
     ]
   }
 ];
 
+// Project Settings: one ungrouped row pinned at the foot of the nav, below
+// Context (dock-panel-readonly-views spec, D1 — a group header for one row
+// is furniture). It opens a modal, which is never the active surface, so
+// it never lights. It runs the same registered command the View menu and
+// the palette run.
+const WORKSPACE_NAV_FOOT = {
+  view: 'project-settings',
+  icon: '⚙',
+  label: 'Project Settings',
+  open: () => require('./commandRegistry').runById('settings.openProject'),
+  surfaces: []
+};
+
 /** Every row, flat — for the passes that don't care about grouping. */
-const WORKSPACE_NAV_ITEMS = WORKSPACE_NAV_GROUPS.flatMap(g => g.items);
+const WORKSPACE_NAV_ITEMS = [...WORKSPACE_NAV_GROUPS.flatMap(g => g.items), WORKSPACE_NAV_FOOT];
 
 const NAV_GROUPS_KEY = 'frame-nav-groups';
 
@@ -347,7 +350,13 @@ function buildWorkspaceNav() {
             </span>
           </div>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('') + `
+    <div class="workspace-nav-foot">
+      <div id="project-settings-btn" class="workspace-nav-item" data-view="${WORKSPACE_NAV_FOOT.view}" tabindex="0" role="button">
+        <span class="workspace-nav-icon">${WORKSPACE_NAV_FOOT.icon}</span>
+        <span class="workspace-nav-label">${WORKSPACE_NAV_FOOT.label}</span>
+      </div>
+    </div>`;
 
   WORKSPACE_NAV_ITEMS.forEach((item) => {
     nav.querySelector(`[data-view="${item.view}"]`).addEventListener('click', () => {

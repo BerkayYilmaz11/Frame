@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:36:25.929Z",
+  "lastUpdated": "2026-09-10T12:37:58.808Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7193,25 +7193,25 @@
       "title": "Trim `WORKSPACE_NAV_GROUPS` in `projectListUI.js` to Work (Terminals, Orchestration, Claude) and Context (Specs, Tasks), remove the Frame group, and add the pinned Project Settings foot row (`.workspace-nav-foot`, running `settings.openProject`) with its CSS beside the existing `.workspace-nav-*` rules",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T08",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T12:36:25.929Z",
-      "completedAt": null
+      "updatedAt": "2026-09-10T12:37:58.808Z",
+      "completedAt": "2026-09-10T12:37:58.808Z"
     },
     {
       "id": "task-spec-dock-panel-readonly-views-T09",
       "title": "Move GitHub to the rail and Project Settings off it: a GitHub rail tab (`data-sidebar-tab=\"github\"`) and a `[data-sidebar-tab-content=\"github\"]` block containing `#github-panel` in `index.html`, the foot button removed; `layout.css` / `panels.css` so the panel fills the tab with `#github-close` hidden and `.sidebar-rail-btn-foot` gone; in `index.js` `revealSidebarTab('github')` calls `githubPanel.show()`, `sidebar.github` (CmdOrCtrl+Shift+G) replaces `panel.toggleGitHub`, the foot-button binding is removed; `PANEL_REGISTRY` is left as `{ claude }`",
       "description": "",
       "source": "spec:dock-panel-readonly-views:T09",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: dock-panel-readonly-views",
       "createdAt": "2026-09-10T08:11:59.146Z",
-      "updatedAt": "2026-09-10T08:11:59.146Z",
+      "updatedAt": "2026-09-10T12:37:58.808Z",
       "completedAt": null
     },
     {

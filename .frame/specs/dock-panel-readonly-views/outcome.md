@@ -56,3 +56,11 @@ _Captured: 2026-09-10 · 2 file change(s)_
 
 ---
 
+## T08 — Sidebar nav trimmed to Work / Context with a pinned Project Settings row
+
+Trimmed `WORKSPACE_NAV_GROUPS` in `src/renderer/projectListUI.js` to Work (Terminals, Orchestration, Claude) and Context (Specs, Tasks), removed the Frame group, and added `WORKSPACE_NAV_FOOT` — Project Settings, running `settings.openProject` through the command registry, `surfaces: []` — rendered after the groups inside `.workspace-nav-foot` and appended to `WORKSPACE_NAV_ITEMS` so the existing click and highlight loops cover it unchanged; `terminals-view.css` draws the foot's hairline. Deviation from plan.md: the foot row carries `id="project-settings-btn"`, because `specDrivenHint.js` anchors its popover on that id and would otherwise go silent once T09 removes the rail button that held it.
+
+_Captured: 2026-09-10 · 2 file change(s)_
+
+---
+

@@ -7690,6 +7690,7 @@
         "terminal",
         "laneStatus",
         "orchestrator",
+        "commandRegistry",
         "projectStatusBadges"
       ],
       "functions": {
@@ -7813,25 +7814,25 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 311
+          "line": 314
         },
         "saveCollapsedGroups": {
-          "line": 320,
+          "line": 323,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 328
+          "line": 331
         },
         "placeWorkspaceNav": {
-          "line": 383
+          "line": 392
         },
         "refreshWorkspaceNav": {
-          "line": 395
+          "line": 404
         },
         "updateWorkspaceNav": {
-          "line": 471,
+          "line": 480,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },

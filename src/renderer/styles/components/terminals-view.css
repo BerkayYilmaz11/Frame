@@ -503,6 +503,15 @@ span.tv-pane-assign {
   font-weight: 700;
 }
 
+/* Project Settings: the one ungrouped row, pinned at the foot below the
+   groups and set apart by a hairline (dock-panel-readonly-views spec, D1).
+   Indented like a group's rows so the icons line up. */
+.workspace-nav-foot {
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 /* Orchestration's live session used to announce itself on Home's card; the
    row carries it now that the card is gone. */
 .workspace-nav-running {
