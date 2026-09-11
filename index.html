@@ -111,57 +111,70 @@
       </div>
     </div>
 
+    <!-- Current-project switcher: the one project selector. It sits above
+         the rail-and-panel split because every view on both sides — Files /
+         Changes / GitHub on the rail, Work / Context in the panel — is
+         about the project chosen here. -->
+    <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+      <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+        <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </svg>
+        <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+        <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+    </div>
+
     <!-- Sidebar body: activity rail + the active view's panel. The rail makes
-         Projects / Files / Changes first-class views (editor-style), with
-         Projects as the default landing view. -->
+         Projects / Files / Changes / GitHub first-class views (editor-style),
+         with Projects as the default landing view. -->
     <div id="sidebar-body">
       <nav class="sidebar-rail" aria-label="Sidebar views">
         <button class="sidebar-tab-btn sidebar-rail-btn active" data-sidebar-tab="projects" title="Projects" aria-label="Projects" tabindex="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
           </svg>
         </button>
         <button class="sidebar-tab-btn sidebar-rail-btn" data-sidebar-tab="files" title="Files" aria-label="Files" tabindex="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z"/><path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8"/>
           </svg>
         </button>
         <button class="sidebar-tab-btn sidebar-rail-btn" data-sidebar-tab="changes" title="Changes" aria-label="Changes" tabindex="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 10h6"/><path d="M12 13V7"/><path d="M9 17h6"/>
           </svg>
         </button>
-        <!-- The project's settings sit at the foot of the rail, below the
-             view tabs: they don't switch views — hence no .sidebar-tab-btn
-             (that class drives view switching). Sliders, not a gear: the gear
-             in the sidebar header is Frame's own settings, and one mark for
-             two scopes is the confusion this split set out to end. Theme
-             moved to the top bar's right end (status-bar spec), next to the
-             other window-level controls. -->
-        <button id="project-settings-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" title="Project Settings" aria-label="Project Settings" tabindex="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/>
+        <!-- GitHub is project-wide like Files and Changes, so it is a view
+             tab here rather than a row under the project
+             (dock-panel-readonly-views spec). Project Settings, which used to
+             sit at the rail's foot, is a row under the project now. -->
+        <button class="sidebar-tab-btn sidebar-rail-btn" data-sidebar-tab="github" title="GitHub" aria-label="GitHub" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>
+          </svg>
+        </button>
+        <!-- The foot of the rail, below the view tabs: Plugins, then Feedback.
+             Both open a modal (#plugins-modal, #feedback-modal) rather than
+             switching views — hence no .sidebar-tab-btn (that class drives
+             view switching). .sidebar-rail-btn-foot on the first pushes the
+             pair to the bottom. -->
+        <button id="plugins-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" aria-label="Plugins" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>
+          </svg>
+        </button>
+        <button id="feedback-btn" class="sidebar-rail-btn" aria-label="Send Feedback" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M12 8v6"/><path d="M9 11h6"/>
           </svg>
         </button>
       </nav>
 
       <div class="sidebar-panel">
-        <!-- Current-project dropdown: shows which project Files / Changes are
-             on, and lets the user switch project right here. Hidden on Projects
-             (the list highlights its own active row). -->
-        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap" style="display:none;">
-          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-            <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-            </svg>
-            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
-        </div>
-
         <!-- Projects view (default) — the workspace panel for the selected
              project (project-dropdown spec): selection lives in the
              current-project switcher above, which also carries "+ Add a
@@ -226,6 +239,51 @@
           </div>
         </div>
 
+        <!-- GitHub view (dock-panel-readonly-views spec, D8): the GitHub
+             panel renders here like Files and Changes do, keeping its
+             refresh / filter / create-branch chrome. Always displayed inside
+             its tab — .visible no longer gates it, and its × is hidden since
+             there is nothing to close to. -->
+        <div class="sidebar-tab-content" data-sidebar-tab-content="github" style="display:none;">
+        <div id="github-panel">
+          <div id="github-header">
+            <h3>GitHub</h3>
+            <div class="github-header-actions">
+              <button id="github-refresh-btn" tabindex="-1" title="Refresh">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+              </button>
+              <button id="github-close" tabindex="-1">✕</button>
+            </div>
+          </div>
+          <div id="github-repo-name"></div>
+          <div class="github-tabs">
+            <button class="github-tab-btn active" data-tab="issues">Issues</button>
+            <button class="github-tab-btn" data-tab="prs">PRs</button>
+            <button class="github-tab-btn" data-tab="branches">Branches</button>
+            <button class="github-tab-btn" data-tab="worktrees">Worktrees</button>
+          </div>
+          <div class="github-filter" id="github-filter">
+            <button class="github-filter-btn active" data-filter="open">Open</button>
+            <button class="github-filter-btn" data-filter="closed">Closed</button>
+            <button class="github-filter-btn" data-filter="all">All</button>
+          </div>
+          <div class="github-branches-actions" id="github-branches-actions" style="display: none;">
+            <button id="github-create-branch-btn" class="github-action-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Branch
+            </button>
+          </div>
+          <div id="github-content">
+            <!-- GitHub content will be populated here -->
+          </div>
+        </div>
+        </div>
+
         <!-- Agent view: default-agent controls (selector + Start) and the live
              running-agents list across all projects. Replaces the old bottom
              Agent footer card. -->
@@ -252,8 +310,24 @@
   <!-- Main Content Area -->
   <div id="main-content">
     <!-- Terminal -->
-    <div id="terminal-container">
+    <div id="terminal-container" class="dock-bottom">
       <div id="terminal"></div>
+      <!-- Dock: the VS Code-style panel beside the center
+           (dock-panel-readonly-views spec). Hosts the read-only surfaces —
+           Decisions, Structure, Prompts, Activity — and Feedback, one at a
+           time. Bottom by default, to the right with .dock-right on the
+           container; tabs and slots are built by dock.js. -->
+      <div id="dock" class="dock" aria-hidden="true">
+        <div class="dock-resize-handle" title="Drag to resize"></div>
+        <div class="dock-header">
+          <div class="dock-tabs" role="tablist" aria-label="Panel tabs"></div>
+          <div class="dock-actions">
+            <button type="button" class="dock-action-btn dock-move" tabindex="-1" title="Move Panel Right" aria-label="Move Panel Right"></button>
+            <button type="button" class="dock-action-btn dock-close" tabindex="-1" title="Close Panel (⌘J)" aria-label="Close Panel"></button>
+          </div>
+        </div>
+        <div class="dock-body"></div>
+      </div>
     </div>
 
     <!-- Tasks Panel -->
@@ -350,99 +424,33 @@
       </div>
     </div>
 
-    <!-- Claude Panel -->
-    <div id="plugins-panel">
-      <div id="plugins-header">
-        <h3>Claude</h3>
-        <div class="plugins-header-actions">
-          <button id="plugins-refresh-btn" tabindex="-1" title="Refresh plugin list">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            </svg>
-          </button>
-          <button id="plugins-close" tabindex="-1">✕</button>
-        </div>
-      </div>
-      <div class="claude-tabs">
-        <button class="claude-tab-btn active" data-tab="plugins">Plugins</button>
-        <button class="claude-tab-btn" data-tab="sessions">Sessions</button>
-      </div>
-      <div class="plugins-tab-content" data-tab-content="plugins">
-        <div class="plugins-filter">
-          <button class="plugins-filter-btn active" data-filter="all">All</button>
-          <button class="plugins-filter-btn" data-filter="installed">Installed</button>
-          <button class="plugins-filter-btn" data-filter="enabled">Enabled</button>
-        </div>
-        <div id="plugins-content">
-          <!-- Plugins will be populated here -->
-        </div>
-      </div>
-      <div class="sessions-tab-content" data-tab-content="sessions" style="display:none;">
-        <div class="sessions-header-bar">
-          <span id="sessions-count"></span>
+    <!-- Sessions: the project's Claude Code transcripts, a Context row
+         beside Specs and Tasks. Hosted in the center by multiTerminalUI
+         (sessionsPanel.js); the header is the shared .dock-view-header. -->
+    <div id="sessions-panel">
+      <div id="sessions-header" class="dock-view-header">
+        <h3 class="dock-view-title">Sessions</h3>
+        <div class="dock-view-actions">
+          <span id="sessions-count" class="dock-view-count"></span>
           <button id="sessions-refresh-btn" tabindex="-1" title="Refresh sessions">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             </svg>
           </button>
         </div>
-        <div id="sessions-content">
-          <!-- Sessions will be populated here -->
-        </div>
       </div>
-    </div>
-
-    <!-- GitHub Panel -->
-    <div id="github-panel">
-      <div id="github-header">
-        <h3>GitHub</h3>
-        <div class="github-header-actions">
-          <button id="github-refresh-btn" tabindex="-1" title="Refresh">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            </svg>
-          </button>
-          <button id="github-close" tabindex="-1">✕</button>
-        </div>
-      </div>
-      <div id="github-repo-name"></div>
-      <div class="github-tabs">
-        <button class="github-tab-btn active" data-tab="issues">Issues</button>
-        <button class="github-tab-btn" data-tab="prs">PRs</button>
-        <button class="github-tab-btn" data-tab="branches">Branches</button>
-        <button class="github-tab-btn" data-tab="worktrees">Worktrees</button>
-      </div>
-      <div class="github-filter" id="github-filter">
-        <button class="github-filter-btn active" data-filter="open">Open</button>
-        <button class="github-filter-btn" data-filter="closed">Closed</button>
-        <button class="github-filter-btn" data-filter="all">All</button>
-      </div>
-      <div class="github-branches-actions" id="github-branches-actions" style="display: none;">
-        <button id="github-create-branch-btn" class="github-action-btn">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          New Branch
-        </button>
-      </div>
-      <div id="github-content">
-        <!-- GitHub content will be populated here -->
+      <div id="sessions-content">
+        <!-- Sessions will be populated here -->
       </div>
     </div>
 
     <!-- Prompts Panel -->
     <div id="prompts-panel">
-      <div id="prompts-header">
-        <h3>Prompts</h3>
-        <button id="prompts-close" tabindex="-1">✕</button>
-      </div>
-      <div id="prompts-search-bar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input id="prompts-search" type="text" placeholder="Search prompts…" autocomplete="off" spellcheck="false" />
+      <div id="prompts-header" class="dock-view-header">
+        <h3 class="dock-view-title">Prompts</h3>
+        <div class="dock-view-actions">
+          <input id="prompts-search" class="dock-view-search" type="search" placeholder="Search prompts…" autocomplete="off" spellcheck="false" />
+        </div>
       </div>
       <div id="prompts-list">
         <!-- Prompt cards will be populated here -->
@@ -451,10 +459,11 @@
 
     <!-- Activity: the work Frame does on its own -->
     <div id="activity-panel">
-      <div id="activity-header">
-        <h3>Activity</h3>
-        <span id="activity-count" class="activity-count"></span>
-        <button id="activity-close" tabindex="-1">✕</button>
+      <div id="activity-header" class="dock-view-header">
+        <h3 class="dock-view-title">Activity</h3>
+        <div class="dock-view-actions">
+          <span id="activity-count" class="dock-view-count"></span>
+        </div>
       </div>
       <div class="activity-controls"></div>
       <div id="activity-list">
@@ -465,16 +474,49 @@
       </div>
     </div>
 
-    <!-- Feedback: what the user wants to tell us about Frame itself -->
-    <div id="feedback-panel">
-      <div id="feedback-header">
-        <h3>Feedback</h3>
-        <button id="feedback-close" tabindex="-1">✕</button>
+    <!-- Feedback: what the user wants to tell us about Frame itself. A modal
+         opened from the foot of the sidebar rail (feedbackPanel.js). -->
+    <div id="feedback-modal" class="modal-overlay">
+      <div class="modal-container modal-container-wide feedback-modal" role="dialog" aria-label="Feedback">
+        <div class="modal-header">
+          <h3>Feedback</h3>
+          <button class="modal-close" id="feedback-modal-close" title="Close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div id="feedback-panel">
+          <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
+          <div class="feedback-tabs"></div>
+          <div id="feedback-body">
+            <!-- The form is rendered by feedbackPanel.js -->
+          </div>
+        </div>
       </div>
-      <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
-      <div class="feedback-tabs"></div>
-      <div id="feedback-body">
-        <!-- The form is rendered by feedbackPanel.js -->
+    </div>
+
+    <!-- Plugins: the Claude Code plugins list. A modal opened from the foot
+         of the sidebar rail, above Feedback (pluginsPanel.js). -->
+    <div id="plugins-modal" class="modal-overlay">
+      <div class="modal-container modal-container-wide plugins-modal" role="dialog" aria-label="Plugins">
+        <div class="modal-header">
+          <h3>Plugins</h3>
+          <button class="modal-close" id="plugins-modal-close" title="Close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div id="plugins-panel">
+          <div class="plugins-toolbar">
+            <div class="plugins-filter">
+              <button class="plugins-filter-btn active" data-filter="all">All</button>
+              <button class="plugins-filter-btn" data-filter="installed">Installed</button>
+              <button class="plugins-filter-btn" data-filter="enabled">Enabled</button>
+            </div>
+            <button id="plugins-refresh-btn" tabindex="-1" title="Refresh plugin list">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+            </button>
+          </div>
+          <div id="plugins-content">
+            <!-- Plugins will be populated here -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1033,14 +1075,20 @@
       </div>
       <div class="specs-dashboard-body">
         <div id="specs-dashboard-grid" class="specs-dashboard-grid"></div>
-        <aside id="specs-dashboard-detail" class="specs-dashboard-detail">
-          <button class="specs-dashboard-detail-close" aria-label="Close detail">&#x2715;</button>
-          <div class="specs-dashboard-detail-empty">
-            <p>Select a spec to see its details, plan, and tasks.</p>
-          </div>
-          <div class="specs-dashboard-detail-content"></div>
-        </aside>
       </div>
+      <!-- Full-page drawer: slides in from the right over the whole
+           dashboard when a card is selected; shows the spec detail
+           (stepper, next action, spec / plan / tasks / outcome). -->
+      <aside id="specs-dashboard-detail" class="specs-dashboard-detail" aria-hidden="true">
+        <div class="specs-dashboard-detail-bar">
+          <button class="specs-dashboard-detail-back" aria-label="Back to all specs">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Specs</span>
+          </button>
+          <button class="specs-dashboard-detail-close" aria-label="Close detail">&#x2715;</button>
+        </div>
+        <div class="specs-dashboard-detail-content"></div>
+      </aside>
     </div>
 
     <!-- Create Branch Modal -->
@@ -1430,7 +1478,7 @@
   <div id="status-bar">
     <div class="status-bar-left"></div>
     <div class="status-bar-right">
-      <div class="claude-usage-bars" title="Click to refresh">
+      <div class="claude-usage-bars">
         <div class="usage-item session">
           <span class="usage-label">Session</span>
           <div class="usage-bar-container">

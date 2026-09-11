@@ -2,6 +2,18 @@
  * Application Menu Module
  * Defines menu structure and handlers
  * Supports dynamic menu based on active AI tool
+ *
+ * Roots (macOS): Frame · File · Edit · View · Go · Project · Terminal ·
+ * <AI tool> · Window · Help. Windows / Linux drop Frame and Window and
+ * carry Settings / Exit under File, Check for Updates / About under Help.
+ *
+ * Every non-role item sends one command-registry id to the renderer over
+ * RUN_APP_COMMAND (dock-panel-readonly-views spec, C6): the same ids the
+ * status bar, the palette and the keyboard shortcuts run, registered in
+ * src/renderer/index.js registerCommands(). The accelerators shown here
+ * are copied from there — keep the two in step. The menu carries no
+ * checkbox / radio state (main does not know the dock's state); the one
+ * radio group is the AI-tool switcher, whose state lives in main.
  */
 
 const { Menu, shell } = require('electron');
@@ -13,6 +25,8 @@ let mainWindow = null;
 let appPath = null;
 let aiToolManager = null;
 
+const isMac = process.platform === 'darwin';
+
 /**
  * Initialize menu module
  */
@@ -22,87 +36,181 @@ function init(window, app, toolManager) {
   aiToolManager = toolManager;
 }
 
+/** Menu item that runs a command-registry id in the renderer. */
+function cmd(label, commandId, accelerator) {
+  const item = { label, click: () => sendAppCommand(commandId) };
+  if (accelerator) item.accelerator = accelerator;
+  return item;
+}
+
+const SEP = { type: 'separator' };
+
 /**
  * Get menu template based on active AI tool
  */
 function getMenuTemplate() {
   const activeTool = aiToolManager ? aiToolManager.getActiveTool() : {
-    menuLabel: 'AI Commands',
+    name: 'AI',
     command: 'claude',
     commands: {}
   };
 
-  const aiCommandsSubmenu = buildAICommandsSubmenu(activeTool);
-
-  const template = [
-    {
-      label: activeTool.menuLabel,
-      submenu: aiCommandsSubmenu
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' }
-      ]
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
-    }
-  ];
+  const template = [];
 
   // macOS app menu
-  if (process.platform === 'darwin') {
-    template.unshift({
+  if (isMac) {
+    template.push({
       label: 'Frame',
       submenu: [
         { role: 'about' },
-        { type: 'separator' },
-        {
-          label: 'Preferences…',
-          accelerator: 'CmdOrCtrl+,',
-          click: openSettings
-        },
-        { type: 'separator' },
+        SEP,
+        { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: openSettings },
+        cmd('Check for Updates…', 'app.checkForUpdate'),
+        SEP,
         { role: 'services' },
-        { type: 'separator' },
+        SEP,
         { role: 'hide' },
         { role: 'hideOthers' },
         { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' }
-      ]
-    });
-  } else {
-    // Windows / Linux: add a File menu with Settings entry
-    template.unshift({
-      label: 'File',
-      submenu: [
-        {
-          label: 'Settings…',
-          accelerator: 'CmdOrCtrl+,',
-          click: openSettings
-        },
-        { type: 'separator' },
+        SEP,
         { role: 'quit' }
       ]
     });
   }
+
+  // File — workspace-level: opening and adding things. Current-project
+  // actions live under Project.
+  template.push({
+    label: 'File',
+    submenu: [
+      cmd('Add Project to Workspace…', 'project.add'),
+      cmd('Create New Project…', 'project.create'),
+      SEP,
+      { label: 'Open History File', accelerator: 'CmdOrCtrl+H', click: () => openHistoryFile() },
+      ...(isMac ? [] : [
+        SEP,
+        { label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: openSettings },
+        SEP,
+        { role: 'quit' }
+      ])
+    ]
+  });
+
+  template.push({
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      SEP,
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ]
+  });
+
+  template.push({
+    label: 'View',
+    submenu: [
+      cmd('Command Palette…', 'palette.toggle', 'CmdOrCtrl+Shift+P'),
+      SEP,
+      cmd('Toggle Sidebar', 'panel.toggleSidebar', 'CmdOrCtrl+B'),
+      cmd('Toggle Panel', 'dock.toggle', 'CmdOrCtrl+J'),
+      cmd('Move Panel Right', 'dock.moveRight'),
+      cmd('Move Panel to Bottom', 'dock.moveBottom'),
+      SEP,
+      cmd('Decisions', 'dock.decisions'),
+      // 'Structure Map' (dock.structure) is parked — see dockState.HIDDEN_TABS.
+      cmd('Prompts', 'dock.prompts', 'CmdOrCtrl+Shift+L'),
+      cmd('Activity', 'dock.activity'),
+      SEP,
+      cmd('GitHub', 'sidebar.github', 'CmdOrCtrl+Shift+G'),
+      cmd('Tasks Dashboard', 'panel.toggleTasksDashboard', 'CmdOrCtrl+Shift+D'),
+      cmd('Specs Dashboard', 'panel.toggleSpecsDashboard', 'CmdOrCtrl+Shift+S'),
+      cmd('Sessions', 'panel.toggleSessions', 'CmdOrCtrl+Shift+X'),
+      SEP,
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { role: 'resetZoom' },
+      { role: 'togglefullscreen' },
+      SEP,
+      {
+        label: 'Developer',
+        submenu: [
+          { role: 'reload' },
+          { role: 'forceReload' },
+          { role: 'toggleDevTools' }
+        ]
+      }
+    ]
+  });
+
+  template.push({
+    label: 'Go',
+    submenu: [
+      cmd('Home', 'lane.home', 'CmdOrCtrl+Escape'),
+      SEP,
+      cmd('Next Project', 'project.next', 'CmdOrCtrl+Shift+]'),
+      cmd('Previous Project', 'project.prev', 'CmdOrCtrl+Shift+['),
+      SEP,
+      cmd('Focus Project List', 'focus.projectList', 'CmdOrCtrl+E'),
+      cmd('Focus File Tree', 'focus.fileTree', 'CmdOrCtrl+Shift+E')
+    ]
+  });
+
+  template.push({
+    label: 'Project',
+    submenu: [
+      cmd('Project Settings…', 'settings.openProject'),
+      cmd('Initialize as Frame Project', 'project.initializeFrame'),
+      SEP,
+      cmd('Open Orchestrator (Beta)', 'orchestrator.open', 'CmdOrCtrl+Shift+O')
+    ]
+  });
+
+  template.push({
+    label: 'Terminal',
+    submenu: [
+      cmd('New Terminal', 'terminal.new', 'CmdOrCtrl+Shift+T'),
+      cmd('Close Terminal', 'terminal.close', 'CmdOrCtrl+Shift+W'),
+      SEP,
+      cmd('Next Terminal', 'terminal.next', 'CmdOrCtrl+Tab'),
+      cmd('Previous Terminal', 'terminal.prev', 'CmdOrCtrl+Shift+Tab'),
+      {
+        label: 'Switch To',
+        submenu: Array.from({ length: 9 }, (_, i) =>
+          cmd(`Terminal ${i + 1}`, `terminal.switch.${i + 1}`, `CmdOrCtrl+${i + 1}`)
+        )
+      }
+    ]
+  });
+
+  template.push({
+    label: activeTool.name,
+    submenu: buildAICommandsSubmenu(activeTool)
+  });
+
+  if (isMac) {
+    template.push({ role: 'window' });
+  }
+
+  // Help is its own root: Feedback is about Frame, not about what is on
+  // screen. `role: 'help'` gives macOS its Help menu (with the search field).
+  template.push({
+    role: 'help',
+    label: 'Help',
+    submenu: [
+      cmd('Welcome', 'help.welcome'),
+      cmd('Keyboard Shortcuts', 'help.shortcuts', 'CmdOrCtrl+Shift+K'),
+      SEP,
+      cmd('Send Feedback…', 'feedback.open'),
+      ...(isMac ? [] : [
+        SEP,
+        cmd('Check for Updates…', 'app.checkForUpdate'),
+        { role: 'about' }
+      ])
+    ]
+  });
 
   return template;
 }
@@ -114,108 +222,49 @@ function openSettings() {
 }
 
 /**
- * Build AI commands submenu based on active tool
+ * Build the AI-tool root's submenu: Start first, then the tool's slash
+ * commands, then the tool switcher. Slash commands go to the active
+ * terminal over RUN_COMMAND.
  */
 function buildAICommandsSubmenu(tool) {
   const submenu = [];
 
-  // Tool-specific commands
-  if (tool.commands.init) {
-    submenu.push({
-      label: `Initialize Project (${tool.commands.init})`,
-      accelerator: 'CmdOrCtrl+I',
-      click: () => sendCommand(tool.commands.init)
-    });
-  }
-
-  if (tool.commands.commit) {
-    submenu.push({
-      label: `Commit Changes (${tool.commands.commit})`,
-      accelerator: 'CmdOrCtrl+Shift+C',
-      click: () => sendCommand(tool.commands.commit)
-    });
-  }
-
-  if (tool.commands.review) {
-    submenu.push({
-      label: `Review (${tool.commands.review})`,
-      click: () => sendCommand(tool.commands.review)
-    });
-  }
-
-  // Codex-specific commands
-  if (tool.commands.model) {
-    submenu.push({
-      label: `Switch Model (${tool.commands.model})`,
-      click: () => sendCommand(tool.commands.model)
-    });
-  }
-
-  if (tool.commands.permissions) {
-    submenu.push({
-      label: `Permissions (${tool.commands.permissions})`,
-      click: () => sendCommand(tool.commands.permissions)
-    });
-  }
-
-  // Gemini-specific commands
-  if (tool.commands.memory) {
-    submenu.push({
-      label: `Memory (${tool.commands.memory})`,
-      click: () => sendCommand(tool.commands.memory)
-    });
-  }
-
-  if (tool.commands.compress) {
-    submenu.push({
-      label: `Compress Context (${tool.commands.compress})`,
-      click: () => sendCommand(tool.commands.compress)
-    });
-  }
-
-  if (tool.commands.settings) {
-    submenu.push({
-      label: `Settings (${tool.commands.settings})`,
-      click: () => sendCommand(tool.commands.settings)
-    });
-  }
-
-  if (tool.commands.help) {
-    submenu.push({
-      label: `Help (${tool.commands.help})`,
-      click: () => sendCommand(tool.commands.help)
-    });
-  }
-
-  submenu.push({ type: 'separator' });
-
-  // Start command
   submenu.push({
     label: `Start ${tool.name}`,
     accelerator: 'CmdOrCtrl+K',
     click: () => sendCommand(tool.command)
   });
 
-  submenu.push({ type: 'separator' });
+  // Tool-specific commands, in a fixed order across tools.
+  const slash = [
+    ['init', 'Initialize Project', 'CmdOrCtrl+I'],
+    ['commit', 'Commit Changes', 'CmdOrCtrl+Shift+C'],
+    ['review', 'Review'],
+    ['model', 'Switch Model'],
+    ['permissions', 'Permissions'],
+    ['memory', 'Memory'],
+    ['compress', 'Compress Context'],
+    ['settings', 'Settings'],
+    ['help', 'Help']
+  ].filter(([key]) => tool.commands[key]);
 
-  // History commands (universal)
-  submenu.push({
-    label: 'Toggle Prompt History Panel',
-    accelerator: 'CmdOrCtrl+Shift+H',
-    click: () => toggleHistoryPanel()
-  });
-
-  submenu.push({
-    label: 'Open History File',
-    accelerator: 'CmdOrCtrl+H',
-    click: () => openHistoryFile()
-  });
+  if (slash.length) {
+    submenu.push(SEP);
+    for (const [key, label, accelerator] of slash) {
+      const item = {
+        label: `${label} (${tool.commands[key]})`,
+        click: () => sendCommand(tool.commands[key])
+      };
+      if (accelerator) item.accelerator = accelerator;
+      submenu.push(item);
+    }
+  }
 
   // AI Tool switcher
   if (aiToolManager) {
-    submenu.push({ type: 'separator' });
+    submenu.push(SEP);
     submenu.push({
-      label: 'Switch AI Tool...',
+      label: 'Switch AI Tool',
       submenu: buildToolSwitcherSubmenu()
     });
   }
@@ -252,11 +301,12 @@ function sendCommand(command) {
 }
 
 /**
- * Toggle history panel
+ * Run a renderer command by its command-registry id (the menu's one
+ * channel to the renderer — never a channel per item).
  */
-function toggleHistoryPanel() {
+function sendAppCommand(commandId) {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(IPC.TOGGLE_HISTORY_PANEL);
+    mainWindow.webContents.send(IPC.RUN_APP_COMMAND, commandId);
   }
 }
 

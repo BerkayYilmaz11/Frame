@@ -10,13 +10,12 @@
  *   'specs'     — specs card-grid dashboard mounted inline in the center
  *   'tasks'     — tasks kanban dashboard mounted inline in the center
  *                 (both: center-specs-tasks-views spec)
- *   'panel'     — a legacy side panel (GitHub/Claude/Prompts/Activity/
- *                 History) mounted inline in the center; which one is in
- *                 _activePanelKey (retire-rail-and-panels spec)
+ *   'panel'     — a legacy side panel (Claude) mounted inline in the center;
+ *                 which one is in _activePanelKey (retire-rail-and-panels
+ *                 spec). Prompts / Activity / Feedback live in the dock
+ *                 (dock.js) and GitHub in the sidebar's rail, not here.
  */
 
-const { ipcRenderer } = require('electron');
-const { IPC } = require('../shared/ipcChannels');
 
 const { TerminalManager } = require('./terminalManager');
 const { TerminalTabBar } = require('./terminalTabBar');
@@ -24,7 +23,6 @@ const { TerminalsView } = require('./terminalsView');
 const { HomeBoard } = require('./homeBoard');
 const laneStatus = require('./laneStatus');
 const agentDispatch = require('./agentDispatch');
-const decisionsView = require('./decisionsView');
 const taskSection = require('./taskSection');
 const specSection = require('./specSection');
 const diffSection = require('./diffSection');
@@ -35,12 +33,13 @@ const terminalChipNotice = require('./terminalChipNotice');
 // Legacy side panels hosted inline in the center (retire-rail-and-panels
 // spec). Each entry keeps the module's own show()/hide() as the data/close
 // contract — the host only re-parents the element and watches for closes.
+// Only Sessions is left: Prompts, Activity and Feedback went to the dock
+// (dock.js hosts them the same way), GitHub to the sidebar's icon rail
+// (dock-panel-readonly-views spec), and the Claude panel split — its
+// Sessions tab is this Context view, its Plugins tab sits in the feedback
+// modal for now.
 const PANEL_REGISTRY = {
-  github:   { elementId: 'github-panel',   module: () => require('./githubPanel') },
-  claude:   { elementId: 'plugins-panel',  module: () => require('./pluginsPanel') },
-  prompts:  { elementId: 'prompts-panel',  module: () => require('./promptsPanel') },
-  activity: { elementId: 'activity-panel', module: () => require('./activityPanel') },
-  feedback: { elementId: 'feedback-panel', module: () => require('./feedbackPanel') }
+  sessions: { elementId: 'sessions-panel', module: () => require('./sessionsPanel') }
 };
 
 class MultiTerminalUI {
@@ -51,7 +50,6 @@ class MultiTerminalUI {
     this.board = null;
     this.contentContainer = null;
     this.initialized = false;
-    this.isDecisionsVisible = false; // Track if the decisions view is shown
     this.terminalsInStrip = true;   // Terminals sits in the top bar until dropped
     this.sections = [];             // Open section tabs (task/spec detail instances)
     this.activeSectionKey = null;   // Which section tab is focused
@@ -100,9 +98,6 @@ class MultiTerminalUI {
       onNewTerminal: () => this._createLaneOrNotify(),
       onEnterLane: (terminalId) => this.enterLane(terminalId)
     });
-
-    // Structure map overlay (its own sidebar item since Overview retired)
-    require('./structureMap').init();
 
     // Wire up top bar callbacks
     this.tabBar.onGoHome = () => this.goHome();
@@ -244,7 +239,6 @@ class MultiTerminalUI {
    * Return to the lane board.
    */
   goHome() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false; // section tabs stay open, just leave the screen
     this.manager.setViewMode('board');
     this._onStateChange(this._currentState());
@@ -402,7 +396,6 @@ class MultiTerminalUI {
   /** Show a legacy side panel as the center view. */
   showPanel(key) {
     if (!PANEL_REGISTRY[key]) return;
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this._activePanelKey = key;
     if (this.manager.viewMode === 'panel') {
@@ -416,8 +409,7 @@ class MultiTerminalUI {
   togglePanel(key) {
     const onIt = this.manager.viewMode === 'panel'
       && this._activePanelKey === key
-      && !this.isSectionVisible
-      && !this.isDecisionsVisible;
+      && !this.isSectionVisible;
     if (onIt) this.showTerminals();
     else this.showPanel(key);
   }
@@ -508,55 +500,35 @@ class MultiTerminalUI {
   }
 
   /**
-   * Specs entry point (sidebar nav): lifecycle-first. Opens the most relevant
-   * active spec in the linear detail surface (specSection, with its list
-   * rail); a project with no specs lands on the inline grid, which owns the
-   * New Spec flow.
+   * Specs entry point (sidebar nav): the full card grid. Every spec is
+   * visible at once; picking a card opens its detail in the grid's
+   * full-page drawer. (Earlier this opened the most relevant active spec
+   * straight in specSection — replaced 2026-09-10 so the entry point
+   * shows the whole set rather than one spec.)
    */
-  async showSpecs() {
-    const projectPath = this.manager.getCurrentProject();
-    if (!projectPath) {
-      this.showSpecsGrid(); // surfaces the "no project" notice
-      return;
-    }
-    let specs = [];
-    try {
-      specs = await ipcRenderer.invoke(IPC.LIST_SPECS, projectPath) || [];
-    } catch (_) { /* fall through to the grid */ }
-    const order = ['implementing', 'tasks_generated', 'planned', 'specified', 'draft'];
-    const top = specs
-      .filter(s => s.phase !== 'done' && !s.malformed)
-      .sort((a, b) => order.indexOf(a.phase) - order.indexOf(b.phase))[0]
-      || specs.find(s => !s.malformed)
-      || specs[0];
-    if (top) {
-      require('./specSection').open(top.slug);
-    } else {
-      this.showSpecsGrid();
-    }
+  showSpecs() {
+    this.showSpecsGrid();
   }
 
   /** Show the specs card grid inline (dashboard's own switch also lands here). */
   showSpecsGrid() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.manager.setViewMode('specs');
   }
 
   /** Show the tasks kanban inline as the center view. */
   showTasksBoard() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.manager.setViewMode('tasks');
   }
 
   /**
    * What the center currently shows: 'terminals' | 'board' | 'specs' |
-   * 'tasks' | 'decisions' | 'section:<type>'. Drives the sidebar
-   * nav's active states.
+   * 'tasks' | 'panel:<key>' | 'section:<type>'. Drives the sidebar nav's
+   * active states. The dock is not a surface — it reports its own state
+   * through dock.js (dock-panel-readonly-views spec, C2).
    */
   getActiveSurface() {
-    if (this.isDecisionsVisible) return 'decisions';
     if (this.isSectionVisible) {
       const s = this._activeSection();
       return s ? `section:${s.type}` : 'section';
@@ -592,7 +564,6 @@ class MultiTerminalUI {
    * back out. Enlarging again is enterLane's job.
    */
   showTerminals() {
-    if (this.isDecisionsVisible) this.hideDecisions();
     this.isSectionVisible = false;
     this.terminalsInStrip = true;
     // Choose the body before the view mode, so the section draws once.
@@ -637,8 +608,7 @@ class MultiTerminalUI {
   dropTerminalsFromStrip() {
     this.terminalsInStrip = false;
     const onIt = this.manager.viewMode === 'terminals'
-      && !this.isSectionVisible
-      && !this.isDecisionsVisible;
+      && !this.isSectionVisible;
     if (onIt) this.goHome();
     else this._onStateChange(this._currentState());
   }
@@ -755,7 +725,7 @@ class MultiTerminalUI {
       return;
     }
 
-    if (this.manager.viewMode === 'board' && !this.isDecisionsVisible) {
+    if (this.manager.viewMode === 'board') {
       this.enterLane(targetId);
     }
     this.manager.sendCommand(command, targetId);
@@ -785,7 +755,7 @@ class MultiTerminalUI {
   /**
    * True when the Terminals section is the surface on screen and a terminal is
    * focused — in an Overview pane or in its own tab. Not Home, not an open
-   * section (task/spec) viewport, not the decisions list. Used by the sidebar
+   * section (task/spec) viewport. Used by the sidebar
    * launch shortcut to decide between "start in the focused terminal" and
    * "open a new one".
    *
@@ -795,61 +765,7 @@ class MultiTerminalUI {
   isViewingFrame() {
     return this.manager.viewMode === 'terminals'
       && !this.isSectionVisible
-      && !this.isDecisionsVisible
       && !!this.manager.activeTerminalId;
-  }
-
-  /**
-   * Show the Decisions view (decisions-view spec — replaces Overview)
-   */
-  showDecisions() {
-    // Rendering bypasses _onStateChange — park inline surfaces first so the
-    // container wipe below can't destroy their elements.
-    require('./specsDashboard').notifyDetached();
-    require('./tasksDashboard').notifyDetached();
-    this._detachPanel();
-
-    this.isDecisionsVisible = true;
-    this._mountedTerminalId = null;
-    this._lastViewMode = 'decisions';
-    this.contentContainer.innerHTML = '';
-    this.contentContainer.className = 'terminal-content decisions-view-host';
-    this._clearGridInlineStyles();
-
-    decisionsView.render(this.contentContainer);
-
-    // Rendering bypassed _onStateChange — refresh the sidebar nav ourselves
-    try {
-      require('./projectListUI').updateWorkspaceNav();
-    } catch (_) { /* sidebar not initialized yet */ }
-  }
-
-  /**
-   * Hide the Decisions view and return to the current view mode
-   */
-  hideDecisions() {
-    this.isDecisionsVisible = false;
-    this._onStateChange(this._currentState());
-  }
-
-  toggleDecisions() {
-    if (this.isDecisionsVisible) this.hideDecisions(); else this.showDecisions();
-  }
-
-  /**
-   * Open the interactive structure map. It is an overlay, not a center view,
-   * and since Overview retired this is its only entry point besides ⌘K.
-   */
-  showStructureMap() {
-    const projectPath = require('./state').getProjectPath();
-    if (!projectPath) {
-      require('./taskInfoModal').open({
-        title: 'No project selected',
-        message: 'Select a project from the switcher to open its structure map.'
-      });
-      return;
-    }
-    require('./structureMap').show(projectPath);
   }
 
 }

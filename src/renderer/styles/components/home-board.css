@@ -1339,7 +1339,13 @@
 /* The footer the top bar gave up: the tool choice next to Start, where the
    card has the width for both. It replaces the single action button, so it
    borrows .home-card-action's border and padding and only overrides the
-   parts that differ — two controls instead of one label. */
+   parts that differ — two controls instead of one label.
+
+   The pair is drawn exactly like the terminal header's launcher: the picker
+   is the shared .ai-tool-picker (terminal.css), and Start below copies the
+   header's .lane-bar-launcher .sidebar-agent-launch values — same height,
+   padding, accent fill, border and radius — so the two launchers read as
+   one control in two places. */
 
 .home-agent-launcher {
   justify-content: stretch;
@@ -1353,30 +1359,57 @@
   color: var(--text-secondary);
 }
 
+/* The picker takes the width the card offers; the select inside it stretches
+   with it so the whole box stays clickable. */
+.home-agent-launcher .ai-tool-picker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .home-agent-launcher .home-agent-tool {
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
 .home-agent-start {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex: none;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 4px 12px;
-  color: var(--text-primary);
-  font: inherit;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  color: var(--bg-deep);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.2px;
   cursor: pointer;
+  transition: filter var(--transition-fast), transform 0.08s;
+}
+
+.home-agent-start svg {
+  flex-shrink: 0;
+  width: 11px;
+  height: 11px;
 }
 
 .home-agent-start:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--bg-deep);
+  filter: brightness(1.08);
+}
+
+.home-agent-start:active {
+  transform: scale(0.97);
+}
+
+.home-agent-start:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 /* ─── Session rows ──────────────────────────────────────── */

@@ -305,7 +305,7 @@ body.sidebar-resizing * {
 
 /* ---- Activity rail + panel ----
    The sidebar body is split into a thin vertical icon rail (Projects / Files /
-   Changes) and the active view's panel, editor-style. */
+   Changes / GitHub) and the active view's panel, editor-style. */
 #sidebar-body {
   display: flex;
   flex: 1;
@@ -322,14 +322,14 @@ body.sidebar-resizing * {
   border-right: 1px solid var(--border-subtle);
 }
 
-/* Rail buttons are square icons in a column. Self-contained on purpose: the
-   view tabs also carry .sidebar-tab-btn, but the rail's foot buttons don't
-   (they open modals instead of switching views), so the shared chrome —
-   transparent background, cursor, transition — lives here, not there. */
+/* Rail buttons are square icons in a column (Projects / Files / Changes /
+   GitHub). The shared chrome — transparent background, cursor, transition —
+   lives here rather than on .sidebar-tab-btn, which carries the tab
+   semantics (view switching, the active state). */
 .sidebar-rail-btn {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -359,8 +359,9 @@ body.sidebar-resizing * {
   border-bottom: none;
 }
 
-/* Foot of the rail (Settings): pushed to the bottom and set apart from the
-   view tabs above it — it opens a modal rather than switching views. */
+/* Foot of the rail (Plugins, then Feedback): the first of the pair carries
+   this and pushes both to the bottom, set apart from the view tabs above —
+   they open modals rather than switching views. */
 .sidebar-rail-btn-foot {
   margin-top: auto;
 }
@@ -373,7 +374,9 @@ body.sidebar-resizing * {
   flex-direction: column;
 }
 
-/* Current-project dropdown — compact switcher at the top of Files / Changes. */
+/* Current-project switcher — the one project selector, above the
+   rail-and-panel split so it spans both columns: what it selects governs
+   Files / Changes / GitHub on the rail and Work / Context in the panel. */
 .sidebar-current-project-wrap {
   position: relative;
   flex: 0 0 auto;

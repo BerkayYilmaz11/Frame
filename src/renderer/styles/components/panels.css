@@ -729,8 +729,13 @@
   font-size: 12px;
 }
 
-/* ==================== PLUGINS PANEL STYLES ==================== */
-#plugins-panel {
+/* ==================== SESSIONS PANEL STYLES ====================
+   The Claude panel's slide-in geometry, inherited by Sessions when the panel
+   split (Sessions → a Context view hosted in the center by multiTerminalUI,
+   Plugins → its own modal from the rail's foot, below). In its home slot it is
+   hidden; mounted, .panel-inline overrides the width and transforms. The
+   header is the shared .dock-view-header (dock.css). */
+#sessions-panel {
   width: 380px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   border-left: 1px solid var(--border-subtle);
@@ -741,60 +746,51 @@
   transition: transform var(--transition-normal), opacity var(--transition-normal);
 }
 
-#plugins-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, rgba(166, 192, 240, 0.2) 0%, transparent 50%, rgba(166, 192, 240, 0.2) 100%);
-  pointer-events: none;
-}
-
-#plugins-panel.visible {
+#sessions-panel.visible {
   display: flex;
   transform: translateX(0);
   opacity: 1;
 }
 
-#plugins-panel:not(.visible) {
+#sessions-panel:not(.visible) {
   transform: translateX(100%);
   opacity: 0;
   pointer-events: none;
 }
 
-#plugins-header {
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
+/* ==================== PLUGINS MODAL ====================
+   The shared .modal-overlay / .modal-container chrome, opened from the
+   Plugins button at the foot of the sidebar rail (pluginsPanel.js).
+   #plugins-panel is the modal's body: a toolbar — the filter on the left,
+   refresh on the right — then the list, which scrolls inside the modal's
+   fixed 72vh. */
+.plugins-modal {
   display: flex;
+  flex-direction: column;
+  height: 72vh;
+  overflow: hidden;
+}
+
+#plugins-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.plugins-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding-right: var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
 }
 
-#plugins-header h3 {
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.2px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#plugins-header h3::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--info);
-  border-radius: 50%;
-}
-
-.plugins-header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+.plugins-toolbar .plugins-filter {
+  border-bottom: none;
 }
 
 #plugins-refresh-btn {
@@ -824,57 +820,6 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-#plugins-close {
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-
-#plugins-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-/* Claude Tabs */
-.claude-tabs {
-  display: flex;
-  gap: 0;
-  padding: 0 var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-.claude-tab-btn {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-tertiary);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.claude-tab-btn:hover {
-  color: var(--text-secondary);
-}
-
-.claude-tab-btn.active {
-  color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
 }
 
 /* Plugins Filter */
@@ -908,17 +853,10 @@
   background: rgba(166, 192, 240, 0.15);
 }
 
-/* Plugins Tab Content */
-.plugins-tab-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 /* Plugins Content */
 #plugins-content {
   flex: 1;
+  min-height: 240px;
   overflow-y: auto;
   padding: var(--space-md);
 }
@@ -1168,29 +1106,8 @@
   color: var(--info) !important;
 }
 
-/* ==================== SESSIONS TAB STYLES ==================== */
-
-.sessions-tab-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sessions-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-.sessions-header-bar span {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  font-weight: 500;
-}
+/* ==================== SESSIONS LIST STYLES ====================
+   The header's count is .dock-view-count; refresh sits beside it. */
 
 #sessions-refresh-btn {
   background: transparent;
@@ -1355,6 +1272,35 @@
   transform: translateX(100%);
   opacity: 0;
   pointer-events: none;
+}
+
+/* In the sidebar's GitHub tab (dock-panel-readonly-views spec, D8): the
+   panel fills the tab the way Files and Changes do. It is always displayed
+   there — .visible no longer gates it — and its × is hidden, since there is
+   nothing to close to. The slide-in geometry above is for the panel's old
+   life as a right-edge sibling of the center. */
+[data-sidebar-tab-content="github"] > #github-panel {
+  display: flex !important;
+  flex: 1;
+  width: auto;
+  min-height: 0;
+  border-left: none;
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: none;
+}
+
+[data-sidebar-tab-content="github"] > #github-panel::before {
+  display: none;
+}
+
+[data-sidebar-tab-content="github"] #github-close {
+  display: none;
+}
+
+[data-sidebar-tab-content="github"] #github-header {
+  padding: var(--space-sm) 0 var(--space-md);
 }
 
 #github-header {
@@ -2640,61 +2586,13 @@
 }
 
 /* ==================== STRUCTURE MAP ==================== */
-#structure-map-overlay {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-deep);
-  z-index: 100;
-  flex-direction: column;
-  animation: fadeIn 0.3s ease-out;
-}
+/* Hosted in the dock's Structure tab (dock-panel-readonly-views spec):
+   structureMap.mount(slot) writes .structure-map-container into the slot,
+   and the container / canvas / info-panel rules below size it to that box.
+   The full-window #structure-map-overlay it used to build — backdrop,
+   Escape, × — is gone; the dock owns opening and closing. */
 
-#structure-map-overlay.visible {
-  display: flex !important;
-}
-
-/* Structure Map Header */
-.structure-map-header {
-  height: 60px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 var(--space-xl);
-  flex-shrink: 0;
-  z-index: 10;
-  box-shadow: var(--shadow-sm);
-}
-
-.structure-map-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.structure-map-title h2 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.2px;
-}
-
-.structure-map-title .badge {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  border-radius: 12px;
-  border: 1px solid rgba(143, 240, 174, 0.2);
-}
+/* Header: the shared .dock-view-header in dock.css. */
 
 .structure-map-controls {
   display: flex;
@@ -3270,26 +3168,6 @@
   height: 100%;
   color: var(--error);
   font-size: 12px;
-}
-
-/* Structure Map Close Button */
-.structure-map-close {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
-
-.structure-map-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
 }
 
 /* View Toggle */
@@ -3930,84 +3808,7 @@
   opacity: 1;
 }
 
-#prompts-header {
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#prompts-header h3 {
-  flex: 1;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.2px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#prompts-header h3::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--accent-primary);
-  border-radius: 50%;
-  opacity: 0.7;
-}
-
-#prompts-close {
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-  font-size: 13px;
-  padding: 0;
-}
-
-#prompts-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-#prompts-search-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-#prompts-search-bar svg {
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-#prompts-search {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-family: var(--font-mono);
-}
-
-#prompts-search::placeholder {
-  color: var(--text-tertiary);
-}
+/* Header + search: the shared .dock-view-* rules in dock.css. */
 
 #prompts-list {
   flex: 1;
@@ -5430,7 +5231,7 @@
 /* Inline mode (center-specs-tasks-views spec): rendered inside the center
    content area instead of the full-window overlay. */
 .specs-dashboard.inline {
-  position: static;
+  position: relative;   /* the full-page detail drawer is positioned against it */
   inset: auto;
   z-index: auto;
   height: 100%;
@@ -5625,12 +5426,6 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-md);
   align-content: start;
-  transition: padding-right var(--transition-normal);
-}
-
-.specs-dashboard-detail.has-selection ~ .specs-dashboard-grid,
-.specs-dashboard-body:has(.specs-dashboard-detail.has-selection) .specs-dashboard-grid {
-  padding-right: calc(480px + var(--space-xl));
 }
 
 .specs-card {
@@ -5765,33 +5560,74 @@
   max-width: 400px;
 }
 
-/* Detail aside — slides in over the right side of the grid when a card
-   is selected. Absolute positioning (vs. flex sibling) avoids width-
-   transition flicker and ensures the aside is always above the grid. */
+/* Detail drawer — a full-page panel that slides in from the right over the
+   whole dashboard (header, toolbar and grid) when a card is selected. It is
+   always in the DOM, parked off-screen, so opening and closing animate; the
+   grid underneath keeps its scroll position for when the drawer closes. */
 .specs-dashboard-detail {
-  display: none;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 480px;
-  max-width: 90%;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-subtle);
+  inset: 0;
+  display: flex;
   flex-direction: column;
+  background: var(--bg-deep);
   overflow: hidden;
-  z-index: 2;
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  z-index: 3;
+  transform: translateX(100%);
+  visibility: hidden;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s linear 220ms;
 }
 
 .specs-dashboard-detail.has-selection {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specs-dashboard-detail,
+  .specs-dashboard-detail.has-selection {
+    transition: none;
+  }
+}
+
+/* Drawer top bar: "‹ Specs" on the left, × on the right. Mirrors the
+   dashboard header's height so the swap reads as the same screen. */
+.specs-dashboard-detail-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+}
+
+.specs-dashboard-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.specs-dashboard-detail-back:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-color: var(--border-subtle);
 }
 
 .specs-dashboard-detail-close {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
   background: transparent;
   border: none;
   color: var(--text-tertiary);
@@ -5803,7 +5639,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
 }
 
 .specs-dashboard-detail-close:hover {
@@ -5811,119 +5646,12 @@
   background: var(--bg-hover);
 }
 
-.specs-dashboard-detail-empty {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl);
-  color: var(--text-muted);
-  font-size: 12px;
-  font-style: italic;
-}
-
-.specs-dashboard-detail.has-selection .specs-dashboard-detail-empty {
-  display: none;
-}
-
+/* The scrolling body. The spec detail inside uses the shared
+   .spec-section / .spec-detail layout (specSection.js), so no dashboard-
+   specific typography lives here. */
 .specs-dashboard-detail-content {
-  display: none;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: var(--space-xl);
-}
-
-.specs-dashboard-detail.has-selection .specs-dashboard-detail-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.specs-dashboard-detail-head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--space-md);
-}
-
-.specs-dashboard-detail-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.specs-dashboard-detail-slug {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.specs-dashboard-detail-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  line-height: 1.35;
-  letter-spacing: -0.2px;
-}
-
-.specs-dashboard-detail-tabs {
-  display: flex;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-}
-
-.specs-dashboard-detail-body {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.specs-dashboard-detail-body h1,
-.specs-dashboard-detail-body h2,
-.specs-dashboard-detail-body h3 {
-  color: var(--text-primary);
-  margin-top: var(--space-md);
-  margin-bottom: var(--space-sm);
-}
-
-.specs-dashboard-detail-body h1 { font-size: 14px; }
-.specs-dashboard-detail-body h2 { font-size: 13px; }
-.specs-dashboard-detail-body h3 { font-size: 12px; }
-
-.specs-dashboard-detail-body code {
-  font-family: var(--font-mono);
-  background: var(--bg-tertiary);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 11px;
-}
-
-.specs-dashboard-detail-body pre {
-  background: var(--bg-tertiary);
-  padding: var(--space-md);
-  border-radius: var(--radius-sm);
-  overflow-x: auto;
-}
-
-.specs-dashboard-detail-body ul,
-.specs-dashboard-detail-body ol {
-  padding-left: var(--space-lg);
-}
-
-.specs-dashboard-detail-body li {
-  margin-bottom: var(--space-xs);
-}
-
-@media (max-width: 900px) {
-  .specs-dashboard-detail.has-selection {
-    width: 100%;
-  }
-  .specs-dashboard-detail.has-selection ~ .specs-dashboard-grid,
-  .specs-dashboard-body:has(.specs-dashboard-detail.has-selection) .specs-dashboard-grid {
-    display: none;
-  }
 }
 

@@ -1,0 +1,359 @@
+/* ==================== DOCK ==================== */
+/* The VS Code-style panel beside the center (dock-panel-readonly-views
+   spec). `#dock` is the last child of `#terminal-container`, which is a
+   flex column: the dock sits under the center by default and, when the
+   container carries `.dock-right`, the column becomes a row and the dock
+   sits beside it. One element, one class — the sidebar is outside the
+   container, so a bottom dock never runs under it (D7).
+
+   Sizing is inline (`height` when bottom, `width` when right), written by
+   dock.js from dockState's clamped value; nothing here fixes a size. */
+
+#terminal-container.dock-right {
+  flex-direction: row;
+}
+
+/* The center must be allowed to shrink on the dock's axis, or the dock
+   overflows the container instead of taking room from it (C1). */
+#terminal-container.dock-open > #terminal {
+  min-height: 0;
+  min-width: 0;
+}
+
+#terminal-container.dock-right > #terminal {
+  width: auto;
+}
+
+#dock {
+  display: none;
+  position: relative;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+#dock.open {
+  display: flex;
+}
+
+#terminal-container.dock-bottom > #dock {
+  margin-top: var(--space-sm);
+}
+
+#terminal-container.dock-right > #dock {
+  margin-left: var(--space-sm);
+}
+
+/* ---------- Resize handle ---------- */
+/* On the dock's inner edge: its top when docked at the bottom, its left
+   when docked on the right. Same treatment as the sidebar's handle. */
+.dock-resize-handle {
+  position: absolute;
+  z-index: 5;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+#terminal-container.dock-bottom .dock-resize-handle {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+#terminal-container.dock-right .dock-resize-handle {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+.dock-resize-handle:hover,
+.dock-resize-handle.dragging {
+  background: var(--accent-primary);
+}
+
+body.dock-resizing {
+  user-select: none;
+}
+
+body.dock-resizing-ns,
+body.dock-resizing-ns * {
+  cursor: ns-resize !important;
+}
+
+body.dock-resizing-ew,
+body.dock-resizing-ew * {
+  cursor: ew-resize !important;
+}
+
+/* ---------- Header: tab strip + actions ---------- */
+.dock-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-xs) 0 var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+}
+
+.dock-tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dock-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.dock-tab {
+  flex: 0 0 auto;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.dock-tab:hover {
+  color: var(--text-secondary);
+}
+
+.dock-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.dock-tab:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: -1px;
+}
+
+.dock-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dock-action-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.dock-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.dock-action-btn:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* ---------- View header ---------- */
+/* Every hosted surface opens with the same row: the view's name on the
+   left, its own controls on the right, nothing else. The dock's tab strip
+   already names the view and its × closes it, so no surface carries a
+   second heading scale, a marker before its title or its own close. */
+.dock-view-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 36px;
+  padding: 0 var(--space-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dock-view-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.dock-view-actions {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.dock-view-search {
+  width: 200px;
+  height: 24px;
+  padding: 0 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 11px;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--transition-fast);
+}
+
+.dock-view-search::placeholder {
+  color: var(--text-quaternary, var(--text-tertiary));
+}
+
+.dock-view-search:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.dock-view-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  min-width: 24px;
+  text-align: right;
+}
+
+.dock-view-btn {
+  height: 24px;
+  padding: 0 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dock-view-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ---------- Body: one slot per tab, only the active one shown ---------- */
+.dock-body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  background: var(--bg-deep);
+}
+
+.dock-slot {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dock-slot.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Re-parented panels ---------- */
+/* Prompts, Activity and Feedback keep their own markup and styles (a fixed
+   width, slide-in transform, a left border for the edge they used to sit
+   on). Inside a slot they fill it instead — the same override .panel-inline
+   applied when the center hosted them. */
+.dock-slot > .dock-hosted {
+  display: flex !important;
+  flex: 1;
+  width: 100% !important;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  border-left: none !important;
+  border-right: none;
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+.dock-slot > .dock-hosted::before {
+  display: none;
+}
+
+/* ---------- Rendered surfaces ---------- */
+/* Decisions renders its own .decisions-view (height: 100%) into the slot;
+   as a flex child it should fill by flex, not by percentage. */
+.dock-slot > .decisions-view {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* Structure: the map's own container fills the slot. */
+.dock-slot > .structure-map-container {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.dock-slot .structure-map-info {
+  height: 160px;
+}
+
+/* ---------- Empty state ---------- */
+/* The shape decisionsView.renderEmpty draws, for a tab with nothing to
+   show (D4: Structure with no project selected). */
+.dock-empty {
+  flex: 1;
+  padding: 48px var(--space-xl);
+  text-align: center;
+}
+
+.dock-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.dock-empty-message {
+  font-size: 13px;
+  color: var(--text-quaternary, var(--text-tertiary));
+  margin: 0 auto;
+  max-width: 420px;
+  line-height: 1.6;
+}

@@ -512,5 +512,5 @@ function renderMarkdown(md) {
     .replace(/on\w+=/gi, 'data-safe-');
 }
 
-const api = { setHost, open, openInNewTab, createViewport };
+const api = { setHost, open, openInNewTab, createViewport, renderStepper };
 module.exports = api;

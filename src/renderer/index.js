@@ -15,6 +15,7 @@ const taskConfirmModal = require('./taskConfirmModal');
 const taskInfoModal = require('./taskInfoModal');
 const taskRunModal = require('./taskRunModal');
 const pluginsPanel = require('./pluginsPanel');
+const sessionsPanel = require('./sessionsPanel');
 const githubPanel = require('./githubPanel');
 const promptsPanel = require('./promptsPanel');
 const activityPanel = require('./activityPanel');
@@ -37,12 +38,15 @@ const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const frameSettingsModal = require('./frameSettingsModal');
+const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
 const specDrivenHint = require('./specDrivenHint');
 const docsHealthHint = require('./docsHealthHint');
 const migrationModal = require('./migrationModal');
 const sampleBanner = require('./sampleBanner');
+const dock = require('./dock');
+const tooltip = require('./tooltip');
 
 /**
  * Initialize all modules
@@ -102,6 +106,7 @@ function init() {
 
   // Status bar at the foot of the window: Claude usage meters today
   // (status-bar spec).
+  tooltip.init();
   require('./statusBar').init();
 
   // Initialize file tree UI
@@ -142,8 +147,10 @@ function init() {
   // Initialize the play-button run-config modal
   taskRunModal.init();
 
-  // Initialize plugins panel
+  // Plugins (a modal from the foot of the sidebar rail) and Sessions (a
+  // center-hosted Context view).
   pluginsPanel.init();
+  sessionsPanel.init();
 
   // Initialize GitHub panel
   githubPanel.init();
@@ -158,6 +165,12 @@ function init() {
 
   // Initialize specs dashboard (full-page card grid, opened from panel header)
   specsDashboard.init();
+
+  // The dock beside the center (dock-panel-readonly-views spec): hosts the
+  // read-only surfaces; restores its last position / tab / size.
+  // After the panels it hosts have initialized, so a dock restored open at
+  // boot mounts a panel whose show() can already load.
+  dock.init();
 
   // Initialize sidebar resize
   sidebarResize.init(() => {
@@ -185,6 +198,10 @@ function init() {
       fileTreeUI.clearFileTree({ unwatch: true });
       specPanel.stopWatching();
     }
+    // An open dock tab follows the switcher the way the workspace nav does:
+    // Decisions and Structure re-render for the new project, the
+    // re-parented panels reload through their own show().
+    dock.remountActive();
   });
 
   // Setup Frame status change listener
@@ -223,6 +240,7 @@ function init() {
   welcomeOverlay.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
+  feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.
   telemetryNotice.init(() => frameSettingsModal.open());
@@ -267,6 +285,15 @@ function setupButtonHandlers() {
     if (!consumed) alert('Clone failed:\n' + result.error);
   });
 
+  // The native View menu's one channel to the renderer: a command-registry
+  // id, run through the same registry the palette, the status bar and the
+  // shortcuts use (dock-panel-readonly-views spec, C6 / D12).
+  ipcRenderer.on(IPC.RUN_APP_COMMAND, (event, commandId) => {
+    if (!commandRegistry.runById(commandId)) {
+      console.error(`Menu command '${commandId}' did not run — unknown id or unavailable right now`);
+    }
+  });
+
   // Sidebar "Start default agent" shortcut — context decides whether it
   // starts in the focused Frame, a new Frame, or after a kill-and-restart
   // prompt (see agentDispatch.startDefaultAgent).
@@ -279,20 +306,31 @@ function setupButtonHandlers() {
     fileTreeUI.refreshFileTree();
   });
 
-  // Sidebar activity rail (Projects / Files / Changes). Bound to the button,
-  // not e.target — clicks land on the inner SVG/path otherwise.
+  // Sidebar activity rail (Projects / Files / Changes / GitHub). Bound to the
+  // button, not e.target — clicks land on the inner SVG/path otherwise.
   document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
-  // The two settings surfaces, each from the control that names its scope:
-  // the project's from the sliders at the foot of the rail, Frame's own from
-  // the gear in the sidebar header (where the app menu entry and Cmd+, also
-  // land). Both toggle, so a second click on the same button closes it.
-  const projectSettingsBtn = document.getElementById('project-settings-btn');
-  if (projectSettingsBtn) {
-    projectSettingsBtn.addEventListener('click', () => projectSettingsModal.toggle());
+  // The foot of the sidebar rail — Plugins, then Feedback: each a modal
+  // (pluginsPanel, feedbackPanel), not a view — hence no .sidebar-tab-btn
+  // on the buttons. Both toggle, like the gear below.
+  const pluginsBtn = document.getElementById('plugins-btn');
+  if (pluginsBtn) {
+    pluginsBtn.addEventListener('click', () => pluginsPanel.toggle());
+    tooltip.attach(pluginsBtn, 'Plugins', { placement: 'right' });
   }
+  const feedbackBtn = document.getElementById('feedback-btn');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', () => feedbackPanel.toggle());
+    // Outboard of the rail, like the spec-driven hint anchors.
+    tooltip.attach(feedbackBtn, 'Send Feedback', { placement: 'right' });
+  }
+
+  // Frame's own settings, from the gear in the sidebar header (where the app
+  // menu entry and Cmd+, also land); toggles, so a second click closes it.
+  // The project's settings are a row under the project in the workspace nav
+  // (dock-panel-readonly-views spec), running `settings.openProject`.
   const frameSettingsBtn = document.getElementById('frame-settings-btn');
   if (frameSettingsBtn) {
     frameSettingsBtn.addEventListener('click', () => frameSettingsModal.toggle());
@@ -303,8 +341,9 @@ function setupButtonHandlers() {
   // (status-bar spec). Binding it from here would attach a listener before
   // the element exists.
 
-  // Current-project switcher (Files / Changes views): reflects the active
-  // project and opens a dropdown to switch project without leaving the view.
+  // Current-project switcher (above the rail and the panel): reflects the
+  // active project and opens a dropdown to switch project without leaving
+  // the view.
   const currentProjectNameEl = document.getElementById('sidebar-current-project-name');
   const renderCurrentProject = () => {
     if (!currentProjectNameEl) return;
@@ -480,6 +519,9 @@ function revealSidebarTab(tabName) {
   const cp = document.getElementById('sidebar-current-project-wrap');
   if (cp) cp.style.display = '';
   if (tabName === 'changes') ipcRenderer.send(IPC.REFRESH_GIT_STATUS);
+  // GitHub loads on reveal the way Changes refreshes on reveal (D8); the
+  // panel's own show() owns the data and the .visible flag.
+  if (tabName === 'github') githubPanel.show();
 }
 
 /**
@@ -586,27 +628,82 @@ function registerCommands() {
     run: () => specsDashboard.toggle()
   });
   r({
-    // The panel is "Claude" everywhere the user sees it (sidebar row, palette
-    // jump); only this title still said Plugins (sidebar-nav-groups spec).
-    id: 'panel.togglePlugins',
-    title: 'Toggle Claude Panel',
+    // Was 'panel.togglePlugins' / "Toggle Claude Panel": the Claude panel
+    // split into the Sessions view (Context row) and the Plugins modal
+    // behind the rail's foot button. The shortcut stays with the
+    // center-hosted half.
+    id: 'panel.toggleSessions',
+    title: 'Toggle Sessions',
     category: 'Panel',
     shortcut: 'CmdOrCtrl+Shift+X',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('claude')
+    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('sessions')
+  });
+  // 'panel.toggleGitHub' became 'sidebar.github' (View) when GitHub moved
+  // to the icon rail; the shortcut travelled with it.
+  // 'panel.togglePrompts' became 'dock.prompts' (below) when Prompts moved
+  // into the dock; the shortcut travelled with it.
+
+  // ---------- View: the dock ----------
+  // Every entry point — status bar, native View menu, palette, shortcut —
+  // runs these same ids (dock-panel-readonly-views spec, D12). The View
+  // menu in src/main/menu.js lists the same ids and accelerators; keep the
+  // two in step.
+  r({
+    id: 'dock.toggle',
+    title: 'Toggle Panel',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+J',
+    run: () => dock.toggle()
   });
   r({
-    id: 'panel.toggleGitHub',
-    title: 'Toggle GitHub Panel',
-    category: 'Panel',
-    shortcut: 'CmdOrCtrl+Shift+G',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('github')
+    id: 'dock.decisions',
+    title: 'Toggle Decisions',
+    category: 'View',
+    run: () => dock.toggleTab('decisions')
   });
+  // 'dock.structure' (Toggle Structure Map) is parked with the tab — see
+  // dockState.HIDDEN_TABS for what to restore when it ships.
   r({
-    id: 'panel.togglePrompts',
-    title: 'Toggle Prompts Panel',
-    category: 'Panel',
+    id: 'dock.prompts',
+    title: 'Toggle Prompts',
+    category: 'View',
     shortcut: 'CmdOrCtrl+Shift+L',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('prompts')
+    run: () => dock.toggleTab('prompts')
+  });
+  r({
+    id: 'dock.activity',
+    title: 'Toggle Activity',
+    category: 'View',
+    run: () => dock.toggleTab('activity')
+  });
+  // Feedback is a modal, not a dock tab: the rail's foot button, the Help
+  // menu and the palette all run this.
+  r({
+    id: 'feedback.open',
+    title: 'Send Feedback',
+    category: 'Help',
+    run: () => feedbackPanel.toggle()
+  });
+  r({
+    id: 'sidebar.github',
+    title: 'Show GitHub',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+Shift+G',
+    run: () => revealSidebarTab('github')
+  });
+  r({
+    id: 'dock.moveRight',
+    title: 'Move Panel Right',
+    category: 'View',
+    when: () => dock.position() !== 'right',
+    run: () => dock.setPosition('right')
+  });
+  r({
+    id: 'dock.moveBottom',
+    title: 'Move Panel to Bottom',
+    category: 'View',
+    when: () => dock.position() !== 'bottom',
+    run: () => dock.setPosition('bottom')
   });
 
   // ---------- Focus ----------

@@ -1,11 +1,23 @@
 /**
  * Plugins Panel Module
- * UI for displaying and managing Claude Code plugins and sessions
+ *
+ * UI for browsing and toggling Claude Code plugins. A modal
+ * (`#plugins-modal`, the shared `.modal-overlay` chrome) opened from the
+ * Plugins button at the foot of the sidebar rail, just above Feedback — it
+ * is about Claude, not about the project on screen, so it has no place
+ * beside the terminals. This module owns the modal and `#plugins-panel`
+ * inside it — the filter row and the list — and its data. It used to share
+ * the center-hosted Claude panel with Sessions; Sessions is a Context row of
+ * its own now (sessionsPanel.js).
+ *
+ * Opened by `show()` / `toggle()`, closed by its ×, the backdrop, Escape, or
+ * `hide()`; Escape is gated on visibility so it never leaks to the terminal
+ * (the feedbackPanel idiom). Installing a plugin hides the modal so the user
+ * lands on the terminal that is running the install.
  */
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
-const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 const notify = require('./notify');
 
@@ -13,28 +25,24 @@ let isVisible = false;
 let pluginsData = [];
 let marketplaceInfo = null;
 let currentFilter = 'all'; // all, installed, enabled
-let currentTab = 'plugins';
-
-// Sessions state
-let sessionsData = [];
-let sessionsReason = null;
-let sessionsLoaded = false;
 
 // DOM Elements
+let modalElement = null;
 let panelElement = null;
 let contentElement = null;
-let sessionsContentElement = null;
 
 /**
  * Initialize plugins panel
  */
 function init() {
+  modalElement = document.getElementById('plugins-modal');
   panelElement = document.getElementById('plugins-panel');
   contentElement = document.getElementById('plugins-content');
-  sessionsContentElement = document.getElementById('sessions-content');
 
-  if (!panelElement) {
-    console.error('Plugins panel element not found');
+  if (!modalElement || !panelElement) {
+    // A control that fails to bind must say so — the rail button would just
+    // look like one that does nothing.
+    console.error('pluginsPanel: #plugins-modal not found — Plugins will not open');
     return;
   }
 
@@ -46,11 +54,17 @@ function init() {
  * Setup event listeners
  */
 function setupEventListeners() {
-  // Close button
-  const closeBtn = document.getElementById('plugins-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', hide);
-  }
+  // The modal's chrome: ×, backdrop, Escape (gated on visibility).
+  const closeBtn = document.getElementById('plugins-modal-close');
+  if (closeBtn) closeBtn.addEventListener('click', hide);
+
+  modalElement.addEventListener('click', (e) => {
+    if (e.target === modalElement) hide();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isVisible) hide();
+  });
 
   // Refresh button
   const refreshBtn = document.getElementById('plugins-refresh-btn');
@@ -63,20 +77,6 @@ function setupEventListeners() {
     btn.addEventListener('click', (e) => {
       const filter = e.target.dataset.filter;
       setFilter(filter);
-    });
-  });
-
-  // Sessions refresh button
-  const sessionsRefreshBtn = document.getElementById('sessions-refresh-btn');
-  if (sessionsRefreshBtn) {
-    sessionsRefreshBtn.addEventListener('click', refreshSessions);
-  }
-
-  // Tab buttons
-  document.querySelectorAll('.claude-tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const tab = e.target.dataset.tab;
-      setTab(tab);
     });
   });
 }
@@ -158,67 +158,27 @@ async function refreshPlugins() {
 }
 
 /**
- * Show plugins panel
+ * Open the modal and load the list.
  */
 function show() {
-  if (panelElement) {
-    panelElement.classList.add('visible');
-    isVisible = true;
-    sessionsLoaded = false;
-
-    if (currentTab === 'plugins') {
-      loadPlugins();
-    } else if (currentTab === 'sessions') {
-      loadSessions();
-    }
-  }
+  if (!modalElement) return;
+  modalElement.classList.add('visible');
+  isVisible = true;
+  loadPlugins();
 }
 
 /**
- * Hide plugins panel
+ * Close the modal.
  */
 function hide() {
-  if (panelElement) {
-    panelElement.classList.remove('visible');
-    isVisible = false;
-  }
+  if (!modalElement) return;
+  modalElement.classList.remove('visible');
+  isVisible = false;
 }
 
-/**
- * Toggle plugins panel visibility
- */
 function toggle() {
-  if (isVisible) {
-    hide();
-  } else {
-    show();
-  }
-}
-
-/**
- * Set active tab.
- *
- * Exported because Home's Last Sessions widget opens this panel *on* the
- * Sessions tab — the same thing a click on the tab button does, performed
- * from outside.
- */
-function setTab(tab) {
-  currentTab = tab;
-
-  // Update active tab button
-  document.querySelectorAll('.claude-tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tab);
-  });
-
-  // Show/hide tab content
-  document.querySelectorAll('[data-tab-content]').forEach(el => {
-    el.style.display = el.dataset.tabContent === tab ? '' : 'none';
-  });
-
-  // Load data for the active tab
-  if (tab === 'sessions' && !sessionsLoaded) {
-    loadSessions();
-  }
+  if (isVisible) hide();
+  else show();
 }
 
 /**
@@ -419,191 +379,11 @@ function installPlugin(pluginName) {
   }
 }
 
-/**
- * Escape HTML for safe rendering
- */
-// ==================== SESSIONS ====================
-
-/**
- * Load sessions from Claude data
- */
-async function loadSessions() {
-  const projectPath = state.getProjectPath();
-
-  if (!projectPath) {
-    sessionsData = [];
-    sessionsLoaded = true;
-    renderSessionsEmpty('No project selected');
-    return;
-  }
-
-  try {
-    const result = await ipcRenderer.invoke(IPC.LOAD_CLAUDE_SESSIONS, projectPath);
-    // Main returns { sessions, reason }; tolerate the legacy plain array too
-    sessionsData = Array.isArray(result) ? result : (result.sessions || []);
-    sessionsReason = Array.isArray(result) ? null : result.reason;
-    sessionsLoaded = true;
-    renderSessions();
-  } catch (err) {
-    console.error('Error loading sessions:', err);
-    sessionsData = [];
-    sessionsReason = null;
-    sessionsLoaded = true;
-    renderSessionsEmpty('Failed to load sessions');
-  }
-}
-
-/**
- * Refresh sessions with spinner animation
- */
-async function refreshSessions() {
-  const refreshBtn = document.getElementById('sessions-refresh-btn');
-
-  try {
-    if (refreshBtn) {
-      refreshBtn.classList.add('spinning');
-      refreshBtn.disabled = true;
-    }
-
-    sessionsLoaded = false;
-    await loadSessions();
-  } finally {
-    if (refreshBtn) {
-      refreshBtn.classList.remove('spinning');
-      refreshBtn.disabled = false;
-    }
-  }
-}
-
-/**
- * Render sessions list
- */
-function renderSessions() {
-  if (!sessionsContentElement) return;
-
-  // Update count
-  const countEl = document.getElementById('sessions-count');
-  if (countEl) {
-    countEl.textContent = `${sessionsData.length} session${sessionsData.length !== 1 ? 's' : ''}`;
-  }
-
-  if (sessionsData.length === 0) {
-    // Say WHY it's empty — an unexplained empty panel reads as broken
-    const reasonMessages = {
-      'no-claude-dir': 'Claude Code has no session history on this machine yet',
-      'no-project-sessions': 'No Claude Code sessions recorded for this project yet',
-      'read-error': 'Could not read Claude session data — check ~/.claude/projects'
-    };
-    renderSessionsEmpty(reasonMessages[sessionsReason] || 'No sessions found for this project');
-    return;
-  }
-
-  sessionsContentElement.innerHTML = sessionsData.map(session => renderSessionItem(session)).join('');
-
-  // Add click listeners
-  sessionsContentElement.querySelectorAll('.session-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const sessionId = el.dataset.sessionId;
-      resumeSession(sessionId);
-    });
-  });
-}
-
-/**
- * Render a single session item
- */
-function renderSessionItem(session) {
-  const title = escapeHtml(session.summary || session.firstPrompt || 'Untitled session');
-  const timeStr = formatRelativeTime(session.modified || session.created);
-  const branch = session.gitBranch ? `<span class="session-branch">${escapeHtml(session.gitBranch)}</span>` : '';
-  const msgCount = session.messageCount || 0;
-  const sidechainClass = session.isSidechain ? ' sidechain' : '';
-
-  return `
-    <div class="session-item${sidechainClass}" data-session-id="${escapeHtml(session.sessionId)}">
-      <div class="session-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
-      <div class="session-content">
-        <div class="session-title">${title}</div>
-        <div class="session-meta">
-          <span>${timeStr}</span>
-          <span>${msgCount} msg${msgCount !== 1 ? 's' : ''}</span>
-          ${branch}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Render sessions empty state
- */
-function renderSessionsEmpty(message) {
-  if (!sessionsContentElement) return;
-
-  const countEl = document.getElementById('sessions-count');
-  if (countEl) countEl.textContent = '';
-
-  sessionsContentElement.innerHTML = `
-    <div class="sessions-empty">
-      <div class="plugins-empty-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
-      <p>${escapeHtml(message)}</p>
-      <span>Claude Code sessions will appear here</span>
-    </div>
-  `;
-}
-
-/**
- * Resume a session in a terminal of its own.
- *
- * Not window.terminalSendCommand: that types into whatever terminal has
- * focus, and when that terminal is already running Claude the command lands
- * in Claude's prompt as a message instead of starting anything
- * (sessions-from-transcripts spec).
- */
-function resumeSession(sessionId) {
-  hide();
-  require('./agentDispatch').resumeClaudeSession(sessionId);
-}
-
-/**
- * Format a date string to relative time
- */
-function formatRelativeTime(dateString) {
-  if (!dateString) return '';
-
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return 'just now';
-  if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
-  if (diffHour < 24) return `${diffHour} hour${diffHour !== 1 ? 's' : ''} ago`;
-  if (diffDay === 1) return 'yesterday';
-  if (diffDay < 7) return `${diffDay} days ago`;
-  if (diffDay < 30) return `${Math.floor(diffDay / 7)} week${Math.floor(diffDay / 7) !== 1 ? 's' : ''} ago`;
-
-  return date.toLocaleDateString();
-}
-
 module.exports = {
   init,
   show,
   hide,
   toggle,
-  setTab,
-  getTab: () => currentTab,
   loadPlugins,
   isVisible: () => isVisible
 };

@@ -1,6 +1,15 @@
 /**
  * Structure Map Module
- * Interactive force-directed graph visualization of project modules
+ * Interactive force-directed graph visualization of project modules.
+ *
+ * Hosted in the dock's Structure tab (dock-panel-readonly-views spec):
+ * `mount(host)` writes the map's container into whatever element it is
+ * given, `show(projectPath)` loads and renders, `refit()` re-renders the
+ * current view when the host's box changes (dock resize-end, side change),
+ * `hide()` stops the simulation. It used to build its own full-window
+ * overlay with a backdrop, an Escape binding and a × — the host owns
+ * those now. Both renderers size from the container's clientWidth/Height,
+ * so the map fits any box it is put in.
  */
 
 const { ipcRenderer } = require('electron');
@@ -8,7 +17,8 @@ const { IPC } = require('../shared/ipcChannels');
 const { escapeHtml } = require('./htmlUtils');
 
 let isVisible = false;
-let overlay = null;
+let host = null; // the element the map is mounted into
+let root = null; // .structure-map-container inside it
 let simulation = null;
 // Manual rAF-driven simulation loop state (see renderGraph): one physics
 // tick + one batched DOM write per display frame, bounded by a tick budget.
@@ -59,26 +69,24 @@ const MODULE_COLORS = {
 };
 
 /**
- * Initialize structure map
+ * Write the map's container into `host`. The markup — header with the
+ * view toggle and legend, the canvas, the info panel with its resize
+ * handle — is what the overlay held, minus the × and the backdrop. Safe
+ * to call on every open: the previous container (if any) is dropped.
  */
-function init() {
-  createOverlay();
-}
-
-/**
- * Create overlay element
- */
-function createOverlay() {
-  overlay = document.createElement('div');
-  overlay.id = 'structure-map-overlay';
-  overlay.className = 'structure-map-overlay';
-  overlay.innerHTML = `
+function mount(hostEl) {
+  if (!hostEl) {
+    console.error('structureMap: mount() needs a host element');
+    return;
+  }
+  host = hostEl;
+  host.innerHTML = `
     <div class="structure-map-container">
-      <div class="structure-map-header">
-        <h2>Project Structure Map</h2>
-        <div class="structure-map-controls">
+      <div class="structure-map-header dock-view-header">
+        <h3 class="dock-view-title">Structure</h3>
+        <div class="structure-map-controls dock-view-actions">
           <div class="structure-map-view-toggle">
-            <button class="view-toggle-btn active" data-view="graph" title="Force-directed graph view">
+            <button class="view-toggle-btn${currentView === 'graph' ? ' active' : ''}" data-view="graph" title="Force-directed graph view">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="5" cy="12" r="3"></circle>
                 <circle cx="19" cy="5" r="3"></circle>
@@ -88,7 +96,7 @@ function createOverlay() {
               </svg>
               Graph
             </button>
-            <button class="view-toggle-btn" data-view="tree" title="Hierarchical tree view">
+            <button class="view-toggle-btn${currentView === 'tree' ? ' active' : ''}" data-view="tree" title="Hierarchical tree view">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="5" rx="1"></rect>
                 <rect x="14" y="3" width="7" height="5" rx="1"></rect>
@@ -106,12 +114,6 @@ function createOverlay() {
             <span class="legend-item"><span class="legend-dot" style="background: ${MODULE_COLORS.renderer}"></span>Renderer</span>
             <span class="legend-item"><span class="legend-dot" style="background: ${MODULE_COLORS.shared}"></span>Shared</span>
           </div>
-          <button class="structure-map-close" title="Close (Esc)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
         </div>
       </div>
       <div class="structure-map-canvas">
@@ -125,26 +127,9 @@ function createOverlay() {
       </div>
     </div>
   `;
+  root = host.querySelector('.structure-map-container');
 
-  document.body.appendChild(overlay);
-
-  // Close button
-  overlay.querySelector('.structure-map-close').addEventListener('click', hide);
-
-  // Close on backdrop click
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) hide();
-  });
-
-  // Close on Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isVisible) hide();
-  });
-
-  // Setup resize handle
   setupInfoPanelResize();
-
-  // Setup view toggle
   setupViewToggle();
 }
 
@@ -152,7 +137,7 @@ function createOverlay() {
  * Setup view toggle buttons
  */
 function setupViewToggle() {
-  const toggleBtns = overlay.querySelectorAll('.view-toggle-btn');
+  const toggleBtns = root.querySelectorAll('.view-toggle-btn');
 
   toggleBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -165,65 +150,63 @@ function setupViewToggle() {
 
       // Switch view
       currentView = view;
-      if (currentStructureData) {
-        if (view === 'graph') {
-          renderGraph(currentStructureData);
-        } else {
-          renderTreeView(currentStructureData);
-        }
-      }
+      renderCurrentView();
     });
   });
 }
 
 /**
- * Setup info panel resize functionality
+ * Setup info panel resize functionality. The handle is per mount; the
+ * document-level move / up listeners are bound once and read module state,
+ * so re-mounting never stacks listeners.
  */
+let infoResize = { active: false, startY: 0, startHeight: 0 };
+let infoResizeDocBound = false;
+
 function setupInfoPanelResize() {
-  const infoPanel = overlay.querySelector('.structure-map-info');
-  const resizeHandle = overlay.querySelector('.info-panel-resize-handle');
-  const canvas = overlay.querySelector('.structure-map-canvas');
+  const infoPanel = root.querySelector('.structure-map-info');
+  const resizeHandle = root.querySelector('.info-panel-resize-handle');
 
   if (!resizeHandle || !infoPanel) return;
 
-  let isResizing = false;
-  let startY = 0;
-  let startHeight = 0;
-  const minHeight = 120;
-  const maxHeight = 500;
-
   resizeHandle.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    startY = e.clientY;
-    startHeight = infoPanel.offsetHeight;
+    infoResize = { active: true, startY: e.clientY, startHeight: infoPanel.offsetHeight };
 
     document.body.style.cursor = 'ns-resize';
     document.body.style.userSelect = 'none';
 
-    // Add overlay to prevent iframe/svg interference
-    overlay.classList.add('resizing');
+    // Flag the container so the svg does not swallow the drag
+    root.classList.add('resizing');
   });
 
+  if (infoResizeDocBound) return;
+  infoResizeDocBound = true;
+
+  const minHeight = 120;
+  const maxHeight = 500;
+
   document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
+    if (!infoResize.active || !root) return;
+    const panel = root.querySelector('.structure-map-info');
+    if (!panel) return;
 
-    const deltaY = startY - e.clientY;
-    const newHeight = Math.min(maxHeight, Math.max(minHeight, startHeight + deltaY));
+    const deltaY = infoResize.startY - e.clientY;
+    const newHeight = Math.min(maxHeight, Math.max(minHeight, infoResize.startHeight + deltaY));
 
-    infoPanel.style.height = `${newHeight}px`;
-    infoPanel.style.minHeight = `${newHeight}px`;
-    infoPanel.style.maxHeight = `${newHeight}px`;
+    panel.style.height = `${newHeight}px`;
+    panel.style.minHeight = `${newHeight}px`;
+    panel.style.maxHeight = `${newHeight}px`;
   });
 
   document.addEventListener('mouseup', () => {
-    if (!isResizing) return;
+    if (!infoResize.active) return;
 
-    isResizing = false;
+    infoResize.active = false;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
-    overlay.classList.remove('resizing');
+    if (root) root.classList.remove('resizing');
 
-    // Refit terminals after resize
+    // Let the layout settle into the resized canvas
     if (simulation && resumeSimulation) {
       simulation.alpha(Math.max(simulation.alpha(), 0.1));
       resumeSimulation();
@@ -231,40 +214,62 @@ function setupInfoPanelResize() {
   });
 }
 
-/**
- * Show structure map
- */
-async function show(projectPath) {
-  if (!overlay) createOverlay();
+/** True while the mounted container is still in the document. */
+function hasRoot() {
+  return !!(root && root.isConnected);
+}
 
-  currentProjectPath = projectPath;
-  isVisible = true;
-  overlay.classList.add('visible');
-
-  // Load and render structure
-  const structureData = await loadStructure(projectPath);
-  if (structureData) {
-    currentStructureData = structureData;
-    if (currentView === 'graph') {
-      renderGraph(structureData);
-    } else {
-      renderTreeView(structureData);
-    }
+function renderCurrentView() {
+  if (!currentStructureData || !hasRoot()) return;
+  if (currentView === 'graph') {
+    renderGraph(currentStructureData);
+  } else {
+    renderTreeView(currentStructureData);
   }
 }
 
 /**
- * Hide structure map
+ * Show structure map: load the project's map and render it into the
+ * mounted container. Needs a `mount(host)` first.
+ */
+async function show(projectPath) {
+  if (!hasRoot()) {
+    console.error('structureMap: show() before mount() — nothing to render into');
+    return;
+  }
+
+  currentProjectPath = projectPath;
+  isVisible = true;
+  selectedNode = null;
+
+  // Load and render structure
+  const structureData = await loadStructure(projectPath);
+  // The host may have unmounted while the load was in flight
+  if (!isVisible || !hasRoot()) return;
+  if (structureData) {
+    currentStructureData = structureData;
+    renderCurrentView();
+  }
+}
+
+/**
+ * Hide structure map: stop the simulation. The host clears the markup.
  */
 function hide() {
   isVisible = false;
-  if (overlay) {
-    overlay.classList.remove('visible');
-  }
   if (simulation) {
     simulation.stop();
   }
   stopSimulationLoop();
+}
+
+/**
+ * The host's box changed (dock resize-end, side change): re-render the
+ * current view so the graph fits the new canvas.
+ */
+function refit() {
+  if (!isVisible) return;
+  renderCurrentView();
 }
 
 /**
@@ -292,7 +297,8 @@ async function loadStructure(projectPath) {
  * Show error in info panel
  */
 function showError(message) {
-  const infoPanel = overlay.querySelector('.info-panel-content');
+  if (!hasRoot()) return;
+  const infoPanel = root.querySelector('.info-panel-content');
   infoPanel.innerHTML = `<div class="info-error">Error: ${message}</div>`;
 }
 
@@ -374,7 +380,7 @@ function structureToGraph(data) {
  * Render force-directed graph
  */
 function renderGraph(structureData) {
-  const container = overlay.querySelector('.structure-map-canvas');
+  const container = root.querySelector('.structure-map-canvas');
 
   // Recreate SVG if it doesn't exist (e.g., after tree view)
   let svgElement = container.querySelector('#structure-map-svg');
@@ -582,7 +588,7 @@ function renderGraph(structureData) {
  * Render tree/hierarchy view using D3.js
  */
 function renderTreeView(structureData) {
-  const container = overlay.querySelector('.structure-map-canvas');
+  const container = root.querySelector('.structure-map-canvas');
 
   // Recreate SVG for tree view
   container.innerHTML = '<svg id="structure-map-svg"></svg>';
@@ -959,7 +965,8 @@ function buildHierarchy(structureData) {
  * Show module info in panel (1x3 grid layout)
  */
 function showModuleInfo(module, showGitButton = true) {
-  const infoPanel = overlay.querySelector('.info-panel-content');
+  if (!hasRoot()) return;
+  const infoPanel = root.querySelector('.info-panel-content');
   currentModule = module;
 
   const functionCount = Object.keys(module.functions).length;
@@ -1135,8 +1142,8 @@ async function loadAndShowGitHistory(module) {
   }
 
   // Get git container and button
-  const gitContainer = overlay.querySelector('.info-git-container');
-  const gitBtn = overlay.querySelector('.btn-load-git');
+  const gitContainer = root.querySelector('.info-git-container');
+  const gitBtn = root.querySelector('.btn-load-git');
 
   if (!gitContainer) {
     console.log('No git container found');
@@ -1287,7 +1294,8 @@ function getInitials(name) {
  */
 function showPlaceholder() {
   if (selectedNode) return; // Don't clear if a node is selected
-  const infoPanel = overlay.querySelector('.info-panel-content');
+  if (!hasRoot()) return;
+  const infoPanel = root.querySelector('.info-panel-content');
   infoPanel.innerHTML = `
     <div class="info-placeholder">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
@@ -1334,8 +1342,9 @@ function isMapVisible() {
 }
 
 module.exports = {
-  init,
+  mount,
   show,
   hide,
+  refit,
   isVisible: isMapVisible
 };

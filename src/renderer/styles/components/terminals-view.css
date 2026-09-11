@@ -386,6 +386,10 @@ span.tv-pane-assign {
   background: color-mix(in srgb, var(--accent-primary) 85%, white);
 }
 
+[data-theme="light"] .tv-empty-cta {
+  color: #ffffff;
+}
+
 /* ─── Sidebar workspace nav (under the selected project) ─── */
 
 .project-workspace-nav {
@@ -407,7 +411,7 @@ span.tv-pane-assign {
   padding: 3px 10px;
   cursor: pointer;
   color: var(--text-quaternary, var(--text-tertiary));
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -434,7 +438,7 @@ span.tv-pane-assign {
 
 .workspace-nav-group-chevron {
   display: inline-block;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   transform: rotate(90deg);
   transition: transform var(--transition-fast);
@@ -442,6 +446,12 @@ span.tv-pane-assign {
 
 .workspace-nav-group.collapsed .workspace-nav-group-chevron {
   transform: rotate(0deg);
+}
+
+.workspace-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .workspace-nav-group.collapsed .workspace-nav-group-items {
@@ -455,7 +465,7 @@ span.tv-pane-assign {
   padding: 5px 10px 5px 26px;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -471,9 +481,15 @@ span.tv-pane-assign {
 }
 
 .workspace-nav-icon {
-  width: 14px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 16px;
+  line-height: 1;
   font-weight: 700;
 }
 
@@ -499,6 +515,15 @@ span.tv-pane-assign {
   font-weight: 700;
 }
 
+/* Project Settings: the one ungrouped row, pinned at the foot below the
+   groups and set apart by a hairline (dock-panel-readonly-views spec, D1).
+   Indented like a group's rows so the icons line up. */
+.workspace-nav-foot {
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 /* Orchestration's live session used to announce itself on Home's card; the
    row carries it now that the card is gone. */
 .workspace-nav-running {
@@ -508,6 +533,20 @@ span.tv-pane-assign {
   background: color-mix(in srgb, var(--success, #23d18b) 18%, transparent);
   border-radius: 999px;
   padding: 0 6px;
+  line-height: 14px;
+}
+
+/* Orchestration is still settling — the row says so with a small pill after
+   its label; the native menu's "Open Orchestrator (Beta)" matches. */
+.workspace-nav-beta {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  border-radius: 999px;
+  padding: 0 5px;
   line-height: 14px;
 }
 

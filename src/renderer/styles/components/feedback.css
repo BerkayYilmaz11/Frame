@@ -1,61 +1,23 @@
-/* ==================== FEEDBACK PANEL ====================
-   The same container contract as #activity-panel (activity.css): a flex
-   sibling of #terminal-container that slides in from the right, `.visible`
-   toggled by the module itself. Wider than Activity because this one is a
-   form the user writes prose into, and a 380px column makes a description
-   field feel like a comment box. */
+/* ==================== FEEDBACK MODAL ====================
+   The shared .modal-overlay / .modal-container chrome (panels.css), opened
+   from the foot of the sidebar rail. #feedback-panel is the modal's body:
+   the tab strip, then the form. Wide because this is a form the user writes
+   prose into, and a 380px column makes a description field feel like a
+   comment box. */
+
+.feedback-modal {
+  display: flex;
+  flex-direction: column;
+  height: 72vh;
+  overflow: hidden;
+}
 
 #feedback-panel {
-  width: 440px;
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-  border-left: 1px solid var(--border-subtle);
-  display: none;
+  display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  position: relative;
-  transition: transform var(--transition-normal), opacity var(--transition-normal);
-}
-
-#feedback-panel:not(.visible) {
-  transform: translateX(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-#feedback-panel.visible {
-  display: flex;
-  transform: translateX(0);
-  opacity: 1;
-}
-
-#feedback-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-#feedback-header h3 {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-#feedback-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 2px 4px;
-  font-size: 12px;
-  line-height: 1;
-  margin-left: auto;
-}
-
-#feedback-close:hover {
-  color: var(--text-primary);
 }
 
 /* ─── the two tabs ───

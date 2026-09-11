@@ -2440,7 +2440,7 @@
       ],
       "functions": {
         "init": {
-          "line": 19,
+          "line": 33,
           "params": [
             "window",
             "app",
@@ -2448,41 +2448,53 @@
           ],
           "purpose": "Initialize menu module"
         },
+        "cmd": {
+          "line": 40,
+          "params": [
+            "label",
+            "commandId",
+            "accelerator"
+          ],
+          "purpose": "Menu item that runs a command-registry id in the renderer."
+        },
         "getMenuTemplate": {
-          "line": 28,
+          "line": 51,
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 110
+          "line": 218
         },
         "buildAICommandsSubmenu": {
-          "line": 119,
+          "line": 229,
           "params": [
             "tool"
           ],
-          "purpose": "Build AI commands submenu based on active tool"
+          "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 229,
+          "line": 278,
           "purpose": "Build tool switcher submenu"
         },
         "sendCommand": {
-          "line": 248,
+          "line": 297,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
-        "toggleHistoryPanel": {
-          "line": 257,
-          "purpose": "Toggle history panel"
+        "sendAppCommand": {
+          "line": 307,
+          "params": [
+            "commandId"
+          ],
+          "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 266,
+          "line": 316,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 280,
+          "line": 330,
           "purpose": "Create and set application menu"
         }
       },
@@ -2491,7 +2503,7 @@
         "emits": [
           "OPEN_SETTINGS",
           "RUN_COMMAND",
-          "TOGGLE_HISTORY_PANEL"
+          "RUN_APP_COMMAND"
         ]
       }
     },
@@ -4485,16 +4497,16 @@
           "line": 170
         },
         "show": {
-          "line": 195
+          "line": 192
         },
         "hide": {
-          "line": 202
+          "line": 199
         },
         "toggle": {
-          "line": 206
+          "line": 203
         },
         "isVisible": {
-          "line": 213
+          "line": 210
         }
       },
       "ipc": {
@@ -5030,25 +5042,25 @@
       ],
       "functions": {
         "render": {
-          "line": 25,
+          "line": 27,
           "params": [
             "container"
           ]
         },
         "load": {
-          "line": 57,
+          "line": 59,
           "params": [
             "projectPath"
           ]
         },
         "projectName": {
-          "line": 66,
+          "line": 68,
           "params": [
             "projectPath"
           ]
         },
         "renderShell": {
-          "line": 71,
+          "line": 73,
           "params": [
             "body",
             "name"
@@ -5056,48 +5068,48 @@
           "purpose": "Header + body frame; body is swapped as the view loads / filters."
         },
         "matches": {
-          "line": 92,
+          "line": 91,
           "params": [
             "decision"
           ]
         },
         "renderList": {
-          "line": 100
+          "line": 99
         },
         "renderRow": {
-          "line": 116,
+          "line": 115,
           "params": [
             "decision"
           ]
         },
         "renderEmpty": {
-          "line": 131,
+          "line": 130,
           "params": [
             "title",
             "message"
           ]
         },
         "rowKey": {
-          "line": 141,
+          "line": 140,
           "params": [
             "decision"
           ],
           "purpose": "date + line is stable across re-renders and unique per entry."
         },
         "wire": {
-          "line": 145,
+          "line": 144,
           "params": [
             "container"
           ]
         },
         "updateCount": {
-          "line": 178,
+          "line": 177,
           "params": [
             "countEl"
           ]
         },
         "renderMarkdown": {
-          "line": 186,
+          "line": 185,
           "params": [
             "md"
           ]
@@ -5205,6 +5217,282 @@
           "params": [
             "message"
           ]
+        }
+      }
+    },
+    "renderer/dock": {
+      "file": "src/renderer/dock.js",
+      "description": "Dock — the VS Code-style panel beside the center (dock-panel-readonly-views",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "toggleTab",
+        "setPosition",
+        "isOpen",
+        "activeTab",
+        "position",
+        "remountActive",
+        "onChange",
+        "DOCK_TABS",
+        "lucideIcon"
+      ],
+      "depends": [
+        "dock/dockState",
+        "lucide",
+        "htmlUtils",
+        "decisionsView",
+        "state",
+        "structureMap",
+        "promptsPanel",
+        "activityPanel",
+        "terminal"
+      ],
+      "functions": {
+        "lucideIcon": {
+          "line": 38,
+          "params": [
+            "data",
+            "size = 14"
+          ],
+          "purpose": "Inline SVG for a lucide icon's data (the shape sectionRail.js uses)."
+        },
+        "emptyState": {
+          "line": 47,
+          "params": [
+            "title",
+            "message"
+          ],
+          "purpose": "The dock's inline empty state — the shape decisionsView.renderEmpty uses."
+        },
+        "panelTab": {
+          "line": 66,
+          "params": [
+            "{ label",
+            "icon",
+            "elementId",
+            "module }"
+          ],
+          "purpose": "A tab hosting one of the legacy side panels (D9). The element keeps its"
+        },
+        "loadState": {
+          "line": 184
+        },
+        "persist": {
+          "line": 192
+        },
+        "init": {
+          "line": 202
+        },
+        "available": {
+          "line": 257,
+          "params": [
+            "position = state.position"
+          ],
+          "purpose": "The center's extent on the dock's axis, for the size ceiling."
+        },
+        "applySize": {
+          "line": 266
+        },
+        "apply": {
+          "line": 283,
+          "params": [
+            "{ refit = false } = {}"
+          ],
+          "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
+        },
+        "mountTab": {
+          "line": 321,
+          "params": [
+            "tab"
+          ]
+        },
+        "unmountTab": {
+          "line": 335
+        },
+        "refitCenter": {
+          "line": 350,
+          "purpose": "Terminals refit through the existing fit path (D13)."
+        },
+        "refitTab": {
+          "line": 357,
+          "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
+        },
+        "emit": {
+          "line": 368
+        },
+        "snapshotState": {
+          "line": 379
+        },
+        "bindResize": {
+          "line": 385,
+          "params": [
+            "handle"
+          ]
+        },
+        "ensureReady": {
+          "line": 445
+        },
+        "open": {
+          "line": 454,
+          "params": [
+            "tab"
+          ],
+          "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
+        },
+        "close": {
+          "line": 461
+        },
+        "toggle": {
+          "line": 469,
+          "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
+        },
+        "toggleTab": {
+          "line": 475,
+          "params": [
+            "tab"
+          ],
+          "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
+        },
+        "setPosition": {
+          "line": 482,
+          "params": [
+            "position"
+          ]
+        },
+        "isOpen": {
+          "line": 490
+        },
+        "activeTab": {
+          "line": 494
+        },
+        "position": {
+          "line": 498
+        },
+        "remountActive": {
+          "line": 507,
+          "purpose": "Re-run the active tab's mount (the project changed under an open"
+        },
+        "onChange": {
+          "line": 515,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Follow the dock: fn({ open, position, tab }) after every change."
+        }
+      }
+    },
+    "renderer/dock/dockState": {
+      "file": "src/renderer/dock/dockState.js",
+      "description": "Dock state — pure (dock-panel-readonly-views spec, D2).",
+      "exports": [
+        "STORAGE_KEY",
+        "TABS",
+        "HIDDEN_TABS",
+        "POSITIONS",
+        "LIMITS",
+        "defaults",
+        "load",
+        "open",
+        "close",
+        "toggle",
+        "toggleTab",
+        "setPosition",
+        "resize",
+        "clampSize",
+        "serialize"
+      ],
+      "depends": [],
+      "functions": {
+        "defaults": {
+          "line": 47
+        },
+        "isTab": {
+          "line": 56,
+          "params": [
+            "tab"
+          ]
+        },
+        "isPosition": {
+          "line": 60,
+          "params": [
+            "position"
+          ]
+        },
+        "clampSize": {
+          "line": 69,
+          "params": [
+            "position",
+            "px",
+            "available"
+          ],
+          "purpose": "Clamp a size for one side. Without `available` (the center's extent on"
+        },
+        "load": {
+          "line": 85,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A valid state from anything: a JSON string, a parsed object, garbage,"
+        },
+        "copy": {
+          "line": 109,
+          "params": [
+            "state"
+          ]
+        },
+        "open": {
+          "line": 119,
+          "params": [
+            "state",
+            "tab"
+          ],
+          "purpose": "Open on `tab` (or the current tab when omitted)."
+        },
+        "close": {
+          "line": 129,
+          "params": [
+            "state"
+          ]
+        },
+        "toggleTab": {
+          "line": 139,
+          "params": [
+            "state",
+            "tab"
+          ],
+          "purpose": "The status-bar icon / menu item semantics: open on that tab → closed;"
+        },
+        "toggle": {
+          "line": 146,
+          "params": [
+            "state"
+          ],
+          "purpose": "Toggle open/closed, keeping the tab."
+        },
+        "setPosition": {
+          "line": 150,
+          "params": [
+            "state",
+            "position"
+          ]
+        },
+        "resize": {
+          "line": 162,
+          "params": [
+            "state",
+            "px",
+            "available"
+          ],
+          "purpose": "Resize the current side to `px`, clamped to `[min, maxShare × available]`."
+        },
+        "serialize": {
+          "line": 169,
+          "params": [
+            "state"
+          ],
+          "purpose": "The string written to localStorage."
         }
       }
     },
@@ -5396,8 +5684,10 @@
       "file": "src/renderer/feedbackPanel.js",
       "description": "Feedback Panel",
       "exports": [
-        "show",
-        "hide",
+        "init",
+        "open",
+        "close",
+        "toggle",
         "isVisible"
       ],
       "depends": [
@@ -5437,33 +5727,34 @@
           "purpose": "What the button does, said plainly. The tail is the promise about what"
         },
         "render": {
-          "line": 141
+          "line": 142,
+          "purpose": "Draw the active kind's form."
         },
         "showErrors": {
-          "line": 171,
+          "line": 172,
           "params": [
             "errors"
           ],
           "purpose": "Put each message beside the field it belongs to, never in one summary line."
         },
         "bindForm": {
-          "line": 183,
+          "line": 184,
           "params": [
             "body"
           ]
         },
-        "selectKind": {
-          "line": 194,
+        "selectTab": {
+          "line": 195,
           "params": [
             "id"
           ]
         },
         "submit": {
-          "line": 208,
+          "line": 210,
           "purpose": "Validate the active tab's draft, then hand it to that kind's channel."
         },
         "deliver": {
-          "line": 236,
+          "line": 238,
           "params": [
             "channel",
             "report"
@@ -5471,27 +5762,33 @@
           "purpose": "Hand a finished report to a channel."
         },
         "track": {
-          "line": 279,
+          "line": 281,
           "params": [
             "channel"
           ],
           "purpose": "One event, on the channel that actually carried the report."
         },
         "clearDraft": {
-          "line": 293,
+          "line": 295,
           "purpose": "Clear the tab that just delivered, and only that tab."
         },
-        "bind": {
-          "line": 300
+        "modal": {
+          "line": 302
         },
-        "show": {
-          "line": 309
+        "init": {
+          "line": 307
         },
-        "hide": {
-          "line": 318
+        "open": {
+          "line": 330
+        },
+        "close": {
+          "line": 340
+        },
+        "toggle": {
+          "line": 345
         },
         "isVisible": {
-          "line": 323
+          "line": 350
         }
       },
       "ipc": {
@@ -6427,8 +6724,7 @@
         "../sessionRows",
         "../widgetShell",
         "../../agentDispatch",
-        "../../terminal",
-        "../../pluginsPanel"
+        "../../terminal"
       ],
       "functions": {}
     },
@@ -6517,6 +6813,7 @@
         "taskInfoModal",
         "taskRunModal",
         "pluginsPanel",
+        "sessionsPanel",
         "githubPanel",
         "promptsPanel",
         "activityPanel",
@@ -6539,12 +6836,15 @@
         "appLoader",
         "projectSettingsModal",
         "frameSettingsModal",
+        "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
         "specDrivenHint",
         "docsHealthHint",
         "migrationModal",
         "sampleBanner",
+        "dock",
+        "tooltip",
         "ipcWatchdog",
         "../package.json",
         "statusBar",
@@ -6553,40 +6853,41 @@
       ],
       "functions": {
         "init": {
-          "line": 50,
+          "line": 54,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 254,
+          "line": 272,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 325,
+          "line": 364,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 436,
+          "line": 475,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 467,
+          "line": 506,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 490,
+          "line": 532,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 769,
+          "line": 866,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
       "ipc": {
         "listens": [
           "CLONE_GITHUB_REPO_RESULT",
+          "RUN_APP_COMMAND",
           "UPDATE_AVAILABLE"
         ],
         "emits": [
@@ -6878,32 +7179,22 @@
         "MultiTerminalUI"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
         "terminalManager",
         "terminalTabBar",
         "terminalsView",
         "homeBoard",
         "laneStatus",
         "agentDispatch",
-        "decisionsView",
         "taskSection",
         "specSection",
         "diffSection",
         "reportSection",
         "notify",
         "terminalChipNotice",
-        "githubPanel",
-        "pluginsPanel",
-        "promptsPanel",
-        "activityPanel",
-        "feedbackPanel",
-        "structureMap",
+        "sessionsPanel",
         "specsDashboard",
         "tasksDashboard",
-        "projectListUI",
-        "state",
-        "taskInfoModal"
+        "projectListUI"
       ],
       "functions": {}
     },
@@ -7274,7 +7565,8 @@
           "line": 88
         },
         "viewItems": {
-          "line": 102
+          "line": 106,
+          "purpose": "Only the center surfaces without a registered command of their own."
         }
       },
       "ipc": {
@@ -7319,26 +7611,22 @@
         "show",
         "hide",
         "toggle",
-        "setTab",
-        "getTab",
         "loadPlugins",
         "isVisible"
       ],
       "depends": [
         "electron",
         "shared/ipcChannels",
-        "state",
         "htmlUtils",
-        "notify",
-        "agentDispatch"
+        "notify"
       ],
       "functions": {
         "init": {
-          "line": 31,
+          "line": 37,
           "purpose": "Initialize plugins panel"
         },
         "setupEventListeners": {
-          "line": 48,
+          "line": 56,
           "purpose": "Setup event listeners"
         },
         "setupIPCListeners": {
@@ -7355,105 +7643,57 @@
         },
         "show": {
           "line": 163,
-          "purpose": "Show plugins panel"
+          "purpose": "Open the modal and load the list."
         },
         "hide": {
-          "line": 180,
-          "purpose": "Hide plugins panel"
+          "line": 173,
+          "purpose": "Close the modal."
         },
         "toggle": {
-          "line": 190,
-          "purpose": "Toggle plugins panel visibility"
-        },
-        "setTab": {
-          "line": 205,
-          "params": [
-            "tab"
-          ],
-          "purpose": "Set active tab."
+          "line": 179
         },
         "setFilter": {
-          "line": 227,
+          "line": 187,
           "params": [
             "filter"
           ],
           "purpose": "Set filter"
         },
         "getFilteredPlugins": {
-          "line": 241,
+          "line": 201,
           "purpose": "Get filtered plugins"
         },
         "render": {
-          "line": 257,
+          "line": 217,
           "purpose": "Render plugins list"
         },
         "renderPluginItem": {
-          "line": 311,
+          "line": 271,
           "params": [
             "plugin"
           ],
           "purpose": "Render single plugin item"
         },
         "getPluginIcon": {
-          "line": 357,
+          "line": 317,
           "params": [
             "name"
           ],
           "purpose": "Get icon for plugin based on name"
         },
         "togglePlugin": {
-          "line": 396,
+          "line": 356,
           "params": [
             "pluginId"
           ],
           "purpose": "Toggle plugin enabled/disabled"
         },
         "installPlugin": {
-          "line": 408,
+          "line": 368,
           "params": [
             "pluginName"
           ],
           "purpose": "Install plugin via terminal command"
-        },
-        "loadSessions": {
-          "line": 430,
-          "purpose": "Load sessions from Claude data"
-        },
-        "refreshSessions": {
-          "line": 459,
-          "purpose": "Refresh sessions with spinner animation"
-        },
-        "renderSessions": {
-          "line": 481,
-          "purpose": "Render sessions list"
-        },
-        "renderSessionItem": {
-          "line": 515,
-          "params": [
-            "session"
-          ],
-          "purpose": "Render a single session item"
-        },
-        "renderSessionsEmpty": {
-          "line": 544,
-          "params": [
-            "message"
-          ],
-          "purpose": "Render sessions empty state"
-        },
-        "resumeSession": {
-          "line": 571,
-          "params": [
-            "sessionId"
-          ],
-          "purpose": "Resume a session in a terminal of its own."
-        },
-        "formatRelativeTime": {
-          "line": 579,
-          "params": [
-            "dateString"
-          ],
-          "purpose": "Format a date string to relative time"
         }
       },
       "ipc": {
@@ -7495,6 +7735,7 @@
         "terminal",
         "laneStatus",
         "orchestrator",
+        "commandRegistry",
         "projectStatusBadges"
       ],
       "functions": {
@@ -7618,25 +7859,25 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 311
+          "line": 318
         },
         "saveCollapsedGroups": {
-          "line": 320,
+          "line": 327,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 328
+          "line": 335
         },
         "placeWorkspaceNav": {
-          "line": 383
+          "line": 397
         },
         "refreshWorkspaceNav": {
-          "line": 395
+          "line": 409
         },
         "updateWorkspaceNav": {
-          "line": 471,
+          "line": 485,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -7814,11 +8055,11 @@
       ],
       "functions": {
         "init": {
-          "line": 18,
+          "line": 21,
           "purpose": "Initialize prompts panel"
         },
         "setupEventListeners": {
-          "line": 32,
+          "line": 35,
           "purpose": "Setup DOM event listeners"
         },
         "setupIPC": {
@@ -7826,54 +8067,53 @@
           "purpose": "Setup IPC listeners"
         },
         "parseHistory": {
-          "line": 62,
+          "line": 61,
           "params": [
             "raw"
           ],
           "purpose": "Parse raw history text into prompt objects"
         },
         "renderList": {
-          "line": 83,
+          "line": 82,
           "params": [
             "query"
           ],
           "purpose": "Render prompt list with optional search filter"
         },
         "createCard": {
-          "line": 107,
+          "line": 106,
           "params": [
             "prompt"
           ],
           "purpose": "Create a single prompt card element"
         },
         "formatTimestamp": {
-          "line": 148,
+          "line": 147,
           "params": [
             "iso"
           ],
           "purpose": "Format ISO timestamp to readable string"
         },
         "toggle": {
-          "line": 163,
+          "line": 162,
           "purpose": "Toggle panel visibility"
         },
         "show": {
-          "line": 170,
+          "line": 169,
           "purpose": "Show the panel and load data"
         },
         "hide": {
-          "line": 180,
+          "line": 179,
           "purpose": "Hide the panel"
         },
         "getIsVisible": {
-          "line": 189,
+          "line": 188,
           "purpose": "Whether the panel is currently visible"
         }
       },
       "ipc": {
         "listens": [
-          "PROMPT_HISTORY_DATA",
-          "TOGGLE_HISTORY_PANEL"
+          "PROMPT_HISTORY_DATA"
         ],
         "emits": [
           "LOAD_PROMPT_HISTORY"
@@ -8038,6 +8278,75 @@
             "opts"
           ],
           "purpose": "Render the rail into `el`."
+        }
+      }
+    },
+    "renderer/sessionsPanel": {
+      "file": "src/renderer/sessionsPanel.js",
+      "description": "Sessions Panel",
+      "exports": [
+        "init",
+        "show",
+        "hide",
+        "isVisible"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "htmlUtils",
+        "agentDispatch"
+      ],
+      "functions": {
+        "init": {
+          "line": 34
+        },
+        "show": {
+          "line": 48,
+          "purpose": "Show the panel and (re)load the list — the host calls this on mount."
+        },
+        "hide": {
+          "line": 55
+        },
+        "loadSessions": {
+          "line": 64,
+          "purpose": "Load sessions from Claude data"
+        },
+        "refreshSessions": {
+          "line": 90,
+          "purpose": "Refresh sessions with spinner animation"
+        },
+        "renderSessions": {
+          "line": 110,
+          "purpose": "Render sessions list"
+        },
+        "renderSessionItem": {
+          "line": 144,
+          "params": [
+            "session"
+          ],
+          "purpose": "Render a single session item"
+        },
+        "renderSessionsEmpty": {
+          "line": 173,
+          "params": [
+            "message"
+          ],
+          "purpose": "Render sessions empty state"
+        },
+        "resumeSession": {
+          "line": 201,
+          "params": [
+            "sessionId"
+          ],
+          "purpose": "Resume a session in a terminal of its own."
+        },
+        "formatRelativeTime": {
+          "line": 209,
+          "params": [
+            "dateString"
+          ],
+          "purpose": "Format a date string to relative time"
         }
       }
     },
@@ -8609,7 +8918,8 @@
         "specNextAction",
         "specPanel",
         "agentDispatch",
-        "taskInfoModal"
+        "taskInfoModal",
+        "specSection"
       ],
       "functions": {
         "init": {
@@ -8687,19 +8997,19 @@
           "line": 402
         },
         "reloadDetail": {
-          "line": 410
+          "line": 413
         },
         "renderDetailHeader": {
-          "line": 426
+          "line": 434
         },
         "runSpecCommand": {
-          "line": 507,
+          "line": 519,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 518,
+          "line": 530,
           "params": [
             "tab",
             "label",
@@ -8707,50 +9017,50 @@
           ]
         },
         "renderDetailBody": {
-          "line": 524
+          "line": 536
         },
         "renderTasksTabBody": {
-          "line": 575
+          "line": 587
         },
         "renderSpecTaskRow": {
-          "line": 612,
+          "line": 624,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 661
+          "line": 673
         },
         "handleSpecTaskAction": {
-          "line": 674,
+          "line": 686,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 685
+          "line": 697
         },
         "tasksTabLabel": {
-          "line": 691,
+          "line": 703,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 700,
+          "line": 712,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 705,
+          "line": 717,
           "params": [
             "iso"
           ]
         },
         "displayProjectName": {
-          "line": 716,
+          "line": 728,
           "params": [
             "projectPath"
           ]
@@ -8963,18 +9273,25 @@
         "shared/ipcChannels",
         "laneStatus",
         "state",
+        "dock",
+        "commandRegistry",
+        "platform",
         "htmlUtils",
+        "tooltip",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 45
+          "line": 63
+        },
+        "_buildDockIcons": {
+          "line": 89
         },
         "_buildAgentSlot": {
-          "line": 69
+          "line": 139
         },
         "updateAgents": {
-          "line": 104,
+          "line": 174,
           "params": [
             "states",
             "counts"
@@ -8982,19 +9299,19 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 136,
+          "line": 206,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 140
+          "line": 210
         },
         "_renderMenu": {
-          "line": 175
+          "line": 245
         },
         "_focus": {
-          "line": 199,
+          "line": 269,
           "params": [
             "projectPath",
             "terminalId"
@@ -9002,29 +9319,29 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_scheduleOpen": {
-          "line": 209
+          "line": 279
         },
         "_scheduleClose": {
-          "line": 215
+          "line": 285
         },
         "_openMenu": {
-          "line": 221
+          "line": 291
         },
         "_closeMenu": {
-          "line": 229,
+          "line": 299,
           "params": [
             "immediate = false"
           ]
         },
         "updateUsage": {
-          "line": 236,
+          "line": 306,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 265,
+          "line": 335,
           "params": [
             "item",
             "usage",
@@ -9033,7 +9350,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 288,
+          "line": 358,
           "params": [
             "isoString"
           ],
@@ -9054,9 +9371,10 @@
       "file": "src/renderer/structureMap.js",
       "description": "Structure Map Module",
       "exports": [
-        "init",
+        "mount",
         "show",
         "hide",
+        "refit",
         "isVisible"
       ],
       "depends": [
@@ -9066,87 +9384,96 @@
       ],
       "functions": {
         "stopSimulationLoop": {
-          "line": 21
+          "line": 31
         },
         "capGraphByDegree": {
-          "line": 30,
+          "line": 40,
           "params": [
             "graph",
             "cap"
           ],
           "purpose": "Bound a graph to its `cap` highest-degree nodes (links pruned to the kept"
         },
-        "init": {
-          "line": 64,
-          "purpose": "Initialize structure map"
-        },
-        "createOverlay": {
-          "line": 71,
-          "purpose": "Create overlay element"
+        "mount": {
+          "line": 77,
+          "params": [
+            "hostEl"
+          ],
+          "purpose": "Write the map's container into `host`. The markup — header with the"
         },
         "setupViewToggle": {
-          "line": 154,
+          "line": 139,
           "purpose": "Setup view toggle buttons"
         },
         "setupInfoPanelResize": {
-          "line": 182,
-          "purpose": "Setup info panel resize functionality"
+          "line": 166
+        },
+        "hasRoot": {
+          "line": 218,
+          "purpose": "True while the mounted container is still in the document."
+        },
+        "renderCurrentView": {
+          "line": 222
         },
         "show": {
-          "line": 237,
+          "line": 235,
           "params": [
             "projectPath"
           ],
-          "purpose": "Show structure map"
+          "purpose": "Show structure map: load the project's map and render it into the"
         },
         "hide": {
-          "line": 259,
-          "purpose": "Hide structure map"
+          "line": 258,
+          "purpose": "Hide structure map: stop the simulation. The host clears the markup."
+        },
+        "refit": {
+          "line": 270,
+          "purpose": "The host's box changed (dock resize-end, side change): re-render the"
         },
         "loadStructure": {
-          "line": 273,
+          "line": 278,
           "params": [
             "projectPath"
           ],
           "purpose": "Load structure data"
         },
         "showError": {
-          "line": 294,
+          "line": 299,
           "params": [
             "message"
           ],
           "purpose": "Show error in info panel"
         },
         "structureToGraph": {
-          "line": 302,
+          "line": 308,
           "params": [
             "data"
           ],
           "purpose": "Convert structure data to graph format"
         },
         "renderGraph": {
-          "line": 376,
+          "line": 382,
           "params": [
             "structureData"
           ],
           "purpose": "Render force-directed graph"
         },
         "renderTreeView": {
-          "line": 584,
+          "line": 590,
           "params": [
             "structureData"
           ],
           "purpose": "Render tree/hierarchy view using D3.js"
         },
         "buildHierarchy": {
-          "line": 895,
+          "line": 901,
           "params": [
             "structureData"
           ],
           "purpose": "Build hierarchy data for D3 tree"
         },
         "showModuleInfo": {
-          "line": 961,
+          "line": 967,
           "params": [
             "module",
             "showGitButton = true"
@@ -9154,7 +9481,7 @@
           "purpose": "Show module info in panel (1x3 grid layout)"
         },
         "selectNode": {
-          "line": 1123,
+          "line": 1130,
           "params": [
             "d",
             "nodeSelection"
@@ -9162,32 +9489,32 @@
           "purpose": "Select a node (visual indicator)"
         },
         "loadAndShowGitHistory": {
-          "line": 1131,
+          "line": 1138,
           "params": [
             "module"
           ],
           "purpose": "Load and show git history for a module"
         },
         "renderGitHistory": {
-          "line": 1214,
+          "line": 1221,
           "params": [
             "history"
           ],
           "purpose": "Render git history HTML (compact card format)"
         },
         "getInitials": {
-          "line": 1278,
+          "line": 1285,
           "params": [
             "name"
           ],
           "purpose": "Get initials from name"
         },
         "showPlaceholder": {
-          "line": 1288,
+          "line": 1295,
           "purpose": "Show placeholder in info panel"
         },
         "highlightConnections": {
-          "line": 1306,
+          "line": 1314,
           "params": [
             "d",
             "links",
@@ -9197,7 +9524,7 @@
           "purpose": "Highlight connections for a node"
         },
         "resetHighlight": {
-          "line": 1324,
+          "line": 1332,
           "params": [
             "nodeSelection",
             "linkSelection"
@@ -9205,7 +9532,7 @@
           "purpose": "Reset highlight"
         },
         "isMapVisible": {
-          "line": 1332,
+          "line": 1340,
           "purpose": "Check if visible"
         }
       }
@@ -10103,6 +10430,52 @@
             "projectKey",
             "prefs"
           ]
+        }
+      }
+    },
+    "renderer/tooltip": {
+      "file": "src/renderer/tooltip.js",
+      "description": "Tooltip",
+      "exports": [
+        "init",
+        "attach",
+        "hide",
+        "get current() { return current;"
+      ],
+      "depends": [],
+      "functions": {
+        "_el": {
+          "line": 23
+        },
+        "_place": {
+          "line": 32,
+          "params": [
+            "target",
+            "placement"
+          ]
+        },
+        "show": {
+          "line": 57,
+          "params": [
+            "target",
+            "text",
+            "placement"
+          ]
+        },
+        "hide": {
+          "line": 66
+        },
+        "attach": {
+          "line": 78,
+          "params": [
+            "el",
+            "text",
+            "opts = {}"
+          ]
+        },
+        "init": {
+          "line": 96,
+          "purpose": "Drop the label whenever the hovered control leaves the page or scrolls away."
         }
       }
     },
@@ -11918,6 +12291,13 @@
         "direction": "",
         "description": ""
       }
+    },
+    "app": {
+      "RUN_APP_COMMAND": {
+        "name": "run-app-command",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -12006,6 +12386,18 @@
         "module": "renderer/healthNotice",
         "file": "src/renderer/healthNotice.js",
         "description": "Health Notice Banner"
+      }
+    ],
+    "dock": [
+      {
+        "module": "renderer/dock",
+        "file": "src/renderer/dock.js",
+        "description": "Dock — the VS Code-style panel beside the center (dock-panel-readonly-views"
+      },
+      {
+        "module": "renderer/dock/dockState",
+        "file": "src/renderer/dock/dockState.js",
+        "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
       }
     ],
     "docs": [
@@ -12313,6 +12705,11 @@
         "module": "renderer/pluginsPanel",
         "file": "src/renderer/pluginsPanel.js",
         "description": "Plugins Panel Module"
+      },
+      {
+        "module": "renderer/sessionsPanel",
+        "file": "src/renderer/sessionsPanel.js",
+        "description": "Sessions Panel"
       }
     ],
     "plugins": [
@@ -12424,6 +12821,18 @@
         "description": "Session middleware + requireAuth guard"
       }
     ],
+    "sessions": [
+      {
+        "module": "renderer/home/widgets/lastSessions",
+        "file": "src/renderer/home/widgets/lastSessions.js",
+        "description": "Last Sessions widget."
+      },
+      {
+        "module": "renderer/sessionsPanel",
+        "file": "src/renderer/sessionsPanel.js",
+        "description": "Sessions Panel"
+      }
+    ],
     "settings": [
       {
         "module": "main/userSettings",
@@ -12468,6 +12877,18 @@
         "module": "renderer/specSection",
         "file": "src/renderer/specSection.js",
         "description": "Spec Section Module"
+      }
+    ],
+    "state": [
+      {
+        "module": "renderer/dock/dockState",
+        "file": "src/renderer/dock/dockState.js",
+        "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
+      },
+      {
+        "module": "renderer/state",
+        "file": "src/renderer/state.js",
+        "description": "Application State Module"
       }
     ],
     "status": [

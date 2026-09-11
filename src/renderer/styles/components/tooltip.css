@@ -1,0 +1,31 @@
+/* ==================== TOOLTIP ==================== */
+/* The one hover label for icon-only controls (src/renderer/tooltip.js):
+   fixed so it escapes any clipping ancestor (the sidebar rail, the status
+   bar), elevated-surface language like the other popovers, but small and
+   quiet — a label, not a card. Above every layer it can appear over. */
+
+.ui-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  max-width: 260px;
+  padding: 4px 8px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  z-index: 9600;
+}
+
+.ui-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+}
