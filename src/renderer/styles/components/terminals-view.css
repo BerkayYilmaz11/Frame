@@ -459,7 +459,7 @@ span.tv-pane-assign {
   padding: 5px 10px 5px 26px;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -475,7 +475,8 @@ span.tv-pane-assign {
 }
 
 .workspace-nav-icon {
-  width: 18px;
+  width: 16px;
+  height: 16px;
   flex: none;
   display: inline-flex;
   align-items: center;
