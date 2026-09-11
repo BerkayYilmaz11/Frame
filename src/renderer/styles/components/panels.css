@@ -1550,6 +1550,30 @@
   color: #8b5cf6;
 }
 
+/* Pull request states: closed-unmerged reads as red, merged as purple, draft as muted */
+.github-issue-item.pr .github-issue-state.closed {
+  color: var(--error);
+}
+
+.github-issue-state.merged {
+  color: #8b5cf6;
+}
+
+.github-issue-state.draft {
+  color: var(--text-tertiary);
+}
+
+.github-draft-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-subtle);
+}
+
 .github-issue-content {
   flex: 1;
   min-width: 0;

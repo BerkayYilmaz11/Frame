@@ -98,6 +98,7 @@ const IPC = {
 
   // GitHub Panel
   LOAD_GITHUB_ISSUES: 'load-github-issues',
+  LOAD_GITHUB_PRS: 'load-github-prs',
   GITHUB_ISSUES_DATA: 'github-issues-data',
   TOGGLE_GITHUB_PANEL: 'toggle-github-panel',
   OPEN_GITHUB_ISSUE: 'open-github-issue',

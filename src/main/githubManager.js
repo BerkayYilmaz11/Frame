@@ -65,42 +65,68 @@ function checkGitHubRepo(projectPath) {
 }
 
 /**
- * Load GitHub issues for current project
+ * Run a `gh <type> list` for the current project and parse its JSON.
+ * Shared by issues and pull requests: both need the gh + repo checks and
+ * the same error shapes so the panel renders them identically.
  */
-async function loadIssues(projectPath, state = 'open') {
+async function loadGhList(projectPath, type, state, fields, parseErrorMessage) {
   const ghAvailable = await checkGhCli();
   if (!ghAvailable) {
-    return { error: 'gh CLI not installed', issues: [] };
+    return { error: 'gh CLI not installed', items: [] };
   }
 
   const repoInfo = await checkGitHubRepo(projectPath);
   if (!repoInfo.isGitHubRepo) {
-    return { error: 'Not a GitHub repository', issues: [] };
+    return { error: 'Not a GitHub repository', items: [] };
   }
 
   return new Promise((resolve) => {
     const args = [
-      'issue', 'list',
+      type, 'list',
       '--state', String(state),
-      '--json', 'number,title,state,author,labels,createdAt,updatedAt,url',
+      '--json', fields,
       '--limit', '50'
     ];
 
     execFile('gh', args, { cwd: projectPath }, (error, stdout, stderr) => {
       if (isMissingBinary(error)) {
-        resolve({ error: 'gh CLI not installed', issues: [], repoName: repoInfo.repoName });
+        resolve({ error: 'gh CLI not installed', items: [], repoName: repoInfo.repoName });
       } else if (error) {
-        resolve({ error: stderr || error.message, issues: [], repoName: repoInfo.repoName });
+        resolve({ error: stderr || error.message, items: [], repoName: repoInfo.repoName });
       } else {
         try {
-          const issues = JSON.parse(stdout);
-          resolve({ error: null, issues, repoName: repoInfo.repoName });
+          const items = JSON.parse(stdout);
+          resolve({ error: null, items, repoName: repoInfo.repoName });
         } catch (e) {
-          resolve({ error: 'Failed to parse issues', issues: [], repoName: repoInfo.repoName });
+          resolve({ error: parseErrorMessage, items: [], repoName: repoInfo.repoName });
         }
       }
     });
   });
+}
+
+/**
+ * Load GitHub issues for current project
+ */
+async function loadIssues(projectPath, state = 'open') {
+  const result = await loadGhList(
+    projectPath, 'issue', state,
+    'number,title,state,author,labels,createdAt,updatedAt,url',
+    'Failed to parse issues'
+  );
+  return { error: result.error, issues: result.items, repoName: result.repoName };
+}
+
+/**
+ * Load GitHub pull requests for current project
+ */
+async function loadPullRequests(projectPath, state = 'open') {
+  const result = await loadGhList(
+    projectPath, 'pr', state,
+    'number,title,state,author,labels,createdAt,updatedAt,url,isDraft,headRefName',
+    'Failed to parse pull requests'
+  );
+  return { error: result.error, pullRequests: result.items, repoName: result.repoName };
 }
 
 /**
@@ -125,6 +151,15 @@ function setupIPC(ipcMain) {
     return await loadIssues(path, state);
   });
 
+  // Load pull requests
+  ipcMain.handle(IPC.LOAD_GITHUB_PRS, async (event, { projectPath, state }) => {
+    const path = projectPath || currentProjectPath;
+    if (!path) {
+      return { error: 'No project selected', pullRequests: [] };
+    }
+    return await loadPullRequests(path, state);
+  });
+
   // Open issue in browser
   ipcMain.on(IPC.OPEN_GITHUB_ISSUE, (event, url) => {
     openIssue(url);
@@ -136,5 +171,6 @@ module.exports = {
   setProjectPath,
   setupIPC,
   loadIssues,
+  loadPullRequests,
   openIssue
 };

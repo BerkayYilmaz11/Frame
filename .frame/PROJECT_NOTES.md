@@ -2707,3 +2707,74 @@ branches merged on 2026-08-29 — `new-spec-agent-handoff` and
 `spec-reports-one-shell-two-themes-in-app` — are still unrecorded here; their
 sessions are not in this conversation, and reconstructing their reasoning from
 commit messages would be invention rather than context.
+
+### [2026-09-11] Main-process PATH from the login shell, and the PRs tab that never existed
+
+**Trigger.** The user opened Work > GitHub in the packaged Frame.app and got
+"gh CLI not installed" although `gh` (2.100.0, `/usr/local/bin`) is installed,
+logged in and works from the terminal. Diagnosis on their machine:
+`launchctl getenv PATH` is empty, so a Finder/Dock launch gives the main
+process only `/usr/bin:/bin:/usr/sbin:/sbin`. `githubManager` ran
+`exec('gh …')` with that inherited environment.
+
+**Decision: fix PATH once at startup, not per manager.** Two approaches were
+weighed in the previous session and recorded in the task. (A) Reuse
+`aiToolManager`'s per-command `-ilc` probe for gh — smaller diff, but the
+user pointed out the GitHub panel has no AI agent in the loop and should not
+depend on that module, and every other `child_process` caller in `src/main`
+would keep the same latent bug. (B) Resolve PATH once from the login shell
+and patch `process.env.PATH` — chosen. New `src/main/shellEnv.js`: spawn the
+login shell (`os.userInfo().shell` → `$SHELL` → zsh/bash) with `-ilc`, print
+`$PATH` between sentinel markers, 5 s timeout, stdin closed so a prompting rc
+gets EOF, own process group so a timeout kills rc-spawned children too. The
+sentinel is built by string concatenation in the command so an rc with
+`set -x` cannot echo a false marker; the last pair wins. Merge order: shell
+entries, then current, then well-known dirs that exist on disk
+(`/usr/local/bin`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`,
+`/usr/local/go/bin` and Linux/Windows equivalents). win32 skips the probe.
+`index.js` starts the probe at module load so it overlaps Electron's boot and
+awaits it in `whenReady` before `init()`. `githubManager` switched to
+`execFile('gh', [...])` so ENOENT is distinguishable from "not a repo".
+`aiToolManager`'s own probe was deliberately left alone (follow-up).
+
+**What the change touches, measured, because the user asked.** The PTY
+modules spread `process.env` into the terminal's environment, so the terminal
+now inherits the patched PATH before `.zshrc` runs. Simulated a Finder launch
+(launchd-minimal env → `zsh -i -l`) before and after: the first 17 entries are
+identical in order, so every command resolves as before; the after-list has
+eight extra trailing entries because `.zshrc` prepends dirs the inherited PATH
+already had. Same behaviour as VS Code's integrated terminal, functionally
+harmless. Lane cards and spec-implement CTAs go through the same
+`createTerminal` and are unaffected beyond that. Second effect: the window is
+not created until the probe finishes — ~0.5 s here, overlapped with Electron's
+own boot, so not felt; a heavy `.zshrc` would delay the window, worst case the
+5 s timeout. No splash exists, so during that wait nothing is on screen.
+
+**Two tweaks discussed and not done.** (1) Pass the pre-patch PATH to the PTY
+so the terminal starts clean — cheap, but the task said not to touch the PTY
+path. (2) Create the window before the probe and start managers after — would
+need the startup order rethought because the renderer fires IPC as soon as it
+loads. Also raised: shortening the timeout to 2–3 s since fallback dirs still
+find gh. User chose to ship as is; revisit if support logs
+(`PATH source: …` line) show slow probes in the wild.
+
+**The PRs tab.** While testing, the user saw "Pull Requests - Coming Soon" on
+first entry, then a list after toggling the Closed/Open filter. Root cause: the
+tab had no loader. `setTab('prs')` rendered the placeholder and every filter
+click called `loadIssues()`, so the "PRs" that appeared were the issues list
+under the PRs tab. Implemented it: `LOAD_GITHUB_PRS` channel, a shared
+`gh <type> list` runner in `githubManager` for issues and PRs,
+`loadPullRequests` in the renderer reusing the issue item layout with
+open/merged/closed/draft icons and a draft badge, and one `loadCurrentTab`
+that show, tab switch, filter and refresh all route through. Side effect worth
+knowing: re-opening the panel now reloads the active tab instead of always
+Issues.
+
+**Left untested, on purpose.** The renderer side has no DOM harness (still),
+so the PR list was checked by calling `loadPullRequests` from plain node
+against this repo (1 open, 50 closed incl. merged) and by the user in the app.
+Acceptance criterion "packaged app launched from Finder" was not run in this
+session; `npm start` with a launchd-style PATH logged `PATH source: shell`.
+
+**Branch.** `fix/gh-not-found`, two commits, `npm test` 593 green,
+`test/shellEnv.test.js` adds 12 cases driven by fake shell scripts.

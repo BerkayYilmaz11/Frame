@@ -1948,6 +1948,7 @@
         "setProjectPath",
         "setupIPC",
         "loadIssues",
+        "loadPullRequests",
         "openIssue"
       ],
       "depends": [
@@ -1988,23 +1989,42 @@
           ],
           "purpose": "Check if current directory is a git repo with GitHub remote"
         },
+        "loadGhList": {
+          "line": 72,
+          "params": [
+            "projectPath",
+            "type",
+            "state",
+            "fields",
+            "parseErrorMessage"
+          ],
+          "purpose": "Run a `gh <type> list` for the current project and parse its JSON."
+        },
         "loadIssues": {
-          "line": 70,
+          "line": 111,
           "params": [
             "projectPath",
             "state = 'open'"
           ],
           "purpose": "Load GitHub issues for current project"
         },
+        "loadPullRequests": {
+          "line": 123,
+          "params": [
+            "projectPath",
+            "state = 'open'"
+          ],
+          "purpose": "Load GitHub pull requests for current project"
+        },
         "openIssue": {
-          "line": 109,
+          "line": 135,
           "params": [
             "url"
           ],
           "purpose": "Open issue in browser"
         },
         "setupIPC": {
-          "line": 118,
+          "line": 144,
           "params": [
             "ipcMain"
           ],
@@ -2014,6 +2034,7 @@
       "ipc": {
         "listens": [
           "LOAD_GITHUB_ISSUES",
+          "LOAD_GITHUB_PRS",
           "OPEN_GITHUB_ISSUE"
         ],
         "emits": []

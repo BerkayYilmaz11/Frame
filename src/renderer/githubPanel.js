@@ -1,6 +1,6 @@
 /**
  * GitHub Panel Module
- * UI for displaying GitHub issues, branches, and worktrees
+ * UI for displaying GitHub issues, pull requests, branches, and worktrees
  */
 
 const { ipcRenderer } = require('electron');
@@ -10,6 +10,7 @@ const notify = require('./notify');
 
 let isVisible = false;
 let issuesData = [];
+let pullRequestsData = [];
 let branchesData = { currentBranch: '', branches: [] };
 let worktreesData = { worktrees: [] };
 let currentTab = 'issues'; // issues, prs, branches, worktrees
@@ -128,8 +129,8 @@ async function refreshIssues() {
       refreshBtn.disabled = true;
     }
 
-    await loadIssues();
-    notify.success('Issues refreshed');
+    await loadCurrentTab();
+    notify.success(`${tabLabel(currentTab)} refreshed`);
   } finally {
     if (refreshBtn) {
       refreshBtn.classList.remove('spinning');
@@ -145,7 +146,7 @@ function show() {
   if (panelElement) {
     panelElement.classList.add('visible');
     isVisible = true;
-    loadIssues();
+    loadCurrentTab();
   }
 }
 
@@ -191,16 +192,37 @@ function setTab(tab) {
     branchesActionsElement.style.display = tab === 'branches' ? 'flex' : 'none';
   }
 
-  // Load content based on tab
-  if (tab === 'issues') {
-    loadIssues();
-  } else if (tab === 'branches') {
-    loadBranches();
-  } else if (tab === 'worktrees') {
-    loadWorktrees();
-  } else {
-    renderComingSoon(tab);
+  loadCurrentTab();
+}
+
+/**
+ * Human label for a tab, used in toasts
+ */
+function tabLabel(tab) {
+  return {
+    issues: 'Issues',
+    prs: 'Pull requests',
+    branches: 'Branches',
+    worktrees: 'Worktrees'
+  }[tab] || tab;
+}
+
+/**
+ * Load content for the active tab. Every entry point that re-fetches
+ * (show, tab switch, filter change, refresh) goes through here so a filter
+ * click on the PRs tab loads pull requests — not issues.
+ */
+function loadCurrentTab() {
+  if (currentTab === 'issues') {
+    return loadIssues();
+  } else if (currentTab === 'prs') {
+    return loadPullRequests();
+  } else if (currentTab === 'branches') {
+    return loadBranches();
+  } else if (currentTab === 'worktrees') {
+    return loadWorktrees();
   }
+  renderComingSoon(currentTab);
 }
 
 /**
@@ -214,7 +236,7 @@ function setFilter(filter) {
     btn.classList.toggle('active', btn.dataset.filter === filter);
   });
 
-  loadIssues();
+  loadCurrentTab();
 }
 
 /**
@@ -287,15 +309,18 @@ function renderComingSoon(tab) {
 /**
  * Render issues list
  */
-function render() {
-  if (!contentElement) return;
-
-  // Update repo name in header
+function updateRepoName() {
   const repoNameEl = document.getElementById('github-repo-name');
   if (repoNameEl) {
     repoNameEl.textContent = repoName || '';
     repoNameEl.style.display = repoName ? 'block' : 'none';
   }
+}
+
+function render() {
+  if (!contentElement) return;
+
+  updateRepoName();
 
   if (!issuesData || issuesData.length === 0) {
     contentElement.innerHTML = `
@@ -404,6 +429,126 @@ function formatRelativeTime(dateString) {
 /**
  * Escape HTML for safe rendering
  */
+// ==================== PULL REQUESTS FUNCTIONALITY ====================
+
+/**
+ * Load GitHub pull requests
+ */
+async function loadPullRequests() {
+  const state = require('./state');
+  const projectPath = state.getProjectPath();
+
+  if (!projectPath) {
+    renderError('No project selected');
+    return;
+  }
+
+  renderLoading('Loading pull requests...');
+
+  try {
+    const result = await ipcRenderer.invoke(IPC.LOAD_GITHUB_PRS, {
+      projectPath,
+      state: currentFilter
+    });
+
+    if (result.error) {
+      renderError(result.error);
+    } else {
+      pullRequestsData = result.pullRequests;
+      repoName = result.repoName;
+      renderPullRequests();
+    }
+  } catch (err) {
+    console.error('Error loading pull requests:', err);
+    renderError('Failed to load pull requests');
+  }
+}
+
+/**
+ * Render pull requests list
+ */
+function renderPullRequests() {
+  if (!contentElement) return;
+
+  updateRepoName();
+
+  if (!pullRequestsData || pullRequestsData.length === 0) {
+    contentElement.innerHTML = `
+      <div class="github-empty">
+        <div class="github-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="18" cy="18" r="3"/>
+            <circle cx="6" cy="6" r="3"/>
+            <path d="M13 6h3a2 2 0 0 1 2 2v7"/>
+            <line x1="6" y1="9" x2="6" y2="21"/>
+          </svg>
+        </div>
+        <p>No ${currentFilter} pull requests</p>
+        <span>${currentFilter === 'open' ? 'Nothing waiting for review' : 'No pull requests found with this filter'}</span>
+      </div>
+    `;
+    return;
+  }
+
+  contentElement.innerHTML = pullRequestsData.map(pr => renderPullRequestItem(pr)).join('');
+
+  // Same click-to-open behaviour as issues (main opens the URL externally)
+  contentElement.querySelectorAll('.github-issue-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const url = item.dataset.url;
+      if (url) {
+        ipcRenderer.send(IPC.OPEN_GITHUB_ISSUE, url);
+      }
+    });
+  });
+}
+
+/**
+ * Render single pull request item. Reuses the issue item layout; the state
+ * icon distinguishes open / merged / closed and drafts get a badge.
+ */
+function renderPullRequestItem(pr) {
+  const state = String(pr.state || '').toUpperCase();
+  const stateClass = pr.isDraft && state === 'OPEN' ? 'draft' : state.toLowerCase();
+  const stateTitle = pr.isDraft && state === 'OPEN' ? 'Draft' : state.charAt(0) + state.slice(1).toLowerCase();
+  const stateIcon = state === 'MERGED'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>'
+    : state === 'CLOSED'
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><line x1="6" y1="9" x2="6" y2="21"/><line x1="15" y1="8" x2="21" y2="14"/><line x1="21" y1="8" x2="15" y2="14"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>';
+
+  const labels = pr.labels && pr.labels.length > 0
+    ? pr.labels.map(label => {
+        const bgColor = label.color ? `#${label.color}` : 'var(--bg-hover)';
+        const textColor = label.color ? getContrastColor(label.color) : 'var(--text-secondary)';
+        return `<span class="github-label" style="background: ${bgColor}; color: ${textColor}">${escapeHtml(label.name)}</span>`;
+      }).join('')
+    : '';
+
+  const createdAt = formatRelativeTime(pr.createdAt);
+  const author = pr.author ? pr.author.login : 'unknown';
+  const branch = pr.headRefName ? ` · ${escapeHtml(pr.headRefName)}` : '';
+
+  return `
+    <div class="github-issue-item pr ${stateClass}" data-url="${escapeHtml(pr.url)}">
+      <div class="github-issue-state ${stateClass}" title="${stateTitle}">
+        ${stateIcon}
+      </div>
+      <div class="github-issue-content">
+        <div class="github-issue-header">
+          <span class="github-issue-number">#${pr.number}</span>
+          <span class="github-issue-title">${escapeHtml(pr.title)}</span>
+          ${pr.isDraft ? '<span class="github-draft-badge">Draft</span>' : ''}
+        </div>
+        ${labels ? `<div class="github-issue-labels">${labels}</div>` : ''}
+        <div class="github-issue-meta">
+          <span>opened ${createdAt} by ${escapeHtml(author)}${branch}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // ==================== BRANCHES FUNCTIONALITY ====================
 
 /**
@@ -937,6 +1082,7 @@ module.exports = {
   hide,
   toggle,
   loadIssues,
+  loadPullRequests,
   loadBranches,
   loadWorktrees,
   isVisible: () => isVisible
