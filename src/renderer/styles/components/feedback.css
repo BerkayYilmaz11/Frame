@@ -1,34 +1,23 @@
-/* ==================== FEEDBACK PANEL ====================
-   The same container contract as #activity-panel (activity.css): a flex
-   sibling of #terminal-container that slides in from the right, `.visible`
-   toggled by the module itself. Wider than Activity because this one is a
-   form the user writes prose into, and a 380px column makes a description
-   field feel like a comment box. */
+/* ==================== FEEDBACK MODAL ====================
+   The shared .modal-overlay / .modal-container chrome (panels.css), opened
+   from the foot of the sidebar rail. #feedback-panel is the modal's body:
+   the tab strip, then the form. Wide because this is a form the user writes
+   prose into, and a 380px column makes a description field feel like a
+   comment box. */
+
+.feedback-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow: hidden;
+}
 
 #feedback-panel {
-  width: 440px;
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-  border-left: 1px solid var(--border-subtle);
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  transition: transform var(--transition-normal), opacity var(--transition-normal);
-}
-
-#feedback-panel:not(.visible) {
-  transform: translateX(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-#feedback-panel.visible {
   display: flex;
-  transform: translateX(0);
-  opacity: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
-
-/* Header: the shared .dock-view-header in dock.css. */
 
 /* ─── the two tabs ───
    Issue and Reach us, in the panel-tab shape githubPanel already

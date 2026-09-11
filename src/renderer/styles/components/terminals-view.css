@@ -475,9 +475,14 @@ span.tv-pane-assign {
 }
 
 .workspace-nav-icon {
-  width: 14px;
+  width: 18px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 14px;
+  line-height: 1;
   font-weight: 700;
 }
 

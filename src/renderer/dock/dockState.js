@@ -15,7 +15,21 @@
 const STORAGE_KEY = 'frame-dock';
 
 /** Ordered tab ids — the strip's order, and the status-bar icons' order. */
-const TABS = ['decisions', 'structure', 'prompts', 'activity', 'feedback'];
+const TABS = ['decisions', 'prompts', 'activity'];
+
+/**
+ * Tabs that exist but are not offered to the user yet. `structure` still
+ * has its host entry in dock.js and its module (structureMap.js); it is
+ * out of TABS so the strip, the status bar, `isTab` and `load` all treat it
+ * as unknown. To bring it back: move the id into TABS, restore its
+ * status-bar icon (statusBar.js DOCK_ICONS), View menu item (main/menu.js)
+ * and `dock.structure` command (index.js registerCommands).
+ *
+ * Feedback is not a dock tab at all any more: it opens as a modal from the
+ * foot of the sidebar rail (feedbackPanel.js), so it is neither here nor in
+ * TABS.
+ */
+const HIDDEN_TABS = ['structure'];
 
 const POSITIONS = ['bottom', 'right'];
 
@@ -164,6 +178,7 @@ function serialize(state) {
 module.exports = {
   STORAGE_KEY,
   TABS,
+  HIDDEN_TABS,
   POSITIONS,
   LIMITS,
   defaults,

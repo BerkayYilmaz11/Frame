@@ -111,6 +111,23 @@
       </div>
     </div>
 
+    <!-- Current-project switcher: the one project selector. It sits above
+         the rail-and-panel split because every view on both sides — Files /
+         Changes / GitHub on the rail, Work / Context in the panel — is
+         about the project chosen here. -->
+    <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+      <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+        <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </svg>
+        <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+        <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+    </div>
+
     <!-- Sidebar body: activity rail + the active view's panel. The rail makes
          Projects / Files / Changes / GitHub first-class views (editor-style),
          with Projects as the default landing view. -->
@@ -140,25 +157,24 @@
             <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>
           </svg>
         </button>
+        <!-- The foot of the rail, below the view tabs: Plugins, then Feedback.
+             Both open a modal (#plugins-modal, #feedback-modal) rather than
+             switching views — hence no .sidebar-tab-btn (that class drives
+             view switching). .sidebar-rail-btn-foot on the first pushes the
+             pair to the bottom. -->
+        <button id="plugins-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" aria-label="Plugins" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>
+          </svg>
+        </button>
+        <button id="feedback-btn" class="sidebar-rail-btn" aria-label="Send Feedback" tabindex="-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M12 8v6"/><path d="M9 11h6"/>
+          </svg>
+        </button>
       </nav>
 
       <div class="sidebar-panel">
-        <!-- Current-project dropdown: shows which project Files / Changes are
-             on, and lets the user switch project right here. Hidden on Projects
-             (the list highlights its own active row). -->
-        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap" style="display:none;">
-          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-            <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-            </svg>
-            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
-        </div>
-
         <!-- Projects view (default) — the workspace panel for the selected
              project (project-dropdown spec): selection lives in the
              current-project switcher above, which also carries "+ Add a
@@ -408,45 +424,23 @@
       </div>
     </div>
 
-    <!-- Claude Panel -->
-    <div id="plugins-panel">
-      <div id="plugins-header">
-        <h3>Claude</h3>
-        <div class="plugins-header-actions">
-          <button id="plugins-refresh-btn" tabindex="-1" title="Refresh plugin list">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            </svg>
-          </button>
-          <button id="plugins-close" tabindex="-1">✕</button>
-        </div>
-      </div>
-      <div class="claude-tabs">
-        <button class="claude-tab-btn active" data-tab="plugins">Plugins</button>
-        <button class="claude-tab-btn" data-tab="sessions">Sessions</button>
-      </div>
-      <div class="plugins-tab-content" data-tab-content="plugins">
-        <div class="plugins-filter">
-          <button class="plugins-filter-btn active" data-filter="all">All</button>
-          <button class="plugins-filter-btn" data-filter="installed">Installed</button>
-          <button class="plugins-filter-btn" data-filter="enabled">Enabled</button>
-        </div>
-        <div id="plugins-content">
-          <!-- Plugins will be populated here -->
-        </div>
-      </div>
-      <div class="sessions-tab-content" data-tab-content="sessions" style="display:none;">
-        <div class="sessions-header-bar">
-          <span id="sessions-count"></span>
+    <!-- Sessions: the project's Claude Code transcripts, a Context row
+         beside Specs and Tasks. Hosted in the center by multiTerminalUI
+         (sessionsPanel.js); the header is the shared .dock-view-header. -->
+    <div id="sessions-panel">
+      <div id="sessions-header" class="dock-view-header">
+        <h3 class="dock-view-title">Sessions</h3>
+        <div class="dock-view-actions">
+          <span id="sessions-count" class="dock-view-count"></span>
           <button id="sessions-refresh-btn" tabindex="-1" title="Refresh sessions">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             </svg>
           </button>
         </div>
-        <div id="sessions-content">
-          <!-- Sessions will be populated here -->
-        </div>
+      </div>
+      <div id="sessions-content">
+        <!-- Sessions will be populated here -->
       </div>
     </div>
 
@@ -480,15 +474,49 @@
       </div>
     </div>
 
-    <!-- Feedback: what the user wants to tell us about Frame itself -->
-    <div id="feedback-panel">
-      <div id="feedback-header" class="dock-view-header">
-        <h3 class="dock-view-title">Feedback</h3>
+    <!-- Feedback: what the user wants to tell us about Frame itself. A modal
+         opened from the foot of the sidebar rail (feedbackPanel.js). -->
+    <div id="feedback-modal" class="modal-overlay">
+      <div class="modal-container modal-container-wide feedback-modal" role="dialog" aria-label="Feedback">
+        <div class="modal-header">
+          <h3>Feedback</h3>
+          <button class="modal-close" id="feedback-modal-close" title="Close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div id="feedback-panel">
+          <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
+          <div class="feedback-tabs"></div>
+          <div id="feedback-body">
+            <!-- The form is rendered by feedbackPanel.js -->
+          </div>
+        </div>
       </div>
-      <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
-      <div class="feedback-tabs"></div>
-      <div id="feedback-body">
-        <!-- The form is rendered by feedbackPanel.js -->
+    </div>
+
+    <!-- Plugins: the Claude Code plugins list. A modal opened from the foot
+         of the sidebar rail, above Feedback (pluginsPanel.js). -->
+    <div id="plugins-modal" class="modal-overlay">
+      <div class="modal-container modal-container-wide plugins-modal" role="dialog" aria-label="Plugins">
+        <div class="modal-header">
+          <h3>Plugins</h3>
+          <button class="modal-close" id="plugins-modal-close" title="Close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div id="plugins-panel">
+          <div class="plugins-toolbar">
+            <div class="plugins-filter">
+              <button class="plugins-filter-btn active" data-filter="all">All</button>
+              <button class="plugins-filter-btn" data-filter="installed">Installed</button>
+              <button class="plugins-filter-btn" data-filter="enabled">Enabled</button>
+            </div>
+            <button id="plugins-refresh-btn" tabindex="-1" title="Refresh plugin list">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+            </button>
+          </div>
+          <div id="plugins-content">
+            <!-- Plugins will be populated here -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1450,7 +1478,7 @@
   <div id="status-bar">
     <div class="status-bar-left"></div>
     <div class="status-bar-right">
-      <div class="claude-usage-bars" title="Click to refresh">
+      <div class="claude-usage-bars">
         <div class="usage-item session">
           <span class="usage-label">Session</span>
           <div class="usage-bar-container">

@@ -271,6 +271,10 @@ let navTasksCount = 0;
 // surfaces — Decisions, Structure, Prompts, Activity — and Feedback left for
 // the dock (status bar, View menu, palette), and GitHub for the icon rail,
 // so the Frame group retired with its rows (dock-panel-readonly-views spec).
+// The Work group's Claude row retired too: its Sessions tab is the Sessions
+// row under Context — a session list is project history, like Specs and
+// Tasks — and its Plugins tab is a modal behind its own button at the foot
+// of the rail, above Feedback.
 // `open` receives the multiTerminalUI instance. `surfaces` are the
 // getActiveSurface() values that light the row.
 const WORKSPACE_NAV_GROUPS = [
@@ -279,8 +283,7 @@ const WORKSPACE_NAV_GROUPS = [
     label: 'Work',
     items: [
       { view: 'terminals', icon: '›_', label: 'Terminals', open: ui => ui.showTerminals(), surfaces: ['terminals'] },
-      { view: 'orchestrator', icon: '⚙', label: 'Orchestration', open: () => require('./orchestrator').open(), surfaces: ['section:orchestrator'] },
-      { view: 'claude', icon: '✦', label: 'Claude', open: ui => ui.togglePanel('claude'), surfaces: ['panel:claude'] }
+      { view: 'orchestrator', icon: '⚙', label: 'Orchestration', open: () => require('./orchestrator').open(), surfaces: ['section:orchestrator'] }
     ]
   },
   {
@@ -288,7 +291,8 @@ const WORKSPACE_NAV_GROUPS = [
     label: 'Context',
     items: [
       { view: 'specs', icon: '≡', label: 'Specs', count: true, open: ui => ui.showSpecs(), surfaces: ['specs', 'section:spec'] },
-      { view: 'tasks', icon: '✓', label: 'Tasks', count: true, open: ui => ui.showTasksBoard(), surfaces: ['tasks', 'section:task'] }
+      { view: 'tasks', icon: '✓', label: 'Tasks', count: true, open: ui => ui.showTasksBoard(), surfaces: ['tasks', 'section:task'] },
+      { view: 'sessions', icon: '↺', label: 'Sessions', open: ui => ui.showPanel('sessions'), surfaces: ['panel:sessions'] }
     ]
   }
 ];

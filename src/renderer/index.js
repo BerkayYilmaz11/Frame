@@ -15,6 +15,7 @@ const taskConfirmModal = require('./taskConfirmModal');
 const taskInfoModal = require('./taskInfoModal');
 const taskRunModal = require('./taskRunModal');
 const pluginsPanel = require('./pluginsPanel');
+const sessionsPanel = require('./sessionsPanel');
 const githubPanel = require('./githubPanel');
 const promptsPanel = require('./promptsPanel');
 const activityPanel = require('./activityPanel');
@@ -37,6 +38,7 @@ const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const frameSettingsModal = require('./frameSettingsModal');
+const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
 const specDrivenHint = require('./specDrivenHint');
@@ -44,6 +46,7 @@ const docsHealthHint = require('./docsHealthHint');
 const migrationModal = require('./migrationModal');
 const sampleBanner = require('./sampleBanner');
 const dock = require('./dock');
+const tooltip = require('./tooltip');
 
 /**
  * Initialize all modules
@@ -103,6 +106,7 @@ function init() {
 
   // Status bar at the foot of the window: Claude usage meters today
   // (status-bar spec).
+  tooltip.init();
   require('./statusBar').init();
 
   // Initialize file tree UI
@@ -143,8 +147,10 @@ function init() {
   // Initialize the play-button run-config modal
   taskRunModal.init();
 
-  // Initialize plugins panel
+  // Plugins (a modal from the foot of the sidebar rail) and Sessions (a
+  // center-hosted Context view).
   pluginsPanel.init();
+  sessionsPanel.init();
 
   // Initialize GitHub panel
   githubPanel.init();
@@ -161,7 +167,7 @@ function init() {
   specsDashboard.init();
 
   // The dock beside the center (dock-panel-readonly-views spec): hosts the
-  // read-only surfaces and Feedback; restores its last position / tab / size.
+  // read-only surfaces; restores its last position / tab / size.
   // After the panels it hosts have initialized, so a dock restored open at
   // boot mounts a panel whose show() can already load.
   dock.init();
@@ -234,6 +240,7 @@ function init() {
   welcomeOverlay.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
+  feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.
   telemetryNotice.init(() => frameSettingsModal.open());
@@ -305,6 +312,21 @@ function setupButtonHandlers() {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
+  // The foot of the sidebar rail — Plugins, then Feedback: each a modal
+  // (pluginsPanel, feedbackPanel), not a view — hence no .sidebar-tab-btn
+  // on the buttons. Both toggle, like the gear below.
+  const pluginsBtn = document.getElementById('plugins-btn');
+  if (pluginsBtn) {
+    pluginsBtn.addEventListener('click', () => pluginsPanel.toggle());
+    tooltip.attach(pluginsBtn, 'Plugins', { placement: 'right' });
+  }
+  const feedbackBtn = document.getElementById('feedback-btn');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', () => feedbackPanel.toggle());
+    // Outboard of the rail, like the spec-driven hint anchors.
+    tooltip.attach(feedbackBtn, 'Send Feedback', { placement: 'right' });
+  }
+
   // Frame's own settings, from the gear in the sidebar header (where the app
   // menu entry and Cmd+, also land); toggles, so a second click closes it.
   // The project's settings are a row under the project in the workspace nav
@@ -319,8 +341,9 @@ function setupButtonHandlers() {
   // (status-bar spec). Binding it from here would attach a listener before
   // the element exists.
 
-  // Current-project switcher (Files / Changes views): reflects the active
-  // project and opens a dropdown to switch project without leaving the view.
+  // Current-project switcher (above the rail and the panel): reflects the
+  // active project and opens a dropdown to switch project without leaving
+  // the view.
   const currentProjectNameEl = document.getElementById('sidebar-current-project-name');
   const renderCurrentProject = () => {
     if (!currentProjectNameEl) return;
@@ -605,13 +628,15 @@ function registerCommands() {
     run: () => specsDashboard.toggle()
   });
   r({
-    // The panel is "Claude" everywhere the user sees it (sidebar row, palette
-    // jump); only this title still said Plugins (sidebar-nav-groups spec).
-    id: 'panel.togglePlugins',
-    title: 'Toggle Claude Panel',
+    // Was 'panel.togglePlugins' / "Toggle Claude Panel": the Claude panel
+    // split into the Sessions view (Context row) and the Plugins modal
+    // behind the rail's foot button. The shortcut stays with the
+    // center-hosted half.
+    id: 'panel.toggleSessions',
+    title: 'Toggle Sessions',
     category: 'Panel',
     shortcut: 'CmdOrCtrl+Shift+X',
-    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('claude')
+    run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('sessions')
   });
   // 'panel.toggleGitHub' became 'sidebar.github' (View) when GitHub moved
   // to the icon rail; the shortcut travelled with it.
@@ -636,12 +661,8 @@ function registerCommands() {
     category: 'View',
     run: () => dock.toggleTab('decisions')
   });
-  r({
-    id: 'dock.structure',
-    title: 'Toggle Structure Map',
-    category: 'View',
-    run: () => dock.toggleTab('structure')
-  });
+  // 'dock.structure' (Toggle Structure Map) is parked with the tab — see
+  // dockState.HIDDEN_TABS for what to restore when it ships.
   r({
     id: 'dock.prompts',
     title: 'Toggle Prompts',
@@ -655,11 +676,13 @@ function registerCommands() {
     category: 'View',
     run: () => dock.toggleTab('activity')
   });
+  // Feedback is a modal, not a dock tab: the rail's foot button, the Help
+  // menu and the palette all run this.
   r({
-    id: 'dock.feedback',
-    title: 'Toggle Feedback',
-    category: 'View',
-    run: () => dock.toggleTab('feedback')
+    id: 'feedback.open',
+    title: 'Send Feedback',
+    category: 'Help',
+    run: () => feedbackPanel.toggle()
   });
   r({
     id: 'sidebar.github',

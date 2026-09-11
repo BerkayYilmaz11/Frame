@@ -359,6 +359,13 @@ body.sidebar-resizing * {
   border-bottom: none;
 }
 
+/* Foot of the rail (Plugins, then Feedback): the first of the pair carries
+   this and pushes both to the bottom, set apart from the view tabs above —
+   they open modals rather than switching views. */
+.sidebar-rail-btn-foot {
+  margin-top: auto;
+}
+
 .sidebar-panel {
   flex: 1;
   min-width: 0;
@@ -367,7 +374,9 @@ body.sidebar-resizing * {
   flex-direction: column;
 }
 
-/* Current-project dropdown — compact switcher at the top of Files / Changes. */
+/* Current-project switcher — the one project selector, above the
+   rail-and-panel split so it spans both columns: what it selects governs
+   Files / Changes / GitHub on the rail and Work / Context in the panel. */
 .sidebar-current-project-wrap {
   position: relative;
   flex: 0 0 auto;

@@ -2760,3 +2760,98 @@ day is unrelated and left alone.
 
 Spec chain: `.frame/specs/dock-panel-readonly-views/` — `spec.md`,
 `plan.md`, `plan-report.html`; phase `planned`, next `/spec.tasks`.
+
+### [2026-09-11] The Claude row split: Sessions under Context, Plugins behind the rail's foot button
+
+The user, opening the session:
+
+> Sol section'da projenin altında Work var. Onun altında da Claude sayfası
+> var. Burayı güncelleyeceğiz. Buranın içindeki sessions Context seçeneği
+> altındaki specs tasks altına sessions olarak gelecek. Plugins şimdilik sol
+> sectionda en alttaki feedback butonu üzerinden açılsın.
+
+Done directly, not as a spec: every surface already existed, only its
+address changed. The Claude panel (`pluginsPanel.js` + `#plugins-panel`,
+two tabs) split in two:
+
+- **Sessions** is a row under Context, after Specs and Tasks — a session
+  list is project history, the same kind of thing as the other two rows.
+  New module `sessionsPanel.js` (the old Sessions tab, unchanged data path
+  over `LOAD_CLAUDE_SESSIONS`), element `#sessions-panel` with the shared
+  `.dock-view-header`, hosted in the center by `multiTerminalUI`'s
+  `PANEL_REGISTRY` under the key `sessions`. The row opens it with
+  `showPanel`, like its Context siblings, not `togglePanel` like the Claude
+  row did. Palette "Go to Claude" → "Go to Sessions"; Home's Last Sessions
+  card lands on it directly (no tab to switch any more); the
+  `CmdOrCtrl+Shift+X` command became `panel.toggleSessions`.
+- **Plugins** is its own modal (`#plugins-modal`, the shared modal chrome,
+  owned by `pluginsPanel.js`) behind a Plugins button at the foot of the
+  sidebar rail, directly above the Feedback button, "for now" in the user's
+  words. A first cut had parked it as a fourth tab *inside* the feedback
+  modal; the user corrected that in the same session:
+
+  > Plugins buttonunu Feedback içinde ekledin yanlışlıkla. Feedback buttonu
+  > üzerine ekle demiştim aslında. En sol alt menude feedback buttonu var.
+  > Onun üzerine plugins buttonu ekleyip ona basınca açalım.
+
+  So the feedback modal is back to its three kinds and knows nothing about
+  plugins. The rail's foot is a pair now — Plugins, then Feedback — with
+  `.sidebar-rail-btn-foot` on the first pushing both down. Installing a
+  plugin hides the modal so the terminal running the install is on screen.
+  `TOGGLE_PLUGINS_PANEL` (no sender in main) toggles the modal.
+
+The Work group is Terminals and Orchestration only. Where Plugins finally
+lives is an open question — the "şimdilik" is recorded here on purpose.
+
+### [2026-09-11] Native menu restructured: File / Edit / View / Go / Project / Terminal / AI / Window / Help
+
+The user opened with the menu bar:
+
+> Uygulamada native menu var ya en üstte pencere çubuğunda. Uygulama adı
+> edit view help gibi. Oraları bizim frame özelinde güncellememiz lazım.
+> çoğu şey view altında ve karışık gibi. buralarda nasıl menuler ve alt
+> menuler oluşturabiliriz analiz et geliştirme yapma şimdilik tartışalım
+
+Analysis found View holding four unrelated things (dock tabs, panel
+layout, GitHub / Project Settings, Electron dev roles + zoom), the AI-tool
+root labelled "Claude Commands" with Start buried at the bottom, and only
+10 of the ~30 registered commands reachable from the menu at all (no
+Project, Terminal, Go, Sidebar, dashboards, palette, shortcuts, welcome).
+No Window menu on macOS, no Select All.
+
+Two architectural options were put to the user: keep the hand-written
+template in `menu.js` (labels and accelerators copied from
+`registerCommands()`), or feed the menu from the registry over a
+renderer→main IPC so nothing drifts. The user asked what the problem with
+the current way actually was; answer: none mechanically, only a
+maintenance cost that grows with item count. Decision: **keep the
+hand-written template**, defer registry-fed menus and greying-out of
+items whose `when()` is false.
+
+Decisions in the user's words:
+
+> checkbox ve radio yapmayalım toggle panel kalabilir.
+
+> Go ve Terminal ayrı olsun, AI kökte kalsın, Project kökü açalım
+
+> task olarak gir ve doğrudan yap
+
+So: no checkbox / radio state in the menu (main does not know the dock's
+state; the AI-tool switcher keeps its radio group because that state
+lives in main). The Appearance submenu proposed earlier was dropped with
+the radios — four flat items do not earn a level. Go and Terminal are
+separate roots as in VS Code. The AI tool stays a root, labelled with the
+tool's plain name (no "Commands" suffix), Start first. A **Project** root
+holds current-project actions (Project Settings…, Initialize as Frame
+Project, Open Orchestrator); **File** holds workspace-level opening
+(Add Project to Workspace…, Create New Project…, Open History File) — the
+File → Open Folder analogy. Open History File moved out of the AI menu
+(tool-agnostic), Orchestrator moved out of it into Project.
+
+Implementation is `src/main/menu.js` only: every non-role item goes
+through `sendAppCommand(id)` over `RUN_APP_COMMAND` (dock-panel-readonly-
+views C6 kept, no in-window menu bar kept). Accelerators copied from the
+registry; ⌘Tab / ⌘1–9 / ⌘B etc. are now menu accelerators as well as
+renderer shortcuts, the same duplication ⌘J already had. Tracked as
+`task-native-menu-restructure` in tasks.json rather than a spec, being a
+single-file change.

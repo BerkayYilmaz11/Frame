@@ -59,6 +59,9 @@
 /* 13c. Status bar (foot of the window) */
 @import 'components/status-bar.css';
 
+/* Hover labels for icon-only controls */
+@import 'components/tooltip.css';
+
 /* 13d. Dock (VS Code-style panel beside the center) */
 @import 'components/dock.css';
 

@@ -18,9 +18,10 @@
  *
  * `DOCK_TABS` is the hosting table: label, icon, `mount(slot)`,
  * `unmount(slot)`, optional `refit()`. The surfaces themselves are not
- * rewritten here — Prompts / Activity / Feedback keep their elements and
+ * rewritten here — Prompts / Activity keep their elements and
  * `show()/hide()` and are re-parented into their slot (D9); Decisions and
- * Structure render into theirs.
+ * Structure render into theirs. Feedback left the dock for a modal opened
+ * from the sidebar rail's foot (feedbackPanel.js).
  *
  * Every entry point — status bar, View menu, palette, shortcut — reaches
  * this module through a registered command (D12); nothing calls it from
@@ -30,7 +31,7 @@
 const dockState = require('./dock/dockState');
 const {
   PanelBottom, PanelRight, X,
-  ScrollText, Waypoints, SquareTerminal, Activity, MessageSquarePlus
+  ScrollText, Waypoints, SquareTerminal, Activity
 } = require('lucide');
 
 /** Inline SVG for a lucide icon's data (the shape sectionRail.js uses). */
@@ -108,7 +109,7 @@ function panelTab({ label, icon, elementId, module }) {
  * for the status bar), `mount(slot)` when the tab becomes active,
  * `unmount(slot)` when it stops being active or the dock closes, and an
  * optional `refit()` after a resize-end or side change. Decisions and
- * Structure render into their slot (T04, T05); the other three are
+ * Structure render into their slot (T04, T05); the other two are
  * re-parented panels.
  */
 const DOCK_TABS = {
@@ -127,6 +128,8 @@ const DOCK_TABS = {
       slot.classList.remove('decisions-view-host');
     }
   },
+  // Parked: not in dockState.TABS, so no strip tab, slot or entry point is
+  // built for it — the host entry stays so bringing it back is one line.
   structure: {
     label: 'Structure',
     icon: Waypoints,
@@ -161,10 +164,6 @@ const DOCK_TABS = {
   activity: panelTab({
     label: 'Activity', icon: Activity,
     elementId: 'activity-panel', module: () => require('./activityPanel')
-  }),
-  feedback: panelTab({
-    label: 'Feedback', icon: MessageSquarePlus,
-    elementId: 'feedback-panel', module: () => require('./feedbackPanel')
   })
 };
 

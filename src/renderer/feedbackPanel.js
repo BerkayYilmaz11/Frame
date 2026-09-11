@@ -1,9 +1,9 @@
 /**
  * Feedback Panel
  *
- * The surface behind the dock's Feedback tab (status bar icon, View menu,
- * palette), in three tabs — one per kind of feedback, and the kind decides
- * everything else:
+ * The surface behind the Feedback button at the foot of the sidebar rail
+ * (also the Help menu and the palette, via `feedback.open`), in three tabs —
+ * one per kind of feedback, and the kind decides everything else:
  *
  *   Bug           → a prefilled issue on Frame's tracker, with the Environment
  *                   section attached.
@@ -31,12 +31,12 @@
  * `index.html` — unlike `githubPanel`'s static tabs — so a kind cannot exist
  * in the markup and be unknown to the composer.
  *
- * A panel rather than a modal, hosted in the dock (dock-panel-readonly-views
- * spec): `dock.js` re-parents `#feedback-panel` into the Feedback tab's slot
- * and calls `show()` / `hide()`. The container contract is
- * `#activity-panel`'s, exactly: hidden by default, `.visible` toggled here,
- * and a `×` that calls `hide()` — which is what the dock's MutationObserver
- * watches to close the panel.
+ * A modal (`#feedback-modal`, the shared `.modal-overlay` chrome), not a
+ * dock tab: feedback is about Frame, not about the project on screen, so it
+ * has no place beside the terminals. `#feedback-panel` — tabs and form — is
+ * the modal's body. Opened by `open()` / `toggle()`, closed by its ×, the
+ * backdrop, Escape, or `close()`; Escape is gated on visibility so it never
+ * leaks to the terminal (the openProjectModal idiom).
  *
  * One draft per tab, all of them living for the app run and each cleared only
  * once its own delivery succeeds. That is what makes a failed send survivable,
@@ -53,12 +53,13 @@ const feedback = require('../shared/feedbackReport');
 
 const KINDS = feedback.FEEDBACK_TYPES;
 
-let activeKind = KINDS[0].id;
+let activeTab = KINDS[0].id;
 
 // One draft per kind, deliberately outside show()/hide(). See the note above.
 let drafts = blankDrafts();
 
 let panelEl = null;
+let modalEl = null;
 
 function blankDrafts() {
   return KINDS.reduce((all, kind) => {
@@ -88,11 +89,11 @@ function el() {
 }
 
 function kind() {
-  return feedback.typeById(activeKind) || KINDS[0];
+  return feedback.typeById(activeTab) || KINDS[0];
 }
 
 function draft() {
-  return drafts[activeKind];
+  return drafts[kind().id];
 }
 
 // ─── rendering ────────────────────────────────────────────
@@ -100,12 +101,12 @@ function draft() {
 function renderTabs() {
   const strip = el() && el().querySelector('.feedback-tabs');
   if (!strip) return;
-  strip.innerHTML = KINDS.map((k) => `
-    <button class="feedback-tab-btn${k.id === activeKind ? ' active' : ''}"
-            data-tab="${escapeHtml(k.id)}" type="button">${escapeHtml(k.label)}</button>
+  strip.innerHTML = KINDS.map((t) => `
+    <button class="feedback-tab-btn${t.id === activeTab ? ' active' : ''}"
+            data-tab="${escapeHtml(t.id)}" type="button">${escapeHtml(t.label)}</button>
   `).join('');
   strip.querySelectorAll('.feedback-tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => selectKind(btn.dataset.tab));
+    btn.addEventListener('click', () => selectTab(btn.dataset.tab));
   });
 }
 
@@ -137,6 +138,7 @@ function actionBlock() {
   `;
 }
 
+/** Draw the active kind's form. */
 function render() {
   const body = el() && el().querySelector('#feedback-body');
   if (!body) return;
@@ -190,9 +192,10 @@ function bindForm(body) {
   if (send) send.addEventListener('click', () => submit());
 }
 
-function selectKind(id) {
-  if (!feedback.typeById(id) || id === activeKind) return;
-  activeKind = id;
+function selectTab(id) {
+  if (id === activeTab) return;
+  if (!feedback.typeById(id)) return;
+  activeTab = id;
   renderTabs();
   render();
 }
@@ -290,30 +293,63 @@ function track(channel) {
  * is the whole reason the drafts are separate.
  */
 function clearDraft() {
-  drafts[activeKind] = { title: '', description: '' };
+  drafts[kind().id] = { title: '', description: '' };
   render();
 }
 
-// ─── the panel contract ───────────────────────────────────
-// No close button of its own: the dock hosting the panel owns closing
-// (dock-panel-readonly-views spec), and its × drops `.visible` via hide().
+// ─── the modal ────────────────────────────────────────────
 
-function show() {
-  const root = el();
+function modal() {
+  if (!modalEl) modalEl = document.getElementById('feedback-modal');
+  return modalEl;
+}
+
+function init() {
+  const root = modal();
+  if (!root) {
+    // A control that fails to bind must say so — the rail button would just
+    // look like one that does nothing.
+    console.error('feedbackPanel: #feedback-modal not found — Feedback will not open');
+    return;
+  }
+
+  const closeBtn = root.querySelector('#feedback-modal-close');
+  if (closeBtn) closeBtn.addEventListener('click', close);
+
+  // Click on the backdrop closes.
+  root.addEventListener('click', (e) => {
+    if (e.target === root) close();
+  });
+
+  // Escape-to-close, gated on visibility so it never leaks to the terminal.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isVisible()) close();
+  });
+}
+
+function open() {
+  const root = modal();
   if (!root) return;
   renderTabs();
   render();
   root.classList.add('visible');
+  const title = root.querySelector('#feedback-title');
+  if (title) title.focus();
 }
 
-function hide() {
-  const root = el();
+function close() {
+  const root = modal();
   if (root) root.classList.remove('visible');
 }
 
+function toggle() {
+  if (isVisible()) close();
+  else open();
+}
+
 function isVisible() {
-  const root = el();
+  const root = modal();
   return !!root && root.classList.contains('visible');
 }
 
-module.exports = { show, hide, isVisible };
+module.exports = { init, open, close, toggle, isVisible };

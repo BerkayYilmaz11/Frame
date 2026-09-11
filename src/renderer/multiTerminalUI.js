@@ -33,11 +33,13 @@ const terminalChipNotice = require('./terminalChipNotice');
 // Legacy side panels hosted inline in the center (retire-rail-and-panels
 // spec). Each entry keeps the module's own show()/hide() as the data/close
 // contract — the host only re-parents the element and watches for closes.
-// Only Claude is left: Prompts, Activity and Feedback went to the dock
-// (dock.js hosts them the same way) and GitHub to the sidebar's icon rail
-// (dock-panel-readonly-views spec).
+// Only Sessions is left: Prompts, Activity and Feedback went to the dock
+// (dock.js hosts them the same way), GitHub to the sidebar's icon rail
+// (dock-panel-readonly-views spec), and the Claude panel split — its
+// Sessions tab is this Context view, its Plugins tab sits in the feedback
+// modal for now.
 const PANEL_REGISTRY = {
-  claude:   { elementId: 'plugins-panel',  module: () => require('./pluginsPanel') }
+  sessions: { elementId: 'sessions-panel', module: () => require('./sessionsPanel') }
 };
 
 class MultiTerminalUI {

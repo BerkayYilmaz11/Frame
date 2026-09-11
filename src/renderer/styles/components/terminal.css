@@ -268,9 +268,11 @@
    fused widget. The divider + wide gap keep the pair apart from the session
    usage bars sitting to its right.
 
-   Selectors are nested under .lane-bar-launcher on purpose: the generic
-   `.terminal-tab-actions select` / `button` rules above (32px square, no
-   border, transparent) would otherwise flatten both controls. */
+   The Start button is nested under .lane-bar-launcher on purpose: the
+   generic `.terminal-tab-actions select` / `button` rules above (32px
+   square, no border, transparent) would otherwise flatten it. The picker's
+   rules are scoped to .ai-tool-picker instead, so the same picker draws the
+   same way in the Home Agents card (home-board.css only sizes it). */
 .lane-bar-launcher {
   display: flex;
   align-items: center;
@@ -281,7 +283,8 @@
 }
 
 /* Picker: the <label> is the visible box; the native <select> inside is
-   stripped bare so the box, label text and chevron are ours. */
+   stripped bare so the box, label text and chevron are ours. Shared with
+   the Home Agents launcher — keep the two in sync by keeping one rule. */
 .ai-tool-picker {
   position: relative;
   display: inline-flex;
@@ -317,9 +320,9 @@
   user-select: none;
 }
 
-.lane-bar-launcher .ai-tool-select,
-.lane-bar-launcher .ai-tool-select:hover,
-.lane-bar-launcher .ai-tool-select:focus {
+.ai-tool-picker .ai-tool-select,
+.ai-tool-picker .ai-tool-select:hover,
+.ai-tool-picker .ai-tool-select:focus {
   appearance: none;
   -webkit-appearance: none;
   height: 100%;
@@ -339,7 +342,7 @@
   transition: none;
 }
 
-.lane-bar-launcher .ai-tool-select option {
+.ai-tool-picker .ai-tool-select option {
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-weight: 500;

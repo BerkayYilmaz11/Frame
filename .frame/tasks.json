@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-10T12:41:47.708Z",
+  "lastUpdated": "2026-09-11T10:25:14.100Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7226,6 +7226,21 @@
       "createdAt": "2026-09-10T08:11:59.146Z",
       "updatedAt": "2026-09-10T12:41:47.708Z",
       "completedAt": "2026-09-10T12:41:47.708Z"
+    },
+    {
+      "id": "task-native-menu-restructure",
+      "title": "Restructure the native menu into File / Edit / View / Go / Project / Terminal / AI / Window / Help",
+      "description": "Rebuild the Electron application menu template in src/main/menu.js around a VS Code-style root set: File (Add Project to Workspace…, Create New Project…, Open History File; Settings/Exit on Win/Linux), Edit (roles + Select All), View (Command Palette, Toggle Sidebar, Toggle Panel, Move Panel Right/Bottom, Decisions/Prompts/Activity, GitHub/Tasks Dashboard/Specs Dashboard/Sessions, zoom + full screen, Developer submenu with reload/devtools), Go (Home, Next/Previous Project, Focus Project List/File Tree), Project (Project Settings…, Initialize as Frame Project, Open Orchestrator), Terminal (New/Close, Next/Previous, Switch To ▸ 1–9), the AI-tool root (dynamic label without the “Commands” suffix: Start Session, slash commands, Switch AI Tool radio), Window (macOS role), Help (Welcome, Keyboard Shortcuts, Send Feedback…; Check for Updates/About on Win/Linux). Every item runs a command-registry id through the existing RUN_APP_COMMAND channel via sendAppCommand; labels and accelerators are copied from registerCommands() in src/renderer/index.js. No IPC or renderer changes.",
+      "userRequest": "User said: Uygulamada native menu var ya en üstte pencere çubuğunda. Uygulama adı edit view help gibi. Oraları bizim frame özelinde güncellememiz lazım. çoğu şey view altında ve karışık gibi. … Go ve Terminal ayrı olsun, AI kökte kalsın, Project kökü açalım … task olarak gir ve doğrudan yap",
+      "acceptanceCriteria": "- Roots on macOS: Frame · File · Edit · View · Go · Project · Terminal · <AI tool> · Window · Help; Win/Linux: File · Edit · View · Go · Project · Terminal · <AI tool> · Help\n- Every non-role item sends a registered command id over RUN_APP_COMMAND (or RUN_COMMAND for AI slash commands) — no new IPC channels\n- Accelerators shown match the shortcuts in registerCommands()\n- No checkbox items; Move Panel Right / Bottom stay plain items; Switch AI Tool keeps its radio group\n- Existing tests pass",
+      "notes": "Discussed 2026-09-11. Decisions: no checkbox/radio state in the menu (main does not know dock state); Go and Terminal are separate roots; the AI tool stays a root; a Project root holds current-project actions while File holds workspace-level open/add. Deferred: feeding labels/accelerators from the registry via a renderer→main IPC (drift risk grows with item count), and greying out items whose when() is false. dock-panel-readonly-views decisions kept: one channel (C6), no in-window menu bar.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "2026-09-11 session — native menu analysis and restructure",
+      "createdAt": "2026-09-11T10:23:21.954Z",
+      "updatedAt": "2026-09-11T10:25:14.100Z",
+      "completedAt": "2026-09-11T10:25:14.100Z"
     }
   ],
   "metadata": {

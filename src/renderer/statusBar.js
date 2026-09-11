@@ -34,17 +34,17 @@ const dock = require('./dock');
 const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
+const tooltip = require('./tooltip');
 
 // One button per dock tab, in the strip's order; each runs the same
 // registered command the View menu, the palette and the shortcut run (D12).
 // The shortcut shown in the tooltip is the registry's, typed here because the
 // bar is built before registerCommands() runs.
 const DOCK_ICONS = [
-  { tab: 'decisions', command: 'dock.decisions', tooltip: 'Decisions' },
-  { tab: 'structure', command: 'dock.structure', tooltip: 'Structure Map' },
-  { tab: 'prompts', command: 'dock.prompts', tooltip: 'Prompts', shortcut: 'CmdOrCtrl+Shift+L' },
-  { tab: 'activity', command: 'dock.activity', tooltip: 'Activity' },
-  { tab: 'feedback', command: 'dock.feedback', tooltip: 'Feedback' }
+  { tab: 'decisions', command: 'dock.decisions', label: 'Decisions' },
+  // 'structure' is parked (dockState.HIDDEN_TABS) — no icon until it ships.
+  { tab: 'prompts', command: 'dock.prompts', label: 'Prompts', shortcut: 'CmdOrCtrl+Shift+L' },
+  { tab: 'activity', command: 'dock.activity', label: 'Activity' }
 ];
 
 // A hover menu needs both: long enough that a pointer crossing the slot does
@@ -74,6 +74,7 @@ function init() {
     usage.addEventListener('click', () => {
       ipcRenderer.send(IPC.REFRESH_CLAUDE_USAGE);
     });
+    tooltip.attach(usage, 'Click to refresh');
   }
 
   ipcRenderer.on(IPC.CLAUDE_USAGE_DATA, (event, data) => updateUsage(data));
@@ -88,8 +89,8 @@ function init() {
 function _buildDockIcons() {
   const slot = barEl.querySelector('.status-bar-left');
   if (!slot) {
-    // C7: five icons that never appear must not pass for a bar with nothing
-    // to show.
+    // C7: icons that never appear must not pass for a bar with nothing to
+    // show.
     console.error('statusBar: .status-bar-left not found — the dock icons will not render');
     return;
   }
@@ -100,16 +101,16 @@ function _buildDockIcons() {
   group.setAttribute('aria-label', 'Panel');
 
   const buttons = new Map();
-  DOCK_ICONS.forEach(({ tab, command, tooltip, shortcut }) => {
+  DOCK_ICONS.forEach(({ tab, command, label, shortcut }) => {
     const entry = dock.DOCK_TABS[tab];
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'sb-dock-btn';
     btn.dataset.tab = tab;
     btn.tabIndex = -1;
-    const label = shortcut ? `${tooltip} (${formatShortcut(shortcut)})` : tooltip;
-    btn.title = label;
-    btn.setAttribute('aria-label', tooltip);
+    btn.setAttribute('aria-label', label);
+    // Opens upward: the bar sits on the floor of the window.
+    tooltip.attach(btn, shortcut ? `${label} (${formatShortcut(shortcut)})` : label);
     btn.innerHTML = entry ? dock.lucideIcon(entry.icon, 14) : '';
     btn.addEventListener('click', () => {
       if (!commandRegistry.runById(command)) {

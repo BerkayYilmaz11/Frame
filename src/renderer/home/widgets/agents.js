@@ -44,8 +44,17 @@ module.exports = {
     // want to start is not something you only want when none is running.
     this.launcher = document.createElement('div');
     this.launcher.className = 'home-card-action home-agent-launcher';
+    // Same picker as the terminal header (.ai-tool-picker in terminal.css):
+    // the <label> is the visible box, the native <select> underneath stays
+    // the interactive element, so clicking anywhere on the box opens it.
     this.launcher.innerHTML = `
-      <select class="ai-tool-select home-agent-tool" title="Default agent"></select>
+      <label class="ai-tool-picker" title="Default agent — Start launches this one">
+        <span class="ai-tool-picker-label">Agent</span>
+        <select class="ai-tool-select home-agent-tool" aria-label="Default agent"></select>
+        <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </label>
       <button type="button" class="home-agent-start" title="Start the default agent">
         ${lucideIcon(Play, 11)}<span>Start</span>
       </button>

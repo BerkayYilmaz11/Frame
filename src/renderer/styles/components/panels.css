@@ -729,8 +729,13 @@
   font-size: 12px;
 }
 
-/* ==================== PLUGINS PANEL STYLES ==================== */
-#plugins-panel {
+/* ==================== SESSIONS PANEL STYLES ====================
+   The Claude panel's slide-in geometry, inherited by Sessions when the panel
+   split (Sessions → a Context view hosted in the center by multiTerminalUI,
+   Plugins → its own modal from the rail's foot, below). In its home slot it is
+   hidden; mounted, .panel-inline overrides the width and transforms. The
+   header is the shared .dock-view-header (dock.css). */
+#sessions-panel {
   width: 380px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   border-left: 1px solid var(--border-subtle);
@@ -741,60 +746,51 @@
   transition: transform var(--transition-normal), opacity var(--transition-normal);
 }
 
-#plugins-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, rgba(166, 192, 240, 0.2) 0%, transparent 50%, rgba(166, 192, 240, 0.2) 100%);
-  pointer-events: none;
-}
-
-#plugins-panel.visible {
+#sessions-panel.visible {
   display: flex;
   transform: translateX(0);
   opacity: 1;
 }
 
-#plugins-panel:not(.visible) {
+#sessions-panel:not(.visible) {
   transform: translateX(100%);
   opacity: 0;
   pointer-events: none;
 }
 
-#plugins-header {
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
+/* ==================== PLUGINS MODAL ====================
+   The shared .modal-overlay / .modal-container chrome, opened from the
+   Plugins button at the foot of the sidebar rail (pluginsPanel.js).
+   #plugins-panel is the modal's body: a toolbar — the filter on the left,
+   refresh on the right — then the list, which scrolls inside the modal's
+   85vh. */
+.plugins-modal {
   display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+#plugins-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.plugins-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding-right: var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
 }
 
-#plugins-header h3 {
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.2px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#plugins-header h3::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--info);
-  border-radius: 50%;
-}
-
-.plugins-header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+.plugins-toolbar .plugins-filter {
+  border-bottom: none;
 }
 
 #plugins-refresh-btn {
@@ -824,57 +820,6 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-#plugins-close {
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-
-#plugins-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-/* Claude Tabs */
-.claude-tabs {
-  display: flex;
-  gap: 0;
-  padding: 0 var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-.claude-tab-btn {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-tertiary);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.claude-tab-btn:hover {
-  color: var(--text-secondary);
-}
-
-.claude-tab-btn.active {
-  color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
 }
 
 /* Plugins Filter */
@@ -908,17 +853,10 @@
   background: rgba(166, 192, 240, 0.15);
 }
 
-/* Plugins Tab Content */
-.plugins-tab-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 /* Plugins Content */
 #plugins-content {
   flex: 1;
+  min-height: 240px;
   overflow-y: auto;
   padding: var(--space-md);
 }
@@ -1168,29 +1106,8 @@
   color: var(--info) !important;
 }
 
-/* ==================== SESSIONS TAB STYLES ==================== */
-
-.sessions-tab-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sessions-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-.sessions-header-bar span {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  font-weight: 500;
-}
+/* ==================== SESSIONS LIST STYLES ====================
+   The header's count is .dock-view-count; refresh sits beside it. */
 
 #sessions-refresh-btn {
   background: transparent;

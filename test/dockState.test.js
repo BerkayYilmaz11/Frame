@@ -17,7 +17,7 @@ const assert = require('node:assert/strict');
 const dockState = require('../src/renderer/dock/dockState');
 
 const {
-  TABS, LIMITS, defaults, load, open, close, toggle, toggleTab,
+  TABS, HIDDEN_TABS, LIMITS, defaults, load, open, close, toggle, toggleTab,
   setPosition, resize, serialize
 } = dockState;
 
@@ -38,8 +38,15 @@ test('defaults: every call is a fresh object', () => {
   assert.equal(defaults().size.bottom, LIMITS.bottom.default);
 });
 
-test('TABS lists the five dock surfaces in strip order', () => {
-  assert.deepEqual(TABS, ['decisions', 'structure', 'prompts', 'activity', 'feedback']);
+test('TABS lists the three offered dock surfaces in strip order', () => {
+  assert.deepEqual(TABS, ['decisions', 'prompts', 'activity']);
+});
+
+test('HIDDEN_TABS parks structure: not a tab, and a stored one falls back', () => {
+  assert.deepEqual(HIDDEN_TABS, ['structure']);
+  assert.equal(load({ open: true, tab: 'structure' }).tab, TABS[0]);
+  const state = open(defaults(), 'prompts');
+  assert.deepEqual(toggleTab(state, 'structure'), state);
 });
 
 // ─── load ─────────────────────────────────────────────────
@@ -86,9 +93,9 @@ test('toggleTab: closed → opens on that tab', () => {
 
 test('toggleTab: open on another tab → switches, stays open', () => {
   const state = open(defaults(), 'prompts');
-  const next = toggleTab(state, 'structure');
+  const next = toggleTab(state, 'activity');
   assert.equal(next.open, true);
-  assert.equal(next.tab, 'structure');
+  assert.equal(next.tab, 'activity');
 });
 
 test('toggleTab: open on that tab → closes, remembers the tab', () => {
@@ -99,7 +106,7 @@ test('toggleTab: open on that tab → closes, remembers the tab', () => {
 });
 
 test('toggleTab: an unknown tab changes nothing', () => {
-  const state = open(defaults(), 'feedback');
+  const state = open(defaults(), 'activity');
   assert.deepEqual(toggleTab(state, 'nope'), state);
 });
 
@@ -113,10 +120,10 @@ test('toggleTab never mutates its input', () => {
 // ─── open / close / toggle ────────────────────────────────
 
 test('open without a tab reopens on the last tab', () => {
-  const state = close(open(defaults(), 'structure'));
+  const state = close(open(defaults(), 'activity'));
   const next = open(state);
   assert.equal(next.open, true);
-  assert.equal(next.tab, 'structure');
+  assert.equal(next.tab, 'activity');
 });
 
 test('open with an unknown tab changes nothing', () => {
@@ -194,7 +201,7 @@ test('resize: a non-numeric value falls back to the default', () => {
 
 test('serialize → load round-trips a valid state', () => {
   let state = defaults();
-  state = open(state, 'feedback');
+  state = open(state, 'activity');
   state = setPosition(state, 'right');
   state = resize(state, 600, 2000);
   state = setPosition(state, 'bottom');
