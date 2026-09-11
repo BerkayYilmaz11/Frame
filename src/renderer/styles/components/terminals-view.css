@@ -459,7 +459,7 @@ span.tv-pane-assign {
   padding: 5px 10px 5px 26px;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -481,7 +481,7 @@ span.tv-pane-assign {
   align-items: center;
   justify-content: center;
   color: var(--text-tertiary);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   font-weight: 700;
 }
@@ -526,6 +526,20 @@ span.tv-pane-assign {
   background: color-mix(in srgb, var(--success, #23d18b) 18%, transparent);
   border-radius: 999px;
   padding: 0 6px;
+  line-height: 14px;
+}
+
+/* Orchestration is still settling — the row says so with a small pill after
+   its label; the native menu's "Open Orchestrator (Beta)" matches. */
+.workspace-nav-beta {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  border-radius: 999px;
+  padding: 0 5px;
   line-height: 14px;
 }
 

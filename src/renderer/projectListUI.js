@@ -283,7 +283,7 @@ const WORKSPACE_NAV_GROUPS = [
     label: 'Work',
     items: [
       { view: 'terminals', icon: '›_', label: 'Terminals', open: ui => ui.showTerminals(), surfaces: ['terminals'] },
-      { view: 'orchestrator', icon: '⚙', label: 'Orchestration', open: () => require('./orchestrator').open(), surfaces: ['section:orchestrator'] }
+      { view: 'orchestrator', icon: '⚙', label: 'Orchestration', beta: true, open: () => require('./orchestrator').open(), surfaces: ['section:orchestrator'] }
     ]
   },
   {
@@ -347,6 +347,7 @@ function buildWorkspaceNav() {
           <div class="workspace-nav-item" data-view="${item.view}" tabindex="0" role="button">
             <span class="workspace-nav-icon">${item.icon}</span>
             <span class="workspace-nav-label">${item.label}</span>
+            ${item.beta ? '<span class="workspace-nav-beta" title="Orchestration is in beta">Beta</span>' : ''}
             <span class="workspace-nav-right">
               ${item.view === 'terminals' ? '<span class="workspace-nav-agents" style="display:none"></span>' : ''}
               ${item.view === 'orchestrator' ? '<span class="workspace-nav-running" style="display:none" title="A conductor session is running">running</span>' : ''}

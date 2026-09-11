@@ -164,7 +164,7 @@ function getMenuTemplate() {
       cmd('Project Settings…', 'settings.openProject'),
       cmd('Initialize as Frame Project', 'project.initializeFrame'),
       SEP,
-      cmd('Open Orchestrator', 'orchestrator.open', 'CmdOrCtrl+Shift+O')
+      cmd('Open Orchestrator (Beta)', 'orchestrator.open', 'CmdOrCtrl+Shift+O')
     ]
   });
 
