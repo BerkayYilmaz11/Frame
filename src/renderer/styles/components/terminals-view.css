@@ -448,6 +448,12 @@ span.tv-pane-assign {
   transform: rotate(0deg);
 }
 
+.workspace-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .workspace-nav-group.collapsed .workspace-nav-group-items {
   display: none;
 }
