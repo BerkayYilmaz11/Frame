@@ -33,9 +33,6 @@ function init() {
  * Setup DOM event listeners
  */
 function setupEventListeners() {
-  const closeBtn = document.getElementById('prompts-close');
-  if (closeBtn) closeBtn.addEventListener('click', hide);
-
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       renderList(searchInput.value.trim().toLowerCase());

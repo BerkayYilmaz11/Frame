@@ -452,16 +452,11 @@
 
     <!-- Prompts Panel -->
     <div id="prompts-panel">
-      <div id="prompts-header">
-        <h3>Prompts</h3>
-        <button id="prompts-close" tabindex="-1">✕</button>
-      </div>
-      <div id="prompts-search-bar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input id="prompts-search" type="text" placeholder="Search prompts…" autocomplete="off" spellcheck="false" />
+      <div id="prompts-header" class="dock-view-header">
+        <h3 class="dock-view-title">Prompts</h3>
+        <div class="dock-view-actions">
+          <input id="prompts-search" class="dock-view-search" type="search" placeholder="Search prompts…" autocomplete="off" spellcheck="false" />
+        </div>
       </div>
       <div id="prompts-list">
         <!-- Prompt cards will be populated here -->
@@ -470,10 +465,11 @@
 
     <!-- Activity: the work Frame does on its own -->
     <div id="activity-panel">
-      <div id="activity-header">
-        <h3>Activity</h3>
-        <span id="activity-count" class="activity-count"></span>
-        <button id="activity-close" tabindex="-1">✕</button>
+      <div id="activity-header" class="dock-view-header">
+        <h3 class="dock-view-title">Activity</h3>
+        <div class="dock-view-actions">
+          <span id="activity-count" class="dock-view-count"></span>
+        </div>
       </div>
       <div class="activity-controls"></div>
       <div id="activity-list">
@@ -486,9 +482,8 @@
 
     <!-- Feedback: what the user wants to tell us about Frame itself -->
     <div id="feedback-panel">
-      <div id="feedback-header">
-        <h3>Feedback</h3>
-        <button id="feedback-close" tabindex="-1">✕</button>
+      <div id="feedback-header" class="dock-view-header">
+        <h3 class="dock-view-title">Feedback</h3>
       </div>
       <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
       <div class="feedback-tabs"></div>

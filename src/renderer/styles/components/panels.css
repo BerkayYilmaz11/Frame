@@ -2675,44 +2675,7 @@
    The full-window #structure-map-overlay it used to build — backdrop,
    Escape, × — is gone; the dock owns opening and closing. */
 
-/* Structure Map Header */
-.structure-map-header {
-  height: 60px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 var(--space-xl);
-  flex-shrink: 0;
-  z-index: 10;
-  box-shadow: var(--shadow-sm);
-}
-
-.structure-map-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.structure-map-title h2 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.2px;
-}
-
-.structure-map-title .badge {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  border-radius: 12px;
-  border: 1px solid rgba(143, 240, 174, 0.2);
-}
+/* Header: the shared .dock-view-header in dock.css. */
 
 .structure-map-controls {
   display: flex;
@@ -3928,84 +3891,7 @@
   opacity: 1;
 }
 
-#prompts-header {
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#prompts-header h3 {
-  flex: 1;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.2px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#prompts-header h3::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--accent-primary);
-  border-radius: 50%;
-  opacity: 0.7;
-}
-
-#prompts-close {
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-  font-size: 13px;
-  padding: 0;
-}
-
-#prompts-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-#prompts-search-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-#prompts-search-bar svg {
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-#prompts-search {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-family: var(--font-mono);
-}
-
-#prompts-search::placeholder {
-  color: var(--text-tertiary);
-}
+/* Header + search: the shared .dock-view-* rules in dock.css. */
 
 #prompts-list {
   flex: 1;

@@ -28,35 +28,7 @@
   opacity: 1;
 }
 
-#feedback-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-#feedback-header h3 {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-#feedback-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 2px 4px;
-  font-size: 12px;
-  line-height: 1;
-  margin-left: auto;
-}
-
-#feedback-close:hover {
-  color: var(--text-primary);
-}
+/* Header: the shared .dock-view-header in dock.css. */
 
 /* ─── the two tabs ───
    Issue and Reach us, in the panel-tab shape githubPanel already

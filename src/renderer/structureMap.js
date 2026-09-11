@@ -82,9 +82,9 @@ function mount(hostEl) {
   host = hostEl;
   host.innerHTML = `
     <div class="structure-map-container">
-      <div class="structure-map-header">
-        <h2>Project Structure Map</h2>
-        <div class="structure-map-controls">
+      <div class="structure-map-header dock-view-header">
+        <h3 class="dock-view-title">Structure</h3>
+        <div class="structure-map-controls dock-view-actions">
           <div class="structure-map-view-toggle">
             <button class="view-toggle-btn${currentView === 'graph' ? ' active' : ''}" data-view="graph" title="Force-directed graph view">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

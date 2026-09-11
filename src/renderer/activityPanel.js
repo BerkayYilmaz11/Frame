@@ -178,9 +178,6 @@ function init() {
 
   wireControls();
 
-  const close = document.getElementById('activity-close');
-  if (close) close.addEventListener('click', hide);
-
   // Batches arrive coalesced from main; appending is the only work the
   // renderer does per batch.
   ipcRenderer.on(IPC.ACTIVITY_DATA, (_e, payload) => {

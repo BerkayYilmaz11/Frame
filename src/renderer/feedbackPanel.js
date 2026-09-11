@@ -59,7 +59,6 @@ let activeKind = KINDS[0].id;
 let drafts = blankDrafts();
 
 let panelEl = null;
-let bound = false;
 
 function blankDrafts() {
   return KINDS.reduce((all, kind) => {
@@ -296,20 +295,12 @@ function clearDraft() {
 }
 
 // ─── the panel contract ───────────────────────────────────
-
-function bind() {
-  if (bound) return;
-  const root = el();
-  if (!root) return;
-  const closeBtn = root.querySelector('#feedback-close');
-  if (closeBtn) closeBtn.addEventListener('click', () => hide());
-  bound = true;
-}
+// No close button of its own: the dock hosting the panel owns closing
+// (dock-panel-readonly-views spec), and its × drops `.visible` via hide().
 
 function show() {
   const root = el();
   if (!root) return;
-  bind();
   renderTabs();
   render();
   root.classList.add('visible');

@@ -73,17 +73,14 @@ function projectName(projectPath) {
 function renderShell(body, name) {
   return `
     <div class="decisions-view">
-      <div class="decisions-header">
-        <div class="decisions-title">
-          <span class="decisions-mark">&#9670;</span>
-          <h2>Decisions</h2>
-          ${name ? `<span class="decisions-project">${escapeHtml(name)}</span>` : ''}
-        </div>
-        <div class="decisions-actions">
-          <input type="search" class="decisions-search" placeholder="Search decisions…"
+      <div class="decisions-header dock-view-header">
+        <h3 class="dock-view-title">Decisions</h3>
+        ${name ? `<span class="decisions-project">${escapeHtml(name)}</span>` : ''}
+        <div class="dock-view-actions">
+          <input type="search" class="decisions-search dock-view-search" placeholder="Search decisions…"
                  autocomplete="off" spellcheck="false">
-          <span class="decisions-count"></span>
-          <button class="decisions-refresh" tabindex="-1" title="Re-read PROJECT_NOTES.md">Refresh</button>
+          <span class="decisions-count dock-view-count"></span>
+          <button class="decisions-refresh dock-view-btn" tabindex="-1" title="Re-read PROJECT_NOTES.md">Refresh</button>
         </div>
       </div>
       <div class="decisions-body">${body}</div>
