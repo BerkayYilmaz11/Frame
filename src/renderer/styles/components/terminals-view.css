@@ -411,7 +411,7 @@ span.tv-pane-assign {
   padding: 3px 10px;
   cursor: pointer;
   color: var(--text-quaternary, var(--text-tertiary));
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -438,7 +438,7 @@ span.tv-pane-assign {
 
 .workspace-nav-group-chevron {
   display: inline-block;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   transform: rotate(90deg);
   transition: transform var(--transition-fast);
