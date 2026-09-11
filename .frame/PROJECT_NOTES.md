@@ -2707,3 +2707,57 @@ branches merged on 2026-08-29 — `new-spec-agent-handoff` and
 `spec-reports-one-shell-two-themes-in-app` — are still unrecorded here; their
 sessions are not in this conversation, and reconstructing their reasoning from
 commit messages would be invention rather than context.
+
+### [2026-09-11] PR #145 merged, then hardened: the login-shell PATH probe
+
+**Where this came from.** An external contributor (PR #145) fixed the
+"gh CLI not installed" report on machines that have `gh`: a packaged app
+launched from Finder inherits launchd's `/usr/bin:/bin:/usr/sbin:/sbin`,
+so `exec('gh')` in `githubManager` got ENOENT while Frame's own terminals ran
+`gh` fine (the PTY starts a login shell). The PR added `src/main/envPath.js`,
+which asks the user's interactive login shell for `PATH` once, merges it ahead
+of the inherited one, and hands `childEnv()` to the three `gh` calls.
+
+**The review, and the call the user made.** The fix was verified end-to-end
+here under a simulated Finder launch and the full suite was green on main and
+on the branch. Review turned up ten findings, none of them regressions — all in
+the class "the repair does not reach some users". The user's decision was
+"merge it and do the corrections ourselves", on the reasoning that the PR's
+worst case is the status quo (a failed probe degrades to the inherited PATH)
+and that 2.7.0 had just shipped, so main was not going out the door. Merged
+as `de5bd41` with a merge commit, matching the repo's convention; the author
+got a comment listing the findings and the follow-up plan.
+
+**What the follow-up branch (`fix/envpath-followups`) changed, and why.**
+- A `null` probe result is no longer memoised for the process lifetime. A
+  Login-Item launch with a slow `.zshrc` would otherwise have disabled the fix
+  until relaunch. It is retried after a 30s cooldown rather than on every
+  click, so a genuinely broken rc does not re-pay a 6s shell startup each time.
+- The timeout now sends SIGKILL. Measured on this machine: interactive zsh
+  ignores SIGTERM and runs to completion, so the PR's kill was a no-op and a
+  hung rc would have leaked an orphaned login shell.
+- The PATH is bracketed by start *and* end sentinels. `zsh -l` runs
+  `.zlogout` after the command; an `echo` there fused onto the last segment
+  (reproduced: `/binbye`). A complete sentinel pair is now accepted regardless
+  of exit code, and if it is not present on `'exit'` the probe waits for
+  `'close'` (Linux libuv can reap the child before the last stdout chunk).
+- The shell comes from the passwd entry first, then `$SHELL`. The PR's code
+  did the opposite of its own comment; a launcher exporting `SHELL=/bin/sh`
+  would have produced a "successful" probe with the wrong PATH and no warning.
+  `aiToolManager` now imports the same `loginShell()` and timeout from
+  `envPath` instead of keeping a copy, so both probes consult the same shell.
+- The probe argv branches on shell name like `ptyManager` does: tcsh/csh get
+  `-c` only (they reject `-ilc`), nushell joins `$env.PATH` itself. fish was
+  *not* a problem — it colon-joins path variables in double quotes; an earlier
+  claim in the session that it space-joins was wrong and corrected.
+- `probeCoreDeps()` in `index.js` uses the repaired PATH too, or the startup
+  banner would keep saying "gh was not found" while the panel worked.
+
+**Deliberately not done.** Writing the merged PATH into `process.env.PATH`
+once the probe resolves would fix the ~20 other `child_process` sites in
+`src/main` (ten of them synchronous, so unable to use the async `childEnv()`)
+with no call-site edits. That is an architecture decision that touches
+`structureBootstrap`, `ptyManager`, the git managers and more; it is held for a
+separate conversation rather than slipped into a hardening PR. Folding
+`aiToolManager.isCommandAvailable` into `envPath` also stays out, as the PR
+author proposed.

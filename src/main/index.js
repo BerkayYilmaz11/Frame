@@ -172,19 +172,23 @@ function probeCoreDeps() {
     ['git', 'Changes, Branches and orchestration are unavailable.'],
     ['gh', 'The GitHub panel is unavailable.']
   ];
-  for (const [bin, consequence] of probes) {
-    execFile(bin, ['--version'], { timeout: 5000 }, (err) => {
-      if (!err) return;
-      logger.warn('deps', `${bin} not found on PATH:`, err.message);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(IPC.MAIN_PROCESS_ERROR, {
-          source: 'dependency',
-          severity: 'warning',
-          message: `${bin} was not found on this system — ${consequence}`
-        });
-      }
-    });
-  }
+  // Same repaired PATH as githubManager, or a Finder-launched app shows the
+  // "gh was not found" banner while the panel one click later finds it.
+  envPath.childEnv().then((env) => {
+    for (const [bin, consequence] of probes) {
+      execFile(bin, ['--version'], { timeout: 5000, env }, (err) => {
+        if (!err) return;
+        logger.warn('deps', `${bin} not found on PATH:`, err.message);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send(IPC.MAIN_PROCESS_ERROR, {
+            source: 'dependency',
+            severity: 'warning',
+            message: `${bin} was not found on this system — ${consequence}`
+          });
+        }
+      });
+    }
+  });
 }
 
 /**
