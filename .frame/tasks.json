@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-06T10:13:03.725Z",
+  "lastUpdated": "2026-09-10T18:23:03.105Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7096,6 +7096,21 @@
       "createdAt": "2026-09-04T10:47:08.107Z",
       "updatedAt": "2026-09-06T10:13:03.725Z",
       "completedAt": "2026-09-06T10:13:03.725Z"
+    },
+    {
+      "id": "task-main-process-login-shell-path",
+      "title": "Resolve the main process PATH from the login shell at startup",
+      "description": "The Work > GitHub panel reports 'gh CLI not installed' in the packaged app even though gh is installed, logged in and works from the terminal. Cause: githubManager.js calls exec('gh --version'), exec('gh repo view …') and exec('gh issue list …') with Electron's inherited environment, and a Frame.app launched from Finder/Dock on macOS gets only /usr/bin:/bin:/usr/sbin:/sbin — gh lives in /usr/local/bin (or /opt/homebrew/bin). aiToolManager.js already solved the same problem for claude/codex/gemini with a per-command probe through the user's interactive login shell (-ilc), but githubManager never adopted it, and the GitHub panel has no AI agent in the loop so it should not depend on aiToolManager at all. Fix at the root instead: add a small main-process module (e.g. src/main/shellEnv.js) that runs once before any manager is initialised in app.whenReady() and resolves PATH the way the PTY sees it — spawn the user's login shell (os.userInfo().shell, then $SHELL, then /bin/zsh on macOS, /bin/bash on Linux) with -ilc and print $PATH between sentinel markers so .zshrc/.bashrc noise cannot corrupt the value; enforce a timeout (~5s); on success merge the result into process.env.PATH (login-shell entries first, current entries appended, de-duplicated). Belt and braces: whether the probe succeeds, fails or times out, always append the well-known directories (/usr/local/bin, /opt/homebrew/bin, /opt/homebrew/sbin, ~/.local/bin, ~/.cargo/bin, /usr/local/go/bin, and Windows/Linux equivalents) if they exist on disk, so a machine whose rc file hangs, prompts or errors still finds gh. Skip the shell probe on win32 (GUI apps inherit the user PATH there). Because process.env.PATH is patched once, every child_process caller in src/main (githubManager, gitBranchesManager, gitStatusManager, gitDiffManager, claudeUsageManager, pluginsManager, projectInsights, structureBootstrap, dialogs) is fixed by the same change — no per-manager probing. In githubManager.js switch the three gh calls from exec(string) to execFile('gh', [...]) so ENOENT is distinguishable from 'not a repo' and args are not shell-parsed. Log the resolved PATH source (shell / fallback / timeout) via logger so a support bundle shows which branch ran.",
+      "userRequest": "User said: 'Bende gh olmasına rağmen şu an github sayfasında bunu göremiyorum' … 'Hayır kastettiğim Work altındaki Github sekmesi' … 'Hangi yöntem daha garantiyse bununla alakalı bir task açalım. her makinede düzgün çalışacak bir yapı olması önemli bir de github panelde bir ai agent çalışmıyor'",
+      "acceptanceCriteria": "1) Frame.app launched from Finder/Dock on macOS (not from a terminal) shows issues in Work > GitHub when gh is installed in /usr/local/bin or /opt/homebrew/bin and authenticated. 2) The same build launched via `npm start` behaves identically. 3) With gh genuinely absent the panel still shows 'gh CLI not installed' with the install link — the fallback dirs must not produce a false positive. 4) A login shell whose rc file hangs or prints garbage does not block startup beyond the timeout and does not corrupt PATH (sentinel parsing + timeout covered by unit tests with a fake shell script). 5) PATH is resolved once, before githubManager.init/aiToolManager.init; no manager spawns its own probe for gh. 6) githubManager uses execFile for all gh invocations. 7) Unit tests in test/shellEnv.test.js cover: sentinel extraction, merge/de-dup order, fallback-dir filtering by existence, win32 skip, timeout path. 8) `npm test` and `npm run build` pass.",
+      "notes": "Two approaches were weighed. (A) Make githubManager reuse aiToolManager's per-command login-shell probe — smaller diff but only fixes gh, couples the GitHub panel to the AI-tool module (the user pointed out no AI agent is involved in that panel), and leaves every other exec in src/main with the same latent bug. (B) Resolve PATH once at startup from the login shell and patch process.env.PATH, with hardcoded well-known dirs as a fallback — chosen because it fixes every child_process caller at once and still works when the shell probe itself fails. This is the fix-path/shell-env pattern used by VS Code, Hyper and most Electron apps. Risks to keep in mind: -ilc runs the user's full interactive rc (can be slow, can prompt); the sentinel + timeout + fallback is what makes it safe on every machine. Do not touch the PTY path (ptyManager already runs the login shell) and do not remove aiToolManager's probe in this task — it can be simplified to rely on the patched PATH in a follow-up. Diagnosed 2026-09-10 on the user's machine: gh 2.100.0 at /usr/local/bin/gh, logged in as BerkayYilmaz11, `gh repo view` in the Frame checkout resolves to kaanozhan/Frame; /Applications/Frame.app is installed; `launchctl getenv PATH` is empty.",
+      "status": "completed",
+      "priority": "high",
+      "category": "fix",
+      "context": "2026-09-10 session — user could not see GitHub issues in the Work > GitHub panel despite having gh installed",
+      "createdAt": "2026-09-10T17:15:16Z",
+      "updatedAt": "2026-09-10T18:23:03.105Z",
+      "completedAt": "2026-09-10T18:23:03.105Z"
     }
   ],
   "metadata": {

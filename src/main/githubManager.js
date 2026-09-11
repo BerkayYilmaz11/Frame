@@ -3,7 +3,7 @@
  * Handles GitHub integration using gh CLI
  */
 
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const { shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 
@@ -24,13 +24,22 @@ function setProjectPath(projectPath) {
   currentProjectPath = projectPath;
 }
 
+// gh is invoked with execFile (no shell): args are not shell-parsed and a
+// missing binary surfaces as ENOENT, distinguishable from "not a repo" or a
+// gh error. PATH itself is patched once at startup by shellEnv, so gh in
+// /usr/local/bin or /opt/homebrew/bin is found even when Frame was launched
+// from Finder/Dock.
+function isMissingBinary(error) {
+  return Boolean(error) && (error.code === 'ENOENT' || error.code === 'EACCES');
+}
+
 /**
  * Check if gh CLI is available
  */
 function checkGhCli() {
   return new Promise((resolve) => {
-    exec('gh --version', (error) => {
-      resolve(!error);
+    execFile('gh', ['--version'], (error) => {
+      resolve(!isMissingBinary(error));
     });
   });
 }
@@ -40,7 +49,7 @@ function checkGhCli() {
  */
 function checkGitHubRepo(projectPath) {
   return new Promise((resolve) => {
-    exec('gh repo view --json nameWithOwner', { cwd: projectPath }, (error, stdout) => {
+    execFile('gh', ['repo', 'view', '--json', 'nameWithOwner'], { cwd: projectPath }, (error, stdout) => {
       if (error) {
         resolve({ isGitHubRepo: false, repoName: null });
       } else {
@@ -70,10 +79,17 @@ async function loadIssues(projectPath, state = 'open') {
   }
 
   return new Promise((resolve) => {
-    const cmd = `gh issue list --state ${state} --json number,title,state,author,labels,createdAt,updatedAt,url --limit 50`;
+    const args = [
+      'issue', 'list',
+      '--state', String(state),
+      '--json', 'number,title,state,author,labels,createdAt,updatedAt,url',
+      '--limit', '50'
+    ];
 
-    exec(cmd, { cwd: projectPath }, (error, stdout, stderr) => {
-      if (error) {
+    execFile('gh', args, { cwd: projectPath }, (error, stdout, stderr) => {
+      if (isMissingBinary(error)) {
+        resolve({ error: 'gh CLI not installed', issues: [], repoName: repoInfo.repoName });
+      } else if (error) {
         resolve({ error: stderr || error.message, issues: [], repoName: repoInfo.repoName });
       } else {
         try {

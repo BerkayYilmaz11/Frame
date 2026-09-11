@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-06",
+  "lastUpdated": "2026-09-11",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -1970,19 +1970,26 @@
           ],
           "purpose": "Set current project path"
         },
+        "isMissingBinary": {
+          "line": 32,
+          "params": [
+            "error"
+          ],
+          "purpose": "gh is invoked with execFile (no shell): args are not shell-parsed and a"
+        },
         "checkGhCli": {
-          "line": 30,
+          "line": 39,
           "purpose": "Check if gh CLI is available"
         },
         "checkGitHubRepo": {
-          "line": 41,
+          "line": 50,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if current directory is a git repo with GitHub remote"
         },
         "loadIssues": {
-          "line": 61,
+          "line": 70,
           "params": [
             "projectPath",
             "state = 'open'"
@@ -1990,14 +1997,14 @@
           "purpose": "Load GitHub issues for current project"
         },
         "openIssue": {
-          "line": 93,
+          "line": 109,
           "params": [
             "url"
           ],
           "purpose": "Open issue in browser"
         },
         "setupIPC": {
-          "line": 102,
+          "line": 118,
           "params": [
             "ipcMain"
           ],
@@ -2041,6 +2048,7 @@
         "tasksManager",
         "pluginsManager",
         "githubManager",
+        "shellEnv",
         "claudeUsageManager",
         "projectInsights",
         "gitBranchesManager",
@@ -2057,26 +2065,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 51,
+          "line": 52,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 69,
+          "line": 70,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 166
+          "line": 167
         },
         "setupAllIPC": {
-          "line": 192,
+          "line": 193,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 270,
+          "line": 271,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 310,
+          "line": 311,
           "params": [
             "window"
           ],
@@ -3344,6 +3352,90 @@
           "TERMINAL_DESTROYED",
           "TERMINAL_PROCESS_DATA"
         ]
+      }
+    },
+    "main/shellEnv": {
+      "file": "src/main/shellEnv.js",
+      "description": "Shell Environment — resolve the main process PATH from the login shell.",
+      "exports": [
+        "resolve",
+        "mergePaths",
+        "fallbackCandidates",
+        "probeLoginShell",
+        "loginShell",
+        "PROBE_COMMAND"
+      ],
+      "depends": [
+        "os",
+        "fs",
+        "path",
+        "child_process",
+        "logger"
+      ],
+      "functions": {
+        "loginShell": {
+          "line": 50,
+          "params": [
+            "env = process.env",
+            "platform = process.platform"
+          ],
+          "purpose": "The user's real login shell: passwd entry first (GUI-launched apps often"
+        },
+        "extractPath": {
+          "line": 65,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "Pull the PATH out of probe stdout. The last sentinel pair wins so anything"
+        },
+        "splitPath": {
+          "line": 75,
+          "params": [
+            "value",
+            "delimiter"
+          ]
+        },
+        "mergePaths": {
+          "line": 84,
+          "params": [
+            "lists",
+            "delimiter"
+          ],
+          "purpose": "Merge PATH lists in priority order, dropping duplicates while keeping the"
+        },
+        "fallbackCandidates": {
+          "line": 102,
+          "params": [
+            "platform",
+            "home",
+            "env = process.env"
+          ],
+          "purpose": "Well-known install directories per platform. These are appended only if"
+        },
+        "existingDirs": {
+          "line": 135,
+          "params": [
+            "candidates",
+            "existsSync"
+          ]
+        },
+        "probeLoginShell": {
+          "line": 149,
+          "params": [
+            "{ shell",
+            "env",
+            "timeoutMs",
+            "spawnFn }"
+          ],
+          "purpose": "Run the login-shell probe. Resolves to"
+        },
+        "resolve": {
+          "line": 201,
+          "params": [
+            "options = {}"
+          ],
+          "purpose": "Resolve PATH and patch `env.PATH` (process.env by default). Idempotent"
+        }
       }
     },
     "main/specManager": {
@@ -5729,6 +5821,7 @@
         "hide",
         "toggle",
         "loadIssues",
+        "loadPullRequests",
         "loadBranches",
         "loadWorktrees",
         "isVisible"
@@ -5742,107 +5835,136 @@
       ],
       "functions": {
         "init": {
-          "line": 28,
+          "line": 29,
           "purpose": "Initialize GitHub panel"
         },
         "setupEventListeners": {
-          "line": 47,
+          "line": 48,
           "purpose": "Setup event listeners"
         },
         "setupIPCListeners": {
-          "line": 80,
+          "line": 81,
           "purpose": "Setup IPC listeners"
         },
         "loadIssues": {
-          "line": 89,
+          "line": 90,
           "purpose": "Load GitHub issues"
         },
         "refreshIssues": {
-          "line": 122,
+          "line": 123,
           "purpose": "Refresh issues"
         },
         "show": {
-          "line": 144,
+          "line": 145,
           "purpose": "Show GitHub panel"
         },
         "hide": {
-          "line": 155,
+          "line": 156,
           "purpose": "Hide GitHub panel"
         },
         "toggle": {
-          "line": 165,
+          "line": 166,
           "purpose": "Toggle GitHub panel visibility"
         },
         "setTab": {
-          "line": 176,
+          "line": 177,
           "params": [
             "tab"
           ],
           "purpose": "Set active tab"
         },
+        "tabLabel": {
+          "line": 201,
+          "params": [
+            "tab"
+          ],
+          "purpose": "Human label for a tab, used in toasts"
+        },
+        "loadCurrentTab": {
+          "line": 215,
+          "purpose": "Load content for the active tab. Every entry point that re-fetches"
+        },
         "setFilter": {
-          "line": 209,
+          "line": 231,
           "params": [
             "filter"
           ],
           "purpose": "Set filter"
         },
         "renderLoading": {
-          "line": 223,
+          "line": 245,
           "params": [
             "message = 'Loading...'"
           ],
           "purpose": "Render loading state"
         },
         "renderError": {
-          "line": 237,
+          "line": 259,
           "params": [
             "message"
           ],
           "purpose": "Render error state"
         },
         "renderComingSoon": {
-          "line": 265,
+          "line": 287,
           "params": [
             "tab"
           ],
           "purpose": "Render coming soon state for unimplemented tabs"
         },
-        "render": {
-          "line": 290,
+        "updateRepoName": {
+          "line": 312,
           "purpose": "Render issues list"
         },
+        "render": {
+          "line": 320
+        },
         "renderIssueItem": {
-          "line": 332,
+          "line": 357,
           "params": [
             "issue"
           ],
           "purpose": "Render single issue item"
         },
         "getContrastColor": {
-          "line": 371,
+          "line": 396,
           "params": [
             "hexColor"
           ],
           "purpose": "Get contrasting text color for a background color"
         },
         "formatRelativeTime": {
-          "line": 382,
+          "line": 407,
           "params": [
             "dateString"
           ],
           "purpose": "Format relative time"
         },
+        "loadPullRequests": {
+          "line": 437,
+          "purpose": "Load GitHub pull requests"
+        },
+        "renderPullRequests": {
+          "line": 470,
+          "purpose": "Render pull requests list"
+        },
+        "renderPullRequestItem": {
+          "line": 510,
+          "params": [
+            "pr"
+          ],
+          "purpose": "Render single pull request item. Reuses the issue item layout; the state"
+        },
         "loadBranches": {
-          "line": 412,
+          "line": 557,
           "purpose": "Load git branches"
         },
         "renderBranches": {
-          "line": 441,
+          "line": 586,
           "purpose": "Render branches list"
         },
         "renderBranchItem": {
-          "line": 487,
+          "line": 632,
           "params": [
             "branch",
             "currentBranch"
@@ -5850,84 +5972,84 @@
           "purpose": "Render single branch item"
         },
         "attachBranchEventListeners": {
-          "line": 515,
+          "line": 660,
           "purpose": "Attach branch event listeners"
         },
         "handleSwitchBranch": {
-          "line": 538,
+          "line": 683,
           "params": [
             "branchName"
           ],
           "purpose": "Handle branch switch"
         },
         "handleDeleteBranch": {
-          "line": 565,
+          "line": 710,
           "params": [
             "branchName"
           ],
           "purpose": "Handle branch deletion"
         },
         "renderBranchesError": {
-          "line": 597,
+          "line": 742,
           "params": [
             "message"
           ],
           "purpose": "Render branches error"
         },
         "loadWorktrees": {
-          "line": 620,
+          "line": 765,
           "purpose": "Load git worktrees"
         },
         "renderWorktrees": {
-          "line": 649,
+          "line": 794,
           "purpose": "Render worktrees list"
         },
         "renderWorktreeItem": {
-          "line": 681,
+          "line": 826,
           "params": [
             "worktree"
           ],
           "purpose": "Render single worktree item"
         },
         "attachWorktreeEventListeners": {
-          "line": 710,
+          "line": 855,
           "purpose": "Attach worktree event listeners"
         },
         "handleRemoveWorktree": {
-          "line": 723,
+          "line": 868,
           "params": [
             "wtPath"
           ],
           "purpose": "Handle worktree removal"
         },
         "renderWorktreesError": {
-          "line": 751,
+          "line": 896,
           "params": [
             "message"
           ],
           "purpose": "Render worktrees error"
         },
         "setupModalListeners": {
-          "line": 771,
+          "line": 916,
           "purpose": "Setup modal event listeners"
         },
         "showCreateBranchModal": {
-          "line": 818,
+          "line": 963,
           "purpose": "Show create branch modal"
         },
         "populateBaseBranchSelect": {
-          "line": 844,
+          "line": 989,
           "params": [
             "select"
           ],
           "purpose": "Populate base branch select dropdown"
         },
         "hideCreateBranchModal": {
-          "line": 883,
+          "line": 1028,
           "purpose": "Hide create branch modal"
         },
         "handleCreateBranch": {
-          "line": 893,
+          "line": 1038,
           "purpose": "Handle create branch"
         }
       },
@@ -5936,6 +6058,7 @@
           "TOGGLE_GITHUB_PANEL"
         ],
         "emits": [
+          "OPEN_GITHUB_ISSUE",
           "OPEN_GITHUB_ISSUE"
         ]
       }
@@ -11635,6 +11758,11 @@
         "name": "open-github-issue",
         "direction": "",
         "description": ""
+      },
+      "LOAD_GITHUB_PRS": {
+        "name": "load-github-prs",
+        "direction": "",
+        "description": ""
       }
     },
     "claudeUsage": {
@@ -12356,6 +12484,18 @@
         "module": "main/userSettings",
         "file": "src/main/userSettings.js",
         "description": "User Settings"
+      }
+    ],
+    "shell": [
+      {
+        "module": "main/shellEnv",
+        "file": "src/main/shellEnv.js",
+        "description": "Shell Environment — resolve the main process PATH from the login shell."
+      },
+      {
+        "module": "renderer/home/widgetShell",
+        "file": "src/renderer/home/widgetShell.js",
+        "description": "Widget Shell — the one card every Home widget is drawn inside."
       }
     ],
     "sidebar": [

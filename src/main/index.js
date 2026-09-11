@@ -27,6 +27,7 @@ const fileEditor = require('./fileEditor');
 const tasksManager = require('./tasksManager');
 const pluginsManager = require('./pluginsManager');
 const githubManager = require('./githubManager');
+const shellEnv = require('./shellEnv');
 const claudeUsageManager = require('./claudeUsageManager');
 const projectInsights = require('./projectInsights');
 const gitBranchesManager = require('./gitBranchesManager');
@@ -330,8 +331,15 @@ function initModulesWithWindow(window) {
 // actual app_started event is fired from init() after userSettings loads.
 telemetry.init();
 
+// Resolve PATH from the user's login shell. Started now so the probe
+// overlaps Electron's own boot, awaited below so every manager (and every
+// child_process caller in src/main) sees the patched process.env.PATH.
+// A Finder-launched app otherwise gets launchd's minimal PATH and reports
+// CLIs like gh as "not installed". Never rejects — fallback dirs apply on failure.
+const shellEnvReady = shellEnv.resolve();
+
 // App lifecycle
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // macOS'ta menü bar'da "Frame" görünsün
   app.setName('Frame');
 
@@ -346,7 +354,9 @@ app.whenReady().then(() => {
     }
   }
 
+  const resolvedEnv = await shellEnvReady;
   init();
+  logger.info('shellEnv', `main process PATH source: ${resolvedEnv.source}`);
   createWindow();
   perfMonitor.mark('window-created');
 });
