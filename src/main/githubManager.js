@@ -1,11 +1,17 @@
 /**
  * GitHub Manager Module
  * Handles GitHub integration using gh CLI
+ *
+ * Every `gh` call goes out with envPath.childEnv(). A packaged app launched
+ * from Finder inherits launchd's PATH, which has no /opt/homebrew/bin, so a
+ * bare exec() reported "gh CLI not installed" to users who had gh installed
+ * and working in their terminal. See src/main/envPath.js.
  */
 
 const { exec } = require('child_process');
 const { shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const envPath = require('./envPath');
 
 let mainWindow = null;
 let currentProjectPath = null;
@@ -27,9 +33,10 @@ function setProjectPath(projectPath) {
 /**
  * Check if gh CLI is available
  */
-function checkGhCli() {
+async function checkGhCli() {
+  const env = await envPath.childEnv();
   return new Promise((resolve) => {
-    exec('gh --version', (error) => {
+    exec('gh --version', { env }, (error) => {
       resolve(!error);
     });
   });
@@ -38,9 +45,10 @@ function checkGhCli() {
 /**
  * Check if current directory is a git repo with GitHub remote
  */
-function checkGitHubRepo(projectPath) {
+async function checkGitHubRepo(projectPath) {
+  const env = await envPath.childEnv();
   return new Promise((resolve) => {
-    exec('gh repo view --json nameWithOwner', { cwd: projectPath }, (error, stdout) => {
+    exec('gh repo view --json nameWithOwner', { cwd: projectPath, env }, (error, stdout) => {
       if (error) {
         resolve({ isGitHubRepo: false, repoName: null });
       } else {
@@ -69,10 +77,12 @@ async function loadIssues(projectPath, state = 'open') {
     return { error: 'Not a GitHub repository', issues: [] };
   }
 
+  const env = await envPath.childEnv();
+
   return new Promise((resolve) => {
     const cmd = `gh issue list --state ${state} --json number,title,state,author,labels,createdAt,updatedAt,url --limit 50`;
 
-    exec(cmd, { cwd: projectPath }, (error, stdout, stderr) => {
+    exec(cmd, { cwd: projectPath, env }, (error, stdout, stderr) => {
       if (error) {
         resolve({ error: stderr || error.message, issues: [], repoName: repoInfo.repoName });
       } else {
