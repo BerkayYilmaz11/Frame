@@ -7,24 +7,12 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const os = require('os');
 const fsSafe = require('./fsSafe');
 const logger = require('./logger');
 const telemetry = require('./telemetry');
-
-// The user's real login shell. In a GUI-launched (packaged) app, process.env.SHELL
-// is often unset, so fall back to the passwd entry — never to /bin/sh, which
-// doesn't source the shell configs where PATH (claude/codex/gemini) usually
-// lives. Last resort is platform-aware: zsh is macOS's default, bash Linux's.
-function loginShell() {
-  try {
-    const s = os.userInfo().shell;
-    if (s) return s;
-  } catch (e) {
-    logger.warn('aiToolManager', 'userInfo shell lookup failed:', e.message);
-  }
-  return process.env.SHELL || (process.platform === 'darwin' ? '/bin/zsh' : '/bin/bash');
-}
+// The login shell and probe budget are shared with envPath so the CLI probe
+// and the PATH repair consult the same shell and give up at the same time.
+const { loginShell, PROBE_TIMEOUT_MS } = require('./envPath');
 const { IPC } = require('../shared/ipcChannels');
 
 let mainWindow = null;
@@ -298,7 +286,7 @@ async function isCommandAvailable(command, projectPath) {
   const isWin = process.platform === 'win32';
   const shell = isWin
     ? (process.env.COMSPEC || 'cmd.exe')
-    : (process.env.SHELL || loginShell());
+    : loginShell();
   const args = isWin
     ? ['/c', `where ${command}`]
     : ['-ilc', `command -v ${command}`];
@@ -323,9 +311,10 @@ async function isCommandAvailable(command, projectPath) {
       return;
     }
     const timer = setTimeout(() => {
-      try { child.kill('SIGTERM'); } catch (e) { logger.warn('aiToolManager', 'probe kill failed:', e.message); }
+      // SIGKILL: interactive shells ignore SIGTERM, so a hung rc would leak past the budget.
+      try { child.kill('SIGKILL'); } catch (e) { logger.warn('aiToolManager', 'probe kill failed:', e.message); }
       finish({ found: false, reason: 'timeout' });
-    }, 6000);
+    }, PROBE_TIMEOUT_MS);
     child.on('exit', (code) => finish(code === 0 ? { found: true } : { found: false, reason: 'not-found' }));
     child.on('error', () => finish({ found: false, reason: 'spawn-error' }));
   });

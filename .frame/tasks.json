@@ -7241,11 +7241,26 @@
       "createdAt": "2026-09-11T10:23:21.954Z",
       "updatedAt": "2026-09-11T10:25:14.100Z",
       "completedAt": "2026-09-11T10:25:14.100Z"
+    },
+    {
+      "id": "task-envpath-followups",
+      "title": "Harden envPath after PR #145 review",
+      "description": "Apply the review findings on the login-shell PATH probe merged in PR #145. In src/main/envPath.js: stop caching a null probe result so a slow or failing boot rc does not disable the fix until relaunch; kill the probe with SIGKILL because interactive zsh/bash ignore SIGTERM; bracket the PATH with start and end sentinels so .zlogout output cannot fuse onto the last segment; make the passwd shell win over $SHELL as the comment already claims; branch the probe command on shell name (tcsh/csh: -c only; nu: str join) like ptyManager does. In src/main/index.js: pass envPath.childEnv() to the gh probe in probeCoreDeps so the startup banner agrees with the panel. In src/main/aiToolManager.js: import loginShell and the probe timeout from envPath instead of keeping a copy. Regenerate .frame/STRUCTURE.json.",
+      "userRequest": "User said: \"şöyle yapsak? bu pr ı merge edelim o zaman, bu düzeltmeleri de biz yapalım, ne dersin?\" then \"tamam, merge et ve düzeltmelere başla\"",
+      "acceptanceCriteria": "- A null/timed-out probe is not memoised; the next caller re-probes.\n- The 6s timeout actually terminates an interactive zsh (SIGKILL).\n- Output after the PATH (e.g. .zlogout echo) does not leak into the resolved PATH.\n- probeCoreDeps gh check uses the repaired PATH.\n- aiToolManager has no duplicate loginShell()/timeout constant.\n- tcsh and nu login shells produce a usable PATH or degrade with a warning, never a bogus segment.\n- test/envPath.test.js covers the new behaviour; full suite passes.\n- STRUCTURE.json lists main/envPath and githubManager depends on it.",
+      "notes": "Deliberately out of scope: writing the merged PATH to process.env.PATH for the other ~20 child_process sites in src/main. That is an architecture decision to discuss separately. Folding isCommandAvailable into envPath also stays out; only loginShell and the timeout constant are shared.",
+      "status": "completed",
+      "priority": "high",
+      "category": "fix",
+      "context": "Session 2026-09-11 — review of PR #145, merged as de5bd41",
+      "createdAt": "2026-09-11T07:38:20.276Z",
+      "updatedAt": "2026-09-11T10:40:00.000Z",
+      "completedAt": "2026-09-11T10:40:00.000Z"
     }
   ],
   "metadata": {
-    "totalCreated": 522,
-    "totalCompleted": 28
+    "totalCreated": 524,
+    "totalCompleted": 29
   },
   "categories": {
     "feature": "New features",

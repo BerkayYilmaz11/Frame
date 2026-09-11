@@ -163,19 +163,15 @@
         "fs",
         "path",
         "child_process",
-        "os",
         "fsSafe",
         "logger",
         "telemetry",
+        "envPath",
         "shared/ipcChannels"
       ],
       "functions": {
-        "loginShell": {
-          "line": 19,
-          "purpose": "The user's real login shell. In a GUI-launched (packaged) app, process.env.SHELL"
-        },
         "init": {
-          "line": 95,
+          "line": 83,
           "params": [
             "window",
             "app"
@@ -183,72 +179,72 @@
           "purpose": "Initialize the AI Tool Manager"
         },
         "detectDefaultTool": {
-          "line": 109,
+          "line": 97,
           "purpose": "First run only: default the active tool to a CLI that is actually"
         },
         "loadConfig": {
-          "line": 125,
+          "line": 113,
           "purpose": "Load configuration from file"
         },
         "saveConfig": {
-          "line": 152,
+          "line": 140,
           "purpose": "Save configuration to file"
         },
         "getAvailableTools": {
-          "line": 163,
+          "line": 151,
           "purpose": "Get all available AI tools"
         },
         "getActiveTool": {
-          "line": 170,
+          "line": 158,
           "purpose": "Get the currently active tool"
         },
         "setActiveTool": {
-          "line": 178,
+          "line": 166,
           "params": [
             "toolId"
           ],
           "purpose": "Set the active AI tool"
         },
         "getConfig": {
-          "line": 198,
+          "line": 186,
           "purpose": "Get full configuration for renderer"
         },
         "addCustomTool": {
-          "line": 208,
+          "line": 196,
           "params": [
             "tool"
           ],
           "purpose": "Add a custom AI tool"
         },
         "removeCustomTool": {
-          "line": 225,
+          "line": 213,
           "params": [
             "toolId"
           ],
           "purpose": "Remove a custom AI tool"
         },
         "quoteArg": {
-          "line": 245,
+          "line": 233,
           "params": [
             "arg"
           ],
           "purpose": "Compose the command line a lane actually types: the resolved CLI plus any"
         },
         "composeLaunchCommand": {
-          "line": 253,
+          "line": 241,
           "params": [
             "command",
             "launchFlags"
           ]
         },
         "isPathLike": {
-          "line": 258,
+          "line": 246,
           "params": [
             "command"
           ]
         },
         "isCommandAvailable": {
-          "line": 276,
+          "line": 264,
           "params": [
             "command",
             "projectPath"
@@ -256,24 +252,24 @@
           "purpose": "Check whether a CLI command can actually be launched on this system."
         },
         "trackProbeFailure": {
-          "line": 342,
+          "line": 331,
           "params": [
             "reason"
           ]
         },
         "setupIPC": {
-          "line": 350,
+          "line": 339,
           "purpose": "Setup IPC handlers"
         },
         "getCommand": {
-          "line": 418,
+          "line": 407,
           "params": [
             "action"
           ],
           "purpose": "Get command for specific action"
         },
         "getStartCommand": {
-          "line": 426,
+          "line": 415,
           "purpose": "Get the start command for active tool"
         }
       },
@@ -657,6 +653,81 @@
           "PROJECT_SELECTED",
           "CLONE_GITHUB_REPO_RESULT"
         ]
+      }
+    },
+    "main/envPath": {
+      "file": "src/main/envPath.js",
+      "description": "The PATH a child process should actually run with.",
+      "exports": [
+        "PROBE_TIMEOUT_MS",
+        "loginShell",
+        "probeArgsFor",
+        "parseProbeOutput",
+        "resolveLoginPath",
+        "primeLoginPath",
+        "childEnv",
+        "mergePath",
+        "__setProbeForTests"
+      ],
+      "depends": [
+        "child_process",
+        "os",
+        "path",
+        "logger"
+      ],
+      "functions": {
+        "loginShell": {
+          "line": 69,
+          "purpose": "The user's real login shell. The passwd entry wins: in a GUI-launched"
+        },
+        "probeArgsFor": {
+          "line": 88,
+          "params": [
+            "shell"
+          ],
+          "purpose": "The argv that makes `shell` print `START<PATH>END` on stdout."
+        },
+        "parseProbeOutput": {
+          "line": 100,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "The PATH between the sentinels, or null if the pair is not (yet) complete."
+        },
+        "defaultProbe": {
+          "line": 109
+        },
+        "mergePath": {
+          "line": 167,
+          "params": [
+            "resolved",
+            "current"
+          ],
+          "purpose": "Union of two PATH strings, `resolved` first, preserving order and dropping"
+        },
+        "resolveLoginPath": {
+          "line": 184,
+          "purpose": "The merged PATH, resolving it on first call. Never rejects: a failed probe"
+        },
+        "primeLoginPath": {
+          "line": 210,
+          "purpose": "Start the probe early (app boot) so the first real caller doesn't wait on a shell."
+        },
+        "childEnv": {
+          "line": 215,
+          "params": [
+            "extra = {}"
+          ],
+          "purpose": "`env` for a child process: the current environment with the repaired PATH."
+        },
+        "__setProbeForTests": {
+          "line": 220,
+          "params": [
+            "fn",
+            "opts = {}"
+          ],
+          "purpose": "Test seam: swap the probe, drop the cache, optionally shorten the retry cooldown."
+        }
       }
     },
     "main/fileEditor": {
@@ -1953,36 +2024,37 @@
       "depends": [
         "child_process",
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "envPath"
       ],
       "functions": {
         "init": {
-          "line": 16,
+          "line": 22,
           "params": [
             "window"
           ],
           "purpose": "Initialize GitHub manager"
         },
         "setProjectPath": {
-          "line": 23,
+          "line": 29,
           "params": [
             "projectPath"
           ],
           "purpose": "Set current project path"
         },
         "checkGhCli": {
-          "line": 30,
+          "line": 36,
           "purpose": "Check if gh CLI is available"
         },
         "checkGitHubRepo": {
-          "line": 41,
+          "line": 48,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if current directory is a git repo with GitHub remote"
         },
         "loadIssues": {
-          "line": 61,
+          "line": 69,
           "params": [
             "projectPath",
             "state = 'open'"
@@ -1990,14 +2062,14 @@
           "purpose": "Load GitHub issues for current project"
         },
         "openIssue": {
-          "line": 93,
+          "line": 103,
           "params": [
             "url"
           ],
           "purpose": "Open issue in browser"
         },
         "setupIPC": {
-          "line": 102,
+          "line": 112,
           "params": [
             "ipcMain"
           ],
@@ -2023,6 +2095,7 @@
         "path",
         "shared/ipcChannels",
         "logger",
+        "envPath",
         "perfMonitor",
         "activityLog",
         "crashGuard",
@@ -2057,26 +2130,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 51,
+          "line": 52,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 69,
+          "line": 70,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 166
+          "line": 167
         },
         "setupAllIPC": {
-          "line": 192,
+          "line": 197,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 270,
+          "line": 275,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 310,
+          "line": 315,
           "params": [
             "window"
           ],
