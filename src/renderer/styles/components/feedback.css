@@ -8,13 +8,14 @@
 .feedback-modal {
   display: flex;
   flex-direction: column;
-  max-height: 85vh;
+  height: 72vh;
   overflow: hidden;
 }
 
 #feedback-panel {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
   overflow: hidden;
 }

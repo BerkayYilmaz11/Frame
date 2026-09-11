@@ -763,11 +763,11 @@
    Plugins button at the foot of the sidebar rail (pluginsPanel.js).
    #plugins-panel is the modal's body: a toolbar — the filter on the left,
    refresh on the right — then the list, which scrolls inside the modal's
-   85vh. */
+   fixed 72vh. */
 .plugins-modal {
   display: flex;
   flex-direction: column;
-  max-height: 85vh;
+  height: 72vh;
   overflow: hidden;
 }
 
