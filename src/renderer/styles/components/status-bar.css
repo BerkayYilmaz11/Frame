@@ -41,6 +41,35 @@
   position: relative;
 }
 
+/* ─── The current git branch ─── */
+/* VS Code's idiom: a small branch glyph and the name, first thing on the
+   left. Plain text, not a button — the bar is for glancing. */
+.sb-branch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sb-branch[hidden] {
+  display: none;
+}
+
+.sb-branch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* A hairline between the branch and the dock's icons. */
+.sb-branch:not([hidden]) + .sb-dock {
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--border-subtle);
+}
+
 /* ─── The dock's icons (dock-panel-readonly-views spec) ─── */
 /* Icons, not labelled buttons: the bar stays 26px and quiet (C4). Secondary
    at rest, primary on hover, accent when that tab is the open one. */

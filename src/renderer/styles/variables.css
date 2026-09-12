@@ -70,6 +70,14 @@
   /* Status bar height — read by both the bar itself and body's
      padding-bottom, so the two can never disagree (status-bar spec). */
   --status-bar-height: 26px;
+  /* Modal width — one standard for every dialog shell (settings, plugins,
+     feedback, open project, task edit, spec modals…) so they all line up.
+     `--modal-width-compact` is reserved for alert-style confirms only
+     (icon + one sentence + buttons), which read wrong at full width. Every
+     shell applies it as `width: min(var(--modal-width), 92vw)` so small
+     windows still get a gutter. */
+  --modal-width: 560px;
+  --modal-width-compact: 420px;
 
   /* Border Radius */
   --radius-sm: 4px;

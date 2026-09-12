@@ -426,12 +426,15 @@
 
     <!-- Sessions: the project's Claude Code transcripts, a Context row
          beside Specs and Tasks. Hosted in the center by multiTerminalUI
-         (sessionsPanel.js); the header is the shared .dock-view-header. -->
+         (sessionsPanel.js); the header is the shared .view-header. -->
     <div id="sessions-panel">
-      <div id="sessions-header" class="dock-view-header">
-        <h3 class="dock-view-title">Sessions</h3>
-        <div class="dock-view-actions">
-          <span id="sessions-count" class="dock-view-count"></span>
+      <div id="sessions-header" class="view-header">
+        <div class="view-header-title">
+          <span class="view-header-mark" aria-hidden="true">&#8634;</span>
+          <h2>Sessions</h2>
+        </div>
+        <div class="view-header-actions">
+          <span id="sessions-count" class="view-header-count"></span>
           <button id="sessions-refresh-btn" tabindex="-1" title="Refresh sessions">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
@@ -477,7 +480,7 @@
     <!-- Feedback: what the user wants to tell us about Frame itself. A modal
          opened from the foot of the sidebar rail (feedbackPanel.js). -->
     <div id="feedback-modal" class="modal-overlay">
-      <div class="modal-container modal-container-wide feedback-modal" role="dialog" aria-label="Feedback">
+      <div class="modal-container feedback-modal" role="dialog" aria-label="Feedback">
         <div class="modal-header">
           <h3>Feedback</h3>
           <button class="modal-close" id="feedback-modal-close" title="Close" aria-label="Close">&#x2715;</button>
@@ -495,7 +498,7 @@
     <!-- Plugins: the Claude Code plugins list. A modal opened from the foot
          of the sidebar rail, above Feedback (pluginsPanel.js). -->
     <div id="plugins-modal" class="modal-overlay">
-      <div class="modal-container modal-container-wide plugins-modal" role="dialog" aria-label="Plugins">
+      <div class="modal-container plugins-modal" role="dialog" aria-label="Plugins">
         <div class="modal-header">
           <h3>Plugins</h3>
           <button class="modal-close" id="plugins-modal-close" title="Close" aria-label="Close">&#x2715;</button>
@@ -651,7 +654,7 @@
 
     <!-- Initialize Frame Modal -->
     <div id="initialize-frame-modal" class="modal-overlay">
-      <div class="modal-container modal-container-wide">
+      <div class="modal-container">
         <div class="modal-header">
           <h3>Initialize as Frame Project</h3>
           <button class="modal-close" id="init-frame-modal-close">&#x2715;</button>
@@ -706,7 +709,7 @@
 
     <!-- Migration Decision Modal — the half of the move that is the user's call -->
     <div id="migration-modal" class="modal-overlay">
-      <div class="modal-container modal-container-wide">
+      <div class="modal-container">
         <div class="modal-header">
           <h3>Update <code>AGENTS.md</code> to point at <code>.frame/</code>?</h3>
           <button class="modal-close" id="migration-modal-close">&#x2715;</button>
@@ -782,13 +785,12 @@
 
     <!-- Tasks Dashboard (Kanban) -->
     <div id="tasks-dashboard" class="tasks-dashboard">
-      <div class="tasks-dashboard-header">
-        <div class="tasks-dashboard-title">
-          <span class="tasks-dashboard-mark">&#9783;</span>
-          <h2>Task Board</h2>
-          <span id="tasks-dashboard-project" class="tasks-dashboard-project"></span>
+      <div class="view-header">
+        <div class="view-header-title">
+          <span class="view-header-mark" aria-hidden="true">&#10003;</span>
+          <h2>Tasks</h2>
         </div>
-        <div class="tasks-dashboard-actions">
+        <div class="view-header-actions tasks-dashboard-actions">
           <div class="tasks-dashboard-filter-wrap">
             <button id="tasks-dashboard-filter-btn" class="tasks-dashboard-toolbar-btn" tabindex="-1" title="Filter tasks">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -999,68 +1001,75 @@
               <button type="submit" class="tasks-dashboard-form-save">Save Task</button>
             </div>
           </form>
-          <div class="tasks-dashboard-detail-content" style="display:none;">
-            <div class="tasks-dashboard-detail-header">
-              <div class="tasks-dashboard-detail-status-pill"></div>
-              <div class="tasks-dashboard-detail-header-actions">
-                <button class="tasks-dashboard-detail-delete" tabindex="-1" title="Delete task">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6"/>
-                    <path d="M14 11v6"/>
-                    <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
-                  </svg>
-                  Delete
-                </button>
-                <button class="tasks-dashboard-detail-close tasks-dashboard-btn-icon" tabindex="-1" title="Close details">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <h3 class="tasks-dashboard-detail-title"></h3>
-            <div class="tasks-dashboard-detail-meta"></div>
-            <div class="tasks-dashboard-detail-section">
-              <h4>Description</h4>
-              <p class="tasks-dashboard-detail-description"></p>
-            </div>
-            <div class="tasks-dashboard-detail-section tasks-dashboard-detail-userrequest" style="display:none;">
-              <h4>Original request</h4>
-              <p class="tasks-dashboard-detail-userrequest-text"></p>
-            </div>
-            <div class="tasks-dashboard-detail-section tasks-dashboard-detail-criteria" style="display:none;">
-              <h4>Acceptance criteria</h4>
-              <p class="tasks-dashboard-detail-criteria-text"></p>
-            </div>
-            <div class="tasks-dashboard-detail-section tasks-dashboard-detail-notes" style="display:none;">
-              <h4>Notes</h4>
-              <p class="tasks-dashboard-detail-notes-text"></p>
-            </div>
-            <div class="tasks-dashboard-detail-section tasks-dashboard-detail-context" style="display:none;">
-              <h4>Context</h4>
-              <p class="tasks-dashboard-detail-context-text"></p>
-            </div>
-            <div class="tasks-dashboard-detail-footer">
-              <span class="tasks-dashboard-detail-id"></span>
-              <span class="tasks-dashboard-detail-dates"></span>
-            </div>
-          </div>
         </aside>
       </div>
+      <!-- Task detail drawer: a full-page panel that slides in from the right
+           over the whole board when a card is selected. Mirrors the specs
+           dashboard drawer. -->
+      <aside id="tasks-dashboard-task-drawer" class="tasks-dashboard-task-drawer" aria-hidden="true">
+        <div class="tasks-dashboard-task-drawer-bar">
+          <button class="tasks-dashboard-task-drawer-back" aria-label="Back to all tasks">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Tasks</span>
+          </button>
+          <button class="tasks-dashboard-task-drawer-close" aria-label="Close detail">&#x2715;</button>
+        </div>
+        <div class="tasks-dashboard-detail-content" style="display:none;">
+          <div class="tasks-dashboard-detail-inner">
+          <div class="tasks-dashboard-detail-header">
+            <div class="tasks-dashboard-detail-status-pill"></div>
+            <div class="tasks-dashboard-detail-header-actions">
+              <button class="tasks-dashboard-detail-delete" tabindex="-1" title="Delete task">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6"/>
+                  <path d="M14 11v6"/>
+                  <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+          <h3 class="tasks-dashboard-detail-title"></h3>
+          <div class="tasks-dashboard-detail-meta"></div>
+          <div class="tasks-dashboard-detail-section">
+            <h4>Description</h4>
+            <p class="tasks-dashboard-detail-description"></p>
+          </div>
+          <div class="tasks-dashboard-detail-section tasks-dashboard-detail-userrequest" style="display:none;">
+            <h4>Original request</h4>
+            <p class="tasks-dashboard-detail-userrequest-text"></p>
+          </div>
+          <div class="tasks-dashboard-detail-section tasks-dashboard-detail-criteria" style="display:none;">
+            <h4>Acceptance criteria</h4>
+            <p class="tasks-dashboard-detail-criteria-text"></p>
+          </div>
+          <div class="tasks-dashboard-detail-section tasks-dashboard-detail-notes" style="display:none;">
+            <h4>Notes</h4>
+            <p class="tasks-dashboard-detail-notes-text"></p>
+          </div>
+          <div class="tasks-dashboard-detail-section tasks-dashboard-detail-context" style="display:none;">
+            <h4>Context</h4>
+            <p class="tasks-dashboard-detail-context-text"></p>
+          </div>
+          <div class="tasks-dashboard-detail-footer">
+            <span class="tasks-dashboard-detail-id"></span>
+            <span class="tasks-dashboard-detail-dates"></span>
+          </div>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <!-- Specs Dashboard (full-page card grid view) -->
     <div id="specs-dashboard" class="specs-dashboard">
-      <div class="specs-dashboard-header">
-        <div class="specs-dashboard-title">
-          <span class="specs-dashboard-mark">&#10022;</span>
+      <div class="view-header">
+        <div class="view-header-title">
+          <span class="view-header-mark" aria-hidden="true">&#8801;</span>
           <h2>Specs</h2>
-          <span id="specs-dashboard-project" class="specs-dashboard-project"></span>
         </div>
-        <div class="specs-dashboard-actions">
+        <div class="view-header-actions specs-dashboard-actions">
           <button id="specs-dashboard-new" class="btn btn-primary specs-dashboard-new" tabindex="-1">+ New Spec</button>
           <button id="specs-dashboard-close" class="specs-dashboard-close" tabindex="-1" aria-label="Close dashboard">&#x2715;</button>
         </div>

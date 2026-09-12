@@ -11,6 +11,11 @@
  * Outcome tabs, interactive task rows routed through UPDATE_TASK) so the
  * two surfaces read as one screen.
  *
+ * The spec in the drawer is also pinned as a chip in the top bar (via the
+ * inline host's drawerOpened/drawerClosed hooks). One chip, replaced on
+ * every open; it outlives the drawer and the view, so switching to Home or
+ * Terminals and back never loses the spec — clicking the chip re-opens it.
+ *
  * State subscribes to the same SPEC_DATA + TASKS_DATA streams the side
  * panel uses, so dashboard, side panel, and disk all stay in sync.
  */
@@ -40,13 +45,13 @@ let allTasks = [];
 let selectedSlug = null;
 let selectedSpec = null;   // full spec body (from GET_SPEC)
 let selectedTab = 'spec';
+let renderedSlug = null;    // slug whose detail HTML is currently in detailContentEl
 let activeFilter = 'all';
 let searchQuery = '';        // current search text (trimmed lower-cased when matched)
 let searchMatches = null;    // Set of slugs matching the query, or null when no search is active
 let searchDebounce = null;
 
 let dashboardEl = null;
-let projectLabelEl = null;
 let gridEl = null;
 let filtersEl = null;
 let searchInputEl = null;
@@ -58,7 +63,6 @@ function init() {
   dashboardEl = document.getElementById('specs-dashboard');
   if (!dashboardEl) return;
 
-  projectLabelEl = document.getElementById('specs-dashboard-project');
   gridEl = document.getElementById('specs-dashboard-grid');
   filtersEl = document.getElementById('specs-dashboard-filters');
   searchInputEl = document.getElementById('specs-dashboard-search-input');
@@ -137,7 +141,7 @@ function setupIPCListeners() {
 // and every legacy entry point (show/toggle, deep links, palette) routes
 // through the host so no code path opens the overlay anymore.
 
-let inlineHost = null;     // { open(), close() } — set by multiTerminalUI
+let inlineHost = null;     // { open(), close(), drawerOpened?({slug,title}), drawerClosed?() } — set by multiTerminalUI
 let inlineMounted = false;
 let overlayParent = null;  // where the element lives when not inline-mounted
 
@@ -160,7 +164,7 @@ function notifyDetached() {
   if (!inlineMounted) return;
   inlineMounted = false;
   isVisible = false;
-  clearSelection();
+  clearSelection({ notify: false });
   dashboardEl.classList.remove('visible', 'inline');
   if (overlayParent && dashboardEl.parentNode !== overlayParent) {
     overlayParent.appendChild(dashboardEl);
@@ -182,7 +186,6 @@ async function _load() {
 
   clearSearch();  // start from a clean search state on every open
   isVisible = true;
-  if (projectLabelEl) projectLabelEl.textContent = displayProjectName(projectPath);
 
   // Fetch synchronously so the grid paints with real data on first frame
   // instead of waiting for the watcher's debounced push. Watcher still runs
@@ -391,15 +394,42 @@ function renderCard(spec) {
 
 // ─── Detail aside ───────────────────────────────────────
 
-async function selectCard(slug) {
+/**
+ * Open a spec in the drawer. `instant` is the top-bar chip path: the grid
+ * has just been mounted underneath, so the drawer must already cover it in
+ * the same frame — no slide, and no flash of the grid while GET_SPEC is in
+ * flight. The has-selection class goes on synchronously (with transitions
+ * suppressed) and the content fills in when the data lands.
+ */
+async function selectCard(slug, { instant = false } = {}) {
   selectedSlug = slug;
   selectedTab = 'spec';
+  if (instant && detailEl) {
+    detailEl.classList.add('instant');
+    detailEl.classList.add('has-selection');
+    detailEl.setAttribute('aria-hidden', 'false');
+    if (detailContentEl) {
+      // Stale content from another spec must not show while we load
+      if (renderedSlug !== slug) detailContentEl.innerHTML = '';
+      detailContentEl.scrollTop = 0;
+    }
+  }
   await reloadDetail();
+  if (instant && detailEl) {
+    // Two frames so the class removal itself can never start a transition
+    requestAnimationFrame(() => requestAnimationFrame(() => detailEl.classList.remove('instant')));
+  }
   // Re-render to mark the selected card
   renderGrid();
 }
 
-function clearSelection() {
+/**
+ * Close the drawer. `notify: false` is for the host-driven teardown
+ * (notifyDetached) — the host is already mid-render there, and calling
+ * back into it would re-enter that render.
+ */
+function clearSelection({ notify = true } = {}) {
+  const hadSelection = !!selectedSlug;
   selectedSlug = null;
   selectedSpec = null;
   selectedTab = 'spec';
@@ -408,6 +438,7 @@ function clearSelection() {
     detailEl.setAttribute('aria-hidden', 'true');
   }
   renderGrid();
+  if (hadSelection && notify && inlineHost && inlineHost.drawerClosed) inlineHost.drawerClosed();
 }
 
 async function reloadDetail() {
@@ -429,6 +460,12 @@ async function reloadDetail() {
   renderDetailHeader();
   renderDetailBody();
   attachTaskActionHandlers();
+  // The top bar pins whichever spec the drawer shows (one chip, replaced on
+  // every open) so leaving this screen never loses the spec — the chip is
+  // the way back. Fires on rename too, since that path lands here.
+  if (inlineHost && inlineHost.drawerOpened) {
+    inlineHost.drawerOpened({ slug: selectedSlug, title: selectedSpec.status.title || selectedSlug });
+  }
 }
 
 function renderDetailHeader() {
@@ -440,6 +477,7 @@ function renderDetailHeader() {
   // Same layout as specSection's detail (title → meta → stepper → next
   // action → tabs), centered in the spec-section column, so the drawer and
   // the section viewport are one screen.
+  renderedSlug = status.slug;
   detailContentEl.innerHTML = `
     <div class="spec-section">
       <div class="spec-section-inner spec-detail">
@@ -725,12 +763,13 @@ function relativeTime(iso) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function displayProjectName(projectPath) {
-  return projectPath.split('/').pop() || projectPath.split('\\').pop() || projectPath;
-}
-
 module.exports = {
   init, show, hide, toggle,
   setInlineHost, mountInline, notifyDetached,
-  isInlineMounted: () => inlineMounted
+  isInlineMounted: () => inlineMounted,
+  // Drawer control for the top bar's spec chip (multiTerminalUI): open a
+  // spec in the drawer while mounted, read what it shows, close it.
+  openSpec: (slug, opts) => { if (inlineMounted && slug) selectCard(slug, opts); },
+  getSelectedSlug: () => selectedSlug,
+  closeDrawer: () => clearSelection({ notify: false })
 };

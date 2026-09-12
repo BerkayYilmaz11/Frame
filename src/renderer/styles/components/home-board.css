@@ -767,8 +767,7 @@
 }
 
 .tcn-container {
-  width: 90%;
-  max-width: 420px;
+  width: min(var(--modal-width-compact), 92vw);
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);

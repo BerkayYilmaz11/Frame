@@ -18,7 +18,11 @@
  *
  * What earns a place here is a surface with *live state*. Terminals has
  * running processes; the Specs grid does not, so Specs, Tasks, Decisions and
- * the panels open from the sidebar and stay out.
+ * the panels open from the sidebar and stay out. The one thing the grid
+ * does pin is the spec its drawer shows: a single chip that outlives the
+ * drawer and the view, replaced on every open, so leaving the grid never
+ * loses the spec (multiTerminalUI.enterSpecDrawer). The Tasks board pins
+ * its drawer's task the same way (multiTerminalUI.enterTaskDrawer).
  *
  * The right action cluster (agent launcher, update, theme) is
  * mode-independent.
@@ -58,6 +62,10 @@ class TerminalTabBar {
     this.onLaneCreated = null;    // Callback: (terminalId) => after + creates a lane
     this.onActivateSection = null; // Callback: (key) => focus an open section tab
     this.onCloseSection = null;    // Callback: (key) => close a section tab
+    this.onEnterSpecDrawer = null; // Callback: reopen the pinned spec in the Specs grid's drawer
+    this.onDropSpecDrawer = null;  // Callback: drop the pinned spec chip
+    this.onEnterTaskDrawer = null; // Callback: reopen the pinned task in the Tasks board's drawer
+    this.onDropTaskDrawer = null;  // Callback: drop the pinned task chip
     this._lastState = null;
     this._injectStyles();
     this._render();
@@ -233,13 +241,15 @@ class TerminalTabBar {
     const liveCount = (state.terminals || []).length;
     const terminals = state.barTerminals || state.terminals || [];
     const shownId = state.shownTerminalId || null;
+    const specDrawer = state.specDrawer || null;
+    const taskDrawer = state.taskDrawer || null;
 
     left.innerHTML = `
       <button class="btn-lane-home ${onHome ? 'current' : ''}" title="Home (Cmd+Esc)">
         ${lucideIcon(Home, 15)}
         <span class="btn-lane-home-label">Home</span>
       </button>
-      ${showTerminals || sections.length ? '<span class="lane-bar-divider"></span>' : ''}
+      ${showTerminals || sections.length || specDrawer || taskDrawer ? '<span class="lane-bar-divider"></span>' : ''}
       ${showTerminals ? `
         <button class="lane-bar-section lane-bar-terminals ${onTerminals && !shownId ? 'current' : ''}" title="All terminals">
           <span class="lane-bar-terminals-icon" aria-hidden="true">›_</span>
@@ -247,6 +257,20 @@ class TerminalTabBar {
           ${liveCount ? '' : `<span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>`}
         </button>
         ${terminals.map(t => this._terminalChip(t, onTerminals && shownId === t.id)).join('')}
+      ` : ''}
+      ${specDrawer ? `
+        <button class="lane-bar-section lane-bar-spec-drawer ${state.specDrawerShown ? 'current' : ''}" data-slug="${escapeHtml(specDrawer.slug)}" title="${escapeHtml(specDrawer.title)}">
+          ${lucideIcon(FileText, 13)}
+          <span class="lane-bar-section-label">${escapeHtml(specDrawer.title)}</span>
+          <span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>
+        </button>
+      ` : ''}
+      ${taskDrawer ? `
+        <button class="lane-bar-section lane-bar-task-drawer ${state.taskDrawerShown ? 'current' : ''}" data-task-id="${escapeHtml(String(taskDrawer.id))}" title="${escapeHtml(taskDrawer.title)}">
+          ${lucideIcon(CheckSquare, 13)}
+          <span class="lane-bar-section-label">${escapeHtml(taskDrawer.title)}</span>
+          <span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>
+        </button>
       ` : ''}
       ${sections.map(sec => `
         <button class="lane-bar-section ${sec.key === activeKey ? 'current' : ''}" data-key="${escapeHtml(sec.key)}" title="${escapeHtml(sec.title)}">
@@ -309,6 +333,27 @@ class TerminalTabBar {
           if (this.onDropTerminal) this.onDropTerminal(id);
         } else if (this.onEnterTerminal) {
           this.onEnterTerminal(id);
+        }
+        return;
+      }
+      // The spec pinned by the Specs grid's drawer: body reopens it there,
+      // × drops the chip.
+      if (e.target.closest('.lane-bar-spec-drawer')) {
+        if (e.target.closest('.lane-bar-section-close')) {
+          e.stopPropagation();
+          if (this.onDropSpecDrawer) this.onDropSpecDrawer();
+        } else if (this.onEnterSpecDrawer) {
+          this.onEnterSpecDrawer();
+        }
+        return;
+      }
+      // The task pinned by the Tasks board's drawer: same contract.
+      if (e.target.closest('.lane-bar-task-drawer')) {
+        if (e.target.closest('.lane-bar-section-close')) {
+          e.stopPropagation();
+          if (this.onDropTaskDrawer) this.onDropTaskDrawer();
+        } else if (this.onEnterTaskDrawer) {
+          this.onEnterTaskDrawer();
         }
         return;
       }

@@ -79,7 +79,7 @@ function open({ slug, title = null, hint = null, lane = null } = {}) {
     const overlay = document.createElement('div');
     overlay.className = 'spec-modal-overlay';
     overlay.innerHTML = `
-      <div class="spec-modal spec-implement-modal" role="dialog" aria-modal="true" aria-labelledby="impl-mode-title">
+      <div class="spec-modal" role="dialog" aria-modal="true" aria-labelledby="impl-mode-title">
         <h3 id="impl-mode-title">How should this run?</h3>
         <p>Choose how <strong>${escapeHtml(title || slug)}</strong> implements its remaining tasks.</p>
         <div class="impl-mode-list" role="radiogroup" aria-label="Implement mode"></div>

@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-11",
+  "lastUpdated": "2026-09-12",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -7350,104 +7350,104 @@
           "line": 187
         },
         "stopSession": {
-          "line": 248,
+          "line": 253,
           "purpose": "Stop the whole session: teardown (worktrees removed, merged branches pruned,"
         },
         "syncToolbar": {
-          "line": 260,
+          "line": 265,
           "params": [
             "root"
           ],
           "purpose": "Stop & clean up only means something once a session exists."
         },
         "renderConductorZone": {
-          "line": 267,
+          "line": 272,
           "params": [
             "root"
           ]
         },
         "renderStartPanel": {
-          "line": 292,
+          "line": 297,
           "params": [
             "zone"
           ],
           "purpose": "Idle state: the board is open but no conductor exists yet. The terminal zone"
         },
         "startFromPanel": {
-          "line": 308,
+          "line": 313,
           "params": [
             "e"
           ]
         },
         "stageOf": {
-          "line": 346,
+          "line": 351,
           "params": [
             "w"
           ]
         },
         "renderPipeline": {
-          "line": 359,
+          "line": 364,
           "params": [
             "root"
           ]
         },
         "renderWorkerZone": {
-          "line": 402,
+          "line": 407,
           "params": [
             "root"
           ]
         },
         "mergeWorkerAction": {
-          "line": 452,
+          "line": 457,
           "params": [
             "slug"
           ]
         },
         "resumeWorkerAction": {
-          "line": 472,
+          "line": 477,
           "params": [
             "slug"
           ]
         },
         "removeWorkerAction": {
-          "line": 480,
+          "line": 485,
           "params": [
             "slug"
           ]
         },
         "_shortPath": {
-          "line": 489,
+          "line": 494,
           "params": [
             "p"
           ]
         },
         "_relTime": {
-          "line": 495,
+          "line": 500,
           "params": [
             "ts"
           ]
         },
         "loadSpecs": {
-          "line": 506,
+          "line": 511,
           "params": [
             "root"
           ]
         },
         "renderSpecRail": {
-          "line": 521,
+          "line": 526,
           "params": [
             "root",
             "specs"
           ]
         },
         "assignSpec": {
-          "line": 556,
+          "line": 561,
           "params": [
             "slug"
           ]
         },
         "nudgeConductor": {
-          "line": 570,
+          "line": 575,
           "params": [
             "projectPath"
           ]
@@ -8906,7 +8906,11 @@
         "setInlineHost",
         "mountInline",
         "notifyDetached",
-        "isInlineMounted"
+        "isInlineMounted",
+        "read what it shows",
+        "close it.\n  openSpec",
+        "opts) => { if (inlineMounted && slug) selectCard(slug",
+        "opts);"
       ],
       "depends": [
         "electron",
@@ -8923,93 +8927,99 @@
       ],
       "functions": {
         "init": {
-          "line": 57
+          "line": 62
         },
         "setupIPCListeners": {
-          "line": 93
+          "line": 97
         },
         "setInlineHost": {
-          "line": 144,
+          "line": 148,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 149,
+          "line": 153,
           "params": [
             "container"
           ],
           "purpose": "Mount into the center content area and load data. Called by the host."
         },
         "notifyDetached": {
-          "line": 159,
+          "line": 163,
           "purpose": "The host swapped the center to another view — reset without routing."
         },
         "_load": {
-          "line": 170
+          "line": 174
         },
         "show": {
-          "line": 200
+          "line": 203
         },
         "hide": {
-          "line": 210
+          "line": 213
         },
         "toggle": {
-          "line": 221
+          "line": 224
         },
         "renderFilters": {
-          "line": 231
+          "line": 234
         },
         "applyFilter": {
-          "line": 245,
+          "line": 248,
           "params": [
             "specsList"
           ]
         },
         "setupSearch": {
-          "line": 261
+          "line": 264
         },
         "runSearch": {
-          "line": 275,
+          "line": 278,
           "params": [
             "rawQuery"
           ]
         },
         "clearSearch": {
-          "line": 298
+          "line": 301
         },
         "renderGrid": {
-          "line": 309
+          "line": 312
         },
         "renderCard": {
-          "line": 340,
+          "line": 343,
           "params": [
             "spec"
           ]
         },
         "selectCard": {
-          "line": 394,
+          "line": 404,
           "params": [
-            "slug"
-          ]
+            "slug",
+            "{ instant = false } = {}"
+          ],
+          "purpose": "Open a spec in the drawer. `instant` is the top-bar chip path: the grid"
         },
         "clearSelection": {
-          "line": 402
+          "line": 431,
+          "params": [
+            "{ notify = true } = {}"
+          ],
+          "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "reloadDetail": {
-          "line": 413
+          "line": 444
         },
         "renderDetailHeader": {
-          "line": 434
+          "line": 471
         },
         "runSpecCommand": {
-          "line": 519,
+          "line": 557,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 530,
+          "line": 568,
           "params": [
             "tab",
             "label",
@@ -9017,52 +9027,46 @@
           ]
         },
         "renderDetailBody": {
-          "line": 536
+          "line": 574
         },
         "renderTasksTabBody": {
-          "line": 587
+          "line": 625
         },
         "renderSpecTaskRow": {
-          "line": 624,
+          "line": 662,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 673
+          "line": 711
         },
         "handleSpecTaskAction": {
-          "line": 686,
+          "line": 724,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 697
+          "line": 735
         },
         "tasksTabLabel": {
-          "line": 703,
+          "line": 741,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 712,
+          "line": 750,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 717,
+          "line": 755,
           "params": [
             "iso"
-          ]
-        },
-        "displayProjectName": {
-          "line": 728,
-          "params": [
-            "projectPath"
           ]
         }
       },
@@ -9278,20 +9282,30 @@
         "platform",
         "htmlUtils",
         "tooltip",
+        "lucide",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 63
+          "line": 67
+        },
+        "_buildBranch": {
+          "line": 94
+        },
+        "_renderBranch": {
+          "line": 114,
+          "params": [
+            "branch"
+          ]
         },
         "_buildDockIcons": {
-          "line": 89
+          "line": 128
         },
         "_buildAgentSlot": {
-          "line": 139
+          "line": 178
         },
         "updateAgents": {
-          "line": 174,
+          "line": 213,
           "params": [
             "states",
             "counts"
@@ -9299,19 +9313,19 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 206,
+          "line": 245,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 210
+          "line": 249
         },
         "_renderMenu": {
-          "line": 245
+          "line": 284
         },
         "_focus": {
-          "line": 269,
+          "line": 308,
           "params": [
             "projectPath",
             "terminalId"
@@ -9319,29 +9333,29 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_scheduleOpen": {
-          "line": 279
+          "line": 318
         },
         "_scheduleClose": {
-          "line": 285
+          "line": 324
         },
         "_openMenu": {
-          "line": 291
+          "line": 330
         },
         "_closeMenu": {
-          "line": 299,
+          "line": 338,
           "params": [
             "immediate = false"
           ]
         },
         "updateUsage": {
-          "line": 306,
+          "line": 345,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 335,
+          "line": 374,
           "params": [
             "item",
             "usage",
@@ -9350,7 +9364,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 358,
+          "line": 397,
           "params": [
             "isoString"
           ],
@@ -9359,7 +9373,8 @@
       },
       "ipc": {
         "listens": [
-          "CLAUDE_USAGE_DATA"
+          "CLAUDE_USAGE_DATA",
+          "GIT_STATUS_DATA"
         ],
         "emits": [
           "REFRESH_CLAUDE_USAGE",
@@ -9738,7 +9753,13 @@
         "setInlineHost",
         "mountInline",
         "notifyDetached",
-        "isInlineMounted"
+        "isInlineMounted",
+        "read what it shows",
+        "close it.\n  openTask",
+        "opts) => !!(inlineMounted && id && selectTask(id",
+        "opts))",
+        "getSelectedTaskId",
+        "closeDrawer"
       ],
       "depends": [
         "electron",
@@ -9750,65 +9771,65 @@
       ],
       "functions": {
         "init": {
-          "line": 65
+          "line": 71
         },
         "flatten": {
-          "line": 131,
+          "line": 138,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 151,
+          "line": 158,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 155,
+          "line": 162,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 164
+          "line": 171
         },
         "_load": {
-          "line": 177
+          "line": 184
         },
         "show": {
-          "line": 197
+          "line": 200
         },
         "hide": {
-          "line": 207
+          "line": 210
         },
         "toggle": {
-          "line": 220
+          "line": 223
         },
         "render": {
-          "line": 228
+          "line": 231
         },
         "renderCard": {
-          "line": 291,
+          "line": 294,
           "params": [
             "task"
           ]
         },
         "setupDropTargets": {
-          "line": 342
+          "line": 345
         },
         "onDragStart": {
-          "line": 381,
+          "line": 384,
           "params": [
             "e",
             "task"
           ]
         },
         "onDragEnd": {
-          "line": 393
+          "line": 396
         },
         "getCardAfterY": {
-          "line": 407,
+          "line": 410,
           "params": [
             "container",
             "y"
@@ -9816,52 +9837,58 @@
           "purpose": "Find the card the dragged item should be inserted *before*, based on"
         },
         "commitOrder": {
-          "line": 423,
+          "line": 426,
           "purpose": "Read the current DOM order across all three columns and send the new order"
         },
         "syncAside": {
-          "line": 448,
-          "purpose": "Single owner of the aside's visibility. It has exactly two reasons to"
+          "line": 453,
+          "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 460,
+          "line": 479,
           "params": [
-            "taskId"
-          ]
+            "taskId",
+            "{ instant = false } = {}"
+          ],
+          "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the board"
         },
         "clearSelection": {
-          "line": 474
+          "line": 504,
+          "params": [
+            "{ notify = true } = {}"
+          ],
+          "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 483,
+          "line": 515,
           "purpose": "Leaving the board: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 494
+          "line": 526
         },
         "setupForm": {
-          "line": 498
+          "line": 530
         },
         "showForm": {
-          "line": 512
+          "line": 544
         },
         "hideForm": {
-          "line": 527
+          "line": 559
         },
         "requestDeleteSelected": {
-          "line": 535
+          "line": 567
         },
         "submitForm": {
-          "line": 553
+          "line": 585
         },
         "renderDetail": {
-          "line": 571,
+          "line": 603,
           "params": [
             "task"
           ]
         },
         "appendMetaPill": {
-          "line": 622,
+          "line": 661,
           "params": [
             "container",
             "text",
@@ -9869,7 +9896,7 @@
           ]
         },
         "setSection": {
-          "line": 629,
+          "line": 668,
           "params": [
             "textEl",
             "sectionEl",
@@ -9877,71 +9904,71 @@
           ]
         },
         "formatDate": {
-          "line": 640,
+          "line": 679,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 654
+          "line": 693
         },
         "filterMatches": {
-          "line": 658,
+          "line": 697,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 664
+          "line": 703
         },
         "isFilterPopoverOpen": {
-          "line": 702
+          "line": 741
         },
         "toggleFilterPopover": {
-          "line": 706
+          "line": 745
         },
         "openFilterPopover": {
-          "line": 712
+          "line": 751
         },
         "closeFilterPopover": {
-          "line": 718
+          "line": 757
         },
         "clearFilters": {
-          "line": 724
+          "line": 763
         },
         "updateFilterUI": {
-          "line": 736
+          "line": 775
         },
         "compareTasks": {
-          "line": 753,
+          "line": 792,
           "params": [
             "a",
             "b"
           ]
         },
         "setupSort": {
-          "line": 769
+          "line": 808
         },
         "isSortPopoverOpen": {
-          "line": 814
+          "line": 853
         },
         "toggleSortPopover": {
-          "line": 818
+          "line": 857
         },
         "openSortPopover": {
-          "line": 824
+          "line": 863
         },
         "closeSortPopover": {
-          "line": 830
+          "line": 869
         },
         "resetSort": {
-          "line": 836
+          "line": 875
         },
         "updateSortUI": {
-          "line": 849
+          "line": 888
         },
         "commitSortToFile": {
-          "line": 874,
+          "line": 913,
           "purpose": "Commit the current sorted view to tasks.json. Per-column sorted order is"
         }
       },
@@ -10383,7 +10410,7 @@
       ],
       "functions": {
         "lucideIcon": {
-          "line": 38,
+          "line": 42,
           "params": [
             "data",
             "size = 18"
