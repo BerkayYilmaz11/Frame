@@ -581,8 +581,7 @@ select:focus-visible {
 }
 
 .task-modal-container {
-  width: 90%;
-  max-width: 480px;
+  width: min(var(--modal-width), 92vw);
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);

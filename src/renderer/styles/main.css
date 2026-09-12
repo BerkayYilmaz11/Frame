@@ -20,6 +20,9 @@
 /* 5. Panels (History, Tasks, Plugins, GitHub, Overview, Structure Map) */
 @import 'components/panels.css';
 
+/* Shared header of the full-page surfaces (Specs, Tasks, Sessions, Orchestration) */
+@import 'components/view-header.css';
+
 /* 6. Command Palette */
 @import 'components/command-palette.css';
 

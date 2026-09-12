@@ -10,7 +10,9 @@
  * and 80%.
  *
  * On the left, the slot the status-bar spec declared and left empty — now
- * taken, in order, by the dock's icons (dock-panel-readonly-views spec: one
+ * taken, in order, by the current project's git branch (VS Code's idiom: a
+ * branch glyph and the name, fed by the same GIT_STATUS_DATA push the file
+ * tree decorates from, hidden when the project is not a repo), the dock's icons (dock-panel-readonly-views spec: one
  * monochrome icon per dock tab, click toggles that tab, the open tab's icon
  * reads as active) and then the agents running in **the other projects**,
  * and only them (D14), which keeps its place. This project's
@@ -35,6 +37,7 @@ const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
+const { GitBranch } = require('lucide');
 
 // One button per dock tab, in the strip's order; each runs the same
 // registered command the View menu, the palette and the shortcut run (D12).
@@ -54,6 +57,7 @@ const MENU_CLOSE_MS = 320;
 
 let barEl = null;
 let slotEl = null;
+let branchEl = null;
 let indicatorEl = null;
 let menuEl = null;
 let openTimer = null;
@@ -80,8 +84,43 @@ function init() {
   ipcRenderer.on(IPC.CLAUDE_USAGE_DATA, (event, data) => updateUsage(data));
   ipcRenderer.send(IPC.LOAD_CLAUDE_USAGE);
 
+  _buildBranch();
   _buildDockIcons();
   _buildAgentSlot();
+}
+
+// ─── The left slot, first: the current git branch ───────────
+
+function _buildBranch() {
+  const slot = barEl.querySelector('.status-bar-left');
+  if (!slot) return;
+
+  branchEl = document.createElement('span');
+  branchEl.className = 'sb-branch';
+  branchEl.hidden = true;
+  slot.appendChild(branchEl);
+
+  // Pushes arrive for whichever project main is watching; paint only the
+  // one on screen, so a late push from the previous project cannot label
+  // this one with its branch.
+  ipcRenderer.on(IPC.GIT_STATUS_DATA, (event, payload) => {
+    if (!payload || payload.projectPath !== state.getProjectPath()) return;
+    _renderBranch(payload.isRepo ? payload.branch : null);
+  });
+  // Between projects the old name must not linger until the next push.
+  state.onProjectChange(() => _renderBranch(null));
+}
+
+function _renderBranch(branch) {
+  if (!branchEl) return;
+  if (!branch) {
+    branchEl.hidden = true;
+    branchEl.textContent = '';
+    return;
+  }
+  branchEl.innerHTML = `${dock.lucideIcon(GitBranch, 12)}<span class="sb-branch-name">${escapeHtml(branch)}</span>`;
+  branchEl.title = `On branch ${branch}`;
+  branchEl.hidden = false;
 }
 
 // ─── The left slot, first: the dock's icons ─────────────────

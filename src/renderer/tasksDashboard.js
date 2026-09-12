@@ -7,10 +7,16 @@
  * order and each task's status reflects its column.
  *
  * Cards are intentionally minimal here — no Play / Complete / Pause buttons.
- * Clicking a card opens a detail aside on the right with the full task body
+ * Clicking a card slides a full-page detail drawer in from the right over
+ * the board (same motion as the specs dashboard) with the full task body
  * (description, original userRequest, acceptance criteria, notes, context).
- * That aside is on demand only: with no selection and no open New Task form
- * it leaves the layout so the three columns get the full width.
+ * The right aside only hosts the New Task form now; with no open form it
+ * leaves the layout so the three columns get the full width.
+ *
+ * The task in the drawer is also pinned as a chip in the top bar (via the
+ * inline host's drawerOpened/drawerClosed hooks). One chip, replaced on
+ * every open; it outlives the drawer and the view, so switching to Home or
+ * Terminals and back never loses the task — clicking the chip re-opens it.
  *
  * State is sourced from the same TASKS_DATA stream used by the side panel,
  * so the dashboard, the side panel, and the on-disk tasks.json all stay in
@@ -32,11 +38,11 @@ let isVisible = false;
 let tasks = [];
 let selectedTaskId = null;
 let dashboardEl = null;
-let projectLabelEl = null;
 let columnEls = {};
 let countEls = {};
-let detailEl = null;
-let detailContentEl = null;
+let detailEl = null;         // right aside — hosts the New Task form
+let drawerEl = null;         // full-page task detail drawer
+let detailContentEl = null;  // detail body inside the drawer
 let detailFormEl = null;
 let dragSource = null;
 
@@ -66,9 +72,9 @@ function init() {
   dashboardEl = document.getElementById('tasks-dashboard');
   if (!dashboardEl) return;
 
-  projectLabelEl = document.getElementById('tasks-dashboard-project');
   detailEl = document.getElementById('tasks-dashboard-detail');
-  detailContentEl = detailEl.querySelector('.tasks-dashboard-detail-content');
+  drawerEl = document.getElementById('tasks-dashboard-task-drawer');
+  detailContentEl = drawerEl.querySelector('.tasks-dashboard-detail-content');
   detailFormEl = document.getElementById('tasks-dashboard-form');
 
   for (const status of STATUS_COLUMNS) {
@@ -84,11 +90,12 @@ function init() {
   // than the modal — the modal is reserved for the tasks side panel.
   document.getElementById('tasks-dashboard-add').addEventListener('click', showForm);
 
-  detailEl.querySelector('.tasks-dashboard-detail-close').addEventListener('click', clearSelection);
+  drawerEl.querySelector('.tasks-dashboard-task-drawer-close').addEventListener('click', () => clearSelection());
+  drawerEl.querySelector('.tasks-dashboard-task-drawer-back').addEventListener('click', () => clearSelection());
 
   // Delete button on the selected card — routes through the shared confirm
   // modal before any DELETE_TASK is dispatched.
-  const deleteBtn = detailEl.querySelector('.tasks-dashboard-detail-delete');
+  const deleteBtn = drawerEl.querySelector('.tasks-dashboard-detail-delete');
   if (deleteBtn) deleteBtn.addEventListener('click', requestDeleteSelected);
 
   setupForm();
@@ -144,7 +151,7 @@ function flatten(data) {
 // renders inside the center content area and all legacy entry points route
 // through the host — the full-window overlay path goes dormant.
 
-let inlineHost = null;     // { open(), close() } — set by multiTerminalUI
+let inlineHost = null;     // { open(), close(), drawerOpened?({id,title}), drawerClosed?() } — set by multiTerminalUI
 let inlineMounted = false;
 let overlayParent = null;
 
@@ -186,10 +193,6 @@ function _load() {
     return;
   }
   isVisible = true;
-  if (projectLabelEl) {
-    projectLabelEl.textContent =
-      projectPath.split('/').pop() || projectPath.split('\\').pop() || '';
-  }
   ipcRenderer.send(IPC.LOAD_TASKS, projectPath);
   render();
 }
@@ -436,14 +439,16 @@ function commitOrder() {
   ipcRenderer.send(IPC.REORDER_TASKS, { projectPath, order });
 }
 
-/* ---------- Right aside (detail / form) ---------- */
+/* ---------- Right aside (form) + detail drawer ---------- */
 
 /**
- * Single owner of the aside's visibility. It has exactly two reasons to
- * exist — a selected task or an open form — and when it has neither it
- * leaves the layout entirely so the three columns take the full width
- * (tasks-detail-on-demand spec). Every path that changes selection or form
- * state ends here, so the panel can only be wrong in one place.
+ * Single owner of the aside's and the drawer's visibility. The aside exists
+ * only while the New Task form is open — otherwise it leaves the layout so
+ * the three columns take the full width (tasks-detail-on-demand spec). The
+ * drawer slides in over the board while a task is selected and no form is
+ * open; it stays in the DOM parked off-screen so open/close animate. Every
+ * path that changes selection or form state ends here, so the panels can
+ * only be wrong in one place.
  */
 function syncAside() {
   if (!detailEl) return;
@@ -452,15 +457,34 @@ function syncAside() {
     ? tasks.find(t => t.id === selectedTaskId)
     : null;
 
-  detailEl.classList.toggle('open', formOpen || !!task);
-  if (detailContentEl) detailContentEl.style.display = task ? '' : 'none';
+  detailEl.classList.toggle('open', formOpen);
+
+  if (drawerEl) {
+    const opening = !!task && !drawerEl.classList.contains('has-selection');
+    drawerEl.classList.toggle('has-selection', !!task);
+    drawerEl.setAttribute('aria-hidden', task ? 'false' : 'true');
+    if (opening && detailContentEl) detailContentEl.scrollTop = 0;
+  }
+  // Content stays rendered while the drawer slides out so the close
+  // animation doesn't show an empty panel.
   if (task) renderDetail(task);
 }
 
-function selectTask(taskId) {
+/**
+ * Open a task in the drawer. `instant` is the top-bar chip path: the board
+ * has just been mounted underneath, so the drawer must already cover it in
+ * the same frame — no slide, no flash of the columns. Returns false when
+ * the task no longer exists.
+ */
+function selectTask(taskId, { instant = false } = {}) {
   const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
+  if (!task) return false;
   selectedTaskId = taskId;
+  if (instant && drawerEl) {
+    drawerEl.classList.add('instant');
+    // Two frames so the class removal itself can never start a transition
+    requestAnimationFrame(() => requestAnimationFrame(() => drawerEl.classList.remove('instant')));
+  }
   // Selecting a card always exits form mode — the aside has one job at a time.
   if (isFormOpen()) detailFormEl.style.display = 'none';
   document.querySelectorAll('.tasks-dashboard-card.selected').forEach(el => {
@@ -469,14 +493,22 @@ function selectTask(taskId) {
   const card = document.querySelector(`.tasks-dashboard-card[data-task-id="${taskId}"]`);
   if (card) card.classList.add('selected');
   syncAside();
+  return true;
 }
 
-function clearSelection() {
+/**
+ * Close the drawer. `notify: false` is for the host-driven teardown
+ * (notifyDetached → resetAside) — the host is already mid-render there,
+ * and calling back into it would re-enter that render.
+ */
+function clearSelection({ notify = true } = {}) {
+  const hadSelection = !!selectedTaskId;
   selectedTaskId = null;
   document.querySelectorAll('.tasks-dashboard-card.selected').forEach(el => {
     el.classList.remove('selected');
   });
   syncAside();
+  if (hadSelection && notify && inlineHost && inlineHost.drawerClosed) inlineHost.drawerClosed();
 }
 
 /** Leaving the board: no selection, no half-typed form waiting on return. */
@@ -569,7 +601,7 @@ function submitForm() {
 }
 
 function renderDetail(task) {
-  if (!detailEl || !task) return;
+  if (!detailContentEl || !task) return;
 
   detailContentEl.style.display = '';
 
@@ -617,6 +649,13 @@ function renderDetail(task) {
   if (task.updatedAt && task.updatedAt !== task.createdAt) dates.push(`Updated ${formatDate(task.updatedAt)}`);
   if (task.completedAt) dates.push(`Completed ${formatDate(task.completedAt)}`);
   detailContentEl.querySelector('.tasks-dashboard-detail-dates').textContent = dates.join(' · ');
+
+  // The top bar pins whichever task the drawer shows (one chip, replaced on
+  // every open) so leaving this screen never loses the task — the chip is
+  // the way back. Fires on every push too, so a rename updates the chip.
+  if (inlineHost && inlineHost.drawerOpened) {
+    inlineHost.drawerOpened({ id: task.id, title: task.title || 'Untitled' });
+  }
 }
 
 function appendMetaPill(container, text, cls) {
@@ -903,5 +942,10 @@ module.exports = {
   setInlineHost,
   mountInline,
   notifyDetached,
-  isInlineMounted: () => inlineMounted
+  isInlineMounted: () => inlineMounted,
+  // Drawer control for the top bar's task chip (multiTerminalUI): open a
+  // task in the drawer while mounted, read what it shows, close it.
+  openTask: (id, opts) => !!(inlineMounted && id && selectTask(id, opts)),
+  getSelectedTaskId: () => selectedTaskId,
+  closeDrawer: () => clearSelection({ notify: false })
 };

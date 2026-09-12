@@ -212,9 +212,14 @@ function createViewport() {
     liveContainer = el;
     el.innerHTML = `
       <div class="orch-shell">
-        <div class="orch-toolbar">
-          <span class="orch-toolbar-title">Orchestrator</span>
-          <button type="button" class="orch-stop">Stop &amp; clean up</button>
+        <div class="view-header">
+          <div class="view-header-title">
+            <span class="view-header-mark" aria-hidden="true">&#9881;</span>
+            <h2>Orchestration</h2>
+          </div>
+          <div class="view-header-actions">
+            <button type="button" class="orch-stop">Stop &amp; clean up</button>
+          </div>
         </div>
         <div class="orch-pipeline" data-zone="pipeline"></div>
         <div class="orch-section">

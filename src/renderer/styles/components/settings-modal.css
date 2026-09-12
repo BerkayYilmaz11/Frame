@@ -24,7 +24,7 @@
 }
 
 .settings-modal {
-  width: min(560px, 92vw);
+  width: min(var(--modal-width), 92vw);
   height: 72vh;
   background: var(--bg-secondary);
   border: 1px solid var(--border-strong);

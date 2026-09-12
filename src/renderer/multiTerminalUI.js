@@ -53,6 +53,8 @@ class MultiTerminalUI {
     this.terminalsInStrip = true;   // Terminals sits in the top bar until dropped
     this.sections = [];             // Open section tabs (task/spec detail instances)
     this.activeSectionKey = null;   // Which section tab is focused
+    this.specDrawer = null;         // { slug, title } pinned in the top bar by the Specs grid's drawer
+    this.taskDrawer = null;         // { id, title } pinned in the top bar by the Tasks board's drawer
     this.isSectionVisible = false;  // A section tab is currently the on-screen surface
     this._mountedTerminalId = null; // Track which terminal is currently mounted to avoid unnecessary remounts
     this._lastViewMode = null;
@@ -108,6 +110,10 @@ class MultiTerminalUI {
     this.tabBar.onLaneCreated = (terminalId) => this.enterLane(terminalId);
     this.tabBar.onActivateSection = (key) => this.activateSection(key);
     this.tabBar.onCloseSection = (key) => this.closeSection(key);
+    this.tabBar.onEnterSpecDrawer = () => this.enterSpecDrawer();
+    this.tabBar.onDropSpecDrawer = () => this.dropSpecDrawer();
+    this.tabBar.onEnterTaskDrawer = () => this.enterTaskDrawer();
+    this.tabBar.onDropTaskDrawer = () => this.dropTaskDrawer();
 
     // Detail sections (task / spec) open through us — we own the tab
     // collection and what the content area shows. Several can be open at once.
@@ -120,11 +126,17 @@ class MultiTerminalUI {
     // (show/toggle, deep links, palette) routes through these hosts.
     require('./specsDashboard').setInlineHost({
       open: () => this.showSpecsGrid(),
-      close: () => this.showTerminals()
+      close: () => this.showTerminals(),
+      // The grid's drawer pins its spec in the top bar (see enterSpecDrawer).
+      drawerOpened: (info) => this._setSpecDrawer(info),
+      drawerClosed: () => this._onStateChange(this._currentState())
     });
     require('./tasksDashboard').setInlineHost({
       open: () => this.showTasksBoard(),
-      close: () => this.showTerminals()
+      close: () => this.showTerminals(),
+      // The board's drawer pins its task in the top bar (see enterTaskDrawer).
+      drawerOpened: (info) => this._setTaskDrawer(info),
+      drawerClosed: () => this._onStateChange(this._currentState())
     });
 
     // Listen for state changes
@@ -152,6 +164,8 @@ class MultiTerminalUI {
   setCurrentProject(projectPath) {
     // Pinned section tabs belong to the previous project — drop them all
     this._disposeAllSections();
+    this.specDrawer = null;
+    this.taskDrawer = null;
 
     this.manager.setCurrentProject(projectPath);
 
@@ -321,6 +335,116 @@ class MultiTerminalUI {
     return this.sections.find(s => s.key === this.activeSectionKey) || null;
   }
 
+  // ─── Spec drawer chip ───
+  //
+  // The Specs grid opens a spec in a drawer, and the drawer dies with the
+  // view — switch to Home or a terminal and the spec is gone. So the drawer
+  // pins its spec as one chip in the top bar, the way an enlarged terminal
+  // is pinned: the chip outlives the drawer and the view, and clicking it
+  // brings the grid back with that spec open. Opening another spec replaces
+  // the chip; × on the chip drops it (and closes the drawer if it shows it).
+
+  /** The drawer opened (or re-rendered) a spec — pin it. */
+  _setSpecDrawer(info) {
+    if (!info || !info.slug) return;
+    const prev = this.specDrawer;
+    this.specDrawer = { slug: info.slug, title: info.title || info.slug };
+    // reloadDetail fires on every SPEC_DATA push — only re-render the bar
+    // when the chip itself changes, or when the last render drew it dimmed
+    // and the drawer has since opened on it (the chip-click path: the grid
+    // mounts before the async detail load lands).
+    const unchanged = prev && prev.slug === info.slug && prev.title === this.specDrawer.title;
+    if (unchanged && this._specDrawerLit && this._specDrawerShown()) return;
+    this._onStateChange(this._currentState());
+  }
+
+  /** Is the drawer on screen right now showing the pinned spec? */
+  _specDrawerShown() {
+    if (!this.specDrawer) return false;
+    if (this.isSectionVisible && this._activeSection()) return false;
+    if (this.manager.viewMode !== 'specs') return false;
+    return require('./specsDashboard').getSelectedSlug() === this.specDrawer.slug;
+  }
+
+  /** Chip clicked — back to the grid with the pinned spec in its drawer. */
+  enterSpecDrawer() {
+    if (!this.specDrawer) return;
+    const dashboard = require('./specsDashboard');
+    if (this.manager.viewMode !== 'specs' || (this.isSectionVisible && this._activeSection())) {
+      this.showSpecsGrid(); // mounts the grid synchronously via _onStateChange
+    }
+    if (dashboard.getSelectedSlug() !== this.specDrawer.slug) {
+      // instant: the drawer must already cover the freshly mounted grid —
+      // no slide, no flash of the grid while the spec data loads.
+      dashboard.openSpec(this.specDrawer.slug, { instant: true }); // → drawerOpened → bar re-render
+    } else {
+      this._onStateChange(this._currentState());
+    }
+  }
+
+  /** Chip's × — drop it; close the drawer too if it is showing this spec. */
+  dropSpecDrawer() {
+    if (!this.specDrawer) return;
+    const shown = this._specDrawerShown();
+    this.specDrawer = null;
+    if (shown) require('./specsDashboard').closeDrawer();
+    this._onStateChange(this._currentState());
+  }
+
+  // ─── Task drawer chip ───
+  //
+  // Same contract as the spec chip above, for the Tasks board's drawer: one
+  // chip pinned by whichever task the drawer shows, replaced on every open,
+  // outliving the drawer and the view. Clicking it brings the board back
+  // with that task open; × drops it (and closes the drawer if it shows it).
+
+  /** The drawer opened (or re-rendered) a task — pin it. */
+  _setTaskDrawer(info) {
+    if (!info || !info.id) return;
+    const prev = this.taskDrawer;
+    this.taskDrawer = { id: info.id, title: info.title || String(info.id) };
+    // renderDetail fires on every TASKS_DATA push — only re-render the bar
+    // when the chip itself changes, or when the last render drew it dimmed
+    // and the drawer has since opened on it.
+    const unchanged = prev && prev.id === info.id && prev.title === this.taskDrawer.title;
+    if (unchanged && this._taskDrawerLit && this._taskDrawerShown()) return;
+    this._onStateChange(this._currentState());
+  }
+
+  /** Is the drawer on screen right now showing the pinned task? */
+  _taskDrawerShown() {
+    if (!this.taskDrawer) return false;
+    if (this.isSectionVisible && this._activeSection()) return false;
+    if (this.manager.viewMode !== 'tasks') return false;
+    return require('./tasksDashboard').getSelectedTaskId() === this.taskDrawer.id;
+  }
+
+  /** Chip clicked — back to the board with the pinned task in its drawer. */
+  enterTaskDrawer() {
+    if (!this.taskDrawer) return;
+    const dashboard = require('./tasksDashboard');
+    if (this.manager.viewMode !== 'tasks' || (this.isSectionVisible && this._activeSection())) {
+      this.showTasksBoard(); // mounts the board synchronously via _onStateChange
+    }
+    if (dashboard.getSelectedTaskId() !== this.taskDrawer.id) {
+      // instant: the drawer must already cover the freshly mounted board —
+      // no slide, no flash of the columns.
+      const opened = dashboard.openTask(this.taskDrawer.id, { instant: true }); // → drawerOpened → bar re-render
+      // The task was deleted out from under the chip — nothing to go back to.
+      if (!opened) this.taskDrawer = null;
+    }
+    this._onStateChange(this._currentState());
+  }
+
+  /** Chip's × — drop it; close the drawer too if it is showing this task. */
+  dropTaskDrawer() {
+    if (!this.taskDrawer) return;
+    const shown = this._taskDrawerShown();
+    this.taskDrawer = null;
+    if (shown) require('./tasksDashboard').closeDrawer();
+    this._onStateChange(this._currentState());
+  }
+
   _disposeAllSections() {
     this.sections.forEach(s => s.dispose());
     this.sections = [];
@@ -365,6 +489,14 @@ class MultiTerminalUI {
     const active = this.isSectionVisible ? this._activeSection() : null;
     state.sections = this.sections.map(s => ({ key: s.key, ...s.getChip() }));
     state.activeSectionKey = active ? active.key : null;
+    // ...and the spec pinned by the Specs grid's drawer, lit while on screen
+    state.specDrawer = this.specDrawer;
+    state.specDrawerShown = !active && this._specDrawerShown();
+    this._specDrawerLit = state.specDrawerShown;
+    // ...and the task pinned by the Tasks board's drawer, likewise
+    state.taskDrawer = this.taskDrawer;
+    state.taskDrawerShown = !active && this._taskDrawerShown();
+    this._taskDrawerLit = state.taskDrawerShown;
 
     // Update top bar
     this.tabBar.update(state);

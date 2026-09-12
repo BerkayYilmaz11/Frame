@@ -568,7 +568,7 @@ function showNewSpecPrompt() {
   const overlay = document.createElement('div');
   overlay.className = 'spec-modal-overlay';
   overlay.innerHTML = `
-    <div class="spec-modal spec-modal-wide" role="dialog" aria-modal="true" aria-labelledby="spec-modal-title">
+    <div class="spec-modal" role="dialog" aria-modal="true" aria-labelledby="spec-modal-title">
       <h3 id="spec-modal-title">New Spec</h3>
       <p>Describe the work in your own words. An agent turns it into a spec — it picks the title and writes <code>spec.md</code>.</p>
 
@@ -645,7 +645,7 @@ function showSuggestionModal(projectPath) {
   const overlay = document.createElement('div');
   overlay.className = 'spec-modal-overlay';
   overlay.innerHTML = `
-    <div class="spec-modal spec-modal-suggestion" role="dialog" aria-modal="true" aria-labelledby="spec-suggest-title">
+    <div class="spec-modal" role="dialog" aria-modal="true" aria-labelledby="spec-suggest-title">
       <h3 id="spec-suggest-title">Try Spec-Driven Development?</h3>
       <p class="spec-suggest-lead">
         Frame can structure your AI work into <strong>specs → plans → tasks</strong>.

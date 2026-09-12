@@ -734,7 +734,7 @@
    split (Sessions → a Context view hosted in the center by multiTerminalUI,
    Plugins → its own modal from the rail's foot, below). In its home slot it is
    hidden; mounted, .panel-inline overrides the width and transforms. The
-   header is the shared .dock-view-header (dock.css). */
+   header is the shared .view-header (view-header.css). */
 #sessions-panel {
   width: 380px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
@@ -1107,7 +1107,7 @@
 }
 
 /* ==================== SESSIONS LIST STYLES ====================
-   The header's count is .dock-view-count; refresh sits beside it. */
+   The header's count is .view-header-count; refresh sits beside it. */
 
 #sessions-refresh-btn {
   background: transparent;
@@ -2153,8 +2153,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  width: 380px;
-  max-width: 90%;
+  width: min(var(--modal-width), 92vw);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   animation: modalSlideIn 0.2s ease-out;
 }
@@ -2168,10 +2167,6 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.modal-container-wide {
-  width: 520px;
 }
 
 /* Initialize Frame Modal */
@@ -4741,17 +4736,11 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: var(--space-xl);
-  width: 440px;
-  max-width: 90vw;
+  width: min(var(--modal-width), 92vw);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-}
-
-.spec-modal-wide {
-  width: 720px;
-  max-width: 92vw;
 }
 
 /* Spec detail modal — opened from the Home spec cards. Same shell as
@@ -5018,12 +5007,7 @@
 }
 
 /* Implement mode modal — the unified mode + destination picker opened by the
-   implement button. Wider than the default shell to give the four mode
-   entries room to breathe. */
-.spec-implement-modal {
-  width: 500px;
-}
-
+   implement button. */
 .impl-mode-list {
   display: flex;
   flex-direction: column;
@@ -5124,10 +5108,6 @@
 }
 
 /* Suggestion (opt-in) modal — softer presentation than the New Spec modal */
-.spec-modal-suggestion {
-  width: 540px;
-}
-
 .spec-suggest-lead {
   font-size: 12.5px;
   color: var(--text-secondary);
@@ -5238,43 +5218,8 @@
   min-height: 0;
 }
 
-.specs-dashboard-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg) var(--space-xl);
-  border-bottom: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-}
-
-.specs-dashboard-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.specs-dashboard-mark {
-  font-size: 15px;
-  color: var(--accent-primary);
-}
-
-.specs-dashboard-title h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-.specs-dashboard-project {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-tertiary);
-  background: var(--bg-tertiary);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-}
-
+/* Header: the shared .view-header (view-header.css); only the right-hand
+   controls are Specs' own. */
 .specs-dashboard-actions {
   display: flex;
   gap: var(--space-sm);
@@ -5586,6 +5531,13 @@
   transition:
     transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
     visibility 0s;
+}
+
+/* .instant: opened from the top-bar spec chip — the grid was mounted in the
+   same frame, so the drawer snaps into place instead of sliding over it. */
+.specs-dashboard-detail.instant,
+.specs-dashboard-detail.instant.has-selection {
+  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
