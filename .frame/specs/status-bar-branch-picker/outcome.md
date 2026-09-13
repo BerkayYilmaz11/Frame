@@ -38,3 +38,11 @@ _Captured: 2026-09-13T14:47:50Z · 2 file change(s)_
 
 ---
 
+## T06 — Popover host and styles
+
+Wrote `src/renderer/statusBar/branchPicker.js` as the DOM host over the pure model — parallel reads on every open with a sequence guard against late results, keyboard and outside-click handling, inline notices for every refusal, toast + `REFRESH_GIT_STATUS` + close on success — and the popover, row and `.sb-branch` button styles in `status-bar.css`. Two small departures from the plan: the manage row calls an injected `onManage` callback (T08 wires it from `statusBar.js`, keeping this file free of `commandRegistry`/`githubPanel`), and a `busy` state dims the list while a switch is in flight so a double Enter cannot fire two checkouts. Not exercised in the running app yet — that check comes with T07's wiring.
+
+_Captured: 2026-09-13T14:50:17Z · 2 file change(s)_
+
+---
+

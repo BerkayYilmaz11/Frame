@@ -9940,6 +9940,87 @@
         ]
       }
     },
+    "renderer/statusBar/branchPicker": {
+      "file": "src/renderer/statusBar/branchPicker.js",
+      "description": "Branch picker — the popover behind the status bar's branch indicator",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "isOpen"
+      ],
+      "depends": [
+        "electron",
+        "../shared/ipcChannels",
+        "lucide",
+        "state",
+        "dock",
+        "notify",
+        "htmlUtils",
+        "branchPickerModel"
+      ],
+      "functions": {
+        "init": {
+          "line": 66,
+          "params": [
+            "opts"
+          ]
+        },
+        "isOpen": {
+          "line": 116
+        },
+        "toggle": {
+          "line": 120
+        },
+        "open": {
+          "line": 124
+        },
+        "close": {
+          "line": 173,
+          "params": [
+            "{ refocus = false } = {}"
+          ]
+        },
+        "_render": {
+          "line": 186,
+          "params": [
+            "{ resetHighlight = false } = {}"
+          ]
+        },
+        "_paintHighlight": {
+          "line": 244
+        },
+        "_notice": {
+          "line": 253,
+          "params": [
+            "text",
+            "kind = 'error'"
+          ]
+        },
+        "_clearNotice": {
+          "line": 259
+        },
+        "_onKeydown": {
+          "line": 266,
+          "params": [
+            "e"
+          ]
+        },
+        "_activate": {
+          "line": 286,
+          "params": [
+            "index"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "REFRESH_GIT_STATUS"
+        ]
+      }
+    },
     "renderer/statusBar/branchPickerModel": {
       "file": "src/renderer/statusBar/branchPickerModel.js",
       "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12).",
@@ -13057,6 +13138,11 @@
         "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and"
       },
       {
+        "module": "renderer/statusBar/branchPicker",
+        "file": "src/renderer/statusBar/branchPicker.js",
+        "description": "Branch picker — the popover behind the status bar's branch indicator"
+      },
+      {
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
@@ -13437,6 +13523,18 @@
         "module": "renderer/sessionsPanel",
         "file": "src/renderer/sessionsPanel.js",
         "description": "Sessions Panel"
+      }
+    ],
+    "picker": [
+      {
+        "module": "renderer/statusBar/branchPicker",
+        "file": "src/renderer/statusBar/branchPicker.js",
+        "description": "Branch picker — the popover behind the status bar's branch indicator"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
     "plugins": [
