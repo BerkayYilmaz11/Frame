@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-13T07:01:09.718Z",
+  "lastUpdated": "2026-09-13T11:54:20.015Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7399,10 +7399,101 @@
       "createdAt": "2026-09-13T07:01:09.718Z",
       "updatedAt": "2026-09-13T07:24:01.835Z",
       "completedAt": "2026-09-13T07:24:01.835Z"
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T01",
+      "title": "Flatten the center shell: set `#terminal-container` margin, padding and border-radius to 0 in `src/renderer/styles/layout.css`, and `#terminal` border-radius to 0 in `src/renderer/styles/components/terminal.css`, so the center is one surface from the sidebar's 1px border to the window edge and ends on the status bar's top border",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T01",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T02",
+      "title": "Make the dock flush in `src/renderer/styles/components/dock.css`: remove `#dock` margin, border-radius and outer border, keep a single inner hairline (`border-top` under `.dock-bottom`, `border-left` under `.dock-right`), and confirm drag-resize and the size clamp behave as before at both positions",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T02",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T03",
+      "title": "Square the tab bar in `src/renderer/styles/components/terminal.css`: `.terminal-tab-bar` height 35px, border-radius 0, padding `0 8px`, and `.terminal-content` border-radius 0, leaving every control inside the bar unchanged",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T03",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T04",
+      "title": "Flatten the enlarged terminal in `src/renderer/styles/components/terminals-view.css`: `.terminals-view` padding and gap 0; `.tv-pane.tv-pane-single` border none, border-radius 0, background transparent in dark and under `[data-theme=\"light\"]`; `.tv-pane-single .tv-pane-header` padding `3px 8px` with min-height 24px; `.tv-pane-single .tv-pane-content` padding `0 0 0 4px`; `.tv-single .lane-rail.collapsed` margin-right 0; update the file's header comment to say the single pane is flat and only grid panes are darker than the chrome",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T04",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T05",
+      "title": "Respace the grid in `src/renderer/styles/components/terminals-view.css`: `.tv-bar` padding `4px 8px`, `.tv-grid` gap 6px and padding-bottom 0, keeping each `.tv-pane` border so panes stay separated with 0 outer padding",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T05",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T06",
+      "title": "Tighten the shared full-page header in `src/renderer/styles/components/view-header.css`: `.view-header` padding `8px 12px` so Specs, Tasks, Sessions, GitHub, Decisions and Orchestration headers are ≤ 36px with content starting under the border",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T06",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-compact-center-vs-code-density-T07",
+      "title": "Align Home with the other surfaces in `src/renderer/styles/components/home-board.css`: `.lane-board` padding 12px, then confirm the 759px container-query reflow still lands cleanly at the shifted window width",
+      "description": "",
+      "source": "spec:compact-center-vs-code-density:T07",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: compact-center-vs-code-density",
+      "createdAt": "2026-09-13T11:54:20.015Z",
+      "updatedAt": "2026-09-13T11:54:20.015Z",
+      "completedAt": null
     }
   ],
   "metadata": {
-    "totalCreated": 535,
+    "totalCreated": 542,
     "totalCompleted": 29
   },
   "categories": {
