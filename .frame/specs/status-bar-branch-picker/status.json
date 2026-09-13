@@ -1,7 +1,7 @@
 {
   "slug": "status-bar-branch-picker",
   "title": "Status bar branch picker",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-status-bar-branch-picker-T01",
     "task-spec-status-bar-branch-picker-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-13T14:21:56Z",
-  "updated_at": "2026-09-13T14:37:51Z",
-  "last_phase_at": "2026-09-13T14:35:48Z",
+  "updated_at": "2026-09-13T14:41:05Z",
+  "last_phase_at": "2026-09-13T14:39:13Z",
   "implement_mode": "guided"
 }

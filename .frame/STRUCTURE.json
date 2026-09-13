@@ -11606,6 +11606,29 @@
         }
       }
     },
+    "shared/gitRefNames": {
+      "file": "src/shared/gitRefNames.js",
+      "description": "gitRefNames — is this string a branch name git would accept?",
+      "exports": [
+        "isValidBranchName"
+      ],
+      "depends": [],
+      "functions": {
+        "componentOk": {
+          "line": 17,
+          "params": [
+            "part"
+          ],
+          "purpose": "One path component, between slashes: git's per-component rules."
+        },
+        "isValidBranchName": {
+          "line": 28,
+          "params": [
+            "name"
+          ]
+        }
+      }
+    },
     "shared/ipcChannels": {
       "file": "src/shared/ipcChannels.js",
       "description": "IPC Channel Constants",
@@ -13062,6 +13085,11 @@
         "module": "main/gitSharing",
         "file": "src/main/gitSharing.js",
         "description": "gitSharing — is Frame's context shared with the repo, or local to this machine?"
+      },
+      {
+        "module": "shared/gitRefNames",
+        "file": "src/shared/gitRefNames.js",
+        "description": "gitRefNames — is this string a branch name git would accept?"
       }
     ],
     "git-branches": [

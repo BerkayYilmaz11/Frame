@@ -7496,25 +7496,25 @@
       "title": "Add `src/shared/gitRefNames.js` exporting `isValidBranchName(name)` with the `git check-ref-format --branch` rules (no spaces or control characters, no `..`, `~`, `^`, `:`, `?`, `*`, `[`, `\\`, no leading `-` or `/`, no trailing `/`, `.lock` or `.`, no `@{`, not `@`), and `test/gitRefNames.test.js` covering valid names, each rule, and injection-shaped names (`$(…)`, backticks, quotes)",
       "description": "",
       "source": "spec:status-bar-branch-picker:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:35:49.207Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T14:41:05Z",
+      "completedAt": "2026-09-13T14:41:05Z"
     },
     {
       "id": "task-spec-status-bar-branch-picker-T02",
       "title": "Add `src/main/gitBranchRefs.js` with pure `parseBranchLine(line)` for the six-field `refname|short|sha|date|time|subject` format (subject may contain `|`) and `splitRemoteRef(name, remotes)` → `{ remote, shortName }` or `null`, matching the longest remote first; add `test/gitBranchRefs.test.js` for one remote, two remotes, a remote named `a/b`, a branch `feat/x`, and a name matching no remote",
       "description": "",
       "source": "spec:status-bar-branch-picker:T02",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:35:49.207Z",
+      "updatedAt": "2026-09-13T14:41:05Z",
       "completedAt": null
     },
     {
