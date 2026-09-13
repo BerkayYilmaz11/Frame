@@ -354,6 +354,41 @@
   display: none;
 }
 
+/* Completed cards outside the project's done window stay in the DOM (the
+   reorder reads full DOM order) but hide until the column is revealed. */
+.tasks-dashboard-cards:not(.show-older) .tasks-dashboard-card.done-older {
+  display: none;
+}
+
+/* The reveal at the foot of Completed: "Show N older" / "Hide older". Sits
+   in the column-empty idiom so it reads as part of the column, not a card. */
+.tasks-dashboard-column-more {
+  flex-shrink: 0;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.tasks-dashboard-column-more:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background: var(--bg-tertiary);
+}
+
+.tasks-dashboard-column-more:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
 .tasks-dashboard-btn-icon {
   background: transparent;
   border: 1px solid var(--border-subtle);

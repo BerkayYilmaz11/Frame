@@ -26,3 +26,10 @@ Added `src/renderer/specs/filterModel.js` (`SCOPES`, `PHASES`, `buildGridModel`)
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T05 — Tasks board: windowed Completed column with a "Show N older" footer
+
+In `src/renderer/tasksDashboard.js` `render()` now partitions Completed with `partitionDone` (`completedAt || updatedAt`, the store's `tasks` window): older cards carry `.done-older` and stay in the DOM, the cards container toggles `.show-older` from `showOlderDone`, the badge counts the shown set (keeping the `visible/shown` form under the filter popover), the header `title` says "N shown · M older hidden", and a `.tasks-dashboard-column-more` footer toggles the reveal. `_load()` resets the flag on a project change, `doneWindow.onChange` re-renders, and `getCardAfterY` skips hidden older cards so a drop never targets a card with no box — the one addition beyond plan.md. CSS in `tasks-dashboard.css`.
+
+_Captured: 2026-09-13 · 2 file change(s)_
+
+---

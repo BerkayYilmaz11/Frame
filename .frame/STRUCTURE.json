@@ -10606,71 +10606,73 @@
         "electron",
         "shared/ipcChannels",
         "state",
+        "doneWindow",
+        "shared/doneWindow",
         "agentDispatch",
         "taskInfoModal",
         "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 71
+          "line": 80
         },
         "flatten": {
-          "line": 138,
+          "line": 152,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 158,
+          "line": 172,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 162,
+          "line": 176,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 171
+          "line": 185
         },
         "_load": {
-          "line": 184
+          "line": 198
         },
         "show": {
-          "line": 200
+          "line": 218
         },
         "hide": {
-          "line": 210
+          "line": 228
         },
         "toggle": {
-          "line": 223
+          "line": 241
         },
         "render": {
-          "line": 231
+          "line": 249
         },
         "renderCard": {
-          "line": 294,
+          "line": 350,
           "params": [
             "task"
           ]
         },
         "setupDropTargets": {
-          "line": 345
+          "line": 401
         },
         "onDragStart": {
-          "line": 384,
+          "line": 440,
           "params": [
             "e",
             "task"
           ]
         },
         "onDragEnd": {
-          "line": 396
+          "line": 452
         },
         "getCardAfterY": {
-          "line": 410,
+          "line": 466,
           "params": [
             "container",
             "y"
@@ -10678,15 +10680,15 @@
           "purpose": "Find the card the dragged item should be inserted *before*, based on"
         },
         "commitOrder": {
-          "line": 426,
+          "line": 485,
           "purpose": "Read the current DOM order across all three columns and send the new order"
         },
         "syncAside": {
-          "line": 453,
+          "line": 512,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 479,
+          "line": 538,
           "params": [
             "taskId",
             "{ instant = false } = {}"
@@ -10694,42 +10696,42 @@
           "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the board"
         },
         "clearSelection": {
-          "line": 504,
+          "line": 563,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 515,
+          "line": 574,
           "purpose": "Leaving the board: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 526
-        },
-        "setupForm": {
-          "line": 530
-        },
-        "showForm": {
-          "line": 544
-        },
-        "hideForm": {
-          "line": 559
-        },
-        "requestDeleteSelected": {
-          "line": 567
-        },
-        "submitForm": {
           "line": 585
         },
+        "setupForm": {
+          "line": 589
+        },
+        "showForm": {
+          "line": 603
+        },
+        "hideForm": {
+          "line": 618
+        },
+        "requestDeleteSelected": {
+          "line": 626
+        },
+        "submitForm": {
+          "line": 644
+        },
         "renderDetail": {
-          "line": 603,
+          "line": 662,
           "params": [
             "task"
           ]
         },
         "appendMetaPill": {
-          "line": 661,
+          "line": 720,
           "params": [
             "container",
             "text",
@@ -10737,7 +10739,7 @@
           ]
         },
         "setSection": {
-          "line": 668,
+          "line": 727,
           "params": [
             "textEl",
             "sectionEl",
@@ -10745,71 +10747,71 @@
           ]
         },
         "formatDate": {
-          "line": 679,
+          "line": 738,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 693
+          "line": 752
         },
         "filterMatches": {
-          "line": 697,
+          "line": 756,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 703
+          "line": 762
         },
         "isFilterPopoverOpen": {
-          "line": 741
+          "line": 800
         },
         "toggleFilterPopover": {
-          "line": 745
+          "line": 804
         },
         "openFilterPopover": {
-          "line": 751
+          "line": 810
         },
         "closeFilterPopover": {
-          "line": 757
+          "line": 816
         },
         "clearFilters": {
-          "line": 763
+          "line": 822
         },
         "updateFilterUI": {
-          "line": 775
+          "line": 834
         },
         "compareTasks": {
-          "line": 792,
+          "line": 851,
           "params": [
             "a",
             "b"
           ]
         },
         "setupSort": {
-          "line": 808
+          "line": 867
         },
         "isSortPopoverOpen": {
-          "line": 853
+          "line": 912
         },
         "toggleSortPopover": {
-          "line": 857
+          "line": 916
         },
         "openSortPopover": {
-          "line": 863
+          "line": 922
         },
         "closeSortPopover": {
-          "line": 869
+          "line": 928
         },
         "resetSort": {
-          "line": 875
+          "line": 934
         },
         "updateSortUI": {
-          "line": 888
+          "line": 947
         },
         "commitSortToFile": {
-          "line": 913,
+          "line": 972,
           "purpose": "Commit the current sorted view to tasks.json. Per-column sorted order is"
         }
       },

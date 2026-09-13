@@ -7652,13 +7652,13 @@
       "title": "Tasks board: in `src/renderer/tasksDashboard.js` `render()`, partition `buckets.completed` with `partitionDone` on `completedAt || updatedAt` and the store's `tasks` window, add `.done-older` to older cards and `.show-older` to the column while the module flag `showOlderDone` is set, set the badge to the visible count (keeping the `visible/total` form when the filter popover is active) and the header `title` to \"N shown · M older hidden\", append a `.tasks-dashboard-column-more` footer button \"Show N older\" / \"Hide older\" that toggles the flag and re-renders, reset the flag in `_load()` when the project path differs from the last loaded, and subscribe `doneWindow.onChange` → `render()`; in `src/renderer/styles/components/tasks-dashboard.css` hide `.done-older` unless the column has `.show-older` and style the footer button in the `.tasks-dashboard-column-empty` idiom",
       "description": "",
       "source": "spec:boards-done-window:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:20:42Z",
+      "completedAt": "2026-09-13T16:20:42Z"
     },
     {
       "id": "task-spec-boards-done-window-T06",

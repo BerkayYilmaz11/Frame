@@ -26,6 +26,8 @@
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
+const doneWindow = require('./doneWindow');
+const { partitionDone } = require('../shared/doneWindow');
 
 const STATUS_COLUMNS = ['pending', 'in_progress', 'completed'];
 const STATUS_LABELS = {
@@ -40,6 +42,13 @@ let selectedTaskId = null;
 let dashboardEl = null;
 let columnEls = {};
 let countEls = {};
+let headerEls = {};
+// Completed tasks older than the project's done window hide behind a
+// "Show N older" footer (boards-done-window spec). The reveal is session
+// state on the open project: it survives TASKS_DATA re-renders and resets
+// when the project changes.
+let showOlderDone = false;
+let loadedProjectPath = null;
 let detailEl = null;         // right aside — hosts the New Task form
 let drawerEl = null;         // full-page task detail drawer
 let detailContentEl = null;  // detail body inside the drawer
@@ -80,9 +89,14 @@ function init() {
   for (const status of STATUS_COLUMNS) {
     columnEls[status] = dashboardEl.querySelector(`[data-drop-status="${status}"]`);
     countEls[status] = dashboardEl.querySelector(`[data-count-for="${status}"]`);
+    headerEls[status] = dashboardEl.querySelector(`[data-column="${status}"] .tasks-dashboard-column-header`);
   }
 
   setupDropTargets();
+
+  // The done window is a project setting; when it moves, the Completed
+  // column re-partitions from the data it already holds.
+  doneWindow.onChange(() => { if (isVisible) render(); });
 
   document.getElementById('tasks-dashboard-close').addEventListener('click', hide);
 
@@ -192,6 +206,10 @@ function _load() {
     });
     return;
   }
+  if (projectPath !== loadedProjectPath) {
+    showOlderDone = false;
+    loadedProjectPath = projectPath;
+  }
   isVisible = true;
   ipcRenderer.send(IPC.LOAD_TASKS, projectPath);
   render();
@@ -249,19 +267,43 @@ function render() {
     }
   }
 
+  // Completed is windowed: cards older than the project's done window get
+  // .done-older and stay in the DOM (see below) but are CSS-hidden until
+  // the column carries .show-older. Pending and In Progress are never
+  // windowed — an old pending task is still pending.
+  const { recent, older } = partitionDone(buckets.completed, {
+    days: doneWindow.get().tasks,
+    dateOf: t => t.completedAt || t.updatedAt
+  });
+  const olderSet = new Set(older);
+  const olderHidden = older.length > 0 && !showOlderDone;
+
   for (const status of STATUS_COLUMNS) {
     const col = columnEls[status];
     const count = countEls[status];
+    const header = headerEls[status];
+    const isCompleted = status === 'completed';
+    // What the eye can find in this column: the windowed set for Completed
+    // (all of it once revealed), everything for the other two.
+    const shown = isCompleted && olderHidden ? recent : buckets[status];
     // All cards are rendered in DOM (filtered ones get .filtered-out and are
     // CSS-hidden) so drag-and-drop reorder still sees the full ordering and
     // doesn't accidentally drop hidden tasks to the end of tasks.json.
-    const visibleCount = buckets[status].filter(filterMatches).length;
+    const visibleCount = shown.filter(filterMatches).length;
     if (count) {
       count.textContent = isFilterActive()
-        ? `${visibleCount}/${buckets[status].length}`
-        : String(buckets[status].length);
+        ? `${visibleCount}/${shown.length}`
+        : String(shown.length);
+    }
+    if (header) {
+      if (isCompleted && olderHidden) {
+        header.title = `${shown.length} shown · ${older.length} older hidden`;
+      } else {
+        header.removeAttribute('title');
+      }
     }
     if (!col) continue;
+    if (isCompleted) col.classList.toggle('show-older', showOlderDone);
 
     if (buckets[status].length === 0) {
       const empty = document.createElement('div');
@@ -274,6 +316,7 @@ function render() {
     for (const task of buckets[status]) {
       const cardEl = renderCard(task);
       if (!filterMatches(task)) cardEl.classList.add('filtered-out');
+      if (isCompleted && olderSet.has(task)) cardEl.classList.add('done-older');
       col.appendChild(cardEl);
     }
 
@@ -282,6 +325,19 @@ function render() {
       empty.className = 'tasks-dashboard-column-empty';
       empty.textContent = 'No matches in this column';
       col.appendChild(empty);
+    }
+
+    if (isCompleted && older.length > 0) {
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'tasks-dashboard-column-more';
+      more.tabIndex = -1;
+      more.textContent = showOlderDone ? 'Hide older' : `Show ${older.length} older`;
+      more.addEventListener('click', () => {
+        showOlderDone = !showOlderDone;
+        render();
+      });
+      col.appendChild(more);
     }
   }
 
@@ -408,9 +464,12 @@ function onDragEnd() {
  * vertical midpoint. Returns null when the drop should land at the end.
  */
 function getCardAfterY(container, y) {
+  // Hidden cards — filtered out, or older-than-window while not revealed —
+  // have no box to drop around.
+  const olderHidden = !container.classList.contains('show-older');
   const cards = Array.from(
     container.querySelectorAll('.tasks-dashboard-card:not(.dragging):not(.filtered-out)')
-  );
+  ).filter(card => !(olderHidden && card.classList.contains('done-older')));
   for (const card of cards) {
     const box = card.getBoundingClientRect();
     if (y < box.top + box.height / 2) return card;
