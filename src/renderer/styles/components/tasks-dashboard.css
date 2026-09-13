@@ -388,7 +388,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-md) 8px;
   overflow: auto;
 }
 
@@ -432,15 +433,15 @@
   letter-spacing: 0.6px;
 }
 
+/* Same pill as the Home card header count (.home-card-count), so the
+   column headers and the Home widgets read as one system. */
 .tasks-dashboard-column-count {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  background: var(--bg-elevated);
-  padding: 2px 8px;
-  border-radius: 10px;
-  min-width: 24px;
-  text-align: center;
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+  border-radius: 99px;
+  padding: 0 7px;
+  line-height: 16px;
 }
 
 /* ---------- Cards container ---------- */

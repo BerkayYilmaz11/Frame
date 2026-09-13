@@ -122,33 +122,6 @@ body.sidebar-resizing * {
   50% { opacity: 0.45; }
 }
 
-/* Frame's own settings, at the right end of the sidebar header. Quiet by
-   default — it is a destination you go to occasionally, not a control you
-   work with, and the header's job is to say which app this is. */
-.sidebar-header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 3px;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.sidebar-header-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-.sidebar-header-btn:focus-visible {
-  outline: 1px solid var(--accent-primary);
-  outline-offset: 1px;
-}
-
 /* Update banner — sidebar footer card, primary signal when an update is available */
 .sidebar-update-banner {
   flex-shrink: 0;
@@ -328,9 +301,9 @@ body.sidebar-resizing * {
   border-bottom: none;
 }
 
-/* Foot of the rail (Plugins, then Feedback): the first of the pair carries
-   this and pushes both to the bottom, set apart from the view tabs above —
-   they open modals rather than switching views. */
+/* Foot of the rail (Plugins, Feedback, then Frame Settings): the first of
+   the group carries this and pushes all three to the bottom, set apart from
+   the view tabs above — they open modals rather than switching views. */
 .sidebar-rail-btn-foot {
   margin-top: auto;
 }

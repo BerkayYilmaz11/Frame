@@ -186,7 +186,8 @@
 /* ─── Pane grid ─── */
 
 /* Panes keep their 1px border — in the grid the border is what separates
-   one terminal from the next — with 6px between them and nothing around. */
+   one terminal from the next — with 6px between them and an 8px gutter on
+   the left and right so they do not touch the window edge. */
 .tv-grid {
   display: grid;
   gap: 6px;
@@ -194,7 +195,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: 0;
+  padding: 0 8px;
 }
 
 .tv-pane {

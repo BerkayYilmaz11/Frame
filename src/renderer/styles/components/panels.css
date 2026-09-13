@@ -1137,7 +1137,8 @@
 #sessions-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-md);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-md) 8px;
 }
 
 .session-item {
@@ -4361,7 +4362,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
-  padding: var(--space-md) var(--space-xl);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-md) 8px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-primary);
 }
@@ -4471,8 +4473,8 @@
 
 .specs-dashboard-grid {
   height: 100%;
-  padding: var(--space-xl);
-  padding-right: var(--space-xl);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-xl) 8px;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

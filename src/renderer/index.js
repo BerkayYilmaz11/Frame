@@ -338,9 +338,9 @@ function setupButtonHandlers() {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
-  // The foot of the sidebar rail — Plugins, then Feedback: each a modal
-  // (pluginsPanel, feedbackPanel), not a view — hence no .sidebar-tab-btn
-  // on the buttons. Both toggle, like the gear below.
+  // The foot of the sidebar rail — Plugins, Feedback, then Frame Settings:
+  // each a modal (pluginsPanel, feedbackPanel, frameSettingsModal), not a
+  // view — hence no .sidebar-tab-btn on the buttons. All three toggle.
   const pluginsBtn = document.getElementById('plugins-btn');
   if (pluginsBtn) {
     pluginsBtn.addEventListener('click', () => pluginsPanel.toggle());
@@ -353,13 +353,14 @@ function setupButtonHandlers() {
     tooltip.attach(feedbackBtn, 'Send Feedback', { placement: 'right' });
   }
 
-  // Frame's own settings, from the gear in the sidebar header (where the app
-  // menu entry and Cmd+, also land); toggles, so a second click closes it.
-  // The project's settings are a row under the project in the workspace nav
-  // (dock-panel-readonly-views spec), running `settings.openProject`.
+  // Frame's own settings, from the gear at the foot of the rail (where the
+  // app menu entry and Cmd+, also land); toggles, so a second click closes
+  // it. The project's settings are a row under the project in the workspace
+  // nav (dock-panel-readonly-views spec), running `settings.openProject`.
   const frameSettingsBtn = document.getElementById('frame-settings-btn');
   if (frameSettingsBtn) {
     frameSettingsBtn.addEventListener('click', () => frameSettingsModal.toggle());
+    tooltip.attach(frameSettingsBtn, 'Frame Settings (Cmd+,)', { placement: 'right' });
   }
 
   // Theme toggle now lives in the top bar and is wired by terminalTabBar,
