@@ -6,3 +6,11 @@ _Captured: 2026-09-13T14:41:05Z · 2 file change(s)_
 
 ---
 
+## T02 — Pure ref helpers for gitBranchesManager
+
+Wrote `src/main/gitBranchRefs.js` with `parseBranchLine`, `splitRemoteRef` (longest remote first) and, beyond the plan's two functions, the exported `BRANCH_FORMAT` string so the parser and the `git branch -a` format cannot drift apart when T03 wires them. `test/gitBranchRefs.test.js` pins the six-field parse with `|` inside the subject, the `origin/HEAD` pointer shape, tolerance of garbage, and the split across one remote, two remotes, a remote named `a/b`, `feat/x` under a remote, and no match.
+
+_Captured: 2026-09-13T14:42:31Z · 2 file change(s)_
+
+---
+

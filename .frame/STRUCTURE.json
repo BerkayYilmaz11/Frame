@@ -1454,6 +1454,32 @@
         }
       }
     },
+    "main/gitBranchRefs": {
+      "file": "src/main/gitBranchRefs.js",
+      "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and",
+      "exports": [
+        "BRANCH_FORMAT",
+        "parseBranchLine",
+        "splitRemoteRef"
+      ],
+      "depends": [],
+      "functions": {
+        "parseBranchLine": {
+          "line": 24,
+          "params": [
+            "line"
+          ]
+        },
+        "splitRemoteRef": {
+          "line": 49,
+          "params": [
+            "name",
+            "remotes"
+          ],
+          "purpose": "Which remote does `<remote>/<name>` belong to?"
+        }
+      }
+    },
     "main/gitBranchesManager": {
       "file": "src/main/gitBranchesManager.js",
       "description": "Git Branches Manager Module",
@@ -13076,6 +13102,11 @@
       }
     ],
     "git": [
+      {
+        "module": "main/gitBranchRefs",
+        "file": "src/main/gitBranchRefs.js",
+        "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and"
+      },
       {
         "module": "main/gitExclude",
         "file": "src/main/gitExclude.js",
