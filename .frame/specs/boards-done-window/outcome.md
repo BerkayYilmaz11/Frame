@@ -33,3 +33,10 @@ In `src/renderer/tasksDashboard.js` `render()` now partitions Completed with `pa
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T06 — Specs board: scope + phase state, chips under Active, model-driven grid with a ghost tile
+
+`src/renderer/specsDashboard.js` now keeps `scope` / `phase` / `showOlderDone` instead of `activeFilter`; `renderFilters(model)` and `renderGrid()` are both painted from `buildGridModel` (the store's `specs` window), the phase chips render only under Active, and a `.specs-card-older` ghost tile closes the grid in All and Done. Added beyond plan.md: when every done spec is outside the window the grid shows "Nothing done in the last N days" above the tile instead of "No specs match", so the board is never blank without a way out. Reveal resets on scope pick, `show()` and `SPEC_DATA` on a project change. Tile styles in `panels.css`; verified in both themes with a headless render.
+
+_Captured: 2026-09-13 · 2 file change(s)_
+
+---

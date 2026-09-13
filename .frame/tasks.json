@@ -7665,13 +7665,13 @@
       "title": "Specs board: in `src/renderer/specsDashboard.js` replace `activeFilter` with `scope` / `phase` / `showOlderDone`, render the phase chips only when `scope === 'active'` (segment click sets scope and clears phase and the reveal; chip click sets or clears phase), drive `renderGrid()` from `buildGridModel` with the store's `specs` window, render a trailing `.specs-card-older` ghost tile \"N older done specs · Show\" that sets `showOlderDone`, put the done total in the Done segment's `title` when older specs are hidden, reset the reveal when the project path changes in `show()` / `SPEC_DATA`, and subscribe `doneWindow.onChange` → `renderGrid()`; add the `.specs-card-older` tile styles to `src/renderer/styles/components/panels.css` for both themes",
       "description": "",
       "source": "spec:boards-done-window:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:23:56Z",
+      "completedAt": "2026-09-13T16:23:56Z"
     },
     {
       "id": "task-spec-boards-done-window-T07",

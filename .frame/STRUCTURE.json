@@ -9589,6 +9589,8 @@
         "state",
         "htmlUtils",
         "specNextAction",
+        "doneWindow",
+        "specs/filterModel",
         "specPanel",
         "agentDispatch",
         "taskInfoModal",
@@ -9599,73 +9601,73 @@
           "line": 68
         },
         "setupIPCListeners": {
-          "line": 103
+          "line": 105
         },
         "setInlineHost": {
-          "line": 154,
+          "line": 160,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 159,
+          "line": 165,
           "params": [
             "container"
           ],
           "purpose": "Mount into the center content area and load data. Called by the host."
         },
         "notifyDetached": {
-          "line": 169,
+          "line": 175,
           "purpose": "The host swapped the center to another view — reset without routing."
         },
         "_load": {
-          "line": 180
+          "line": 186
         },
         "show": {
-          "line": 209
-        },
-        "hide": {
           "line": 219
         },
-        "toggle": {
-          "line": 230
+        "hide": {
+          "line": 229
         },
-        "filterCounts": {
-          "line": 242,
-          "purpose": "Counts answer \"how many cards would I see if I clicked this\" — so they"
+        "toggle": {
+          "line": 240
         },
         "renderFilters": {
-          "line": 253
-        },
-        "applyFilter": {
-          "line": 282,
+          "line": 255,
           "params": [
-            "specsList"
-          ]
+            "model"
+          ],
+          "purpose": "The filter row, painted from the same model the grid is painted from so"
+        },
+        "gridModel": {
+          "line": 299
         },
         "setupSearch": {
-          "line": 298
+          "line": 312
         },
         "runSearch": {
-          "line": 312,
+          "line": 326,
           "params": [
             "rawQuery"
           ]
         },
         "clearSearch": {
-          "line": 335
+          "line": 349
         },
         "renderGrid": {
-          "line": 346
+          "line": 360
+        },
+        "wireOlderTile": {
+          "line": 409
         },
         "renderCard": {
-          "line": 378,
+          "line": 416,
           "params": [
             "spec"
           ]
         },
         "selectCard": {
-          "line": 439,
+          "line": 477,
           "params": [
             "slug",
             "{ instant = false } = {}"
@@ -9673,26 +9675,26 @@
           "purpose": "Open a spec in the drawer. `instant` is the top-bar chip path: the grid"
         },
         "clearSelection": {
-          "line": 466,
+          "line": 504,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "reloadDetail": {
-          "line": 479
+          "line": 517
         },
         "renderDetailHeader": {
-          "line": 506
+          "line": 544
         },
         "runSpecCommand": {
-          "line": 592,
+          "line": 630,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 603,
+          "line": 641,
           "params": [
             "tab",
             "label",
@@ -9700,44 +9702,44 @@
           ]
         },
         "renderDetailBody": {
-          "line": 609
+          "line": 647
         },
         "renderTasksTabBody": {
-          "line": 660
+          "line": 698
         },
         "renderSpecTaskRow": {
-          "line": 697,
+          "line": 735,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 746
+          "line": 784
         },
         "handleSpecTaskAction": {
-          "line": 759,
+          "line": 797,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 770
+          "line": 808
         },
         "tasksTabLabel": {
-          "line": 776,
+          "line": 814,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 785,
+          "line": 823,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 790,
+          "line": 828,
           "params": [
             "iso"
           ]
