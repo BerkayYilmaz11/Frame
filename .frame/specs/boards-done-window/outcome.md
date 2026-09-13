@@ -40,3 +40,10 @@ _Captured: 2026-09-13 · 2 file change(s)_
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T07 — Project Settings: Boards section with the two done-window selects
+
+Added a **Boards** section to `#project-settings-overlay` in `index.html` — "Completed tasks shown" and "Done specs shown", each a `.settings-select` over Last 7 / 30 / 90 days / All. `src/renderer/projectSettingsModal.js` paints both from `doneWindow.get()` in `syncFromProject` and on `doneWindow.onChange`, writes through `doneWindow.set` with the git-sharing row's disabled-while-saving pattern, and goes inert with the config note when no project is open. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 2 file change(s)_
+
+---

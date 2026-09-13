@@ -1450,6 +1450,45 @@
             <button type="button" class="settings-danger-btn" id="settings-remove-frame">Remove Frame</button>
           </div>
         </div>
+
+        <!-- Boards: how much of the done pile the Tasks and Specs boards show
+             before "Show N older". Live work is never windowed — only what is
+             already done (boards-done-window spec). -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Boards</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-done-window-tasks">Completed tasks shown</label>
+              <p class="settings-row-desc">
+                How far back the Tasks board's Completed column reaches by default. Older
+                tasks stay one click away behind <em>Show older</em>; Pending and In Progress
+                always show everything.
+              </p>
+            </div>
+            <select class="settings-select" id="settings-done-window-tasks">
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="0">All</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-done-window-specs">Done specs shown</label>
+              <p class="settings-row-desc">
+                How far back the Specs board's All and Done views reach by default. Older
+                done specs sit behind a tile at the end of the grid; active specs always show.
+              </p>
+              <p class="settings-row-desc" id="settings-done-window-note" style="display:none;"></p>
+            </div>
+            <select class="settings-select" id="settings-done-window-specs">
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="0">All</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   </div>

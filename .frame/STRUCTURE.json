@@ -8577,61 +8577,72 @@
         "specDrivenHint",
         "projectListUI",
         "settingsOverlay",
+        "doneWindow",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 45
+          "line": 48
         },
         "syncFromProject": {
-          "line": 214
+          "line": 245
+        },
+        "renderDoneWindow": {
+          "line": 258,
+          "purpose": "Paint both window selects from the store. With no project open there is"
+        },
+        "setDoneWindowNote": {
+          "line": 270,
+          "params": [
+            "message"
+          ]
         },
         "syncFrameSetup": {
-          "line": 233,
+          "line": 287,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 252,
+          "line": 306,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 272,
+          "line": 326,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 292,
+          "line": 346,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 318,
+          "line": 372,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 343,
+          "line": 397,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 359
+          "line": 413
         },
         "setRemoveFrameNote": {
-          "line": 373,
+          "line": 427,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 379,
+          "line": 433,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 385,
+          "line": 439,
           "params": [
             "message"
           ]

@@ -7678,13 +7678,13 @@
       "title": "Project Settings: add a `Boards` section after `Workflow` in `index.html`'s `#project-settings-overlay` with two `.settings-row`s — \"Completed tasks shown\" (`#settings-done-window-tasks`) and \"Done specs shown\" (`#settings-done-window-specs`), each a `.settings-select` with Last 7 days / Last 30 days / Last 90 days / All — and in `src/renderer/projectSettingsModal.js` sync both from `doneWindow.get()` on open and on project change, call `doneWindow.set(board, Number(value))` on change with the disabled-while-saving pattern of the git-sharing select, and disable both with the note \"Open a project to change this — the setting lives in its .frame/config.json.\" when no project is open",
       "description": "",
       "source": "spec:boards-done-window:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:26:02Z",
+      "completedAt": "2026-09-13T16:26:02Z"
     }
   ],
   "metadata": {
