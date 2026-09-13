@@ -3072,3 +3072,41 @@ Not verified in the running app during the run — the user should open an
 enlarged terminal, the grid, the dock at both positions and both themes.
 Sidebar density (14px panel padding, rail, nav indents) is deliberately
 untouched and is the next spec if wanted.
+
+### [2026-09-13] Branch picker on the status bar (status-bar-branch-picker)
+
+**The ask.** "Sol altta git branch'i var. Buna tıklayınca VS Code gibi var
+olan branch'leri popover gibi gösterip seçtirebilir miyiz? Local branch'ler
+mi, local + remote mi listelenmeli?" — and, once it became a spec, whether
+it should be a dock tab or a popover.
+
+**Decisions taken with the user.** A popover anchored to the indicator, not
+a dock tab: a checkout is a transient act, the dock is for content that
+stays open and shows one tab at a time. Both scopes, separated: local first
+(current pinned, then newest commit — `%(committerdate:unix)` added to the
+existing `git branch -a` format), remote branches below a divider and only
+those without a local twin. Branches checked out in another worktree are
+dimmed up front with "in worktree <folder>" rather than left for git to
+refuse, because the orchestration's `frame/<slug>/work` branches make that
+common. Tests: pure logic only (the project's convention; no DOM harness).
+
+**Silent decisions.** No new IPC channel or payload change — main tells a
+local ref from a remote one itself (`refs/heads/` first, then a split
+against `git remote`), so the GitHub view got the multi-remote fix without
+changing; `ipcChannels.js` was in `audit-q3-cross-platform`'s in-flight
+footprint and stayed untouched. The two mutating git calls the spec touched
+moved to `execFile` (`execGitArgs`); the shared validator
+`src/shared/gitRefNames.js` bans shell metacharacters git would accept,
+because a branch named `$HOME` is hostile to every script run afterwards.
+The picker never fetches: opening is three reads.
+
+**Shipped.** Eight tasks, eight commits on `feat/status-bar-branch-picker`:
+`gitRefNames.js`, `gitBranchRefs.js`, `gitBranchesManager.js`,
+`statusBar/branchPickerModel.js`, `statusBar/branchPicker.js`,
+`statusBar.js`, `githubPanel.js` (`revealSection`), `status-bar.css`; three
+new test files, `npm test` 724 pass after each task. Verified against a
+scratch repo with two remotes and a second worktree (tracking branch from
+`upstream/`, git's "already used by worktree" refusal verbatim, dirty tree,
+injection-shaped name creating nothing). Not exercised in the running app
+during the run — the user should open the picker, filter, switch, try a
+dirty tree, Escape, and the dock open at the bottom, in both themes.
