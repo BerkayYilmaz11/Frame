@@ -28,15 +28,21 @@ const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 const specNextAction = require('./specNextAction');
 
-const FILTERS = [
-  { id: 'all',                 label: 'All' },
-  { id: 'active',              label: 'Active' },
-  { id: 'done',                label: 'Done' },
-  { id: 'phase:draft',         label: 'Draft' },
-  { id: 'phase:specified',     label: 'Specified' },
-  { id: 'phase:planned',       label: 'Planned' },
-  { id: 'phase:tasks_generated', label: 'Tasks Generated' },
-  { id: 'phase:implementing',  label: 'Implementing' }
+// Scope filters render as one segmented control; phase filters as chips
+// carrying the same colour as the card's phase badge. One filter is active
+// at a time — a phase pick clears the scope highlight and vice versa.
+const SCOPE_FILTERS = [
+  { id: 'all',    label: 'All' },
+  { id: 'active', label: 'Active' },
+  { id: 'done',   label: 'Done' }
+];
+
+const PHASE_FILTERS = [
+  { id: 'phase:draft',           phase: 'draft',           label: 'Draft' },
+  { id: 'phase:specified',       phase: 'specified',       label: 'Specified' },
+  { id: 'phase:planned',         phase: 'planned',         label: 'Planned' },
+  { id: 'phase:tasks_generated', phase: 'tasks_generated', label: 'Tasks Generated' },
+  { id: 'phase:implementing',    phase: 'implementing',    label: 'Implementing' }
 ];
 
 let isVisible = false;
@@ -231,16 +237,44 @@ function toggle() {
 
 // ─── Filters ─────────────────────────────────────────────
 
+// Counts answer "how many cards would I see if I clicked this" — so they
+// follow the search scope when a query is active.
+function filterCounts() {
+  const pool = searchMatches ? specs.filter(s => searchMatches.has(s.slug)) : specs;
+  const counts = { all: pool.length, active: 0, done: 0 };
+  for (const s of pool) {
+    if (s.phase === 'done') counts.done++; else counts.active++;
+    const key = `phase:${s.phase}`;
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return counts;
+}
+
 function renderFilters() {
   if (!filtersEl) return;
-  filtersEl.innerHTML = FILTERS.map(f => `
-    <button class="specs-dashboard-filter-btn ${activeFilter === f.id ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>
-  `).join('');
-  filtersEl.querySelectorAll('.specs-dashboard-filter-btn').forEach(btn => {
+  const counts = filterCounts();
+  const count = (id) => `<span class="specs-filter-count">${counts[id] || 0}</span>`;
+
+  const scope = SCOPE_FILTERS.map(f => {
+    const on = activeFilter === f.id;
+    return `<button type="button" class="specs-filter-seg${on ? ' active' : ''}" data-filter="${f.id}" aria-pressed="${on}">${f.label}${count(f.id)}</button>`;
+  }).join('');
+
+  const phases = PHASE_FILTERS.map(f => {
+    const on = activeFilter === f.id;
+    const empty = !counts[f.id];
+    return `<button type="button" class="specs-filter-chip phase-${f.phase}${on ? ' active' : ''}${empty ? ' is-empty' : ''}" data-filter="${f.id}" aria-pressed="${on}"><span class="specs-filter-dot" aria-hidden="true"></span>${f.label}${count(f.id)}</button>`;
+  }).join('');
+
+  filtersEl.innerHTML = `
+    <div class="specs-filter-scope" role="group" aria-label="Scope">${scope}</div>
+    <span class="specs-filter-divider" aria-hidden="true"></span>
+    <div class="specs-filter-phases" role="group" aria-label="Phase">${phases}</div>
+  `;
+  filtersEl.querySelectorAll('[data-filter]').forEach(btn => {
     btn.addEventListener('click', () => {
       activeFilter = btn.dataset.filter;
-      renderFilters();
-      renderGrid();
+      renderGrid();   // renderGrid re-renders the filters with fresh counts
     });
   });
 }
@@ -311,6 +345,7 @@ function clearSearch() {
 
 function renderGrid() {
   if (!gridEl) return;
+  renderFilters();
   const filtered = applyFilter(specs);
 
   if (filtered.length === 0) {

@@ -4370,8 +4370,10 @@
 
 .specs-dashboard-filters {
   display: flex;
-  gap: var(--space-xs);
+  align-items: center;
+  gap: var(--space-sm);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .specs-dashboard-search {
@@ -4442,27 +4444,171 @@
   display: flex;
 }
 
-.specs-dashboard-filter-btn {
-  background: transparent;
+/* ---- Specs filters: segmented scope + phase chips ----
+   Scope (All / Active / Done) is one segmented control: a recessed track
+   where the active segment lifts. Phases are chips that borrow the card's
+   phase-badge colour through --phase-ink / --phase-wash, so the filter row
+   and the cards speak the same palette. Every control carries a live count
+   in the same pill the Home widgets and Tasks columns use. */
+
+.specs-filter-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+}
+
+.specs-filter-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 99px;
+  background: transparent;
   color: var(--text-tertiary);
-  padding: 4px 10px;
-  border-radius: 14px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.specs-filter-seg:hover {
+  color: var(--text-secondary);
+}
+
+.specs-filter-seg.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.specs-filter-seg .specs-filter-count {
+  background: var(--bg-elevated);
+}
+
+.specs-filter-seg.active .specs-filter-count {
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.specs-filter-divider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--border-default);
+}
+
+.specs-filter-phases {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.specs-filter-chip {
+  --phase-ink: var(--text-tertiary);
+  --phase-wash: var(--bg-hover);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px 0 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast), opacity var(--transition-fast);
 }
 
-.specs-dashboard-filter-btn:hover {
+.specs-filter-chip.phase-specified,
+.specs-filter-chip.phase-planned {
+  --phase-ink: var(--info);
+  --phase-wash: rgba(166, 192, 240, 0.15);
+}
+
+.specs-filter-chip.phase-tasks_generated {
+  --phase-ink: var(--warning);
+  --phase-wash: rgba(229, 205, 142, 0.15);
+}
+
+.specs-filter-chip.phase-implementing {
+  --phase-ink: var(--accent-primary);
+  --phase-wash: var(--accent-subtle);
+}
+
+.specs-filter-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phase-ink);
+  transition: box-shadow var(--transition-fast);
+}
+
+.specs-filter-chip:hover {
   color: var(--text-secondary);
   border-color: var(--border-default);
+  background: var(--bg-tertiary);
 }
 
-.specs-dashboard-filter-btn.active {
-  background: var(--accent-subtle);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+.specs-filter-chip.active {
+  color: var(--phase-ink);
+  border-color: transparent;
+  background: var(--phase-wash);
+}
+
+.specs-filter-chip.active .specs-filter-dot {
+  box-shadow: 0 0 6px var(--phase-ink);
+}
+
+.specs-filter-chip.active .specs-filter-count {
+  color: var(--phase-ink);
+  background: var(--bg-primary);
+}
+
+/* A phase nobody is in stays reachable but recedes. */
+.specs-filter-chip.is-empty {
+  opacity: 0.45;
+}
+
+.specs-filter-chip.is-empty:hover,
+.specs-filter-chip.is-empty.active {
+  opacity: 0.8;
+}
+
+.specs-filter-count {
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.specs-filter-seg:focus-visible,
+.specs-filter-chip:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
 }
 
 .specs-dashboard-body {
