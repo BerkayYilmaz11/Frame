@@ -2,8 +2,9 @@
  * Feedback Panel
  *
  * The surface behind the Feedback button at the foot of the sidebar rail
- * (also the Help menu and the palette, via `feedback.open`), in three tabs —
- * one per kind of feedback, and the kind decides everything else:
+ * (also the Help menu and the palette, via `feedback.open`): three kind cards
+ * over one form — one card per kind of feedback, and the kind decides
+ * everything else:
  *
  *   Bug           → a prefilled issue on Frame's tracker, with the Environment
  *                   section attached.
@@ -16,31 +17,39 @@
  *   Reach us      → a mail draft to the Frame devs, for a question or for
  *                   anything the reporter would rather not post publicly.
  *
- * **The tab chooses the channel.** The panel used to offer the channels as
+ * **The card chooses the channel.** The panel used to offer the channels as
  * buttons and let the reporter pick. That asked a question nobody can answer:
  * they know what they have, not which transport suits it. Splitting by what
- * the feedback *is* also splits it by who can see it — the two GitHub tabs
+ * the feedback *is* also splits it by who can see it — the two GitHub kinds
  * are public and signed with the reporter's own account, the third is not —
  * and that is what makes assuming a GitHub account on the first two
- * acceptable, since the third is there for everyone else.
+ * acceptable, since the third is there for everyone else. The cards say this
+ * out loud (`GitHub issue · public`, `Email · private`) where the tab strip
+ * they replaced kept it in a footnote under the button: a reporter should
+ * know who will read the report before typing it, not after.
  *
  * Nothing here decides what a report *says*, and nothing here decides where a
  * kind goes: `src/shared/feedbackReport.js` holds one table with the labels,
  * the prompts, the channel and the diagnostics flag, and this module renders
- * it. The tabs are drawn from that table rather than written into
+ * it. The cards are drawn from that table rather than written into
  * `index.html` — unlike `githubPanel`'s static tabs — so a kind cannot exist
- * in the markup and be unknown to the composer.
+ * in the markup and be unknown to the composer. The only thing the table does
+ * not carry is the card's icon, which is a renderer concern and lives in
+ * `KIND_ICONS` below, keyed by kind id.
  *
  * A modal (`#feedback-modal`, the shared `.modal-overlay` chrome), not a
  * dock tab: feedback is about Frame, not about the project on screen, so it
- * has no place beside the terminals. `#feedback-panel` — tabs and form — is
- * the modal's body. Opened by `open()` / `toggle()`, closed by its ×, the
- * backdrop, Escape, or `close()`; Escape is gated on visibility so it never
- * leaks to the terminal (the openProjectModal idiom).
+ * has no place beside the terminals. `#feedback-panel` — cards and form — is
+ * the modal's body, and the header's title follows the chosen kind
+ * (`Report a bug`, `Share an idea`, `Write to us`) so the modal reads as one
+ * thing at a time rather than as a generic "Feedback" with a mode switch.
+ * Opened by `open()` / `toggle()`, closed by its ×, the backdrop, Escape, or
+ * `close()`; Escape is gated on visibility so it never leaks to the terminal
+ * (the openProjectModal idiom).
  *
- * One draft per tab, all of them living for the app run and each cleared only
+ * One draft per kind, all of them living for the app run and each cleared only
  * once its own delivery succeeds. That is what makes a failed send survivable,
- * and what lets a reporter move between tabs without losing what they have
+ * and what lets a reporter move between kinds without losing what they have
  * already written in any of them.
  */
 
@@ -52,6 +61,15 @@ const notify = require('./notify');
 const feedback = require('../shared/feedbackReport');
 
 const KINDS = feedback.FEEDBACK_TYPES;
+
+// The card icons — the rail's lucide-style strokes, one per kind id. Kept out
+// of the shared table because the table is pure and runs under node --test;
+// markup is this module's business.
+const KIND_ICONS = {
+  bug: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>',
+  idea: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
+  message: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
+};
 
 let activeTab = KINDS[0].id;
 
@@ -98,28 +116,48 @@ function draft() {
 
 // ─── rendering ────────────────────────────────────────────
 
-function renderTabs() {
-  const strip = el() && el().querySelector('.feedback-tabs');
+/**
+ * The kind cards: icon, label, and the one line that matters — where the
+ * report goes and who can read it. A radio group, because exactly one kind is
+ * chosen at a time and the choice is not navigation.
+ */
+function renderKinds() {
+  const strip = el() && el().querySelector('.feedback-kinds');
   if (!strip) return;
   strip.innerHTML = KINDS.map((t) => `
-    <button class="feedback-tab-btn${t.id === activeTab ? ' active' : ''}"
-            data-tab="${escapeHtml(t.id)}" type="button">${escapeHtml(t.label)}</button>
+    <button class="feedback-kind${t.id === activeTab ? ' active' : ''}"
+            data-kind="${escapeHtml(t.id)}" type="button"
+            role="radio" aria-checked="${t.id === activeTab ? 'true' : 'false'}">
+      <span class="feedback-kind-icon">${KIND_ICONS[t.id] || ''}</span>
+      <span class="feedback-kind-text">
+        <span class="feedback-kind-label">${escapeHtml(t.label)}</span>
+        <span class="feedback-kind-where">${escapeHtml(t.where)} · <em class="feedback-kind-visibility ${escapeHtml(t.visibility)}">${escapeHtml(t.visibility)}</em></span>
+      </span>
+    </button>
   `).join('');
-  strip.querySelectorAll('.feedback-tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => selectTab(btn.dataset.tab));
+  strip.querySelectorAll('.feedback-kind').forEach((btn) => {
+    btn.addEventListener('click', () => selectTab(btn.dataset.kind));
   });
+}
+
+/** The header follows the kind, so the modal is about one thing at a time. */
+function renderTitle() {
+  const title = modal() && modal().querySelector('#feedback-modal-title');
+  if (title) title.textContent = kind().heading || 'Feedback';
 }
 
 function diagnosticsBlock() {
   // Rendered only for a kind that attaches it — the preview and the body are
-  // the same decision, so a tab that shows this block is exactly a tab that
+  // the same decision, so a kind that shows this line is exactly a kind that
   // sends it.
   if (!kind().attachesDiagnostics) return '';
   const lines = feedback.diagnosticsLines(diagnostics());
+  // One line, not a box: the same two values as before, but they are a
+  // footnote to the form rather than a section of it.
   return `
     <div class="feedback-diagnostics">
-      <div class="feedback-diagnostics-title">Frame will attach</div>
-      ${lines.map((line) => `<div class="feedback-diagnostics-line">${escapeHtml(line)}</div>`).join('')}
+      <span class="feedback-diagnostics-title">Frame will attach</span>
+      ${lines.map((line) => `<code class="feedback-diagnostics-line">${escapeHtml(line)}</code>`).join('')}
     </div>
   `;
 }
@@ -132,9 +170,9 @@ function actionBlock() {
     : 'It carries only what you typed.';
   return `
     <div class="feedback-actions">
+      <div class="feedback-note">${escapeHtml(kind().note)} ${carries}</div>
       <button class="btn btn-primary" data-action="send" type="button">${escapeHtml(kind().action)}</button>
     </div>
-    <div class="feedback-note">${escapeHtml(kind().note)} ${carries}</div>
   `;
 }
 
@@ -196,15 +234,16 @@ function selectTab(id) {
   if (id === activeTab) return;
   if (!feedback.typeById(id)) return;
   activeTab = id;
-  renderTabs();
+  renderKinds();
+  renderTitle();
   render();
 }
 
 /**
- * Validate the active tab's draft, then hand it to that kind's channel.
+ * Validate the active kind's draft, then hand it to that kind's channel.
  *
  * `compose()` runs here, on the draft and the kind's diagnostics — which is
- * how a tab that attaches nothing sends a body with no Environment section
+ * how a kind that attaches nothing sends a body with no Environment section
  * rather than an empty one.
  */
 function submit() {
@@ -287,9 +326,9 @@ function track(channel) {
 }
 
 /**
- * Clear the tab that just delivered, and only that tab.
+ * Clear the kind that just delivered, and only that kind.
  *
- * Filing a bug must not throw away a half-written idea on the next tab — that
+ * Filing a bug must not throw away a half-written idea on the next card — that
  * is the whole reason the drafts are separate.
  */
 function clearDraft() {
@@ -330,7 +369,8 @@ function init() {
 function open() {
   const root = modal();
   if (!root) return;
-  renderTabs();
+  renderKinds();
+  renderTitle();
   render();
   root.classList.add('visible');
   const title = root.querySelector('#feedback-title');

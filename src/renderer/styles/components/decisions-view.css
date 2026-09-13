@@ -12,21 +12,7 @@
 
 /* ---------- Header ---------- */
 /* The row itself, the title, the search, the count and the Refresh button
-   are the shared .dock-view-* rules in dock.css; only the project chip
-   next to the title is this view's own. */
-.decisions-project {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-tertiary);
-  padding: 2px 8px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
+   are the shared .dock-view-* rules in dock.css. */
 
 /* ---------- List ---------- */
 .decisions-body {

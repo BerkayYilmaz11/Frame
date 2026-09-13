@@ -17,8 +17,8 @@ const assert = require('node:assert/strict');
 const dockState = require('../src/renderer/dock/dockState');
 
 const {
-  TABS, HIDDEN_TABS, LIMITS, defaults, load, open, close, toggle, toggleTab,
-  setPosition, resize, serialize
+  TABS, TAB_SHORTCUTS, HIDDEN_TABS, LIMITS, defaults, load, open, close, toggle,
+  toggleTab, setPosition, resize, reorder, setOrder, serialize
 } = dockState;
 
 // ─── defaults ─────────────────────────────────────────────
@@ -28,6 +28,7 @@ test('defaults: closed, at the bottom, on the first tab, default sizes', () => {
     open: false,
     position: 'bottom',
     tab: TABS[0],
+    order: TABS,
     size: { bottom: LIMITS.bottom.default, right: LIMITS.right.default }
   });
 });
@@ -80,7 +81,7 @@ test('load: a missing size block keeps both defaults', () => {
 
 test('load: accepts the JSON string serialize() writes', () => {
   const state = load(serialize({ open: true, position: 'right', tab: 'prompts', size: { bottom: 200, right: 500 } }));
-  assert.deepEqual(state, { open: true, position: 'right', tab: 'prompts', size: { bottom: 200, right: 500 } });
+  assert.deepEqual(state, { open: true, position: 'right', tab: 'prompts', order: TABS, size: { bottom: 200, right: 500 } });
 });
 
 // ─── toggleTab: the three transitions ─────────────────────
@@ -211,5 +212,71 @@ test('serialize → load round-trips a valid state', () => {
 
 test('serialize drops anything that is not dock state', () => {
   const state = Object.assign(defaults(), { extra: 'ignored' });
-  assert.deepEqual(Object.keys(JSON.parse(serialize(state))).sort(), ['open', 'position', 'size', 'tab']);
+  assert.deepEqual(Object.keys(JSON.parse(serialize(state))).sort(), ['open', 'order', 'position', 'size', 'tab']);
+});
+
+// ─── order (drag-to-reorder tabs) ─────────────────────────
+
+test('reorder: moves a tab to the index a drag released it at', () => {
+  const state = reorder(defaults(), 'prompts', 0);
+  assert.deepEqual(state.order, ['prompts', 'decisions', 'activity']);
+  assert.deepEqual(reorder(state, 'decisions', 2).order, ['prompts', 'activity', 'decisions']);
+});
+
+test('reorder: never changes the open tab or TABS itself', () => {
+  const before = TABS.slice();
+  const state = reorder(open(defaults(), 'activity'), 'activity', 0);
+  assert.equal(state.tab, 'activity');
+  assert.deepEqual(TABS, before);
+});
+
+test('reorder: an unknown id or a hidden tab leaves the order alone', () => {
+  assert.deepEqual(reorder(defaults(), 'structure', 0).order, TABS);
+  assert.deepEqual(reorder(defaults(), 'nope', 1).order, TABS);
+});
+
+test('reorder: an out-of-range index clamps to the ends', () => {
+  assert.deepEqual(reorder(defaults(), 'decisions', 99).order, ['prompts', 'activity', 'decisions']);
+  assert.deepEqual(reorder(defaults(), 'activity', -5).order, ['activity', 'decisions', 'prompts']);
+});
+
+test('setOrder: normalizes to a full permutation of TABS', () => {
+  assert.deepEqual(setOrder(defaults(), ['activity']).order, ['activity', 'decisions', 'prompts']);
+  assert.deepEqual(setOrder(defaults(), 'garbage').order, TABS);
+});
+
+test('load: an order missing tabs, with unknown ids or duplicates, is repaired', () => {
+  assert.deepEqual(load({ order: ['prompts'] }).order, ['prompts', 'decisions', 'activity']);
+  assert.deepEqual(load({ order: ['structure', 'activity', 'activity'] }).order, ['activity', 'decisions', 'prompts']);
+  assert.deepEqual(load({ order: 'prompts' }).order, TABS);
+  assert.deepEqual(load({}).order, TABS);
+});
+
+test('order survives the serialize → load round-trip', () => {
+  const state = reorder(defaults(), 'activity', 0);
+  assert.deepEqual(load(serialize(state)).order, ['activity', 'decisions', 'prompts']);
+});
+
+test('every transition keeps the order', () => {
+  let state = reorder(defaults(), 'prompts', 0);
+  const want = ['prompts', 'decisions', 'activity'];
+  state = open(state, 'activity');
+  assert.deepEqual(state.order, want);
+  state = toggleTab(state, 'decisions');
+  assert.deepEqual(state.order, want);
+  state = setPosition(state, 'right');
+  assert.deepEqual(state.order, want);
+  state = resize(state, 500, 2000);
+  assert.deepEqual(state.order, want);
+  state = close(state);
+  assert.deepEqual(state.order, want);
+});
+
+// ─── shortcuts ────────────────────────────────────────────
+
+test('TAB_SHORTCUTS: one unique ⇧⌘ shortcut per offered tab, none for hidden ones', () => {
+  assert.deepEqual(Object.keys(TAB_SHORTCUTS).sort(), TABS.slice().sort());
+  const values = Object.values(TAB_SHORTCUTS);
+  assert.equal(new Set(values).size, values.length);
+  values.forEach((v) => assert.match(v, /^CmdOrCtrl\+Shift\+[A-Z]$/));
 });

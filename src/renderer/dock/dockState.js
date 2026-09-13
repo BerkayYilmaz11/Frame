@@ -2,8 +2,9 @@
  * Dock state — pure (dock-panel-readonly-views spec, D2).
  *
  * The dock is a region beside the center content: open or closed, docked at
- * the bottom or on the right, showing one tab, at one size per side. This
- * module owns that state and nothing else — no DOM, no localStorage, no
+ * the bottom or on the right, showing one tab, at one size per side, with
+ * its tabs in the order the user dragged them into. This module owns that
+ * state and nothing else — no DOM, no localStorage, no
  * Electron — so the transitions that are easy to get wrong twice (toggle on
  * the open tab closes, toggle on another switches; sizes clamp to what the
  * center can spare) are pinned by `test/dockState.test.js`.
@@ -12,10 +13,34 @@
  * `serialize()`'s string under `STORAGE_KEY`, app-wide, not per project.
  */
 
+const { moveId, normalizeOrder } = require('../dnd/reorder');
+
 const STORAGE_KEY = 'frame-dock';
 
-/** Ordered tab ids — the strip's order, and the status-bar icons' order. */
+/**
+ * Tab ids in their canonical order: the status-bar icons' order, and the
+ * strip's order until the user drags a tab elsewhere. The strip follows
+ * `state.order` (a permutation of this list, persisted with the rest of the
+ * dock's state); the status bar deliberately does not — its icons are
+ * muscle memory, the strip is the user's arrangement.
+ */
 const TABS = ['decisions', 'prompts', 'activity'];
+
+/**
+ * One shortcut per tab, the single place the renderer reads them from:
+ * the command registry (index.js registerCommands), the status-bar
+ * tooltips and the strip's tooltips all take theirs from here. The View
+ * menu in src/main/menu.js carries hand-copied accelerators for the same
+ * commands — keep it in step. All three share the ⇧⌘ layer with the other
+ * view toggles (D = Tasks, S = Specs, G = GitHub, X = Sessions), so a tab
+ * reads as one more view: Y for Decisions (the project's "why"), L for
+ * Prompts (the log, its shortcut since before the dock), A for Activity.
+ */
+const TAB_SHORTCUTS = {
+  decisions: 'CmdOrCtrl+Shift+Y',
+  prompts: 'CmdOrCtrl+Shift+L',
+  activity: 'CmdOrCtrl+Shift+A'
+};
 
 /**
  * Tabs that exist but are not offered to the user yet. `structure` still
@@ -49,6 +74,7 @@ function defaults() {
     open: false,
     position: 'bottom',
     tab: TABS[0],
+    order: TABS.slice(),
     size: { bottom: LIMITS.bottom.default, right: LIMITS.right.default }
   };
 }
@@ -80,7 +106,8 @@ function clampSize(position, px, available) {
 /**
  * A valid state from anything: a JSON string, a parsed object, garbage,
  * nothing. Unknown tab → the first tab; unknown position → bottom; sizes
- * clamped to their floors; a non-object → defaults.
+ * clamped to their floors; an order missing tabs or naming unknown ones →
+ * normalized against TABS; a non-object → defaults.
  */
 function load(raw) {
   const base = defaults();
@@ -99,6 +126,7 @@ function load(raw) {
     open: input.open === true,
     position: isPosition(input.position) ? input.position : base.position,
     tab: isTab(input.tab) ? input.tab : base.tab,
+    order: normalizeOrder(input.order, TABS),
     size: {
       bottom: clampSize('bottom', size.bottom),
       right: clampSize('right', size.right)
@@ -111,6 +139,7 @@ function copy(state) {
     open: state.open,
     position: state.position,
     tab: state.tab,
+    order: normalizeOrder(state.order, TABS),
     size: { bottom: state.size.bottom, right: state.size.right }
   };
 }
@@ -165,12 +194,32 @@ function resize(state, px, available) {
   return next;
 }
 
+/**
+ * Move tab `id` to index `to` in the strip (a drag's release). An unknown
+ * id or an out-of-range index leaves the order as it was; the open tab is
+ * untouched — reordering never changes what the dock shows.
+ */
+function reorder(state, id, to) {
+  const next = copy(state);
+  if (!isTab(id)) return next;
+  next.order = moveId(next.order, id, to);
+  return next;
+}
+
+/** Replace the strip's order outright (normalized, so it is always a full permutation). */
+function setOrder(state, order) {
+  const next = copy(state);
+  next.order = normalizeOrder(order, TABS);
+  return next;
+}
+
 /** The string written to localStorage. */
 function serialize(state) {
   return JSON.stringify({
     open: state.open,
     position: state.position,
     tab: state.tab,
+    order: normalizeOrder(state.order, TABS),
     size: { bottom: state.size.bottom, right: state.size.right }
   });
 }
@@ -178,6 +227,7 @@ function serialize(state) {
 module.exports = {
   STORAGE_KEY,
   TABS,
+  TAB_SHORTCUTS,
   HIDDEN_TABS,
   POSITIONS,
   LIMITS,
@@ -189,6 +239,8 @@ module.exports = {
   toggleTab,
   setPosition,
   resize,
+  reorder,
+  setOrder,
   clampSize,
   serialize
 };

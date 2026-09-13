@@ -2,7 +2,7 @@
 #terminal {
   flex: 1;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -24,9 +24,12 @@
   align-items: center;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 0 var(--space-md);
-  height: 42px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  /* VS Code's tab-strip height, square, one bottom border: the 32px
+     controls inside fit with room to spare and nothing in the bar changes
+     (compact-center-vs-code-density). */
+  padding: 0 8px;
+  height: 35px;
+  border-radius: 0;
 }
 
 .terminal-tab-actions {
@@ -36,7 +39,7 @@
   margin-left: var(--space-md);
 }
 
-.terminal-tab-actions button {
+.terminal-tab-actions button:not(.primary-btn) {
   background: transparent;
   border: none;
   /* Match the sidebar rail / right-panel strip icons: secondary at rest,
@@ -53,12 +56,12 @@
   transition: all var(--transition-fast);
 }
 
-.terminal-tab-actions button:hover {
+.terminal-tab-actions button:not(.primary-btn):hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
 
-.terminal-tab-actions button svg {
+.terminal-tab-actions button:not(.primary-btn) svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
@@ -201,7 +204,7 @@
   flex: 1;
   overflow: hidden;
   background: var(--bg-primary);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: 0;
 }
 
 .btn-scroll-bottom-overlay {
@@ -268,11 +271,11 @@
    fused widget. The divider + wide gap keep the pair apart from the session
    usage bars sitting to its right.
 
-   The Start button is nested under .lane-bar-launcher on purpose: the
-   generic `.terminal-tab-actions select` / `button` rules above (32px
-   square, no border, transparent) would otherwise flatten it. The picker's
-   rules are scoped to .ai-tool-picker instead, so the same picker draws the
-   same way in the Home Agents card (home-board.css only sizes it). */
+   Start is the shared .primary-btn (ui.css); the generic
+   `.terminal-tab-actions button` rules above exclude that class so they do
+   not flatten it to a 32px icon square. The picker's rules are scoped to
+   .ai-tool-picker, so the same picker draws the same way in the Home Agents
+   card (home-board.css only sizes it). */
 .lane-bar-launcher {
   display: flex;
   align-items: center;
@@ -365,34 +368,3 @@
   color: var(--text-secondary);
 }
 
-/* Start: the one accent-filled control in the bar. Sized to the picker so
-   the pair sits on a shared 28px line inside the 42px bar. */
-.lane-bar-launcher .sidebar-agent-launch {
-  width: auto;
-  height: 28px;
-  padding: 0 12px 0 10px;
-  gap: 6px;
-  background: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-md);
-  color: var(--bg-deep);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-.lane-bar-launcher .sidebar-agent-launch svg {
-  width: 11px;
-  height: 11px;
-}
-
-.lane-bar-launcher .sidebar-agent-launch:hover {
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  filter: brightness(1.08);
-}
-
-.lane-bar-launcher .sidebar-agent-launch:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-}

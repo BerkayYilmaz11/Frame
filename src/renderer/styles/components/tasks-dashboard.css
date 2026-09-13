@@ -354,25 +354,39 @@
   display: none;
 }
 
-.tasks-dashboard-btn-primary {
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  border: 1px solid var(--accent-primary);
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Completed cards outside the project's done window stay in the DOM (the
+   reorder reads full DOM order) but hide until the column is revealed. */
+.tasks-dashboard-cards:not(.show-older) .tasks-dashboard-card.done-older {
+  display: none;
 }
 
-.tasks-dashboard-btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+/* The reveal at the foot of Completed: "Show N older" / "Hide older". Sits
+   in the column-empty idiom so it reads as part of the column, not a card. */
+.tasks-dashboard-column-more {
+  flex-shrink: 0;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.tasks-dashboard-column-more:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background: var(--bg-tertiary);
+}
+
+.tasks-dashboard-column-more:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
 }
 
 .tasks-dashboard-btn-icon {
@@ -409,7 +423,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-md) 8px;
   overflow: auto;
 }
 
@@ -453,15 +468,15 @@
   letter-spacing: 0.6px;
 }
 
+/* Same pill as the Home card header count (.home-card-count), so the
+   column headers and the Home widgets read as one system. */
 .tasks-dashboard-column-count {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  background: var(--bg-elevated);
-  padding: 2px 8px;
-  border-radius: 10px;
-  min-width: 24px;
-  text-align: center;
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+  border-radius: 99px;
+  padding: 0 7px;
+  line-height: 16px;
 }
 
 /* ---------- Cards container ---------- */

@@ -6,7 +6,9 @@
 }
 
 .lane-board {
-  padding: 24px;
+  /* Same left edge as the view header and the terminal
+     (compact-center-vs-code-density D1); widget gaps are unchanged. */
+  padding: 12px;
   height: 100%;
   box-sizing: border-box;
   flex: 1;
@@ -36,12 +38,28 @@
   min-width: 0;
 }
 
-.home-header-name {
+.home-header-title {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Project and branch, one quiet line under the greeting. */
+.home-header-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 4px;
+}
+
+.home-header-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -64,34 +82,62 @@
 }
 
 /* ─── Home grid ─────────────────────────────────────────── */
-/* One flat grid of independent widgets — no named groups, no reading order
-   imposed from above. Each widget is a summary and an entry point: the
-   header opens the surface, the body teases at most a few rows, the footer
-   carries the one direct action. The sidebar is where the full list lives; a
-   widget that grew into a list would be a second dashboard nobody asked for.
+/* One grid of independent widgets, split in two equal halves. Each widget is
+   a summary and an entry point: the header opens the surface, the body teases
+   at most a few rows, the footer carries the one direct action. The sidebar
+   is where the full list lives; a widget that grew into a list would be a
+   second dashboard nobody asked for.
 
-   auto-fill does the responsive work the two-group layout needed a container
-   query for: four widgets read as 2×2 wide and one column narrow, and a
-   fifth costs nothing. Past four the board scrolls — intended. */
+   The top half is the first widget (Agents) at full width — starting an
+   agent is the first thing Home asks of you, so it gets the room. The bottom
+   half is the other three in equal columns. Both rows share the board's
+   height; below a sensible floor the board scrolls instead of squeezing. */
 
 .home-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* The Agents half carries the launcher plus a 3×3 slot board, so it gets
+     a little more than half. */
+  grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: var(--space-md);
-  align-content: start;
+  flex: 1;
+  min-height: 460px;
+}
+
+.home-grid > .home-card-agents {
+  grid-column: 1 / -1;
 }
 
 .home-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* The floor the groups used to hold: past it the board scrolls instead of
-     squeezing widgets into nothing. */
-  min-height: 232px;
+  /* Each half of the board is the card's height; the body scrolls inside. */
+  min-height: 0;
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+/* Too narrow for three columns: stack everything, each card its own floor. */
+@container (max-width: 759px) {
+  .home-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    flex: none;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .home-grid > .home-card-agents {
+    grid-column: auto;
+  }
+
+  .home-card {
+    min-height: 232px;
+  }
 }
 
 .home-card:hover {
@@ -124,11 +170,10 @@
 
 .home-card-icon {
   display: flex;
-  color: var(--text-tertiary);
+  color: var(--accent-primary);
 }
 
 .home-card-title {
-  flex: 1;
   min-width: 0;
   font-size: 12px;
   font-weight: 700;
@@ -136,8 +181,8 @@
 
 .home-card-count {
   font-size: 11px;
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
   border-radius: 99px;
   padding: 0 7px;
   line-height: 16px;
@@ -145,7 +190,8 @@
 
 .home-card-open {
   display: flex;
-  color: var(--text-tertiary);
+  margin-left: auto;
+  color: var(--success);
 }
 
 .home-card-header:hover .home-card-open {
@@ -1335,81 +1381,153 @@
 
 
 /* ─── Agents launcher ───────────────────────────────────── */
-/* The footer the top bar gave up: the tool choice next to Start, where the
-   card has the width for both. It replaces the single action button, so it
-   borrows .home-card-action's border and padding and only overrides the
-   parts that differ — two controls instead of one label.
+/* The one action Home exists for, so it is the first thing in the Agents
+   card — above the slots, not tucked under it as a footer. Centred, because
+   it is the board's headline: a lead, a line saying what pressing Start
+   does, and the picker and button directly under it, drawn larger than the
+   terminal header's pair so they read as the primary control on the board.
 
-   The pair is drawn exactly like the terminal header's launcher: the picker
-   is the shared .ai-tool-picker (terminal.css), and Start below copies the
-   header's .lane-bar-launcher .sidebar-agent-launch values — same height,
-   padding, accent fill, border and radius — so the two launchers read as
-   one control in two places. */
+   The picker is the shared .ai-tool-picker (terminal.css) and Start is the
+   shared .primary-btn (ui.css); only their size is overridden here.
+   .home-agent-start is only the JS hook. */
 
 .home-agent-launcher {
-  justify-content: stretch;
-  gap: 8px;
-  padding: 8px 10px;
-  cursor: default;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  margin: 10px 10px 6px;
+  padding: 14px 20px 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent-primary) 14%, transparent), transparent 70%),
+    var(--accent-subtle);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  border-radius: var(--radius-md);
 }
 
-.home-agent-launcher:hover {
-  background: none;
+.home-agent-launcher-text {
+  min-width: 0;
+  max-width: 560px;
+  text-align: center;
+  font-family: var(--font-sans);
+}
+
+.home-agent-launcher-lead {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.home-agent-launcher-hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
   color: var(--text-secondary);
 }
 
-/* The picker takes the width the card offers; the select inside it stretches
-   with it so the whole box stays clickable. */
+.home-agent-launcher-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex: none;
+}
+
 .home-agent-launcher .ai-tool-picker {
-  flex: 1 1 auto;
-  min-width: 0;
+  height: 36px;
+  min-width: 180px;
+  padding-left: 12px;
+  background: var(--bg-secondary);
 }
 
 .home-agent-launcher .home-agent-tool {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
+  font-size: 12px;
 }
 
-.home-agent-start {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  height: 28px;
-  padding: 0 12px 0 10px;
-  background: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-md);
-  color: var(--bg-deep);
-  font-family: var(--font-mono);
-  font-size: 11px;
+.home-agent-launcher .primary-btn {
+  height: 36px;
+  padding: 0 20px 0 16px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  transition: filter var(--transition-fast), transform 0.08s;
 }
 
-.home-agent-start svg {
-  flex-shrink: 0;
-  width: 11px;
-  height: 11px;
+.home-agent-launcher .primary-btn svg {
+  width: 13px;
+  height: 13px;
 }
 
-.home-agent-start:hover {
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  filter: brightness(1.08);
+/* Narrow board: the controls stack and stretch. */
+@container (max-width: 759px) {
+  .home-agent-launcher-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .home-agent-launcher .ai-tool-picker {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
-.home-agent-start:active {
-  transform: scale(0.97);
+/* ─── Agent slots ───────────────────────────────────────── */
+/* A project holds at most nine lanes, so the card is a fixed 3×3 board of
+   slots that fills the space under the launcher — never a half-empty list.
+   Every open terminal is a tile: the name on the first line, the state on
+   the second, same colours as the rows. Only what is open is drawn — the
+   header count says how much room is left. */
+
+.home-card-agents .home-card-body {
+  padding: 6px 10px 10px;
 }
 
-.home-agent-start:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
+.home-agent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* A fixed 3×3 slot board: the three rows share whatever height the body
+     has, so a full board uses the card instead of leaving a strip of
+     nothing under the last row. 48px is the two-line floor a tile needs. */
+  grid-template-rows: repeat(3, minmax(48px, 1fr));
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
 }
+
+.home-agent-tile {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  min-height: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+}
+
+.home-agent-tile:hover {
+  border-color: var(--border-strong);
+}
+
+.home-agent-tile .home-card-row-name {
+  flex: none;
+  width: 100%;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.home-agent-tile .home-card-row-mark {
+  margin-left: auto;
+}
+
+.home-agent-tile.agent-approval { border-color: color-mix(in srgb, var(--error, #d45555) 40%, transparent); }
+.home-agent-tile.agent-input    { border-color: color-mix(in srgb, var(--warning, #e5a50a) 40%, transparent); }
+
 
 /* ─── Session rows ──────────────────────────────────────── */
 /* A session's title is the row; when it ran, how long it got and which

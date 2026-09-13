@@ -2909,3 +2909,239 @@ with no call-site edits. That is an architecture decision that touches
 separate conversation rather than slipped into a hardening PR. Folding
 `aiToolManager.isCommandAvailable` into `envPath` also stays out, as the PR
 author proposed.
+
+### [2026-09-13] Home: 50/50 split, Agents launcher first
+
+The user asked for a UI/UX pass on Home: the title should read "Welcome to
+Frame!" rather than the project name; the board's height should split
+50/50 — Last Sessions, Active Specs and Active Tasks in the bottom half at
+equal width and height, and a full-width area on top where the running
+agents are listed and the agent picker + Start button are the prominent
+element, so a first-time user understands the agent is started from here.
+
+**What changed.** This overturns the `home-widget-board` spec's T04
+decision (one flat `auto-fill` grid, no imposed reading order) explicitly:
+Home now has a reading order, and it starts with Start. `.home-grid` is
+`repeat(3, 1fr)` × two `1fr` rows; the first registry widget (Agents) is
+spanned across the top row by CSS (`.home-grid > .home-card-agents`), not
+by `defaultSpan`, so the widget contract is untouched. Cards drop the
+232px floor in the wide layout (each half of the board is their height, the
+body scrolls) and get it back under a `@container (max-width: 759px)`
+query, where everything stacks in one column. The board keeps a 460px
+floor so short windows scroll rather than squeeze.
+
+The Agents launcher moved from the card footer to a highlighted panel
+above the list (`.home-agent-launcher`, accent-tinted, with a "Start an
+agent" lead and one line of hint), and its picker/button are drawn at 36px
+instead of the header's 28px. Running agents render as tiles
+(`.home-agent-grid` / `.home-agent-tile`, name on top, state underneath)
+because the card is now wide and short rather than narrow and tall. The
+header keeps project name + branch as a quiet second line under the
+greeting.
+
+Verified by launching the Electron app under Playwright at 1400×900 and
+950×900 and reading the screenshots; `npm test` passes (623).
+
+### [2026-09-13] Dock tab shortcuts and drag-to-reorder tabs (the first `dnd/` primitive)
+
+The user asked for three things on the dock the footer opens: a unique,
+unused shortcut for each tab (Prompts already had ⌘⇧L), shown both in the
+hover tooltip and in the native menu; drag-and-drop reordering of the
+dock's tabs, persisted locally so Prompts dragged to the front is still
+first after a relaunch — while the footer buttons keep their order; and
+that the drag-and-drop be built as a structure we will lean on heavily for
+a VS Code-like flexible layout later.
+
+**Shortcuts.** All three tabs sit on the ⌘⇧ layer with the other view
+toggles (D Tasks, S Specs, G GitHub, X Sessions): ⌘⇧Y for Decisions (the
+project's "why"; D and E are taken, I is DevTools on Windows/Linux), ⌘⇧L
+stays with Prompts, ⌘⇧A for Activity. `dockState.TAB_SHORTCUTS` is the
+renderer's single source — the command registry, the status-bar tooltips
+and the strip's tooltips read it; `src/main/menu.js` carries the same
+accelerators by hand (main cannot share the renderer bundle; the existing
+"keep in step" convention). The native menu shows the accelerator beside
+the item the way macOS/Windows render every menu shortcut, so no
+parenthesised copy was added to the label — that would show the shortcut
+twice. Hover on a footer icon or a dock tab shows "Decisions (⌘⇧Y)".
+
+**Reorder.** `src/renderer/dnd/reorder.js` (pure: `moveItem`, `moveId`,
+`normalizeOrder`) and `src/renderer/dnd/sortable.js` (`makeSortable`,
+pointer-event based — not HTML5 drag-and-drop, whose ghost image, missing
+threshold and per-platform quirks in Electron ruled it out) are the
+reusable primitive. Press + 4px moves lifts the item, crossing a sibling's
+midpoint slides it into that slot live, release fires `onReorder` once
+with the new id order, Escape restores. The dock's strip is its first
+caller: `dockState` gained `order` (a permutation of `TABS`, normalized on
+load so a saved order that is missing tabs or names parked ones is
+repaired) plus `reorder`/`setOrder`; the strip is built in `state.order`
+and persisted under the same `frame-dock` key. `TABS` stays the canonical
+order and the status bar keeps using it, so the footer never moves.
+
+Verified in the running app under Playwright (the script lives in the
+session scratchpad, not the repo): tooltips, all three shortcuts opening /
+switching / closing, live reorder during the drag, persistence across a
+reload, footer order unchanged, Escape cancel, click-after-drag, and the
+View menu's accelerators. `npm test` passes (686, including 13 new
+dockState/reorder cases).
+
+### [2026-09-13] GitHub view rebuilt as tree sections (github-view-tree-layout)
+
+The user asked to generate the spec's tasks and then "implement and complete
+them in order". Eleven tasks, all shipped in one session; the chain is
+`.frame/specs/github-view-tree-layout/` (spec → plan → tasks → outcome).
+
+**Shape.** The sidebar's GitHub tab is now four stacked, collapsible
+sections — Pull Requests · Issues · Branches (with a Remote sub-group) ·
+Worktrees — of 22px rows in the Changes tab's idiom, one filter field, and
+an access-state block that tells `gh` missing, `gh` not signed in (a Sign
+in button that runs `gh auth login` in a new lane) and not-a-GitHub-remote
+apart. The tab strip, filter strip, repo-name bar and the "Coming Soon" PRs
+placeholder are gone; the repo name sits in the head. This **reverses**
+`dock-panel-readonly-views` D8 ("keeping its refresh / filter /
+create-branch chrome") — recorded in plan.md, not silently. The rail tab,
+`sidebar.github` (⌘⇧G) and the Create Branch modal stand.
+
+**Where the logic lives.** Pure and tested under `src/renderer/github/`:
+`sectionState.js` (which sections are open, persisted app-wide under
+`frame-github-sections`, mirroring `dockState`), `accessState.js` (payload
+→ state → section availability → copy), `rowModels.js` (PR / issue /
+branch / worktree → row view-model, filter, `issue-<n>-<slug>`, relative
+time). `githubPanel.js` is the DOM host only. Main runs the `gh` access
+check once per project and caches it (`githubManager.checkAccess`); three
+new channels (`GITHUB_ACCESS_STATE`, `LOAD_GITHUB_PULL_REQUESTS`,
+`CHECKOUT_GITHUB_PR`); PR links reuse `OPEN_GITHUB_ISSUE`. Terminal lanes
+reach the panel through an `openLane` hook injected from `index.js`.
+Branch delete / force delete and worktree remove / force remove use
+`taskConfirmModal`, which grew `heading` / `message` / `confirmLabel`
+options — one confirm discipline, no second modal, no `confirm()`.
+
+**Two things found on the way.** (1) `gitBranchesManager.loadBranches`
+listed `refs/remotes/origin/HEAD` as a local branch named `origin`: its
+`%(refname:short)` is plain "origin", so the `includes('HEAD')` filter
+missed it. It now formats `%(refname)` too and filters by that; payload
+unchanged. (2) At the sidebar's 180px floor the panel itself is ~100px
+wide, so "Pull Requests" cannot sit beside its count; each section title
+carries a long and a short form ("PRs", "Trees", "Branch") swapped by a
+container query below 170px of panel width, where row meta is hidden too.
+
+Verified in the running app under Playwright (script in the session
+scratchpad): 280px / 180px / 320px layouts, expand and persist, Remote
+sub-group, hover actions, filter with counts, context menu, the delete
+confirm with Cancel focused and Enter cancelling. Pull Requests and Issues
+were seen only in the `no-auth` state — this machine's `gh` is not signed
+in — so their live rows rest on the row-model tests. `npm test`: 686 pass.
+
+### [2026-09-13] The center goes flat: VS Code density right of the sidebar (compact-center-vs-code-density)
+
+The user sent two screenshots — Frame with one enlarged terminal, and VS
+Code — and said: "sol panelle sağ tarafı ayırdık ui'da. ancak sağda çokça
+padding var. vs code gibi daha compact bir görüntü olmasını istiyorum. bu
+paddinglerin olmaması lazım." Then: commit what's there, open a spec, plan
+it, generate tasks, implement in guided mode. The chain is
+`.frame/specs/compact-center-vs-code-density/`.
+
+**Diagnosis.** The spacing tokens were not the problem (4/6/10/14/20px);
+the nesting was. Every level of the DOM was its own rounded card inside the
+one above: `#terminal-container` (6px margin, 10px padding, left radius on
+`--bg-deep`) → a rounded 42px tab bar → `.terminals-view` (10/14/14) → a
+bordered `.tv-pane-single` with a darker background → padded content.
+Measured 37px from the sidebar's border to xterm's first column and 58px
+from the top to the tab bar's border. After: 4px and 35px.
+
+**Decisions taken with the user.** Home's gutter goes 24 → 12px so every
+surface shares one left edge (a 12px jump on Home → Terminals would read as
+a bug). The enlarged pane's header is thinned to 24px, not removed — it is
+the only place the status vocabulary, the assignment chip and the pane
+actions live (terminals-home-agents), and removing it would need JS.
+Silent: the dock loses its margin/radius/outer border and keeps one inner
+hairline on the resize-handle edge; the tab bar is 35px because its
+controls are 32px; grid panes keep their border (it is the separator) with
+6px between them and nothing around; the "panes darker than the chrome"
+prototype language now applies to the grid only; no new tokens; no tests
+(the testing record has no path to a stylesheet).
+
+**Why no JS.** `terminalsView.js` refits xterm through a `ResizeObserver` on
+`.tv-pane-content`, so padding edits refit on their own; `dock.js` measures
+the center as clientWidth minus the container's computed padding, so a
+padding of 0 subtracts 0 and the clamp is unchanged.
+
+**Shipped.** Seven tasks, seven commits on `feat/compact-center-vs-code-density`
+(`layout.css`, `terminal.css`, `terminals-view.css`, `dock.css`,
+`view-header.css`, `home-board.css`); `npm test` 688 pass after each.
+Not verified in the running app during the run — the user should open an
+enlarged terminal, the grid, the dock at both positions and both themes.
+Sidebar density (14px panel padding, rail, nav indents) is deliberately
+untouched and is the next spec if wanted.
+
+### [2026-09-13] Branch picker on the status bar (status-bar-branch-picker)
+
+**The ask.** "Sol altta git branch'i var. Buna tıklayınca VS Code gibi var
+olan branch'leri popover gibi gösterip seçtirebilir miyiz? Local branch'ler
+mi, local + remote mi listelenmeli?" — and, once it became a spec, whether
+it should be a dock tab or a popover.
+
+**Decisions taken with the user.** A popover anchored to the indicator, not
+a dock tab: a checkout is a transient act, the dock is for content that
+stays open and shows one tab at a time. Both scopes, separated: local first
+(current pinned, then newest commit — `%(committerdate:unix)` added to the
+existing `git branch -a` format), remote branches below a divider and only
+those without a local twin. Branches checked out in another worktree are
+dimmed up front with "in worktree <folder>" rather than left for git to
+refuse, because the orchestration's `frame/<slug>/work` branches make that
+common. Tests: pure logic only (the project's convention; no DOM harness).
+
+**Silent decisions.** No new IPC channel or payload change — main tells a
+local ref from a remote one itself (`refs/heads/` first, then a split
+against `git remote`), so the GitHub view got the multi-remote fix without
+changing; `ipcChannels.js` was in `audit-q3-cross-platform`'s in-flight
+footprint and stayed untouched. The two mutating git calls the spec touched
+moved to `execFile` (`execGitArgs`); the shared validator
+`src/shared/gitRefNames.js` bans shell metacharacters git would accept,
+because a branch named `$HOME` is hostile to every script run afterwards.
+The picker never fetches: opening is three reads.
+
+**Shipped.** Eight tasks, eight commits on `feat/status-bar-branch-picker`:
+`gitRefNames.js`, `gitBranchRefs.js`, `gitBranchesManager.js`,
+`statusBar/branchPickerModel.js`, `statusBar/branchPicker.js`,
+`statusBar.js`, `githubPanel.js` (`revealSection`), `status-bar.css`; three
+new test files, `npm test` 724 pass after each task. Verified against a
+scratch repo with two remotes and a second worktree (tracking branch from
+`upstream/`, git's "already used by worktree" refusal verbatim, dirty tree,
+injection-shaped name creating nothing). Not exercised in the running app
+during the run — the user should open the picker, filter, switch, try a
+dirty tree, Escape, and the dock open at the bottom, in both themes.
+
+### [2026-09-13] Boards done window — recent done by default, phases under Active
+
+Started from a UI complaint: after the Specs filter row became a segmented
+control plus five phase chips, it wrapped at ordinary widths, and the user
+asked whether a period filter (today / this week / last 10 days, or a date
+range) should be added, on both boards. The numbers settled it — 510 of 570
+tasks completed, 41 of 46 specs done — so the pile is entirely at the done
+end and a time filter on live items would hide the cards the boards exist to
+show.
+
+**Decisions taken with the user.** A window on done items only; a default
+with one reveal control per board instead of a filter the user operates;
+a Project Setting with two values (tasks 7 days, specs 30) rather than one
+machine-wide number; phase chips only while Active is selected, since every
+phase is a subset of Active. The fourth item — sort the spec grid by last
+update — already held (`specManager.listSpecs` orders by `updated_at`).
+
+**Silent decisions.** Search bypasses the window (a query is explicit
+intent). Specs are aged on `updated_at` (the renderer payload has no
+`last_phase_at`); a done item with no usable date counts as recent. Pure
+logic in `src/shared/doneWindow.js` and `src/renderer/specs/filterModel.js`;
+one renderer store `src/renderer/doneWindow.js` owns the value (modal
+writes, boards subscribe). Two new invoke channels beside the git-sharing
+pair — additive edits in `audit-q3-cross-platform`'s and
+`audit-q3-performance-resources`'s footprints. Hidden Completed cards stay
+in the DOM so drag-and-drop commits the full file order.
+
+**Shipped.** Seven tasks, seven commits on `feat/boards-done-window`;
+`npm test` 752 pass. Verified: the new modules under `node --test` and the
+filter row / ghost tile by headless render in both themes. Not exercised in
+the running app during the run — the user should open Tasks (Completed foot
+button, badge, tooltip, drag with older hidden), Specs (All / Done tile,
+Active chips, search), and Project Settings › Boards (change a select, watch
+the open board re-render; no-project state), in both themes.

@@ -122,64 +122,6 @@ body.sidebar-resizing * {
   50% { opacity: 0.45; }
 }
 
-/* Frame's own settings, at the right end of the sidebar header. Quiet by
-   default — it is a destination you go to occasionally, not a control you
-   work with, and the header's job is to say which app this is. */
-.sidebar-header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 3px;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.sidebar-header-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-.sidebar-header-btn:focus-visible {
-  outline: 1px solid var(--accent-primary);
-  outline-offset: 1px;
-}
-
-/* Start button — the launch shortcut; accent-filled so the primary action
-   reads clearly. */
-.sidebar-agent-launch {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 10px;
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: filter var(--transition-fast), transform 0.08s;
-}
-
-.sidebar-agent-launch svg {
-  flex-shrink: 0;
-}
-
-.sidebar-agent-launch:hover {
-  filter: brightness(1.08);
-}
-
-.sidebar-agent-launch:active {
-  transform: scale(0.97);
-}
-
 /* Update banner — sidebar footer card, primary signal when an update is available */
 .sidebar-update-banner {
   flex-shrink: 0;
@@ -359,9 +301,9 @@ body.sidebar-resizing * {
   border-bottom: none;
 }
 
-/* Foot of the rail (Plugins, then Feedback): the first of the pair carries
-   this and pushes both to the bottom, set apart from the view tabs above —
-   they open modals rather than switching views. */
+/* Foot of the rail (Plugins, Feedback, then Frame Settings): the first of
+   the group carries this and pushes all three to the bottom, set apart from
+   the view tabs above — they open modals rather than switching views. */
 .sidebar-rail-btn-foot {
   margin-top: auto;
 }
@@ -696,13 +638,17 @@ body.sidebar-resizing * {
   background: var(--bg-deep);
 }
 
+/* One flat surface from the sidebar's border to the window edge and from
+   the top to the status bar (compact-center-vs-code-density). No margin,
+   padding or radius: the sidebar's 1px border-right is the only seam, and
+   the dock inside inherits the same edge-to-edge box. */
 #terminal-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  padding: var(--space-md);
+  padding: 0;
   min-width: 400px;
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-  margin: var(--space-sm) 0 var(--space-sm) var(--space-sm);
+  border-radius: 0;
+  margin: 0;
 }

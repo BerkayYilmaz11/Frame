@@ -47,6 +47,24 @@ function lucideIcon(data, size = 18) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0">${children}</svg>`;
 }
 
+/**
+ * Apply a theme app-wide. Flipping data-theme is the whole contract
+ * (terminalManager observes it for the xterm theme, CSS does the rest);
+ * the choice persists under 'frame-theme' and is restored at boot by
+ * TerminalTabBar._initTheme. Shared by the top-bar toggle and the
+ * theme.light / theme.dark commands (View › Theme menu, palette).
+ */
+function applyTheme(name) {
+  const next = name === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('frame-theme', next); } catch (_) { /* non-fatal */ }
+}
+
+/** The theme currently applied ('light' | 'dark'). */
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
 class TerminalTabBar {
   constructor(container, manager) {
     this.container = container;
@@ -157,7 +175,8 @@ class TerminalTabBar {
 
              The options below are a placeholder: setupSelector() repopulates
              from the real tool list, which is why a third tool (gemini) is not
-             hardcoded here. #sidebar-agent-launch keeps its id and handler. -->
+             hardcoded here. #sidebar-agent-launch keeps its id and handler; its
+             look is the shared .primary-btn (ui.css). -->
         <div class="lane-bar-launcher">
           <!-- The select is wrapped in a label so the visible control (label
                text, agent name, chevron) is one styled box while the native
@@ -173,7 +192,7 @@ class TerminalTabBar {
               <polyline points="6 9 12 15 18 9"/>
             </svg>
           </label>
-          <button id="sidebar-agent-launch" class="sidebar-agent-launch" tabindex="-1" title="Start default agent">
+          <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -390,12 +409,9 @@ class TerminalTabBar {
       updateBtn.title = `New version available: v${info.latestVersion}`;
     });
 
-    // Theme toggle — flipping data-theme is the whole contract
-    // (terminalManager observes it for the xterm theme, CSS does the rest).
+    // Theme toggle — see applyTheme for the contract.
     this.element.querySelector('#sidebar-theme-btn')?.addEventListener('click', () => {
-      const next = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('frame-theme', next); } catch (_) { /* non-fatal */ }
+      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
     });
   }
 
@@ -547,4 +563,4 @@ class TerminalTabBar {
 
 }
 
-module.exports = { TerminalTabBar };
+module.exports = { TerminalTabBar, applyTheme, currentTheme };

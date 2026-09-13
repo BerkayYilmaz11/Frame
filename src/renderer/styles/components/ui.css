@@ -44,6 +44,54 @@ body {
 }
 
 /* ==================== BUTTONS ==================== */
+/* Primary button — the app's one accent-filled control. Used by the top
+   bar's Start (terminalTabBar.js), the Home Agents card's Start
+   (home/widgets/agents.js) and the "+ New Task" / "+ New Spec" view-header
+   actions (index.html). One rule, so a change here is the change
+   everywhere: 28px line, accent fill, mono 11px/600, 11px glyph, brightness
+   on hover, press scale. */
+.primary-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  color: var(--bg-deep);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter var(--transition-fast), transform 0.08s;
+}
+
+.primary-btn svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.primary-btn:hover {
+  background: var(--accent-primary);
+  color: var(--bg-deep);
+  filter: brightness(1.08);
+}
+
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+.primary-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
 .btn {
   background: var(--bg-elevated);
   color: var(--text-primary);

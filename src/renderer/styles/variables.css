@@ -76,7 +76,7 @@
      (icon + one sentence + buttons), which read wrong at full width. Every
      shell applies it as `width: min(var(--modal-width), 92vw)` so small
      windows still get a gutter. */
-  --modal-width: 560px;
+  --modal-width: 640px;
   --modal-width-compact: 420px;
 
   /* Border Radius */

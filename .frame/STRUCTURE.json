@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-12",
+  "lastUpdated": "2026-09-13",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -838,6 +838,8 @@
       "exports": [
         "init",
         "isFrameProject",
+        "getDoneWindow",
+        "setDoneWindow",
         "openProjectLayout",
         "getFrameConfig",
         "initializeFrameProject",
@@ -869,6 +871,7 @@
         "frameStore",
         "gitExclude",
         "gitSharing",
+        "shared/doneWindow",
         "layoutMigration",
         "workspace",
         "structureBootstrap",
@@ -888,28 +891,28 @@
       ],
       "functions": {
         "init": {
-          "line": 30,
+          "line": 31,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 48,
+          "line": 49,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 56,
+          "line": 57,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 69,
+          "line": 70,
           "params": [
             "filePath",
             "content"
@@ -917,21 +920,21 @@
           "purpose": "Create file if it doesn't exist"
         },
         "checkExistingFrameFiles": {
-          "line": 83,
+          "line": 84,
           "params": [
             "projectPath"
           ],
           "purpose": "Check which Frame files already exist in the project"
         },
         "showInitializeConfirmation": {
-          "line": 110,
+          "line": 111,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 155,
+          "line": 156,
           "params": [
             "projectPath",
             "projectName",
@@ -939,7 +942,7 @@
           ]
         },
         "doInitializeFrameProject": {
-          "line": 163,
+          "line": 164,
           "params": [
             "projectPath",
             "projectName",
@@ -947,7 +950,7 @@
           ]
         },
         "runProjectInit": {
-          "line": 175,
+          "line": 176,
           "params": [
             "projectPath",
             "projectName",
@@ -955,20 +958,20 @@
           ]
         },
         "ensureProjectArtifacts": {
-          "line": 392,
+          "line": 393,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-ensure on open what a fresh init creates."
         },
         "syncClaudeRule": {
-          "line": 415,
+          "line": 416,
           "params": [
             "projectPath"
           ]
         },
         "detectJsonIndent": {
-          "line": 442,
+          "line": 443,
           "params": [
             "text",
             "fallback = 2"
@@ -976,18 +979,18 @@
           "purpose": "The indentation an existing settings file uses, so rewriting it preserves"
         },
         "hookCommandsIn": {
-          "line": 449,
+          "line": 450,
           "params": [
             "settings"
           ],
           "purpose": "Every hook command in a settings object, whatever shape the file is in."
         },
         "frameHookCommands": {
-          "line": 466,
+          "line": 467,
           "purpose": "The command strings Frame installs today."
         },
         "installSpecHintHook": {
-          "line": 490,
+          "line": 491,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
@@ -995,11 +998,11 @@
           "purpose": "Register the spec-hint hooks in the project's Claude settings file."
         },
         "codexHome": {
-          "line": 574,
+          "line": 575,
           "purpose": "Where Codex keeps its configuration. `CODEX_HOME` wins so a test — or a"
         },
         "installCodexHintHook": {
-          "line": 592,
+          "line": 593,
           "params": [
             "projectPath",
             "{ enabled = true",
@@ -1008,14 +1011,14 @@
           "purpose": "Register Frame's hooks for Codex in `CODEX_HOME/hooks.json`."
         },
         "removeCodexHintHook": {
-          "line": 655,
+          "line": 656,
           "params": [
             "{ home = null } = {}"
           ],
           "purpose": "Take Frame's Codex entries back out. Exact-match on the command string, so"
         },
         "codexHookTrustState": {
-          "line": 707,
+          "line": 708,
           "params": [
             "projectPath",
             "{ home = null",
@@ -1024,86 +1027,100 @@
           "purpose": "Are Frame's Codex hooks installed, and have they ever actually run?"
         },
         "codexHookCommands": {
-          "line": 743,
+          "line": 744,
           "purpose": "Every command string Frame's Codex hook entries carry."
         },
         "removeSpecHintHook": {
-          "line": 758,
+          "line": 759,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
           ],
           "purpose": "Take Frame's hook entries back out of a Claude settings file. Exact-match on"
         },
+        "getDoneWindow": {
+          "line": 828,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "setDoneWindow": {
+          "line": 833,
+          "params": [
+            "projectPath",
+            "board",
+            "days"
+          ]
+        },
         "isSpecDrivenEnabled": {
-          "line": 831,
+          "line": 858,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 836,
+          "line": 863,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 865,
+          "line": 892,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 893,
+          "line": 920,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 897,
+          "line": 924,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 911,
+          "line": 938,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 921,
+          "line": 948,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "specDocDescriptors": {
-          "line": 1022,
+          "line": 1049,
           "params": [
             "projectPath"
           ],
           "purpose": "The spec-section descriptors, in the order they must be settled: the target"
         },
         "readTextOrNull": {
-          "line": 1050,
+          "line": 1077,
           "params": [
             "file"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 1064,
+          "line": 1091,
           "params": [
             "projectPath"
           ],
           "purpose": "Upgrade the Frame-managed sections and report what could not be settled."
         },
         "appendSpecSection": {
-          "line": 1147,
+          "line": 1174,
           "params": [
             "projectPath",
             "rel"
@@ -1111,14 +1128,14 @@
           "purpose": "Append the managed spec section to a document the pass deliberately refused"
         },
         "docsHealthFor": {
-          "line": 1186,
+          "line": 1213,
           "params": [
             "projectPath"
           ],
           "purpose": "The report on its own, without running the repair pass — what the UI asks"
         },
         "recordDocsActivity": {
-          "line": 1208,
+          "line": 1235,
           "params": [
             "written",
             "appended",
@@ -1127,14 +1144,14 @@
           "purpose": "Put the pass's result on the record. This is the half that was missing when"
         },
         "removeFrame": {
-          "line": 1243,
+          "line": 1270,
           "params": [
             "projectPath"
           ],
           "purpose": "Delete everything Frame authored in this project and forget it:"
         },
         "dropEmptySettingsFile": {
-          "line": 1297,
+          "line": 1324,
           "params": [
             "projectPath",
             "file"
@@ -1142,21 +1159,21 @@
           "purpose": "Delete a Claude settings file that now parses to `{}` — Frame wrote it to"
         },
         "isFrameOwnedHookResidue": {
-          "line": 1323,
+          "line": 1350,
           "params": [
             "text"
           ],
           "purpose": "What Frame's own pre-commit file looks like once its managed block is gone:"
         },
         "removeHookSnippet": {
-          "line": 1339,
+          "line": 1366,
           "params": [
             "projectPath"
           ],
           "purpose": "Strip Frame's marker-wrapped block from whichever pre-commit hook carries"
         },
         "openProjectLayout": {
-          "line": 1391,
+          "line": 1418,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -1164,7 +1181,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1474,
+          "line": 1501,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -1172,7 +1189,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1496,
+          "line": 1523,
           "params": [
             "ipcMain"
           ],
@@ -1191,6 +1208,8 @@
           "APPEND_DOCS_SECTION",
           "GET_GIT_SHARING_STATE",
           "SET_GIT_SHARING",
+          "GET_DONE_WINDOW",
+          "SET_DONE_WINDOW",
           "REMOVE_FRAME_FROM_PROJECT",
           "GET_MIGRATION_DECISIONS",
           "APPLY_MIGRATION_DECISIONS"
@@ -1454,6 +1473,32 @@
         }
       }
     },
+    "main/gitBranchRefs": {
+      "file": "src/main/gitBranchRefs.js",
+      "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and",
+      "exports": [
+        "BRANCH_FORMAT",
+        "parseBranchLine",
+        "splitRemoteRef"
+      ],
+      "depends": [],
+      "functions": {
+        "parseBranchLine": {
+          "line": 24,
+          "params": [
+            "line"
+          ]
+        },
+        "splitRemoteRef": {
+          "line": 49,
+          "params": [
+            "name",
+            "remotes"
+          ],
+          "purpose": "Which remote does `<remote>/<name>` belong to?"
+        }
+      }
+    },
     "main/gitBranchesManager": {
       "file": "src/main/gitBranchesManager.js",
       "description": "Git Branches Manager Module",
@@ -1483,40 +1528,58 @@
         "fs",
         "path",
         "shared/ipcChannels",
-        "shared/frameConstants"
+        "shared/frameConstants",
+        "gitBranchRefs",
+        "shared/gitRefNames"
       ],
       "functions": {
         "init": {
-          "line": 18,
+          "line": 20,
           "params": [
             "window"
           ],
           "purpose": "Initialize manager"
         },
         "execGit": {
-          "line": 31,
+          "line": 33,
           "params": [
             "command",
             "projectPath"
           ],
           "purpose": "Execute git command with promise"
         },
+        "execGitArgs": {
+          "line": 65,
+          "params": [
+            "args",
+            "projectPath"
+          ],
+          "purpose": "Execute git with an argv array — no shell, so a branch name is one"
+        },
+        "localBranchExists": {
+          "line": 90,
+          "params": [
+            "name",
+            "projectPath"
+          ],
+          "purpose": "Does `refs/heads/<name>` exist in this repo?"
+        },
         "isWorkingTreeClean": {
-          "line": 58,
+          "line": 102,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if working tree is clean"
         },
         "loadBranches": {
-          "line": 70,
+          "line": 114,
           "params": [
             "projectPath"
           ],
           "purpose": "Load all branches"
         },
         "switchBranch": {
-          "line": 115,
+          "line": 172,
           "params": [
             "projectPath",
             "branchName"
@@ -1524,7 +1587,7 @@
           "purpose": "Switch to a branch"
         },
         "createBranch": {
-          "line": 147,
+          "line": 223,
           "params": [
             "projectPath",
             "branchName",
@@ -1534,7 +1597,7 @@
           "purpose": "Create a new branch"
         },
         "deleteBranch": {
-          "line": 175,
+          "line": 246,
           "params": [
             "projectPath",
             "branchName",
@@ -1543,14 +1606,14 @@
           "purpose": "Delete a branch"
         },
         "loadWorktrees": {
-          "line": 192,
+          "line": 263,
           "params": [
             "projectPath"
           ],
           "purpose": "Load worktrees"
         },
         "addWorktree": {
-          "line": 234,
+          "line": 305,
           "params": [
             "projectPath",
             "worktreePath",
@@ -1560,7 +1623,7 @@
           "purpose": "Add a worktree"
         },
         "removeWorktree": {
-          "line": 253,
+          "line": 324,
           "params": [
             "projectPath",
             "worktreePath",
@@ -1569,27 +1632,27 @@
           "purpose": "Remove a worktree"
         },
         "orchWorktreePath": {
-          "line": 275,
+          "line": 346,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getHeadSha": {
-          "line": 279,
+          "line": 350,
           "params": [
             "projectPath"
           ]
         },
         "branchExists": {
-          "line": 288,
+          "line": 359,
           "params": [
             "projectPath",
             "branchName"
           ]
         },
         "createOrchWorktree": {
-          "line": 302,
+          "line": 373,
           "params": [
             "projectPath",
             "slug"
@@ -1597,7 +1660,7 @@
           "purpose": "Create a fresh worker worktree for a spec, branched from current HEAD."
         },
         "removeOrchWorktree": {
-          "line": 323,
+          "line": 394,
           "params": [
             "projectPath",
             "slug",
@@ -1606,7 +1669,7 @@
           "purpose": "Remove a spec's worker worktree (force). Optionally delete its work branch."
         },
         "worktreeChangedFiles": {
-          "line": 338,
+          "line": 409,
           "params": [
             "projectPath",
             "slug",
@@ -1615,7 +1678,7 @@
           "purpose": "Files actually changed on a spec's work branch relative to a base ref."
         },
         "mergeWorkToIntegration": {
-          "line": 355,
+          "line": 426,
           "params": [
             "projectPath",
             "slug"
@@ -1623,7 +1686,7 @@
           "purpose": "Merge a spec's work branch into its per-spec integration branch. Because the"
         },
         "isWorkMerged": {
-          "line": 374,
+          "line": 445,
           "params": [
             "projectPath",
             "slug"
@@ -1631,14 +1694,14 @@
           "purpose": "Whether a spec's work branch has been merged (its integration branch exists"
         },
         "listOrchBranches": {
-          "line": 390,
+          "line": 461,
           "params": [
             "projectPath"
           ],
           "purpose": "List orchestration branches present in the repo, grouped by slug. Used for"
         },
         "setupIPC": {
-          "line": 410,
+          "line": 481,
           "params": [
             "ipcMain"
           ],
@@ -2018,58 +2081,111 @@
         "init",
         "setProjectPath",
         "setupIPC",
+        "checkAccess",
         "loadIssues",
+        "loadPullRequests",
+        "checkoutPullRequest",
         "openIssue"
       ],
       "depends": [
         "child_process",
         "electron",
         "shared/ipcChannels",
-        "envPath"
+        "envPath",
+        "gitBranchesManager"
       ],
       "functions": {
         "init": {
-          "line": 22,
+          "line": 38,
           "params": [
             "window"
           ],
           "purpose": "Initialize GitHub manager"
         },
         "setProjectPath": {
-          "line": 29,
+          "line": 46,
           "params": [
             "projectPath"
           ],
-          "purpose": "Set current project path"
+          "purpose": "Set current project path. A project change drops every cached access"
+        },
+        "run": {
+          "line": 55,
+          "params": [
+            "cmd",
+            "cwd"
+          ],
+          "purpose": "Run one gh (or git) command with the repaired PATH and a timeout."
         },
         "checkGhCli": {
-          "line": 36,
+          "line": 72,
           "purpose": "Check if gh CLI is available"
         },
+        "checkGhAuth": {
+          "line": 80,
+          "purpose": "Is gh signed in to any host? `gh auth status` exits non-zero when not."
+        },
         "checkGitHubRepo": {
-          "line": 48,
+          "line": 88,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if current directory is a git repo with GitHub remote"
         },
+        "checkAccess": {
+          "line": 110,
+          "params": [
+            "projectPath",
+            "force = false"
+          ],
+          "purpose": "The one access check (D6): gh present → signed in → GitHub remote."
+        },
+        "accessError": {
+          "line": 136,
+          "params": [
+            "access"
+          ],
+          "purpose": "The legacy error string for a failed access check, or null when the"
+        },
+        "normalizeState": {
+          "line": 143,
+          "params": [
+            "state"
+          ]
+        },
         "loadIssues": {
-          "line": 69,
+          "line": 151,
           "params": [
             "projectPath",
             "state = 'open'"
           ],
           "purpose": "Load GitHub issues for current project"
         },
+        "loadPullRequests": {
+          "line": 173,
+          "params": [
+            "projectPath",
+            "state = 'open'"
+          ],
+          "purpose": "Load pull requests (G4) with the same open / closed / all filter as issues."
+        },
+        "checkoutPullRequest": {
+          "line": 196,
+          "params": [
+            "projectPath",
+            "number"
+          ],
+          "purpose": "`gh pr checkout <n>`, refused on a dirty tree the way SWITCH_GIT_BRANCH"
+        },
         "openIssue": {
-          "line": 103,
+          "line": 227,
           "params": [
             "url"
           ],
           "purpose": "Open issue in browser"
         },
         "setupIPC": {
-          "line": 112,
+          "line": 236,
           "params": [
             "ipcMain"
           ],
@@ -2078,7 +2194,10 @@
       },
       "ipc": {
         "listens": [
+          "GITHUB_ACCESS_STATE",
           "LOAD_GITHUB_ISSUES",
+          "LOAD_GITHUB_PULL_REQUESTS",
+          "CHECKOUT_GITHUB_PR",
           "OPEN_GITHUB_ISSUE"
         ],
         "emits": []
@@ -2462,39 +2581,39 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 218
+          "line": 229
         },
         "buildAICommandsSubmenu": {
-          "line": 229,
+          "line": 240,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 278,
+          "line": 289,
           "purpose": "Build tool switcher submenu"
         },
         "sendCommand": {
-          "line": 297,
+          "line": 308,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 307,
+          "line": 318,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 316,
+          "line": 327,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 330,
+          "line": 341,
           "purpose": "Create and set application menu"
         }
       },
@@ -5048,68 +5167,61 @@
           ]
         },
         "load": {
-          "line": 59,
-          "params": [
-            "projectPath"
-          ]
-        },
-        "projectName": {
-          "line": 68,
+          "line": 56,
           "params": [
             "projectPath"
           ]
         },
         "renderShell": {
-          "line": 73,
+          "line": 66,
           "params": [
-            "body",
-            "name"
+            "body"
           ],
           "purpose": "Header + body frame; body is swapped as the view loads / filters."
         },
         "matches": {
-          "line": 91,
+          "line": 83,
           "params": [
             "decision"
           ]
         },
         "renderList": {
-          "line": 99
+          "line": 91
         },
         "renderRow": {
-          "line": 115,
+          "line": 107,
           "params": [
             "decision"
           ]
         },
         "renderEmpty": {
-          "line": 130,
+          "line": 122,
           "params": [
             "title",
             "message"
           ]
         },
         "rowKey": {
-          "line": 140,
+          "line": 132,
           "params": [
             "decision"
           ],
           "purpose": "date + line is stable across re-renders and unique per entry."
         },
         "wire": {
-          "line": 144,
+          "line": 136,
           "params": [
             "container"
           ]
         },
         "updateCount": {
-          "line": 177,
+          "line": 169,
           "params": [
             "countEl"
           ]
         },
         "renderMarkdown": {
-          "line": 185,
+          "line": 177,
           "params": [
             "md"
           ]
@@ -5220,6 +5332,61 @@
         }
       }
     },
+    "renderer/dnd/reorder": {
+      "file": "src/renderer/dnd/reorder.js",
+      "description": "Reorder — the pure half of drag-and-drop ordering.",
+      "exports": [
+        "moveItem",
+        "moveId",
+        "normalizeOrder"
+      ],
+      "depends": [],
+      "functions": {
+        "moveItem": {
+          "line": 17,
+          "params": [
+            "list",
+            "from",
+            "to"
+          ],
+          "purpose": "Move the item at `from` so it lands at index `to`, returning a new array."
+        },
+        "moveId": {
+          "line": 30,
+          "params": [
+            "list",
+            "id",
+            "to"
+          ],
+          "purpose": "`moveItem` by identity rather than index; unknown ids leave the list as is."
+        },
+        "normalizeOrder": {
+          "line": 43,
+          "params": [
+            "saved",
+            "canonical"
+          ],
+          "purpose": "A saved order made valid against `canonical` (the ids that exist, in"
+        }
+      }
+    },
+    "renderer/dnd/sortable": {
+      "file": "src/renderer/dnd/sortable.js",
+      "description": "Sortable — drag-to-reorder for a row or column of siblings.",
+      "exports": [
+        "makeSortable"
+      ],
+      "depends": [],
+      "functions": {
+        "makeSortable": {
+          "line": 37,
+          "params": [
+            "container",
+            "options = {}"
+          ]
+        }
+      }
+    },
     "renderer/dock": {
       "file": "src/renderer/dock.js",
       "description": "Dock — the VS Code-style panel beside the center (dock-panel-readonly-views",
@@ -5233,6 +5400,7 @@
         "isOpen",
         "activeTab",
         "position",
+        "tabOrder",
         "remountActive",
         "onChange",
         "DOCK_TABS",
@@ -5240,6 +5408,9 @@
       ],
       "depends": [
         "dock/dockState",
+        "dnd/sortable",
+        "tooltip",
+        "platform",
         "lucide",
         "htmlUtils",
         "decisionsView",
@@ -5251,7 +5422,7 @@
       ],
       "functions": {
         "lucideIcon": {
-          "line": 38,
+          "line": 44,
           "params": [
             "data",
             "size = 14"
@@ -5259,7 +5430,7 @@
           "purpose": "Inline SVG for a lucide icon's data (the shape sectionRail.js uses)."
         },
         "emptyState": {
-          "line": 47,
+          "line": 53,
           "params": [
             "title",
             "message"
@@ -5267,7 +5438,7 @@
           "purpose": "The dock's inline empty state — the shape decisionsView.renderEmpty uses."
         },
         "panelTab": {
-          "line": 66,
+          "line": 72,
           "params": [
             "{ label",
             "icon",
@@ -5277,109 +5448,113 @@
           "purpose": "A tab hosting one of the legacy side panels (D9). The element keeps its"
         },
         "loadState": {
-          "line": 184
+          "line": 190
         },
         "persist": {
-          "line": 192
+          "line": 198
         },
         "init": {
-          "line": 202
+          "line": 208
         },
         "available": {
-          "line": 257,
+          "line": 280,
           "params": [
             "position = state.position"
           ],
           "purpose": "The center's extent on the dock's axis, for the size ceiling."
         },
         "applySize": {
-          "line": 266
+          "line": 289
         },
         "apply": {
-          "line": 283,
+          "line": 306,
           "params": [
             "{ refit = false } = {}"
           ],
           "purpose": "Paint `state`: side class, size, open/closed, active tab, mounted"
         },
         "mountTab": {
-          "line": 321,
+          "line": 344,
           "params": [
             "tab"
           ]
         },
         "unmountTab": {
-          "line": 335
+          "line": 358
         },
         "refitCenter": {
-          "line": 350,
+          "line": 373,
           "purpose": "Terminals refit through the existing fit path (D13)."
         },
         "refitTab": {
-          "line": 357,
+          "line": 380,
           "purpose": "The active tab's own refit (Structure re-renders its graph to the new box)."
         },
         "emit": {
-          "line": 368
+          "line": 391
         },
         "snapshotState": {
-          "line": 379
+          "line": 402
         },
         "bindResize": {
-          "line": 385,
+          "line": 408,
           "params": [
             "handle"
           ]
         },
         "ensureReady": {
-          "line": 445
+          "line": 468
         },
         "open": {
-          "line": 454,
+          "line": 477,
           "params": [
             "tab"
           ],
           "purpose": "Open on `tab` (or the last tab). A tab switch on an open dock is not a size change."
         },
         "close": {
-          "line": 461
+          "line": 484
         },
         "toggle": {
-          "line": 469,
+          "line": 492,
           "purpose": "⌘J: open ↔ closed, reopening on the last tab at the last size."
         },
         "toggleTab": {
-          "line": 475,
+          "line": 498,
           "params": [
             "tab"
           ],
           "purpose": "Status-bar / menu semantics: on it → close; on another → switch; closed → open on it."
         },
         "setPosition": {
-          "line": 482,
+          "line": 505,
           "params": [
             "position"
           ]
         },
         "isOpen": {
-          "line": 490
+          "line": 513
         },
         "activeTab": {
-          "line": 494
+          "line": 517
         },
         "position": {
-          "line": 498
+          "line": 521
         },
         "remountActive": {
-          "line": 507,
+          "line": 530,
           "purpose": "Re-run the active tab's mount (the project changed under an open"
         },
+        "tabOrder": {
+          "line": 538,
+          "purpose": "The strip's current order of tab ids (the user's arrangement)."
+        },
         "onChange": {
-          "line": 515,
+          "line": 543,
           "params": [
             "fn"
           ],
-          "purpose": "Follow the dock: fn({ open, position, tab }) after every change."
+          "purpose": "Follow the dock: fn({ open, position, tab, order }) after every change."
         }
       }
     },
@@ -5389,6 +5564,7 @@
       "exports": [
         "STORAGE_KEY",
         "TABS",
+        "TAB_SHORTCUTS",
         "HIDDEN_TABS",
         "POSITIONS",
         "LIMITS",
@@ -5400,28 +5576,32 @@
         "toggleTab",
         "setPosition",
         "resize",
+        "reorder",
+        "setOrder",
         "clampSize",
         "serialize"
       ],
-      "depends": [],
+      "depends": [
+        "dnd/reorder"
+      ],
       "functions": {
         "defaults": {
-          "line": 47
+          "line": 72
         },
         "isTab": {
-          "line": 56,
+          "line": 82,
           "params": [
             "tab"
           ]
         },
         "isPosition": {
-          "line": 60,
+          "line": 86,
           "params": [
             "position"
           ]
         },
         "clampSize": {
-          "line": 69,
+          "line": 95,
           "params": [
             "position",
             "px",
@@ -5430,20 +5610,20 @@
           "purpose": "Clamp a size for one side. Without `available` (the center's extent on"
         },
         "load": {
-          "line": 85,
+          "line": 112,
           "params": [
             "raw"
           ],
           "purpose": "A valid state from anything: a JSON string, a parsed object, garbage,"
         },
         "copy": {
-          "line": 109,
+          "line": 137,
           "params": [
             "state"
           ]
         },
         "open": {
-          "line": 119,
+          "line": 148,
           "params": [
             "state",
             "tab"
@@ -5451,13 +5631,13 @@
           "purpose": "Open on `tab` (or the current tab when omitted)."
         },
         "close": {
-          "line": 129,
+          "line": 158,
           "params": [
             "state"
           ]
         },
         "toggleTab": {
-          "line": 139,
+          "line": 168,
           "params": [
             "state",
             "tab"
@@ -5465,21 +5645,21 @@
           "purpose": "The status-bar icon / menu item semantics: open on that tab → closed;"
         },
         "toggle": {
-          "line": 146,
+          "line": 175,
           "params": [
             "state"
           ],
           "purpose": "Toggle open/closed, keeping the tab."
         },
         "setPosition": {
-          "line": 150,
+          "line": 179,
           "params": [
             "state",
             "position"
           ]
         },
         "resize": {
-          "line": 162,
+          "line": 191,
           "params": [
             "state",
             "px",
@@ -5487,8 +5667,25 @@
           ],
           "purpose": "Resize the current side to `px`, clamped to `[min, maxShare × available]`."
         },
+        "reorder": {
+          "line": 202,
+          "params": [
+            "state",
+            "id",
+            "to"
+          ],
+          "purpose": "Move tab `id` to index `to` in the strip (a drag's release). An unknown"
+        },
+        "setOrder": {
+          "line": 210,
+          "params": [
+            "state",
+            "order"
+          ],
+          "purpose": "Replace the strip's order outright (normalized, so it is always a full permutation)."
+        },
         "serialize": {
-          "line": 169,
+          "line": 217,
           "params": [
             "state"
           ],
@@ -5593,6 +5790,63 @@
         },
         "hide": {
           "line": 258
+        }
+      }
+    },
+    "renderer/doneWindow": {
+      "file": "src/renderer/doneWindow.js",
+      "description": "Done Window store — the renderer's one owner of `settings.doneWindow`.",
+      "exports": [
+        "init",
+        "get",
+        "set",
+        "onChange",
+        "_loadedFor"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "shared/doneWindow"
+      ],
+      "functions": {
+        "notify": {
+          "line": 22
+        },
+        "apply": {
+          "line": 27,
+          "params": [
+            "value",
+            "projectPath"
+          ]
+        },
+        "load": {
+          "line": 33,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "init": {
+          "line": 45
+        },
+        "get": {
+          "line": 51,
+          "purpose": "The current project's `{ tasks, specs }` window in days (0 = all)."
+        },
+        "set": {
+          "line": 59,
+          "params": [
+            "board",
+            "days"
+          ],
+          "purpose": "Write one board's window. Resolves to the stored `{ tasks, specs }`;"
+        },
+        "onChange": {
+          "line": 69,
+          "params": [
+            "cb"
+          ],
+          "purpose": "Subscribe to changes; returns an unsubscribe function."
         }
       }
     },
@@ -5701,60 +5955,65 @@
       ],
       "functions": {
         "blankDrafts": {
-          "line": 64
+          "line": 82
         },
         "diagnostics": {
-          "line": 76,
+          "line": 94,
           "purpose": "What Frame will attach — read fresh each render so the panel never shows a"
         },
         "el": {
-          "line": 86
+          "line": 104
         },
         "kind": {
-          "line": 91
+          "line": 109
         },
         "draft": {
-          "line": 95
-        },
-        "renderTabs": {
-          "line": 101
-        },
-        "diagnosticsBlock": {
           "line": 113
         },
+        "renderKinds": {
+          "line": 124,
+          "purpose": "The kind cards: icon, label, and the one line that matters — where the"
+        },
+        "renderTitle": {
+          "line": 144,
+          "purpose": "The header follows the kind, so the modal is about one thing at a time."
+        },
+        "diagnosticsBlock": {
+          "line": 149
+        },
         "actionBlock": {
-          "line": 129,
+          "line": 167,
           "purpose": "What the button does, said plainly. The tail is the promise about what"
         },
         "render": {
-          "line": 142,
+          "line": 180,
           "purpose": "Draw the active kind's form."
         },
         "showErrors": {
-          "line": 172,
+          "line": 210,
           "params": [
             "errors"
           ],
           "purpose": "Put each message beside the field it belongs to, never in one summary line."
         },
         "bindForm": {
-          "line": 184,
+          "line": 222,
           "params": [
             "body"
           ]
         },
         "selectTab": {
-          "line": 195,
+          "line": 233,
           "params": [
             "id"
           ]
         },
         "submit": {
-          "line": 210,
-          "purpose": "Validate the active tab's draft, then hand it to that kind's channel."
+          "line": 249,
+          "purpose": "Validate the active kind's draft, then hand it to that kind's channel."
         },
         "deliver": {
-          "line": 238,
+          "line": 277,
           "params": [
             "channel",
             "report"
@@ -5762,33 +6021,33 @@
           "purpose": "Hand a finished report to a channel."
         },
         "track": {
-          "line": 281,
+          "line": 320,
           "params": [
             "channel"
           ],
           "purpose": "One event, on the channel that actually carried the report."
         },
         "clearDraft": {
-          "line": 295,
-          "purpose": "Clear the tab that just delivered, and only that tab."
+          "line": 334,
+          "purpose": "Clear the kind that just delivered, and only that kind."
         },
         "modal": {
-          "line": 302
+          "line": 341
         },
         "init": {
-          "line": 307
+          "line": 346
         },
         "open": {
-          "line": 330
+          "line": 369
         },
         "close": {
-          "line": 340
+          "line": 380
         },
         "toggle": {
-          "line": 345
+          "line": 385
         },
         "isVisible": {
-          "line": 350
+          "line": 390
         }
       },
       "ipc": {
@@ -6090,223 +6349,604 @@
         "emits": []
       }
     },
+    "renderer/github/accessState": {
+      "file": "src/renderer/github/accessState.js",
+      "description": "GitHub access state — pure (github-view-tree-layout spec, G3 / D6).",
+      "exports": [
+        "STATES",
+        "stateOf",
+        "availabilityOf",
+        "resolve",
+        "isAvailable"
+      ],
+      "depends": [],
+      "functions": {
+        "stateOf": {
+          "line": 47,
+          "params": [
+            "payload"
+          ],
+          "purpose": "The state id for a payload; anything unreadable counts as `no-gh`."
+        },
+        "availabilityOf": {
+          "line": 55,
+          "params": [
+            "state"
+          ]
+        },
+        "resolve": {
+          "line": 66,
+          "params": [
+            "payload"
+          ],
+          "purpose": "Resolve a GITHUB_ACCESS_STATE payload."
+        },
+        "isAvailable": {
+          "line": 76,
+          "params": [
+            "resolved",
+            "section"
+          ]
+        }
+      }
+    },
+    "renderer/github/rowModels": {
+      "file": "src/renderer/github/rowModels.js",
+      "description": "GitHub panel row view-models — pure (github-view-tree-layout spec, G2 / C10).",
+      "exports": [
+        "SLUG_MAX",
+        "relativeTime",
+        "contrastColor",
+        "labelColor",
+        "issueBranchName",
+        "prRow",
+        "prRows",
+        "issueRow",
+        "issueRows",
+        "branchRow",
+        "branchRows",
+        "worktreeSlug",
+        "worktreeRow",
+        "worktreeRows",
+        "filterRows"
+      ],
+      "depends": [],
+      "functions": {
+        "relativeTime": {
+          "line": 25,
+          "params": [
+            "dateString",
+            "now = Date.now("
+          ],
+          "purpose": "\"just now\" · \"5 minutes ago\" · \"3 hours ago\" · \"yesterday\" · \"4 days ago\""
+        },
+        "contrastColor": {
+          "line": 51,
+          "params": [
+            "hexColor"
+          ],
+          "purpose": "Black or white text for a hex background (\"d73a4a\" or \"#d73a4a\")."
+        },
+        "labelColor": {
+          "line": 62,
+          "params": [
+            "color"
+          ],
+          "purpose": "A CSS color for a GitHub label color, or null when it has none."
+        },
+        "issueBranchName": {
+          "line": 70,
+          "params": [
+            "number",
+            "title"
+          ],
+          "purpose": "`issue-<n>-<kebab-slug>`; the slug is at most SLUG_MAX chars."
+        },
+        "prIcon": {
+          "line": 82,
+          "params": [
+            "pr"
+          ]
+        },
+        "reviewOf": {
+          "line": 90,
+          "params": [
+            "pr"
+          ]
+        },
+        "checksOf": {
+          "line": 102,
+          "params": [
+            "pr"
+          ],
+          "purpose": "Collapse `statusCheckRollup` (an array of check runs / status contexts)"
+        },
+        "prRow": {
+          "line": 118,
+          "params": [
+            "pr",
+            "now"
+          ]
+        },
+        "prRows": {
+          "line": 143,
+          "params": [
+            "result",
+            "now"
+          ]
+        },
+        "issueRow": {
+          "line": 150,
+          "params": [
+            "issue",
+            "now"
+          ]
+        },
+        "issueRows": {
+          "line": 176,
+          "params": [
+            "result",
+            "now"
+          ]
+        },
+        "branchRow": {
+          "line": 183,
+          "params": [
+            "branch",
+            "currentBranch"
+          ]
+        },
+        "branchRows": {
+          "line": 212,
+          "params": [
+            "result"
+          ],
+          "purpose": "Current branch first, then local branches by name, then remote branches"
+        },
+        "normalizePath": {
+          "line": 224,
+          "params": [
+            "p"
+          ]
+        },
+        "worktreeSlug": {
+          "line": 232,
+          "params": [
+            "worktreePath",
+            "projectPath"
+          ],
+          "purpose": "The spec slug for a worktree at `<project>/.frame/worktrees/<slug>`"
+        },
+        "worktreeRow": {
+          "line": 243,
+          "params": [
+            "wt",
+            "projectPath"
+          ]
+        },
+        "worktreeRows": {
+          "line": 271,
+          "params": [
+            "result",
+            "projectPath"
+          ]
+        },
+        "filterRows": {
+          "line": 282,
+          "params": [
+            "rows",
+            "query"
+          ],
+          "purpose": "Rows whose primary text, `#number`, secondary text or slug contains the"
+        }
+      }
+    },
+    "renderer/github/sectionState": {
+      "file": "src/renderer/github/sectionState.js",
+      "description": "GitHub panel section state — pure (github-view-tree-layout spec, D7).",
+      "exports": [
+        "STORAGE_KEY",
+        "SECTIONS",
+        "SUBGROUPS",
+        "defaults",
+        "isId",
+        "load",
+        "isExpanded",
+        "toggle",
+        "setExpanded",
+        "expandedSections",
+        "serialize"
+      ],
+      "depends": [],
+      "functions": {
+        "defaults": {
+          "line": 29,
+          "purpose": "D3: Pull Requests and Branches start expanded — the two most used"
+        },
+        "isId": {
+          "line": 33,
+          "params": [
+            "id"
+          ]
+        },
+        "load": {
+          "line": 42,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A valid state from anything: a JSON string, a parsed object, garbage,"
+        },
+        "copy": {
+          "line": 61,
+          "params": [
+            "state"
+          ]
+        },
+        "isExpanded": {
+          "line": 67,
+          "params": [
+            "state",
+            "id"
+          ]
+        },
+        "toggle": {
+          "line": 72,
+          "params": [
+            "state",
+            "id"
+          ],
+          "purpose": "Flip one section or sub-group; an unknown id is a no-op copy."
+        },
+        "setExpanded": {
+          "line": 79,
+          "params": [
+            "state",
+            "id",
+            "expanded"
+          ]
+        },
+        "expandedSections": {
+          "line": 87,
+          "params": [
+            "state"
+          ],
+          "purpose": "The section ids that are currently expanded, in panel order."
+        },
+        "serialize": {
+          "line": 92,
+          "params": [
+            "state"
+          ],
+          "purpose": "The string written to localStorage."
+        }
+      }
+    },
     "renderer/githubPanel": {
       "file": "src/renderer/githubPanel.js",
-      "description": "GitHub Panel Module",
+      "description": "GitHub Panel — the sidebar's GitHub tab (github-view-tree-layout spec).",
       "exports": [
         "init",
         "show",
         "hide",
         "toggle",
-        "loadIssues",
-        "loadBranches",
-        "loadWorktrees",
+        "refresh",
+        "loadSection",
+        "revealSection",
         "isVisible"
       ],
       "depends": [
         "electron",
+        "lucide",
         "shared/ipcChannels",
         "htmlUtils",
         "notify",
+        "taskConfirmModal",
+        "dock",
+        "github/sectionState",
+        "github/accessState",
+        "github/rowModels",
         "state"
       ],
       "functions": {
+        "resetCache": {
+          "line": 106
+        },
+        "projectPath": {
+          "line": 112
+        },
         "init": {
-          "line": 28,
-          "purpose": "Initialize GitHub panel"
+          "line": 123,
+          "params": [
+            "opts = {}"
+          ],
+          "purpose": "Opens a terminal lane (optionally in `cwd`) and types `command` into it."
+        },
+        "readStored": {
+          "line": 173
+        },
+        "persistSections": {
+          "line": 181
+        },
+        "paintStaticIcons": {
+          "line": 189
         },
         "setupEventListeners": {
-          "line": 47,
-          "purpose": "Setup event listeners"
-        },
-        "setupIPCListeners": {
-          "line": 80,
-          "purpose": "Setup IPC listeners"
-        },
-        "loadIssues": {
-          "line": 89,
-          "purpose": "Load GitHub issues"
-        },
-        "refreshIssues": {
-          "line": 122,
-          "purpose": "Refresh issues"
+          "line": 204
         },
         "show": {
-          "line": 144,
-          "purpose": "Show GitHub panel"
+          "line": 310,
+          "purpose": "Called on every reveal of the tab (revealSidebarTab → show()). Resolves"
         },
         "hide": {
-          "line": 155,
-          "purpose": "Hide GitHub panel"
+          "line": 324
         },
         "toggle": {
-          "line": 165,
-          "purpose": "Toggle GitHub panel visibility"
+          "line": 329,
+          "purpose": "Kept for callers of the old slide-in API; the tab has no closed state."
         },
-        "setTab": {
-          "line": 176,
+        "loadAccess": {
+          "line": 335,
           "params": [
-            "tab"
-          ],
-          "purpose": "Set active tab"
+            "force"
+          ]
         },
-        "setFilter": {
-          "line": 209,
+        "isAvailable": {
+          "line": 351,
           "params": [
-            "filter"
-          ],
-          "purpose": "Set filter"
+            "id"
+          ]
         },
-        "renderLoading": {
-          "line": 223,
+        "renderHead": {
+          "line": 355
+        },
+        "renderState": {
+          "line": 362
+        },
+        "signIn": {
+          "line": 391
+        },
+        "toggleSection": {
+          "line": 402,
           "params": [
-            "message = 'Loading...'"
-          ],
-          "purpose": "Render loading state"
+            "id"
+          ]
         },
-        "renderError": {
-          "line": 237,
+        "revealSection": {
+          "line": 419,
           "params": [
-            "message"
+            "id"
           ],
-          "purpose": "Render error state"
+          "purpose": "Expand one section from outside the panel (the status bar's branch picker"
         },
-        "renderComingSoon": {
-          "line": 265,
+        "toggleSubgroup": {
+          "line": 430,
           "params": [
-            "tab"
-          ],
-          "purpose": "Render coming soon state for unimplemented tabs"
+            "id"
+          ]
         },
-        "render": {
-          "line": 290,
-          "purpose": "Render issues list"
+        "applySections": {
+          "line": 436
         },
-        "renderIssueItem": {
-          "line": 332,
+        "loadExpanded": {
+          "line": 447,
+          "purpose": "Every expanded, available section: cached rows now, a reload behind."
+        },
+        "onSectionAction": {
+          "line": 454,
           "params": [
-            "issue"
-          ],
-          "purpose": "Render single issue item"
+            "id",
+            "action",
+            "btn"
+          ]
         },
-        "getContrastColor": {
-          "line": 371,
-          "params": [
-            "hexColor"
-          ],
-          "purpose": "Get contrasting text color for a background color"
+        "refreshAll": {
+          "line": 468,
+          "purpose": "Head refresh (G6): re-run the access check with force, then reload every"
         },
-        "formatRelativeTime": {
-          "line": 382,
-          "params": [
-            "dateString"
-          ],
-          "purpose": "Format relative time"
-        },
-        "loadBranches": {
-          "line": 412,
-          "purpose": "Load git branches"
-        },
-        "renderBranches": {
-          "line": 441,
-          "purpose": "Render branches list"
-        },
-        "renderBranchItem": {
+        "invokeSection": {
           "line": 487,
           "params": [
-            "branch",
-            "currentBranch"
-          ],
-          "purpose": "Render single branch item"
+            "id",
+            "path"
+          ]
         },
-        "attachBranchEventListeners": {
-          "line": 515,
-          "purpose": "Attach branch event listeners"
-        },
-        "handleSwitchBranch": {
-          "line": 538,
+        "loadSection": {
+          "line": 516,
           "params": [
-            "branchName"
+            "id",
+            "opts = {}"
           ],
-          "purpose": "Handle branch switch"
+          "purpose": "Load one section into its cache and re-render it. A section that is not"
         },
-        "handleDeleteBranch": {
-          "line": 565,
+        "visibleRows": {
+          "line": 557,
           "params": [
-            "branchName"
-          ],
-          "purpose": "Handle branch deletion"
+            "id"
+          ]
         },
-        "renderBranchesError": {
-          "line": 597,
+        "findRow": {
+          "line": 563,
           "params": [
-            "message"
-          ],
-          "purpose": "Render branches error"
+            "id",
+            "rowId"
+          ]
         },
-        "loadWorktrees": {
-          "line": 620,
-          "purpose": "Load git worktrees"
-        },
-        "renderWorktrees": {
-          "line": 649,
-          "purpose": "Render worktrees list"
-        },
-        "renderWorktreeItem": {
-          "line": 681,
+        "noteHtml": {
+          "line": 569,
           "params": [
-            "worktree"
-          ],
-          "purpose": "Render single worktree item"
+            "text",
+            "kind = ''"
+          ]
         },
-        "attachWorktreeEventListeners": {
+        "unavailableNote": {
+          "line": 573
+        },
+        "emptyNote": {
+          "line": 580,
+          "params": [
+            "id"
+          ]
+        },
+        "renderSection": {
+          "line": 589,
+          "params": [
+            "id"
+          ]
+        },
+        "rowHtml": {
+          "line": 650,
+          "params": [
+            "row"
+          ]
+        },
+        "hintLabel": {
+          "line": 684,
+          "params": [
+            "h"
+          ]
+        },
+        "rowTitle": {
+          "line": 695,
+          "params": [
+            "row"
+          ]
+        },
+        "selectRow": {
           "line": 710,
-          "purpose": "Attach worktree event listeners"
-        },
-        "handleRemoveWorktree": {
-          "line": 723,
           "params": [
-            "wtPath"
-          ],
-          "purpose": "Handle worktree removal"
+            "row"
+          ]
         },
-        "renderWorktreesError": {
-          "line": 751,
+        "clearSearch": {
+          "line": 721
+        },
+        "menusOpen": {
+          "line": 730
+        },
+        "hideMenus": {
+          "line": 735
+        },
+        "placeMenu": {
+          "line": 742,
           "params": [
-            "message"
+            "menuEl",
+            "x",
+            "y"
+          ]
+        },
+        "showContextMenu": {
+          "line": 753,
+          "params": [
+            "row",
+            "x",
+            "y"
+          ]
+        },
+        "showFilterMenu": {
+          "line": 763,
+          "params": [
+            "id",
+            "anchorBtn"
+          ]
+        },
+        "setFilter": {
+          "line": 775,
+          "params": [
+            "id",
+            "filter"
+          ]
+        },
+        "runAction": {
+          "line": 789,
+          "params": [
+            "row",
+            "action"
+          ]
+        },
+        "openOnGitHub": {
+          "line": 804,
+          "params": [
+            "row"
           ],
-          "purpose": "Render worktrees error"
+          "purpose": "D2: the browser opens only from the action or the context menu."
+        },
+        "afterCheckoutChange": {
+          "line": 809,
+          "purpose": "D13: after a checkout-changing action the status bar and Changes follow."
+        },
+        "reportDirty": {
+          "line": 814,
+          "params": [
+            "result"
+          ]
+        },
+        "switchBranch": {
+          "line": 822,
+          "params": [
+            "row"
+          ]
+        },
+        "checkoutPullRequest": {
+          "line": 839,
+          "params": [
+            "row"
+          ]
+        },
+        "startWork": {
+          "line": 857,
+          "params": [
+            "row"
+          ],
+          "purpose": "D1: branch only — `issue-<n>-<slug>` from the current branch, checked out."
+        },
+        "confirmModal": {
+          "line": 885,
+          "params": [
+            "opts"
+          ]
+        },
+        "deleteBranch": {
+          "line": 897,
+          "params": [
+            "row"
+          ]
+        },
+        "openTerminalHere": {
+          "line": 930,
+          "params": [
+            "row"
+          ]
+        },
+        "removeWorktree": {
+          "line": 938,
+          "params": [
+            "row"
+          ]
         },
         "setupModalListeners": {
-          "line": 771,
-          "purpose": "Setup modal event listeners"
+          "line": 974
         },
         "showCreateBranchModal": {
-          "line": 818,
-          "purpose": "Show create branch modal"
+          "line": 1002
         },
         "populateBaseBranchSelect": {
-          "line": 844,
+          "line": 1018,
           "params": [
             "select"
-          ],
-          "purpose": "Populate base branch select dropdown"
+          ]
         },
         "hideCreateBranchModal": {
-          "line": 883,
-          "purpose": "Hide create branch modal"
+          "line": 1046
         },
         "handleCreateBranch": {
-          "line": 893,
-          "purpose": "Handle create branch"
+          "line": 1051
         }
       },
       "ipc": {
-        "listens": [
-          "TOGGLE_GITHUB_PANEL"
-        ],
+        "listens": [],
         "emits": [
-          "OPEN_GITHUB_ISSUE"
+          "OPEN_GITHUB_ISSUE",
+          "REFRESH_GIT_STATUS"
         ]
       }
     },
@@ -6355,15 +6995,21 @@
     },
     "renderer/home/agentRows": {
       "file": "src/renderer/home/agentRows.js",
-      "description": "Which agents Home lists, and in what order.",
+      "description": "Which terminals Home lists, and in what order.",
       "exports": [
         "agentRows",
         "ATTENTION_ORDER"
       ],
       "depends": [],
       "functions": {
+        "rank": {
+          "line": 35,
+          "params": [
+            "status"
+          ]
+        },
         "agentRows": {
-          "line": 34,
+          "line": 44,
           "params": [
             "lanes"
           ]
@@ -6629,10 +7275,7 @@
         "mount(el) {\n    this.card = widgetShell({\n      id",
         "icon",
         "title",
-        "actionLabel",
-        "actionIcon",
-        "onOpen",
-        "onAction"
+        "onOpen"
       ],
       "depends": [
         "lucide",
@@ -6658,10 +7301,7 @@
         "mount(el) {\n    this.card = widgetShell({\n      id",
         "icon",
         "title",
-        "actionLabel",
-        "actionIcon",
-        "onOpen",
-        "onAction"
+        "onOpen"
       ],
       "depends": [
         "lucide",
@@ -6689,8 +7329,7 @@
         "mount(el",
         "ctx) {\n    this.ctx = ctx;\n    this.card = widgetShell({\n      id",
         "icon",
-        "title",
-        "and\n      // a chevron that leads to the Terminals section would be a lie.\n      onOpen"
+        "title"
       ],
       "depends": [
         "lucide",
@@ -6751,7 +7390,7 @@
           ]
         },
         "_projectName": {
-          "line": 374,
+          "line": 381,
           "params": [
             "p"
           ]
@@ -6815,6 +7454,7 @@
         "pluginsPanel",
         "sessionsPanel",
         "githubPanel",
+        "notify",
         "promptsPanel",
         "activityPanel",
         "specPanel",
@@ -6832,9 +7472,11 @@
         "commandRegistry",
         "commandPalette",
         "cheatSheet",
+        "terminalTabBar",
         "welcomeOverlay",
         "appLoader",
         "projectSettingsModal",
+        "doneWindow",
         "frameSettingsModal",
         "feedbackPanel",
         "telemetryNotice",
@@ -6844,6 +7486,7 @@
         "migrationModal",
         "sampleBanner",
         "dock",
+        "dock/dockState",
         "tooltip",
         "ipcWatchdog",
         "../package.json",
@@ -6853,34 +7496,34 @@
       ],
       "functions": {
         "init": {
-          "line": 54,
+          "line": 58,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 272,
+          "line": 304,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 364,
+          "line": 397,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 475,
+          "line": 508,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 506,
+          "line": 539,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 532,
+          "line": 565,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 866,
+          "line": 920,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -7934,61 +8577,72 @@
         "specDrivenHint",
         "projectListUI",
         "settingsOverlay",
+        "doneWindow",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 45
+          "line": 48
         },
         "syncFromProject": {
-          "line": 214
+          "line": 245
+        },
+        "renderDoneWindow": {
+          "line": 258,
+          "purpose": "Paint both window selects from the store. With no project open there is"
+        },
+        "setDoneWindowNote": {
+          "line": 270,
+          "params": [
+            "message"
+          ]
         },
         "syncFrameSetup": {
-          "line": 233,
+          "line": 287,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 252,
+          "line": 306,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 272,
+          "line": 326,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 292,
+          "line": 346,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 318,
+          "line": 372,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 343,
+          "line": 397,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 359
+          "line": 413
         },
         "setRemoveFrameNote": {
-          "line": 373,
+          "line": 427,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 379,
+          "line": 433,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 385,
+          "line": 439,
           "params": [
             "message"
           ]
@@ -8895,6 +9549,32 @@
         ]
       }
     },
+    "renderer/specs/filterModel": {
+      "file": "src/renderer/specs/filterModel.js",
+      "description": "Specs dashboard filter model — what the grid shows for a given scope,",
+      "exports": [
+        "SCOPES",
+        "PHASES",
+        "buildGridModel"
+      ],
+      "depends": [
+        "../shared/doneWindow"
+      ],
+      "functions": {
+        "buildGridModel": {
+          "line": 38,
+          "params": [
+            "{\n  specs = []",
+            "scope = 'all'",
+            "phase = null",
+            "searchMatches = null",
+            "windowDays = 0",
+            "showOlder = false",
+            "now = Date.now("
+          ]
+        }
+      }
+    },
     "renderer/specsDashboard": {
       "file": "src/renderer/specsDashboard.js",
       "description": "Specs Dashboard Module",
@@ -8920,6 +9600,8 @@
         "state",
         "htmlUtils",
         "specNextAction",
+        "doneWindow",
+        "specs/filterModel",
         "specPanel",
         "agentDispatch",
         "taskInfoModal",
@@ -8927,72 +9609,76 @@
       ],
       "functions": {
         "init": {
-          "line": 62
+          "line": 68
         },
         "setupIPCListeners": {
-          "line": 97
+          "line": 105
         },
         "setInlineHost": {
-          "line": 148,
+          "line": 160,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 153,
+          "line": 165,
           "params": [
             "container"
           ],
           "purpose": "Mount into the center content area and load data. Called by the host."
         },
         "notifyDetached": {
-          "line": 163,
+          "line": 175,
           "purpose": "The host swapped the center to another view — reset without routing."
         },
         "_load": {
-          "line": 174
+          "line": 186
         },
         "show": {
-          "line": 203
+          "line": 219
         },
         "hide": {
-          "line": 213
+          "line": 229
         },
         "toggle": {
-          "line": 224
+          "line": 240
         },
         "renderFilters": {
-          "line": 234
-        },
-        "applyFilter": {
-          "line": 248,
+          "line": 255,
           "params": [
-            "specsList"
-          ]
+            "model"
+          ],
+          "purpose": "The filter row, painted from the same model the grid is painted from so"
+        },
+        "gridModel": {
+          "line": 299
         },
         "setupSearch": {
-          "line": 264
+          "line": 312
         },
         "runSearch": {
-          "line": 278,
+          "line": 326,
           "params": [
             "rawQuery"
           ]
         },
         "clearSearch": {
-          "line": 301
+          "line": 349
         },
         "renderGrid": {
-          "line": 312
+          "line": 360
+        },
+        "wireOlderTile": {
+          "line": 409
         },
         "renderCard": {
-          "line": 343,
+          "line": 416,
           "params": [
             "spec"
           ]
         },
         "selectCard": {
-          "line": 404,
+          "line": 477,
           "params": [
             "slug",
             "{ instant = false } = {}"
@@ -9000,26 +9686,26 @@
           "purpose": "Open a spec in the drawer. `instant` is the top-bar chip path: the grid"
         },
         "clearSelection": {
-          "line": 431,
+          "line": 504,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "reloadDetail": {
-          "line": 444
+          "line": 517
         },
         "renderDetailHeader": {
-          "line": 471
+          "line": 544
         },
         "runSpecCommand": {
-          "line": 557,
+          "line": 630,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 568,
+          "line": 641,
           "params": [
             "tab",
             "label",
@@ -9027,44 +9713,44 @@
           ]
         },
         "renderDetailBody": {
-          "line": 574
+          "line": 647
         },
         "renderTasksTabBody": {
-          "line": 625
+          "line": 698
         },
         "renderSpecTaskRow": {
-          "line": 662,
+          "line": 735,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 711
+          "line": 784
         },
         "handleSpecTaskAction": {
-          "line": 724,
+          "line": 797,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 735
+          "line": 808
         },
         "tasksTabLabel": {
-          "line": 741,
+          "line": 814,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 750,
+          "line": 823,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 755,
+          "line": 828,
           "params": [
             "iso"
           ]
@@ -9278,34 +9964,41 @@
         "laneStatus",
         "state",
         "dock",
+        "dock/dockState",
         "commandRegistry",
         "platform",
         "htmlUtils",
         "tooltip",
         "lucide",
+        "statusBar/branchPicker",
+        "githubPanel",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 67
+          "line": 73
         },
         "_buildBranch": {
-          "line": 94
+          "line": 100
+        },
+        "_manageBranches": {
+          "line": 145,
+          "purpose": "\"Manage branches…\" — the GitHub view's Branches section, where delete,"
         },
         "_renderBranch": {
-          "line": 114,
+          "line": 152,
           "params": [
             "branch"
           ]
         },
         "_buildDockIcons": {
-          "line": 128
+          "line": 167
         },
         "_buildAgentSlot": {
-          "line": 178
+          "line": 217
         },
         "updateAgents": {
-          "line": 213,
+          "line": 252,
           "params": [
             "states",
             "counts"
@@ -9313,19 +10006,19 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 245,
+          "line": 284,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 249
+          "line": 288
         },
         "_renderMenu": {
-          "line": 284
+          "line": 323
         },
         "_focus": {
-          "line": 308,
+          "line": 347,
           "params": [
             "projectPath",
             "terminalId"
@@ -9333,29 +10026,29 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_scheduleOpen": {
-          "line": 318
+          "line": 357
         },
         "_scheduleClose": {
-          "line": 324
+          "line": 363
         },
         "_openMenu": {
-          "line": 330
+          "line": 369
         },
         "_closeMenu": {
-          "line": 338,
+          "line": 379,
           "params": [
             "immediate = false"
           ]
         },
         "updateUsage": {
-          "line": 345,
+          "line": 386,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 374,
+          "line": 415,
           "params": [
             "item",
             "usage",
@@ -9364,7 +10057,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 397,
+          "line": 438,
           "params": [
             "isoString"
           ],
@@ -9380,6 +10073,167 @@
           "REFRESH_CLAUDE_USAGE",
           "LOAD_CLAUDE_USAGE"
         ]
+      }
+    },
+    "renderer/statusBar/branchPicker": {
+      "file": "src/renderer/statusBar/branchPicker.js",
+      "description": "Branch picker — the popover behind the status bar's branch indicator",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "isOpen"
+      ],
+      "depends": [
+        "electron",
+        "../shared/ipcChannels",
+        "lucide",
+        "state",
+        "dock",
+        "notify",
+        "htmlUtils",
+        "branchPickerModel"
+      ],
+      "functions": {
+        "init": {
+          "line": 66,
+          "params": [
+            "opts"
+          ]
+        },
+        "isOpen": {
+          "line": 116
+        },
+        "toggle": {
+          "line": 120
+        },
+        "open": {
+          "line": 124
+        },
+        "close": {
+          "line": 173,
+          "params": [
+            "{ refocus = false } = {}"
+          ]
+        },
+        "_render": {
+          "line": 186,
+          "params": [
+            "{ resetHighlight = false } = {}"
+          ]
+        },
+        "_paintHighlight": {
+          "line": 244
+        },
+        "_notice": {
+          "line": 253,
+          "params": [
+            "text",
+            "kind = 'error'"
+          ]
+        },
+        "_clearNotice": {
+          "line": 259
+        },
+        "_onKeydown": {
+          "line": 266,
+          "params": [
+            "e"
+          ]
+        },
+        "_activate": {
+          "line": 286,
+          "params": [
+            "index"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "REFRESH_GIT_STATUS"
+        ]
+      }
+    },
+    "renderer/statusBar/branchPickerModel": {
+      "file": "src/renderer/statusBar/branchPickerModel.js",
+      "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12).",
+      "exports": [
+        "buildRows",
+        "worktreeFor",
+        "flatten",
+        "moveHighlight",
+        "initialHighlight"
+      ],
+      "depends": [
+        "../shared/gitRefNames"
+      ],
+      "functions": {
+        "normalizePath": {
+          "line": 21,
+          "params": [
+            "p"
+          ]
+        },
+        "basename": {
+          "line": 27,
+          "params": [
+            "p"
+          ]
+        },
+        "worktreeFor": {
+          "line": 41,
+          "params": [
+            "name",
+            "worktrees",
+            "projectPath"
+          ],
+          "purpose": "The worktree (other than the project's own) that has `name` checked out,"
+        },
+        "byRecency": {
+          "line": 54,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "matches": {
+          "line": 60,
+          "params": [
+            "name",
+            "needle"
+          ]
+        },
+        "buildRows": {
+          "line": 72,
+          "params": [
+            "input"
+          ]
+        },
+        "flatten": {
+          "line": 139,
+          "params": [
+            "output"
+          ],
+          "purpose": "The rows in the order the keyboard walks them. Each carries `enabled`."
+        },
+        "moveHighlight": {
+          "line": 155,
+          "params": [
+            "items",
+            "index",
+            "delta"
+          ],
+          "purpose": "Next highlight index from `index` by `delta` (±1), skipping disabled rows"
+        },
+        "initialHighlight": {
+          "line": 169,
+          "params": [
+            "items"
+          ],
+          "purpose": "The first enabled row after the current one, for the initial highlight."
+        }
       }
     },
     "renderer/structureMap": {
@@ -9562,23 +10416,23 @@
       "depends": [],
       "functions": {
         "init": {
-          "line": 18
+          "line": 29
         },
         "open": {
-          "line": 63,
+          "line": 78,
           "params": [
             "opts = {}"
           ],
           "purpose": "Open the modal."
         },
         "close": {
-          "line": 84
+          "line": 109
         },
         "confirm": {
-          "line": 91
+          "line": 116
         },
         "cancel": {
-          "line": 97
+          "line": 122
         }
       }
     },
@@ -9765,71 +10619,73 @@
         "electron",
         "shared/ipcChannels",
         "state",
+        "doneWindow",
+        "shared/doneWindow",
         "agentDispatch",
         "taskInfoModal",
         "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 71
+          "line": 80
         },
         "flatten": {
-          "line": 138,
+          "line": 152,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 158,
+          "line": 172,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 162,
+          "line": 176,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 171
+          "line": 185
         },
         "_load": {
-          "line": 184
+          "line": 198
         },
         "show": {
-          "line": 200
+          "line": 218
         },
         "hide": {
-          "line": 210
+          "line": 228
         },
         "toggle": {
-          "line": 223
+          "line": 241
         },
         "render": {
-          "line": 231
+          "line": 249
         },
         "renderCard": {
-          "line": 294,
+          "line": 350,
           "params": [
             "task"
           ]
         },
         "setupDropTargets": {
-          "line": 345
+          "line": 401
         },
         "onDragStart": {
-          "line": 384,
+          "line": 440,
           "params": [
             "e",
             "task"
           ]
         },
         "onDragEnd": {
-          "line": 396
+          "line": 452
         },
         "getCardAfterY": {
-          "line": 410,
+          "line": 466,
           "params": [
             "container",
             "y"
@@ -9837,15 +10693,15 @@
           "purpose": "Find the card the dragged item should be inserted *before*, based on"
         },
         "commitOrder": {
-          "line": 426,
+          "line": 485,
           "purpose": "Read the current DOM order across all three columns and send the new order"
         },
         "syncAside": {
-          "line": 453,
+          "line": 512,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 479,
+          "line": 538,
           "params": [
             "taskId",
             "{ instant = false } = {}"
@@ -9853,42 +10709,42 @@
           "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the board"
         },
         "clearSelection": {
-          "line": 504,
+          "line": 563,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 515,
+          "line": 574,
           "purpose": "Leaving the board: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 526
-        },
-        "setupForm": {
-          "line": 530
-        },
-        "showForm": {
-          "line": 544
-        },
-        "hideForm": {
-          "line": 559
-        },
-        "requestDeleteSelected": {
-          "line": 567
-        },
-        "submitForm": {
           "line": 585
         },
+        "setupForm": {
+          "line": 589
+        },
+        "showForm": {
+          "line": 603
+        },
+        "hideForm": {
+          "line": 618
+        },
+        "requestDeleteSelected": {
+          "line": 626
+        },
+        "submitForm": {
+          "line": 644
+        },
         "renderDetail": {
-          "line": 603,
+          "line": 662,
           "params": [
             "task"
           ]
         },
         "appendMetaPill": {
-          "line": 661,
+          "line": 720,
           "params": [
             "container",
             "text",
@@ -9896,7 +10752,7 @@
           ]
         },
         "setSection": {
-          "line": 668,
+          "line": 727,
           "params": [
             "textEl",
             "sectionEl",
@@ -9904,71 +10760,71 @@
           ]
         },
         "formatDate": {
-          "line": 679,
+          "line": 738,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 693
+          "line": 752
         },
         "filterMatches": {
-          "line": 697,
+          "line": 756,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 703
+          "line": 762
         },
         "isFilterPopoverOpen": {
-          "line": 741
+          "line": 800
         },
         "toggleFilterPopover": {
-          "line": 745
+          "line": 804
         },
         "openFilterPopover": {
-          "line": 751
+          "line": 810
         },
         "closeFilterPopover": {
-          "line": 757
+          "line": 816
         },
         "clearFilters": {
-          "line": 763
+          "line": 822
         },
         "updateFilterUI": {
-          "line": 775
+          "line": 834
         },
         "compareTasks": {
-          "line": 792,
+          "line": 851,
           "params": [
             "a",
             "b"
           ]
         },
         "setupSort": {
-          "line": 808
+          "line": 867
         },
         "isSortPopoverOpen": {
-          "line": 853
+          "line": 912
         },
         "toggleSortPopover": {
-          "line": 857
+          "line": 916
         },
         "openSortPopover": {
-          "line": 863
+          "line": 922
         },
         "closeSortPopover": {
-          "line": 869
+          "line": 928
         },
         "resetSort": {
-          "line": 875
+          "line": 934
         },
         "updateSortUI": {
-          "line": 888
+          "line": 947
         },
         "commitSortToFile": {
-          "line": 913,
+          "line": 972,
           "purpose": "Commit the current sorted view to tasks.json. Per-column sorted order is"
         }
       },
@@ -10397,7 +11253,9 @@
       "file": "src/renderer/terminalTabBar.js",
       "description": "Terminal Top Bar Module (historically the tab bar)",
       "exports": [
-        "TerminalTabBar"
+        "TerminalTabBar",
+        "applyTheme",
+        "currentTheme"
       ],
       "depends": [
         "electron",
@@ -10415,6 +11273,17 @@
             "data",
             "size = 18"
           ]
+        },
+        "applyTheme": {
+          "line": 57,
+          "params": [
+            "name"
+          ],
+          "purpose": "Apply a theme app-wide. Flipping data-theme is the whole contract"
+        },
+        "currentTheme": {
+          "line": 64,
+          "purpose": "The theme currently applied ('light' | 'dark')."
         }
       },
       "ipc": {
@@ -10809,6 +11678,54 @@
         }
       }
     },
+    "shared/doneWindow": {
+      "file": "src/shared/doneWindow.js",
+      "description": "doneWindow — how much of the \"done\" pile a board shows by default.",
+      "exports": [
+        "DAY_MS",
+        "DEFAULT_DONE_WINDOW",
+        "WINDOW_OPTIONS",
+        "BOARDS",
+        "normalizeDoneWindow",
+        "isWithinWindow",
+        "partitionDone"
+      ],
+      "depends": [],
+      "functions": {
+        "coerceDays": {
+          "line": 29,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Coerce one raw value to a window in days, or null when it is not one of"
+        },
+        "normalizeDoneWindow": {
+          "line": 40,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Any input → a valid `{ tasks, specs }`, falling back per key to the"
+        },
+        "isWithinWindow": {
+          "line": 55,
+          "params": [
+            "iso",
+            "days",
+            "now = Date.now("
+          ],
+          "purpose": "Is a timestamp inside the last `days` days? `days` 0 means everything is."
+        },
+        "partitionDone": {
+          "line": 67,
+          "params": [
+            "items",
+            "{ days",
+            "now = Date.now("
+          ],
+          "purpose": "Split done items into `recent` (inside the window) and `older`, keeping"
+        }
+      }
+    },
     "shared/feedbackReport": {
       "file": "src/shared/feedbackReport.js",
       "description": "Feedback report — the one composer.",
@@ -10831,35 +11748,35 @@
       "depends": [],
       "functions": {
         "typeById": {
-          "line": 159,
+          "line": 176,
           "params": [
             "id"
           ],
           "purpose": "The record for a kind, or `null` when the id is not one of ours."
         },
         "normalizeText": {
-          "line": 167,
+          "line": 184,
           "params": [
             "value"
           ],
           "purpose": "Draft text arrives from a `<textarea>`, which on Windows yields CRLF. GitHub"
         },
         "validate": {
-          "line": 181,
+          "line": 198,
           "params": [
             "draft"
           ],
           "purpose": "Is this draft sendable?"
         },
         "diagnosticsLines": {
-          "line": 199,
+          "line": 216,
           "params": [
             "diagnostics"
           ],
           "purpose": "The diagnostics, as the exact lines the user sees and the body carries."
         },
         "compose": {
-          "line": 221,
+          "line": 238,
           "params": [
             "draft",
             "diagnostics"
@@ -10867,7 +11784,7 @@
           "purpose": "The one body builder."
         },
         "mailtoUrl": {
-          "line": 247,
+          "line": 264,
           "params": [
             "subject",
             "body",
@@ -10876,7 +11793,7 @@
           "purpose": "A `mailto:` draft for the user's own mail client."
         },
         "issueUrl": {
-          "line": 265,
+          "line": 282,
           "params": [
             "subject",
             "body"
@@ -10884,7 +11801,7 @@
           "purpose": "GitHub's prefilled new-issue page."
         },
         "discussionUrl": {
-          "line": 280,
+          "line": 297,
           "params": [
             "subject",
             "body"
@@ -10892,7 +11809,7 @@
           "purpose": "GitHub's prefilled new-discussion page, under the Ideas category."
         },
         "deliveryFor": {
-          "line": 302,
+          "line": 319,
           "params": [
             "channel",
             "subject",
@@ -11089,6 +12006,29 @@
         "getOrchBinScripts": {
           "line": 1170,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
+        }
+      }
+    },
+    "shared/gitRefNames": {
+      "file": "src/shared/gitRefNames.js",
+      "description": "gitRefNames — is this string a branch name git would accept?",
+      "exports": [
+        "isValidBranchName"
+      ],
+      "depends": [],
+      "functions": {
+        "componentOk": {
+          "line": 17,
+          "params": [
+            "part"
+          ],
+          "purpose": "One path component, between slashes: git's per-component rules."
+        },
+        "isValidBranchName": {
+          "line": 28,
+          "params": [
+            "name"
+          ]
         }
       }
     },
@@ -12108,6 +13048,16 @@
         "name": "open-github-issue",
         "direction": "",
         "description": ""
+      },
+      "GITHUB_ACCESS_STATE": {
+        "name": "github-access-state",
+        "direction": "",
+        "description": ""
+      },
+      "LOAD_GITHUB_PULL_REQUESTS": {
+        "name": "load-github-pull-requests",
+        "direction": "",
+        "description": ""
       }
     },
     "claudeUsage": {
@@ -12325,6 +13275,25 @@
         "direction": "",
         "description": ""
       }
+    },
+    "checkout": {
+      "CHECKOUT_GITHUB_PR": {
+        "name": "checkout-github-pr",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "done": {
+      "GET_DONE_WINDOW": {
+        "name": "get-done-window",
+        "direction": "",
+        "description": ""
+      },
+      "SET_DONE_WINDOW": {
+        "name": "set-done-window",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -12370,6 +13339,23 @@
         "module": "renderer/aiToolSelector",
         "file": "src/renderer/aiToolSelector.js",
         "description": "AI Tool Selector Module"
+      }
+    ],
+    "branch": [
+      {
+        "module": "main/gitBranchRefs",
+        "file": "src/main/gitBranchRefs.js",
+        "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and"
+      },
+      {
+        "module": "renderer/statusBar/branchPicker",
+        "file": "src/renderer/statusBar/branchPicker.js",
+        "description": "Branch picker — the popover behind the status bar's branch indicator"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
     "claude-sessions": [
@@ -12442,6 +13428,18 @@
         "module": "shared/docsManagedBlock",
         "file": "src/shared/docsManagedBlock.js",
         "description": "Managed-block engine for Frame's spec docs sections."
+      }
+    ],
+    "done": [
+      {
+        "module": "renderer/doneWindow",
+        "file": "src/renderer/doneWindow.js",
+        "description": "Done Window store — the renderer's one owner of `settings.doneWindow`."
+      },
+      {
+        "module": "shared/doneWindow",
+        "file": "src/shared/doneWindow.js",
+        "description": "doneWindow — how much of the \"done\" pile a board shows by default."
       }
     ],
     "editor": [
@@ -12523,6 +13521,11 @@
     ],
     "git": [
       {
+        "module": "main/gitBranchRefs",
+        "file": "src/main/gitBranchRefs.js",
+        "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and"
+      },
+      {
         "module": "main/gitExclude",
         "file": "src/main/gitExclude.js",
         "description": "gitExclude — Frame's marker block in `.git/info/exclude`"
@@ -12531,6 +13534,11 @@
         "module": "main/gitSharing",
         "file": "src/main/gitSharing.js",
         "description": "gitSharing — is Frame's context shared with the repo, or local to this machine?"
+      },
+      {
+        "module": "shared/gitRefNames",
+        "file": "src/shared/gitRefNames.js",
+        "description": "gitRefNames — is this string a branch name git would accept?"
       }
     ],
     "git-branches": [
@@ -12576,7 +13584,7 @@
       {
         "module": "renderer/githubPanel",
         "file": "src/renderer/githubPanel.js",
-        "description": "GitHub Panel Module"
+        "description": "GitHub Panel — the sidebar's GitHub tab (github-view-tree-layout spec)."
       }
     ],
     "health": [
@@ -12678,6 +13686,18 @@
         "description": "Project Settings"
       }
     ],
+    "model": [
+      {
+        "module": "renderer/specs/filterModel",
+        "file": "src/renderer/specs/filterModel.js",
+        "description": "Specs dashboard filter model — what the grid shows for a given scope,"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      }
+    ],
     "orchestration": [
       {
         "module": "main/orchestrationManager",
@@ -12737,6 +13757,18 @@
         "module": "renderer/sessionsPanel",
         "file": "src/renderer/sessionsPanel.js",
         "description": "Sessions Panel"
+      }
+    ],
+    "picker": [
+      {
+        "module": "renderer/statusBar/branchPicker",
+        "file": "src/renderer/statusBar/branchPicker.js",
+        "description": "Branch picker — the popover behind the status bar's branch indicator"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
     "plugins": [
@@ -12811,7 +13843,7 @@
       {
         "module": "renderer/home/agentRows",
         "file": "src/renderer/home/agentRows.js",
-        "description": "Which agents Home lists, and in what order."
+        "description": "Which terminals Home lists, and in what order."
       },
       {
         "module": "renderer/home/sessionRows",
@@ -12820,6 +13852,11 @@
       }
     ],
     "section": [
+      {
+        "module": "renderer/github/sectionState",
+        "file": "src/renderer/github/sectionState.js",
+        "description": "GitHub panel section state — pure (github-view-tree-layout spec, D7)."
+      },
       {
         "module": "renderer/projectSection",
         "file": "src/renderer/projectSection.js",
@@ -12911,6 +13948,16 @@
         "module": "renderer/dock/dockState",
         "file": "src/renderer/dock/dockState.js",
         "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
+      },
+      {
+        "module": "renderer/github/accessState",
+        "file": "src/renderer/github/accessState.js",
+        "description": "GitHub access state — pure (github-view-tree-layout spec, G3 / D6)."
+      },
+      {
+        "module": "renderer/github/sectionState",
+        "file": "src/renderer/github/sectionState.js",
+        "description": "GitHub panel section state — pure (github-view-tree-layout spec, D7)."
       },
       {
         "module": "renderer/state",
@@ -13045,6 +14092,18 @@
         "module": "renderer/terminalsView",
         "file": "src/renderer/terminalsView.js",
         "description": "Terminals View Module"
+      }
+    ],
+    "window": [
+      {
+        "module": "renderer/doneWindow",
+        "file": "src/renderer/doneWindow.js",
+        "description": "Done Window store — the renderer's one owner of `settings.doneWindow`."
+      },
+      {
+        "module": "shared/doneWindow",
+        "file": "src/shared/doneWindow.js",
+        "description": "doneWindow — how much of the \"done\" pile a board shows by default."
       }
     ]
   },

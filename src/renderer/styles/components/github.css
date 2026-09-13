@@ -1,0 +1,550 @@
+/* =========================
+   GitHub view (GitHub sidebar tab) — github-view-tree-layout spec
+   =========================
+   VS Code's "GitHub Pull Requests" shape: a head with the repo name, one
+   filter field, an access-state block, then four stacked collapsible
+   sections of dense 22px rows in the Changes tab's .git-changes-row idiom.
+   Everything truncates with an ellipsis and never wraps, so the panel is
+   usable from the sidebar's 180px floor to its 500px ceiling (C2). */
+
+[data-sidebar-tab-content="github"] {
+  overflow: hidden;
+}
+
+#github-panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* Section heads and rows adapt to the panel's own width (the sidebar
+     minus its rail) through container queries below. */
+  container-type: inline-size;
+  container-name: github-panel;
+}
+
+/* ───────── Head ───────── */
+
+.github-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-sm) 0 var(--space-md);
+  min-width: 0;
+}
+
+.github-head-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.github-head-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.github-head-repo {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.github-head-repo:empty {
+  display: none;
+}
+
+.github-head-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.github-head-btn {
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+}
+
+.github-head-btn.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+/* ───────── Search ───────── */
+
+.github-search.file-tree-search {
+  margin: var(--space-sm) var(--space-sm) var(--space-xs);
+}
+
+/* ───────── Access state ───────── */
+
+.github-state {
+  flex: 0 0 auto;
+  margin: var(--space-xs) var(--space-sm) var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  min-width: 0;
+}
+
+.github-state-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.github-state-message {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.github-state-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.3;
+  transition: opacity var(--transition-fast);
+}
+
+.github-state-action:hover {
+  opacity: 0.9;
+}
+
+.github-state-action.link {
+  background: transparent;
+  color: var(--accent-primary);
+  padding-left: 0;
+  padding-right: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ───────── Sections ───────── */
+
+.github-sections {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.github-section {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* A section that has nothing more to show (collapsed, or unavailable in
+   the current access state) keeps only its head. */
+.github-section:not(.expanded) > .github-rows {
+  display: none;
+}
+
+.github-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 22px;
+  padding: 0 var(--space-xs) 0 var(--space-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-secondary);
+}
+
+.github-section-head:hover {
+  background: var(--bg-hover);
+}
+
+.github-section-head:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: -1px;
+}
+
+.github-section-chevron {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.github-section.expanded .github-section-chevron {
+  transform: rotate(90deg);
+}
+
+.github-section-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+/* Full titles by default; the short form ("PRs", "Trees") only when the
+   panel is too narrow for the long one next to its count. */
+.github-section-title-short {
+  display: none;
+}
+
+.github-section-count {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  line-height: 15px;
+}
+
+.github-section-count:empty {
+  display: none;
+}
+
+.github-section-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: none;
+  align-items: center;
+  gap: 1px;
+}
+
+.github-section-head:hover .github-section-actions,
+.github-section-head:focus-within .github-section-actions,
+.github-section-actions.busy {
+  display: inline-flex;
+}
+
+.github-section-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.github-section-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.github-section-btn.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+.github-section-btn.has-filter {
+  color: var(--accent-primary);
+}
+
+/* ───────── Rows ───────── */
+
+.github-rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.github-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 var(--space-xs) 0 18px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+  position: relative;
+}
+
+.github-row:hover,
+.github-row:focus-within {
+  background: var(--bg-hover);
+}
+
+.github-row.active {
+  background: var(--accent-subtle);
+}
+
+.github-row-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.github-row-icon.pr-open,
+.github-row-icon.issue-open,
+.github-row-icon.branch-current,
+.github-row-icon.worktree-main { color: var(--success); }
+.github-row-icon.pr-draft { color: var(--text-tertiary); }
+.github-row-icon.pr-merged { color: var(--info); }
+.github-row-icon.pr-closed { color: var(--error); }
+.github-row-icon.issue-closed { color: var(--info); }
+
+.github-row-num {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.github-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.github-row.current .github-row-main {
+  font-weight: 600;
+}
+
+.github-row-secondary {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Label chips are small colored dots, name in the title attribute — no
+   contrast problem on chips in either theme. */
+.github-row-labels {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.github-row-label {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  display: inline-block;
+}
+
+/* Review / CI hints on PR rows: a dot each, colored by outcome. */
+.github-row-hint {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.github-row-hint.approved,
+.github-row-hint.success { background: var(--success); }
+.github-row-hint.changes-requested,
+.github-row-hint.failure { background: var(--error); }
+.github-row-hint.review-required,
+.github-row-hint.pending { background: var(--warning); }
+
+.github-row-meta {
+  flex: 0 4 auto;
+  min-width: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-align: right;
+}
+
+/* Inline actions: hidden until the row is hovered or holds focus (the
+   .git-branch-actions pattern), and they replace the meta so the row's
+   width never grows. Every action is also on the context menu. */
+.github-row-actions {
+  flex: 0 0 auto;
+  display: none;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+}
+
+.github-row:hover .github-row-actions,
+.github-row:focus-within .github-row-actions {
+  display: inline-flex;
+}
+
+.github-row:hover .github-row-meta,
+.github-row:focus-within .github-row-meta {
+  display: none;
+}
+
+.github-row-action {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.github-row-action:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.github-row-action.danger:hover {
+  color: var(--error);
+}
+
+/* ───────── Sub-group (Remote, under Branches) ───────── */
+
+.github-subhead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 22px;
+  padding: 0 var(--space-xs) 0 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.github-subhead:hover {
+  background: var(--bg-hover);
+}
+
+.github-subhead .github-section-chevron {
+  width: 12px;
+  height: 12px;
+}
+
+.github-subhead.expanded .github-section-chevron {
+  transform: rotate(90deg);
+}
+
+.github-subrows {
+  display: flex;
+  flex-direction: column;
+}
+
+.github-subrows .github-row {
+  padding-left: 28px;
+}
+
+/* ───────── Inline notes (empty, loading, error, unavailable) ───────── */
+
+.github-note {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md) 0 18px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.github-note.error {
+  color: var(--error);
+}
+
+/* ───────── Context / filter menus ───────── */
+
+#github-context-menu .context-menu-item.danger:hover,
+#github-context-menu .context-menu-item.danger:focus {
+  color: var(--error);
+  background: rgba(232, 147, 138, 0.12);
+}
+
+#github-filter-menu .context-menu-item.checked::before {
+  content: '✓ ';
+}
+
+#github-filter-menu .context-menu-item:not(.checked)::before {
+  content: '';
+  display: inline-block;
+  width: 1.1em;
+}
+
+/* ───────── Narrow panel (container queries) ───────── */
+
+/* Below ~170px of panel width the long section titles no longer fit
+   beside their counts: swap to the short form and drop row meta, so the
+   heads stay fully visible and rows keep their names (S1, C2). */
+@container github-panel (max-width: 170px) {
+  .github-section-title-long { display: none; }
+  .github-section-title-short { display: inline; }
+  .github-row-meta { display: none; }
+  .github-row-secondary { display: none; }
+  .github-row { padding-left: 12px; }
+  .github-subrows .github-row { padding-left: 20px; }
+  .github-note { padding-left: 12px; }
+}

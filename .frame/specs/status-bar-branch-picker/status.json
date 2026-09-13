@@ -1,0 +1,20 @@
+{
+  "slug": "status-bar-branch-picker",
+  "title": "Status bar branch picker",
+  "phase": "done",
+  "generated_task_ids": [
+    "task-spec-status-bar-branch-picker-T01",
+    "task-spec-status-bar-branch-picker-T02",
+    "task-spec-status-bar-branch-picker-T03",
+    "task-spec-status-bar-branch-picker-T04",
+    "task-spec-status-bar-branch-picker-T05",
+    "task-spec-status-bar-branch-picker-T06",
+    "task-spec-status-bar-branch-picker-T07",
+    "task-spec-status-bar-branch-picker-T08"
+  ],
+  "ai_tool": "claude-code",
+  "created_at": "2026-09-13T14:21:56Z",
+  "updated_at": "2026-09-13T14:53:05Z",
+  "last_phase_at": "2026-09-13T14:53:05Z",
+  "implement_mode": "guided"
+}

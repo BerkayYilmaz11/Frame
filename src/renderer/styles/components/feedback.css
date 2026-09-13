@@ -1,7 +1,7 @@
 /* ==================== FEEDBACK MODAL ====================
    The shared .modal-overlay / .modal-container chrome (panels.css), opened
    from the foot of the sidebar rail. #feedback-panel is the modal's body:
-   the tab strip, then the form. Wide because this is a form the user writes
+   the kind cards, then the form. Wide because this is a form the user writes
    prose into, and a 380px column makes a description field feel like a
    comment box. */
 
@@ -20,44 +20,103 @@
   overflow: hidden;
 }
 
-/* ─── the two tabs ───
-   Issue and Reach us, in the panel-tab shape githubPanel already
-   established (.github-tabs in panels.css): a tertiary strip under the
-   header, the active one marked by a 2px underline rather than a fill. The
-   tab is not decoration here — it decides which channel the report leaves
-   through — so it sits above the form, before anything is typed. */
+/* ─── the kind cards ───
+   Three cards in a row above the form, one per kind, drawn by
+   feedbackPanel.js from FEEDBACK_TYPES. Each is icon + label + one line
+   saying where the report goes and who can read it (`GitHub issue ·
+   public`, `Email · private`) — the difference the old tab strip hid in a
+   footnote under the button. A radio group in shape as in role: the chosen
+   card gets the accent border and a faint accent fill, the others stay
+   flat, and nothing here looks like navigation. */
 
-.feedback-tabs {
+.feedback-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-lg) 0;
+}
+
+.feedback-kind {
   display: flex;
-  gap: 0;
-  padding: 0 var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
-}
-
-.feedback-tab-btn {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-tertiary);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.feedback-tab-btn:hover {
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: var(--space-md) var(--space-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   color: var(--text-secondary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
-.feedback-tab-btn.active {
+.feedback-kind:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.feedback-kind:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.feedback-kind.active {
+  border-color: var(--accent-primary);
+  background: var(--accent-glow);
+  color: var(--text-primary);
+}
+
+.feedback-kind-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+}
+
+.feedback-kind.active .feedback-kind-icon {
   color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
+}
+
+.feedback-kind-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.feedback-kind-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.feedback-kind-where {
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Public vs private is the one word the card exists to say, so it is the
+   one word set apart: private in the accent, public left plain. */
+.feedback-kind-visibility {
+  font-style: normal;
+}
+
+.feedback-kind-visibility.private {
+  color: var(--accent-primary);
 }
 
 #feedback-body {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--space-lg);
 }
@@ -68,6 +127,16 @@
   margin-bottom: var(--space-lg);
 }
 
+/* The description takes whatever height the modal has left, so the send
+   row sits at the foot of the modal instead of floating above a blank
+   band — a 72vh modal whose form ends halfway down reads as unfinished. */
+.feedback-field:has(.feedback-textarea) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .feedback-label {
   display: block;
   font-size: 11px;
@@ -75,31 +144,6 @@
   color: var(--text-secondary);
   letter-spacing: 0.02em;
   margin-bottom: 6px;
-}
-
-.feedback-types {
-  display: flex;
-  gap: 2px;
-}
-
-.feedback-type-btn {
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 11px;
-  padding: 3px 9px;
-}
-
-.feedback-type-btn:hover {
-  color: var(--text-primary);
-}
-
-.feedback-type-btn.active {
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
-  background: var(--bg-primary);
 }
 
 .feedback-input,
@@ -122,6 +166,7 @@
 }
 
 .feedback-textarea {
+  flex: 1;
   min-height: 132px;
   resize: vertical;
 }
@@ -138,26 +183,30 @@
 }
 
 /* ─── what we will attach ───
-   The preview is not decoration: it is the promise that the report carries
-   nothing the user has not seen, so it reads as a plain list rather than a
-   collapsed detail nobody opens. */
+   A footnote, not a box: the promise that the report carries nothing the
+   user has not seen, in one line under the form — the label, then the two
+   values as inline code. Still a plain read, never a collapsed detail. */
 
 .feedback-diagnostics {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--space-sm) var(--space-md, 10px);
-  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-lg);
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 .feedback-diagnostics-title {
-  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 5px;
 }
 
 .feedback-diagnostics-line {
+  padding: 1px 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-family: var(--font-mono, monospace);
   font-size: 10.5px;
@@ -166,26 +215,48 @@
 
 /* ─── sending ─── */
 
-/* One button, sized to its label rather than to the panel. A CTA stretched
-   edge to edge reads as a bar, not as something you press; the min-width is
-   there so File an issue and Send an email stay the same size as the tabs
-   swap one for the other in place. */
+/* The note on the left, the button on the right — the note says where the
+   button leads (GitHub, your mail client) so the reader has the answer
+   before the click, and the button is sized to its label rather than to the
+   panel: a CTA stretched edge to edge reads as a bar, not as something you
+   press. The min-width keeps File an issue, Start a discussion and Send an
+   email the same size as the cards swap one for the other in place. */
 
 .feedback-actions {
   display: flex;
-  justify-content: center;
-  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .feedback-actions .btn {
-  min-width: 180px;
+  flex-shrink: 0;
+  min-width: 160px;
   padding-left: var(--space-lg);
   padding-right: var(--space-lg);
 }
 
+/* The one primary action in the modal, filled in the accent the way the
+   welcome overlay's Start is — the shared .btn-primary carries no fill of
+   its own, and a flat grey button beside three cards reads as secondary. */
+.feedback-actions .btn-primary {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--bg-secondary);
+  font-weight: 500;
+}
+
+.feedback-actions .btn-primary:hover {
+  background: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+}
+
 .feedback-note {
-  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  color: var(--text-tertiary);
   font-size: 11px;
-  line-height: 1.55;
-  margin-top: var(--space-md, 10px);
+  line-height: 1.5;
 }

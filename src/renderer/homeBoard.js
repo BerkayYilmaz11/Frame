@@ -109,10 +109,10 @@ class HomeBoard {
     this.headerEl = this._buildHeader();
     this.boardEl.appendChild(this.headerEl);
 
-    // One flat grid of independent widgets. The named groups are gone: they
-    // imposed a reading order the widgets do not have, and every new card
-    // meant deciding which group it belonged to. The registry decides what
-    // is shown and in what order; the grid decides how many fit per row.
+    // One grid of independent widgets, split in two halves: the first widget
+    // (Agents) takes the whole top half, the rest share the bottom half in
+    // equal columns. The registry decides what is shown and in what order;
+    // the grid's stylesheet decides where each order slot lands.
     this.gridEl = document.createElement('div');
     this.gridEl.className = 'home-grid';
     this.boardEl.appendChild(this.gridEl);
@@ -147,16 +147,20 @@ class HomeBoard {
   // ─── Header ─────────────────────────────────────────────
 
   /**
-   * Home opens on a project, so it should say which one: the name and the
-   * branch it is on. The path is not repeated here — the sidebar already
-   * carries it, and Home is not where you go to check a directory.
+   * Home greets, then says which project it opened on: the name and the
+   * branch it is on sit under the title as one quiet line. The path is not
+   * repeated here — the sidebar already carries it, and Home is not where
+   * you go to check a directory.
    */
   _buildHeader() {
     const el = document.createElement('div');
     el.className = 'home-header';
     el.innerHTML = `
       <div class="home-header-top">
-        <h1 class="home-header-name"></h1>
+        <h1 class="home-header-title">Welcome to Frame!</h1>
+      </div>
+      <div class="home-header-sub">
+        <span class="home-header-name"></span>
         <span class="home-header-branch">${lucideIcon(GitBranch, 12)}<span class="home-header-branch-name"></span></span>
       </div>
     `;
@@ -188,6 +192,9 @@ class HomeBoard {
   _widgetCtx() {
     return {
       state: this._lastState,
+      // The per-project lane cap the Agents widget draws its slots from — the
+      // same number every "maximum reached" error quotes.
+      maxAgents: this.manager.maxTerminals,
       enterLane: (id) => this.onEnterLane(id),
       openTerminals: () => this.onOpenTerminals && this.onOpenTerminals(),
       createLane: (shellPath) => this._createLane(shellPath),
@@ -302,7 +309,7 @@ class HomeBoard {
     document.body.appendChild(this.shellMenu);
 
     document.addEventListener('click', (e) => {
-      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action')) {
+      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action, .home-agent-launcher')) {
         this._hideShellMenu();
       }
     });

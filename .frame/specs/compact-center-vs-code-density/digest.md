@@ -1,0 +1,11 @@
+---
+keywords: padding, compact, density, terminal-container, terminals-view, tv-pane, tab bar, view-header, VS Code, layout
+related: terminals-home-agents, dock-panel-readonly-views, github-view-tree-layout, status-bar, home-widget-board
+---
+Flattened everything right of the sidebar to VS Code density, CSS only, six stylesheets, no JS. The center was a stack of cards inside cards: `#terminal-container` (6px margin, 10px padding, radius) → rounded 42px tab bar → `.terminals-view` (10/14/14 padding) → bordered single pane → padded content; 37px from the sidebar border to xterm's first column, 58px from the top to the tab bar's border. Now 4px and 35px.
+What changed: `#terminal-container`, `#terminal`, `.terminal-tab-bar` (35px, square, `0 8px`), `.terminal-content` flat; `#dock` flush with one inner hairline (border-top at the bottom, border-left on the right); `.terminals-view` padding 0; the enlarged `.tv-pane-single` draws no border, radius or background in either theme, its header is 24px and its content pads `0 0 0 4px`; the collapsed rail's `-6px` margin is gone; `.tv-bar` pads itself; `.tv-grid` gap 6px with 0 outer; `.view-header` `8px 12px`; `.lane-board` 12px.
+Why this path: tokens were already small (4/6/10/14/20), the waste was nesting, so values were edited in place (no new tokens). Rejected: hiding the single-pane header (needs JS, loses the status vocabulary terminals-home-agents put there); a 32px tab bar (its controls are 32px); keeping Home at 24px (content would jump 12px on every Home → Terminals switch); a DOM test harness (none exists).
+Why nothing else moved: `terminalsView.js` refits through a ResizeObserver on `.tv-pane-content`, and `dock.js` subtracts the container's computed padding when measuring the center, so 0 subtracts 0.
+Rules for future work: the center is one flat surface — no margin, padding, radius or `--bg-deep` gap between the sidebar's 1px border and the window edge; grid panes keep their border (the border is the separator), the enlarged pane never gets one; the tab bar is 35px and anything taller than 32px does not belong in it; full-page surfaces start at x=12 via `.view-header`, Home at 12 via `.lane-board`. Sidebar density is untouched and is its own spec.
+
+Chain: spec.md → plan.md → tasks.md → outcome.md

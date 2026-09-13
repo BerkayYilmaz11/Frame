@@ -32,27 +32,24 @@ async function render(container) {
     container.innerHTML = renderShell(renderEmpty(
       'No project selected',
       'Pick a project from the switcher at the top of the sidebar to read its decision log.'
-    ), '');
+    ));
     return;
   }
 
-  container.innerHTML = renderShell(
-    '<div class="decisions-loading">Reading PROJECT_NOTES.md…</div>',
-    projectName(projectPath)
-  );
+  container.innerHTML = renderShell('<div class="decisions-loading">Reading PROJECT_NOTES.md…</div>');
 
   const data = await load(projectPath);
   if (containerEl !== container) return; // view switched while loading
 
   if (data.error) {
-    container.innerHTML = renderShell(renderEmpty('Could not read decisions', data.error), projectName(projectPath));
+    container.innerHTML = renderShell(renderEmpty('Could not read decisions', data.error));
     return;
   }
 
   decisions = data.decisions || [];
   query = '';
   expanded.clear();
-  container.innerHTML = renderShell(renderList(), projectName(projectPath));
+  container.innerHTML = renderShell(renderList());
   wire(container);
 }
 
@@ -65,17 +62,12 @@ async function load(projectPath) {
   }
 }
 
-function projectName(projectPath) {
-  return projectPath.split('/').pop() || projectPath.split('\\').pop() || '';
-}
-
 /** Header + body frame; body is swapped as the view loads / filters. */
-function renderShell(body, name) {
+function renderShell(body) {
   return `
     <div class="decisions-view">
       <div class="decisions-header dock-view-header">
         <h3 class="dock-view-title">Decisions</h3>
-        ${name ? `<span class="decisions-project">${escapeHtml(name)}</span>` : ''}
         <div class="dock-view-actions">
           <input type="search" class="decisions-search dock-view-search" placeholder="Search decisions…"
                  autocomplete="off" spellcheck="false">

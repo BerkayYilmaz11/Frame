@@ -3,12 +3,14 @@
  * Handles git branch and worktree operations
  */
 
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const logger = require('./logger');
 const fs = require('fs');
 const path = require('path');
 const { IPC } = require('../shared/ipcChannels');
 const { FRAME_DIR, ORCH_WORKTREES_DIR, orchWorkBranch, orchIntegrationBranch } = require('../shared/frameConstants');
+const { BRANCH_FORMAT, parseBranchLine, splitRemoteRef } = require('./gitBranchRefs');
+const { isValidBranchName } = require('../shared/gitRefNames');
 
 let mainWindow = null;
 
@@ -53,6 +55,48 @@ function execGit(command, projectPath) {
 }
 
 /**
+ * Execute git with an argv array — no shell, so a branch name is one
+ * argument whatever it contains. The calls this spec touches (switch and
+ * create) go through here; the others keep execGit's string form for now
+ * (status-bar-branch-picker spec, D7). Rejects with git's own stderr as
+ * `error` when there is one, so a refusal such as "already checked out at
+ * …" reaches the UI verbatim.
+ */
+function execGitArgs(args, projectPath) {
+  if (gitMissing) {
+    return Promise.reject({ error: GIT_MISSING_ERROR, gitMissing: true });
+  }
+  return new Promise((resolve, reject) => {
+    execFile('git', args, { cwd: projectPath, timeout: 10000 }, (error, stdout, stderr) => {
+      if (error) {
+        if (error.code === 'ENOENT' || error.code === 127) {
+          if (!gitMissing) {
+            gitMissing = true;
+            logger.warn('gitBranches', 'git executable not found — branch/worktree operations disabled');
+          }
+          reject({ error: GIT_MISSING_ERROR, gitMissing: true });
+          return;
+        }
+        const detail = (stderr || '').trim();
+        reject({ error: detail || error.message, stderr: detail });
+      } else {
+        resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
+      }
+    });
+  });
+}
+
+/** Does `refs/heads/<name>` exist in this repo? */
+async function localBranchExists(name, projectPath) {
+  try {
+    await execGitArgs(['rev-parse', '--verify', '--quiet', `refs/heads/${name}`], projectPath);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
  * Check if working tree is clean
  */
 async function isWorkingTreeClean(projectPath) {
@@ -80,30 +124,43 @@ async function loadBranches(projectPath) {
     const { stdout: currentBranch } = await execGit('git branch --show-current', projectPath);
 
     // Get all branches with details
+    // The full refname rides along so the remote HEAD pointer can be
+    // dropped reliably: `refs/remotes/origin/HEAD` shortens to plain
+    // "origin", which used to slip through the old `includes('HEAD')`
+    // filter and list as a local branch (github-view-tree-layout spec).
+    // The format (six fields, unix committer time as the fifth) and its
+    // parser live together in gitBranchRefs so they cannot drift apart
+    // (status-bar-branch-picker spec).
     const { stdout: branchOutput } = await execGit(
-      'git branch -a --format="%(refname:short)|%(objectname:short)|%(committerdate:relative)|%(subject)"',
+      `git branch -a --format="${BRANCH_FORMAT}"`,
       projectPath
     );
 
-    const branches = branchOutput.split('\n')
-      .filter(line => line)
-      .map(line => {
-        const [name, commit, date, ...messageParts] = line.split('|');
-        const message = messageParts.join('|');
-        const isRemote = name.startsWith('origin/');
-        return {
-          name: name,
-          commit: commit || '',
-          date: date || '',
-          message: message || '',
-          isRemote,
-          isCurrent: name === currentBranch
-        };
-      })
-      // Filter out HEAD pointer
-      .filter(b => !b.name.includes('HEAD'));
+    // The remote list lets a `<remote>/<name>` ref be split against the
+    // remotes that actually exist — `origin/feat/x` and `a/b/feat` both
+    // resolve — so the picker can hide a remote branch that already has
+    // a local twin, and switchBranch can track any remote, not just origin.
+    const { stdout: remoteOutput } = await execGit('git remote', projectPath);
+    const remotes = remoteOutput.split('\n').map((r) => r.trim()).filter(Boolean);
 
-    return { error: null, currentBranch, branches };
+    const branches = branchOutput.split('\n')
+      .map(parseBranchLine)
+      .filter(Boolean)
+      // Filter out the remote HEAD pointer (refs/remotes/<remote>/HEAD)
+      .filter(b => !b.refname.endsWith('/HEAD'))
+      .map(({ refname, ...b }) => {
+        const row = { ...b, isCurrent: b.name === currentBranch };
+        if (b.isRemote) {
+          const split = splitRemoteRef(b.name, remotes);
+          if (split) {
+            row.remote = split.remote;
+            row.shortName = split.shortName;
+          }
+        }
+        return row;
+      });
+
+    return { error: null, currentBranch, remotes, branches };
   } catch (err) {
     return { error: err.error || 'Not a git repository', branches: [] };
   }
@@ -128,14 +185,33 @@ async function switchBranch(projectPath, branchName) {
   }
 
   try {
-    // Handle remote branches - create local tracking branch
-    let targetBranch = branchName;
-    if (branchName.startsWith('origin/')) {
-      targetBranch = branchName.replace('origin/', '');
+    // A local branch of that exact name wins, even one literally called
+    // "origin/x". Otherwise the name is a remote-tracking ref: split it
+    // against the remotes that actually exist (any remote, not only
+    // origin) and create the local tracking branch — or check out the
+    // local twin if it already exists (status-bar-branch-picker spec, D6).
+    if (await localBranchExists(branchName, projectPath)) {
+      await execGitArgs(['checkout', branchName], projectPath);
+    } else {
+      const { stdout: remoteOutput } = await execGitArgs(['remote'], projectPath);
+      const remotes = remoteOutput.split('\n').map((r) => r.trim()).filter(Boolean);
+      const split = splitRemoteRef(branchName, remotes);
+      if (!split) {
+        // Not local, not under a known remote: let git say what it is.
+        await execGitArgs(['checkout', branchName], projectPath);
+      } else if (await localBranchExists(split.shortName, projectPath)) {
+        await execGitArgs(['checkout', split.shortName], projectPath);
+      } else {
+        await execGitArgs(
+          ['checkout', '-b', split.shortName, '--track', `${split.remote}/${split.shortName}`],
+          projectPath
+        );
+      }
     }
 
-    await execGit(`git checkout "${targetBranch}"`, projectPath);
-    return { error: null, branch: targetBranch };
+    // Read back where git actually landed rather than assuming it.
+    const { stdout: branch } = await execGitArgs(['branch', '--show-current'], projectPath);
+    return { error: null, branch: branch || branchName };
   } catch (err) {
     return { error: err.error || err.message };
   }
@@ -148,21 +224,16 @@ async function createBranch(projectPath, branchName, checkout = true, baseBranch
   if (!projectPath || !branchName) {
     return { error: 'Missing parameters' };
   }
+  // The same predicate the picker's create row runs on every keystroke;
+  // here it is the last line before git, for every caller.
+  if (!isValidBranchName(branchName)) {
+    return { error: `Invalid branch name: ${branchName}` };
+  }
 
   try {
-    let cmd;
-    if (checkout) {
-      // Create and switch to new branch
-      cmd = baseBranch
-        ? `git checkout -b "${branchName}" "${baseBranch}"`
-        : `git checkout -b "${branchName}"`;
-    } else {
-      // Just create branch without switching
-      cmd = baseBranch
-        ? `git branch "${branchName}" "${baseBranch}"`
-        : `git branch "${branchName}"`;
-    }
-    await execGit(cmd, projectPath);
+    const args = checkout ? ['checkout', '-b', branchName] : ['branch', branchName];
+    if (baseBranch) args.push(baseBranch);
+    await execGitArgs(args, projectPath);
     return { error: null, branch: branchName };
   } catch (err) {
     return { error: err.error || err.message };

@@ -12,7 +12,8 @@
  * On the left, the slot the status-bar spec declared and left empty — now
  * taken, in order, by the current project's git branch (VS Code's idiom: a
  * branch glyph and the name, fed by the same GIT_STATUS_DATA push the file
- * tree decorates from, hidden when the project is not a repo), the dock's icons (dock-panel-readonly-views spec: one
+ * tree decorates from, hidden when the project is not a repo; a click opens
+ * the branch picker above it — status-bar-branch-picker spec), the dock's icons (dock-panel-readonly-views spec: one
  * monochrome icon per dock tab, click toggles that tab, the open tab's icon
  * reads as active) and then the agents running in **the other projects**,
  * and only them (D14), which keeps its place. This project's
@@ -33,22 +34,27 @@ const { IPC } = require('../shared/ipcChannels');
 const laneStatus = require('./laneStatus');
 const state = require('./state');
 const dock = require('./dock');
+const dockState = require('./dock/dockState');
 const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
 const { GitBranch } = require('lucide');
+const branchPicker = require('./statusBar/branchPicker');
+const githubPanel = require('./githubPanel');
 
-// One button per dock tab, in the strip's order; each runs the same
-// registered command the View menu, the palette and the shortcut run (D12).
-// The shortcut shown in the tooltip is the registry's, typed here because the
-// bar is built before registerCommands() runs.
+// One button per dock tab, in dockState.TABS' canonical order — not the
+// strip's, which the user can drag around: the bar is a fixed row of
+// muscle-memory targets. Each runs the same registered command the View
+// menu, the palette and the shortcut run (D12); the shortcut in the tooltip
+// is dockState.TAB_SHORTCUTS' (the registry's source), read here because
+// the bar is built before registerCommands() runs.
 const DOCK_ICONS = [
   { tab: 'decisions', command: 'dock.decisions', label: 'Decisions' },
   // 'structure' is parked (dockState.HIDDEN_TABS) — no icon until it ships.
-  { tab: 'prompts', command: 'dock.prompts', label: 'Prompts', shortcut: 'CmdOrCtrl+Shift+L' },
+  { tab: 'prompts', command: 'dock.prompts', label: 'Prompts' },
   { tab: 'activity', command: 'dock.activity', label: 'Activity' }
-];
+].map((icon) => ({ ...icon, shortcut: dockState.TAB_SHORTCUTS[icon.tab] || '' }));
 
 // A hover menu needs both: long enough that a pointer crossing the slot does
 // not open it, forgiving enough that reaching the menu never loses it.
@@ -95,10 +101,25 @@ function _buildBranch() {
   const slot = barEl.querySelector('.status-bar-left');
   if (!slot) return;
 
-  branchEl = document.createElement('span');
+  // A button since status-bar-branch-picker: the click opens the picker
+  // above it. Hidden when the project is not a repo, so there is nothing
+  // to click there (C6). The picker itself is a child of the slot, like
+  // the agents menu, and only one of the two is ever open (C2).
+  branchEl = document.createElement('button');
+  branchEl.type = 'button';
   branchEl.className = 'sb-branch';
   branchEl.hidden = true;
+  branchEl.setAttribute('aria-haspopup', 'dialog');
+  branchEl.setAttribute('aria-expanded', 'false');
   slot.appendChild(branchEl);
+
+  branchPicker.init({
+    anchorEl: branchEl,
+    slotEl: slot,
+    onOpen: () => _closeMenu(true),
+    onManage: () => _manageBranches()
+  });
+  branchEl.addEventListener('click', () => branchPicker.toggle());
 
   // Pushes arrive for whichever project main is watching; paint only the
   // one on screen, so a late push from the previous project cannot label
@@ -107,8 +128,25 @@ function _buildBranch() {
     if (!payload || payload.projectPath !== state.getProjectPath()) return;
     _renderBranch(payload.isRepo ? payload.branch : null);
   });
-  // Between projects the old name must not linger until the next push.
-  state.onProjectChange(() => _renderBranch(null));
+  // Between projects the old name must not linger until the next push, and
+  // the picker (its own onProjectChange closes it too) must not show the
+  // previous repo's list.
+  state.onProjectChange(() => {
+    branchPicker.close();
+    _renderBranch(null);
+  });
+}
+
+// "Manage branches…" — the GitHub view's Branches section, where delete,
+// worktrees and pull requests already live. The section is expanded first
+// (state only, while the tab is off screen), then the same registered
+// command the palette runs reveals the sidebar tab; its show() loads every
+// expanded section, Branches now among them.
+function _manageBranches() {
+  githubPanel.revealSection('branches');
+  if (!commandRegistry.runById('sidebar.github')) {
+    console.error("statusBar: command 'sidebar.github' did not run");
+  }
 }
 
 function _renderBranch(branch) {
@@ -116,10 +154,11 @@ function _renderBranch(branch) {
   if (!branch) {
     branchEl.hidden = true;
     branchEl.textContent = '';
+    branchPicker.close();
     return;
   }
   branchEl.innerHTML = `${dock.lucideIcon(GitBranch, 12)}<span class="sb-branch-name">${escapeHtml(branch)}</span>`;
-  branchEl.title = `On branch ${branch}`;
+  branchEl.title = `On branch ${branch} — click to switch`;
   branchEl.hidden = false;
 }
 
@@ -331,6 +370,8 @@ function _openMenu() {
   clearTimeout(openTimer);
   clearTimeout(closeTimer);
   if (!menuEl || lastProjects.length === 0) return;
+  // One popover in the bar at a time (status-bar-branch-picker C2).
+  branchPicker.close();
   _renderMenu();
   menuEl.classList.add('open');
 }

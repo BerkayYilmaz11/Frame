@@ -17,6 +17,7 @@ const taskRunModal = require('./taskRunModal');
 const pluginsPanel = require('./pluginsPanel');
 const sessionsPanel = require('./sessionsPanel');
 const githubPanel = require('./githubPanel');
+const notify = require('./notify');
 const promptsPanel = require('./promptsPanel');
 const activityPanel = require('./activityPanel');
 const specPanel = require('./specPanel');
@@ -34,9 +35,11 @@ const aiToolSelector = require('./aiToolSelector');
 const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
+const { applyTheme, currentTheme } = require('./terminalTabBar');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
+const doneWindow = require('./doneWindow');
 const frameSettingsModal = require('./frameSettingsModal');
 const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
@@ -46,6 +49,7 @@ const docsHealthHint = require('./docsHealthHint');
 const migrationModal = require('./migrationModal');
 const sampleBanner = require('./sampleBanner');
 const dock = require('./dock');
+const dockState = require('./dock/dockState');
 const tooltip = require('./tooltip');
 
 /**
@@ -135,6 +139,10 @@ function init() {
   // Initialize tasks panel
   tasksPanel.init();
 
+  // The boards' done window (project setting) — loaded before either board
+  // renders, re-loaded on project change; boards subscribe on their own.
+  doneWindow.init();
+
   // Initialize tasks dashboard (Kanban view triggered from tasks panel header)
   tasksDashboard.init();
 
@@ -152,8 +160,32 @@ function init() {
   pluginsPanel.init();
   sessionsPanel.init();
 
-  // Initialize GitHub panel
-  githubPanel.init();
+  // Initialize GitHub panel. Terminal lanes (Sign in to GitHub, Open
+  // terminal here) come through this hook (github-view-tree-layout D11):
+  // the panel never requires multiTerminalUI itself — that would be a
+  // require cycle through terminal.js — and index.js already holds the
+  // instance.
+  githubPanel.init({
+    openLane: async ({ cwd, command } = {}) => {
+      let id = null;
+      try {
+        id = await multiTerminalUI.createTerminalForCurrentProject(cwd ? { cwd } : {});
+      } catch (err) {
+        notify.error(`Could not create a new terminal: ${err.message || 'terminal creation failed'}`);
+        return null;
+      }
+      if (!id) {
+        notify.error('Could not create a new terminal: per-project limit reached');
+        return null;
+      }
+      multiTerminalUI.enterLane(id);
+      if (command) {
+        // Give the shell a moment to be ready before the first command
+        setTimeout(() => multiTerminalUI.sendCommand(command, id), 300);
+      }
+      return id;
+    }
+  });
 
   // Initialize prompts panel
   promptsPanel.init();
@@ -312,9 +344,9 @@ function setupButtonHandlers() {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
-  // The foot of the sidebar rail — Plugins, then Feedback: each a modal
-  // (pluginsPanel, feedbackPanel), not a view — hence no .sidebar-tab-btn
-  // on the buttons. Both toggle, like the gear below.
+  // The foot of the sidebar rail — Plugins, Feedback, then Frame Settings:
+  // each a modal (pluginsPanel, feedbackPanel, frameSettingsModal), not a
+  // view — hence no .sidebar-tab-btn on the buttons. All three toggle.
   const pluginsBtn = document.getElementById('plugins-btn');
   if (pluginsBtn) {
     pluginsBtn.addEventListener('click', () => pluginsPanel.toggle());
@@ -327,13 +359,14 @@ function setupButtonHandlers() {
     tooltip.attach(feedbackBtn, 'Send Feedback', { placement: 'right' });
   }
 
-  // Frame's own settings, from the gear in the sidebar header (where the app
-  // menu entry and Cmd+, also land); toggles, so a second click closes it.
-  // The project's settings are a row under the project in the workspace nav
-  // (dock-panel-readonly-views spec), running `settings.openProject`.
+  // Frame's own settings, from the gear at the foot of the rail (where the
+  // app menu entry and Cmd+, also land); toggles, so a second click closes
+  // it. The project's settings are a row under the project in the workspace
+  // nav (dock-panel-readonly-views spec), running `settings.openProject`.
   const frameSettingsBtn = document.getElementById('frame-settings-btn');
   if (frameSettingsBtn) {
     frameSettingsBtn.addEventListener('click', () => frameSettingsModal.toggle());
+    tooltip.attach(frameSettingsBtn, 'Frame Settings (Cmd+,)', { placement: 'right' });
   }
 
   // Theme toggle now lives in the top bar and is wired by terminalTabBar,
@@ -645,9 +678,10 @@ function registerCommands() {
 
   // ---------- View: the dock ----------
   // Every entry point — status bar, native View menu, palette, shortcut —
-  // runs these same ids (dock-panel-readonly-views spec, D12). The View
-  // menu in src/main/menu.js lists the same ids and accelerators; keep the
-  // two in step.
+  // runs these same ids (dock-panel-readonly-views spec, D12). The per-tab
+  // shortcuts come from dockState.TAB_SHORTCUTS (the status bar and the
+  // strip read the same table for their tooltips). The View menu in
+  // src/main/menu.js lists the same ids and accelerators; keep it in step.
   r({
     id: 'dock.toggle',
     title: 'Toggle Panel',
@@ -659,6 +693,7 @@ function registerCommands() {
     id: 'dock.decisions',
     title: 'Toggle Decisions',
     category: 'View',
+    shortcut: dockState.TAB_SHORTCUTS.decisions,
     run: () => dock.toggleTab('decisions')
   });
   // 'dock.structure' (Toggle Structure Map) is parked with the tab — see
@@ -667,13 +702,14 @@ function registerCommands() {
     id: 'dock.prompts',
     title: 'Toggle Prompts',
     category: 'View',
-    shortcut: 'CmdOrCtrl+Shift+L',
+    shortcut: dockState.TAB_SHORTCUTS.prompts,
     run: () => dock.toggleTab('prompts')
   });
   r({
     id: 'dock.activity',
     title: 'Toggle Activity',
     category: 'View',
+    shortcut: dockState.TAB_SHORTCUTS.activity,
     run: () => dock.toggleTab('activity')
   });
   // Feedback is a modal, not a dock tab: the rail's foot button, the Help
@@ -704,6 +740,24 @@ function registerCommands() {
     category: 'View',
     when: () => dock.position() !== 'bottom',
     run: () => dock.setPosition('bottom')
+  });
+
+  // ---------- View: theme ----------
+  // Same contract as the top-bar toggle (terminalTabBar.applyTheme);
+  // these ids back the View › Theme submenu in src/main/menu.js.
+  r({
+    id: 'theme.light',
+    title: 'Theme: Light',
+    category: 'View',
+    when: () => currentTheme() !== 'light',
+    run: () => applyTheme('light')
+  });
+  r({
+    id: 'theme.dark',
+    title: 'Theme: Dark',
+    category: 'View',
+    when: () => currentTheme() !== 'dark',
+    run: () => applyTheme('dark')
   });
 
   // ---------- Focus ----------

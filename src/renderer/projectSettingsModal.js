@@ -24,6 +24,7 @@ const state = require('./state');
 const specDrivenHint = require('./specDrivenHint');
 const projectListUI = require('./projectListUI');
 const settingsOverlay = require('./settingsOverlay');
+const doneWindow = require('./doneWindow');
 
 let overlay = null;
 let specDrivenToggleEl = null;
@@ -41,6 +42,8 @@ let defaultProjectChipEl = null;
 let makeDefaultBtnEl = null;
 let migrationDecisionRowEl = null;
 let migrationDecisionBtnEl = null;
+let doneWindowSelectEls = {};   // { tasks, specs }
+let doneWindowNoteEl = null;
 
 function init() {
   specDrivenToggleEl = document.getElementById('settings-spec-driven-toggle');
@@ -58,6 +61,34 @@ function init() {
   makeDefaultBtnEl = document.getElementById('settings-make-default');
   migrationDecisionRowEl = document.getElementById('settings-migration-decision-row');
   migrationDecisionBtnEl = document.getElementById('settings-migration-decision');
+  doneWindowSelectEls = {
+    tasks: document.getElementById('settings-done-window-tasks'),
+    specs: document.getElementById('settings-done-window-specs')
+  };
+  doneWindowNoteEl = document.getElementById('settings-done-window-note');
+
+  // Done window: per-project like git sharing. The store owns the value and
+  // tells the boards; this row only asks it to change and paints the reply.
+  for (const board of ['tasks', 'specs']) {
+    const select = doneWindowSelectEls[board];
+    if (!select) continue;
+    select.addEventListener('change', async () => {
+      if (!state.getProjectPath()) return;
+      select.disabled = true;
+      try {
+        await doneWindow.set(board, Number(select.value));
+        setDoneWindowNote(null);
+      } catch (err) {
+        setDoneWindowNote('Could not change this setting: ' + err.message);
+      } finally {
+        select.disabled = false;
+        renderDoneWindow();
+      }
+    });
+  }
+  // Another writer (a project switch, a hand edit picked up on reload)
+  // moves the value: keep the selects honest while the modal is open.
+  doneWindow.onChange(() => renderDoneWindow());
 
   overlay = settingsOverlay.create('project-settings-overlay', syncFromProject);
   if (!overlay) return;
@@ -216,7 +247,30 @@ async function syncFromProject() {
   syncFrameSetup();
   await syncSpecDrivenToggle();
   await syncGitSharing();
+  renderDoneWindow();
   await syncMigrationDecision();
+}
+
+/**
+ * Paint both window selects from the store. With no project open there is
+ * nothing to write, so they go inert and say why, like the spec-driven row.
+ */
+function renderDoneWindow() {
+  const projectPath = state.getProjectPath();
+  const value = doneWindow.get();
+  for (const board of ['tasks', 'specs']) {
+    const select = doneWindowSelectEls[board];
+    if (!select) continue;
+    select.value = String(value[board]);
+    select.disabled = !projectPath;
+  }
+  setDoneWindowNote(projectPath ? null : 'Open a project to change this — the setting lives in its .frame/config.json.');
+}
+
+function setDoneWindowNote(message) {
+  if (!doneWindowNoteEl) return;
+  doneWindowNoteEl.textContent = message || '';
+  doneWindowNoteEl.style.display = message ? '' : 'none';
 }
 
 /**

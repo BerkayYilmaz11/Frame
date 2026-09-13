@@ -12,6 +12,7 @@ const templates = require('../shared/frameTemplates');
 const frameStore = require('./frameStore');
 const gitExclude = require('./gitExclude');
 const gitSharing = require('./gitSharing');
+const { normalizeDoneWindow, WINDOW_OPTIONS, BOARDS } = require('../shared/doneWindow');
 const layoutMigration = require('./layoutMigration');
 const workspace = require('./workspace');
 const structureBootstrap = require('./structureBootstrap');
@@ -816,6 +817,32 @@ function removeSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   return { removed, file };
 }
 
+// ─── Done window ─────────────────────────────────────────────
+//
+// `settings.doneWindow` in .frame/config.json: how many days of completed
+// tasks and done specs the boards show before "Show N older" (boards-done-
+// window spec). Read normalised, so a missing or hand-mangled value never
+// blanks a board; written through the atomic config writer like every
+// other project setting.
+
+function getDoneWindow(projectPath) {
+  const config = getFrameConfig(projectPath);
+  return normalizeDoneWindow(config && config.settings && config.settings.doneWindow);
+}
+
+function setDoneWindow(projectPath, board, days) {
+  if (!BOARDS.includes(board)) return { error: `unknown board: ${board}` };
+  const n = Number(days);
+  if (!WINDOW_OPTIONS.includes(n)) return { error: `unsupported window: ${days}` };
+
+  const config = getFrameConfig(projectPath) || {};
+  config.settings = config.settings || {};
+  const current = normalizeDoneWindow(config.settings.doneWindow);
+  config.settings.doneWindow = { ...current, [board]: n };
+  writeFrameConfig(projectPath, config);
+  return config.settings.doneWindow;
+}
+
 // ─── Spec-Driven Development toggle ──────────────────────────
 //
 // Reads/writes the `features.specDriven` flag in .frame/config.json. New
@@ -1581,6 +1608,17 @@ function setupIPC(ipcMain) {
     return gitSharing.setMode(projectPath, mode);
   });
 
+  // ─── Done window ───────────────────────────────────────────
+  ipcMain.handle(IPC.GET_DONE_WINDOW, (event, projectPath) => {
+    if (!projectPath || !isFrameProject(projectPath)) return { error: 'not a Frame project' };
+    return getDoneWindow(projectPath);
+  });
+
+  ipcMain.handle(IPC.SET_DONE_WINDOW, (event, { projectPath, board, days } = {}) => {
+    if (!projectPath || !isFrameProject(projectPath)) return { error: 'not a Frame project' };
+    return setDoneWindow(projectPath, board, days);
+  });
+
   ipcMain.handle(IPC.REMOVE_FRAME_FROM_PROJECT, (event, projectPath) => {
     if (!projectPath) return { removed: [], errors: ['no project'] };
     const result = removeFrame(projectPath);
@@ -1613,6 +1651,8 @@ function setupIPC(ipcMain) {
 module.exports = {
   init,
   isFrameProject,
+  getDoneWindow,
+  setDoneWindow,
   openProjectLayout,
   getFrameConfig,
   initializeFrameProject,

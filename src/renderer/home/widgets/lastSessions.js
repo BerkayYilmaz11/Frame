@@ -17,7 +17,7 @@
  * `notify.error` (C7).
  */
 
-const { History, RotateCcw, GitBranch } = require('lucide');
+const { RotateCcw, GitBranch } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const notify = require('./../../notify');
 const homeData = require('./../homeData');
@@ -27,7 +27,7 @@ const { widgetShell, lucideIcon } = require('./../widgetShell');
 module.exports = {
   id: 'sessions',
   title: 'Last Sessions',
-  icon: History,
+  icon: RotateCcw,
   sources: ['sessions'],
   defaultSpan: 1,
   defaultEnabled: true,
@@ -47,12 +47,9 @@ module.exports = {
     this.ctx = ctx;
     this.card = widgetShell({
       id: 'sessions',
-      icon: History,
+      icon: RotateCcw,
       title: 'Last Sessions',
-      actionLabel: 'All sessions',
-      actionIcon: RotateCcw,
-      onOpen: () => this._openPanel(),
-      onAction: () => this._openPanel()
+      onOpen: () => this._openPanel()
     });
     el.appendChild(this.card.el);
   },

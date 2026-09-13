@@ -72,22 +72,6 @@
         title="A new version is available — click for details"
         aria-label="Update available"
       ></button>
-      <!-- Frame's own settings: privacy and About/updates. The gear is the
-           app-preferences mark everywhere else, so it belongs to the app-wide
-           surface; the project's settings wear sliders at the rail's foot.
-           The update dot is its neighbour because it leads into About. -->
-      <button
-        type="button"
-        id="frame-settings-btn"
-        class="sidebar-header-btn"
-        title="Frame Settings (Cmd+,)"
-        aria-label="Frame Settings"
-        tabindex="-1"
-      >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
-        </svg>
-      </button>
     </div>
 
     <!-- Hover tooltip for Initialize Frame button (fixed position, escapes overflow) -->
@@ -157,11 +141,12 @@
             <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>
           </svg>
         </button>
-        <!-- The foot of the rail, below the view tabs: Plugins, then Feedback.
-             Both open a modal (#plugins-modal, #feedback-modal) rather than
+        <!-- The foot of the rail, below the view tabs: Plugins, Feedback,
+             then Frame Settings. All three open a modal (#plugins-modal,
+             #feedback-modal, the Frame Settings overlay) rather than
              switching views — hence no .sidebar-tab-btn (that class drives
              view switching). .sidebar-rail-btn-foot on the first pushes the
-             pair to the bottom. -->
+             group to the bottom. -->
         <button id="plugins-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" aria-label="Plugins" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>
@@ -170,6 +155,14 @@
         <button id="feedback-btn" class="sidebar-rail-btn" aria-label="Send Feedback" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M12 8v6"/><path d="M9 11h6"/>
+          </svg>
+        </button>
+        <!-- Frame's own settings: privacy and About/updates. The gear is the
+             app-preferences mark everywhere else; the project's settings are
+             a row under the project in the workspace nav. -->
+        <button id="frame-settings-btn" class="sidebar-rail-btn" aria-label="Frame Settings" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
       </nav>
@@ -239,49 +232,94 @@
           </div>
         </div>
 
-        <!-- GitHub view (dock-panel-readonly-views spec, D8): the GitHub
-             panel renders here like Files and Changes do, keeping its
-             refresh / filter / create-branch chrome. Always displayed inside
-             its tab — .visible no longer gates it, and its × is hidden since
-             there is nothing to close to. -->
+        <!-- GitHub view (github-view-tree-layout spec): VS Code's "GitHub
+             Pull Requests" shape inside the sidebar tab — a head with the
+             repo name, one filter field, an access-state block (gh missing /
+             not signed in / not a GitHub remote), then four stacked,
+             collapsible sections of dense rows. Icons, chevrons, counts and
+             rows are filled by githubPanel.js (lucide via dock.lucideIcon);
+             the page boots fine with the markup empty. -->
         <div class="sidebar-tab-content" data-sidebar-tab-content="github" style="display:none;">
-        <div id="github-panel">
-          <div id="github-header">
-            <h3>GitHub</h3>
-            <div class="github-header-actions">
-              <button id="github-refresh-btn" tabindex="-1" title="Refresh">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                </svg>
-              </button>
-              <button id="github-close" tabindex="-1">✕</button>
+          <div id="github-panel">
+            <div class="github-head">
+              <div class="github-head-title">
+                <span class="github-head-name">GitHub</span>
+                <span id="github-head-repo" class="github-head-repo" title=""></span>
+              </div>
+              <div class="github-head-actions">
+                <button id="github-refresh-btn" class="btn-icon github-head-btn" tabindex="-1" title="Refresh" aria-label="Refresh"></button>
+              </div>
+            </div>
+            <div class="github-search file-tree-search">
+              <div class="file-tree-search-field">
+                <input
+                  id="github-search"
+                  type="text"
+                  placeholder="Filter…"
+                  autocomplete="off"
+                  spellcheck="false"
+                  tabindex="-1"
+                />
+                <button id="github-search-clear" class="file-tree-search-clear" tabindex="-1" title="Clear filter" type="button">&#x2715;</button>
+              </div>
+            </div>
+            <div id="github-state" class="github-state" style="display:none;"></div>
+            <div id="github-sections" class="github-sections">
+              <section class="github-section" data-section="prs">
+                <div class="github-section-head" role="button" tabindex="-1" aria-expanded="false">
+                  <span class="github-section-chevron" aria-hidden="true"></span>
+                  <span class="github-section-title"><span class="github-section-title-long">Pull Requests</span><span class="github-section-title-short">PRs</span></span>
+                  <span class="github-section-count" data-count></span>
+                  <span class="github-section-actions">
+                    <button class="github-section-btn" data-section-action="filter" tabindex="-1" title="Open / Closed / All" aria-label="Filter pull requests" type="button"></button>
+                    <button class="github-section-btn" data-section-action="refresh" tabindex="-1" title="Refresh pull requests" aria-label="Refresh pull requests" type="button"></button>
+                  </span>
+                </div>
+                <div class="github-rows" data-rows></div>
+              </section>
+              <section class="github-section" data-section="issues">
+                <div class="github-section-head" role="button" tabindex="-1" aria-expanded="false">
+                  <span class="github-section-chevron" aria-hidden="true"></span>
+                  <span class="github-section-title"><span class="github-section-title-long">Issues</span><span class="github-section-title-short">Issues</span></span>
+                  <span class="github-section-count" data-count></span>
+                  <span class="github-section-actions">
+                    <button class="github-section-btn" data-section-action="filter" tabindex="-1" title="Open / Closed / All" aria-label="Filter issues" type="button"></button>
+                    <button class="github-section-btn" data-section-action="refresh" tabindex="-1" title="Refresh issues" aria-label="Refresh issues" type="button"></button>
+                  </span>
+                </div>
+                <div class="github-rows" data-rows></div>
+              </section>
+              <section class="github-section" data-section="branches">
+                <div class="github-section-head" role="button" tabindex="-1" aria-expanded="false">
+                  <span class="github-section-chevron" aria-hidden="true"></span>
+                  <span class="github-section-title"><span class="github-section-title-long">Branches</span><span class="github-section-title-short">Branch</span></span>
+                  <span class="github-section-count" data-count></span>
+                  <span class="github-section-actions">
+                    <!-- The Create Branch modal's trigger (C6): only the button
+                         moved here; #create-branch-modal itself is unchanged. -->
+                    <button id="github-create-branch-btn" class="github-section-btn" data-section-action="new" tabindex="-1" title="New branch" aria-label="New branch" type="button"></button>
+                    <button class="github-section-btn" data-section-action="refresh" tabindex="-1" title="Refresh branches" aria-label="Refresh branches" type="button"></button>
+                  </span>
+                </div>
+                <div class="github-rows" data-rows></div>
+              </section>
+              <section class="github-section" data-section="worktrees">
+                <div class="github-section-head" role="button" tabindex="-1" aria-expanded="false">
+                  <span class="github-section-chevron" aria-hidden="true"></span>
+                  <span class="github-section-title"><span class="github-section-title-long">Worktrees</span><span class="github-section-title-short">Trees</span></span>
+                  <span class="github-section-count" data-count></span>
+                  <span class="github-section-actions">
+                    <button class="github-section-btn" data-section-action="refresh" tabindex="-1" title="Refresh worktrees" aria-label="Refresh worktrees" type="button"></button>
+                  </span>
+                </div>
+                <div class="github-rows" data-rows></div>
+              </section>
             </div>
           </div>
-          <div id="github-repo-name"></div>
-          <div class="github-tabs">
-            <button class="github-tab-btn active" data-tab="issues">Issues</button>
-            <button class="github-tab-btn" data-tab="prs">PRs</button>
-            <button class="github-tab-btn" data-tab="branches">Branches</button>
-            <button class="github-tab-btn" data-tab="worktrees">Worktrees</button>
-          </div>
-          <div class="github-filter" id="github-filter">
-            <button class="github-filter-btn active" data-filter="open">Open</button>
-            <button class="github-filter-btn" data-filter="closed">Closed</button>
-            <button class="github-filter-btn" data-filter="all">All</button>
-          </div>
-          <div class="github-branches-actions" id="github-branches-actions" style="display: none;">
-            <button id="github-create-branch-btn" class="github-action-btn">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              New Branch
-            </button>
-          </div>
-          <div id="github-content">
-            <!-- GitHub content will be populated here -->
-          </div>
-        </div>
+          <!-- Row right-click menu and the per-section Open / Closed / All
+               menu (D10): the file tree's .context-menu classes, panel-owned. -->
+          <div id="github-context-menu" class="context-menu" role="menu"></div>
+          <div id="github-filter-menu" class="context-menu" role="menu"></div>
         </div>
 
         <!-- Agent view: default-agent controls (selector + Start) and the live
@@ -482,12 +520,12 @@
     <div id="feedback-modal" class="modal-overlay">
       <div class="modal-container feedback-modal" role="dialog" aria-label="Feedback">
         <div class="modal-header">
-          <h3>Feedback</h3>
+          <h3 id="feedback-modal-title">Feedback</h3>
           <button class="modal-close" id="feedback-modal-close" title="Close" aria-label="Close">&#x2715;</button>
         </div>
         <div id="feedback-panel">
-          <!-- Tabs are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
-          <div class="feedback-tabs"></div>
+          <!-- The kind cards are rendered by feedbackPanel.js from FEEDBACK_TYPES -->
+          <div class="feedback-kinds" role="radiogroup" aria-label="What is this about?"></div>
           <div id="feedback-body">
             <!-- The form is rendered by feedbackPanel.js -->
           </div>
@@ -912,12 +950,12 @@
               </div>
             </div>
           </div>
-          <button id="tasks-dashboard-add" class="tasks-dashboard-btn-primary" tabindex="-1">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <button id="tasks-dashboard-add" class="primary-btn" tabindex="-1" title="New task">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            New Task
+            <span>New Task</span>
           </button>
           <button id="tasks-dashboard-close" class="tasks-dashboard-btn-icon" tabindex="-1" title="Close dashboard">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -1070,7 +1108,13 @@
           <h2>Specs</h2>
         </div>
         <div class="view-header-actions specs-dashboard-actions">
-          <button id="specs-dashboard-new" class="btn btn-primary specs-dashboard-new" tabindex="-1">+ New Spec</button>
+          <button id="specs-dashboard-new" class="primary-btn" tabindex="-1" title="New spec">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Spec</span>
+          </button>
           <button id="specs-dashboard-close" class="specs-dashboard-close" tabindex="-1" aria-label="Close dashboard">&#x2715;</button>
         </div>
       </div>
@@ -1263,7 +1307,7 @@
         </svg>
       </div>
       <div class="task-confirm-modal-body">
-        <h3>Delete task?</h3>
+        <h3 id="task-confirm-delete-heading">Delete task?</h3>
         <p id="task-confirm-delete-message">This task will be removed permanently. This action can't be undone.</p>
       </div>
       <div class="task-confirm-modal-footer">
@@ -1404,6 +1448,45 @@
             </div>
             <button type="button" class="settings-action-btn" id="settings-init-frame" style="display:none;">Initialize</button>
             <button type="button" class="settings-danger-btn" id="settings-remove-frame">Remove Frame</button>
+          </div>
+        </div>
+
+        <!-- Boards: how much of the done pile the Tasks and Specs boards show
+             before "Show N older". Live work is never windowed — only what is
+             already done (boards-done-window spec). -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Boards</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-done-window-tasks">Completed tasks shown</label>
+              <p class="settings-row-desc">
+                How far back the Tasks board's Completed column reaches by default. Older
+                tasks stay one click away behind <em>Show older</em>; Pending and In Progress
+                always show everything.
+              </p>
+            </div>
+            <select class="settings-select" id="settings-done-window-tasks">
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="0">All</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-done-window-specs">Done specs shown</label>
+              <p class="settings-row-desc">
+                How far back the Specs board's All and Done views reach by default. Older
+                done specs sit behind a tile at the end of the grid; active specs always show.
+              </p>
+              <p class="settings-row-desc" id="settings-done-window-note" style="display:none;"></p>
+            </div>
+            <select class="settings-select" id="settings-done-window-specs">
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="0">All</option>
+            </select>
           </div>
         </div>
       </div>

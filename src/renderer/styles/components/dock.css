@@ -24,6 +24,9 @@
   width: auto;
 }
 
+/* Flush against the window edge (compact-center-vs-code-density): no
+   margin, no radius, no outer border. The one hairline sits on the inner
+   edge — the same edge the resize handle already occupies. */
 #dock {
   display: none;
   position: relative;
@@ -32,8 +35,8 @@
   min-height: 0;
   min-width: 0;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border: none;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -42,11 +45,13 @@
 }
 
 #terminal-container.dock-bottom > #dock {
-  margin-top: var(--space-sm);
+  margin-top: 0;
+  border-top: 1px solid var(--border-subtle);
 }
 
 #terminal-container.dock-right > #dock {
-  margin-left: var(--space-sm);
+  margin-left: 0;
+  border-left: 1px solid var(--border-subtle);
 }
 
 /* ---------- Resize handle ---------- */
@@ -356,4 +361,37 @@ body.dock-resizing-ew * {
   margin: 0 auto;
   max-width: 420px;
   line-height: 1.6;
+}
+
+/* ---------- Tab strip: drag to reorder (dnd/sortable) ---------- */
+/* The lifted tab follows the pointer via an inline transform; siblings
+   slide into the vacated slot. The order the strip shows during a drag is
+   the order a release commits. */
+.dock-tab {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.dock-tabs.sortable-active .dock-tab {
+  transition: none;
+}
+
+.dock-tab.sortable-dragging {
+  position: relative;
+  z-index: 2;
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: grabbing;
+}
+
+body.sortable-drag {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.sortable-drag,
+body.sortable-drag * {
+  cursor: grabbing !important;
 }

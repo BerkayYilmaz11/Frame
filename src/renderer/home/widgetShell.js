@@ -52,7 +52,7 @@ function widgetShell({ id, icon, title, actionLabel, actionIcon = Plus, onOpen, 
       <span class="home-card-icon">${lucideIcon(icon, 15)}</span>
       <span class="home-card-title">${title}</span>
       <span class="home-card-count"></span>
-      ${onOpen ? `<span class="home-card-open">${lucideIcon(ArrowUpRight, 13)}</span>` : ''}
+      ${onOpen ? `<span class="home-card-open">${lucideIcon(ArrowUpRight, 14)}</span>` : ''}
     </${headerTag}>
     <div class="home-card-body"></div>
     ${actionLabel ? `<button class="home-card-action" type="button">${lucideIcon(actionIcon, 13)}<span>${actionLabel}</span></button>` : ''}

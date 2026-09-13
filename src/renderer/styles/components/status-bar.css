@@ -43,15 +43,35 @@
 
 /* ─── The current git branch ─── */
 /* VS Code's idiom: a small branch glyph and the name, first thing on the
-   left. Plain text, not a button — the bar is for glancing. */
+   left. A button since status-bar-branch-picker: click opens the picker
+   above it. Same footprint as the old span — the bar stays 26px. */
 .sb-branch {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
   min-width: 0;
+  padding: 1px 4px;
+  margin-left: -4px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  font: inherit;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sb-branch:hover,
+.sb-branch[aria-expanded="true"] {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-branch:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
 }
 
 .sb-branch[hidden] {
@@ -68,6 +88,185 @@
 .sb-branch:not([hidden]) + .sb-dock {
   padding-left: var(--space-md);
   border-left: 1px solid var(--border-subtle);
+}
+
+/* ─── The branch picker (status-bar-branch-picker spec) ─── */
+/* VS Code's branch quick pick, opening upward from the bar like the agents
+   menu. Inside #status-bar's fixed stacking context (z-index 500) it paints
+   over the dock at any dock position with no rule of its own. */
+.sb-branch-picker {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 6px;
+  width: 340px;
+  max-width: calc(100vw - 2 * var(--space-md));
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+  color: var(--text-secondary);
+  z-index: 2;
+}
+
+.sb-branch-picker[hidden] {
+  display: none;
+}
+
+.sb-branch-picker.busy {
+  cursor: progress;
+}
+
+.sb-branch-picker.busy .sb-bp-list {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.sb-bp-filter {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.sb-bp-filter::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Inline, not a toast: the popover stays open so the next pick is one
+   click away. */
+.sb-bp-notice {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sb-bp-notice.error {
+  color: var(--error);
+  background: var(--error-subtle);
+}
+
+.sb-bp-notice.warning {
+  color: var(--warning-ink);
+  background: var(--warning-subtle, rgba(229, 205, 142, 0.12));
+}
+
+.sb-bp-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.sb-bp-group {
+  padding: 6px 8px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.sb-bp-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  color: var(--text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sb-bp-row.highlight,
+.sb-bp-row:hover:not(.disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sb-bp-row.current {
+  color: var(--text-primary);
+}
+
+.sb-bp-row.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.sb-bp-row.create {
+  color: var(--accent-primary);
+}
+
+.sb-bp-row.create.disabled {
+  color: var(--text-muted);
+}
+
+.sb-bp-row.manage {
+  margin-top: 4px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.sb-bp-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.sb-bp-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-bp-current {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.sb-bp-meta {
+  flex-shrink: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.sb-bp-row.disabled .sb-bp-meta {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sb-bp-empty {
+  padding: 10px 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
 }
 
 /* ─── The dock's icons (dock-panel-readonly-views spec) ─── */

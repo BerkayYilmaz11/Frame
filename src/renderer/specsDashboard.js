@@ -27,16 +27,16 @@ const reportSection = require('./reportSection');
 const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 const specNextAction = require('./specNextAction');
+const doneWindow = require('./doneWindow');
+const { PHASES, buildGridModel } = require('./specs/filterModel');
 
-const FILTERS = [
-  { id: 'all',                 label: 'All' },
-  { id: 'active',              label: 'Active' },
-  { id: 'done',                label: 'Done' },
-  { id: 'phase:draft',         label: 'Draft' },
-  { id: 'phase:specified',     label: 'Specified' },
-  { id: 'phase:planned',       label: 'Planned' },
-  { id: 'phase:tasks_generated', label: 'Tasks Generated' },
-  { id: 'phase:implementing',  label: 'Implementing' }
+// Scope renders as one segmented control; phases as chips carrying the
+// card's phase-badge colour. Every phase is a subset of Active, so the chips
+// render only while Active is selected (boards-done-window spec, D4).
+const SCOPE_FILTERS = [
+  { id: 'all',    label: 'All' },
+  { id: 'active', label: 'Active' },
+  { id: 'done',   label: 'Done' }
 ];
 
 let isVisible = false;
@@ -46,7 +46,13 @@ let selectedSlug = null;
 let selectedSpec = null;   // full spec body (from GET_SPEC)
 let selectedTab = 'spec';
 let renderedSlug = null;    // slug whose detail HTML is currently in detailContentEl
-let activeFilter = 'all';
+let scope = 'all';           // 'all' | 'active' | 'done'
+let phase = null;            // narrows Active only; cleared by any scope pick
+// Done specs older than the project's done window sit behind a ghost tile
+// in All and Done. The reveal is session state on the open project: it
+// resets on a scope pick and on a project change.
+let showOlderDone = false;
+let loadedProjectPath = null;
 let searchQuery = '';        // current search text (trimmed lower-cased when matched)
 let searchMatches = null;    // Set of slugs matching the query, or null when no search is active
 let searchDebounce = null;
@@ -79,7 +85,9 @@ function init() {
   detailEl.querySelector('.specs-dashboard-detail-close')?.addEventListener('click', clearSelection);
   detailEl.querySelector('.specs-dashboard-detail-back')?.addEventListener('click', clearSelection);
 
-  renderFilters();
+  // The done window is a project setting; when it moves, the grid
+  // re-partitions from the data it already holds.
+  doneWindow.onChange(() => { if (isVisible) renderGrid(); });
   setupSearch();
   setupIPCListeners();
 
@@ -95,8 +103,12 @@ function init() {
 }
 
 function setupIPCListeners() {
-  ipcRenderer.on(IPC.SPEC_DATA, (event, { specs: incoming }) => {
+  ipcRenderer.on(IPC.SPEC_DATA, (event, { projectPath, specs: incoming }) => {
     specs = incoming || [];
+    if (projectPath && projectPath !== loadedProjectPath) {
+      showOlderDone = false;
+      loadedProjectPath = projectPath;
+    }
     if (isVisible) {
       // spec.md content may have changed on disk — refresh matches if a
       // search is active (runSearch re-renders the grid itself).
@@ -185,6 +197,10 @@ async function _load() {
   try { require('./specPanel').hide?.(); } catch {}
 
   clearSearch();  // start from a clean search state on every open
+  if (projectPath !== loadedProjectPath) {
+    showOlderDone = false;
+    loadedProjectPath = projectPath;
+  }
   isVisible = true;
 
   // Fetch synchronously so the grid paints with real data on first frame
@@ -231,32 +247,64 @@ function toggle() {
 
 // ─── Filters ─────────────────────────────────────────────
 
-function renderFilters() {
+/**
+ * The filter row, painted from the same model the grid is painted from so
+ * the counts always answer "what will I see if I click this". Phase chips
+ * render only under Active; a scope pick clears the phase and the reveal.
+ */
+function renderFilters(model) {
   if (!filtersEl) return;
-  filtersEl.innerHTML = FILTERS.map(f => `
-    <button class="specs-dashboard-filter-btn ${activeFilter === f.id ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>
-  `).join('');
-  filtersEl.querySelectorAll('.specs-dashboard-filter-btn').forEach(btn => {
+  const { counts } = model;
+  const count = (n) => `<span class="specs-filter-count">${n || 0}</span>`;
+
+  const segments = SCOPE_FILTERS.map(f => {
+    const on = scope === f.id;
+    const hiddenDone = counts.doneTotal - counts.done;
+    const title = f.id === 'done' && hiddenDone > 0
+      ? ` title="${counts.doneTotal} done in total · ${hiddenDone} older hidden"`
+      : '';
+    return `<button type="button" class="specs-filter-seg${on ? ' active' : ''}" data-scope="${f.id}" aria-pressed="${on}"${title}>${f.label}${count(counts[f.id])}</button>`;
+  }).join('');
+
+  let chips = '';
+  if (scope === 'active') {
+    chips = PHASES.map(p => {
+      const on = phase === p.id;
+      const n = counts[`phase:${p.id}`] || 0;
+      return `<button type="button" class="specs-filter-chip phase-${p.id}${on ? ' active' : ''}${n ? '' : ' is-empty'}" data-phase="${p.id}" aria-pressed="${on}"><span class="specs-filter-dot" aria-hidden="true"></span>${p.label}${count(n)}</button>`;
+    }).join('');
+  }
+
+  filtersEl.innerHTML = `
+    <div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>
+    ${chips ? `<span class="specs-filter-divider" aria-hidden="true"></span>
+    <div class="specs-filter-phases" role="group" aria-label="Phase">${chips}</div>` : ''}
+  `;
+  filtersEl.querySelectorAll('[data-scope]').forEach(btn => {
     btn.addEventListener('click', () => {
-      activeFilter = btn.dataset.filter;
-      renderFilters();
+      scope = btn.dataset.scope;
+      phase = null;
+      showOlderDone = false;
+      renderGrid();
+    });
+  });
+  filtersEl.querySelectorAll('[data-phase]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      phase = phase === btn.dataset.phase ? null : btn.dataset.phase;
       renderGrid();
     });
   });
 }
 
-function applyFilter(specsList) {
-  let out = specsList;
-  if (activeFilter === 'active') out = out.filter(s => s.phase !== 'done');
-  else if (activeFilter === 'done') out = out.filter(s => s.phase === 'done');
-  else if (activeFilter.startsWith('phase:')) {
-    const target = activeFilter.slice('phase:'.length);
-    out = out.filter(s => s.phase === target);
-  }
-  // Keyword search over spec.md — searchMatches (a slug Set) is computed by
-  // the main process; null means no active search, so everything passes.
-  if (searchMatches) out = out.filter(s => searchMatches.has(s.slug));
-  return out;
+function gridModel() {
+  return buildGridModel({
+    specs,
+    scope,
+    phase,
+    searchMatches,
+    windowDays: doneWindow.get().specs,
+    showOlder: showOlderDone
+  });
 }
 
 // ─── Search ──────────────────────────────────────────────
@@ -311,7 +359,24 @@ function clearSearch() {
 
 function renderGrid() {
   if (!gridEl) return;
-  const filtered = applyFilter(specs);
+  const model = gridModel();
+  renderFilters(model);
+  const filtered = model.visible;
+  const olderTile = model.olderCount > 0
+    ? `<button type="button" class="specs-card-older" tabindex="-1">
+         <span class="specs-card-older-count">${model.olderCount}</span>
+         <span class="specs-card-older-label">older done spec${model.olderCount === 1 ? '' : 's'}</span>
+         <span class="specs-card-older-action">Show</span>
+       </button>`
+    : '';
+
+  if (filtered.length === 0 && model.olderCount > 0) {
+    // Everything done is outside the window: the tile is the whole grid.
+    const days = doneWindow.get().specs;
+    gridEl.innerHTML = `<div class="specs-dashboard-empty"><p>Nothing done in the last ${days} days.</p></div>${olderTile}`;
+    wireOlderTile();
+    return;
+  }
 
   if (filtered.length === 0) {
     if (specs.length === 0) {
@@ -333,10 +398,18 @@ function renderGrid() {
     return;
   }
 
-  gridEl.innerHTML = filtered.map(renderCard).join('');
+  gridEl.innerHTML = filtered.map(renderCard).join('') + olderTile;
   gridEl.querySelectorAll('.specs-card').forEach(card => {
     if (card.dataset.malformed) return; // nothing to open — the reason is on the card
     card.addEventListener('click', () => selectCard(card.dataset.slug));
+  });
+  wireOlderTile();
+}
+
+function wireOlderTile() {
+  gridEl.querySelector('.specs-card-older')?.addEventListener('click', () => {
+    showOlderDone = true;
+    renderGrid();
   });
 }
 

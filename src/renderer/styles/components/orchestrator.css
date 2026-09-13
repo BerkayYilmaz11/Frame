@@ -40,7 +40,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-sm) var(--space-lg);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-sm) 8px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   overflow-x: auto;
@@ -162,7 +163,8 @@
 .orch-conductor,
 .orch-workers,
 .orch-specs {
-  padding: var(--space-md) var(--space-lg);
+  /* 8px side gutter — the same edge the Terminals grid keeps. */
+  padding: var(--space-md) 8px;
   overflow-y: auto;
 }
 .orch-specs {
