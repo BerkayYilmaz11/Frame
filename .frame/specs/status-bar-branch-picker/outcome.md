@@ -54,3 +54,11 @@ _Captured: 2026-09-13T14:51:35Z · 1 file change(s)_
 
 ---
 
+## T08 — Manage branches hand-off to the GitHub view
+
+Added `revealSection(id)` to `src/renderer/githubPanel.js` (expand + persist + apply; render and load only if the tab is already visible) and wired the picker's "Manage branches…" row in `src/renderer/statusBar.js` to expand Branches and then run the registered `sidebar.github` command, whose `show()` loads the expanded sections. Departure from the plan's eight-line sketch: the load is conditional on visibility so an off-screen hand-off reads the branch list once, not twice. The spec's tasks are complete; the running-app pass (open, filter, switch, dirty tree, worktree row, Escape, dock open) is still to be done by hand — no DOM harness exists here.
+
+_Captured: 2026-09-13T14:53:05Z · 2 file change(s)_
+
+---
+

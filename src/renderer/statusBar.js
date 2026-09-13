@@ -41,6 +41,7 @@ const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
 const { GitBranch } = require('lucide');
 const branchPicker = require('./statusBar/branchPicker');
+const githubPanel = require('./githubPanel');
 
 // One button per dock tab, in dockState.TABS' canonical order — not the
 // strip's, which the user can drag around: the bar is a fixed row of
@@ -137,8 +138,16 @@ function _buildBranch() {
 }
 
 // "Manage branches…" — the GitHub view's Branches section, where delete,
-// worktrees and pull requests already live. Wired in T08.
-function _manageBranches() {}
+// worktrees and pull requests already live. The section is expanded first
+// (state only, while the tab is off screen), then the same registered
+// command the palette runs reveals the sidebar tab; its show() loads every
+// expanded section, Branches now among them.
+function _manageBranches() {
+  githubPanel.revealSection('branches');
+  if (!commandRegistry.runById('sidebar.github')) {
+    console.error("statusBar: command 'sidebar.github' did not run");
+  }
+}
 
 function _renderBranch(branch) {
   if (!branchEl) return;

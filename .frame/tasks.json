@@ -7587,13 +7587,13 @@
       "title": "Export `revealSection(id)` from `src/renderer/githubPanel.js` (`sectionState.setExpanded` → persist → apply → render → load) and wire the picker's last row \"Manage branches…\" to run `commandRegistry.runById('sidebar.github')`, call `githubPanel.revealSection('branches')` and close the popover",
       "description": "",
       "source": "spec:status-bar-branch-picker:T08",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:51:35Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T14:53:05Z",
+      "completedAt": "2026-09-13T14:53:05Z"
     }
   ],
   "metadata": {

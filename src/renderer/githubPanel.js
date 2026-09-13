@@ -409,6 +409,24 @@ function toggleSection(id) {
   }
 }
 
+/**
+ * Expand one section from outside the panel (the status bar's branch picker
+ * hands off to Branches — status-bar-branch-picker spec, G5). State is set
+ * and persisted whether or not the tab is on screen; rows load now only if
+ * it is, because `show()` — which the caller runs next when it is not —
+ * loads every expanded section itself.
+ */
+function revealSection(id) {
+  if (!SECTIONS.includes(id)) return;
+  sections = sectionState.setExpanded(sections, id, true);
+  persistSections();
+  applySections();
+  if (isVisible && projectPath()) {
+    renderSection(id);
+    loadSection(id);
+  }
+}
+
 function toggleSubgroup(id) {
   sections = sectionState.toggle(sections, id);
   persistSections();
@@ -1075,5 +1093,6 @@ module.exports = {
   toggle,
   refresh: refreshAll,
   loadSection,
+  revealSection,
   isVisible: () => isVisible
 };

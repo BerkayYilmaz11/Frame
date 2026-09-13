@@ -6555,6 +6555,7 @@
         "toggle",
         "refresh",
         "loadSection",
+        "revealSection",
         "isVisible"
       ],
       "depends": [
@@ -6634,21 +6635,28 @@
             "id"
           ]
         },
+        "revealSection": {
+          "line": 419,
+          "params": [
+            "id"
+          ],
+          "purpose": "Expand one section from outside the panel (the status bar's branch picker"
+        },
         "toggleSubgroup": {
-          "line": 412,
+          "line": 430,
           "params": [
             "id"
           ]
         },
         "applySections": {
-          "line": 418
+          "line": 436
         },
         "loadExpanded": {
-          "line": 429,
+          "line": 447,
           "purpose": "Every expanded, available section: cached rows now, a reload behind."
         },
         "onSectionAction": {
-          "line": 436,
+          "line": 454,
           "params": [
             "id",
             "action",
@@ -6656,18 +6664,18 @@
           ]
         },
         "refreshAll": {
-          "line": 450,
+          "line": 468,
           "purpose": "Head refresh (G6): re-run the access check with force, then reload every"
         },
         "invokeSection": {
-          "line": 469,
+          "line": 487,
           "params": [
             "id",
             "path"
           ]
         },
         "loadSection": {
-          "line": 498,
+          "line": 516,
           "params": [
             "id",
             "opts = {}"
@@ -6675,75 +6683,75 @@
           "purpose": "Load one section into its cache and re-render it. A section that is not"
         },
         "visibleRows": {
-          "line": 539,
+          "line": 557,
           "params": [
             "id"
           ]
         },
         "findRow": {
-          "line": 545,
+          "line": 563,
           "params": [
             "id",
             "rowId"
           ]
         },
         "noteHtml": {
-          "line": 551,
+          "line": 569,
           "params": [
             "text",
             "kind = ''"
           ]
         },
         "unavailableNote": {
-          "line": 555
+          "line": 573
         },
         "emptyNote": {
-          "line": 562,
+          "line": 580,
           "params": [
             "id"
           ]
         },
         "renderSection": {
-          "line": 571,
+          "line": 589,
           "params": [
             "id"
           ]
         },
         "rowHtml": {
-          "line": 632,
+          "line": 650,
           "params": [
             "row"
           ]
         },
         "hintLabel": {
-          "line": 666,
+          "line": 684,
           "params": [
             "h"
           ]
         },
         "rowTitle": {
-          "line": 677,
+          "line": 695,
           "params": [
             "row"
           ]
         },
         "selectRow": {
-          "line": 692,
+          "line": 710,
           "params": [
             "row"
           ]
         },
         "clearSearch": {
-          "line": 703
+          "line": 721
         },
         "menusOpen": {
-          "line": 712
+          "line": 730
         },
         "hideMenus": {
-          "line": 717
+          "line": 735
         },
         "placeMenu": {
-          "line": 724,
+          "line": 742,
           "params": [
             "menuEl",
             "x",
@@ -6751,7 +6759,7 @@
           ]
         },
         "showContextMenu": {
-          "line": 735,
+          "line": 753,
           "params": [
             "row",
             "x",
@@ -6759,103 +6767,103 @@
           ]
         },
         "showFilterMenu": {
-          "line": 745,
+          "line": 763,
           "params": [
             "id",
             "anchorBtn"
           ]
         },
         "setFilter": {
-          "line": 757,
+          "line": 775,
           "params": [
             "id",
             "filter"
           ]
         },
         "runAction": {
-          "line": 771,
+          "line": 789,
           "params": [
             "row",
             "action"
           ]
         },
         "openOnGitHub": {
-          "line": 786,
+          "line": 804,
           "params": [
             "row"
           ],
           "purpose": "D2: the browser opens only from the action or the context menu."
         },
         "afterCheckoutChange": {
-          "line": 791,
+          "line": 809,
           "purpose": "D13: after a checkout-changing action the status bar and Changes follow."
         },
         "reportDirty": {
-          "line": 796,
+          "line": 814,
           "params": [
             "result"
           ]
         },
         "switchBranch": {
-          "line": 804,
+          "line": 822,
           "params": [
             "row"
           ]
         },
         "checkoutPullRequest": {
-          "line": 821,
+          "line": 839,
           "params": [
             "row"
           ]
         },
         "startWork": {
-          "line": 839,
+          "line": 857,
           "params": [
             "row"
           ],
           "purpose": "D1: branch only — `issue-<n>-<slug>` from the current branch, checked out."
         },
         "confirmModal": {
-          "line": 867,
+          "line": 885,
           "params": [
             "opts"
           ]
         },
         "deleteBranch": {
-          "line": 879,
+          "line": 897,
           "params": [
             "row"
           ]
         },
         "openTerminalHere": {
-          "line": 912,
+          "line": 930,
           "params": [
             "row"
           ]
         },
         "removeWorktree": {
-          "line": 920,
+          "line": 938,
           "params": [
             "row"
           ]
         },
         "setupModalListeners": {
-          "line": 956
+          "line": 974
         },
         "showCreateBranchModal": {
-          "line": 984
+          "line": 1002
         },
         "populateBaseBranchSelect": {
-          "line": 1000,
+          "line": 1018,
           "params": [
             "select"
           ]
         },
         "hideCreateBranchModal": {
-          "line": 1028
+          "line": 1046
         },
         "handleCreateBranch": {
-          "line": 1033
+          "line": 1051
         }
       },
       "ipc": {
@@ -9842,33 +9850,34 @@
         "tooltip",
         "lucide",
         "statusBar/branchPicker",
+        "githubPanel",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 72
+          "line": 73
         },
         "_buildBranch": {
-          "line": 99
+          "line": 100
         },
         "_manageBranches": {
-          "line": 141,
+          "line": 145,
           "purpose": "\"Manage branches…\" — the GitHub view's Branches section, where delete,"
         },
         "_renderBranch": {
-          "line": 143,
+          "line": 152,
           "params": [
             "branch"
           ]
         },
         "_buildDockIcons": {
-          "line": 158
+          "line": 167
         },
         "_buildAgentSlot": {
-          "line": 208
+          "line": 217
         },
         "updateAgents": {
-          "line": 243,
+          "line": 252,
           "params": [
             "states",
             "counts"
@@ -9876,19 +9885,19 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 275,
+          "line": 284,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 279
+          "line": 288
         },
         "_renderMenu": {
-          "line": 314
+          "line": 323
         },
         "_focus": {
-          "line": 338,
+          "line": 347,
           "params": [
             "projectPath",
             "terminalId"
@@ -9896,29 +9905,29 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_scheduleOpen": {
-          "line": 348
+          "line": 357
         },
         "_scheduleClose": {
-          "line": 354
+          "line": 363
         },
         "_openMenu": {
-          "line": 360
+          "line": 369
         },
         "_closeMenu": {
-          "line": 370,
+          "line": 379,
           "params": [
             "immediate = false"
           ]
         },
         "updateUsage": {
-          "line": 377,
+          "line": 386,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 406,
+          "line": 415,
           "params": [
             "item",
             "usage",
@@ -9927,7 +9936,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 429,
+          "line": 438,
           "params": [
             "isoString"
           ],
