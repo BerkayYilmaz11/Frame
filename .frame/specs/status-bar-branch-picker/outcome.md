@@ -14,3 +14,11 @@ _Captured: 2026-09-13T14:42:31Z · 2 file change(s)_
 
 ---
 
+## T03 — loadBranches: committer time, remotes, remote short names
+
+Rewired `loadBranches` in `src/main/gitBranchesManager.js` onto `gitBranchRefs`: `BRANCH_FORMAT` replaces the inline five-field string, `parseBranchLine` replaces the inline split, one extra `git remote` read feeds `splitRemoteRef`, and rows gain `time` (all) plus `remote`/`shortName` (remote rows); the result gains `remotes`. No field was renamed, so the GitHub view's Branches section is unchanged — `githubRowModels.test.js` passes as-is and a smoke run on this repo showed every remote row split and the `origin/HEAD` pointer still dropped.
+
+_Captured: 2026-09-13T14:43:45Z · 1 file change(s)_
+
+---
+

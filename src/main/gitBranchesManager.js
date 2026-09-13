@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { IPC } = require('../shared/ipcChannels');
 const { FRAME_DIR, ORCH_WORKTREES_DIR, orchWorkBranch, orchIntegrationBranch } = require('../shared/frameConstants');
+const { BRANCH_FORMAT, parseBranchLine, splitRemoteRef } = require('./gitBranchRefs');
 
 let mainWindow = null;
 
@@ -84,32 +85,39 @@ async function loadBranches(projectPath) {
     // dropped reliably: `refs/remotes/origin/HEAD` shortens to plain
     // "origin", which used to slip through the old `includes('HEAD')`
     // filter and list as a local branch (github-view-tree-layout spec).
+    // The format (six fields, unix committer time as the fifth) and its
+    // parser live together in gitBranchRefs so they cannot drift apart
+    // (status-bar-branch-picker spec).
     const { stdout: branchOutput } = await execGit(
-      'git branch -a --format="%(refname)|%(refname:short)|%(objectname:short)|%(committerdate:relative)|%(subject)"',
+      `git branch -a --format="${BRANCH_FORMAT}"`,
       projectPath
     );
 
+    // The remote list lets a `<remote>/<name>` ref be split against the
+    // remotes that actually exist — `origin/feat/x` and `a/b/feat` both
+    // resolve — so the picker can hide a remote branch that already has
+    // a local twin, and switchBranch can track any remote, not just origin.
+    const { stdout: remoteOutput } = await execGit('git remote', projectPath);
+    const remotes = remoteOutput.split('\n').map((r) => r.trim()).filter(Boolean);
+
     const branches = branchOutput.split('\n')
-      .filter(line => line)
-      .map(line => {
-        const [refname, name, commit, date, ...messageParts] = line.split('|');
-        const message = messageParts.join('|');
-        const isRemote = refname.startsWith('refs/remotes/');
-        return {
-          refname,
-          name: name,
-          commit: commit || '',
-          date: date || '',
-          message: message || '',
-          isRemote,
-          isCurrent: name === currentBranch
-        };
-      })
+      .map(parseBranchLine)
+      .filter(Boolean)
       // Filter out the remote HEAD pointer (refs/remotes/<remote>/HEAD)
       .filter(b => !b.refname.endsWith('/HEAD'))
-      .map(({ refname, ...b }) => b);
+      .map(({ refname, ...b }) => {
+        const row = { ...b, isCurrent: b.name === currentBranch };
+        if (b.isRemote) {
+          const split = splitRemoteRef(b.name, remotes);
+          if (split) {
+            row.remote = split.remote;
+            row.shortName = split.shortName;
+          }
+        }
+        return row;
+      });
 
-    return { error: null, currentBranch, branches };
+    return { error: null, currentBranch, remotes, branches };
   } catch (err) {
     return { error: err.error || 'Not a git repository', branches: [] };
   }

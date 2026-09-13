@@ -1509,18 +1509,19 @@
         "fs",
         "path",
         "shared/ipcChannels",
-        "shared/frameConstants"
+        "shared/frameConstants",
+        "gitBranchRefs"
       ],
       "functions": {
         "init": {
-          "line": 18,
+          "line": 19,
           "params": [
             "window"
           ],
           "purpose": "Initialize manager"
         },
         "execGit": {
-          "line": 31,
+          "line": 32,
           "params": [
             "command",
             "projectPath"
@@ -1528,21 +1529,21 @@
           "purpose": "Execute git command with promise"
         },
         "isWorkingTreeClean": {
-          "line": 58,
+          "line": 59,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if working tree is clean"
         },
         "loadBranches": {
-          "line": 70,
+          "line": 71,
           "params": [
             "projectPath"
           ],
           "purpose": "Load all branches"
         },
         "switchBranch": {
-          "line": 121,
+          "line": 129,
           "params": [
             "projectPath",
             "branchName"
@@ -1550,7 +1551,7 @@
           "purpose": "Switch to a branch"
         },
         "createBranch": {
-          "line": 153,
+          "line": 161,
           "params": [
             "projectPath",
             "branchName",
@@ -1560,7 +1561,7 @@
           "purpose": "Create a new branch"
         },
         "deleteBranch": {
-          "line": 181,
+          "line": 189,
           "params": [
             "projectPath",
             "branchName",
@@ -1569,14 +1570,14 @@
           "purpose": "Delete a branch"
         },
         "loadWorktrees": {
-          "line": 198,
+          "line": 206,
           "params": [
             "projectPath"
           ],
           "purpose": "Load worktrees"
         },
         "addWorktree": {
-          "line": 240,
+          "line": 248,
           "params": [
             "projectPath",
             "worktreePath",
@@ -1586,7 +1587,7 @@
           "purpose": "Add a worktree"
         },
         "removeWorktree": {
-          "line": 259,
+          "line": 267,
           "params": [
             "projectPath",
             "worktreePath",
@@ -1595,27 +1596,27 @@
           "purpose": "Remove a worktree"
         },
         "orchWorktreePath": {
-          "line": 281,
+          "line": 289,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getHeadSha": {
-          "line": 285,
+          "line": 293,
           "params": [
             "projectPath"
           ]
         },
         "branchExists": {
-          "line": 294,
+          "line": 302,
           "params": [
             "projectPath",
             "branchName"
           ]
         },
         "createOrchWorktree": {
-          "line": 308,
+          "line": 316,
           "params": [
             "projectPath",
             "slug"
@@ -1623,7 +1624,7 @@
           "purpose": "Create a fresh worker worktree for a spec, branched from current HEAD."
         },
         "removeOrchWorktree": {
-          "line": 329,
+          "line": 337,
           "params": [
             "projectPath",
             "slug",
@@ -1632,7 +1633,7 @@
           "purpose": "Remove a spec's worker worktree (force). Optionally delete its work branch."
         },
         "worktreeChangedFiles": {
-          "line": 344,
+          "line": 352,
           "params": [
             "projectPath",
             "slug",
@@ -1641,7 +1642,7 @@
           "purpose": "Files actually changed on a spec's work branch relative to a base ref."
         },
         "mergeWorkToIntegration": {
-          "line": 361,
+          "line": 369,
           "params": [
             "projectPath",
             "slug"
@@ -1649,7 +1650,7 @@
           "purpose": "Merge a spec's work branch into its per-spec integration branch. Because the"
         },
         "isWorkMerged": {
-          "line": 380,
+          "line": 388,
           "params": [
             "projectPath",
             "slug"
@@ -1657,14 +1658,14 @@
           "purpose": "Whether a spec's work branch has been merged (its integration branch exists"
         },
         "listOrchBranches": {
-          "line": 396,
+          "line": 404,
           "params": [
             "projectPath"
           ],
           "purpose": "List orchestration branches present in the repo, grouped by slug. Used for"
         },
         "setupIPC": {
-          "line": 416,
+          "line": 424,
           "params": [
             "ipcMain"
           ],

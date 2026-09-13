@@ -7522,25 +7522,25 @@
       "title": "In `src/main/gitBranchesManager.js` `loadBranches`, append `%(committerdate:unix)` to the `git branch -a` format, run `git remote`, parse rows through `parseBranchLine`, attach `time` to every row and `remote`/`shortName` to remote rows, return `remotes` in the result, and confirm the GitHub view's Branches section renders unchanged",
       "description": "",
       "source": "spec:status-bar-branch-picker:T03",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:42:31Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T14:43:45Z",
+      "completedAt": "2026-09-13T14:43:45Z"
     },
     {
       "id": "task-spec-status-bar-branch-picker-T04",
       "title": "In `src/main/gitBranchesManager.js`, add an `execGitArgs(args, cwd)` helper on `execFile('git', …)` with the same git-missing detection as `execGit`; rewrite `switchBranch` to keep the clean check, checkout plainly when `refs/heads/<name>` exists, otherwise split via `splitRemoteRef` and run `checkout -b <short> --track <remote>/<short>` (plain checkout of `<short>` when that local already exists), read `git branch --show-current` for `result.branch`, and pass git's error text through verbatim; make `createBranch` reject names failing `isValidBranchName` and use `execGitArgs`",
       "description": "",
       "source": "spec:status-bar-branch-picker:T04",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:35:49.207Z",
+      "updatedAt": "2026-09-13T14:43:45Z",
       "completedAt": null
     },
     {
