@@ -12,3 +12,10 @@ Added `GET_DONE_WINDOW` / `SET_DONE_WINDOW` to `src/shared/ipcChannels.js` besid
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T03 — Renderer done-window store (src/renderer/doneWindow.js) initialised from index.js
+
+Added `src/renderer/doneWindow.js` — `init` (load now, re-load on `state.onProjectChange`, stale-answer guard), `get` (defaults until loaded or with no project), `set` (invokes `SET_DONE_WINDOW`, throws main's error text, notifies) and `onChange`. `src/renderer/index.js` requires it and calls `init()` just before `tasksDashboard.init()`. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 2 file change(s)_
+
+---

@@ -5793,6 +5793,63 @@
         }
       }
     },
+    "renderer/doneWindow": {
+      "file": "src/renderer/doneWindow.js",
+      "description": "Done Window store — the renderer's one owner of `settings.doneWindow`.",
+      "exports": [
+        "init",
+        "get",
+        "set",
+        "onChange",
+        "_loadedFor"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "shared/doneWindow"
+      ],
+      "functions": {
+        "notify": {
+          "line": 22
+        },
+        "apply": {
+          "line": 27,
+          "params": [
+            "value",
+            "projectPath"
+          ]
+        },
+        "load": {
+          "line": 33,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "init": {
+          "line": 45
+        },
+        "get": {
+          "line": 51,
+          "purpose": "The current project's `{ tasks, specs }` window in days (0 = all)."
+        },
+        "set": {
+          "line": 59,
+          "params": [
+            "board",
+            "days"
+          ],
+          "purpose": "Write one board's window. Resolves to the stored `{ tasks, specs }`;"
+        },
+        "onChange": {
+          "line": 69,
+          "params": [
+            "cb"
+          ],
+          "purpose": "Subscribe to changes; returns an unsubscribe function."
+        }
+      }
+    },
     "renderer/editor": {
       "file": "src/renderer/editor.js",
       "description": "File Editor Module",
@@ -7419,6 +7476,7 @@
         "welcomeOverlay",
         "appLoader",
         "projectSettingsModal",
+        "doneWindow",
         "frameSettingsModal",
         "feedbackPanel",
         "telemetryNotice",
@@ -7438,34 +7496,34 @@
       ],
       "functions": {
         "init": {
-          "line": 57,
+          "line": 58,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 299,
+          "line": 304,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 392,
+          "line": 397,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 503,
+          "line": 508,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 534,
+          "line": 539,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 560,
+          "line": 565,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 915,
+          "line": 920,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -13331,6 +13389,18 @@
         "description": "Managed-block engine for Frame's spec docs sections."
       }
     ],
+    "done": [
+      {
+        "module": "renderer/doneWindow",
+        "file": "src/renderer/doneWindow.js",
+        "description": "Done Window store — the renderer's one owner of `settings.doneWindow`."
+      },
+      {
+        "module": "shared/doneWindow",
+        "file": "src/shared/doneWindow.js",
+        "description": "doneWindow — how much of the \"done\" pile a board shows by default."
+      }
+    ],
     "editor": [
       {
         "module": "main/fileEditor",
@@ -13969,6 +14039,18 @@
         "module": "renderer/terminalsView",
         "file": "src/renderer/terminalsView.js",
         "description": "Terminals View Module"
+      }
+    ],
+    "window": [
+      {
+        "module": "renderer/doneWindow",
+        "file": "src/renderer/doneWindow.js",
+        "description": "Done Window store — the renderer's one owner of `settings.doneWindow`."
+      },
+      {
+        "module": "shared/doneWindow",
+        "file": "src/shared/doneWindow.js",
+        "description": "doneWindow — how much of the \"done\" pile a board shows by default."
       }
     ]
   },

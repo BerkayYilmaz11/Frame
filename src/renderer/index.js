@@ -39,6 +39,7 @@ const { applyTheme, currentTheme } = require('./terminalTabBar');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
+const doneWindow = require('./doneWindow');
 const frameSettingsModal = require('./frameSettingsModal');
 const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
@@ -137,6 +138,10 @@ function init() {
 
   // Initialize tasks panel
   tasksPanel.init();
+
+  // The boards' done window (project setting) — loaded before either board
+  // renders, re-loaded on project change; boards subscribe on their own.
+  doneWindow.init();
 
   // Initialize tasks dashboard (Kanban view triggered from tasks panel header)
   tasksDashboard.init();

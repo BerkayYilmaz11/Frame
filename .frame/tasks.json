@@ -7626,13 +7626,13 @@
       "title": "Add `src/renderer/doneWindow.js` — a store with `init()` (loads for the current project and re-loads on `state.onProjectChange`, holding `DEFAULT_DONE_WINDOW` when there is no project or the invoke errors), `get()`, `set(board, days)` (invokes `SET_DONE_WINDOW`, stores the normalised reply, notifies) and `onChange(cb)`; call `doneWindow.init()` from `src/renderer/index.js` next to the other module inits",
       "description": "",
       "source": "spec:boards-done-window:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:17:19Z",
+      "completedAt": "2026-09-13T16:17:19Z"
     },
     {
       "id": "task-spec-boards-done-window-T04",
