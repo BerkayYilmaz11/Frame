@@ -7444,13 +7444,13 @@
       "title": "Flatten the enlarged terminal in `src/renderer/styles/components/terminals-view.css`: `.terminals-view` padding and gap 0; `.tv-pane.tv-pane-single` border none, border-radius 0, background transparent in dark and under `[data-theme=\"light\"]`; `.tv-pane-single .tv-pane-header` padding `3px 8px` with min-height 24px; `.tv-pane-single .tv-pane-content` padding `0 0 0 4px`; `.tv-single .lane-rail.collapsed` margin-right 0; update the file's header comment to say the single pane is flat and only grid panes are darker than the chrome",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:04:11Z",
+      "completedAt": "2026-09-13T12:04:11Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T05",

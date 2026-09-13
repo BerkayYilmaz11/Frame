@@ -1,6 +1,12 @@
 /* ==================== TERMINALS VIEW (terminals-view spec) ==================== */
-/* Prototype visual language: panes darker than the surrounding chrome,
-   compact layout bar, dashed ghost pane, grab-to-reorder headers. */
+/* Prototype visual language: grid panes darker than the surrounding chrome,
+   compact layout bar, dashed ghost pane, grab-to-reorder headers.
+
+   The enlarged (single) pane is the exception, by design
+   (compact-center-vs-code-density): with the view flat to the window edge
+   there is no chrome left for it to be darker than, so it draws no border,
+   no radius and no background of its own — the terminal sits directly on
+   the surface, VS Code-style. Only the grid keeps the darker pane. */
 
 .terminal-content.terminals-view-mode {
   overflow: hidden;
@@ -9,9 +15,9 @@
 .terminals-view {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: 0;
   height: 100%;
-  padding: var(--space-md) var(--space-lg) var(--space-lg);
+  padding: 0;
   overflow: hidden;
 }
 
@@ -32,6 +38,24 @@
   height: auto;
   min-height: 0;
   resize: none;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+[data-theme="light"] .tv-pane.tv-pane-single {
+  background: transparent;
+}
+
+/* Thin, not gone: the header still carries the status vocabulary, the
+   assignment chip and the pane actions, which the tab bar chip does not. */
+.tv-pane.tv-pane-single .tv-pane-header {
+  padding: 3px 8px;
+  min-height: 24px;
+}
+
+.tv-pane.tv-pane-single .tv-pane-content {
+  padding: 0 0 0 4px;
 }
 
 .tv-pane.tv-pane-single .tv-pane-header {
@@ -55,9 +79,9 @@
 
    Collapsed it is an *edge*, not a second panel: it drops the panel's
    background and left border, because 28px of filled slab beside a
-   full-height terminal reads as a sidebar that failed to load. It also sits
-   in the section's right padding rather than 14px inside it — an edge
-   affordance belongs at the edge. */
+   full-height terminal reads as a sidebar that failed to load. The view has
+   no right padding any more, so it sits at the window edge on its own — an
+   edge affordance belongs at the edge. */
 
 .tv-single {
   gap: var(--space-sm);
@@ -71,7 +95,7 @@
   width: 28px;
   background: transparent;
   border-left: none;
-  margin-right: calc(-1 * var(--space-sm));
+  margin-right: 0;
 }
 
 /* Line the first control up with the pane header beside it. */

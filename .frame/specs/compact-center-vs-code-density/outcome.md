@@ -21,3 +21,10 @@ Set `.terminal-tab-bar` to 35px, radius 0 and `0 8px` padding, and `.terminal-co
 _Captured: 2026-09-13 · 1 file change(s)_
 
 ---
+## T04 — Flatten the enlarged terminal
+
+In `src/renderer/styles/components/terminals-view.css`: `.terminals-view` padding and gap to 0; `.tv-pane.tv-pane-single` loses border, radius and background in both themes; new scoped rules thin the single pane's header to `3px 8px` / 24px and pad its content `0 0 0 4px`; the collapsed rail's `-6px` margin becomes 0; the header comment now says only grid panes are darker than the chrome. Left `.tv-single`'s 6px gap between pane and rail alone — plan.md did not name it and it is not padding.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---
