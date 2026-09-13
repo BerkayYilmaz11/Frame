@@ -9538,6 +9538,32 @@
         ]
       }
     },
+    "renderer/specs/filterModel": {
+      "file": "src/renderer/specs/filterModel.js",
+      "description": "Specs dashboard filter model — what the grid shows for a given scope,",
+      "exports": [
+        "SCOPES",
+        "PHASES",
+        "buildGridModel"
+      ],
+      "depends": [
+        "../shared/doneWindow"
+      ],
+      "functions": {
+        "buildGridModel": {
+          "line": 38,
+          "params": [
+            "{\n  specs = []",
+            "scope = 'all'",
+            "phase = null",
+            "searchMatches = null",
+            "windowDays = 0",
+            "showOlder = false",
+            "now = Date.now("
+          ]
+        }
+      }
+    },
     "renderer/specsDashboard": {
       "file": "src/renderer/specsDashboard.js",
       "description": "Specs Dashboard Module",
@@ -13643,6 +13669,18 @@
         "module": "renderer/projectSettingsModal",
         "file": "src/renderer/projectSettingsModal.js",
         "description": "Project Settings"
+      }
+    ],
+    "model": [
+      {
+        "module": "renderer/specs/filterModel",
+        "file": "src/renderer/specs/filterModel.js",
+        "description": "Specs dashboard filter model — what the grid shows for a given scope,"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
     "orchestration": [

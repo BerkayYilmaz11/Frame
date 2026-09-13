@@ -19,3 +19,10 @@ Added `src/renderer/doneWindow.js` — `init` (load now, re-load on `state.onPro
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T04 — Pure specs filter model (src/renderer/specs/filterModel.js) with tests
+
+Added `src/renderer/specs/filterModel.js` (`SCOPES`, `PHASES`, `buildGridModel`) and `test/specsFilterModel.test.js` (15 tests). The model returns the effective `scope` / `phase` too, so the host can render the row from the same answer it renders the grid from — a small addition to plan.md's shape. Counts follow the search pool and the window; `doneTotal` carries the unwindowed count for the tooltip.
+
+_Captured: 2026-09-13 · 2 file change(s)_
+
+---

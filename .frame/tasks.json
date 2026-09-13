@@ -7639,13 +7639,13 @@
       "title": "Add `src/renderer/specs/filterModel.js` (pure) exporting `SCOPES`, `PHASES` and `buildGridModel({ specs, scope, phase, searchMatches, windowDays, showOlder, now })` → `{ visible, olderCount, counts }` — scope `all` / `active` / `done` as today's `applyFilter`, phase honoured only when scope is `active`, a non-null `searchMatches` Set narrows the pool and disables the window, `partitionDone` on `updated_at` splits done specs in `all` / `done` unless `showOlder`, and `counts` (`all`, `active`, `done`, `phase:<p>`, plus `doneTotal`) follow the search pool and the window; add `test/specsFilterModel.test.js` for scope × phase, phase ignored outside Active, older split in all / done and none in active, search bypass, showOlder, and counts",
       "description": "",
       "source": "spec:boards-done-window:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:18:57Z",
+      "completedAt": "2026-09-13T16:18:57Z"
     },
     {
       "id": "task-spec-boards-done-window-T05",
