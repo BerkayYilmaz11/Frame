@@ -35,3 +35,10 @@ Gave `.tv-bar` its own `4px 8px` padding and set `.tv-grid` to a 6px gap with no
 _Captured: 2026-09-13 · 1 file change(s)_
 
 ---
+## T06 — Tighten the shared full-page header
+
+Set `.view-header` padding to `8px 12px` in `src/renderer/styles/components/view-header.css`, which every full-page surface (Specs, Tasks, Sessions, GitHub, Decisions, Orchestration) shares. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---

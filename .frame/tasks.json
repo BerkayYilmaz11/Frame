@@ -7470,13 +7470,13 @@
       "title": "Tighten the shared full-page header in `src/renderer/styles/components/view-header.css`: `.view-header` padding `8px 12px` so Specs, Tasks, Sessions, GitHub, Decisions and Orchestration headers are ≤ 36px with content starting under the border",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:05:43Z",
+      "completedAt": "2026-09-13T12:05:43Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T07",
