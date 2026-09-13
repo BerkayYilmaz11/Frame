@@ -22,3 +22,11 @@ _Captured: 2026-09-13T14:43:45Z · 1 file change(s)_
 
 ---
 
+## T04 — switchBranch and createBranch on execFile, any remote, validated names
+
+Added `execGitArgs` (execFile, no shell, stderr-as-error) and `localBranchExists` to `src/main/gitBranchesManager.js`, rewrote `switchBranch` to check `refs/heads/` first and otherwise split the name against the real remote list and create a tracking branch for any remote (plain checkout of the local twin when one exists; unknown names handed to git for its own message), and read `result.branch` back from `--show-current`. `createBranch` now refuses names failing `isValidBranchName` and passes an argv array. Verified on a scratch repo with two remotes and a second worktree: every plan scenario (S3–S8) behaved as specified, and an injection-shaped name created no file. The other commands in the file keep their `exec` string form, as the plan scoped.
+
+_Captured: 2026-09-13T14:45:35Z · 1 file change(s)_
+
+---
+
