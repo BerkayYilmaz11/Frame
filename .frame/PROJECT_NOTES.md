@@ -3110,3 +3110,38 @@ scratch repo with two remotes and a second worktree (tracking branch from
 injection-shaped name creating nothing). Not exercised in the running app
 during the run — the user should open the picker, filter, switch, try a
 dirty tree, Escape, and the dock open at the bottom, in both themes.
+
+### [2026-09-13] Boards done window — recent done by default, phases under Active
+
+Started from a UI complaint: after the Specs filter row became a segmented
+control plus five phase chips, it wrapped at ordinary widths, and the user
+asked whether a period filter (today / this week / last 10 days, or a date
+range) should be added, on both boards. The numbers settled it — 510 of 570
+tasks completed, 41 of 46 specs done — so the pile is entirely at the done
+end and a time filter on live items would hide the cards the boards exist to
+show.
+
+**Decisions taken with the user.** A window on done items only; a default
+with one reveal control per board instead of a filter the user operates;
+a Project Setting with two values (tasks 7 days, specs 30) rather than one
+machine-wide number; phase chips only while Active is selected, since every
+phase is a subset of Active. The fourth item — sort the spec grid by last
+update — already held (`specManager.listSpecs` orders by `updated_at`).
+
+**Silent decisions.** Search bypasses the window (a query is explicit
+intent). Specs are aged on `updated_at` (the renderer payload has no
+`last_phase_at`); a done item with no usable date counts as recent. Pure
+logic in `src/shared/doneWindow.js` and `src/renderer/specs/filterModel.js`;
+one renderer store `src/renderer/doneWindow.js` owns the value (modal
+writes, boards subscribe). Two new invoke channels beside the git-sharing
+pair — additive edits in `audit-q3-cross-platform`'s and
+`audit-q3-performance-resources`'s footprints. Hidden Completed cards stay
+in the DOM so drag-and-drop commits the full file order.
+
+**Shipped.** Seven tasks, seven commits on `feat/boards-done-window`;
+`npm test` 752 pass. Verified: the new modules under `node --test` and the
+filter row / ghost tile by headless render in both themes. Not exercised in
+the running app during the run — the user should open Tasks (Completed foot
+button, badge, tooltip, drag with older hidden), Specs (All / Done tile,
+Active chips, search), and Project Settings › Boards (change a select, watch
+the open board re-render; no-project state), in both themes.
