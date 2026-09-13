@@ -3030,3 +3030,45 @@ sub-group, hover actions, filter with counts, context menu, the delete
 confirm with Cancel focused and Enter cancelling. Pull Requests and Issues
 were seen only in the `no-auth` state — this machine's `gh` is not signed
 in — so their live rows rest on the row-model tests. `npm test`: 686 pass.
+
+### [2026-09-13] The center goes flat: VS Code density right of the sidebar (compact-center-vs-code-density)
+
+The user sent two screenshots — Frame with one enlarged terminal, and VS
+Code — and said: "sol panelle sağ tarafı ayırdık ui'da. ancak sağda çokça
+padding var. vs code gibi daha compact bir görüntü olmasını istiyorum. bu
+paddinglerin olmaması lazım." Then: commit what's there, open a spec, plan
+it, generate tasks, implement in guided mode. The chain is
+`.frame/specs/compact-center-vs-code-density/`.
+
+**Diagnosis.** The spacing tokens were not the problem (4/6/10/14/20px);
+the nesting was. Every level of the DOM was its own rounded card inside the
+one above: `#terminal-container` (6px margin, 10px padding, left radius on
+`--bg-deep`) → a rounded 42px tab bar → `.terminals-view` (10/14/14) → a
+bordered `.tv-pane-single` with a darker background → padded content.
+Measured 37px from the sidebar's border to xterm's first column and 58px
+from the top to the tab bar's border. After: 4px and 35px.
+
+**Decisions taken with the user.** Home's gutter goes 24 → 12px so every
+surface shares one left edge (a 12px jump on Home → Terminals would read as
+a bug). The enlarged pane's header is thinned to 24px, not removed — it is
+the only place the status vocabulary, the assignment chip and the pane
+actions live (terminals-home-agents), and removing it would need JS.
+Silent: the dock loses its margin/radius/outer border and keeps one inner
+hairline on the resize-handle edge; the tab bar is 35px because its
+controls are 32px; grid panes keep their border (it is the separator) with
+6px between them and nothing around; the "panes darker than the chrome"
+prototype language now applies to the grid only; no new tokens; no tests
+(the testing record has no path to a stylesheet).
+
+**Why no JS.** `terminalsView.js` refits xterm through a `ResizeObserver` on
+`.tv-pane-content`, so padding edits refit on their own; `dock.js` measures
+the center as clientWidth minus the container's computed padding, so a
+padding of 0 subtracts 0 and the clamp is unchanged.
+
+**Shipped.** Seven tasks, seven commits on `feat/compact-center-vs-code-density`
+(`layout.css`, `terminal.css`, `terminals-view.css`, `dock.css`,
+`view-header.css`, `home-board.css`); `npm test` 688 pass after each.
+Not verified in the running app during the run — the user should open an
+enlarged terminal, the grid, the dock at both positions and both themes.
+Sidebar density (14px panel padding, rail, nav indents) is deliberately
+untouched and is the next spec if wanted.
