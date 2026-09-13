@@ -14,3 +14,10 @@ Removed `#dock`'s outer border, radius and per-position 6px margin in `src/rende
 _Captured: 2026-09-13 · 1 file change(s)_
 
 ---
+## T03 — Square the tab bar
+
+Set `.terminal-tab-bar` to 35px, radius 0 and `0 8px` padding, and `.terminal-content` to radius 0, in `src/renderer/styles/components/terminal.css`; the controls inside the bar are untouched. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---

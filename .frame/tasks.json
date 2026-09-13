@@ -7431,13 +7431,13 @@
       "title": "Square the tab bar in `src/renderer/styles/components/terminal.css`: `.terminal-tab-bar` height 35px, border-radius 0, padding `0 8px`, and `.terminal-content` border-radius 0, leaving every control inside the bar unchanged",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:02:50Z",
+      "completedAt": "2026-09-13T12:02:50Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T04",

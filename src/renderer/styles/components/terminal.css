@@ -24,9 +24,12 @@
   align-items: center;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 0 var(--space-md);
-  height: 42px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  /* VS Code's tab-strip height, square, one bottom border: the 32px
+     controls inside fit with room to spare and nothing in the bar changes
+     (compact-center-vs-code-density). */
+  padding: 0 8px;
+  height: 35px;
+  border-radius: 0;
 }
 
 .terminal-tab-actions {
@@ -201,7 +204,7 @@
   flex: 1;
   overflow: hidden;
   background: var(--bg-primary);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: 0;
 }
 
 .btn-scroll-bottom-overlay {
