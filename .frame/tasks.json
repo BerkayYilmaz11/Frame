@@ -7457,13 +7457,13 @@
       "title": "Respace the grid in `src/renderer/styles/components/terminals-view.css`: `.tv-bar` padding `4px 8px`, `.tv-grid` gap 6px and padding-bottom 0, keeping each `.tv-pane` border so panes stay separated with 0 outer padding",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:05:14Z",
+      "completedAt": "2026-09-13T12:05:14Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T06",

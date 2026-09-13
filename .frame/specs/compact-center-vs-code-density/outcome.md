@@ -28,3 +28,10 @@ In `src/renderer/styles/components/terminals-view.css`: `.terminals-view` paddin
 _Captured: 2026-09-13 · 1 file change(s)_
 
 ---
+## T05 — Respace the grid
+
+Gave `.tv-bar` its own `4px 8px` padding and set `.tv-grid` to a 6px gap with no bottom padding in `src/renderer/styles/components/terminals-view.css`; grid panes keep their border, radius and darker background. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---

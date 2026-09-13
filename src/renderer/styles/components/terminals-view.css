@@ -135,11 +135,14 @@
 
 /* ─── Layout bar ─── */
 
+/* The view has no gutter of its own, so the bar carries the little it
+   needs (compact-center-vs-code-density). */
 .tv-bar {
   display: flex;
   align-items: center;
   gap: 6px;
   flex: none;
+  padding: 4px 8px;
 }
 
 .tv-bar-label {
@@ -182,14 +185,16 @@
 
 /* ─── Pane grid ─── */
 
+/* Panes keep their 1px border — in the grid the border is what separates
+   one terminal from the next — with 6px between them and nothing around. */
 .tv-grid {
   display: grid;
-  gap: var(--space-md);
+  gap: 6px;
   align-content: start;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: var(--space-sm);
+  padding-bottom: 0;
 }
 
 .tv-pane {
