@@ -11,7 +11,7 @@
  * none of them touches `ipcRenderer` (D3, S6) — `homeData` owns the write.
  */
 
-const { Bot } = require('lucide');
+const { Terminal } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const notify = require('./../../notify');
 const laneStatus = require('./../../laneStatus');
@@ -25,8 +25,8 @@ const DEFAULT_MAX_AGENTS = 9;
 
 module.exports = {
   id: 'agents',
-  title: 'Agents',
-  icon: Bot,
+  title: 'Terminals',
+  icon: Terminal,
   sources: ['lanes', 'aiTool'],
   defaultSpan: 1,
   defaultEnabled: true,
@@ -37,10 +37,10 @@ module.exports = {
     this.ctx = ctx;
     this.card = widgetShell({
       id: 'agents',
-      icon: Bot,
-      title: 'Agents',
-      // The header is not a doorway: there is no Agents surface to open, and
-      // a chevron that leads to the Terminals section would be a lie.
+      icon: Terminal,
+      title: 'Terminals',
+      // The header is not a doorway: this card is not the Terminals section,
+      // and a chevron that pretended to open it would be a lie.
       onOpen: null
     });
 

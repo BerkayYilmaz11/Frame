@@ -7201,8 +7201,7 @@
         "mount(el",
         "ctx) {\n    this.ctx = ctx;\n    this.card = widgetShell({\n      id",
         "icon",
-        "title",
-        "and\n      // a chevron that leads to the Terminals section would be a lie.\n      onOpen"
+        "title"
       ],
       "depends": [
         "lucide",
