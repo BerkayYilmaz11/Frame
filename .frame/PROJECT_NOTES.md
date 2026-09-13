@@ -2909,3 +2909,124 @@ with no call-site edits. That is an architecture decision that touches
 separate conversation rather than slipped into a hardening PR. Folding
 `aiToolManager.isCommandAvailable` into `envPath` also stays out, as the PR
 author proposed.
+
+### [2026-09-13] Home: 50/50 split, Agents launcher first
+
+The user asked for a UI/UX pass on Home: the title should read "Welcome to
+Frame!" rather than the project name; the board's height should split
+50/50 — Last Sessions, Active Specs and Active Tasks in the bottom half at
+equal width and height, and a full-width area on top where the running
+agents are listed and the agent picker + Start button are the prominent
+element, so a first-time user understands the agent is started from here.
+
+**What changed.** This overturns the `home-widget-board` spec's T04
+decision (one flat `auto-fill` grid, no imposed reading order) explicitly:
+Home now has a reading order, and it starts with Start. `.home-grid` is
+`repeat(3, 1fr)` × two `1fr` rows; the first registry widget (Agents) is
+spanned across the top row by CSS (`.home-grid > .home-card-agents`), not
+by `defaultSpan`, so the widget contract is untouched. Cards drop the
+232px floor in the wide layout (each half of the board is their height, the
+body scrolls) and get it back under a `@container (max-width: 759px)`
+query, where everything stacks in one column. The board keeps a 460px
+floor so short windows scroll rather than squeeze.
+
+The Agents launcher moved from the card footer to a highlighted panel
+above the list (`.home-agent-launcher`, accent-tinted, with a "Start an
+agent" lead and one line of hint), and its picker/button are drawn at 36px
+instead of the header's 28px. Running agents render as tiles
+(`.home-agent-grid` / `.home-agent-tile`, name on top, state underneath)
+because the card is now wide and short rather than narrow and tall. The
+header keeps project name + branch as a quiet second line under the
+greeting.
+
+Verified by launching the Electron app under Playwright at 1400×900 and
+950×900 and reading the screenshots; `npm test` passes (623).
+
+### [2026-09-13] Dock tab shortcuts and drag-to-reorder tabs (the first `dnd/` primitive)
+
+The user asked for three things on the dock the footer opens: a unique,
+unused shortcut for each tab (Prompts already had ⌘⇧L), shown both in the
+hover tooltip and in the native menu; drag-and-drop reordering of the
+dock's tabs, persisted locally so Prompts dragged to the front is still
+first after a relaunch — while the footer buttons keep their order; and
+that the drag-and-drop be built as a structure we will lean on heavily for
+a VS Code-like flexible layout later.
+
+**Shortcuts.** All three tabs sit on the ⌘⇧ layer with the other view
+toggles (D Tasks, S Specs, G GitHub, X Sessions): ⌘⇧Y for Decisions (the
+project's "why"; D and E are taken, I is DevTools on Windows/Linux), ⌘⇧L
+stays with Prompts, ⌘⇧A for Activity. `dockState.TAB_SHORTCUTS` is the
+renderer's single source — the command registry, the status-bar tooltips
+and the strip's tooltips read it; `src/main/menu.js` carries the same
+accelerators by hand (main cannot share the renderer bundle; the existing
+"keep in step" convention). The native menu shows the accelerator beside
+the item the way macOS/Windows render every menu shortcut, so no
+parenthesised copy was added to the label — that would show the shortcut
+twice. Hover on a footer icon or a dock tab shows "Decisions (⌘⇧Y)".
+
+**Reorder.** `src/renderer/dnd/reorder.js` (pure: `moveItem`, `moveId`,
+`normalizeOrder`) and `src/renderer/dnd/sortable.js` (`makeSortable`,
+pointer-event based — not HTML5 drag-and-drop, whose ghost image, missing
+threshold and per-platform quirks in Electron ruled it out) are the
+reusable primitive. Press + 4px moves lifts the item, crossing a sibling's
+midpoint slides it into that slot live, release fires `onReorder` once
+with the new id order, Escape restores. The dock's strip is its first
+caller: `dockState` gained `order` (a permutation of `TABS`, normalized on
+load so a saved order that is missing tabs or names parked ones is
+repaired) plus `reorder`/`setOrder`; the strip is built in `state.order`
+and persisted under the same `frame-dock` key. `TABS` stays the canonical
+order and the status bar keeps using it, so the footer never moves.
+
+Verified in the running app under Playwright (the script lives in the
+session scratchpad, not the repo): tooltips, all three shortcuts opening /
+switching / closing, live reorder during the drag, persistence across a
+reload, footer order unchanged, Escape cancel, click-after-drag, and the
+View menu's accelerators. `npm test` passes (686, including 13 new
+dockState/reorder cases).
+
+### [2026-09-13] GitHub view rebuilt as tree sections (github-view-tree-layout)
+
+The user asked to generate the spec's tasks and then "implement and complete
+them in order". Eleven tasks, all shipped in one session; the chain is
+`.frame/specs/github-view-tree-layout/` (spec → plan → tasks → outcome).
+
+**Shape.** The sidebar's GitHub tab is now four stacked, collapsible
+sections — Pull Requests · Issues · Branches (with a Remote sub-group) ·
+Worktrees — of 22px rows in the Changes tab's idiom, one filter field, and
+an access-state block that tells `gh` missing, `gh` not signed in (a Sign
+in button that runs `gh auth login` in a new lane) and not-a-GitHub-remote
+apart. The tab strip, filter strip, repo-name bar and the "Coming Soon" PRs
+placeholder are gone; the repo name sits in the head. This **reverses**
+`dock-panel-readonly-views` D8 ("keeping its refresh / filter /
+create-branch chrome") — recorded in plan.md, not silently. The rail tab,
+`sidebar.github` (⌘⇧G) and the Create Branch modal stand.
+
+**Where the logic lives.** Pure and tested under `src/renderer/github/`:
+`sectionState.js` (which sections are open, persisted app-wide under
+`frame-github-sections`, mirroring `dockState`), `accessState.js` (payload
+→ state → section availability → copy), `rowModels.js` (PR / issue /
+branch / worktree → row view-model, filter, `issue-<n>-<slug>`, relative
+time). `githubPanel.js` is the DOM host only. Main runs the `gh` access
+check once per project and caches it (`githubManager.checkAccess`); three
+new channels (`GITHUB_ACCESS_STATE`, `LOAD_GITHUB_PULL_REQUESTS`,
+`CHECKOUT_GITHUB_PR`); PR links reuse `OPEN_GITHUB_ISSUE`. Terminal lanes
+reach the panel through an `openLane` hook injected from `index.js`.
+Branch delete / force delete and worktree remove / force remove use
+`taskConfirmModal`, which grew `heading` / `message` / `confirmLabel`
+options — one confirm discipline, no second modal, no `confirm()`.
+
+**Two things found on the way.** (1) `gitBranchesManager.loadBranches`
+listed `refs/remotes/origin/HEAD` as a local branch named `origin`: its
+`%(refname:short)` is plain "origin", so the `includes('HEAD')` filter
+missed it. It now formats `%(refname)` too and filters by that; payload
+unchanged. (2) At the sidebar's 180px floor the panel itself is ~100px
+wide, so "Pull Requests" cannot sit beside its count; each section title
+carries a long and a short form ("PRs", "Trees", "Branch") swapped by a
+container query below 170px of panel width, where row meta is hidden too.
+
+Verified in the running app under Playwright (script in the session
+scratchpad): 280px / 180px / 320px layouts, expand and persist, Remote
+sub-group, hover actions, filter with counts, context menu, the delete
+confirm with Cancel focused and Enter cancelling. Pull Requests and Issues
+were seen only in the `no-auth` state — this machine's `gh` is not signed
+in — so their live rows rest on the row-model tests. `npm test`: 686 pass.

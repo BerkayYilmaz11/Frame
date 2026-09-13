@@ -14,14 +14,14 @@
  * is the thing most likely to be forgotten.
  */
 
-const { CheckSquare, ArrowRight, Play, AlertTriangle } = require('lucide');
+const { Check, Play, AlertTriangle } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const { widgetShell, lucideIcon, statsHtml, tally, moreHtml, MAX_ROWS } = require('./../widgetShell');
 
 module.exports = {
   id: 'tasks',
   title: 'Active Tasks',
-  icon: CheckSquare,
+  icon: Check,
   sources: ['tasks'],
   defaultSpan: 1,
   defaultEnabled: true,
@@ -31,12 +31,9 @@ module.exports = {
   mount(el) {
     this.card = widgetShell({
       id: 'tasks',
-      icon: CheckSquare,
+      icon: Check,
       title: 'Active Tasks',
-      actionLabel: 'Open tasks',
-      actionIcon: ArrowRight,
-      onOpen: () => require('./../../tasksDashboard').show(),
-      onAction: () => require('./../../tasksDashboard').show()
+      onOpen: () => require('./../../tasksDashboard').show()
     });
     el.appendChild(this.card.el);
   },

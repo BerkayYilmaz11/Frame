@@ -36,38 +36,50 @@ test('empty in, empty out', () => {
   assert.deepEqual(agentRows(undefined), []);
 });
 
-test('shell lanes are excluded — the widget is called Agents', () => {
+test('shell lanes are listed too — an open terminal without an agent is still open', () => {
   const rows = agentRows([
     lane('idle-one', 'idle'),
     lane('running-one', 'running'),
     lane('agent-one', 'agent-working')
   ]);
 
-  assert.deepEqual(rows.map(r => r.id), ['agent-one']);
+  assert.deepEqual(new Set(rows.map(r => r.id)),
+    new Set(['idle-one', 'running-one', 'agent-one']));
 });
 
-test('the three agent statuses are kept', () => {
+test('every known status is kept', () => {
   const rows = agentRows([
     lane('a', 'agent-working'),
     lane('b', 'agent-approval'),
-    lane('c', 'agent-input')
+    lane('c', 'agent-input'),
+    lane('d', 'running'),
+    lane('e', 'idle')
   ]);
 
-  assert.equal(rows.length, 3);
-  assert.deepEqual(new Set(rows.map(r => r.status)),
-    new Set(['agent-working', 'agent-approval', 'agent-input']));
+  assert.equal(rows.length, 5);
 });
 
-test('order is approval, then input, then working', () => {
+test('order is approval, input, working, then running, then idle', () => {
   // Deliberately fed in the reverse of the expected order, so a no-op sort
   // cannot pass this.
   const rows = agentRows([
+    lane('idle', 'idle'),
+    lane('running', 'running'),
     lane('working', 'agent-working'),
     lane('input', 'agent-input'),
     lane('approval', 'agent-approval')
   ]);
 
-  assert.deepEqual(rows.map(r => r.id), ['approval', 'input', 'working']);
+  assert.deepEqual(rows.map(r => r.id), ['approval', 'input', 'working', 'running', 'idle']);
+});
+
+test('an unknown status sorts after every known one', () => {
+  const rows = agentRows([
+    lane('weird', 'something-new'),
+    lane('idle', 'idle')
+  ]);
+
+  assert.deepEqual(rows.map(r => r.id), ['idle', 'weird']);
 });
 
 test('within one status the most recent activity leads, and a silent lane sorts last', () => {
@@ -95,12 +107,24 @@ test('a row carries what the widget draws, and nothing it has to look up', () =>
     name: 'Refactor',
     status: 'agent-approval',
     agentName: 'claude',
+    foreground: null,
+    commandLine: null,
     lastActivityAt: '2026-08-27T10:00:00.000Z',
     assignment: { kind: 'spec', ref: 'home-widget-board' }
   });
 });
 
-test('a lane with no status object is not an agent', () => {
+test('a shell row carries what it runs, so the label can name the command', () => {
+  const [row] = agentRows([{
+    terminal: { id: 's1', name: 'Terminal 2' },
+    status: { status: 'running', foreground: 'node', commandLine: 'npm run dev', lastActivityAt: null }
+  }]);
+
+  assert.equal(row.foreground, 'node');
+  assert.equal(row.commandLine, 'npm run dev');
+});
+
+test('a lane with no status object is not listed', () => {
   assert.deepEqual(agentRows([{ terminal: { id: 'x' } }, null, {}]), []);
 });
 

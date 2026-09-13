@@ -100,7 +100,11 @@ const IPC = {
   LOAD_GITHUB_ISSUES: 'load-github-issues',
   GITHUB_ISSUES_DATA: 'github-issues-data',
   TOGGLE_GITHUB_PANEL: 'toggle-github-panel',
-  OPEN_GITHUB_ISSUE: 'open-github-issue',
+  OPEN_GITHUB_ISSUE: 'open-github-issue',               // renderer → main: a URL for shell.openExternal (issues and PRs alike)
+  // github-view-tree-layout spec: one gh access check per project, real PRs
+  GITHUB_ACCESS_STATE: 'github-access-state',           // renderer → main (invoke): { projectPath, force } → { gh, authed, repoName, error }
+  LOAD_GITHUB_PULL_REQUESTS: 'load-github-pull-requests', // renderer → main (invoke): { projectPath, state } → { error, prs }
+  CHECKOUT_GITHUB_PR: 'checkout-github-pr',             // renderer → main (invoke): { projectPath, number } → { error, branch }
 
   // Claude Usage
   LOAD_CLAUDE_USAGE: 'load-claude-usage',

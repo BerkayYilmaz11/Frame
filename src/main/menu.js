@@ -119,10 +119,13 @@ function getMenuTemplate() {
       cmd('Move Panel Right', 'dock.moveRight'),
       cmd('Move Panel to Bottom', 'dock.moveBottom'),
       SEP,
-      cmd('Decisions', 'dock.decisions'),
+      // One ⇧⌘ letter per dock tab — the renderer's source is
+      // dockState.TAB_SHORTCUTS; the accelerator here is what the menu
+      // shows beside the item and what makes it fire app-wide.
+      cmd('Decisions', 'dock.decisions', 'CmdOrCtrl+Shift+Y'),
       // 'Structure Map' (dock.structure) is parked — see dockState.HIDDEN_TABS.
       cmd('Prompts', 'dock.prompts', 'CmdOrCtrl+Shift+L'),
-      cmd('Activity', 'dock.activity'),
+      cmd('Activity', 'dock.activity', 'CmdOrCtrl+Shift+A'),
       SEP,
       cmd('GitHub', 'sidebar.github', 'CmdOrCtrl+Shift+G'),
       cmd('Tasks Dashboard', 'panel.toggleTasksDashboard', 'CmdOrCtrl+Shift+D'),

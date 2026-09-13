@@ -157,7 +157,8 @@ class TerminalTabBar {
 
              The options below are a placeholder: setupSelector() repopulates
              from the real tool list, which is why a third tool (gemini) is not
-             hardcoded here. #sidebar-agent-launch keeps its id and handler. -->
+             hardcoded here. #sidebar-agent-launch keeps its id and handler; its
+             look is the shared .primary-btn (ui.css). -->
         <div class="lane-bar-launcher">
           <!-- The select is wrapped in a label so the visible control (label
                text, agent name, chevron) is one styled box while the native
@@ -173,7 +174,7 @@ class TerminalTabBar {
               <polyline points="6 9 12 15 18 9"/>
             </svg>
           </label>
-          <button id="sidebar-agent-launch" class="sidebar-agent-launch" tabindex="-1" title="Start default agent">
+          <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
               <path d="M8 5v14l11-7z"/>
             </svg>

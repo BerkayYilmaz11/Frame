@@ -17,6 +17,7 @@ const taskRunModal = require('./taskRunModal');
 const pluginsPanel = require('./pluginsPanel');
 const sessionsPanel = require('./sessionsPanel');
 const githubPanel = require('./githubPanel');
+const notify = require('./notify');
 const promptsPanel = require('./promptsPanel');
 const activityPanel = require('./activityPanel');
 const specPanel = require('./specPanel');
@@ -46,6 +47,7 @@ const docsHealthHint = require('./docsHealthHint');
 const migrationModal = require('./migrationModal');
 const sampleBanner = require('./sampleBanner');
 const dock = require('./dock');
+const dockState = require('./dock/dockState');
 const tooltip = require('./tooltip');
 
 /**
@@ -152,8 +154,32 @@ function init() {
   pluginsPanel.init();
   sessionsPanel.init();
 
-  // Initialize GitHub panel
-  githubPanel.init();
+  // Initialize GitHub panel. Terminal lanes (Sign in to GitHub, Open
+  // terminal here) come through this hook (github-view-tree-layout D11):
+  // the panel never requires multiTerminalUI itself — that would be a
+  // require cycle through terminal.js — and index.js already holds the
+  // instance.
+  githubPanel.init({
+    openLane: async ({ cwd, command } = {}) => {
+      let id = null;
+      try {
+        id = await multiTerminalUI.createTerminalForCurrentProject(cwd ? { cwd } : {});
+      } catch (err) {
+        notify.error(`Could not create a new terminal: ${err.message || 'terminal creation failed'}`);
+        return null;
+      }
+      if (!id) {
+        notify.error('Could not create a new terminal: per-project limit reached');
+        return null;
+      }
+      multiTerminalUI.enterLane(id);
+      if (command) {
+        // Give the shell a moment to be ready before the first command
+        setTimeout(() => multiTerminalUI.sendCommand(command, id), 300);
+      }
+      return id;
+    }
+  });
 
   // Initialize prompts panel
   promptsPanel.init();
@@ -645,9 +671,10 @@ function registerCommands() {
 
   // ---------- View: the dock ----------
   // Every entry point — status bar, native View menu, palette, shortcut —
-  // runs these same ids (dock-panel-readonly-views spec, D12). The View
-  // menu in src/main/menu.js lists the same ids and accelerators; keep the
-  // two in step.
+  // runs these same ids (dock-panel-readonly-views spec, D12). The per-tab
+  // shortcuts come from dockState.TAB_SHORTCUTS (the status bar and the
+  // strip read the same table for their tooltips). The View menu in
+  // src/main/menu.js lists the same ids and accelerators; keep it in step.
   r({
     id: 'dock.toggle',
     title: 'Toggle Panel',
@@ -659,6 +686,7 @@ function registerCommands() {
     id: 'dock.decisions',
     title: 'Toggle Decisions',
     category: 'View',
+    shortcut: dockState.TAB_SHORTCUTS.decisions,
     run: () => dock.toggleTab('decisions')
   });
   // 'dock.structure' (Toggle Structure Map) is parked with the tab — see
@@ -667,13 +695,14 @@ function registerCommands() {
     id: 'dock.prompts',
     title: 'Toggle Prompts',
     category: 'View',
-    shortcut: 'CmdOrCtrl+Shift+L',
+    shortcut: dockState.TAB_SHORTCUTS.prompts,
     run: () => dock.toggleTab('prompts')
   });
   r({
     id: 'dock.activity',
     title: 'Toggle Activity',
     category: 'View',
+    shortcut: dockState.TAB_SHORTCUTS.activity,
     run: () => dock.toggleTab('activity')
   });
   // Feedback is a modal, not a dock tab: the rail's foot button, the Help

@@ -10,7 +10,7 @@
  * refs live on the widget object; `dispose()` drops them.
  */
 
-const { FileText, ArrowRight } = require('lucide');
+const { AlignJustify } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const { widgetShell, statsHtml, moreHtml, MAX_ROWS } = require('./../widgetShell');
 
@@ -19,7 +19,7 @@ const SPEC_PHASE_ORDER = ['implementing', 'tasks_generated', 'planned', 'specifi
 module.exports = {
   id: 'specs',
   title: 'Active Specs',
-  icon: FileText,
+  icon: AlignJustify,
   sources: ['specs'],
   defaultSpan: 1,
   defaultEnabled: true,
@@ -29,12 +29,9 @@ module.exports = {
   mount(el) {
     this.card = widgetShell({
       id: 'specs',
-      icon: FileText,
+      icon: AlignJustify,
       title: 'Active Specs',
-      actionLabel: 'Open specs',
-      actionIcon: ArrowRight,
-      onOpen: () => require('./../../specsDashboard').show(),
-      onAction: () => require('./../../specsDashboard').show()
+      onOpen: () => require('./../../specsDashboard').show()
     });
     el.appendChild(this.card.el);
   },

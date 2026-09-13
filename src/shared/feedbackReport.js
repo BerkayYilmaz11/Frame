@@ -63,6 +63,14 @@ const FEEDBACK_DISCUSSION_CATEGORY = 'ideas';
  *                         bug is narrated, an idea is argued, a message is
  *                         simply written; asking all three "what happened
  *                         instead?" gets two of them wrong.
+ *   heading/where/visibility — how the panel presents the kind: the modal's
+ *                         title once it is chosen, and the one-line card
+ *                         under its label saying where the report goes and
+ *                         who can read it. The card is the whole reason the
+ *                         panel offers kinds rather than channels — public
+ *                         vs private is the difference a reporter actually
+ *                         cares about — so the words live next to the
+ *                         channel they describe.
  *
  * The copy lives beside the routing rather than in the panel because they are
  * the same decision: the tab is the kind, and the kind is this row.
@@ -71,6 +79,9 @@ const FEEDBACK_TYPES = [
   {
     id: 'bug',
     label: 'Bug',
+    heading: 'Report a bug',
+    where: 'GitHub issue',
+    visibility: 'public',
     channel: 'github_issue',
     attachesDiagnostics: true,
     fields: { title: 'Title', description: 'Description' },
@@ -84,6 +95,9 @@ const FEEDBACK_TYPES = [
   {
     id: 'idea',
     label: 'Feature idea',
+    heading: 'Share an idea',
+    where: 'GitHub discussion',
+    visibility: 'public',
     channel: 'github_discussion',
     attachesDiagnostics: false,
     fields: { title: 'Title', description: 'Description' },
@@ -97,6 +111,9 @@ const FEEDBACK_TYPES = [
   {
     id: 'message',
     label: 'Reach us',
+    heading: 'Write to us',
+    where: 'Email',
+    visibility: 'private',
     channel: 'email',
     attachesDiagnostics: true,
     fields: { title: 'Subject', description: 'Message' },

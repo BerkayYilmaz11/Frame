@@ -1,10 +1,22 @@
 {
   "slug": "github-view-tree-layout",
   "title": "GitHub view — tree sections, dense rows, real pull requests",
-  "phase": "planned",
-  "generated_task_ids": [],
+  "phase": "done",
+  "generated_task_ids": [
+    "task-spec-github-view-tree-layout-T01",
+    "task-spec-github-view-tree-layout-T02",
+    "task-spec-github-view-tree-layout-T03",
+    "task-spec-github-view-tree-layout-T04",
+    "task-spec-github-view-tree-layout-T05",
+    "task-spec-github-view-tree-layout-T06",
+    "task-spec-github-view-tree-layout-T07",
+    "task-spec-github-view-tree-layout-T08",
+    "task-spec-github-view-tree-layout-T09",
+    "task-spec-github-view-tree-layout-T10",
+    "task-spec-github-view-tree-layout-T11"
+  ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-12T14:30:42Z",
-  "updated_at": "2026-09-12T14:37:33Z",
-  "last_phase_at": "2026-09-12T14:37:33Z"
+  "updated_at": "2026-09-13T07:25:11Z",
+  "last_phase_at": "2026-09-13T07:25:11Z"
 }

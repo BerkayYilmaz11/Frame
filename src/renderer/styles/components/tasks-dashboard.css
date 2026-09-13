@@ -354,27 +354,6 @@
   display: none;
 }
 
-.tasks-dashboard-btn-primary {
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  border: 1px solid var(--accent-primary);
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tasks-dashboard-btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
 .tasks-dashboard-btn-icon {
   background: transparent;
   border: 1px solid var(--border-subtle);

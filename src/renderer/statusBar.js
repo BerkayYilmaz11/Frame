@@ -33,22 +33,25 @@ const { IPC } = require('../shared/ipcChannels');
 const laneStatus = require('./laneStatus');
 const state = require('./state');
 const dock = require('./dock');
+const dockState = require('./dock/dockState');
 const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
 const { GitBranch } = require('lucide');
 
-// One button per dock tab, in the strip's order; each runs the same
-// registered command the View menu, the palette and the shortcut run (D12).
-// The shortcut shown in the tooltip is the registry's, typed here because the
-// bar is built before registerCommands() runs.
+// One button per dock tab, in dockState.TABS' canonical order — not the
+// strip's, which the user can drag around: the bar is a fixed row of
+// muscle-memory targets. Each runs the same registered command the View
+// menu, the palette and the shortcut run (D12); the shortcut in the tooltip
+// is dockState.TAB_SHORTCUTS' (the registry's source), read here because
+// the bar is built before registerCommands() runs.
 const DOCK_ICONS = [
   { tab: 'decisions', command: 'dock.decisions', label: 'Decisions' },
   // 'structure' is parked (dockState.HIDDEN_TABS) — no icon until it ships.
-  { tab: 'prompts', command: 'dock.prompts', label: 'Prompts', shortcut: 'CmdOrCtrl+Shift+L' },
+  { tab: 'prompts', command: 'dock.prompts', label: 'Prompts' },
   { tab: 'activity', command: 'dock.activity', label: 'Activity' }
-];
+].map((icon) => ({ ...icon, shortcut: dockState.TAB_SHORTCUTS[icon.tab] || '' }));
 
 // A hover menu needs both: long enough that a pointer crossing the slot does
 // not open it, forgiving enough that reaching the menu never loses it.

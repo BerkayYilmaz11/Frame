@@ -80,18 +80,23 @@ async function loadBranches(projectPath) {
     const { stdout: currentBranch } = await execGit('git branch --show-current', projectPath);
 
     // Get all branches with details
+    // The full refname rides along so the remote HEAD pointer can be
+    // dropped reliably: `refs/remotes/origin/HEAD` shortens to plain
+    // "origin", which used to slip through the old `includes('HEAD')`
+    // filter and list as a local branch (github-view-tree-layout spec).
     const { stdout: branchOutput } = await execGit(
-      'git branch -a --format="%(refname:short)|%(objectname:short)|%(committerdate:relative)|%(subject)"',
+      'git branch -a --format="%(refname)|%(refname:short)|%(objectname:short)|%(committerdate:relative)|%(subject)"',
       projectPath
     );
 
     const branches = branchOutput.split('\n')
       .filter(line => line)
       .map(line => {
-        const [name, commit, date, ...messageParts] = line.split('|');
+        const [refname, name, commit, date, ...messageParts] = line.split('|');
         const message = messageParts.join('|');
-        const isRemote = name.startsWith('origin/');
+        const isRemote = refname.startsWith('refs/remotes/');
         return {
+          refname,
           name: name,
           commit: commit || '',
           date: date || '',
@@ -100,8 +105,9 @@ async function loadBranches(projectPath) {
           isCurrent: name === currentBranch
         };
       })
-      // Filter out HEAD pointer
-      .filter(b => !b.name.includes('HEAD'));
+      // Filter out the remote HEAD pointer (refs/remotes/<remote>/HEAD)
+      .filter(b => !b.refname.endsWith('/HEAD'))
+      .map(({ refname, ...b }) => b);
 
     return { error: null, currentBranch, branches };
   } catch (err) {

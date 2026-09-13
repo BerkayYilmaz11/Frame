@@ -11,13 +11,17 @@
  * none of them touches `ipcRenderer` (D3, S6) — `homeData` owns the write.
  */
 
-const { Bot, Play } = require('lucide');
+const { Bot } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const notify = require('./../../notify');
 const laneStatus = require('./../../laneStatus');
 const homeData = require('./../homeData');
 const { agentRows } = require('./../agentRows');
-const { widgetShell, lucideIcon, MAX_ROWS } = require('./../widgetShell');
+const { widgetShell } = require('./../widgetShell');
+
+// Fallback for a host that does not say how many lanes a project may hold;
+// the real number comes from the terminal manager through `ctx.maxAgents`.
+const DEFAULT_MAX_AGENTS = 9;
 
 module.exports = {
   id: 'agents',
@@ -40,26 +44,38 @@ module.exports = {
       onOpen: null
     });
 
-    // The launcher is the card's footer and is always there — an agent you
-    // want to start is not something you only want when none is running.
+    // The launcher is the first thing in the card, above the slots, and is
+    // always there — an agent you want to start is not something you only
+    // want when none is running. It is the one action Home exists for, so
+    // it sits centred where the eye lands first, with a line saying what it
+    // does and the controls directly under it.
     this.launcher = document.createElement('div');
-    this.launcher.className = 'home-card-action home-agent-launcher';
+    this.launcher.className = 'home-agent-launcher';
     // Same picker as the terminal header (.ai-tool-picker in terminal.css):
     // the <label> is the visible box, the native <select> underneath stays
     // the interactive element, so clicking anywhere on the box opens it.
     this.launcher.innerHTML = `
-      <label class="ai-tool-picker" title="Default agent — Start launches this one">
-        <span class="ai-tool-picker-label">Agent</span>
-        <select class="ai-tool-select home-agent-tool" aria-label="Default agent"></select>
-        <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </label>
-      <button type="button" class="home-agent-start" title="Start the default agent">
-        ${lucideIcon(Play, 11)}<span>Start</span>
-      </button>
+      <div class="home-agent-launcher-text">
+        <p class="home-agent-launcher-lead">Start an agent</p>
+        <p class="home-agent-launcher-hint">This is where work in Frame begins. Pick a tool and press Start — Frame opens it in a terminal and tracks it here: when it finishes, needs input, or asks to run something.</p>
+      </div>
+      <div class="home-agent-launcher-controls">
+        <label class="ai-tool-picker" title="Default agent — Start launches this one">
+          <span class="ai-tool-picker-label">Agent</span>
+          <select class="ai-tool-select home-agent-tool" aria-label="Default agent"></select>
+          <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </label>
+        <button type="button" class="primary-btn home-agent-start" title="Start the default agent">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span>Start</span>
+        </button>
+      </div>
     `;
-    this.card.el.appendChild(this.launcher);
+    this.card.el.insertBefore(this.launcher, this.card.body);
 
     this.toolEl = this.launcher.querySelector('.home-agent-tool');
     this.toolEl.addEventListener('change', () => this._setTool(this.toolEl.value));
@@ -90,41 +106,32 @@ module.exports = {
     this._renderTool(aiTool);
 
     const rows = agentRows(lanes);
-    card.count.textContent = String(rows.length);
+    const max = (this.ctx && this.ctx.maxAgents) || DEFAULT_MAX_AGENTS;
+    card.count.textContent = `${rows.length} / ${max}`;
 
-    if (rows.length === 0) {
-      card.body.innerHTML = `
-        <div class="home-card-onboard">
-          <p class="home-card-onboard-lead">No agents running.</p>
-          <p>An agent is an AI session in a terminal. Frame watches each one and
-             tells you here when it finishes, needs input, or asks to run
-             something.</p>
-          <p class="home-card-onboard-how">Pick a tool below and press Start.</p>
-        </div>
-      `;
-      return;
-    }
-
-    // Approval first, then input, then working — the order agentRows fixed.
-    // The mark and the label come from laneStatus so that Home and the rails
-    // describe the same state in the same words.
-    card.body.innerHTML = rows.slice(0, MAX_ROWS).map((r) => {
+    // One tile per open terminal, agent or plain shell — nothing drawn for
+    // the room that is left; the count in the header already says that.
+    // Approval first, then input, then working, then shells — the order
+    // agentRows fixed. The mark and the label come from laneStatus so that
+    // Home and the rails describe the same state in the same words.
+    const tiles = rows.slice(0, max).map((r) => {
       const mark = laneStatus.attentionMark(r.status);
-      const label = laneStatus.statusLabel(r.status, { agentName: r.agentName, short: true });
+      const label = laneStatus.statusLabel(r.status, {
+        agentName: r.agentName, foreground: r.foreground, commandLine: r.commandLine, short: true
+      });
       const when = laneStatus.formatRelativeTime(r.lastActivityAt);
       return `
-        <button type="button" class="home-card-row ${r.status}" data-id="${escapeHtml(r.id)}"
+        <button type="button" class="home-card-row home-agent-tile ${r.status}" data-id="${escapeHtml(r.id)}"
                 title="${escapeHtml(label)}">
           <span class="home-card-row-name">
             <span class="lane-status-dot ${r.status}"></span>${escapeHtml(r.name)}
+            ${mark ? `<span class="home-card-row-mark">${mark}</span>` : ''}
           </span>
-          ${mark ? `<span class="home-card-row-mark">${mark}</span>` : ''}
           <span class="home-card-row-meta">${escapeHtml(label)}${when ? ` · ${escapeHtml(when)}` : ''}</span>
         </button>
       `;
-    }).join('') + (rows.length > MAX_ROWS
-      ? `<div class="home-card-more">+${rows.length - MAX_ROWS} more</div>`
-      : '');
+    });
+    card.body.innerHTML = '<div class="home-agent-grid">' + tiles.join('') + '</div>';
 
     // A row is the way into the lane it names — the whole reason to list it.
     card.body.querySelectorAll('.home-card-row').forEach((row) => {

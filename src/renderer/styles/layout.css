@@ -149,37 +149,6 @@ body.sidebar-resizing * {
   outline-offset: 1px;
 }
 
-/* Start button — the launch shortcut; accent-filled so the primary action
-   reads clearly. */
-.sidebar-agent-launch {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 10px;
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: filter var(--transition-fast), transform 0.08s;
-}
-
-.sidebar-agent-launch svg {
-  flex-shrink: 0;
-}
-
-.sidebar-agent-launch:hover {
-  filter: brightness(1.08);
-}
-
-.sidebar-agent-launch:active {
-  transform: scale(0.97);
-}
-
 /* Update banner — sidebar footer card, primary signal when an update is available */
 .sidebar-update-banner {
   flex-shrink: 0;

@@ -5,9 +5,20 @@
  * row) and the dashboard detail aside (Delete button on a selected card).
  * Centralized so both entry points share copy, styling, and the same
  * "Are you sure?" guard before any DELETE_TASK is dispatched.
+ *
+ * github-view-tree-layout spec (D8): `open()` also accepts `heading`,
+ * `message` and `confirmLabel`, so the GitHub panel's branch delete /
+ * worktree remove flows share this one modal — one confirm discipline
+ * (Cancel focused first, Enter activates only the focused button) instead
+ * of a second dialog to keep in sync. The task wording stays the default.
  */
 
+const DEFAULT_HEADING = 'Delete task?';
+const DEFAULT_MESSAGE = "This task will be removed permanently. This action can't be undone.";
+const DEFAULT_CONFIRM_LABEL = 'Delete';
+
 let modalEl = null;
+let headingEl = null;
 let messageEl = null;
 let cancelBtn = null;
 let deleteBtn = null;
@@ -19,6 +30,7 @@ function init() {
   if (initialized) return;
   modalEl = document.getElementById('task-confirm-delete-modal');
   if (!modalEl) return;
+  headingEl = document.getElementById('task-confirm-delete-heading');
   messageEl = document.getElementById('task-confirm-delete-message');
   cancelBtn = document.getElementById('task-confirm-cancel');
   deleteBtn = document.getElementById('task-confirm-delete');
@@ -57,6 +69,9 @@ function init() {
  * Open the modal.
  * @param {object} opts
  * @param {string} [opts.title]   - Optional task title; appears in the message.
+ * @param {string} [opts.heading] - Dialog heading; defaults to the task wording.
+ * @param {string} [opts.message] - Body text; overrides the task wording (and `title`).
+ * @param {string} [opts.confirmLabel] - Confirm button label; defaults to "Delete".
  * @param {function} opts.onConfirm - Called when user confirms delete.
  * @param {function} [opts.onCancel] - Optional cancel callback.
  */
@@ -67,12 +82,22 @@ function open(opts = {}) {
   activeOnConfirm = typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
   activeOnCancel = typeof opts.onCancel === 'function' ? opts.onCancel : null;
 
+  if (headingEl) {
+    headingEl.textContent = typeof opts.heading === 'string' && opts.heading ? opts.heading : DEFAULT_HEADING;
+  }
+  if (deleteBtn) {
+    deleteBtn.textContent = typeof opts.confirmLabel === 'string' && opts.confirmLabel
+      ? opts.confirmLabel
+      : DEFAULT_CONFIRM_LABEL;
+  }
   if (messageEl) {
-    if (opts.title) {
+    if (typeof opts.message === 'string' && opts.message) {
+      messageEl.textContent = opts.message;
+    } else if (opts.title) {
       messageEl.innerHTML = `&ldquo;<strong></strong>&rdquo; will be removed permanently. This action can't be undone.`;
       messageEl.querySelector('strong').textContent = opts.title;
     } else {
-      messageEl.textContent = "This task will be removed permanently. This action can't be undone.";
+      messageEl.textContent = DEFAULT_MESSAGE;
     }
   }
 

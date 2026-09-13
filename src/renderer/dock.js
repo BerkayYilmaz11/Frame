@@ -8,11 +8,14 @@
  * center shows — terminals, a spec, the tasks board all stay where they are
  * and shrink to make room; closing it gives the room back (C1, C2).
  *
- * The state (open / position / tab / size) is `dock/dockState.js`'s — pure,
- * tested — and this module is the host: it applies a state to the DOM,
- * persists it under `dockState.STORAGE_KEY` (app-wide, not per project),
- * mounts exactly one tab's surface at a time, and refits the terminals after
- * anything that changes the center's size. During a drag the size is
+ * The state (open / position / tab / size / tab order) is
+ * `dock/dockState.js`'s — pure, tested — and this module is the host: it
+ * applies a state to the DOM, persists it under `dockState.STORAGE_KEY`
+ * (app-wide, not per project), mounts exactly one tab's surface at a time,
+ * and refits the terminals after anything that changes the center's size.
+ * The tab strip is a `dnd/sortable` strip: dragging a tab reorders it live
+ * and the release lands in `dockState.reorder`, so the arrangement comes
+ * back on the next launch. The status bar's icons keep the canonical order. During a drag the size is
  * applied per animation frame; the terminal refit and the tab's own refit
  * run once, on mouseup (C1 — no resize storm).
  *
@@ -29,6 +32,9 @@
  */
 
 const dockState = require('./dock/dockState');
+const { makeSortable } = require('./dnd/sortable');
+const tooltip = require('./tooltip');
+const { formatShortcut } = require('./platform');
 const {
   PanelBottom, PanelRight, X,
   ScrollText, Waypoints, SquareTerminal, Activity
@@ -217,8 +223,11 @@ function init() {
   handleEl = dockEl.querySelector('.dock-resize-handle');
   const closeBtn = dockEl.querySelector('.dock-close');
 
-  // Tab strip + one slot per tab, in dockState's order.
-  dockState.TABS.forEach((tab) => {
+  state = loadState();
+
+  // Tab strip + one slot per tab. The strip follows the saved order; the
+  // slots' order is irrelevant (one is shown at a time).
+  state.order.forEach((tab) => {
     const entry = DOCK_TABS[tab];
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -226,6 +235,8 @@ function init() {
     btn.dataset.tab = tab;
     btn.setAttribute('role', 'tab');
     btn.textContent = entry ? entry.label : tab;
+    const shortcut = dockState.TAB_SHORTCUTS[tab];
+    if (shortcut) tooltip.attach(btn, `${btn.textContent} (${formatShortcut(shortcut)})`);
     btn.addEventListener('click', () => open(tab));
     tabsEl.appendChild(btn);
 
@@ -234,6 +245,19 @@ function init() {
     slot.dataset.tab = tab;
     bodyEl.appendChild(slot);
     slots.set(tab, slot);
+  });
+
+  // Drag a tab along the strip to reorder it; the release is the only
+  // state change, and it never touches which tab is open.
+  makeSortable(tabsEl, {
+    items: '.dock-tab',
+    axis: 'x',
+    getId: (el) => el.dataset.tab,
+    onReorder: ({ order }) => {
+      state = dockState.setOrder(state, order);
+      persist();
+      emit();
+    }
   });
 
   if (closeBtn) {
@@ -247,7 +271,6 @@ function init() {
   }
   if (handleEl) bindResize(handleEl);
 
-  state = loadState();
   apply({ refit: state.open });
 }
 
@@ -377,7 +400,7 @@ function emit() {
 }
 
 function snapshotState() {
-  return { open: state.open, position: state.position, tab: state.tab };
+  return { open: state.open, position: state.position, tab: state.tab, order: state.order.slice() };
 }
 
 // ─── Drag-resize ───────────────────────────────────────────
@@ -511,7 +534,12 @@ function remountActive() {
   mountTab(tab);
 }
 
-/** Follow the dock: fn({ open, position, tab }) after every change. */
+/** The strip's current order of tab ids (the user's arrangement). */
+function tabOrder() {
+  return state.order.slice();
+}
+
+/** Follow the dock: fn({ open, position, tab, order }) after every change. */
 function onChange(fn) {
   if (typeof fn !== 'function') return () => {};
   listeners.add(fn);
@@ -528,6 +556,7 @@ module.exports = {
   isOpen,
   activeTab,
   position,
+  tabOrder,
   remountActive,
   onChange,
   DOCK_TABS,
