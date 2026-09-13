@@ -7600,13 +7600,13 @@
       "title": "Add `src/shared/doneWindow.js` (pure) exporting `DEFAULT_DONE_WINDOW = { tasks: 7, specs: 30 }`, `WINDOW_OPTIONS = [7, 30, 90, 0]`, `normalizeDoneWindow(raw)` (per-key fallback to the default for missing / null / non-numeric / out-of-set values; numeric strings in the set accepted), `isWithinWindow(iso, days, now)` (days 0 → true; absent or unparseable date → true; inclusive boundary at `days * 86400000` ms) and `partitionDone(items, { days, now, dateOf })` → `{ recent, older }` keeping input order; add `test/doneWindow.test.js` covering each rule and the exact-boundary case",
       "description": "",
       "source": "spec:boards-done-window:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:14:38Z",
+      "completedAt": "2026-09-13T16:14:38Z"
     },
     {
       "id": "task-spec-boards-done-window-T02",

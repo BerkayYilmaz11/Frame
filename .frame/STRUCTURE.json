@@ -11560,6 +11560,54 @@
         }
       }
     },
+    "shared/doneWindow": {
+      "file": "src/shared/doneWindow.js",
+      "description": "doneWindow — how much of the \"done\" pile a board shows by default.",
+      "exports": [
+        "DAY_MS",
+        "DEFAULT_DONE_WINDOW",
+        "WINDOW_OPTIONS",
+        "BOARDS",
+        "normalizeDoneWindow",
+        "isWithinWindow",
+        "partitionDone"
+      ],
+      "depends": [],
+      "functions": {
+        "coerceDays": {
+          "line": 29,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Coerce one raw value to a window in days, or null when it is not one of"
+        },
+        "normalizeDoneWindow": {
+          "line": 40,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Any input → a valid `{ tasks, specs }`, falling back per key to the"
+        },
+        "isWithinWindow": {
+          "line": 55,
+          "params": [
+            "iso",
+            "days",
+            "now = Date.now("
+          ],
+          "purpose": "Is a timestamp inside the last `days` days? `days` 0 means everything is."
+        },
+        "partitionDone": {
+          "line": 67,
+          "params": [
+            "items",
+            "{ days",
+            "now = Date.now("
+          ],
+          "purpose": "Split done items into `recent` (inside the window) and `older`, keeping"
+        }
+      }
+    },
     "shared/feedbackReport": {
       "file": "src/shared/feedbackReport.js",
       "description": "Feedback report — the one composer.",
