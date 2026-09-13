@@ -6,7 +6,9 @@
 }
 
 .lane-board {
-  padding: 24px;
+  /* Same left edge as the view header and the terminal
+     (compact-center-vs-code-density D1); widget gaps are unchanged. */
+  padding: 12px;
   height: 100%;
   box-sizing: border-box;
   flex: 1;

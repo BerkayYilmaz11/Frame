@@ -42,3 +42,10 @@ Set `.view-header` padding to `8px 12px` in `src/renderer/styles/components/view
 _Captured: 2026-09-13 · 1 file change(s)_
 
 ---
+## T07 — Align Home with the other surfaces
+
+Set `.lane-board` padding to 12px in `src/renderer/styles/components/home-board.css`; the 759px container query now fires 24px of window width later, as plan.md accepted. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---
