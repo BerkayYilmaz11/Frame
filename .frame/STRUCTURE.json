@@ -9940,6 +9940,86 @@
         ]
       }
     },
+    "renderer/statusBar/branchPickerModel": {
+      "file": "src/renderer/statusBar/branchPickerModel.js",
+      "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12).",
+      "exports": [
+        "buildRows",
+        "worktreeFor",
+        "flatten",
+        "moveHighlight",
+        "initialHighlight"
+      ],
+      "depends": [
+        "../shared/gitRefNames"
+      ],
+      "functions": {
+        "normalizePath": {
+          "line": 21,
+          "params": [
+            "p"
+          ]
+        },
+        "basename": {
+          "line": 27,
+          "params": [
+            "p"
+          ]
+        },
+        "worktreeFor": {
+          "line": 41,
+          "params": [
+            "name",
+            "worktrees",
+            "projectPath"
+          ],
+          "purpose": "The worktree (other than the project's own) that has `name` checked out,"
+        },
+        "byRecency": {
+          "line": 54,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "matches": {
+          "line": 60,
+          "params": [
+            "name",
+            "needle"
+          ]
+        },
+        "buildRows": {
+          "line": 72,
+          "params": [
+            "input"
+          ]
+        },
+        "flatten": {
+          "line": 139,
+          "params": [
+            "output"
+          ],
+          "purpose": "The rows in the order the keyboard walks them. Each carries `enabled`."
+        },
+        "moveHighlight": {
+          "line": 155,
+          "params": [
+            "items",
+            "index",
+            "delta"
+          ],
+          "purpose": "Next highlight index from `index` by `delta` (±1), skipping disabled rows"
+        },
+        "initialHighlight": {
+          "line": 169,
+          "params": [
+            "items"
+          ],
+          "purpose": "The first enabled row after the current one, for the initial highlight."
+        }
+      }
+    },
     "renderer/structureMap": {
       "file": "src/renderer/structureMap.js",
       "description": "Structure Map Module",
@@ -12968,6 +13048,18 @@
         "module": "renderer/aiToolSelector",
         "file": "src/renderer/aiToolSelector.js",
         "description": "AI Tool Selector Module"
+      }
+    ],
+    "branch": [
+      {
+        "module": "main/gitBranchRefs",
+        "file": "src/main/gitBranchRefs.js",
+        "description": "gitBranchRefs — the pure half of gitBranchesManager's branch listing and"
+      },
+      {
+        "module": "renderer/statusBar/branchPickerModel",
+        "file": "src/renderer/statusBar/branchPickerModel.js",
+        "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
     "claude-sessions": [

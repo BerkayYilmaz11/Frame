@@ -7548,25 +7548,25 @@
       "title": "Add `src/renderer/statusBar/branchPickerModel.js` (pure) with `buildRows({ branches, currentBranch, worktrees, projectPath, filter })` → `{ create, local, remote, empty }` (remote hidden when a local with the same `shortName` exists; local ordered current first then `time` desc then name; case-insensitive substring filter; `disabledReason: 'in worktree <folder>'` via `worktreeFor` with path normalisation; create row states empty/invalid/valid/hidden-on-exact-local-match), plus `flatten` (create → local → remote → manage) and `moveHighlight` skipping disabled rows and wrapping; add `test/branchPickerModel.test.js` for each case",
       "description": "",
       "source": "spec:status-bar-branch-picker:T05",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:45:35Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T14:47:50Z",
+      "completedAt": "2026-09-13T14:47:50Z"
     },
     {
       "id": "task-spec-status-bar-branch-picker-T06",
       "title": "Add `src/renderer/statusBar/branchPicker.js` (`init({ anchorEl, slotEl, onOpen })`, `open`, `close`, `isOpen`) that builds `.sb-branch-picker` once inside `.status-bar-left`, on open fetches `LOAD_GIT_BRANCHES` and `LOAD_GIT_WORKTREES` in parallel (dropping the result if the project changed meanwhile), renders through the model with `escapeHtml` on every name and `textContent` for the create label, focuses the filter, handles Up/Down/Enter/Escape on the input and outside click, and runs switch/create via `SWITCH_GIT_BRANCH`/`CREATE_GIT_BRANCH` with the inline `.sb-bp-notice` for `uncommitted_changes` (with change count), git errors and the no-git error, and on success `notify.success`, `REFRESH_GIT_STATUS` and close; add the popover, row, group, filter, notice, `.disabled`/`.current` styles and `.sb-branch` button states (hover, `:focus-visible`) to `src/renderer/styles/components/status-bar.css` for both themes",
       "description": "",
       "source": "spec:status-bar-branch-picker:T06",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:35:49.207Z",
+      "updatedAt": "2026-09-13T14:47:50Z",
       "completedAt": null
     },
     {

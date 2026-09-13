@@ -30,3 +30,11 @@ _Captured: 2026-09-13T14:45:35Z · 1 file change(s)_
 
 ---
 
+## T05 — Pure branch picker list model
+
+Wrote `src/renderer/statusBar/branchPickerModel.js` — `buildRows`, `worktreeFor`, `flatten`, `moveHighlight` as planned, plus `initialHighlight` (current row, else first enabled) so the keyboard starts on the current branch. Remote rows without a `shortName` are kept rather than deduped by guesswork. `test/branchPickerModel.test.js` pins grouping, dedupe, recency ordering, detached HEAD, the filter, worktree disabling with path normalisation, the create row's four states, `flatten`'s order and flags, wrapping highlight movement, and garbage input.
+
+_Captured: 2026-09-13T14:47:50Z · 2 file change(s)_
+
+---
+
