@@ -35,6 +35,7 @@ const aiToolSelector = require('./aiToolSelector');
 const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
+const { applyTheme, currentTheme } = require('./terminalTabBar');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -734,6 +735,24 @@ function registerCommands() {
     category: 'View',
     when: () => dock.position() !== 'bottom',
     run: () => dock.setPosition('bottom')
+  });
+
+  // ---------- View: theme ----------
+  // Same contract as the top-bar toggle (terminalTabBar.applyTheme);
+  // these ids back the View › Theme submenu in src/main/menu.js.
+  r({
+    id: 'theme.light',
+    title: 'Theme: Light',
+    category: 'View',
+    when: () => currentTheme() !== 'light',
+    run: () => applyTheme('light')
+  });
+  r({
+    id: 'theme.dark',
+    title: 'Theme: Dark',
+    category: 'View',
+    when: () => currentTheme() !== 'dark',
+    run: () => applyTheme('dark')
   });
 
   // ---------- Focus ----------

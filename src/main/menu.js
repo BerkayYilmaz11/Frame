@@ -132,6 +132,14 @@ function getMenuTemplate() {
       cmd('Specs Dashboard', 'panel.toggleSpecsDashboard', 'CmdOrCtrl+Shift+S'),
       cmd('Sessions', 'panel.toggleSessions', 'CmdOrCtrl+Shift+X'),
       SEP,
+      {
+        label: 'Theme',
+        submenu: [
+          cmd('Light', 'theme.light'),
+          cmd('Dark', 'theme.dark')
+        ]
+      },
+      SEP,
       { role: 'zoomIn' },
       { role: 'zoomOut' },
       { role: 'resetZoom' },

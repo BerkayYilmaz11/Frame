@@ -2562,39 +2562,39 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 221
+          "line": 229
         },
         "buildAICommandsSubmenu": {
-          "line": 232,
+          "line": 240,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 281,
+          "line": 289,
           "purpose": "Build tool switcher submenu"
         },
         "sendCommand": {
-          "line": 300,
+          "line": 308,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 310,
+          "line": 318,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 319,
+          "line": 327,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 333,
+          "line": 341,
           "purpose": "Create and set application menu"
         }
       },
@@ -7396,6 +7396,7 @@
         "commandRegistry",
         "commandPalette",
         "cheatSheet",
+        "terminalTabBar",
         "welcomeOverlay",
         "appLoader",
         "projectSettingsModal",
@@ -7418,34 +7419,34 @@
       ],
       "functions": {
         "init": {
-          "line": 56,
+          "line": 57,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 298,
+          "line": 299,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 391,
+          "line": 392,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 502,
+          "line": 503,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 533,
+          "line": 534,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 559,
+          "line": 560,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 896,
+          "line": 915,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -9492,72 +9493,76 @@
       ],
       "functions": {
         "init": {
-          "line": 62
+          "line": 68
         },
         "setupIPCListeners": {
-          "line": 97
+          "line": 103
         },
         "setInlineHost": {
-          "line": 148,
+          "line": 154,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 153,
+          "line": 159,
           "params": [
             "container"
           ],
           "purpose": "Mount into the center content area and load data. Called by the host."
         },
         "notifyDetached": {
-          "line": 163,
+          "line": 169,
           "purpose": "The host swapped the center to another view — reset without routing."
         },
         "_load": {
-          "line": 174
+          "line": 180
         },
         "show": {
-          "line": 203
+          "line": 209
         },
         "hide": {
-          "line": 213
+          "line": 219
         },
         "toggle": {
-          "line": 224
+          "line": 230
+        },
+        "filterCounts": {
+          "line": 242,
+          "purpose": "Counts answer \"how many cards would I see if I clicked this\" — so they"
         },
         "renderFilters": {
-          "line": 234
+          "line": 253
         },
         "applyFilter": {
-          "line": 248,
+          "line": 282,
           "params": [
             "specsList"
           ]
         },
         "setupSearch": {
-          "line": 264
+          "line": 298
         },
         "runSearch": {
-          "line": 278,
+          "line": 312,
           "params": [
             "rawQuery"
           ]
         },
         "clearSearch": {
-          "line": 301
+          "line": 335
         },
         "renderGrid": {
-          "line": 312
+          "line": 346
         },
         "renderCard": {
-          "line": 343,
+          "line": 378,
           "params": [
             "spec"
           ]
         },
         "selectCard": {
-          "line": 404,
+          "line": 439,
           "params": [
             "slug",
             "{ instant = false } = {}"
@@ -9565,26 +9570,26 @@
           "purpose": "Open a spec in the drawer. `instant` is the top-bar chip path: the grid"
         },
         "clearSelection": {
-          "line": 431,
+          "line": 466,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "reloadDetail": {
-          "line": 444
+          "line": 479
         },
         "renderDetailHeader": {
-          "line": 471
+          "line": 506
         },
         "runSpecCommand": {
-          "line": 557,
+          "line": 592,
           "params": [
             "command"
           ]
         },
         "tabBtn": {
-          "line": 568,
+          "line": 603,
           "params": [
             "tab",
             "label",
@@ -9592,44 +9597,44 @@
           ]
         },
         "renderDetailBody": {
-          "line": 574
+          "line": 609
         },
         "renderTasksTabBody": {
-          "line": 625
+          "line": 660
         },
         "renderSpecTaskRow": {
-          "line": 662,
+          "line": 697,
           "params": [
             "task"
           ]
         },
         "attachTaskActionHandlers": {
-          "line": 711
+          "line": 746
         },
         "handleSpecTaskAction": {
-          "line": 724,
+          "line": 759,
           "params": [
             "taskId",
             "action"
           ]
         },
         "hasSpecTasks": {
-          "line": 735
+          "line": 770
         },
         "tasksTabLabel": {
-          "line": 741,
+          "line": 776,
           "params": [
             "hasMarkdown"
           ]
         },
         "renderMarkdown": {
-          "line": 750,
+          "line": 785,
           "params": [
             "md"
           ]
         },
         "relativeTime": {
-          "line": 755,
+          "line": 790,
           "params": [
             "iso"
           ]
@@ -11130,7 +11135,9 @@
       "file": "src/renderer/terminalTabBar.js",
       "description": "Terminal Top Bar Module (historically the tab bar)",
       "exports": [
-        "TerminalTabBar"
+        "TerminalTabBar",
+        "applyTheme",
+        "currentTheme"
       ],
       "depends": [
         "electron",
@@ -11148,6 +11155,17 @@
             "data",
             "size = 18"
           ]
+        },
+        "applyTheme": {
+          "line": 57,
+          "params": [
+            "name"
+          ],
+          "purpose": "Apply a theme app-wide. Flipping data-theme is the whole contract"
+        },
+        "currentTheme": {
+          "line": 64,
+          "purpose": "The theme currently applied ('light' | 'dark')."
         }
       },
       "ipc": {
