@@ -665,13 +665,17 @@ body.sidebar-resizing * {
   background: var(--bg-deep);
 }
 
+/* One flat surface from the sidebar's border to the window edge and from
+   the top to the status bar (compact-center-vs-code-density). No margin,
+   padding or radius: the sidebar's 1px border-right is the only seam, and
+   the dock inside inherits the same edge-to-edge box. */
 #terminal-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  padding: var(--space-md);
+  padding: 0;
   min-width: 400px;
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-  margin: var(--space-sm) 0 var(--space-sm) var(--space-sm);
+  border-radius: 0;
+  margin: 0;
 }

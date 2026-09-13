@@ -7405,13 +7405,13 @@
       "title": "Flatten the center shell: set `#terminal-container` margin, padding and border-radius to 0 in `src/renderer/styles/layout.css`, and `#terminal` border-radius to 0 in `src/renderer/styles/components/terminal.css`, so the center is one surface from the sidebar's 1px border to the window edge and ends on the status bar's top border",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:00:03Z",
+      "completedAt": "2026-09-13T12:00:03Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T02",

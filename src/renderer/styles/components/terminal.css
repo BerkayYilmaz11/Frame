@@ -2,7 +2,7 @@
 #terminal {
   flex: 1;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
 }
 
