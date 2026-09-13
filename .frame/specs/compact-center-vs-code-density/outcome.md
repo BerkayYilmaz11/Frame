@@ -7,3 +7,10 @@ Set `#terminal-container` (`src/renderer/styles/layout.css`) margin, padding and
 _Captured: 2026-09-13 · 2 file change(s)_
 
 ---
+## T02 — Make the dock flush
+
+Removed `#dock`'s outer border, radius and per-position 6px margin in `src/renderer/styles/components/dock.css`; each position now draws one inner hairline (`border-top` at the bottom, `border-left` on the right) on the same edge the resize handle occupies. No deviation from plan.md.
+
+_Captured: 2026-09-13 · 1 file change(s)_
+
+---

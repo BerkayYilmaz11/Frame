@@ -7418,13 +7418,13 @@
       "title": "Make the dock flush in `src/renderer/styles/components/dock.css`: remove `#dock` margin, border-radius and outer border, keep a single inner hairline (`border-top` under `.dock-bottom`, `border-left` under `.dock-right`), and confirm drag-resize and the size clamp behave as before at both positions",
       "description": "",
       "source": "spec:compact-center-vs-code-density:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: compact-center-vs-code-density",
       "createdAt": "2026-09-13T11:54:20.015Z",
-      "updatedAt": "2026-09-13T11:54:20.015Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T12:01:53Z",
+      "completedAt": "2026-09-13T12:01:53Z"
     },
     {
       "id": "task-spec-compact-center-vs-code-density-T03",
