@@ -7613,13 +7613,13 @@
       "title": "Add `GET_DONE_WINDOW` / `SET_DONE_WINDOW` to `src/shared/ipcChannels.js` beside the git-sharing pair and, in `src/main/frameProject.js`, `getDoneWindow(projectPath)` (reads `settings.doneWindow` through `getFrameConfig`, returns it normalised) and `setDoneWindow(projectPath, board, days)` (validates `board ∈ {tasks, specs}` and `days ∈ WINDOW_OPTIONS`, merges into `config.settings.doneWindow`, writes through `writeFrameConfig`, returns the normalised value) with two `ipcMain.handle`s beside the git-sharing handlers that answer `{ error: 'not a Frame project' }` like `GET_GIT_SHARING_STATE`",
       "description": "",
       "source": "spec:boards-done-window:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: boards-done-window",
       "createdAt": "2026-09-13T16:12:34.594Z",
-      "updatedAt": "2026-09-13T16:12:34.594Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T16:16:07Z",
+      "completedAt": "2026-09-13T16:16:07Z"
     },
     {
       "id": "task-spec-boards-done-window-T03",

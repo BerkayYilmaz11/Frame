@@ -209,6 +209,10 @@ const IPC = {
   GET_GIT_SHARING_STATE: 'get-git-sharing-state',    // renderer → main (invoke): { mode, tracked, inGit, warning }
   SET_GIT_SHARING: 'set-git-sharing',                // renderer → main (invoke): { projectPath, mode } → same state
 
+  // Done window (how many days of completed tasks / done specs a board shows)
+  GET_DONE_WINDOW: 'get-done-window',                // renderer → main (invoke): projectPath → { tasks, specs } days, normalised
+  SET_DONE_WINDOW: 'set-done-window',                // renderer → main (invoke): { projectPath, board, days } → { tasks, specs }
+
   // Layout migration (pre-overlay project → .frame/), consented per project
   GET_MIGRATION_DECISIONS: 'get-migration-decisions',      // renderer → main (invoke): what is left to ask, or []
   APPLY_MIGRATION_DECISIONS: 'apply-migration-decisions',  // renderer → main (invoke): the receipt
