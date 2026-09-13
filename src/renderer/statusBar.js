@@ -12,7 +12,8 @@
  * On the left, the slot the status-bar spec declared and left empty — now
  * taken, in order, by the current project's git branch (VS Code's idiom: a
  * branch glyph and the name, fed by the same GIT_STATUS_DATA push the file
- * tree decorates from, hidden when the project is not a repo), the dock's icons (dock-panel-readonly-views spec: one
+ * tree decorates from, hidden when the project is not a repo; a click opens
+ * the branch picker above it — status-bar-branch-picker spec), the dock's icons (dock-panel-readonly-views spec: one
  * monochrome icon per dock tab, click toggles that tab, the open tab's icon
  * reads as active) and then the agents running in **the other projects**,
  * and only them (D14), which keeps its place. This project's
@@ -39,6 +40,7 @@ const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
 const { GitBranch } = require('lucide');
+const branchPicker = require('./statusBar/branchPicker');
 
 // One button per dock tab, in dockState.TABS' canonical order — not the
 // strip's, which the user can drag around: the bar is a fixed row of
@@ -98,10 +100,25 @@ function _buildBranch() {
   const slot = barEl.querySelector('.status-bar-left');
   if (!slot) return;
 
-  branchEl = document.createElement('span');
+  // A button since status-bar-branch-picker: the click opens the picker
+  // above it. Hidden when the project is not a repo, so there is nothing
+  // to click there (C6). The picker itself is a child of the slot, like
+  // the agents menu, and only one of the two is ever open (C2).
+  branchEl = document.createElement('button');
+  branchEl.type = 'button';
   branchEl.className = 'sb-branch';
   branchEl.hidden = true;
+  branchEl.setAttribute('aria-haspopup', 'dialog');
+  branchEl.setAttribute('aria-expanded', 'false');
   slot.appendChild(branchEl);
+
+  branchPicker.init({
+    anchorEl: branchEl,
+    slotEl: slot,
+    onOpen: () => _closeMenu(true),
+    onManage: () => _manageBranches()
+  });
+  branchEl.addEventListener('click', () => branchPicker.toggle());
 
   // Pushes arrive for whichever project main is watching; paint only the
   // one on screen, so a late push from the previous project cannot label
@@ -110,19 +127,29 @@ function _buildBranch() {
     if (!payload || payload.projectPath !== state.getProjectPath()) return;
     _renderBranch(payload.isRepo ? payload.branch : null);
   });
-  // Between projects the old name must not linger until the next push.
-  state.onProjectChange(() => _renderBranch(null));
+  // Between projects the old name must not linger until the next push, and
+  // the picker (its own onProjectChange closes it too) must not show the
+  // previous repo's list.
+  state.onProjectChange(() => {
+    branchPicker.close();
+    _renderBranch(null);
+  });
 }
+
+// "Manage branches…" — the GitHub view's Branches section, where delete,
+// worktrees and pull requests already live. Wired in T08.
+function _manageBranches() {}
 
 function _renderBranch(branch) {
   if (!branchEl) return;
   if (!branch) {
     branchEl.hidden = true;
     branchEl.textContent = '';
+    branchPicker.close();
     return;
   }
   branchEl.innerHTML = `${dock.lucideIcon(GitBranch, 12)}<span class="sb-branch-name">${escapeHtml(branch)}</span>`;
-  branchEl.title = `On branch ${branch}`;
+  branchEl.title = `On branch ${branch} — click to switch`;
   branchEl.hidden = false;
 }
 
@@ -334,6 +361,8 @@ function _openMenu() {
   clearTimeout(openTimer);
   clearTimeout(closeTimer);
   if (!menuEl || lastProjects.length === 0) return;
+  // One popover in the bar at a time (status-bar-branch-picker C2).
+  branchPicker.close();
   _renderMenu();
   menuEl.classList.add('open');
 }

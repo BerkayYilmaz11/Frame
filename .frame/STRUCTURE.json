@@ -9841,29 +9841,34 @@
         "htmlUtils",
         "tooltip",
         "lucide",
+        "statusBar/branchPicker",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 70
+          "line": 72
         },
         "_buildBranch": {
-          "line": 97
+          "line": 99
+        },
+        "_manageBranches": {
+          "line": 141,
+          "purpose": "\"Manage branches…\" — the GitHub view's Branches section, where delete,"
         },
         "_renderBranch": {
-          "line": 117,
+          "line": 143,
           "params": [
             "branch"
           ]
         },
         "_buildDockIcons": {
-          "line": 131
+          "line": 158
         },
         "_buildAgentSlot": {
-          "line": 181
+          "line": 208
         },
         "updateAgents": {
-          "line": 216,
+          "line": 243,
           "params": [
             "states",
             "counts"
@@ -9871,19 +9876,19 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 248,
+          "line": 275,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 252
+          "line": 279
         },
         "_renderMenu": {
-          "line": 287
+          "line": 314
         },
         "_focus": {
-          "line": 311,
+          "line": 338,
           "params": [
             "projectPath",
             "terminalId"
@@ -9891,29 +9896,29 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_scheduleOpen": {
-          "line": 321
+          "line": 348
         },
         "_scheduleClose": {
-          "line": 327
+          "line": 354
         },
         "_openMenu": {
-          "line": 333
+          "line": 360
         },
         "_closeMenu": {
-          "line": 341,
+          "line": 370,
           "params": [
             "immediate = false"
           ]
         },
         "updateUsage": {
-          "line": 348,
+          "line": 377,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 377,
+          "line": 406,
           "params": [
             "item",
             "usage",
@@ -9922,7 +9927,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 400,
+          "line": 429,
           "params": [
             "isoString"
           ],

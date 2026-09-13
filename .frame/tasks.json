@@ -7574,25 +7574,25 @@
       "title": "In `src/renderer/statusBar.js`, create `.sb-branch` as a `<button>` instead of a span, `branchPicker.init` it with `onOpen` closing the agents menu (`_closeMenu(true)`), make `_openMenu` call `branchPicker.close()`, toggle the picker on click, close it in the `state.onProjectChange` handler, and return focus to the button when the picker closes on Escape",
       "description": "",
       "source": "spec:status-bar-branch-picker:T07",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:50:17Z",
-      "completedAt": null
+      "updatedAt": "2026-09-13T14:51:35Z",
+      "completedAt": "2026-09-13T14:51:35Z"
     },
     {
       "id": "task-spec-status-bar-branch-picker-T08",
       "title": "Export `revealSection(id)` from `src/renderer/githubPanel.js` (`sectionState.setExpanded` → persist → apply → render → load) and wire the picker's last row \"Manage branches…\" to run `commandRegistry.runById('sidebar.github')`, call `githubPanel.revealSection('branches')` and close the popover",
       "description": "",
       "source": "spec:status-bar-branch-picker:T08",
-      "status": "pending",
+      "status": "in_progress",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-branch-picker",
       "createdAt": "2026-09-13T14:35:49.207Z",
-      "updatedAt": "2026-09-13T14:35:49.207Z",
+      "updatedAt": "2026-09-13T14:51:35Z",
       "completedAt": null
     }
   ],

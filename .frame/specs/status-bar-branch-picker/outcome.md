@@ -46,3 +46,11 @@ _Captured: 2026-09-13T14:50:17Z · 2 file change(s)_
 
 ---
 
+## T07 — Status bar wiring
+
+Turned `.sb-branch` in `src/renderer/statusBar.js` into a button, initialised `branchPicker` against it with `onOpen` closing the agents menu, made `_openMenu` close the picker, and closed the picker on project change and when the project stops being a repo. Escape's focus return was already in the host's `close({ refocus })`, so the task's last item needed no code here. `_manageBranches` is an empty stub until T08 wires the GitHub hand-off.
+
+_Captured: 2026-09-13T14:51:35Z · 1 file change(s)_
+
+---
+
