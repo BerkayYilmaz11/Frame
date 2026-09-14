@@ -4,8 +4,8 @@
    panels spec). min-height: 0 so the children scroll instead of the row.
 
    VS Code's card layout (2026-09-14): the sidebar and the center are two
-   bordered, rounded cards floating on --bg-deep with a 6px gutter between
-   them and to the window edges; the header above and the status bar below
+   bordered, rounded cards floating on --bg-deep with a 4px gutter between
+   them and 6px to the window edges; the header above and the status bar below
    share that ground. This overturns compact-center-vs-code-density's
    "no margin, radius or gap between the sidebar's border and the window
    edge" — on purpose, per the user's screenshot. */
@@ -13,7 +13,7 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  gap: 6px;
+  gap: 4px;
   padding: 0 6px 6px;
   background: var(--bg-deep);
 }
@@ -57,16 +57,16 @@
   border-right: none;
 }
 
-/* Sidebar resize handle: fills the 6px gutter between the sidebar card and
-   the center card (right: -7px = the card's 1px border + the gutter). A
+/* Sidebar resize handle: fills the 4px gutter between the sidebar card and
+   the center card (right: -5px = the card's 1px border + the gutter). A
    vertical three-dot grip at mid-height says "drag me" at rest; while
-   hovered or dragging, a 2px accent line with rounded ends and an 8px inset
+   hovered or dragging, a 2px accent line with rounded ends and a 2px inset
    top and bottom replaces it. */
 #sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -7px;
-  width: 6px;
+  right: -5px;
+  width: 4px;
   height: 100%;
   cursor: col-resize;
   z-index: 100;
@@ -94,8 +94,8 @@
 #sidebar-resize-handle::after {
   content: '';
   position: absolute;
-  top: 8px;
-  bottom: 8px;
+  top: 2px;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
   width: 2px;
