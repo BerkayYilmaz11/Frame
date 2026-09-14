@@ -66,38 +66,6 @@
   white-space: nowrap;
 }
 
-#app-version {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  letter-spacing: 0;
-}
-
-/* The update dot beside the brand: a pulsing point while a release waits. */
-.update-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
-  box-shadow: 0 0 8px var(--accent-glow);
-  animation: update-dot-pulse 2.2s ease-in-out infinite;
-  transition: transform 0.12s;
-}
-
-.update-dot:hover {
-  transform: scale(1.2);
-}
-
-@keyframes update-dot-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
-
 /* ─── Current-project switcher ─── */
 /* The one project selector, in the header's center. Class names kept from
    its sidebar days (index.js binds them); only the box changed: a clamped

@@ -516,3 +516,15 @@
 #status-bar .usage-reset {
   color: var(--text-secondary);
 }
+
+/* ─── App version ─── */
+/* Last thing on the right, set apart from the usage meters by a hairline.
+   A readout, not a control (status-bar spec). */
+.sb-version {
+  flex-shrink: 0;
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

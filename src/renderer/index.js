@@ -505,15 +505,13 @@ function setupProjectSwitcher() {
 }
 
 /**
- * Show update indicators when a new version is available:
- * - Small pulsing dot in the sidebar header (peripheral signal)
- * - Sidebar footer banner with version + arrow (primary, click-to-act signal)
- *
- * Both are hidden when the user has dismissed that same version (Settings
- * → About → "Dismiss this version"). Both click open Settings → About.
+ * Show the sidebar's update banner (version + arrow, click-to-act) when a
+ * new version is available. Hidden when the user has dismissed that same
+ * version (Settings → About → "Dismiss this version"); click opens
+ * Settings → About. The header's bell (appHeader.js) is the other signal;
+ * the pulsing dot beside the mark was removed on 2026-09-14.
  */
 function setupUpdateDot() {
-  const dot = document.getElementById('update-dot');
   const banner = document.getElementById('sidebar-update-banner');
   const bannerVersionEl = document.getElementById('sidebar-update-banner-version');
 
@@ -524,16 +522,12 @@ function setupUpdateDot() {
       'dismissedUpdateVersion'
     );
     if (dismissed === info.latestVersion) return;
-    if (dot) dot.style.display = '';
     if (banner) {
       if (bannerVersionEl) bannerVersionEl.textContent = `v${info.latestVersion}`;
       banner.style.display = '';
     }
   });
 
-  if (dot) {
-    dot.addEventListener('click', () => frameSettingsModal.open());
-  }
   if (banner) {
     banner.addEventListener('click', () => frameSettingsModal.open());
   }

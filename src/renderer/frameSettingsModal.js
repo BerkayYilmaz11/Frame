@@ -252,8 +252,7 @@ function hideUpdateBanner() {
 }
 
 function hideSidebarDot() {
-  const dot = document.getElementById('update-dot');
-  if (dot) dot.style.display = 'none';
+  // The header's pulsing dot is gone (2026-09-14); only the banner remains.
   const banner = document.getElementById('sidebar-update-banner');
   if (banner) banner.style.display = 'none';
 }

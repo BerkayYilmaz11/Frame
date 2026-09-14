@@ -6316,13 +6316,13 @@
           "line": 254
         },
         "formatRelative": {
-          "line": 261,
+          "line": 260,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 272
+          "line": 271
         }
       },
       "ipc": {
@@ -7562,22 +7562,22 @@
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 515,
-          "purpose": "Show update indicators when a new version is available:"
+          "line": 514,
+          "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 546,
+          "line": 540,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 572,
+          "line": 566,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 924,
+          "line": 918,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },

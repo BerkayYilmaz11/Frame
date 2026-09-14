@@ -57,26 +57,19 @@
        the center (shell-chrome-app-header-collapsible-panels spec). Static
        markup on purpose — it exists before any script runs, so nothing in
        it flashes at boot and every module that binds by id finds its
-       element at DOMContentLoaded. Left: Frame's mark and version. Center:
+       element at DOMContentLoaded. Left: Frame's mark. Center:
        the current-project switcher. Right: the window-level controls and
        the layout toggles. appHeader.js wires the behavior. -->
   <header id="app-header">
     <div class="app-header-left">
       <!-- Frame's mark (assets/frame-mark.svg): the four corner brackets that
            frame a subject — the same mark the app icon carries, so the
-           window says what the dock says. -->
+           window says what the dock says. The version lives in the status
+           bar's right end; an available update shows on the bell. -->
       <svg class="app-header-mark" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
       </svg>
-      <span class="app-header-brand">Frame <span id="app-version"></span></span>
-      <button
-        type="button"
-        id="update-dot"
-        class="update-dot"
-        style="display:none;"
-        title="A new version is available — click for details"
-        aria-label="Update available"
-      ></button>
+      <span class="app-header-brand">Frame</span>
     </div>
     <!-- Current-project switcher: the one project selector, in the
          header's center (VS Code's command-center spot) so it stays
@@ -1655,6 +1648,9 @@
           <span class="usage-reset"></span>
         </div>
       </div>
+      <!-- App version, last thing on the right, behind a hairline
+           (index.js fills it from package.json). -->
+      <span id="app-version" class="sb-version"></span>
     </div>
   </div>
 
