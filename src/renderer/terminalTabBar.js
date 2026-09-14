@@ -24,18 +24,16 @@
  * loses the spec (multiTerminalUI.enterSpecDrawer). The Tasks board pins
  * its drawer's task the same way (multiTerminalUI.enterTaskDrawer).
  *
- * The right action cluster (agent launcher, update, theme) is
- * mode-independent.
- *
- * Controls you click live here; ambient readouts live in the status bar at
- * the foot of the window — the Claude usage meters moved there
- * (status-bar spec).
+ * Controls you click live in the app header above (agent launcher, Start,
+ * layout toggles, theme, update bell — shell-chrome-app-header-collapsible-
+ * panels spec); ambient readouts live in the status bar at the foot of the
+ * window (status-bar spec). This bar is navigation only.
  */
 
 const { ipcRenderer } = require('electron');
 const themes = require('./themes');
 const { IPC } = require('../shared/ipcChannels');
-const { Plus, Bell, CheckSquare, Home, X, FileText, FileDiff, FileBarChart, Bot } = require('lucide');
+const { Plus, CheckSquare, Home, X, FileText, FileDiff, FileBarChart, Bot } = require('lucide');
 const { escapeHtml } = require('./htmlUtils');
 const laneStatus = require('./laneStatus');
 const notify = require('./notify');
@@ -165,57 +163,11 @@ class TerminalTabBar {
   _render() {
     this.element = document.createElement('div');
     this.element.className = 'terminal-tab-bar';
+    // The strip alone. The window-level controls that used to sit at the
+    // right end (agent picker, Start, update bell, theme) live in the app
+    // header now (shell-chrome-app-header-collapsible-panels spec).
     this.element.innerHTML = `
       <div class="lane-bar-left"></div>
-      <div class="terminal-tab-actions">
-        <!-- Default Agent launcher — the tool select sits beside Start again.
-             home-widget-board T08 removed it here on the grounds that a
-             rarely-changed default did not earn top-bar width; asked for back
-             on 2026-09-01 because Start launches whatever this says and
-             checking that meant leaving for Home. Home's Agents widget keeps
-             its copy — both write through SET_AI_TOOL and both redraw from
-             AI_TOOL_CHANGED, so neither can go stale.
-
-             The options below are a placeholder: setupSelector() repopulates
-             from the real tool list, which is why a third tool (gemini) is not
-             hardcoded here. #sidebar-agent-launch keeps its id and handler; its
-             look is the shared .primary-btn (ui.css). -->
-        <div class="lane-bar-launcher">
-          <!-- The select is wrapped in a label so the visible control (label
-               text, agent name, chevron) is one styled box while the native
-               <select> stays the interactive element underneath — clicking
-               anywhere on the box opens the menu. -->
-          <label class="ai-tool-picker" title="Default agent — Start launches this one">
-            <span class="ai-tool-picker-label">Agent</span>
-            <select id="ai-tool-selector" class="ai-tool-select" tabindex="-1" aria-label="Default agent">
-              <option value="claude">Claude</option>
-              <option value="codex">Codex</option>
-            </select>
-            <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </label>
-          <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <span>Start</span>
-          </button>
-        </div>
-        <button class="btn-update-notify" title="Check for updates" style="display:none;position:relative;">
-          ${lucideIcon(Bell)}
-          <span class="update-badge"></span>
-        </button>
-        <!-- Theme toggle: window-level control, so it sits at the far right
-             of the top bar (status-bar spec). Wired here rather than in
-             index.js because this element is rendered by this module — a
-             listener attached elsewhere would bind before it exists. -->
-        <button id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Toggle light/dark theme" aria-label="Toggle theme">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-          </svg>
-        </button>
-      </div>
     `;
 
     this.container.appendChild(this.element);
@@ -393,28 +345,6 @@ class TerminalTabBar {
         if (this.onGoHome) this.onGoHome();
         return;
       }
-    });
-
-    // Update notification button
-    const updateBtn = this.element.querySelector('.btn-update-notify');
-    updateBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (this._updateInfo) {
-        const { shell } = require('electron');
-        shell.openExternal(this._updateInfo.releaseUrl);
-      }
-    });
-
-    // Listen for update available from main process
-    ipcRenderer.on(IPC.UPDATE_AVAILABLE, (event, info) => {
-      this._updateInfo = info;
-      updateBtn.style.display = '';
-      updateBtn.title = `New version available: v${info.latestVersion}`;
-    });
-
-    // Theme toggle — see applyTheme for the contract.
-    this.element.querySelector('#sidebar-theme-btn')?.addEventListener('click', () => {
-      applyTheme(themes.counterpartOf(currentTheme()));
     });
   }
 

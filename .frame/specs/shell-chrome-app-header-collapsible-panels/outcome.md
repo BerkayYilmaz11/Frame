@@ -22,3 +22,11 @@ _Captured: 2026-09-14T15:23:55Z · 3 file change(s)_
 
 ---
 
+## T04 — Right cluster markup into the header
+
+Moved the .lane-bar-launcher (agent picker + #sidebar-agent-launch), .btn-update-notify (Bell inlined as static SVG) and #sidebar-theme-btn markup out of TerminalTabBar._render into .app-header-right in index.html, leaving the strip with .lane-bar-left only; removed the tab bar's now-elementless update-bell and theme-click handlers and its Bell import, and rewrote its header comment. Deviation from the task's letter: the bell and theme handlers left one task early (they would have thrown on a missing element), so between this commit and T05 the bell does not show updates and the theme button is inert — T05 re-homes both in appHeader.js. mountSelector() and _initTheme still run from the tab bar until T05. Files: index.html, terminalTabBar.js.
+
+_Captured: 2026-09-14T15:25:36Z · 2 file change(s)_
+
+---
+

@@ -11277,29 +11277,23 @@
       ],
       "functions": {
         "lucideIcon": {
-          "line": 43,
+          "line": 41,
           "params": [
             "data",
             "size = 18"
           ]
         },
         "applyTheme": {
-          "line": 59,
+          "line": 57,
           "params": [
             "name"
           ],
           "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 67,
+          "line": 65,
           "purpose": "The theme currently applied — a themes.js id."
         }
-      },
-      "ipc": {
-        "listens": [
-          "UPDATE_AVAILABLE"
-        ],
-        "emits": []
       }
     },
     "renderer/terminalsView": {

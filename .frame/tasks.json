@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:23:55Z",
+  "lastUpdated": "2026-09-14T15:25:36Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7730,13 +7730,13 @@
       "title": "Move the right cluster markup — `.lane-bar-launcher` (`.ai-tool-picker` + `#ai-tool-selector`, `#sidebar-agent-launch`), `.btn-update-notify` and `#sidebar-theme-btn` — from `TerminalTabBar._render` in `src/renderer/terminalTabBar.js` into `.app-header-right` in `index.html`, leaving `.terminal-tab-bar` with `.lane-bar-left` only",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:25:36Z",
+      "completedAt": "2026-09-14T15:25:36Z"
     },
     {
       "id": "task-spec-shell-chrome-app-header-collapsible-panels-T05",
