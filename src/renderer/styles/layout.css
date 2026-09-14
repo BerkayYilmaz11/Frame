@@ -30,9 +30,31 @@
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  padding: var(--space-sm) var(--space-lg) var(--space-lg);
+  /* Left inset matches the rail's own right padding, so the rail's icons
+     sit with the same 6px on either side. */
+  padding: var(--space-sm) var(--space-lg) var(--space-lg) var(--space-sm);
   position: relative;
   flex-shrink: 0;
+}
+
+/* Collapsed to the rail (sidebarResize.hide): the panel goes, the icon rail
+   stays, VS Code activity-bar style. The inline width is cleared by the
+   module, so the card shrinks to the rail plus symmetric 6px insets; the
+   resize handle has nothing to resize. */
+#sidebar.collapsed {
+  width: auto;
+  min-width: 0;
+  padding: var(--space-sm);
+}
+
+#sidebar.collapsed .sidebar-panel,
+#sidebar.collapsed #sidebar-resize-handle {
+  display: none;
+}
+
+#sidebar.collapsed .sidebar-rail {
+  padding-right: 0;
+  border-right: none;
 }
 
 /* Sidebar resize handle */
@@ -211,7 +233,7 @@ body.sidebar-resizing * {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-right: var(--space-xs);
+  padding-right: var(--space-sm);
   border-right: 1px solid var(--border-subtle);
 }
 

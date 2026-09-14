@@ -3245,3 +3245,23 @@ center is one flat surface — no margin, padding, radius or `--bg-deep` gap
 between the sidebar's 1px border and the window edge". The inside of the
 center is still flat (strip 35px, no nested cards); only the shell's outer
 frame changed.
+
+### [2026-09-14] Sidebar collapses to its rail, not to nothing
+
+**Context.** After the card layout the user said: "sol sidebar kapanırken
+sadece work context alanı kapansın. onun solundaki github diffs files kısmı
+kalsın her türlü. ve o kısımdaki buttonların dış boşlukları sağ sol aynı
+değil." This overturns shell-chrome-app-header-collapsible-panels' D2
+("collapsed = fully hidden, rail included") — the rail stays, VS Code
+activity-bar style.
+
+**Change.** `sidebarResize.hide()` / `show()` and the boot restore now flip
+`#sidebar.collapsed` and clear the inline width instead of `display: none`;
+`layout.css` hides `.sidebar-panel` and the resize handle in that state, drops
+the rail's right padding and border, and lets the card shrink to the rail
+with symmetric 6px insets. A rail click still reveals the panel
+(`revealSidebarTab` → `show()`), so the collapsed rail is a way back in.
+The persisted key (`sidebar-hidden`), `isVisible()`, `onChange` and the
+header toggle are untouched. Spacing: the sidebar's left inset became
+`--space-sm` (was `--space-lg`) and the rail's right padding `--space-sm`
+(was `--space-xs`), so the icons sit 6px from both sides, collapsed or not.

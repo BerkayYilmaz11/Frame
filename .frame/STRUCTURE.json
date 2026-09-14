@@ -9092,70 +9092,70 @@
       "depends": [],
       "functions": {
         "emitChange": {
-          "line": 23,
+          "line": 30,
           "purpose": "Tell every onChange listener whether the sidebar is now visible."
         },
         "init": {
-          "line": 34,
+          "line": 41,
           "params": [
             "onResize"
           ],
           "purpose": "Initialize sidebar resize functionality"
         },
         "handleMouseDown": {
-          "line": 74,
+          "line": 82,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse down on resize handle"
         },
         "handleMouseMove": {
-          "line": 88,
+          "line": 96,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse move during resize"
         },
         "handleMouseUp": {
-          "line": 104,
+          "line": 112,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse up to finish resize"
         },
         "resetWidth": {
-          "line": 124,
+          "line": 132,
           "purpose": "Reset sidebar width to default"
         },
         "getWidth": {
-          "line": 137,
+          "line": 145,
           "purpose": "Get current sidebar width"
         },
         "setWidth": {
-          "line": 145,
+          "line": 153,
           "params": [
             "width"
           ],
           "purpose": "Set sidebar width programmatically"
         },
         "toggle": {
-          "line": 160,
+          "line": 168,
           "purpose": "Toggle sidebar visibility"
         },
         "hide": {
-          "line": 173,
-          "purpose": "Hide sidebar"
+          "line": 181,
+          "purpose": "Collapse the sidebar to its rail (the panel goes, the icons stay)."
         },
         "show": {
-          "line": 190,
-          "purpose": "Show sidebar"
+          "line": 199,
+          "purpose": "Bring the panel back at the width it had before collapsing."
         },
         "isVisible": {
-          "line": 207,
+          "line": 216,
           "purpose": "Check if sidebar is hidden"
         },
         "onChange": {
-          "line": 217,
+          "line": 226,
           "params": [
             "fn"
           ],
