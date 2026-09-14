@@ -38,3 +38,11 @@ _Captured: 2026-09-14T15:27:13Z · 3 file change(s)_
 
 ---
 
+## T06 — Cluster CSS into app-header.css
+
+Moved the icon-button rules (.terminal-tab-actions button/select … → .app-header-right …), .btn-update-notify .update-badge with its keyframes, .lane-bar-launcher and every .ai-tool-picker* rule from terminal.css into app-header.css and deleted the originals; the .terminal-tab-actions container rule itself was dropped rather than moved because app-header.css already defines .app-header-right. Comments were rewritten for the new home (the divider now separates the launcher from the icon buttons, not from usage bars that left in the status-bar spec). Files: terminal.css, app-header.css.
+
+_Captured: 2026-09-14T15:28:42Z · 2 file change(s)_
+
+---
+
