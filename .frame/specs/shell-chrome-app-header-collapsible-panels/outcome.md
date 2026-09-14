@@ -46,3 +46,11 @@ _Captured: 2026-09-14T15:28:42Z · 2 file change(s)_
 
 ---
 
+## T07 — sidebarResize.onChange
+
+Added a listener set, emitChange() and an exported onChange(fn) to src/renderer/sidebarResize.js — same shape as dock.onChange (returns an unsubscribe, listener errors are caught and logged); hide() and show() call emitChange() after persisting, so every entry point that goes through them (⌘B, View menu, palette, the coming header toggle) notifies. The state restored at init is deliberately not emitted; callers read isVisible() for it. Files: sidebarResize.js.
+
+_Captured: 2026-09-14T15:29:36Z · 1 file change(s)_
+
+---
+

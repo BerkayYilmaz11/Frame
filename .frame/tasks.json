@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:28:42Z",
+  "lastUpdated": "2026-09-14T15:29:36Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7769,13 +7769,13 @@
       "title": "Add `onChange(fn)` to `src/renderer/sidebarResize.js` (listener set, returns an unsubscribe like `dock.onChange`) and notify with the new visibility from `hide()` and `show()`",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:29:36Z",
+      "completedAt": "2026-09-14T15:29:36Z"
     },
     {
       "id": "task-spec-shell-chrome-app-header-collapsible-panels-T08",

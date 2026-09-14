@@ -17,6 +17,15 @@ let isResizing = false;
 let startX = 0;
 let startWidth = 0;
 let onResizeCallback = null;
+const listeners = new Set();
+
+/** Tell every onChange listener whether the sidebar is now visible. */
+function emitChange() {
+  const visible = !isHidden;
+  listeners.forEach((fn) => {
+    try { fn(visible); } catch (err) { console.error('sidebarResize: onChange listener failed:', err); }
+  });
+}
 
 /**
  * Initialize sidebar resize functionality
@@ -172,6 +181,7 @@ function hide() {
   if (onResizeCallback) {
     onResizeCallback(0);
   }
+  emitChange();
 }
 
 /**
@@ -188,6 +198,7 @@ function show() {
   if (onResizeCallback) {
     onResizeCallback(widthBeforeHide);
   }
+  emitChange();
 }
 
 /**
@@ -195,6 +206,18 @@ function show() {
  */
 function isVisible() {
   return !isHidden;
+}
+
+/**
+ * Follow the sidebar: fn(visible) after every hide / show, whichever entry
+ * point caused it (⌘B, the View menu, the palette, the header's toggle).
+ * Same shape as dock.onChange; returns an unsubscribe. Not called for the
+ * state restored at init — read isVisible() for that.
+ */
+function onChange(fn) {
+  if (typeof fn !== 'function') return () => {};
+  listeners.add(fn);
+  return () => listeners.delete(fn);
 }
 
 module.exports = {
@@ -205,5 +228,6 @@ module.exports = {
   toggle,
   hide,
   show,
-  isVisible
+  isVisible,
+  onChange
 };

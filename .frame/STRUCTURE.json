@@ -9065,68 +9065,80 @@
         "toggle",
         "hide",
         "show",
-        "isVisible"
+        "isVisible",
+        "onChange"
       ],
       "depends": [],
       "functions": {
+        "emitChange": {
+          "line": 23,
+          "purpose": "Tell every onChange listener whether the sidebar is now visible."
+        },
         "init": {
-          "line": 25,
+          "line": 34,
           "params": [
             "onResize"
           ],
           "purpose": "Initialize sidebar resize functionality"
         },
         "handleMouseDown": {
-          "line": 65,
+          "line": 74,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse down on resize handle"
         },
         "handleMouseMove": {
-          "line": 79,
+          "line": 88,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse move during resize"
         },
         "handleMouseUp": {
-          "line": 95,
+          "line": 104,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse up to finish resize"
         },
         "resetWidth": {
-          "line": 115,
+          "line": 124,
           "purpose": "Reset sidebar width to default"
         },
         "getWidth": {
-          "line": 128,
+          "line": 137,
           "purpose": "Get current sidebar width"
         },
         "setWidth": {
-          "line": 136,
+          "line": 145,
           "params": [
             "width"
           ],
           "purpose": "Set sidebar width programmatically"
         },
         "toggle": {
-          "line": 151,
+          "line": 160,
           "purpose": "Toggle sidebar visibility"
         },
         "hide": {
-          "line": 164,
+          "line": 173,
           "purpose": "Hide sidebar"
         },
         "show": {
-          "line": 180,
+          "line": 190,
           "purpose": "Show sidebar"
         },
         "isVisible": {
-          "line": 196,
+          "line": 207,
           "purpose": "Check if sidebar is hidden"
+        },
+        "onChange": {
+          "line": 217,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Follow the sidebar: fn(visible) after every hide / show, whichever entry"
         }
       }
     },
