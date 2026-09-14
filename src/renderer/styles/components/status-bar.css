@@ -18,7 +18,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  padding: 0 var(--space-md);
+  /* 28px tall: 24px buttons with 2px above and below, 6px at either end. */
+  padding: 2px 6px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-subtle);
   font-size: 11px;
@@ -44,15 +45,16 @@
 /* ─── The current git branch ─── */
 /* VS Code's idiom: a small branch glyph and the name, first thing on the
    left. A button since status-bar-branch-picker: click opens the picker
-   above it. Same footprint as the old span — the bar stays 26px. */
+   above it. */
+/* Every glyph in the bar is 16px inside a 24px box: 4px of padding. */
 .sb-branch {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
   min-width: 0;
-  padding: 1px 4px;
-  margin-left: -4px;
+  height: 24px;
+  padding: 0 4px;
   background: none;
   border: none;
   border-radius: var(--radius-sm);
@@ -284,8 +286,8 @@
 }
 
 .sb-dock-btn {
-  width: 22px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,7 +327,8 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-  padding: 1px 4px;
+  height: 24px;
+  padding: 0 4px;
   background: none;
   border: none;
   border-radius: var(--radius-sm);

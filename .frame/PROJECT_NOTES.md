@@ -3145,3 +3145,48 @@ the running app during the run — the user should open Tasks (Completed foot
 button, badge, tooltip, drag with older hidden), Specs (All / Done tile,
 Active chips, search), and Project Settings › Boards (change a select, watch
 the open board re-render; no-project state), in both themes.
+
+### [2026-09-14] Two VS Code themes, added beside the existing pair
+
+**Context.** The user sent VS Code 2026 Dark and Light screenshots and
+asked for both as *new* themes — "geri kalan her şeyi vs code renklerinde
+yapabilir miyiz. ve 2 yeni tema olarak eklensin bunlar. var olan temaları
+değiştirme" — with one hard constraint: "bizim rengimiz yeşil, mavi değil",
+so Frame's green accent stays in place of VS Code's blue. Also: reuse the
+palette layer, no duplicated code.
+
+**How it was done.** The theme contract was binary (`data-theme` =
+`light` | `dark`, a toggle, two palette commands). Rather than fork every
+light-only rule for a second light theme, the theme now writes two
+attributes on `<html>`: `data-theme` (the id) and `data-scheme` (its
+light/dark family). The base token blocks in `variables.css` key on
+`data-scheme`; a named theme block (`[data-theme="dark-plus"]`,
+`[data-theme="light-plus"]`) overrides only chrome tokens (backgrounds,
+text, borders, shadows) and inherits the accent, semantic, doc-type and
+diff colours from its scheme. Everything that only cares about light-vs-dark
+— the three light overrides in `terminals-view.css`, the embedded report
+shells (which carry two palettes) — reads `data-scheme`, so a future theme
+never needs a copy of those.
+
+One pure registry, `src/renderer/themes.js`, is the single list: label,
+command id, scheme, counterpart (what the top-bar toggle flips to — the
+other scheme of the *same family*, so a VS Code user stays in VS Code
+colours), and the xterm palette (three shared ANSI tables: VS Code dark
+— which Frame Dark already used —, VS Code light, Frame light; each theme
+adds its own background / foreground / cursor). `index.js` registers one
+`theme.*` command per entry; `menu.js` lists four under View › Theme;
+`terminalManager` and `terminalTabBar` read the registry. Unknown or stale
+`frame-theme` values normalize to `dark`.
+
+**Palette choice.** VS Code Dark Modern (#1f1f1f editor, #181818 side/status
+bar, #2b2b2b borders, #cccccc text) and Light Modern (#ffffff editor,
+#f8f8f8 side/status bar, #e5e5e5 borders, #3b3b3b text). The one existing
+hard-coded light hex in `terminals-view.css` (`#f7f5f2`) became
+`var(--bg-primary)` — same value under Frame Light, correct under VS Code
+Light.
+
+**Verified.** `test/themes.test.js` (registry shape, toggle round-trips,
+fallback, full xterm tables); `npm test` 756 pass. Not opened in the running
+app during this session — worth a look at the four themes via View › Theme
+and the toggle, especially contrast of the green accent on VS Code's
+neutral greys.

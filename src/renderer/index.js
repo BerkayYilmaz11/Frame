@@ -36,6 +36,7 @@ const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
+const themes = require('./themes');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -743,22 +744,19 @@ function registerCommands() {
   });
 
   // ---------- View: theme ----------
-  // Same contract as the top-bar toggle (terminalTabBar.applyTheme);
-  // these ids back the View › Theme submenu in src/main/menu.js.
-  r({
-    id: 'theme.light',
-    title: 'Theme: Light',
-    category: 'View',
-    when: () => currentTheme() !== 'light',
-    run: () => applyTheme('light')
-  });
-  r({
-    id: 'theme.dark',
-    title: 'Theme: Dark',
-    category: 'View',
-    when: () => currentTheme() !== 'dark',
-    run: () => applyTheme('dark')
-  });
+  // Same contract as the top-bar toggle (terminalTabBar.applyTheme); one
+  // command per registry entry, whose ids back the View › Theme submenu in
+  // src/main/menu.js.
+  for (const id of themes.THEME_IDS) {
+    const t = themes.THEMES[id];
+    r({
+      id: t.command,
+      title: `Theme: ${t.label}`,
+      category: 'View',
+      when: () => currentTheme() !== id,
+      run: () => applyTheme(id)
+    });
+  }
 
   // ---------- Focus ----------
   r({

@@ -1,6 +1,11 @@
 /* ==================== DESIGN SYSTEM - FRAME ==================== */
+/* Theme = data-theme (the id) + data-scheme (its light/dark family), both
+   written by terminalTabBar.applyTheme from the registry in themes.js.
+   The two scheme blocks below carry the full token set; a named theme
+   (Dark+ / Light+ further down) overrides only what differs and
+   inherits the rest — the green accent and the semantic colours included. */
 :root,
-[data-theme="dark"] {
+[data-scheme="dark"] {
   /* Color Palette - Warm Charcoal with Green Accent (prototype palette) */
   --bg-deep: #0c0b09;
   --bg-primary: #14120e;
@@ -69,7 +74,7 @@
   /* Chrome */
   /* Status bar height — read by both the bar itself and body's
      padding-bottom, so the two can never disagree (status-bar spec). */
-  --status-bar-height: 26px;
+  --status-bar-height: 28px;
   /* Modal width — one standard for every dialog shell (settings, plugins,
      feedback, open project, task edit, spec modals…) so they all line up.
      `--modal-width-compact` is reserved for alert-style confirms only
@@ -96,7 +101,7 @@
 }
 
 /* ==================== LIGHT THEME ==================== */
-[data-theme="light"] {
+[data-scheme="light"] {
   --bg-deep: #f0ede8;
   --bg-primary: #f7f5f2;
   --bg-secondary: #ede9e3;
@@ -152,4 +157,57 @@
   --diff-del-fg: #24292f;
   --diff-del-mark-bg: #ffcecb;
   --diff-del-mark-fg: #cf222e;
+}
+
+/* ==================== DARK+ ==================== */
+/* VS Code's "Dark Modern" chrome (editor #1f1f1f, side bar / title bar /
+   status bar #181818, widgets #202020–#313131, borders #2b2b2b) with
+   Frame's green accent kept in place of VS Code's blue. Everything not
+   listed inherits from the dark scheme above. */
+[data-theme="dark-plus"] {
+  --bg-deep: #181818;
+  --bg-primary: #1f1f1f;
+  --bg-secondary: #202020;
+  --bg-tertiary: #262626;
+  --bg-elevated: #313131;
+  --bg-hover: #2a2d2e;
+
+  --text-primary: #cccccc;
+  --text-secondary: #9d9d9d;
+  --text-tertiary: #808080;
+  --text-muted: #5a5a5a;
+
+  --border-subtle: #2b2b2b;
+  --border-default: #2b2b2b;
+  --border-strong: #3c3c3c;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.36);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ==================== LIGHT+ ==================== */
+/* VS Code's "Light Modern" chrome (editor #ffffff, side bar / title bar /
+   status bar #f8f8f8, list hover #f2f2f2, borders #e5e5e5) with Frame's
+   green accent. Everything not listed inherits from the light scheme above. */
+[data-theme="light-plus"] {
+  --bg-deep: #f8f8f8;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8f8;
+  --bg-tertiary: #f2f2f2;
+  --bg-elevated: #ebebeb;
+  --bg-hover: #e8e8e8;
+
+  --text-primary: #3b3b3b;
+  --text-secondary: #616161;
+  --text-tertiary: #8b8b8b;
+  --text-muted: #a6a6a6;
+
+  --border-subtle: #e5e5e5;
+  --border-default: #e5e5e5;
+  --border-strong: #cecece;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.20);
 }

@@ -28,12 +28,14 @@ let seq = 0;
 const SHELL_MARKER = '── frame report shell v1 ──';
 
 /**
- * The app's current theme. terminalTabBar always writes the attribute (it
- * defaults to 'dark' on boot), so the fallback is belt-and-braces rather than
- * a second source of truth.
+ * The app's current scheme ('dark' | 'light'). The report shells carry two
+ * palettes, so they get the theme's family (data-scheme, see themes.js), not
+ * its id. terminalTabBar always writes the attribute (it defaults to 'dark'
+ * on boot), so the fallback is belt-and-braces rather than a second source
+ * of truth.
  */
 function appTheme() {
-  return document.documentElement.getAttribute('data-theme') || 'dark';
+  return document.documentElement.getAttribute('data-scheme') || 'dark';
 }
 
 /** The two report kinds, as the reader should see them named. */

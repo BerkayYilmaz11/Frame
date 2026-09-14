@@ -33,6 +33,7 @@
  */
 
 const { ipcRenderer } = require('electron');
+const themes = require('./themes');
 const { IPC } = require('../shared/ipcChannels');
 const { Plus, Bell, CheckSquare, Home, X, FileText, FileDiff, FileBarChart, Bot } = require('lucide');
 const { escapeHtml } = require('./htmlUtils');
@@ -48,21 +49,23 @@ function lucideIcon(data, size = 18) {
 }
 
 /**
- * Apply a theme app-wide. Flipping data-theme is the whole contract
- * (terminalManager observes it for the xterm theme, CSS does the rest);
- * the choice persists under 'frame-theme' and is restored at boot by
+ * Apply a theme app-wide. Writing data-theme (the id) and data-scheme
+ * (its light/dark family — see themes.js) is the whole contract:
+ * terminalManager observes it for the xterm theme, CSS does the rest.
+ * The choice persists under 'frame-theme' and is restored at boot by
  * TerminalTabBar._initTheme. Shared by the top-bar toggle and the
- * theme.light / theme.dark commands (View › Theme menu, palette).
+ * theme.* commands (View › Theme menu, palette).
  */
 function applyTheme(name) {
-  const next = name === 'light' ? 'light' : 'dark';
+  const next = themes.normalize(name);
   document.documentElement.setAttribute('data-theme', next);
+  document.documentElement.setAttribute('data-scheme', themes.schemeOf(next));
   try { localStorage.setItem('frame-theme', next); } catch (_) { /* non-fatal */ }
 }
 
-/** The theme currently applied ('light' | 'dark'). */
+/** The theme currently applied — a themes.js id. */
 function currentTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  return themes.normalize(document.documentElement.getAttribute('data-theme'));
 }
 
 class TerminalTabBar {
@@ -411,7 +414,7 @@ class TerminalTabBar {
 
     // Theme toggle — see applyTheme for the contract.
     this.element.querySelector('#sidebar-theme-btn')?.addEventListener('click', () => {
-      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+      applyTheme(themes.counterpartOf(currentTheme()));
     });
   }
 
@@ -557,8 +560,9 @@ class TerminalTabBar {
    * rail reads it when it renders.
    */
   _initTheme() {
-    const saved = localStorage.getItem('frame-theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
+    let saved = null;
+    try { saved = localStorage.getItem('frame-theme'); } catch (_) { /* non-fatal */ }
+    applyTheme(saved);
   }
 
 }

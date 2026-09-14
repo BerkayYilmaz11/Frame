@@ -43,7 +43,7 @@
   background: transparent;
 }
 
-[data-theme="light"] .tv-pane.tv-pane-single {
+[data-scheme="light"] .tv-pane.tv-pane-single {
   background: transparent;
 }
 
@@ -211,8 +211,8 @@
   position: relative;
 }
 
-[data-theme="light"] .tv-pane {
-  background: #f7f5f2;
+[data-scheme="light"] .tv-pane {
+  background: var(--bg-primary);
 }
 
 .tv-pane:hover {
@@ -416,7 +416,7 @@ span.tv-pane-assign {
   background: color-mix(in srgb, var(--accent-primary) 85%, white);
 }
 
-[data-theme="light"] .tv-empty-cta {
+[data-scheme="light"] .tv-empty-cta {
   color: #ffffff;
 }
 
