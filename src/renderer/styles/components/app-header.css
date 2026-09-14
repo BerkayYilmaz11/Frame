@@ -18,8 +18,10 @@
   align-items: center;
   gap: var(--space-md);
   padding: 0 8px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-subtle);
+  /* The window's ground, shared with #shell's gutters and the status bar:
+     the cards below carry the borders, the chrome around them carries
+     none (VS Code's card layout). */
+  background: var(--bg-deep);
 }
 
 .app-header-left,

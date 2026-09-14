@@ -3223,3 +3223,25 @@ navigation only.
 the user's browser, not Frame, so the check was by build, test and the app's
 log. Worth a look: the switcher's width in the header center, the launcher's
 divider next to the toggles, and all four themes.
+
+### [2026-09-14] Card layout — sidebar and center as bordered, rounded cards
+
+**Context.** Right after the app header shipped, the user sent a VS Code
+screenshot ("harika olmuş… sol layout ve sağ layout kendi borderlarıyla
+ayrılıyor ve radius var. aynı şekilde yapalım"): the explorer and the editor
+area are two separate cards with their own 1px border and rounded corners,
+floating on the window's ground with a gutter between them and to the edges.
+
+**Change (CSS only).** `#shell` gained `gap: 6px`, `padding: 0 6px 6px` and
+the `--bg-deep` ground; `#sidebar` and `#main-content` each carry
+`border: 1px solid var(--border-subtle)` and `border-radius: var(--radius-lg)`
+(the sidebar's old `border-right` and the `::after` accent-glow line are
+gone; `#main-content` clips its children to the corners). The app header and
+the status bar switched to `--bg-deep` and lost their hairlines so the chrome
+around the cards reads as one ground, as in VS Code.
+
+**Overturns, on purpose.** compact-center-vs-code-density's rule that "the
+center is one flat surface — no margin, padding, radius or `--bg-deep` gap
+between the sidebar's 1px border and the window edge". The inside of the
+center is still flat (strip 35px, no nested cards); only the shell's outer
+frame changed.

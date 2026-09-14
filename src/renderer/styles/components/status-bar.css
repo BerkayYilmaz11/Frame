@@ -20,8 +20,9 @@
   gap: var(--space-md);
   /* 28px tall: 24px buttons with 2px above and below, 6px at either end. */
   padding: 2px 6px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
+  /* Same ground as the app header and #shell's gutters — the cards above
+     carry the borders (VS Code's card layout, 2026-09-14). */
+  background: var(--bg-deep);
   font-size: 11px;
   color: var(--text-tertiary);
   /* Above the content, below modals/toasts (9000+). */

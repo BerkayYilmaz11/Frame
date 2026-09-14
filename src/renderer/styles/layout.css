@@ -1,11 +1,21 @@
 /* ==================== SHELL ==================== */
 /* The row under the app header: sidebar and center side by side, filling
    whatever height the header leaves (shell-chrome-app-header-collapsible-
-   panels spec). min-height: 0 so the children scroll instead of the row. */
+   panels spec). min-height: 0 so the children scroll instead of the row.
+
+   VS Code's card layout (2026-09-14): the sidebar and the center are two
+   bordered, rounded cards floating on --bg-deep with a 6px gutter between
+   them and to the window edges; the header above and the status bar below
+   share that ground. This overturns compact-center-vs-code-density's
+   "no margin, radius or gap between the sidebar's border and the window
+   edge" — on purpose, per the user's screenshot. */
 #shell {
   flex: 1;
   min-height: 0;
   display: flex;
+  gap: 6px;
+  padding: 0 6px 6px;
+  background: var(--bg-deep);
 }
 
 /* ==================== SIDEBAR ==================== */
@@ -14,25 +24,15 @@
   min-width: 180px;
   max-width: 500px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-  border-right: 1px solid var(--border-subtle);
+  /* A card: border all round, rounded (see #shell). Not overflow: hidden —
+     the resize handle hangs 3px past the right edge. */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  /* Less on top than around: the app header above already draws the
-     window's top edge, so the sidebar's first row sits close to it. */
   padding: var(--space-sm) var(--space-lg) var(--space-lg);
   position: relative;
   flex-shrink: 0;
-}
-
-#sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 50%, var(--accent-glow) 100%);
-  pointer-events: none;
 }
 
 /* Sidebar resize handle */
@@ -439,7 +439,11 @@ body.sidebar-resizing * {
   flex: 1;
   display: flex;
   overflow: hidden;
-  background: var(--bg-deep);
+  background: var(--bg-primary);
+  /* The center card (see #shell). overflow: hidden clips the terminal
+     container and the Specs / Tasks panels to the rounded corners. */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 /* One flat surface from the sidebar's border to the window edge and from
