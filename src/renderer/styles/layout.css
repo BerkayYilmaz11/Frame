@@ -25,7 +25,7 @@
   max-width: 500px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   /* A card: border all round, rounded (see #shell). Not overflow: hidden —
-     the resize handle hangs 3px past the right edge. */
+     the resize handle sits in the gutter past the right edge. */
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   display: flex;
@@ -57,24 +57,23 @@
   border-right: none;
 }
 
-/* Sidebar resize handle */
+/* Sidebar resize handle: fills the 6px gutter between the sidebar card and
+   the center card (right: -7px = the card's 1px border + the gutter). A
+   vertical three-dot grip at mid-height says "drag me" at rest; while
+   hovered or dragging, a 2px accent line with rounded ends and an 8px inset
+   top and bottom replaces it. */
 #sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
+  right: -7px;
   width: 6px;
   height: 100%;
   cursor: col-resize;
   z-index: 100;
   background: transparent;
-  transition: background var(--transition-fast);
 }
 
-#sidebar-resize-handle:hover,
-#sidebar-resize-handle.dragging {
-  background: var(--accent-primary);
-}
-
+/* The grip: three 2px dots, 3px apart, centered. */
 #sidebar-resize-handle::before {
   content: '';
   position: absolute;
@@ -82,17 +81,38 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 2px;
-  height: 40px;
-  background: var(--border-default);
+  height: 14px;
+  background-image: radial-gradient(circle, var(--text-tertiary) 1px, transparent 1.2px);
+  background-size: 2px 5px;
+  background-repeat: repeat-y;
+  background-position: 0 0;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+/* The drag line. */
+#sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
   border-radius: 1px;
+  background: var(--accent-primary);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 #sidebar-resize-handle:hover::before,
 #sidebar-resize-handle.dragging::before {
+  opacity: 0;
+}
+
+#sidebar-resize-handle:hover::after,
+#sidebar-resize-handle.dragging::after {
   opacity: 1;
-  background: var(--accent-primary);
 }
 
 body.sidebar-resizing {
