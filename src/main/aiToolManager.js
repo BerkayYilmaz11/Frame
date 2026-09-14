@@ -166,9 +166,12 @@ function getActiveTool() {
 function setActiveTool(toolId) {
   const tools = getAvailableTools();
   if (tools[toolId]) {
+    // Re-picking the active tool (a click on the menu's checked radio) is not
+    // a selection.
+    const changed = config.activeTool !== toolId;
     config.activeTool = toolId;
     saveConfig();
-    telemetry.track('ai_tool_selected', { tool: toolId });
+    if (changed) telemetry.track('ai_tool_selected', { tool: toolId });
 
     // Notify renderer about the change
     if (mainWindow && !mainWindow.isDestroyed()) {

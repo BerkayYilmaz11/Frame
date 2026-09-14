@@ -163,11 +163,103 @@ function createRateLimiter(options) {
   };
 }
 
+// ─── Spec lifecycle ───────────────────────────────────────
+//
+// `spec_created` and `spec_phase_advanced` are read off the specs watcher's
+// pushes rather than off the code paths that write status.json: agents write
+// that file themselves and Frame's reconcile rewrites it on its own, so no
+// single write path sees a spec being carried through the workflow.
+//
+// A push can show a spec.md or a later phase that nobody produced just now —
+// a git checkout or pull, a rename, a project the user was away from. Two
+// rules keep those out:
+//   • a slug is judged against every look this run has had at the project, so
+//     a spec that leaves and comes back (branch flip-flop, delete + rewrite)
+//     is not counted again, and a phase only counts past the furthest one seen;
+//   • a slug that arrives already authored, or a phase that arrives with no
+//     earlier look at it, only counts when its own timestamp says it happened
+//     since the previous look. A timestamp Frame cannot read counts — the
+//     event is then as good as the file, which is the most it can be.
+
+const SPEC_PHASES = EVENTS.spec_phase_advanced.phase;
+// Agents stamp these fields themselves, a little before the file lands.
+const SPEC_STAMP_SKEW_MS = 10 * 60 * 1000;
+
+function stampedSince(stamp, since) {
+  // A date without a time ("2026-09-14") parses as midnight and would read as
+  // old; it says nothing about when, so it is treated as unreadable.
+  if (typeof stamp !== 'string' || !stamp.includes('T')) return true;
+  const at = Date.parse(stamp);
+  return Number.isNaN(at) || at >= since;
+}
+
+/**
+ * Compare one push of a project's specs with this run's earlier looks at it.
+ *
+ * @param {null|{seen: Map<string, number>, authored: Set<string>, at: number}} previous
+ *   the state this function returned last time for the same project, or null
+ *   on the first look (which only seeds: nothing on disk is backfilled)
+ * @param {Array<{slug: string, phase: string|null, authored: boolean,
+ *   created_at?: string|null, last_phase_at?: string|null}>} specs
+ * @param {number} now
+ * @returns {{ state: object, created: string[], advanced: Array<{slug: string, phase: string}> }}
+ */
+function diffSpecLifecycle(previous, specs, now) {
+  const state = {
+    seen: new Map(previous ? previous.seen : []),
+    authored: new Set(previous ? previous.authored : []),
+    at: now
+  };
+  const created = [];
+  const advanced = [];
+  const since = previous ? previous.at - SPEC_STAMP_SKEW_MS : null;
+
+  for (const spec of specs) {
+    const phaseIdx = SPEC_PHASES.indexOf(spec.phase);
+    const known = state.seen.has(spec.slug);
+
+    if (spec.authored && !state.authored.has(spec.slug)) {
+      state.authored.add(spec.slug);
+      // A slug already seen without its spec.md is being authored right now.
+      if (previous && (known || stampedSince(spec.created_at, since))) created.push(spec.slug);
+    }
+
+    if (!known) {
+      state.seen.set(spec.slug, phaseIdx);
+      continue;
+    }
+    const furthest = state.seen.get(spec.slug);
+    if (phaseIdx <= furthest) continue;
+    state.seen.set(spec.slug, phaseIdx);
+    // A spec that never had a readable phase is not advancing out of one.
+    if (furthest >= 0 && stampedSince(spec.last_phase_at, since)) {
+      advanced.push({ slug: spec.slug, phase: spec.phase });
+    }
+  }
+  return { state, created, advanced };
+}
+
+/**
+ * Carry a renamed spec's history to its new slug, so the rename does not read
+ * as a spec appearing. Returns the state unchanged when it holds neither.
+ */
+function renameSpecLifecycle(state, oldSlug, newSlug) {
+  if (!state || oldSlug === newSlug) return state;
+  if (state.seen.has(oldSlug)) {
+    state.seen.set(newSlug, state.seen.get(oldSlug));
+    state.seen.delete(oldSlug);
+  }
+  if (state.authored.delete(oldSlug)) state.authored.add(newSlug);
+  return state;
+}
+
 module.exports = {
   EVENTS,
   normalizeTool,
   validateEvent,
   effectiveEnabled,
   createRateLimiter,
-  DEFAULT_RATE_LIMIT
+  DEFAULT_RATE_LIMIT,
+  diffSpecLifecycle,
+  renameSpecLifecycle
 };

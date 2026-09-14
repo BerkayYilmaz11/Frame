@@ -86,6 +86,23 @@ function setEnabled(enabled) {
 }
 
 /**
+ * Make a failed settings load's fail-closed state stick. Called right after
+ * userSettings loads.
+ *
+ * The in-memory flag alone does not hold: any later setting write (dismissing
+ * the telemetry notice, which reappears because its own flag was lost too)
+ * rewrites the file from an empty cache and clears the flag, and the corrupt
+ * file has already been moved aside, so the next launch reads "no file" as a
+ * fresh install. Either way telemetry came back on for someone who may have
+ * opted out. Writing the opt-out persists the only safe assumption; the user
+ * can turn it back on in Settings.
+ */
+function enforceFailClosed() {
+  if (!userSettings.loadFailed()) return;
+  userSettings.set(ENABLED_KEY, false);
+}
+
+/**
  * Effective enabled state. Default ON when the setting has never been
  * touched (opt-out semantics) — but fails CLOSED when the settings file
  * could not be loaded at all, so corruption can never silently re-enable
@@ -98,4 +115,4 @@ function isEnabled() {
   });
 }
 
-module.exports = { init, track, trackAppStarted, setEnabled, isEnabled };
+module.exports = { init, track, trackAppStarted, setEnabled, isEnabled, enforceFailClosed };
