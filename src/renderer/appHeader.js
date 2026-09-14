@@ -18,6 +18,11 @@
  *     theme.* commands and terminalManager depend on it there.
  *   - The update bell: hidden until UPDATE_AVAILABLE, click opens the release.
  *   - The default-agent select: aiToolSelector.mountSelector() populates it.
+ *   - The layout toggles. Click runs the registered command
+ *     (panel.toggleSidebar / dock.toggle) so the button, ⌘B / ⌘J, the View
+ *     menu and the palette share one path; the painted state comes from
+ *     sidebarResize.onChange / dock.onChange, never from the click itself,
+ *     so the buttons stay right whichever entry point moved the region.
  *
  * Start (#sidebar-agent-launch) and the project switcher keep their bindings
  * in index.js; they bind by id and the elements are simply there now.
@@ -25,8 +30,12 @@
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const { PanelLeft, PanelBottom, PanelRight } = require('lucide');
 const themes = require('./themes');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
+const sidebarResize = require('./sidebarResize');
+const dock = require('./dock');
+const commandRegistry = require('./commandRegistry');
 
 let initialized = false;
 
@@ -60,6 +69,39 @@ function initUpdateBell(root) {
   });
 }
 
+/** Paint one toggle: pressed state, title, icon. */
+function paintToggle(btn, { on, icon, label, shortcut }) {
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.title = `${on ? 'Hide' : 'Show'} ${label} (${shortcut})`;
+  btn.innerHTML = dock.lucideIcon(icon, 16);
+}
+
+function initLayoutToggles(root) {
+  const sidebarBtn = root.querySelector('#layout-toggle-sidebar');
+  const dockBtn = root.querySelector('#layout-toggle-dock');
+  if (!sidebarBtn || !dockBtn) return;
+
+  const paintSidebar = (visible) => paintToggle(sidebarBtn, {
+    on: visible, icon: PanelLeft, label: 'Sidebar', shortcut: '⌘B'
+  });
+  const paintDock = ({ open, position }) => paintToggle(dockBtn, {
+    on: open,
+    icon: position === 'right' ? PanelRight : PanelBottom,
+    label: 'Panel',
+    shortcut: '⌘J'
+  });
+
+  sidebarBtn.addEventListener('click', () => commandRegistry.runById('panel.toggleSidebar'));
+  dockBtn.addEventListener('click', () => commandRegistry.runById('dock.toggle'));
+
+  // Initial paint from the restored states, then follow every change.
+  paintSidebar(sidebarResize.isVisible());
+  paintDock({ open: dock.isOpen(), position: dock.position() });
+  sidebarResize.onChange(paintSidebar);
+  dock.onChange(paintDock);
+}
+
 function init() {
   if (initialized) return;
   const root = document.getElementById('app-header');
@@ -71,6 +113,7 @@ function init() {
 
   initTheme(root);
   initUpdateBell(root);
+  initLayoutToggles(root);
   // aiToolSelector.init() wires the select too, after awaiting
   // GET_AI_TOOL_CONFIG; this call leaves it populated and showing the active
   // tool whichever of the two runs second.

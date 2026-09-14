@@ -126,6 +126,15 @@
           <span>Start</span>
         </button>
       </div>
+      <!-- Layout toggles (VS Code's "toggle primary side bar" / "toggle
+           panel"): each shows its region's open state and flips it. They run
+           the registered commands (panel.toggleSidebar ⌘B, dock.toggle ⌘J),
+           so the shortcuts, the View menu, the palette and these buttons all
+           agree; appHeader.js paints them from sidebarResize / dock. Icons
+           are filled in by appHeader.js (lucide PanelLeft / PanelBottom /
+           PanelRight). -->
+      <button type="button" id="layout-toggle-sidebar" class="layout-toggle" tabindex="-1" title="Toggle Sidebar (⌘B)" aria-label="Toggle Sidebar" aria-pressed="true"></button>
+      <button type="button" id="layout-toggle-dock" class="layout-toggle" tabindex="-1" title="Toggle Panel (⌘J)" aria-label="Toggle Panel" aria-pressed="false"></button>
       <!-- Update bell: hidden until UPDATE_AVAILABLE arrives (appHeader.js). -->
       <button class="btn-update-notify" title="Check for updates" style="display:none;position:relative;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex-shrink:0"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>

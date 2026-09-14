@@ -4949,25 +4949,46 @@
       "depends": [
         "electron",
         "shared/ipcChannels",
+        "lucide",
         "themes",
         "terminalTabBar",
+        "sidebarResize",
+        "dock",
+        "commandRegistry",
         "aiToolSelector"
       ],
       "functions": {
         "initTheme": {
-          "line": 33,
+          "line": 42,
           "params": [
             "root"
           ]
         },
         "initUpdateBell": {
-          "line": 43,
+          "line": 52,
+          "params": [
+            "root"
+          ]
+        },
+        "paintToggle": {
+          "line": 73,
+          "params": [
+            "btn",
+            "{ on",
+            "icon",
+            "label",
+            "shortcut }"
+          ],
+          "purpose": "Paint one toggle: pressed state, title, icon."
+        },
+        "initLayoutToggles": {
+          "line": 80,
           "params": [
             "root"
           ]
         },
         "init": {
-          "line": 63
+          "line": 105
         }
       },
       "ipc": {

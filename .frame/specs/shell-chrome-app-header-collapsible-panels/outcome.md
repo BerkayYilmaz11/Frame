@@ -54,3 +54,11 @@ _Captured: 2026-09-14T15:29:36Z · 1 file change(s)_
 
 ---
 
+## T08 — Layout toggles in the header
+
+Added #layout-toggle-sidebar and #layout-toggle-dock (button.layout-toggle) between Start and the theme button in index.html; in appHeader.js a new initLayoutToggles() runs commandRegistry.runById('panel.toggleSidebar' / 'dock.toggle') on click and paints .on, aria-pressed, a Hide/Show title and the icon (PanelLeft; PanelBottom or PanelRight by dock.position()) from sidebarResize.isVisible() / dock.isOpen() at init and on every sidebarResize.onChange / dock.onChange; .layout-toggle is styled in app-header.css as a 24px square with the status bar's accent-on-accent-subtle 'on' wash, written after the generic icon-button rule so it wins. Files: index.html, appHeader.js, app-header.css.
+
+_Captured: 2026-09-14T15:31:26Z · 3 file change(s)_
+
+---
+

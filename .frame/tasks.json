@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:29:36Z",
+  "lastUpdated": "2026-09-14T15:31:26Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7782,13 +7782,13 @@
       "title": "Add `#layout-toggle-sidebar` and `#layout-toggle-dock` (`button.layout-toggle`) between Start and the theme button in `index.html`; in `appHeader.js` wire click → `commandRegistry.runById('panel.toggleSidebar')` / `runById('dock.toggle')` and paint `.on`, `aria-pressed`, title and icon (`PanelLeft`; `PanelBottom` / `PanelRight` by `dock.position()`) from `sidebarResize.isVisible()` / `dock.isOpen()` at init and on every `sidebarResize.onChange` / `dock.onChange`; style `.layout-toggle` (24×24, `.dock-action-btn` look, `.on` accent) in `app-header.css`",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:31:26Z",
+      "completedAt": "2026-09-14T15:31:26Z"
     }
   ],
   "metadata": {

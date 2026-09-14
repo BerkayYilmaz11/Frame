@@ -427,3 +427,35 @@
 .ai-tool-picker:focus-within .ai-tool-picker-chevron {
   color: var(--text-secondary);
 }
+
+/* ─── Layout toggles ─── */
+/* The dock's action-button look (dock.css) and the status bar's "on" wash
+   (.sb-dock-btn.on): 24px squares, accent on accent-subtle while the region
+   is open. Written after the generic icon-button rule above so they win. */
+.app-header-right button.layout-toggle {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.app-header-right button.layout-toggle:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.app-header-right button.layout-toggle.on {
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.app-header-right button.layout-toggle.on:hover {
+  color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.app-header-right button.layout-toggle:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
