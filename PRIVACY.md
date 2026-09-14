@@ -18,7 +18,7 @@ The complete event list:
 | `orchestrator_opened` | — | the orchestrator view was opened |
 | `orchestration_run_started` | — | a parallel orchestration run began |
 | `plugin_toggled` | `action`: `enabled` / `disabled` | the plugin system is being used (never which plugin) |
-| `ai_tool_selected` | `tool`: `claude` / `codex` / `gemini` / `custom` | which AI tool is preferred |
+| `ai_tool_selected` | `tool`: `claude` / `codex` / `gemini` / `custom` | the active AI tool was switched, and to which |
 | `feedback_submitted` | `channel`: `github_issue` / `github_discussion` / `email` | which route carried an in-app feedback report — never its title, description, or the diagnostics shown in the form |
 | `error_occurred` | `category`: a fixed list of failure types (e.g. `agent_cli_not_found`, `orch_merge_failed`) | what breaks in the wild — counts only, never error messages, stack traces, or file paths |
 
@@ -40,7 +40,7 @@ This is enough for us to understand how many people use Frame, which features ge
 
 Open **Settings** (`Cmd+,` on macOS, `Ctrl+,` on Windows/Linux) and toggle **"Send anonymous usage stats"** off. The setting takes effect immediately and persists across launches.
 
-Your opt-out is durable: if the settings file on disk is ever corrupted beyond repair, telemetry **fails closed** — nothing is sent until your settings can be read again. Corruption can never silently re-enable telemetry.
+Your opt-out is durable: if the settings file on disk is ever corrupted beyond repair, telemetry **fails closed** — Frame records it as switched off, and nothing is sent until you turn it back on in Settings. Corruption can never silently re-enable telemetry.
 
 You can also dismiss the one-time notice banner at the top of the app — that doesn't change the setting itself, only hides the banner.
 

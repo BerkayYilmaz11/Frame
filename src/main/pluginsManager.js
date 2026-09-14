@@ -214,6 +214,17 @@ function togglePlugin(pluginId) {
 // the cause buried in console.log. Cleared on success.
 let marketplaceFailure = null;
 
+// The panel retries the clone every time it opens, so an offline user or one
+// without git would report the same failure on each open. Counted once until
+// a clone or pull actually succeeds again.
+let marketplaceFailureTracked = false;
+
+function trackMarketplaceFailure() {
+  if (marketplaceFailureTracked) return;
+  marketplaceFailureTracked = true;
+  telemetry.track('error_occurred', { category: 'plugin_marketplace_failed' });
+}
+
 /** Classify a git failure into an actionable reason */
 function classifyGitError(err) {
   const text = `${err.message || ''} ${String(err.stderr || '')}`;
@@ -238,7 +249,7 @@ async function ensureOfficialMarketplace() {
     await execGit(['--version'], { timeout: 5000 });
   } catch (err) {
     marketplaceFailure = { reason: 'git-missing', detail: 'git is not installed or not on PATH' };
-    telemetry.track('error_occurred', { category: 'plugin_marketplace_failed' });
+    trackMarketplaceFailure();
     console.error('Marketplace clone skipped:', marketplaceFailure.detail);
     return false;
   }
@@ -255,13 +266,14 @@ async function ensureOfficialMarketplace() {
       timeout: 60000
     });
     marketplaceFailure = null;
+    marketplaceFailureTracked = false;
     return true;
   } catch (err) {
     marketplaceFailure = {
       reason: classifyGitError(err),
       detail: String(err.stderr || err.message || '').split('\n')[0].slice(0, 200)
     };
-    telemetry.track('error_occurred', { category: 'plugin_marketplace_failed' });
+    trackMarketplaceFailure();
     console.error('Error cloning official marketplace:', err);
     return false;
   }
@@ -289,12 +301,13 @@ async function refreshMarketplace() {
       timeout: 30000
     });
     marketplaceFailure = null;
+    marketplaceFailureTracked = false;
     return { success: true };
   } catch (err) {
     console.error('Error refreshing marketplace:', err);
     const reason = classifyGitError(err);
     marketplaceFailure = { reason, detail: String(err.stderr || err.message || '').split('\n')[0].slice(0, 200) };
-    telemetry.track('error_occurred', { category: 'plugin_marketplace_failed' });
+    trackMarketplaceFailure();
     return { success: false, error: err.message, reason };
   }
 }
