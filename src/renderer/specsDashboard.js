@@ -46,7 +46,7 @@ let selectedSlug = null;
 let selectedSpec = null;   // full spec body (from GET_SPEC)
 let selectedTab = 'spec';
 let renderedSlug = null;    // slug whose detail HTML is currently in detailContentEl
-let scope = 'all';           // 'all' | 'active' | 'done'
+let scope = 'active';        // 'all' | 'active' | 'done' — opens on Active; the user can pick All
 let phase = null;            // narrows Active only; cleared by any scope pick
 // Done specs older than the project's done window sit behind a ghost tile
 // in All and Done. The reveal is session state on the open project: it

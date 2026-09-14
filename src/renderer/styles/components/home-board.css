@@ -23,8 +23,7 @@
 }
 
 /* ─── Home header ───────────────────────────────────────── */
-/* Home opens on a project and says which one: name, branch, path. Quiet
-   typography doing the work — the cards below are the busy part, and a header
+/* One greeting, nothing else — the cards below are the busy part, and a header
    competing with them would make the board harder to read, not richer. */
 
 .home-header {
@@ -45,40 +44,6 @@
   letter-spacing: -0.01em;
   color: var(--text-primary);
   white-space: nowrap;
-}
-
-/* Project and branch, one quiet line under the greeting. */
-.home-header-sub {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-top: 4px;
-}
-
-.home-header-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-header-branch {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  font-size: 11px;
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
-  border-radius: 99px;
-  padding: 2px 9px;
-}
-
-.home-header-branch svg {
-  opacity: 0.7;
 }
 
 /* ─── Home grid ─────────────────────────────────────────── */
