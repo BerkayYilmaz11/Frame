@@ -51,8 +51,8 @@ function lucideIcon(data, size = 18) {
  * (its light/dark family — see themes.js) is the whole contract:
  * terminalManager observes it for the xterm theme, CSS does the rest.
  * The choice persists under 'frame-theme' and is restored at boot by
- * TerminalTabBar._initTheme. Shared by the top-bar toggle and the
- * theme.* commands (View › Theme menu, palette).
+ * appHeader.init. Shared by the header's toggle and the theme.* commands
+ * (View › Theme menu, palette).
  */
 function applyTheme(name) {
   const next = themes.normalize(name);
@@ -90,7 +90,6 @@ class TerminalTabBar {
     this._render();
     this._createShellMenu();
     this._loadAvailableShells();
-    this._initTheme();
     this._watchLaneStatus();
   }
 
@@ -171,12 +170,6 @@ class TerminalTabBar {
     `;
 
     this.container.appendChild(this.element);
-    // The select exists only now. aiToolSelector.init() wires it too, but it
-    // does so after awaiting GET_AI_TOOL_CONFIG, so which of the two runs
-    // second is a race — whichever it is, this call leaves the dropdown
-    // populated and showing the active tool. Same reason the theme button is
-    // wired here rather than in index.js.
-    require('./aiToolSelector').mountSelector();
     this._setupEventHandlers();
   }
 
@@ -479,22 +472,6 @@ class TerminalTabBar {
     };
     return icons[shellId] || icons['sh'];
   }
-
-  /**
-   * Restore the saved theme at boot.
-   *
-   * The *toggle* now lives in the instrument rail, but the restore stays
-   * here because this runs during tab-bar construction — moving it to the
-   * rail's later init would flash the default theme first. Setting the
-   * attribute is the whole contract: terminalManager observes it and the
-   * rail reads it when it renders.
-   */
-  _initTheme() {
-    let saved = null;
-    try { saved = localStorage.getItem('frame-theme'); } catch (_) { /* non-fatal */ }
-    applyTheme(saved);
-  }
-
 }
 
 module.exports = { TerminalTabBar, applyTheme, currentTheme };

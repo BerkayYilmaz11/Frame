@@ -31,6 +31,7 @@ const projectStatusBadges = require('./projectStatusBadges');
 const orchestrator = require('./orchestrator');
 const editor = require('./editor');
 const sidebarResize = require('./sidebarResize');
+const appHeader = require('./appHeader');
 const aiToolSelector = require('./aiToolSelector');
 const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
@@ -209,6 +210,11 @@ function init() {
   sidebarResize.init(() => {
     terminal.fitTerminal();
   });
+
+  // The app header (shell-chrome-app-header-collapsible-panels spec): theme
+  // restore, the update bell, the agent select. After the sidebar and dock
+  // have restored their states so its layout toggles can read them.
+  appHeader.init();
 
   // Setup state change listeners
   state.onProjectChange((projectPath, previousPath) => {

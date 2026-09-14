@@ -4940,6 +4940,43 @@
         "emits": []
       }
     },
+    "renderer/appHeader": {
+      "file": "src/renderer/appHeader.js",
+      "description": "App Header — the one row across the top of the window",
+      "exports": [
+        "init"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "themes",
+        "terminalTabBar",
+        "aiToolSelector"
+      ],
+      "functions": {
+        "initTheme": {
+          "line": 33,
+          "params": [
+            "root"
+          ]
+        },
+        "initUpdateBell": {
+          "line": 43,
+          "params": [
+            "root"
+          ]
+        },
+        "init": {
+          "line": 63
+        }
+      },
+      "ipc": {
+        "listens": [
+          "UPDATE_AVAILABLE"
+        ],
+        "emits": []
+      }
+    },
     "renderer/appLoader": {
       "file": "src/renderer/appLoader.js",
       "description": "App Loader",
@@ -7462,6 +7499,7 @@
         "orchestrator",
         "editor",
         "sidebarResize",
+        "appHeader",
         "aiToolSelector",
         "commandRegistry",
         "commandPalette",
@@ -7491,34 +7529,34 @@
       ],
       "functions": {
         "init": {
-          "line": 59,
+          "line": 60,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 305,
+          "line": 311,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 398,
+          "line": 404,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 509,
+          "line": 515,
           "purpose": "Show update indicators when a new version is available:"
         },
         "revealSidebarTab": {
-          "line": 540,
+          "line": 546,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 566,
+          "line": 572,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 918,
+          "line": 924,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -11272,8 +11310,7 @@
         "lucide",
         "htmlUtils",
         "laneStatus",
-        "notify",
-        "aiToolSelector"
+        "notify"
       ],
       "functions": {
         "lucideIcon": {

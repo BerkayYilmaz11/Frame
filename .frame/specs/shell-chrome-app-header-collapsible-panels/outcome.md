@@ -30,3 +30,11 @@ _Captured: 2026-09-14T15:25:36Z · 2 file change(s)_
 
 ---
 
+## T05 — appHeader.js: theme, update bell, agent select
+
+Created src/renderer/appHeader.js with init(): restores the persisted theme from localStorage 'frame-theme' through terminalTabBar.applyTheme and wires #sidebar-theme-btn to the counterpart theme, wires .btn-update-notify (IPC.UPDATE_AVAILABLE shows it, click opens the release URL) and calls aiToolSelector.mountSelector() — all moved verbatim from terminalTabBar.js, which lost _initTheme, its constructor call and the mountSelector call. index.js requires the module and calls appHeader.init() right after sidebarResize.init(). Files: appHeader.js (new), terminalTabBar.js, index.js.
+
+_Captured: 2026-09-14T15:27:13Z · 3 file change(s)_
+
+---
+
