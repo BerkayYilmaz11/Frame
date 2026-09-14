@@ -17,8 +17,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  /* 6px at either end, the same inset as #shell's gutters below. */
-  padding: 0 6px;
+  padding: 0 12px;
   /* The window's ground, shared with #shell's gutters and the status bar:
      the cards below carry the borders, the chrome around them carries
      none (VS Code's card layout). */
