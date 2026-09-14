@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:15:54.638Z",
+  "lastUpdated": "2026-09-14T15:20:56Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7691,13 +7691,13 @@
       "title": "Add `<header id=\"app-header\">` with `.app-header-left` / `-center` / `-right` slots and a `#shell` wrapper around `#sidebar` + `#main-content` in `index.html`; move the Frame mark SVG, `#app-version` and `#update-dot` from `#sidebar-header` into the left slot and delete `#sidebar-header`",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:20:56Z",
+      "completedAt": "2026-09-14T15:20:56Z"
     },
     {
       "id": "task-spec-shell-chrome-app-header-collapsible-panels-T02",
