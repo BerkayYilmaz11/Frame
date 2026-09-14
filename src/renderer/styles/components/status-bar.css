@@ -172,7 +172,8 @@
   padding: 4px;
 }
 
-.sb-bp-group {
+.sb-bp-group,
+.sb-agents-group {
   padding: 6px 8px 2px;
   font-size: 10px;
   font-weight: 700;
@@ -181,7 +182,8 @@
   color: var(--text-tertiary);
 }
 
-.sb-bp-row {
+.sb-bp-row,
+.sb-agents-row {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -197,7 +199,9 @@
 }
 
 .sb-bp-row.highlight,
-.sb-bp-row:hover:not(.disabled) {
+.sb-bp-row:hover:not(.disabled),
+.sb-agents-row.highlight,
+.sb-agents-row:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
@@ -309,111 +313,150 @@
   outline-offset: 1px;
 }
 
-/* A hairline between the icon group and the agents indicator. */
-.sb-dock + .sb-agents {
-  padding-left: var(--space-md);
-  border-left: 1px solid var(--border-subtle);
-}
-
 /* ─── Agents in the other projects (D14) ─── */
-/* Quiet by default: it is the bar, not a toolbar. It gets loud only when
+/* The same shape as the branch button beside it: a glyph, a number, the
+   bar's hover wash. Quiet by default — it gets a coloured pill only when
    something is actually waiting on the user, in the same two colours every
-   other surface uses for those statuses. */
+   other surface uses for those statuses. The scope ("in 2 other projects")
+   lives in the tooltip and the popover's header, not in the bar. */
 
 .sb-agents {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 1px 4px;
   background: none;
   border: none;
-  padding: 0;
-  font: inherit;
-  color: var(--text-tertiary);
-  cursor: default;
-  white-space: nowrap;
-}
-
-.sb-agents:not(.empty) {
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  font: inherit;
+  white-space: nowrap;
   cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
-.sb-agents:not(.empty):hover {
+.sb-agents:hover,
+.sb-agents[aria-expanded="true"] {
   color: var(--text-primary);
+  background: var(--bg-hover);
 }
-
-.sb-agents.agent-approval { color: var(--error, #d45555); font-weight: 600; }
-.sb-agents.agent-input    { color: var(--warning, #e5a50a); font-weight: 600; }
 
 .sb-agents:focus-visible {
   outline: 1px solid var(--accent-primary);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
-/* Opens upward: the bar sits on the floor of the window. */
+/* Nothing elsewhere: the glyph alone, muted, and not a button to press. */
+.sb-agents.empty {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.sb-agents.empty:hover {
+  color: var(--text-tertiary);
+  background: none;
+}
+
+.sb-agents-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-agents-wait {
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 15px;
+}
+
+.sb-agents.agent-approval .sb-agents-wait {
+  color: var(--error, #d45555);
+  background: var(--error-subtle, rgba(212, 85, 85, 0.16));
+}
+
+.sb-agents.agent-input .sb-agents-wait {
+  color: var(--warning-ink, var(--warning, #e5a50a));
+  background: var(--warning-subtle, rgba(229, 205, 142, 0.16));
+}
+
+/* A hairline between the dock's icons and the agents button. The dock
+   carries it, so the button's hover wash stays its own rounded box. */
+.sb-dock:has(+ .sb-agents) {
+  padding-right: var(--space-md);
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* ─── The agents popover ─── */
+/* The branch picker's surface, opening upward from the same slot: the two
+   popovers share their box, group labels and rows (the selectors above list
+   both), so the bar speaks one popover language. */
 .sb-agents-menu {
-  display: none;
   position: absolute;
   left: 0;
   bottom: 100%;
   margin-bottom: 6px;
-  min-width: 240px;
-  max-width: 340px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 4px;
+  width: 340px;
+  max-width: calc(100vw - 2 * var(--space-md));
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
-  z-index: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+  outline: none;
+  z-index: 2;
 }
 
-.sb-agents-menu.open {
-  display: block;
+.sb-agents-menu[hidden] {
+  display: none;
 }
 
-/* A forgiving close area: the gap between the trigger and the menu is bridged
-   so the pointer never crosses dead space on its way up. */
-.sb-agents-menu::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 8px;
+/* Where the branch picker has its filter: the scope, said once. */
+.sb-agents-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 
-.sb-agents-group + .sb-agents-group {
-  margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border-subtle);
+.sb-agents-head-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
-.sb-agents-project {
-  padding: 4px 8px 2px;
+.sb-agents-head-meta {
+  flex-shrink: 0;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--text-tertiary);
 }
 
-.sb-agents-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  color: var(--text-secondary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+.sb-agents-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
 }
 
-.sb-agents-row:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+.sb-agents-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sb-agents-group-count {
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-muted);
 }
 
 .sb-agents-row-name {
@@ -426,6 +469,10 @@
 
 .sb-agents-row-status {
   flex-shrink: 0;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 10px;
   color: var(--text-tertiary);
 }

@@ -21,12 +21,13 @@
  * repeating them here would earn the obvious "I have 5 agents, why does it
  * say 2?". The label says its scope out loud for the same reason.
  *
- * Three states — none (a quiet hint that teaches what the slot is), some with
- * nothing blocked (a calm count), and something waiting (prominent). Hover
- * opens the menu, a click acts: the bar's own idiom, the same one the usage
- * meters follow. The menu opens upward because the bar is at the foot of the
- * window, with an open delay and a forgiving close so crossing it by accident
- * costs nothing.
+ * Three states — none (a muted glyph, the tooltip says what the slot is),
+ * some with nothing blocked (a calm count), and something waiting (a
+ * coloured pill with the waiting count). The indicator is a button in the
+ * same shape as the branch button next to it, and a click opens a popover
+ * above it in the branch picker's idiom — same surface, same grouped rows,
+ * arrows/Enter/Escape, outside click closes — so the bar has one popover
+ * language, not two.
  */
 
 const { ipcRenderer } = require('electron');
@@ -39,7 +40,7 @@ const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
-const { GitBranch } = require('lucide');
+const { GitBranch, Bot } = require('lucide');
 const branchPicker = require('./statusBar/branchPicker');
 const githubPanel = require('./githubPanel');
 
@@ -56,18 +57,14 @@ const DOCK_ICONS = [
   { tab: 'activity', command: 'dock.activity', label: 'Activity' }
 ].map((icon) => ({ ...icon, shortcut: dockState.TAB_SHORTCUTS[icon.tab] || '' }));
 
-// A hover menu needs both: long enough that a pointer crossing the slot does
-// not open it, forgiving enough that reaching the menu never loses it.
-const MENU_OPEN_MS = 180;
-const MENU_CLOSE_MS = 320;
-
 let barEl = null;
 let slotEl = null;
 let branchEl = null;
 let indicatorEl = null;
 let menuEl = null;
-let openTimer = null;
-let closeTimer = null;
+let menuOpen = false;
+let menuRows = [];        // the popover's rows, in DOM order, for the keyboard
+let menuHighlight = -1;
 let lastProjects = [];
 
 function init() {
@@ -116,7 +113,7 @@ function _buildBranch() {
   branchPicker.init({
     anchorEl: branchEl,
     slotEl: slot,
-    onOpen: () => _closeMenu(true),
+    onOpen: () => _closeMenu(),
     onManage: () => _manageBranches()
   });
   branchEl.addEventListener('click', () => branchPicker.toggle());
@@ -221,22 +218,37 @@ function _buildAgentSlot() {
   indicatorEl = document.createElement('button');
   indicatorEl.type = 'button';
   indicatorEl.className = 'sb-agents';
+  indicatorEl.setAttribute('aria-haspopup', 'dialog');
+  indicatorEl.setAttribute('aria-expanded', 'false');
   slotEl.appendChild(indicatorEl);
 
   menuEl = document.createElement('div');
   menuEl.className = 'sb-agents-menu';
+  menuEl.hidden = true;
+  menuEl.tabIndex = -1;
+  menuEl.setAttribute('role', 'dialog');
+  menuEl.setAttribute('aria-label', 'Agents in other projects');
   slotEl.appendChild(menuEl);
 
-  // Hover opens, a click acts. Both the trigger and the menu keep it open,
-  // so the pointer can travel between them.
-  [indicatorEl, menuEl].forEach((el) => {
-    el.addEventListener('mouseenter', _scheduleOpen);
-    el.addEventListener('mouseleave', _scheduleClose);
+  // Click toggles, like the branch button. Outside mousedown closes, the
+  // popover's own clicks stay inside — the branch picker's wiring.
+  indicatorEl.addEventListener('click', _toggleMenu);
+  menuEl.addEventListener('mousedown', (e) => e.stopPropagation());
+  menuEl.addEventListener('keydown', _onMenuKeydown);
+  menuEl.addEventListener('click', (e) => {
+    const row = e.target.closest('.sb-agents-row');
+    if (row) _activateRow(row);
   });
-  indicatorEl.addEventListener('focus', _openMenu);
-  indicatorEl.addEventListener('click', _openMenu);
-  slotEl.addEventListener('focusout', (e) => {
-    if (!slotEl.contains(e.relatedTarget)) _closeMenu();
+  menuEl.addEventListener('mousemove', (e) => {
+    const row = e.target.closest('.sb-agents-row');
+    if (!row) return;
+    const idx = menuRows.indexOf(row);
+    if (idx !== menuHighlight) { menuHighlight = idx; _paintMenuHighlight(); }
+  });
+  document.addEventListener('mousedown', (e) => {
+    if (!menuOpen) return;
+    if (menuEl.contains(e.target) || indicatorEl.contains(e.target)) return;
+    _closeMenu();
   });
 
   _renderAgents();
@@ -292,54 +304,95 @@ function _renderAgents() {
   const approval = lastProjects.reduce((n, p) => n + p.approval, 0);
   const input = lastProjects.reduce((n, p) => n + p.input, 0);
   const waiting = approval + input;
+  const icon = dock.lucideIcon(Bot, 12);
 
   if (total === 0) {
     indicatorEl.className = 'sb-agents empty';
-    indicatorEl.textContent = 'No agents in other projects';
-    indicatorEl.title = 'Agents running in your other projects show up here, so '
-      + 'one waiting on you somewhere else cannot go unnoticed. This project\'s '
-      + 'own agents are in the sidebar and in Overview.';
-    _closeMenu(true);
+    indicatorEl.innerHTML = icon;
+    indicatorEl.title = 'No agents in other projects. Agents running in your '
+      + 'other projects show up here, so one waiting on you somewhere else '
+      + 'cannot go unnoticed.';
+    _closeMenu();
     return;
   }
 
+  // The scope ("in 2 other projects") lives in the tooltip and the popover's
+  // header; the bar itself shows the glyph, the count and — only when
+  // something is actually waiting — a pill in that status's colour.
   const attention = approval ? 'agent-approval' : input ? 'agent-input' : null;
-  const mark = attention ? laneStatus.attentionMark(attention) : '';
   indicatorEl.className = `sb-agents${attention ? ` ${attention}` : ''}`;
   const scope = `in ${lastProjects.length} other project${lastProjects.length === 1 ? '' : 's'}`;
-  indicatorEl.textContent = waiting
-    ? `◆ ${total} agent${total === 1 ? '' : 's'} ${scope} ${mark} ${waiting} waiting`
-    : `◆ ${total} agent${total === 1 ? '' : 's'} ${scope}`;
+  indicatorEl.innerHTML = `${icon}<span class="sb-agents-count">${total}</span>`
+    + (waiting ? `<span class="sb-agents-wait">${waiting} waiting</span>` : '');
   indicatorEl.title = [
     `${total} agent${total === 1 ? '' : 's'} ${scope} — not this one`,
     approval ? `${approval} needs approval` : null,
     input ? `${input} awaiting input` : null,
-    'Hover for the list'
+    'Click for the list'
   ].filter(Boolean).join(' · ');
 
-  if (menuEl.classList.contains('open')) _renderMenu();
+  if (menuOpen) _renderMenu();
 }
 
 function _renderMenu() {
-  menuEl.innerHTML = lastProjects.map(p => `
-    <div class="sb-agents-group">
-      <div class="sb-agents-project">${escapeHtml(p.name)}</div>
-      ${p.agents.map(a => `
-        <button type="button" class="sb-agents-row ${a.status}" data-id="${escapeHtml(a.id)}" data-path="${escapeHtml(p.path)}">
-          <span class="lane-status-dot ${a.status}"></span>
-          <span class="sb-agents-row-name">${escapeHtml(a.terminalName)}</span>
-          <span class="sb-agents-row-status">${escapeHtml(laneStatus.statusLabel(a.status, { agentName: a.agentName, short: true }))}</span>
-        </button>
-      `).join('')}
+  const total = lastProjects.reduce((n, p) => n + p.agents.length, 0);
+  const waiting = lastProjects.reduce((n, p) => n + p.approval + p.input, 0);
+  const meta = [`${total} agent${total === 1 ? '' : 's'}`, waiting ? `${waiting} waiting` : null].filter(Boolean).join(' · ');
+  menuEl.innerHTML = `
+    <div class="sb-agents-head">
+      <span class="sb-agents-head-title">Other project${lastProjects.length === 1 ? '' : 's'}</span>
+      <span class="sb-agents-head-meta">${meta}</span>
     </div>
-  `).join('');
+    <div class="sb-agents-list" role="listbox">
+      ${lastProjects.map(p => `
+        <div class="sb-agents-group">${escapeHtml(p.name)}<span class="sb-agents-group-count">${p.agents.length}</span></div>
+        ${p.agents.map(a => `
+          <button type="button" class="sb-agents-row ${a.status}" role="option" data-id="${escapeHtml(a.id)}" data-path="${escapeHtml(p.path)}">
+            <span class="lane-status-dot ${a.status}"></span>
+            <span class="sb-agents-row-name">${escapeHtml(a.terminalName)}</span>
+            <span class="sb-agents-row-status">${escapeHtml(laneStatus.statusLabel(a.status, { agentName: a.agentName, short: true }))}</span>
+          </button>
+        `).join('')}
+      `).join('')}
+    </div>`;
 
-  menuEl.querySelectorAll('.sb-agents-row').forEach((row) => {
-    row.addEventListener('click', () => {
-      _closeMenu(true);
-      _focus(row.dataset.path, row.dataset.id);
-    });
+  menuRows = [...menuEl.querySelectorAll('.sb-agents-row')];
+  if (menuHighlight >= menuRows.length) menuHighlight = menuRows.length - 1;
+  _paintMenuHighlight();
+}
+
+function _paintMenuHighlight() {
+  menuRows.forEach((row, i) => {
+    const on = i === menuHighlight;
+    row.classList.toggle('highlight', on);
+    row.setAttribute('aria-selected', String(on));
+    if (on) row.scrollIntoView({ block: 'nearest' });
   });
+}
+
+function _activateRow(row) {
+  _closeMenu();
+  _focus(row.dataset.path, row.dataset.id);
+}
+
+function _onMenuKeydown(e) {
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    _closeMenu({ refocus: true });
+    return;
+  }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!menuRows.length) return;
+    const step = e.key === 'ArrowDown' ? 1 : -1;
+    menuHighlight = (menuHighlight + step + menuRows.length) % menuRows.length;
+    _paintMenuHighlight();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (menuHighlight >= 0 && menuRows[menuHighlight]) _activateRow(menuRows[menuHighlight]);
+  }
 }
 
 // A click switches project when the agent lives elsewhere, then opens its
@@ -354,32 +407,34 @@ function _focus(projectPath, terminalId) {
   } catch (_) { /* terminal UI not initialized yet */ }
 }
 
-function _scheduleOpen() {
-  clearTimeout(closeTimer);
-  clearTimeout(openTimer);
-  openTimer = setTimeout(_openMenu, MENU_OPEN_MS);
-}
-
-function _scheduleClose() {
-  clearTimeout(openTimer);
-  clearTimeout(closeTimer);
-  closeTimer = setTimeout(_closeMenu, MENU_CLOSE_MS);
+function _toggleMenu() {
+  if (menuOpen) _closeMenu(); else _openMenu();
 }
 
 function _openMenu() {
-  clearTimeout(openTimer);
-  clearTimeout(closeTimer);
-  if (!menuEl || lastProjects.length === 0) return;
+  if (!menuEl || menuOpen || lastProjects.length === 0) return;
   // One popover in the bar at a time (status-bar-branch-picker C2).
   branchPicker.close();
+  menuOpen = true;
+  menuHighlight = 0;
   _renderMenu();
-  menuEl.classList.add('open');
+  // Under its own button, not the slot's left edge (the branch picker's
+  // anchor is the first thing in the slot; this one is the last).
+  menuEl.style.left = `${indicatorEl.offsetLeft}px`;
+  menuEl.hidden = false;
+  indicatorEl.setAttribute('aria-expanded', 'true');
+  menuEl.focus();
 }
 
-function _closeMenu(immediate = false) {
-  clearTimeout(openTimer);
-  if (immediate) clearTimeout(closeTimer);
-  if (menuEl) menuEl.classList.remove('open');
+function _closeMenu({ refocus = false } = {}) {
+  if (!menuEl || !menuOpen) return;
+  menuOpen = false;
+  menuRows = [];
+  menuHighlight = -1;
+  menuEl.hidden = true;
+  menuEl.innerHTML = '';
+  indicatorEl.setAttribute('aria-expanded', 'false');
+  if (refocus) indicatorEl.focus();
 }
 
 /** Paint both meters from a usage push. */

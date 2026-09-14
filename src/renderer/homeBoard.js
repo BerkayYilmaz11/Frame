@@ -26,7 +26,7 @@
  * and `homeData` holds the single subscription set feeding every widget.
  */
 
-const { FolderOpen, GitBranch } = require('lucide');
+const { FolderOpen } = require('lucide');
 const { escapeHtml } = require('./htmlUtils');
 const notify = require('./notify');
 const homeData = require('./home/homeData');
@@ -66,17 +66,8 @@ class HomeBoard {
     this._loadAvailableShells();
 
     // Every subscription the board used to install itself now lives in
-    // homeData, behind its own init-once guard (C1, C2). What is left here is
-    // the one source the board reads directly: the header's branch.
+    // homeData, behind its own init-once guard (C1, C2).
     homeData.init();
-    if (!HomeBoard._dataListenersBound) {
-      HomeBoard._dataListenersBound = true;
-      homeData.subscribe('git', () => {
-        const b = HomeBoard._instance;
-        if (b && b._isVisible()) b._updateHeader();
-      });
-    }
-    HomeBoard._instance = this;
   }
 
   // ─── Mount / update (C2) ────────────────────────────────
@@ -132,7 +123,6 @@ class HomeBoard {
     homeData.setHostState(state);
     if (!this.gridEl) return;
 
-    this._updateHeader();
     this._updateWidgets();
   }
 
@@ -146,12 +136,7 @@ class HomeBoard {
 
   // ─── Header ─────────────────────────────────────────────
 
-  /**
-   * Home greets, then says which project it opened on: the name and the
-   * branch it is on sit under the title as one quiet line. The path is not
-   * repeated here — the sidebar already carries it, and Home is not where
-   * you go to check a directory.
-   */
+  /** Home greets — the project and its branch already live in the sidebar. */
   _buildHeader() {
     const el = document.createElement('div');
     el.className = 'home-header';
@@ -159,28 +144,8 @@ class HomeBoard {
       <div class="home-header-top">
         <h1 class="home-header-title">Welcome to Frame!</h1>
       </div>
-      <div class="home-header-sub">
-        <span class="home-header-name"></span>
-        <span class="home-header-branch">${lucideIcon(GitBranch, 12)}<span class="home-header-branch-name"></span></span>
-      </div>
     `;
     return el;
-  }
-
-  _updateHeader() {
-    if (!this.headerEl) return;
-    const path = this._lastState && this._lastState.currentProjectPath;
-    if (!path) return;
-
-    this.headerEl.querySelector('.home-header-name').textContent = _projectName(path);
-
-    // The watcher reports per project — a branch from the project you just
-    // left is not this project's branch.
-    const git = homeData.get('git');
-    const branch = (git && git.projectPath === path) ? git.branch : null;
-    const chip = this.headerEl.querySelector('.home-header-branch');
-    chip.style.display = branch ? '' : 'none';
-    if (branch) this.headerEl.querySelector('.home-header-branch-name').textContent = branch;
   }
 
   // ─── Widgets ────────────────────────────────────────────
@@ -376,10 +341,6 @@ class HomeBoard {
     if (this.shellMenu) this.shellMenu.classList.remove('visible');
   }
 
-}
-
-function _projectName(p) {
-  return p.split(/[\\/]/).filter(Boolean).pop() || p;
 }
 
 module.exports = { HomeBoard };
