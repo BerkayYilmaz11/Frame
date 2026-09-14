@@ -78,7 +78,25 @@
         aria-label="Update available"
       ></button>
     </div>
-    <div class="app-header-center"></div>
+    <!-- Current-project switcher: the one project selector, in the
+         header's center (VS Code's command-center spot) so it stays
+         reachable while the sidebar is collapsed. Everything on both sides
+         — Files / Changes / GitHub on the rail, Work / Context in the
+         panel, the center — is about the project chosen here. -->
+    <div class="app-header-center">
+      <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+        <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+          <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+          </svg>
+          <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+          <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+      </div>
+    </div>
     <div class="app-header-right"></div>
   </header>
 
@@ -108,23 +126,6 @@
         <span>.frame/tasks.json</span>
         <span>+ more</span>
       </div>
-    </div>
-
-    <!-- Current-project switcher: the one project selector. It sits above
-         the rail-and-panel split because every view on both sides — Files /
-         Changes / GitHub on the rail, Work / Context in the panel — is
-         about the project chosen here. -->
-    <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
-      <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-        <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-        </svg>
-        <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-        <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
     </div>
 
     <!-- Sidebar body: activity rail + the active view's panel. The rail makes

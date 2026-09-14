@@ -14,3 +14,11 @@ _Captured: 2026-09-14T15:22:17Z · 4 file change(s)_
 
 ---
 
+## T03 — Project switcher into the header center
+
+Moved #sidebar-current-project-wrap (button, name, caret, #sidebar-project-menu — every id and class unchanged) out of the sidebar into .app-header-center in index.html, and moved the .sidebar-current-project* / .sidebar-project-menu* rules from layout.css into app-header.css: the wrap is now flex: 0 1 360px centered in the slot instead of a full-width sidebar row, the button is 26px tall to fit the 35px header, and the menu still hangs from the wrap (absolute, z-index 50) so it opens below the header over #shell. index.js:381-450 needed no change. Files: index.html, layout.css, app-header.css.
+
+_Captured: 2026-09-14T15:23:55Z · 3 file change(s)_
+
+---
+

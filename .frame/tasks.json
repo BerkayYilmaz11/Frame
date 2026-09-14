@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:22:18Z",
+  "lastUpdated": "2026-09-14T15:23:55Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7717,13 +7717,13 @@
       "title": "Move `#sidebar-current-project-wrap` (button + menu, ids unchanged) into `.app-header-center` in `index.html`; move the `.sidebar-current-project*` and `.sidebar-project-menu*` rules from `layout.css` into `app-header.css`, replacing `width: 100%` with a centered `max-width: 360px` clamp and anchoring the menu below the header row",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:23:55Z",
+      "completedAt": "2026-09-14T15:23:55Z"
     },
     {
       "id": "task-spec-shell-chrome-app-header-collapsible-panels-T04",

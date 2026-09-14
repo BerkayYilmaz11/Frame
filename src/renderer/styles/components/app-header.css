@@ -95,3 +95,154 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
 }
+
+/* ─── Current-project switcher ─── */
+/* The one project selector, in the header's center. Class names kept from
+   its sidebar days (index.js binds them); only the box changed: a clamped
+   width centered in the slot instead of a full-width sidebar row, and the
+   menu anchored under the header row. */
+.sidebar-current-project-wrap {
+  position: relative;
+  flex: 0 1 360px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.sidebar-current-project {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 26px;
+  padding: 0 var(--space-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-current-project:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.sidebar-current-project-icon {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.sidebar-current-project-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-current-project-caret {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-current-project[aria-expanded="true"] .sidebar-current-project-caret {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu of projects to switch to. */
+.sidebar-project-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-project-menu[hidden] {
+  display: none;
+}
+
+.sidebar-project-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px var(--space-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-project-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-project-menu-item.active {
+  color: var(--accent-primary);
+}
+
+.sidebar-project-menu-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-project-menu-item-check {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.sidebar-project-menu-tag {
+  flex-shrink: 0;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--bg-deep);
+  background: var(--accent-primary);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.sidebar-project-menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border-subtle);
+}
+
+.sidebar-project-menu-add {
+  color: var(--text-tertiary);
+}
+
+.sidebar-project-menu-empty {
+  padding: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
