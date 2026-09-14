@@ -1,0 +1,97 @@
+/* ==================== APP HEADER ==================== */
+/* One row across the whole window, above the sidebar and the center
+   (shell-chrome-app-header-collapsible-panels spec). The same 35px as the
+   center's strip (.terminal-tab-bar), so the sidebar's first row and the
+   strip share a top edge; nothing taller than 32px belongs in it. Three
+   slots: the mark on the left, the current-project switcher in the middle,
+   the window-level controls and the layout toggles on the right.
+
+   position + z-index: the switcher's dropdown is absolutely positioned
+   inside this row and has to float over #shell — so the row stacks above
+   the shell and never clips. */
+#app-header {
+  position: relative;
+  z-index: 60;
+  flex-shrink: 0;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 8px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.app-header-left,
+.app-header-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.app-header-left {
+  gap: var(--space-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.app-header-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.app-header-right {
+  gap: var(--space-xs);
+}
+
+/* Frame's mark: the four corner brackets of the app icon. No glow — the
+   shape carries the identity, a halo on a 15px glyph only muddies it. */
+.app-header-mark {
+  flex: none;
+  color: var(--accent-primary);
+  display: block;
+}
+
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
+}
+
+#app-version {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  letter-spacing: 0;
+}
+
+/* The update dot beside the brand: a pulsing point while a release waits. */
+.update-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: update-dot-pulse 2.2s ease-in-out infinite;
+  transition: transform 0.12s;
+}
+
+.update-dot:hover {
+  transform: scale(1.2);
+}
+
+@keyframes update-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

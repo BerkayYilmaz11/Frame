@@ -1,3 +1,13 @@
+/* ==================== SHELL ==================== */
+/* The row under the app header: sidebar and center side by side, filling
+   whatever height the header leaves (shell-chrome-app-header-collapsible-
+   panels spec). min-height: 0 so the children scroll instead of the row. */
+#shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
 /* ==================== SIDEBAR ==================== */
 #sidebar {
   width: 280px;
@@ -7,7 +17,9 @@
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  padding: var(--space-lg);
+  /* Less on top than around: the app header above already draws the
+     window's top edge, so the sidebar's first row sits close to it. */
+  padding: var(--space-sm) var(--space-lg) var(--space-lg);
   position: relative;
   flex-shrink: 0;
 }
@@ -68,58 +80,6 @@ body.sidebar-resizing {
 
 body.sidebar-resizing * {
   cursor: col-resize !important;
-}
-
-#sidebar-header {
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  /* Tightened so the Projects section lines up with the bottom edge of the
-     main panel's "Home" top bar (~62px from the top). */
-  margin-bottom: 16px;
-  padding: var(--space-xs) 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#app-version {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  letter-spacing: 0;
-}
-
-.sidebar-header-text {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.update-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
-  box-shadow: 0 0 8px var(--accent-glow);
-  animation: update-dot-pulse 2.2s ease-in-out infinite;
-  transition: transform 0.12s;
-}
-
-.update-dot:hover {
-  transform: scale(1.2);
-}
-
-@keyframes update-dot-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
 }
 
 /* Update banner — sidebar footer card, primary signal when an update is available */
@@ -194,15 +154,6 @@ body.sidebar-resizing * {
 @keyframes sidebar-update-pulse {
   0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
   50% { box-shadow: 0 0 14px 2px var(--accent-glow); }
-}
-
-/* The mark itself now stands where an anonymous green square used to — same
-   brackets as the app icon, so the window and the dock agree. No glow: the
-   shape carries the identity, and a halo on a 15px glyph only muddies it. */
-.sidebar-header-mark {
-  flex: none;
-  color: var(--accent-primary);
-  display: block;
 }
 
 /* Sidebar Tabs */

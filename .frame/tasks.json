@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-14T15:20:56Z",
+  "lastUpdated": "2026-09-14T15:22:18Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7704,13 +7704,13 @@
       "title": "Lay the shell out: `body { flex-direction: column }` in `src/renderer/styles/components/ui.css`; `#shell` (flex row, `flex:1`, `min-height:0`) and a trimmed `#sidebar` top padding in `src/renderer/styles/layout.css` with the `#sidebar-header` / `#app-version` / `.sidebar-header-*` rules and the \"~62px\" comment removed; create `src/renderer/styles/components/app-header.css` (35px row, `var(--bg-secondary)`, bottom hairline, `0 8px` padding, `position: relative; z-index: 60`, three slots) and import it from `src/renderer/styles/main.css`",
       "description": "",
       "source": "spec:shell-chrome-app-header-collapsible-panels:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: shell-chrome-app-header-collapsible-panels",
       "createdAt": "2026-09-14T15:15:54.637Z",
-      "updatedAt": "2026-09-14T15:15:54.637Z",
-      "completedAt": null
+      "updatedAt": "2026-09-14T15:22:18Z",
+      "completedAt": "2026-09-14T15:22:18Z"
     },
     {
       "id": "task-spec-shell-chrome-app-header-collapsible-panels-T03",

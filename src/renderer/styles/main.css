@@ -62,6 +62,9 @@
 /* 13c. Status bar (foot of the window) */
 @import 'components/status-bar.css';
 
+/* 13c-i. App header (one row across the top of the window) */
+@import 'components/app-header.css';
+
 /* Hover labels for icon-only controls */
 @import 'components/tooltip.css';
 
