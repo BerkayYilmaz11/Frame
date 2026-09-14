@@ -3190,3 +3190,36 @@ fallback, full xterm tables); `npm test` 756 pass. Not opened in the running
 app during this session — worth a look at the four themes via View › Theme
 and the toggle, especially contrast of the green accent on VS Code's
 neutral greys.
+
+### [2026-09-14] Shell chrome — one app header, collapsible sidebar and dock
+
+**Context.** With five VS Code screenshots the user said Frame's UI "biraz
+sert duruyor, flexible değil": the work-context sidebar should close and open
+entirely (a feature beside resize), the bottom dock likewise from a button,
+those buttons belong in the header on the right as in VS Code, the top header
+should be one full-width piece (Frame logo left; agent picker, Start, collapse
+buttons, theme and notification bell right), and the right panel should keep
+an inner header of its own for Home, Terminals and the open spec tabs. Spec
+`shell-chrome-app-header-collapsible-panels`, planned and implemented guided
+on `feat/shell-chrome-app-header-collapsible-panels` (eight commits, `npm
+test` 756 pass after each).
+
+**Decisions.** The one open fork was the project switcher: with the sidebar's
+own header gone it moved to the **app header's center** (the user's choice,
+VS Code command-center position) rather than staying as the sidebar's first
+row — it must stay reachable while the sidebar is collapsed. This explicitly
+amends sidebar-project-section's "switcher above the rail-and-panel split";
+the rail's Projects view remains the project *list*. Silent decisions: the
+header is static markup in `index.html` with a thin `appHeader.js` (no boot
+flash, no bind-after-render race); `body` became a column with a `#shell`
+row; the header buttons run the registered commands (`panel.toggleSidebar`,
+`dock.toggle`) and paint from `sidebarResize.onChange` (new) / `dock.onChange`,
+never from their own click; collapsed sidebar = fully hidden; header 35px like
+the strip; no tests (DOM-coupled). Theme restore, the bell and
+`mountSelector()` moved from `terminalTabBar` to `appHeader.js`; the strip is
+navigation only.
+
+**Not verified visually in this session** — a full-screen capture caught
+the user's browser, not Frame, so the check was by build, test and the app's
+log. Worth a look: the switcher's width in the header center, the launcher's
+divider next to the toggles, and all four themes.
