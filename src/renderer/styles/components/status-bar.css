@@ -550,6 +550,11 @@
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
+/* display: flex above beats the UA [hidden] rule — restate it, as .sb-branch does. */
+.sb-zoom[hidden] {
+  display: none;
+}
+
 .sb-zoom:hover {
   color: var(--text-primary);
   background: var(--bg-hover);

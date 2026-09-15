@@ -56,7 +56,7 @@ _Captured: 2026-09-15 · 1 file change(s)_
 ---
 ## T09 — Show the zoom readout in the status bar
 
-Added `_buildZoom()` to `statusBar.js`: a `.sb-zoom` button before `#app-version`, hidden at step 0, showing the percentage, resetting through `view.zoomReset`, fed by `UI_ZOOM_GET` and `UI_ZOOM_CHANGED`; styled in `status-bar.css` like the version but with the bar's hover wash since it is clickable. The tooltip's shortcut comes from `commandRegistry.getById` with a `CmdOrCtrl+0` fallback, because the status bar can initialise before the commands are registered — a detail the plan did not anticipate.
+Added `_buildZoom()` to `statusBar.js`: a `.sb-zoom` button before `#app-version`, hidden at step 0, showing the percentage, resetting through `view.zoomReset`, fed by `UI_ZOOM_GET` and `UI_ZOOM_CHANGED`; styled in `status-bar.css` like the version but with the bar's hover wash since it is clickable. The tooltip's shortcut comes from `commandRegistry.getById` with a `CmdOrCtrl+0` fallback, because the status bar can initialise before the commands are registered — a detail the plan did not anticipate. The live pass then showed "100%" at step 0: `.sb-zoom`'s `display: flex` overrode the `hidden` attribute, fixed in a follow-up commit with `.sb-zoom[hidden] { display: none; }`, the pattern `.sb-branch` already uses.
 
 _Captured: 2026-09-15 · 2 file change(s)_
 
