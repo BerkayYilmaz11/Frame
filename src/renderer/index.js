@@ -31,11 +31,13 @@ const projectStatusBadges = require('./projectStatusBadges');
 const orchestrator = require('./orchestrator');
 const editor = require('./editor');
 const sidebarResize = require('./sidebarResize');
+const appHeader = require('./appHeader');
 const aiToolSelector = require('./aiToolSelector');
 const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
+const themes = require('./themes');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -208,6 +210,11 @@ function init() {
   sidebarResize.init(() => {
     terminal.fitTerminal();
   });
+
+  // The app header (shell-chrome-app-header-collapsible-panels spec): theme
+  // restore, the update bell, the agent select. After the sidebar and dock
+  // have restored their states so its layout toggles can read them.
+  appHeader.init();
 
   // Setup state change listeners
   state.onProjectChange((projectPath, previousPath) => {
@@ -498,15 +505,13 @@ function setupProjectSwitcher() {
 }
 
 /**
- * Show update indicators when a new version is available:
- * - Small pulsing dot in the sidebar header (peripheral signal)
- * - Sidebar footer banner with version + arrow (primary, click-to-act signal)
- *
- * Both are hidden when the user has dismissed that same version (Settings
- * → About → "Dismiss this version"). Both click open Settings → About.
+ * Show the sidebar's update banner (version + arrow, click-to-act) when a
+ * new version is available. Hidden when the user has dismissed that same
+ * version (Settings → About → "Dismiss this version"); click opens
+ * Settings → About. The header's bell (appHeader.js) is the other signal;
+ * the pulsing dot beside the mark was removed on 2026-09-14.
  */
 function setupUpdateDot() {
-  const dot = document.getElementById('update-dot');
   const banner = document.getElementById('sidebar-update-banner');
   const bannerVersionEl = document.getElementById('sidebar-update-banner-version');
 
@@ -517,16 +522,12 @@ function setupUpdateDot() {
       'dismissedUpdateVersion'
     );
     if (dismissed === info.latestVersion) return;
-    if (dot) dot.style.display = '';
     if (banner) {
       if (bannerVersionEl) bannerVersionEl.textContent = `v${info.latestVersion}`;
       banner.style.display = '';
     }
   });
 
-  if (dot) {
-    dot.addEventListener('click', () => frameSettingsModal.open());
-  }
   if (banner) {
     banner.addEventListener('click', () => frameSettingsModal.open());
   }
@@ -743,22 +744,19 @@ function registerCommands() {
   });
 
   // ---------- View: theme ----------
-  // Same contract as the top-bar toggle (terminalTabBar.applyTheme);
-  // these ids back the View › Theme submenu in src/main/menu.js.
-  r({
-    id: 'theme.light',
-    title: 'Theme: Light',
-    category: 'View',
-    when: () => currentTheme() !== 'light',
-    run: () => applyTheme('light')
-  });
-  r({
-    id: 'theme.dark',
-    title: 'Theme: Dark',
-    category: 'View',
-    when: () => currentTheme() !== 'dark',
-    run: () => applyTheme('dark')
-  });
+  // Same contract as the top-bar toggle (terminalTabBar.applyTheme); one
+  // command per registry entry, whose ids back the View › Theme submenu in
+  // src/main/menu.js.
+  for (const id of themes.THEME_IDS) {
+    const t = themes.THEMES[id];
+    r({
+      id: t.command,
+      title: `Theme: ${t.label}`,
+      category: 'View',
+      when: () => currentTheme() !== id,
+      run: () => applyTheme(id)
+    });
+  }
 
   // ---------- Focus ----------
   r({

@@ -28,7 +28,7 @@ const laneStatus = require('./laneStatus');
 const { statusLabel, attentionMark, assignmentIcon, assignmentText } = laneStatus;
 const otherTerminalsRail = require('./otherTerminalsRail');
 const { escapeHtml } = require('./htmlUtils');
-const { Plus, Maximize2, Pencil, X } = require('lucide');
+const { Plus, Maximize2, Pencil, X, MousePointerClick } = require('lucide');
 
 const PREFS_KEY = 'frame-terminals-view';
 const GLOBAL_PROJECT_KEY = '__global__';
@@ -187,8 +187,16 @@ class TerminalsView {
     view.className = 'terminals-view';
     container.appendChild(view);
 
+    // No terminals: the same frame as the grid — layout bar on top, the grid
+    // below — with the ghost pane standing where the first terminal will be,
+    // so the empty view already looks like the view it is about to become.
     if (terminals.length === 0) {
-      view.appendChild(this._buildEmptyState());
+      view.appendChild(this._buildLayoutBar(prefs));
+      const grid = document.createElement('div');
+      grid.className = 'tv-grid';
+      grid.style.gridTemplateColumns = `repeat(${prefs.cols}, 1fr)`;
+      grid.appendChild(this._buildEmptyState());
+      view.appendChild(grid);
       return;
     }
 
@@ -416,15 +424,25 @@ class TerminalsView {
     return ghost;
   }
 
+  /**
+   * The first-terminal ghost: a dashed, terminal-sized cell in the grid that
+   * says what a terminal is and — with a small, repeating click cue — that
+   * the whole box is the button. The cue is a tour-guide pointer acting out
+   * a click every few seconds — the frame itself never blinks — and it is
+   * off under reduced motion.
+   */
   _buildEmptyState() {
-    const empty = document.createElement('div');
-    empty.className = 'tv-empty';
+    const empty = document.createElement('button');
+    empty.type = 'button';
+    empty.className = 'tv-ghost tv-empty';
+    empty.title = 'Open your first terminal';
     empty.innerHTML = `
-      <p class="tv-empty-title">${EMPTY_TITLE}</p>
-      <p class="tv-empty-hint">${EMPTY_HINT}</p>
-      <button class="tv-empty-cta">${lucideIcon(Plus, 14)}<span>Create your first terminal</span></button>
+      <span class="tv-empty-cursor" aria-hidden="true">${lucideIcon(MousePointerClick, 28)}</span>
+      <span class="tv-empty-title">${EMPTY_TITLE}</span>
+      <span class="tv-empty-hint">${EMPTY_HINT}</span>
+      <span class="tv-empty-cta">${lucideIcon(Plus, 12)}<span>Click here to open your first terminal</span></span>
     `;
-    empty.querySelector('.tv-empty-cta').addEventListener('click', () => {
+    empty.addEventListener('click', () => {
       if (this.callbacks.onNewTerminal) this.callbacks.onNewTerminal();
     });
     return empty;

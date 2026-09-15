@@ -154,7 +154,7 @@ function _renderBranch(branch) {
     branchPicker.close();
     return;
   }
-  branchEl.innerHTML = `${dock.lucideIcon(GitBranch, 12)}<span class="sb-branch-name">${escapeHtml(branch)}</span>`;
+  branchEl.innerHTML = `${dock.lucideIcon(GitBranch, 16)}<span class="sb-branch-name">${escapeHtml(branch)}</span>`;
   branchEl.title = `On branch ${branch} — click to switch`;
   branchEl.hidden = false;
 }
@@ -186,7 +186,7 @@ function _buildDockIcons() {
     btn.setAttribute('aria-label', label);
     // Opens upward: the bar sits on the floor of the window.
     tooltip.attach(btn, shortcut ? `${label} (${formatShortcut(shortcut)})` : label);
-    btn.innerHTML = entry ? dock.lucideIcon(entry.icon, 14) : '';
+    btn.innerHTML = entry ? dock.lucideIcon(entry.icon, 16) : '';
     btn.addEventListener('click', () => {
       if (!commandRegistry.runById(command)) {
         console.error(`statusBar: command '${command}' did not run`);
@@ -304,7 +304,7 @@ function _renderAgents() {
   const approval = lastProjects.reduce((n, p) => n + p.approval, 0);
   const input = lastProjects.reduce((n, p) => n + p.input, 0);
   const waiting = approval + input;
-  const icon = dock.lucideIcon(Bot, 12);
+  const icon = dock.lucideIcon(Bot, 16);
 
   if (total === 0) {
     indicatorEl.className = 'sb-agents empty';

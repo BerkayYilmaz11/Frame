@@ -18,9 +18,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  padding: 0 var(--space-md);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
+  /* 28px tall: 24px buttons with 2px above and below, 6px at either end. */
+  padding: 2px 6px;
+  /* Same ground as the app header and #shell's gutters — the cards above
+     carry the borders (VS Code's card layout, 2026-09-14). */
+  background: var(--bg-deep);
   font-size: 11px;
   color: var(--text-tertiary);
   /* Above the content, below modals/toasts (9000+). */
@@ -44,15 +46,16 @@
 /* ─── The current git branch ─── */
 /* VS Code's idiom: a small branch glyph and the name, first thing on the
    left. A button since status-bar-branch-picker: click opens the picker
-   above it. Same footprint as the old span — the bar stays 26px. */
+   above it. */
+/* Every glyph in the bar is 16px inside a 24px box: 4px of padding. */
 .sb-branch {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
   min-width: 0;
-  padding: 1px 4px;
-  margin-left: -4px;
+  height: 24px;
+  padding: 0 4px;
   background: none;
   border: none;
   border-radius: var(--radius-sm);
@@ -284,8 +287,8 @@
 }
 
 .sb-dock-btn {
-  width: 22px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,7 +328,8 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-  padding: 1px 4px;
+  height: 24px;
+  padding: 0 4px;
   background: none;
   border: none;
   border-radius: var(--radius-sm);
@@ -511,4 +515,16 @@
 
 #status-bar .usage-reset {
   color: var(--text-secondary);
+}
+
+/* ─── App version ─── */
+/* Last thing on the right, set apart from the usage meters by a hairline.
+   A readout, not a control (status-bar spec). */
+.sb-version {
+  flex-shrink: 0;
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

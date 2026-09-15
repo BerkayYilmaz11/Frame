@@ -2581,39 +2581,39 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 229
+          "line": 231
         },
         "buildAICommandsSubmenu": {
-          "line": 240,
+          "line": 242,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 289,
+          "line": 291,
           "purpose": "Build tool switcher submenu"
         },
         "sendCommand": {
-          "line": 308,
+          "line": 310,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 318,
+          "line": 320,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 327,
+          "line": 329,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 341,
+          "line": 343,
           "purpose": "Create and set application menu"
         }
       },
@@ -4996,6 +4996,64 @@
         "emits": []
       }
     },
+    "renderer/appHeader": {
+      "file": "src/renderer/appHeader.js",
+      "description": "App Header — the one row across the top of the window",
+      "exports": [
+        "init"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "lucide",
+        "themes",
+        "terminalTabBar",
+        "sidebarResize",
+        "dock",
+        "commandRegistry",
+        "aiToolSelector"
+      ],
+      "functions": {
+        "initTheme": {
+          "line": 42,
+          "params": [
+            "root"
+          ]
+        },
+        "initUpdateBell": {
+          "line": 52,
+          "params": [
+            "root"
+          ]
+        },
+        "paintToggle": {
+          "line": 73,
+          "params": [
+            "btn",
+            "{ on",
+            "icon",
+            "label",
+            "shortcut }"
+          ],
+          "purpose": "Paint one toggle: pressed state, title, icon."
+        },
+        "initLayoutToggles": {
+          "line": 80,
+          "params": [
+            "root"
+          ]
+        },
+        "init": {
+          "line": 105
+        }
+      },
+      "ipc": {
+        "listens": [
+          "UPDATE_AVAILABLE"
+        ],
+        "emits": []
+      }
+    },
     "renderer/appLoader": {
       "file": "src/renderer/appLoader.js",
       "description": "App Loader",
@@ -6314,13 +6372,13 @@
           "line": 254
         },
         "formatRelative": {
-          "line": 261,
+          "line": 260,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 272
+          "line": 271
         }
       },
       "ipc": {
@@ -7518,11 +7576,13 @@
         "orchestrator",
         "editor",
         "sidebarResize",
+        "appHeader",
         "aiToolSelector",
         "commandRegistry",
         "commandPalette",
         "cheatSheet",
         "terminalTabBar",
+        "themes",
         "welcomeOverlay",
         "appLoader",
         "projectSettingsModal",
@@ -7546,34 +7606,34 @@
       ],
       "functions": {
         "init": {
-          "line": 58,
+          "line": 60,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 304,
+          "line": 311,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 397,
+          "line": 404,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 508,
-          "purpose": "Show update indicators when a new version is available:"
+          "line": 514,
+          "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 539,
+          "line": 540,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 565,
+          "line": 566,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 920,
+          "line": 918,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -8834,17 +8894,17 @@
       ],
       "functions": {
         "appTheme": {
-          "line": 35,
-          "purpose": "The app's current theme. terminalTabBar always writes the attribute (it"
+          "line": 37,
+          "purpose": "The app's current scheme ('dark' | 'light'). The report shells carry two"
         },
         "setHost": {
-          "line": 55,
+          "line": 57,
           "params": [
             "h"
           ]
         },
         "open": {
-          "line": 78,
+          "line": 80,
           "params": [
             "ref",
             "opts"
@@ -8852,7 +8912,7 @@
           "purpose": "Open a spec's report."
         },
         "expectReport": {
-          "line": 121,
+          "line": 123,
           "params": [
             "slug",
             "kind"
@@ -8860,24 +8920,24 @@
           "purpose": "Say that a report is coming for a run this window just started, so it opens"
         },
         "_kindsOf": {
-          "line": 126,
+          "line": 128,
           "params": [
             "spec"
           ],
           "purpose": "Which report kinds a spec entry claims, as a Set."
         },
         "_onSpecDataPush": {
-          "line": 137,
+          "line": 139,
           "params": [
             "payload"
           ],
           "purpose": "Diff one SPEC_DATA payload against the last, and open what just appeared."
         },
         "createViewport": {
-          "line": 169
+          "line": 171
         },
         "_escape": {
-          "line": 386,
+          "line": 388,
           "params": [
             "text"
           ]
@@ -9082,68 +9142,80 @@
         "toggle",
         "hide",
         "show",
-        "isVisible"
+        "isVisible",
+        "onChange"
       ],
       "depends": [],
       "functions": {
+        "emitChange": {
+          "line": 30,
+          "purpose": "Tell every onChange listener whether the sidebar is now visible."
+        },
         "init": {
-          "line": 25,
+          "line": 41,
           "params": [
             "onResize"
           ],
           "purpose": "Initialize sidebar resize functionality"
         },
         "handleMouseDown": {
-          "line": 65,
+          "line": 82,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse down on resize handle"
         },
         "handleMouseMove": {
-          "line": 79,
+          "line": 96,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse move during resize"
         },
         "handleMouseUp": {
-          "line": 95,
+          "line": 112,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse up to finish resize"
         },
         "resetWidth": {
-          "line": 115,
+          "line": 132,
           "purpose": "Reset sidebar width to default"
         },
         "getWidth": {
-          "line": 128,
+          "line": 145,
           "purpose": "Get current sidebar width"
         },
         "setWidth": {
-          "line": 136,
+          "line": 153,
           "params": [
             "width"
           ],
           "purpose": "Set sidebar width programmatically"
         },
         "toggle": {
-          "line": 151,
+          "line": 168,
           "purpose": "Toggle sidebar visibility"
         },
         "hide": {
-          "line": 164,
-          "purpose": "Hide sidebar"
+          "line": 181,
+          "purpose": "Collapse the sidebar to its rail (the panel goes, the icons stay)."
         },
         "show": {
-          "line": 180,
-          "purpose": "Show sidebar"
+          "line": 199,
+          "purpose": "Bring the panel back at the width it had before collapsing."
         },
         "isVisible": {
-          "line": 196,
+          "line": 216,
           "purpose": "Check if sidebar is hidden"
+        },
+        "onChange": {
+          "line": 226,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Follow the sidebar: fn(visible) after every hide / show, whichever entry"
         }
       }
     },
@@ -11279,21 +11351,22 @@
         "xterm",
         "xterm-addon-fit",
         "shared/ipcChannels",
-        "terminalInput"
+        "terminalInput",
+        "themes"
       ],
       "functions": {
         "getTerminalTheme": {
-          "line": 13,
-          "purpose": "Terminal theme based on current app theme"
+          "line": 14,
+          "purpose": "Terminal theme for the current app theme (themes.js owns the palettes)."
         },
         "escapePathForShell": {
-          "line": 75,
+          "line": 32,
           "params": [
             "p"
           ]
         },
         "installGlobalDropGuard": {
-          "line": 91
+          "line": 48
         }
       },
       "ipc": {
@@ -11321,16 +11394,16 @@
       ],
       "depends": [
         "electron",
+        "themes",
         "shared/ipcChannels",
         "lucide",
         "htmlUtils",
         "laneStatus",
-        "notify",
-        "aiToolSelector"
+        "notify"
       ],
       "functions": {
         "lucideIcon": {
-          "line": 42,
+          "line": 41,
           "params": [
             "data",
             "size = 18"
@@ -11341,18 +11414,12 @@
           "params": [
             "name"
           ],
-          "purpose": "Apply a theme app-wide. Flipping data-theme is the whole contract"
+          "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 64,
-          "purpose": "The theme currently applied ('light' | 'dark')."
+          "line": 65,
+          "purpose": "The theme currently applied — a themes.js id."
         }
-      },
-      "ipc": {
-        "listens": [
-          "UPDATE_AVAILABLE"
-        ],
-        "emits": []
       }
     },
     "renderer/terminalsView": {
@@ -11388,6 +11455,50 @@
             "projectKey",
             "prefs"
           ]
+        }
+      }
+    },
+    "renderer/themes": {
+      "file": "src/renderer/themes.js",
+      "description": "Theme registry — the one list of themes Frame knows.",
+      "exports": [
+        "THEMES",
+        "THEME_IDS",
+        "DEFAULT_THEME",
+        "normalize",
+        "schemeOf",
+        "counterpartOf",
+        "terminalTheme"
+      ],
+      "depends": [],
+      "functions": {
+        "normalize": {
+          "line": 125,
+          "params": [
+            "name"
+          ],
+          "purpose": "A valid theme id for any input — unknown, missing or garbage falls back to the default."
+        },
+        "schemeOf": {
+          "line": 130,
+          "params": [
+            "name"
+          ],
+          "purpose": "'dark' | 'light' for a theme id (normalized first)."
+        },
+        "counterpartOf": {
+          "line": 135,
+          "params": [
+            "name"
+          ],
+          "purpose": "The theme the toggle flips to from `name`."
+        },
+        "terminalTheme": {
+          "line": 140,
+          "params": [
+            "name"
+          ],
+          "purpose": "The xterm.js `theme` option for a theme id."
         }
       }
     },

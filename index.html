@@ -53,26 +53,102 @@
     <div class="app-loader-text">Loading workspace…</div>
   </div>
 
+  <!-- App header: one row across the whole window, above the sidebar and
+       the center (shell-chrome-app-header-collapsible-panels spec). Static
+       markup on purpose — it exists before any script runs, so nothing in
+       it flashes at boot and every module that binds by id finds its
+       element at DOMContentLoaded. Left: Frame's mark. Center:
+       the current-project switcher. Right: the window-level controls and
+       the layout toggles. appHeader.js wires the behavior. -->
+  <header id="app-header">
+    <div class="app-header-left">
+      <!-- Frame's mark (assets/frame-mark.svg): the four corner brackets that
+           frame a subject — the same mark the app icon carries, so the
+           window says what the dock says. The version lives in the status
+           bar's right end; an available update shows on the bell. -->
+      <svg class="app-header-mark" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
+      </svg>
+      <span class="app-header-brand">Frame</span>
+    </div>
+    <!-- Current-project switcher: the one project selector, in the
+         header's center (VS Code's command-center spot) so it stays
+         reachable while the sidebar is collapsed. Everything on both sides
+         — Files / Changes / GitHub on the rail, Work / Context in the
+         panel, the center — is about the project chosen here. -->
+    <div class="app-header-center">
+      <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+        <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+          <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+          </svg>
+          <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+          <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+      </div>
+    </div>
+    <div class="app-header-right">
+      <!-- Default Agent launcher: the tool select beside Start. Start launches
+           whatever this says (index.js binds #sidebar-agent-launch by id).
+           Home's Agents widget keeps its own copy — both write through
+           SET_AI_TOOL and both redraw from AI_TOOL_CHANGED, so neither can go
+           stale. The options below are a placeholder: aiToolSelector
+           repopulates from the real tool list. -->
+      <div class="lane-bar-launcher">
+        <!-- The select is wrapped in a label so the visible control (label
+             text, agent name, chevron) is one styled box while the native
+             <select> stays the interactive element underneath — clicking
+             anywhere on the box opens the menu. -->
+        <label class="ai-tool-picker" title="Default agent — Start launches this one">
+          <span class="ai-tool-picker-label">Agent</span>
+          <select id="ai-tool-selector" class="ai-tool-select" tabindex="-1" aria-label="Default agent">
+            <option value="claude">Claude</option>
+            <option value="codex">Codex</option>
+          </select>
+          <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </label>
+        <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span>Start</span>
+        </button>
+      </div>
+      <!-- Layout toggles (VS Code's "toggle primary side bar" / "toggle
+           panel"): each shows its region's open state and flips it. They run
+           the registered commands (panel.toggleSidebar ⌘B, dock.toggle ⌘J),
+           so the shortcuts, the View menu, the palette and these buttons all
+           agree; appHeader.js paints them from sidebarResize / dock. Icons
+           are filled in by appHeader.js (lucide PanelLeft / PanelBottom /
+           PanelRight). -->
+      <button type="button" id="layout-toggle-sidebar" class="layout-toggle" tabindex="-1" title="Toggle Sidebar (⌘B)" aria-label="Toggle Sidebar" aria-pressed="true"></button>
+      <button type="button" id="layout-toggle-dock" class="layout-toggle" tabindex="-1" title="Toggle Panel (⌘J)" aria-label="Toggle Panel" aria-pressed="false"></button>
+      <!-- Update bell: hidden until UPDATE_AVAILABLE arrives (appHeader.js). -->
+      <button class="btn-update-notify" title="Check for updates" style="display:none;position:relative;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex-shrink:0"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+        <span class="update-badge"></span>
+      </button>
+      <!-- Theme toggle: window-level control at the header's right end
+           (status-bar spec). Wired by appHeader.js. -->
+      <button id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Toggle light/dark theme" aria-label="Toggle theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Shell: the sidebar and the center side by side under the header. -->
+  <div id="shell">
+
   <!-- Sidebar -->
   <div id="sidebar">
     <div id="sidebar-resize-handle"></div>
-    <div id="sidebar-header">
-      <!-- Frame's mark (assets/frame-mark.svg): the four corner brackets that
-           frame a subject. It replaces the anonymous green square — the same
-           mark the app icon carries, so the window says what the dock says. -->
-      <svg class="sidebar-header-mark" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
-      </svg>
-      <span class="sidebar-header-text">Frame <span id="app-version"></span></span>
-      <button
-        type="button"
-        id="update-dot"
-        class="update-dot"
-        style="display:none;"
-        title="A new version is available — click for details"
-        aria-label="Update available"
-      ></button>
-    </div>
 
     <!-- Hover tooltip for Initialize Frame button (fixed position, escapes overflow) -->
     <div id="init-frame-tooltip" class="init-frame-tooltip">
@@ -93,23 +169,6 @@
         <span>.frame/tasks.json</span>
         <span>+ more</span>
       </div>
-    </div>
-
-    <!-- Current-project switcher: the one project selector. It sits above
-         the rail-and-panel split because every view on both sides — Files /
-         Changes / GitHub on the rail, Work / Context in the panel — is
-         about the project chosen here. -->
-    <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
-      <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-        <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-        </svg>
-        <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-        <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
     </div>
 
     <!-- Sidebar body: activity rail + the active view's panel. The rail makes
@@ -1178,6 +1237,7 @@
     </div>
 
   </div>
+  </div><!-- /#shell -->
 
   <!-- Editor Overlay -->
   <div id="editor-overlay">
@@ -1588,6 +1648,9 @@
           <span class="usage-reset"></span>
         </div>
       </div>
+      <!-- App version, last thing on the right, behind a hairline
+           (index.js fills it from package.json). -->
+      <span id="app-version" class="sb-version"></span>
     </div>
   </div>
 

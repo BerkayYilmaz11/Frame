@@ -3146,6 +3146,169 @@ button, badge, tooltip, drag with older hidden), Specs (All / Done tile,
 Active chips, search), and Project Settings › Boards (change a select, watch
 the open board re-render; no-project state), in both themes.
 
+### [2026-09-14] Two VS Code themes, added beside the existing pair
+
+**Context.** The user sent VS Code 2026 Dark and Light screenshots and
+asked for both as *new* themes — "geri kalan her şeyi vs code renklerinde
+yapabilir miyiz. ve 2 yeni tema olarak eklensin bunlar. var olan temaları
+değiştirme" — with one hard constraint: "bizim rengimiz yeşil, mavi değil",
+so Frame's green accent stays in place of VS Code's blue. Also: reuse the
+palette layer, no duplicated code.
+
+**How it was done.** The theme contract was binary (`data-theme` =
+`light` | `dark`, a toggle, two palette commands). Rather than fork every
+light-only rule for a second light theme, the theme now writes two
+attributes on `<html>`: `data-theme` (the id) and `data-scheme` (its
+light/dark family). The base token blocks in `variables.css` key on
+`data-scheme`; a named theme block (`[data-theme="dark-plus"]`,
+`[data-theme="light-plus"]`) overrides only chrome tokens (backgrounds,
+text, borders, shadows) and inherits the accent, semantic, doc-type and
+diff colours from its scheme. Everything that only cares about light-vs-dark
+— the three light overrides in `terminals-view.css`, the embedded report
+shells (which carry two palettes) — reads `data-scheme`, so a future theme
+never needs a copy of those.
+
+One pure registry, `src/renderer/themes.js`, is the single list: label,
+command id, scheme, counterpart (what the top-bar toggle flips to — the
+other scheme of the *same family*, so a VS Code user stays in VS Code
+colours), and the xterm palette (three shared ANSI tables: VS Code dark
+— which Frame Dark already used —, VS Code light, Frame light; each theme
+adds its own background / foreground / cursor). `index.js` registers one
+`theme.*` command per entry; `menu.js` lists four under View › Theme;
+`terminalManager` and `terminalTabBar` read the registry. Unknown or stale
+`frame-theme` values normalize to `dark`.
+
+**Palette choice.** VS Code Dark Modern (#1f1f1f editor, #181818 side/status
+bar, #2b2b2b borders, #cccccc text) and Light Modern (#ffffff editor,
+#f8f8f8 side/status bar, #e5e5e5 borders, #3b3b3b text). The one existing
+hard-coded light hex in `terminals-view.css` (`#f7f5f2`) became
+`var(--bg-primary)` — same value under Frame Light, correct under VS Code
+Light.
+
+**Verified.** `test/themes.test.js` (registry shape, toggle round-trips,
+fallback, full xterm tables); `npm test` 756 pass. Not opened in the running
+app during this session — worth a look at the four themes via View › Theme
+and the toggle, especially contrast of the green accent on VS Code's
+neutral greys.
+
+### [2026-09-14] Shell chrome — one app header, collapsible sidebar and dock
+
+**Context.** With five VS Code screenshots the user said Frame's UI "biraz
+sert duruyor, flexible değil": the work-context sidebar should close and open
+entirely (a feature beside resize), the bottom dock likewise from a button,
+those buttons belong in the header on the right as in VS Code, the top header
+should be one full-width piece (Frame logo left; agent picker, Start, collapse
+buttons, theme and notification bell right), and the right panel should keep
+an inner header of its own for Home, Terminals and the open spec tabs. Spec
+`shell-chrome-app-header-collapsible-panels`, planned and implemented guided
+on `feat/shell-chrome-app-header-collapsible-panels` (eight commits, `npm
+test` 756 pass after each).
+
+**Decisions.** The one open fork was the project switcher: with the sidebar's
+own header gone it moved to the **app header's center** (the user's choice,
+VS Code command-center position) rather than staying as the sidebar's first
+row — it must stay reachable while the sidebar is collapsed. This explicitly
+amends sidebar-project-section's "switcher above the rail-and-panel split";
+the rail's Projects view remains the project *list*. Silent decisions: the
+header is static markup in `index.html` with a thin `appHeader.js` (no boot
+flash, no bind-after-render race); `body` became a column with a `#shell`
+row; the header buttons run the registered commands (`panel.toggleSidebar`,
+`dock.toggle`) and paint from `sidebarResize.onChange` (new) / `dock.onChange`,
+never from their own click; collapsed sidebar = fully hidden; header 35px like
+the strip; no tests (DOM-coupled). Theme restore, the bell and
+`mountSelector()` moved from `terminalTabBar` to `appHeader.js`; the strip is
+navigation only.
+
+**Not verified visually in this session** — a full-screen capture caught
+the user's browser, not Frame, so the check was by build, test and the app's
+log. Worth a look: the switcher's width in the header center, the launcher's
+divider next to the toggles, and all four themes.
+
+### [2026-09-14] Card layout — sidebar and center as bordered, rounded cards
+
+**Context.** Right after the app header shipped, the user sent a VS Code
+screenshot ("harika olmuş… sol layout ve sağ layout kendi borderlarıyla
+ayrılıyor ve radius var. aynı şekilde yapalım"): the explorer and the editor
+area are two separate cards with their own 1px border and rounded corners,
+floating on the window's ground with a gutter between them and to the edges.
+
+**Change (CSS only).** `#shell` gained `gap: 6px`, `padding: 0 6px 6px` and
+the `--bg-deep` ground; `#sidebar` and `#main-content` each carry
+`border: 1px solid var(--border-subtle)` and `border-radius: var(--radius-lg)`
+(the sidebar's old `border-right` and the `::after` accent-glow line are
+gone; `#main-content` clips its children to the corners). The app header and
+the status bar switched to `--bg-deep` and lost their hairlines so the chrome
+around the cards reads as one ground, as in VS Code.
+
+**Overturns, on purpose.** compact-center-vs-code-density's rule that "the
+center is one flat surface — no margin, padding, radius or `--bg-deep` gap
+between the sidebar's 1px border and the window edge". The inside of the
+center is still flat (strip 35px, no nested cards); only the shell's outer
+frame changed.
+
+### [2026-09-14] Sidebar collapses to its rail, not to nothing
+
+**Context.** After the card layout the user said: "sol sidebar kapanırken
+sadece work context alanı kapansın. onun solundaki github diffs files kısmı
+kalsın her türlü. ve o kısımdaki buttonların dış boşlukları sağ sol aynı
+değil." This overturns shell-chrome-app-header-collapsible-panels' D2
+("collapsed = fully hidden, rail included") — the rail stays, VS Code
+activity-bar style.
+
+**Change.** `sidebarResize.hide()` / `show()` and the boot restore now flip
+`#sidebar.collapsed` and clear the inline width instead of `display: none`;
+`layout.css` hides `.sidebar-panel` and the resize handle in that state, drops
+the rail's right padding and border, and lets the card shrink to the rail
+with symmetric 6px insets. A rail click still reveals the panel
+(`revealSidebarTab` → `show()`), so the collapsed rail is a way back in.
+The persisted key (`sidebar-hidden`), `isVisible()`, `onChange` and the
+header toggle are untouched. Spacing: the sidebar's left inset became
+`--space-sm` (was `--space-lg`) and the rail's right padding `--space-sm`
+(was `--space-xs`), so the icons sit 6px from both sides, collapsed or not.
+
+### [2026-09-15] Empty Terminals view is the grid with a first-terminal ghost
+
+**Context.** The user: "terminals açılınca hiç aktif terminal yoksa, No
+terminals yet … gibi bomboş bir sayfa açılıyor. bunun yerine Layout
+buttonları vs vs gelsin ve ilk terminal için kesik kenarlı terminal
+boyutunda bir alan olsun. içinde gerekli bilgilendirme yazsın ve animated
+bir şekilde buraya tıklanabilir mesajı verelim. tourguide gibi … çok
+abartmayalım animasyonu." Follow-ups: "etrafı yanıp sönmesin ama herhangi
+bir mouse ile tıklıyormuşuz gibi bir animasyon olsun", then "mouse biraz
+daha uzaktan gelsin ve 6px daha büyük olsun".
+
+**Decision.** With zero terminals, terminalsView renders the same frame as
+the grid — the layout bar (1/2/3, working and persisted) and `.tv-grid` —
+with one `.tv-ghost.tv-empty` cell where the first pane will be: pane-sized
+(300px), dashed, a `<button>` so the whole box is the click target. The
+only motion is a 28px lucide pointer acting out a click every 3.2s (comes
+in 22px from up-right, presses, a small ring spreads from the tip); the
+frame itself never blinks — hover is the one thing that lights it.
+`prefers-reduced-motion` stops the pointer. `EMPTY_TITLE` / `EMPTY_HINT`
+stay the one definition of the words.
+
+### [2026-09-15] node-pty "posix_spawnp failed." in dev — prebuilt spawn-helper lacks +x
+
+**Context.** The user hit "Could not create a new terminal: posix_spawnp
+failed." in a dev Frame (`electron .`) and asked whether launching Frame
+from inside Frame caused it. It did not; reproduced with
+`ELECTRON_RUN_AS_NODE=1 Electron -e "require('node-pty').spawn(...)"`.
+
+**Root cause.** `/usr/local/bin/node` is x86_64 (Rosetta), so
+electron-rebuild's postinstall builds node-pty's `build/Release` as x86_64.
+The arm64 Electron cannot load it and node-pty falls back to
+`prebuilds/darwin-arm64/`, whose `pty.node` works but whose `spawn-helper`
+comes out of the npm tarball as `-rw-r--r--`. Every terminal execs that
+helper, so every spawn fails. The packaged Frame.app is unaffected.
+
+**Fix.** `scripts/fix-node-pty-helper.js`, run from `postinstall` after
+electron-rebuild, chmods every `prebuilds/*/spawn-helper` to 0755 (no-op on
+Windows / when already executable). Verified with a clean `npm ci`: the
+helper comes out executable and a terminal opens in the dev instance.
+Alternative not taken: installing an arm64 Node so the native build itself
+is arm64 — correct too, but it depends on the machine, and the chmod is
+harmless alongside it.
+
 ### [2026-09-14] Telemetry audit — fixes for misleading counts
 
 **Context.** The user asked for a review of the telemetry, looking only for

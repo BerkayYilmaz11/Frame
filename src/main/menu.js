@@ -136,7 +136,9 @@ function getMenuTemplate() {
         label: 'Theme',
         submenu: [
           cmd('Light', 'theme.light'),
-          cmd('Dark', 'theme.dark')
+          cmd('Dark', 'theme.dark'),
+          cmd('Light+', 'theme.lightPlus'),
+          cmd('Dark+', 'theme.darkPlus')
         ]
       },
       SEP,

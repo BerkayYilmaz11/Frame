@@ -1,6 +1,13 @@
 /**
  * Sidebar Resize Module
- * Allows users to drag and resize the sidebar width
+ * Allows users to drag and resize the sidebar width.
+ *
+ * Hide / show collapse the sidebar to its rail (2026-09-14, overturning the
+ * shell-chrome spec's "fully hidden"): `#sidebar.collapsed` keeps the icon
+ * rail (Projects / Files / Changes / GitHub …) and drops the panel beside
+ * it, VS Code activity-bar style — a rail click reveals the panel again
+ * (index.js revealSidebarTab → show()). The CSS for the collapsed state
+ * lives in layout.css; this module only flips the class and the width.
  */
 
 const STORAGE_KEY = 'sidebar-width';
@@ -17,6 +24,15 @@ let isResizing = false;
 let startX = 0;
 let startWidth = 0;
 let onResizeCallback = null;
+const listeners = new Set();
+
+/** Tell every onChange listener whether the sidebar is now visible. */
+function emitChange() {
+  const visible = !isHidden;
+  listeners.forEach((fn) => {
+    try { fn(visible); } catch (err) { console.error('sidebarResize: onChange listener failed:', err); }
+  });
+}
 
 /**
  * Initialize sidebar resize functionality
@@ -46,7 +62,8 @@ function init(onResize) {
   const savedHidden = localStorage.getItem(HIDDEN_KEY);
   if (savedHidden === 'true') {
     isHidden = true;
-    sidebar.style.display = 'none';
+    sidebar.style.width = '';
+    sidebar.classList.add('collapsed');
   }
 
   // Setup event listeners
@@ -159,28 +176,30 @@ function toggle() {
 }
 
 /**
- * Hide sidebar
+ * Collapse the sidebar to its rail (the panel goes, the icons stay).
  */
 function hide() {
   if (!sidebar || isHidden) return;
 
   widthBeforeHide = sidebar.offsetWidth;
-  sidebar.style.display = 'none';
+  sidebar.style.width = '';
+  sidebar.classList.add('collapsed');
   isHidden = true;
   localStorage.setItem(HIDDEN_KEY, 'true');
 
   if (onResizeCallback) {
     onResizeCallback(0);
   }
+  emitChange();
 }
 
 /**
- * Show sidebar
+ * Bring the panel back at the width it had before collapsing.
  */
 function show() {
   if (!sidebar || !isHidden) return;
 
-  sidebar.style.display = '';
+  sidebar.classList.remove('collapsed');
   sidebar.style.width = `${widthBeforeHide}px`;
   isHidden = false;
   localStorage.setItem(HIDDEN_KEY, 'false');
@@ -188,6 +207,7 @@ function show() {
   if (onResizeCallback) {
     onResizeCallback(widthBeforeHide);
   }
+  emitChange();
 }
 
 /**
@@ -195,6 +215,18 @@ function show() {
  */
 function isVisible() {
   return !isHidden;
+}
+
+/**
+ * Follow the sidebar: fn(visible) after every hide / show, whichever entry
+ * point caused it (⌘B, the View menu, the palette, the header's toggle).
+ * Same shape as dock.onChange; returns an unsubscribe. Not called for the
+ * state restored at init — read isVisible() for that.
+ */
+function onChange(fn) {
+  if (typeof fn !== 'function') return () => {};
+  listeners.add(fn);
+  return () => listeners.delete(fn);
 }
 
 module.exports = {
@@ -205,5 +237,6 @@ module.exports = {
   toggle,
   hide,
   show,
-  isVisible
+  isVisible,
+  onChange
 };

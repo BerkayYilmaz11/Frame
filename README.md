@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Frame" width="180" />
+  <img src="assets/icon.png" alt="Frame" width="140" />
 </p>
 
 <h1 align="center">Frame</h1>

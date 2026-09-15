@@ -1,46 +1,79 @@
+/* ==================== SHELL ==================== */
+/* The row under the app header: sidebar and center side by side, filling
+   whatever height the header leaves (shell-chrome-app-header-collapsible-
+   panels spec). min-height: 0 so the children scroll instead of the row.
+
+   VS Code's card layout (2026-09-14): the sidebar and the center are two
+   bordered, rounded cards floating on --bg-deep with a 4px gutter between
+   them and 6px to the window edges; the header above and the status bar below
+   share that ground. This overturns compact-center-vs-code-density's
+   "no margin, radius or gap between the sidebar's border and the window
+   edge" — on purpose, per the user's screenshot. */
+#shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 4px;
+  padding: 0 6px 6px;
+  background: var(--bg-deep);
+}
+
 /* ==================== SIDEBAR ==================== */
 #sidebar {
   width: 280px;
   min-width: 180px;
   max-width: 500px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-  border-right: 1px solid var(--border-subtle);
+  /* A card: border all round, rounded (see #shell). Not overflow: hidden —
+     the resize handle sits in the gutter past the right edge. */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  padding: var(--space-lg);
+  /* Left inset matches the rail's own right padding, so the rail's icons
+     sit with the same 6px on either side. */
+  padding: var(--space-sm) var(--space-lg) var(--space-lg) var(--space-sm);
   position: relative;
   flex-shrink: 0;
 }
 
-#sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 50%, var(--accent-glow) 100%);
-  pointer-events: none;
+/* Collapsed to the rail (sidebarResize.hide): the panel goes, the icon rail
+   stays, VS Code activity-bar style. The inline width is cleared by the
+   module, so the card shrinks to the rail plus symmetric 6px insets; the
+   resize handle has nothing to resize. */
+#sidebar.collapsed {
+  width: auto;
+  min-width: 0;
+  padding: var(--space-sm);
 }
 
-/* Sidebar resize handle */
+#sidebar.collapsed .sidebar-panel,
+#sidebar.collapsed #sidebar-resize-handle {
+  display: none;
+}
+
+#sidebar.collapsed .sidebar-rail {
+  padding-right: 0;
+  border-right: none;
+}
+
+/* Sidebar resize handle: fills the 4px gutter between the sidebar card and
+   the center card (right: -5px = the card's 1px border + the gutter). A
+   vertical three-dot grip at mid-height says "drag me" at rest; while
+   hovered or dragging, a 2px accent line with rounded ends and a 2px inset
+   top and bottom replaces it. */
 #sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: -5px;
+  width: 4px;
   height: 100%;
   cursor: col-resize;
   z-index: 100;
   background: transparent;
-  transition: background var(--transition-fast);
 }
 
-#sidebar-resize-handle:hover,
-#sidebar-resize-handle.dragging {
-  background: var(--accent-primary);
-}
-
+/* The grip: three 2px dots, 3px apart, centered. */
 #sidebar-resize-handle::before {
   content: '';
   position: absolute;
@@ -48,17 +81,38 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 2px;
-  height: 40px;
-  background: var(--border-default);
+  height: 14px;
+  background-image: radial-gradient(circle, var(--text-tertiary) 1px, transparent 1.2px);
+  background-size: 2px 5px;
+  background-repeat: repeat-y;
+  background-position: 0 0;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+/* The drag line. */
+#sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
   border-radius: 1px;
+  background: var(--accent-primary);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 #sidebar-resize-handle:hover::before,
 #sidebar-resize-handle.dragging::before {
+  opacity: 0;
+}
+
+#sidebar-resize-handle:hover::after,
+#sidebar-resize-handle.dragging::after {
   opacity: 1;
-  background: var(--accent-primary);
 }
 
 body.sidebar-resizing {
@@ -68,58 +122,6 @@ body.sidebar-resizing {
 
 body.sidebar-resizing * {
   cursor: col-resize !important;
-}
-
-#sidebar-header {
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  /* Tightened so the Projects section lines up with the bottom edge of the
-     main panel's "Home" top bar (~62px from the top). */
-  margin-bottom: 16px;
-  padding: var(--space-xs) 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-#app-version {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  letter-spacing: 0;
-}
-
-.sidebar-header-text {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.update-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
-  box-shadow: 0 0 8px var(--accent-glow);
-  animation: update-dot-pulse 2.2s ease-in-out infinite;
-  transition: transform 0.12s;
-}
-
-.update-dot:hover {
-  transform: scale(1.2);
-}
-
-@keyframes update-dot-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
 }
 
 /* Update banner — sidebar footer card, primary signal when an update is available */
@@ -196,15 +198,6 @@ body.sidebar-resizing * {
   50% { box-shadow: 0 0 14px 2px var(--accent-glow); }
 }
 
-/* The mark itself now stands where an anonymous green square used to — same
-   brackets as the app icon, so the window and the dock agree. No glow: the
-   shape carries the identity, and a halo on a 15px glyph only muddies it. */
-.sidebar-header-mark {
-  flex: none;
-  color: var(--accent-primary);
-  display: block;
-}
-
 /* Sidebar Tabs */
 .sidebar-tabs {
   display: flex;
@@ -260,7 +253,7 @@ body.sidebar-resizing * {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-right: var(--space-xs);
+  padding-right: var(--space-sm);
   border-right: 1px solid var(--border-subtle);
 }
 
@@ -314,153 +307,6 @@ body.sidebar-resizing * {
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-/* Current-project switcher — the one project selector, above the
-   rail-and-panel split so it spans both columns: what it selects governs
-   Files / Changes / GitHub on the rail and Work / Context in the panel. */
-.sidebar-current-project-wrap {
-  position: relative;
-  flex: 0 0 auto;
-  margin-bottom: var(--space-sm);
-}
-
-.sidebar-current-project {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px var(--space-sm);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.sidebar-current-project:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-.sidebar-current-project-icon {
-  flex-shrink: 0;
-  color: var(--accent-primary);
-}
-
-.sidebar-current-project-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-current-project-caret {
-  flex-shrink: 0;
-  color: var(--text-tertiary);
-  transition: transform var(--transition-fast);
-}
-
-.sidebar-current-project[aria-expanded="true"] .sidebar-current-project-caret {
-  transform: rotate(180deg);
-}
-
-/* Dropdown menu of projects to switch to. */
-.sidebar-project-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 50;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.sidebar-project-menu[hidden] {
-  display: none;
-}
-
-.sidebar-project-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px var(--space-sm);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.sidebar-project-menu-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.sidebar-project-menu-item.active {
-  color: var(--accent-primary);
-}
-
-.sidebar-project-menu-item-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-project-menu-item-check {
-  flex-shrink: 0;
-  color: var(--accent-primary);
-}
-
-.sidebar-project-menu-tag {
-  flex-shrink: 0;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: var(--bg-deep);
-  background: var(--accent-primary);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-.sidebar-project-menu-sep {
-  height: 1px;
-  margin: 4px 2px;
-  background: var(--border-subtle);
-}
-
-.sidebar-project-menu-add {
-  color: var(--text-tertiary);
-}
-
-.sidebar-project-menu-empty {
-  padding: 8px;
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
 }
 
 /* ---- Agent view: default-agent controls + running-agents list ---- */
@@ -635,7 +481,11 @@ body.sidebar-resizing * {
   flex: 1;
   display: flex;
   overflow: hidden;
-  background: var(--bg-deep);
+  background: var(--bg-primary);
+  /* The center card (see #shell). overflow: hidden clips the terminal
+     container and the Specs / Tasks panels to the rounded corners. */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 /* One flat surface from the sidebar's border to the window edge and from
