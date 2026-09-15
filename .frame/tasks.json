@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:37:14.304Z",
+  "lastUpdated": "2026-09-15T08:38:30.315Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7834,13 +7834,13 @@
       "title": "Register `view.zoomIn`, `view.zoomOut`, `view.zoomReset` in `registerCommands()` in `src/renderer/index.js` (category View; shortcuts `CmdOrCtrl+=`, `CmdOrCtrl+-`, `CmdOrCtrl+0`) that read `UI_ZOOM_GET`, compute the next step with the shared module and call `UI_ZOOM_SET`; subscribe to `UI_ZOOM_CHANGED` and run `terminalManager.fitAll()` on the next animation frame.",
       "description": "",
       "source": "spec:ui-zoom-steps:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:38:30.315Z",
+      "completedAt": "2026-09-15T08:38:30.315Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T05",

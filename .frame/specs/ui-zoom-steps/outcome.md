@@ -19,3 +19,10 @@ Wired `src/main/index.js` exactly as planned: `uiZoom.init()` after `userSetting
 _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
+## T04 — Register the zoom commands and refit terminals on a change
+
+Registered `view.zoomIn` / `view.zoomOut` / `view.zoomReset` in `registerCommands()` after the theme block, with the planned shortcuts; In/Out read `UI_ZOOM_GET`, clamp ±1 through `src/shared/uiZoom.js` and invoke `UI_ZOOM_SET`, Reset sends `DEFAULT_STEP`. The `UI_ZOOM_CHANGED` listener refits on the next frame via `terminal.fitTerminal()` — the wrapper `index.js` already requires and the dock already uses — rather than requiring `terminalManager` directly as the plan wrote; it ends in the same `fitAll()`. Palette and cheat sheet list the commands from this commit; the View menu still shows the stock roles until T06.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---

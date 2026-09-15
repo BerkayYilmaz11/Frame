@@ -38,6 +38,7 @@ const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
 const themes = require('./themes');
+const uiZoom = require('../shared/uiZoom');
 const welcomeOverlay = require('./welcomeOverlay');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -327,6 +328,14 @@ function setupButtonHandlers() {
   // The native View menu's one channel to the renderer: a command-registry
   // id, run through the same registry the palette, the status bar and the
   // shortcuts use (dock-panel-readonly-views spec, C6 / D12).
+  // A zoom step changes every pane's CSS-px size: the terminals' own
+  // ResizeObserver fits them too, but a fit on the next frame — after
+  // layout has settled at the new factor — is what makes the PTY grid
+  // certain to match (ui-zoom-steps spec, C6). _sendResize dedupes.
+  ipcRenderer.on(IPC.UI_ZOOM_CHANGED, () => {
+    requestAnimationFrame(() => terminal.fitTerminal());
+  });
+
   ipcRenderer.on(IPC.RUN_APP_COMMAND, (event, commandId) => {
     if (!commandRegistry.runById(commandId)) {
       console.error(`Menu command '${commandId}' did not run — unknown id or unavailable right now`);
@@ -757,6 +766,38 @@ function registerCommands() {
       run: () => applyTheme(id)
     });
   }
+
+  // ---------- View: zoom ----------
+  // Five-step interface scale (ui-zoom-steps spec). The factor is owned by
+  // main (src/main/uiZoom.js): these commands read the current step, move it
+  // along the shared ladder and ask main to apply it. The View menu in
+  // src/main/menu.js carries the same ids and accelerators; keep it in step.
+  // A press at the end of the ladder is a no-op — main returns early.
+  const stepZoom = async (delta) => {
+    const { step } = await ipcRenderer.invoke(IPC.UI_ZOOM_GET);
+    await ipcRenderer.invoke(IPC.UI_ZOOM_SET, uiZoom.clampStep(step + delta));
+  };
+  r({
+    id: 'view.zoomIn',
+    title: 'Zoom In',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+=',
+    run: () => stepZoom(1)
+  });
+  r({
+    id: 'view.zoomOut',
+    title: 'Zoom Out',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+-',
+    run: () => stepZoom(-1)
+  });
+  r({
+    id: 'view.zoomReset',
+    title: 'Reset Zoom',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+0',
+    run: () => ipcRenderer.invoke(IPC.UI_ZOOM_SET, uiZoom.DEFAULT_STEP)
+  });
 
   // ---------- Focus ----------
   r({

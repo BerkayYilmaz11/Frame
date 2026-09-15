@@ -7595,6 +7595,7 @@
         "cheatSheet",
         "terminalTabBar",
         "themes",
+        "shared/uiZoom",
         "welcomeOverlay",
         "appLoader",
         "projectSettingsModal",
@@ -7618,40 +7619,41 @@
       ],
       "functions": {
         "init": {
-          "line": 60,
+          "line": 61,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 311,
+          "line": 312,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 404,
+          "line": 413,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 514,
+          "line": 523,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 540,
+          "line": 549,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 566,
+          "line": 575,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 918,
+          "line": 959,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
       "ipc": {
         "listens": [
           "CLONE_GITHUB_REPO_RESULT",
+          "UI_ZOOM_CHANGED",
           "RUN_APP_COMMAND",
           "UPDATE_AVAILABLE"
         ],
