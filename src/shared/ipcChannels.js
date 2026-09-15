@@ -142,6 +142,11 @@ const IPC = {
   GET_USER_SETTING: 'get-user-setting',
   SET_USER_SETTING: 'set-user-setting',
 
+  // UI zoom (ui-zoom-steps spec) — main owns the factor; the renderer asks for a step
+  UI_ZOOM_GET: 'ui-zoom-get',                        // renderer → main (invoke): { step, factor }
+  UI_ZOOM_SET: 'ui-zoom-set',                        // renderer → main (invoke): apply + persist a step; returns { step, factor }
+  UI_ZOOM_CHANGED: 'ui-zoom-changed',                // main → renderer: { step, factor } after a change (any entry point)
+
   // Git Status (file tree decoration)
   WATCH_GIT_STATUS: 'watch-git-status',
   UNWATCH_GIT_STATUS: 'unwatch-git-status',

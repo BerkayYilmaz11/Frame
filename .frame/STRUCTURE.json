@@ -4348,6 +4348,66 @@
         }
       }
     },
+    "main/uiZoom": {
+      "file": "src/main/uiZoom.js",
+      "description": "UI zoom — the main-process owner of the interface scale (ui-zoom-steps spec).",
+      "exports": [
+        "init",
+        "attachWindow",
+        "currentStep",
+        "currentFactor",
+        "setStep",
+        "SETTING_KEY"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "shared/uiZoom",
+        "userSettings"
+      ],
+      "functions": {
+        "init": {
+          "line": 31,
+          "purpose": "Load the stored step. Runs after userSettings.init(), before createWindow()."
+        },
+        "currentStep": {
+          "line": 35
+        },
+        "currentFactor": {
+          "line": 40,
+          "purpose": "What createWindow passes as webPreferences.zoomFactor — the first paint is already at the step."
+        },
+        "state": {
+          "line": 44
+        },
+        "applyToWindow": {
+          "line": 48
+        },
+        "setStep": {
+          "line": 57,
+          "params": [
+            "next"
+          ],
+          "purpose": "Apply, persist and broadcast a step. A step that does not change is a"
+        },
+        "attachWindow": {
+          "line": 73,
+          "params": [
+            "window"
+          ],
+          "purpose": "Wire the window: the load-time re-apply, the trackpad / wheel snap, and"
+        }
+      },
+      "ipc": {
+        "listens": [
+          "UI_ZOOM_GET",
+          "UI_ZOOM_SET"
+        ],
+        "emits": [
+          "UI_ZOOM_CHANGED"
+        ]
+      }
+    },
     "main/updateChecker": {
       "file": "src/main/updateChecker.js",
       "description": "Update Checker Module",
@@ -13483,6 +13543,23 @@
         "direction": "",
         "description": ""
       }
+    },
+    "ui": {
+      "UI_ZOOM_GET": {
+        "name": "ui-zoom-get",
+        "direction": "",
+        "description": ""
+      },
+      "UI_ZOOM_SET": {
+        "name": "ui-zoom-set",
+        "direction": "",
+        "description": ""
+      },
+      "UI_ZOOM_CHANGED": {
+        "name": "ui-zoom-changed",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -14293,6 +14370,18 @@
         "module": "shared/doneWindow",
         "file": "src/shared/doneWindow.js",
         "description": "doneWindow — how much of the \"done\" pile a board shows by default."
+      }
+    ],
+    "zoom": [
+      {
+        "module": "main/uiZoom",
+        "file": "src/main/uiZoom.js",
+        "description": "UI zoom — the main-process owner of the interface scale (ui-zoom-steps spec)."
+      },
+      {
+        "module": "shared/uiZoom",
+        "file": "src/shared/uiZoom.js",
+        "description": "UI zoom ladder — the five interface sizes Frame offers (ui-zoom-steps spec)."
       }
     ]
   },

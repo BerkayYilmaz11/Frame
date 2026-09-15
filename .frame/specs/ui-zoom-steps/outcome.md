@@ -5,3 +5,10 @@ Wrote `src/shared/uiZoom.js` as planned: `MIN_STEP`/`MAX_STEP`/`DEFAULT_STEP`, a
 _Captured: 2026-09-15 · 2 file change(s)_
 
 ---
+## T02 — Add the zoom IPC channels and the main-process zoom owner
+
+Added `UI_ZOOM_GET` / `UI_ZOOM_SET` / `UI_ZOOM_CHANGED` beside the user-setting channels in `ipcChannels.js` and wrote `src/main/uiZoom.js` as planned: `init` parses `uiZoomStep`, `currentFactor` seeds the window, `attachWindow` re-applies on `did-finish-load`, snaps `zoom-changed` ±1 and registers the handlers, `setStep` clamps / early-returns / applies / persists / broadcasts. One detail beyond the plan: the `zoom-changed` handler re-applies the ladder factor even when the step did not change, because at the ends of the ladder Chromium may already have moved its own factor before the event arrives. Not yet wired into `index.js` (T03), so nothing changes at runtime from this commit alone.
+
+_Captured: 2026-09-15 · 2 file change(s)_
+
+---

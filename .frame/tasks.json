@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:34:37.279Z",
+  "lastUpdated": "2026-09-15T08:36:11.738Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7808,13 +7808,13 @@
       "title": "Add `UI_ZOOM_GET`, `UI_ZOOM_SET`, `UI_ZOOM_CHANGED` to `src/shared/ipcChannels.js` and write `src/main/uiZoom.js`: `init` reads `uiZoomStep` from `userSettings` through `parseStep`; `currentFactor`; `attachWindow` re-applies `setZoomFactor` on `did-finish-load` and snaps `zoom-changed` ±1 through the ladder; `setStep` clamps, returns early when unchanged, applies, persists and broadcasts `UI_ZOOM_CHANGED {step, factor}`; `ipcMain.handle` for GET and SET.",
       "description": "",
       "source": "spec:ui-zoom-steps:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:36:11.738Z",
+      "completedAt": "2026-09-15T08:36:11.738Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T03",
