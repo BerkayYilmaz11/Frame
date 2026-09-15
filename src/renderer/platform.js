@@ -70,6 +70,10 @@ function matchesShortcut(e, accelerator) {
 
   if (keyToken === 'space') return eventKey === ' ' || eventKey === 'spacebar';
   if (keyToken === 'esc' || keyToken === 'escape') return eventKey === 'escape';
+  // A digit names the physical key: with Shift held, e.key is whatever the
+  // layout puts there (')' on US, '=' on Turkish Q), so Shift+0 would never
+  // match by character. e.code is layout-independent for the digit row.
+  if (/^[0-9]$/.test(keyToken) && e.code === 'Digit' + keyToken) return true;
   return eventKey === keyToken;
 }
 

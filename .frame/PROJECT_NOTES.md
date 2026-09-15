@@ -3363,3 +3363,18 @@ free. Frame Settings gains an Appearance row with a `.settings-select`
 (machine-wide, so the gear side per settings-by-scope). Status bar shows
 `110%` at the right end only away from step 0; click resets. Minimum window
 stays 900×600. Tests: the pure ladder module under `src/shared/` only.
+
+### [2026-09-15] Zoom In moves to ⇧⌘0; digit shortcuts match the physical key
+
+> zoom in cmd shift 0 olsun zoom out cmd - olsun
+
+Overturns the `ui-zoom-steps` plan's `CmdOrCtrl+=` for Zoom In (and drops its
+hidden `CmdOrCtrl+Shift+=` alias). Zoom In is `CmdOrCtrl+Shift+0`, Zoom Out
+stays `CmdOrCtrl+-`, Reset stays `CmdOrCtrl+0`.
+
+Shift+digit never matched in `platform.matchesShortcut`: it compared `e.key`,
+and with Shift held that is the layout's shifted character (`)` on US, `=` on
+Turkish Q). A digit token now also matches `e.code === 'Digit<n>'`, so the
+shortcut works on every layout; unshifted digit shortcuts (⌘1–9) are
+unaffected. Verified live: ⇧⌘0 steps up and clamps at 120%, ⌘= does nothing,
+both work with a terminal focused, and the View menu and palette show ⇧⌘0.

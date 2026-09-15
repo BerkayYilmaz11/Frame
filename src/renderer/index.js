@@ -781,7 +781,7 @@ function registerCommands() {
     id: 'view.zoomIn',
     title: 'Zoom In',
     category: 'View',
-    shortcut: 'CmdOrCtrl+=',
+    shortcut: 'CmdOrCtrl+Shift+0',
     run: () => stepZoom(1)
   });
   r({

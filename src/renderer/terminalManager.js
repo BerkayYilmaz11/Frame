@@ -411,10 +411,11 @@ class TerminalManager {
       if (modKey && !event.shiftKey && key === 't') {
         return false;
       }
-      // Ctrl/Cmd + = / - / 0 (interface zoom, ui-zoom-steps spec) → pass to
-      // app. On macOS the native accelerator fires first anyway; this is
+      // Ctrl/Cmd + - / 0 (zoom out / reset, ui-zoom-steps spec) → pass to
+      // app. Zoom in (Ctrl/Cmd + Shift + 0) already passes via the Shift rule
+      // above. On macOS the native accelerator fires first anyway; this is
       // what lets the chord reach the registry on Windows / Linux.
-      if (modKey && (event.key === '=' || event.key === '-' || event.key === '0')) {
+      if (modKey && (event.key === '-' || event.key === '0')) {
         return false;
       }
       // Ctrl/Cmd + [ or ] (project navigation) → pass to app
