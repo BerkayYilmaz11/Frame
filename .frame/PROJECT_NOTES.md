@@ -3265,3 +3265,46 @@ The persisted key (`sidebar-hidden`), `isVisible()`, `onChange` and the
 header toggle are untouched. Spacing: the sidebar's left inset became
 `--space-sm` (was `--space-lg`) and the rail's right padding `--space-sm`
 (was `--space-xs`), so the icons sit 6px from both sides, collapsed or not.
+
+### [2026-09-15] Empty Terminals view is the grid with a first-terminal ghost
+
+**Context.** The user: "terminals açılınca hiç aktif terminal yoksa, No
+terminals yet … gibi bomboş bir sayfa açılıyor. bunun yerine Layout
+buttonları vs vs gelsin ve ilk terminal için kesik kenarlı terminal
+boyutunda bir alan olsun. içinde gerekli bilgilendirme yazsın ve animated
+bir şekilde buraya tıklanabilir mesajı verelim. tourguide gibi … çok
+abartmayalım animasyonu." Follow-ups: "etrafı yanıp sönmesin ama herhangi
+bir mouse ile tıklıyormuşuz gibi bir animasyon olsun", then "mouse biraz
+daha uzaktan gelsin ve 6px daha büyük olsun".
+
+**Decision.** With zero terminals, terminalsView renders the same frame as
+the grid — the layout bar (1/2/3, working and persisted) and `.tv-grid` —
+with one `.tv-ghost.tv-empty` cell where the first pane will be: pane-sized
+(300px), dashed, a `<button>` so the whole box is the click target. The
+only motion is a 28px lucide pointer acting out a click every 3.2s (comes
+in 22px from up-right, presses, a small ring spreads from the tip); the
+frame itself never blinks — hover is the one thing that lights it.
+`prefers-reduced-motion` stops the pointer. `EMPTY_TITLE` / `EMPTY_HINT`
+stay the one definition of the words.
+
+### [2026-09-15] node-pty "posix_spawnp failed." in dev — prebuilt spawn-helper lacks +x
+
+**Context.** The user hit "Could not create a new terminal: posix_spawnp
+failed." in a dev Frame (`electron .`) and asked whether launching Frame
+from inside Frame caused it. It did not; reproduced with
+`ELECTRON_RUN_AS_NODE=1 Electron -e "require('node-pty').spawn(...)"`.
+
+**Root cause.** `/usr/local/bin/node` is x86_64 (Rosetta), so
+electron-rebuild's postinstall builds node-pty's `build/Release` as x86_64.
+The arm64 Electron cannot load it and node-pty falls back to
+`prebuilds/darwin-arm64/`, whose `pty.node` works but whose `spawn-helper`
+comes out of the npm tarball as `-rw-r--r--`. Every terminal execs that
+helper, so every spawn fails. The packaged Frame.app is unaffected.
+
+**Fix.** `scripts/fix-node-pty-helper.js`, run from `postinstall` after
+electron-rebuild, chmods every `prebuilds/*/spawn-helper` to 0755 (no-op on
+Windows / when already executable). Verified with a clean `npm ci`: the
+helper comes out executable and a terminal opens in the dev instance.
+Alternative not taken: installing an arm64 Node so the native build itself
+is arm64 — correct too, but it depends on the machine, and the chmod is
+harmless alongside it.

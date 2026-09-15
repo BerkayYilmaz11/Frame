@@ -5,7 +5,7 @@
   "description": "Frame - Project Management IDE for Claude Code",
   "main": "src/main/index.js",
   "scripts": {
-    "postinstall": "electron-rebuild",
+    "postinstall": "electron-rebuild && node scripts/fix-node-pty-helper.js",
     "build": "esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron",
     "watch": "esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron --watch",
     "start": "npm run build && electron .",
