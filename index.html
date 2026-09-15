@@ -1565,6 +1565,25 @@
         <button type="button" class="settings-close" data-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
+        <!-- Appearance (ui-zoom-steps spec). The interface scale is page zoom
+             owned by main; this select shows the current step and asks for
+             another. Options are filled from src/shared/uiZoom.js at runtime
+             so the labels and percentages can never drift from the ladder. -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Appearance</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-ui-zoom">Interface size</label>
+              <p class="settings-row-desc">
+                Scales text, icons and spacing together. Zoom In and Zoom Out in the
+                View menu (and their shortcuts) step it from anywhere; Reset Zoom
+                returns to Default.
+              </p>
+            </div>
+            <select class="settings-select" id="settings-ui-zoom" aria-label="Interface size"></select>
+          </div>
+        </div>
+
         <div class="settings-section">
           <h4 class="settings-section-title">Privacy &amp; Analytics</h4>
           <div class="settings-row">

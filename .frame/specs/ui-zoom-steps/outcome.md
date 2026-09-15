@@ -40,3 +40,10 @@ Replaced the three stock roles in `src/main/menu.js` with `cmd(...)` items on `C
 _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
+## T07 — Add the Appearance section to the Frame Settings modal
+
+Added the Appearance section as the first section of the Frame Settings modal in `index.html`: an "Interface size" row with a `.settings-select` left empty for T08 to fill. One deviation: the description names Zoom In / Zoom Out / Reset Zoom instead of the plan's ⌘ symbols, so it is not wrong on Windows and Linux, where the accelerator is Ctrl.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---

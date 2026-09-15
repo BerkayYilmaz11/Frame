@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:40:16.437Z",
+  "lastUpdated": "2026-09-15T08:41:25.985Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7873,13 +7873,13 @@
       "title": "Add an Appearance section above Privacy & Analytics in the Frame Settings modal in `index.html`: one `.settings-row` labelled \"Interface size\" with a description naming ⌘= / ⌘- / ⌘0 and `<select id=\"settings-ui-zoom\" class=\"settings-select\">` (options filled at runtime).",
       "description": "",
       "source": "spec:ui-zoom-steps:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:41:25.985Z",
+      "completedAt": "2026-09-15T08:41:25.985Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T08",
