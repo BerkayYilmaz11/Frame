@@ -272,14 +272,15 @@ function init() {
 
   // Initialize command palette + cheat sheet, register all commands, then bind keyboard
   // App loader registers its WORKSPACE_DATA listener first so it fades out
-  // before welcomeOverlay's listener can open the welcome modal.
+  // before guideModal's listener starts the launch sequence (the guide, then
+  // Welcome).
   appLoader.init();
 
   commandPalette.init();
   require('./paletteSources').init(multiTerminalUI); // dynamic ⌘K jump targets
   cheatSheet.init();
   welcomeOverlay.init();
-  guideModal.init();
+  guideModal.init({ onLaunchDone: () => welcomeOverlay.showOnLaunch() });
   projectSettingsModal.init();
   frameSettingsModal.init();
   feedbackPanel.init();

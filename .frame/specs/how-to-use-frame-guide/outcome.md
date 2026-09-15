@@ -40,3 +40,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T06 — Move the launch trigger to the guide and add the launch checkbox
+
+`guideModal.init({ onLaunchDone })` now owns the first `WORKSPACE_DATA`: it opens the guide unless `guideHideOnLaunch` is true (and opens it when the setting cannot be read), persists the "Don't show this on launch" checkbox on change, syncs it on every open, and runs `onLaunchDone` once when the launch-opened guide closes by ×, Escape, backdrop or Done, or at once when the guide is off; an action-link close skips it. `welcomeOverlay.js` lost its listener and `launchTriggerFired` and exports `showOnLaunch`, wired in `index.js`. The listener is registered before the element check so a missing guide cannot swallow Welcome; also reworded `start.open` so it no longer says Welcome opens after every close. Verified live on isolated profiles: fresh launch, Escape→Welcome, tick→relaunch skips guide, untick→guide returns, action link skips Welcome. 4 files.
+
+_Captured: 2026-09-15 · 4 file change(s)_
+
+---
+

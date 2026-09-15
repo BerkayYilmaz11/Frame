@@ -7141,6 +7141,8 @@
         "isOpen"
       ],
       "depends": [
+        "electron",
+        "shared/ipcChannels",
         "commandRegistry",
         "platform",
         "htmlUtils",
@@ -7148,95 +7150,120 @@
       ],
       "functions": {
         "init": {
-          "line": 48
+          "line": 71,
+          "params": [
+            "{ onLaunchDone"
+          ],
+          "purpose": "step is over (Welcome's launch show)."
+        },
+        "showOnLaunch": {
+          "line": 127
+        },
+        "runLaunchDone": {
+          "line": 142
+        },
+        "syncHideOnLaunch": {
+          "line": 150
         },
         "open": {
-          "line": 85
+          "line": 165,
+          "params": [
+            "{ launch = false } = {}"
+          ]
         },
         "close": {
-          "line": 104,
+          "line": 186,
           "params": [
             "{ via = 'dismiss' } = {}"
           ],
           "purpose": "link closed the guide: the target keeps focus."
         },
         "toggle": {
-          "line": 114
+          "line": 200
         },
         "onClose": {
-          "line": 119,
+          "line": 205,
           "params": [
             "fn"
           ]
         },
         "go": {
-          "line": 125,
+          "line": 211,
           "params": [
             "i"
           ]
         },
         "onKeydown": {
-          "line": 136,
+          "line": 222,
           "params": [
             "e"
           ]
         },
         "onTreeClick": {
-          "line": 155,
+          "line": 241,
           "params": [
             "e"
           ]
         },
         "onContentClick": {
-          "line": 170,
+          "line": 256,
           "params": [
             "e"
           ]
         },
         "renderTree": {
-          "line": 182
+          "line": 268
         },
         "renderPage": {
-          "line": 210
+          "line": 296
         },
         "renderSketch": {
-          "line": 228,
+          "line": 314,
           "purpose": "Sketches arrive with guide/guideSketches.js; until then the slot stays empty."
         },
         "renderBlock": {
-          "line": 232,
+          "line": 318,
           "params": [
             "block"
           ]
         },
         "renderInline": {
-          "line": 240,
+          "line": 326,
           "params": [
             "text"
           ]
         },
         "renderKbd": {
-          "line": 249,
+          "line": 335,
           "params": [
             "id"
           ],
           "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
         },
         "renderAction": {
-          "line": 258,
+          "line": 344,
           "params": [
             "action"
           ]
         },
         "logMissing": {
-          "line": 276,
+          "line": 362,
           "params": [
             "id"
           ]
         },
         "renderFooter": {
-          "line": 282
+          "line": 368
+        },
+        "onLaunchDone": {
+          "line": 62
         }
+      },
+      "ipc": {
+        "listens": [
+          "WORKSPACE_DATA"
+        ],
+        "emits": []
       }
     },
     "renderer/healthNotice": {
@@ -7787,30 +7814,30 @@
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 314,
+          "line": 315,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 424,
+          "line": 425,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 534,
+          "line": 535,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 560,
+          "line": 561,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 586,
+          "line": 587,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 984,
+          "line": 985,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -11736,7 +11763,8 @@
         "init",
         "open",
         "close",
-        "reopen"
+        "reopen",
+        "showOnLaunch"
       ],
       "depends": [
         "electron",
@@ -11747,38 +11775,42 @@
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 29
         },
         "loadAITools": {
-          "line": 55
+          "line": 49
         },
         "maybeShowOnLaunch": {
-          "line": 66
+          "line": 60
+        },
+        "showOnLaunch": {
+          "line": 71,
+          "purpose": "The launch-time show, run by the guide's launch sequence (see the header)."
         },
         "setupListeners": {
-          "line": 73
+          "line": 77
         },
         "persistDismissPreference": {
-          "line": 134
+          "line": 138
         },
         "renderToolOptions": {
-          "line": 142
+          "line": 146
         },
         "updateToolSelection": {
-          "line": 177
+          "line": 181
         },
         "open": {
-          "line": 188
+          "line": 192
         },
         "close": {
-          "line": 194
+          "line": 198
         },
         "reopen": {
-          "line": 208,
+          "line": 212,
           "purpose": "Reopen welcome from Command Palette. Resets the dismissed flag so the"
         },
         "escapeAttr": {
-          "line": 216,
+          "line": 220,
           "params": [
             "s"
           ]
@@ -11786,7 +11818,6 @@
       },
       "ipc": {
         "listens": [
-          "WORKSPACE_DATA",
           "AI_TOOL_CHANGED"
         ],
         "emits": []

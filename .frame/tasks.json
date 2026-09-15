@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T10:57:20.157Z",
+  "lastUpdated": "2026-09-15T10:59:39.247Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7977,13 +7977,13 @@
       "title": "Move the launch trigger to the guide: `guideModal` opens in launch mode on the first `WORKSPACE_DATA` unless `guideHideOnLaunch` is true (opening when the setting reads null), persists the \"Don't show this on launch\" checkbox via `SET_USER_SETTING` on change, calls `onLaunchDone` once on ×/Escape/backdrop/Done and skips it when closed through an action link; remove the `WORKSPACE_DATA` listener and `launchTriggerFired` from `welcomeOverlay.js`, export `showOnLaunch`, and wire it as `onLaunchDone` in `index.js`",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T10:59:39.247Z",
+      "completedAt": "2026-09-15T10:59:39.247Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T07",
