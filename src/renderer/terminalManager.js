@@ -411,6 +411,12 @@ class TerminalManager {
       if (modKey && !event.shiftKey && key === 't') {
         return false;
       }
+      // Ctrl/Cmd + = / - / 0 (interface zoom, ui-zoom-steps spec) → pass to
+      // app. On macOS the native accelerator fires first anyway; this is
+      // what lets the chord reach the registry on Windows / Linux.
+      if (modKey && (event.key === '=' || event.key === '-' || event.key === '0')) {
+        return false;
+      }
       // Ctrl/Cmd + [ or ] (project navigation) → pass to app
       if (modKey && (event.key === '[' || event.key === ']')) {
         return false;

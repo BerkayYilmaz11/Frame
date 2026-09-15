@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:38:30.315Z",
+  "lastUpdated": "2026-09-15T08:39:27.251Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7847,13 +7847,13 @@
       "title": "Pass modifier + `=`, `-` and `0` through xterm's custom key handler in `src/renderer/terminalManager.js` (`_initializeTerminal`) so the zoom chords reach the registry while a terminal has focus.",
       "description": "",
       "source": "spec:ui-zoom-steps:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:39:27.251Z",
+      "completedAt": "2026-09-15T08:39:27.251Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T06",

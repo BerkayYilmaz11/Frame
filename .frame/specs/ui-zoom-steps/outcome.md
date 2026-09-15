@@ -26,3 +26,10 @@ Registered `view.zoomIn` / `view.zoomOut` / `view.zoomReset` in `registerCommand
 _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
+## T05 — Pass the zoom chords through xterm's key handler
+
+Added one passthrough to the custom key handler in `_initializeTerminal`: modifier + `=`, `-` or `0` returns `false`, placed beside the `[` / `]` project-navigation passthrough. No deviation from the plan.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---
