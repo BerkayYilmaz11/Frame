@@ -32,6 +32,9 @@
 /* 8. Welcome Overlay */
 @import 'components/welcome-overlay.css';
 
+/* 8a. How to Use Frame guide (wide two-column modal) */
+@import 'components/guide.css';
+
 /* 9. App Loader (boot splash) */
 @import 'components/app-loader.css';
 

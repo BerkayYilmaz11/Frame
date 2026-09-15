@@ -728,6 +728,38 @@
       </div>
     </div>
 
+    <!-- How to Use Frame (how-to-use-frame-guide spec). A static frame only:
+         guideModal.js renders the index tree, the page and the counter from
+         src/renderer/guide/guideContent.js. Opens on launch before Welcome
+         unless "Don't show this on launch" is ticked; reopened from the rail's
+         help button, Help › How to Use Frame and the palette (help.guide). -->
+    <div id="guide-overlay" class="guide-overlay">
+      <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-title" tabindex="-1">
+        <div class="guide-header">
+          <h3 id="guide-title" class="guide-title">How to Use Frame</h3>
+          <button type="button" id="guide-close" class="guide-close" aria-label="Close">&#x2715;</button>
+        </div>
+        <div class="guide-body">
+          <nav id="guide-tree" class="guide-tree" aria-label="Guide contents"></nav>
+          <article id="guide-page" class="guide-page" aria-live="polite">
+            <div id="guide-sketch" class="guide-sketch" aria-hidden="true"></div>
+            <div id="guide-page-content" class="guide-page-content"></div>
+          </article>
+        </div>
+        <div class="guide-footer">
+          <label class="guide-launch-label">
+            <input type="checkbox" id="guide-hide-on-launch" />
+            <span>Don&rsquo;t show this on launch</span>
+          </label>
+          <div class="guide-nav">
+            <button type="button" id="guide-back" class="guide-btn">&larr; Back</button>
+            <span id="guide-counter" class="guide-counter" aria-live="polite"></span>
+            <button type="button" id="guide-next" class="guide-btn guide-btn-primary">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Spotlight Tour: Initialize Frame -->
     <div id="spotlight-overlay" class="spotlight-overlay">
       <div id="spotlight-card" class="spotlight-card">

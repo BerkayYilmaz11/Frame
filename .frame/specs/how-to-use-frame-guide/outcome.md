@@ -16,3 +16,11 @@ _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
 
+## T03 — Add the guide modal frame, stylesheet and wide modal token
+
+Added the static `#guide-overlay` frame to `index.html` beside Welcome (header with ×, `#guide-tree` nav, `#guide-page` with `#guide-sketch` slot, footer with the launch checkbox, Back, counter, Next), `src/renderer/styles/components/guide.css` imported from `main.css`, and `--modal-width-wide: 1040px` in `variables.css` with a comment naming the guide as its only user. The CSS also carries the page typography, action buttons, note and kbd styles T04 renders into, plus a reduced-motion rule the plan did not mention. 4 files.
+
+_Captured: 2026-09-15 · 4 file change(s)_
+
+---
+
