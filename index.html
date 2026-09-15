@@ -228,9 +228,8 @@
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
-        <!-- How to Use Frame (how-to-use-frame-guide spec): reopens the guide
-             that shows on launch. Runs help.guide, like Help › How to Use
-             Frame and the palette. -->
+        <!-- How to Use Frame (how-to-use-frame-guide spec): opens the guide.
+             Runs help.guide, like Help › How to Use Frame and the palette. -->
         <button id="guide-btn" class="sidebar-rail-btn" aria-label="How to Use Frame" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
@@ -739,8 +738,7 @@
 
     <!-- How to Use Frame (how-to-use-frame-guide spec). A static frame only:
          guideModal.js renders the index tree, the page and the counter from
-         src/renderer/guide/guideContent.js. Opens on launch before Welcome
-         unless "Don't show this on launch" is ticked; reopened from the rail's
+         src/renderer/guide/guideContent.js. Never opens by itself: the rail's
          help button, Help › How to Use Frame and the palette (help.guide). -->
     <div id="guide-overlay" class="guide-overlay">
       <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-title" tabindex="-1">
@@ -756,10 +754,6 @@
           </article>
         </div>
         <div class="guide-footer">
-          <label class="guide-launch-label">
-            <input type="checkbox" id="guide-hide-on-launch" />
-            <span>Don&rsquo;t show this on launch</span>
-          </label>
           <div class="guide-nav">
             <button type="button" id="guide-back" class="guide-btn">&larr; Back</button>
             <span id="guide-counter" class="guide-counter" aria-live="polite"></span>

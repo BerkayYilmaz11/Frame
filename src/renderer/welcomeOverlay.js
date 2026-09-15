@@ -5,11 +5,6 @@
  * opts out via the "Don't show this again" checkbox. Pitches the value
  * prop, lets them pick a default AI tool, and routes to the existing
  * project-creation actions.
- *
- * It does not decide when launch is: the How to Use Frame guide owns the
- * launch trigger and calls showOnLaunch() once it has closed, or at once when
- * the user turned the guide off (how-to-use-frame-guide spec, D2 / D11), so
- * the two never open together.
  */
 
 const { ipcRenderer } = require('electron');
@@ -23,6 +18,7 @@ const DISMISSED_KEY = 'onboardingDismissed';
 let overlayEl = null;
 let dontShowEl = null;
 let isOpen = false;
+let launchTriggerFired = false;
 let availableTools = {};
 let activeToolId = null;
 
@@ -36,6 +32,16 @@ function init() {
 
   loadAITools();
   setupListeners();
+
+  // Trigger on launch — wait for workspace data so we don't race with the
+  // initial sidebar render, but otherwise show regardless of project count.
+  ipcRenderer.on(IPC.WORKSPACE_DATA, () => {
+    if (launchTriggerFired) return;
+    launchTriggerFired = true;
+    maybeShowOnLaunch().catch((err) =>
+      console.error('Welcome: launch trigger failed', err)
+    );
+  });
 
   // Keep selected tool in sync if changed elsewhere
   ipcRenderer.on(IPC.AI_TOOL_CHANGED, (event, tool) => {
@@ -62,16 +68,6 @@ async function maybeShowOnLaunch() {
   if (dismissed !== true) {
     open();
   }
-}
-
-/**
- * The launch-time show, run by the guide's launch sequence (see the header).
- * Still honours "Don't show this again".
- */
-function showOnLaunch() {
-  maybeShowOnLaunch().catch((err) =>
-    console.error('Welcome: launch trigger failed', err)
-  );
 }
 
 function setupListeners() {
@@ -221,4 +217,4 @@ function escapeAttr(s) {
   return escapeHtml(s);
 }
 
-module.exports = { init, open, close, reopen, showOnLaunch };
+module.exports = { init, open, close, reopen };

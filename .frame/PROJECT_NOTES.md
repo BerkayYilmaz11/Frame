@@ -3409,3 +3409,11 @@ view, a label or a command should touch the matching page. While writing it,
 three drafted claims turned out wrong against the code (Plugins is not hidden
 for other agents; Home's first card is "Terminals", not "Agents"; nothing
 shows other CLIs loading AGENTS.md through hooks) and were corrected.
+
+### [2026-09-15] How to Use Frame stops opening at launch
+
+After running the dev build the user said the guide "fena değil ancak onboarding sayılmaz": keep it behind the button at the
+bottom-left of the rail, do not open it first thing, and drop the "Don't show this on launch" checkbox that only existed for
+the launch open. Welcome is back to owning the launch on its own (its code is exactly what it was before the guide), and the
+guide is on-demand only — rail button, Help › How to Use Frame, palette. The same pass fixed index titles that ended in "…":
+twelve were shortened (e.g. "Know which agent needs you" → "Agent states") and tree rows now wrap instead of truncating.

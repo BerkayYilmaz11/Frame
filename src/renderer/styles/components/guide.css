@@ -109,7 +109,8 @@
 
 .guide-chapter-btn {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  line-height: 1.35;
   gap: 6px;
   width: 100%;
   background: none;
@@ -172,12 +173,13 @@
   padding: 5px 8px 5px 12px;
   font-family: inherit;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--text-tertiary);
   text-align: left;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Titles wrap rather than truncate: a cut-off title is unreadable. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .guide-page-btn:hover {
@@ -358,55 +360,11 @@
 .guide-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   padding: 10px 16px 10px 18px;
   border-top: 1px solid var(--border-default);
   flex-shrink: 0;
-}
-
-.guide-launch-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  user-select: none;
-}
-
-.guide-launch-label:hover {
-  color: var(--text-secondary);
-}
-
-.guide-launch-label input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-  background: var(--bg-tertiary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.guide-launch-label input[type="checkbox"]:checked {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-}
-
-.guide-launch-label input[type="checkbox"]:checked::after {
-  content: '';
-  width: 4px;
-  height: 8px;
-  border: solid var(--bg-secondary);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) translate(-1px, -1px);
 }
 
 .guide-nav {
@@ -470,9 +428,6 @@
     padding: 18px 18px 22px;
   }
 
-  .guide-launch-label span {
-    font-size: 11px;
-  }
 }
 
 /* ══ Sketches (guide/guideSketches.js) ══════════════════════════════════

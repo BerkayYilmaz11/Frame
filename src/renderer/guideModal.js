@@ -21,18 +21,11 @@
  * Shortcuts are never written into the copy: `{kbd:id}` reads the command's
  * accelerator from the registry and formats it for this platform.
  *
- * Launch: the guide owns the launch trigger. On the first WORKSPACE_DATA it
- * opens unless "Don't show this on launch" (`guideHideOnLaunch` in
- * user-settings.json) is ticked; `onLaunchDone` — wired to Welcome by
- * index.js — runs when that launch-opened guide is closed by ×, Escape, the
- * backdrop or Done, or at once when the guide is turned off. Closing it
- * through an action link skips Welcome for this launch so the target the
- * user picked stays in front (plan D2, D4, D5, D11). Opening the guide by
- * hand never touches the checkbox's stored value and never leads to Welcome.
+ * It never opens by itself: it is reference, reached from the rail's help
+ * button, Help › How to Use Frame and the palette. (It used to own the launch
+ * and open before Welcome; the user found it is not onboarding and moved it
+ * back to on-demand only.)
  */
-
-const { ipcRenderer } = require('electron');
-const { IPC } = require('../shared/ipcChannels');
 
 const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
@@ -55,30 +48,10 @@ let index = 0;
 let collapsed = new Set();
 let loggedMissing = new Set();
 
-const HIDE_ON_LAUNCH_KEY = 'guideHideOnLaunch';
-let hideOnLaunchEl = null;
-let launchFired = false;
-/** True while the guide on screen is the one the launch sequence opened. */
-let launchMode = false;
-let onLaunchDone = () => {};
-
-/** Called with ({ via }) after every close; the launch sequence hooks in here. */
+/** Called with ({ via }) after every close. */
 let closeListeners = [];
 
-/**
- * @param {{ onLaunchDone?: Function }} [opts] — what runs after the launch
- *   step is over (Welcome's launch show).
- */
-function init({ onLaunchDone: done } = {}) {
-  if (typeof done === 'function') onLaunchDone = done;
-  // Registered before the element check: a missing guide must not also
-  // swallow Welcome's launch show.
-  ipcRenderer.on(IPC.WORKSPACE_DATA, () => {
-    if (launchFired) return;
-    launchFired = true;
-    showOnLaunch();
-  });
-
+function init() {
   overlayEl = document.getElementById('guide-overlay');
   if (!overlayEl) {
     console.error('guideModal: #guide-overlay not found — How to Use Frame will not open');
@@ -91,16 +64,6 @@ function init({ onLaunchDone: done } = {}) {
   backBtn = document.getElementById('guide-back');
   nextBtn = document.getElementById('guide-next');
   counterEl = document.getElementById('guide-counter');
-  hideOnLaunchEl = document.getElementById('guide-hide-on-launch');
-
-  // Persisted on change, so Cmd+Q with the guide still up keeps the choice.
-  if (hideOnLaunchEl) {
-    hideOnLaunchEl.addEventListener('change', () => {
-      ipcRenderer
-        .invoke(IPC.SET_USER_SETTING, HIDE_ON_LAUNCH_KEY, hideOnLaunchEl.checked ? true : null)
-        .catch((err) => console.error('guideModal: failed to persist the launch preference', err));
-    });
-  }
 
   pages = guideContent.flattenPages();
   const problems = guideContent.validate();
@@ -123,55 +86,15 @@ function init({ onLaunchDone: done } = {}) {
   document.addEventListener('keydown', onKeydown);
 }
 
-// ─── Launch ───────────────────────────────────────────────
-
-async function showOnLaunch() {
-  let hidden = null;
-  try {
-    hidden = await ipcRenderer.invoke(IPC.GET_USER_SETTING, HIDE_ON_LAUNCH_KEY);
-  } catch (err) {
-    // Unreadable settings: show the guide rather than skip it silently.
-    console.error('guideModal: could not read the launch preference', err);
-  }
-  if (hidden === true || !overlayEl) {
-    runLaunchDone();
-    return;
-  }
-  open({ launch: true });
-}
-
-function runLaunchDone() {
-  try {
-    onLaunchDone();
-  } catch (err) {
-    console.error('guideModal: launch follow-up failed', err);
-  }
-}
-
-async function syncHideOnLaunch() {
-  if (!hideOnLaunchEl) return;
-  try {
-    const hidden = await ipcRenderer.invoke(IPC.GET_USER_SETTING, HIDE_ON_LAUNCH_KEY);
-    hideOnLaunchEl.checked = hidden === true;
-  } catch (err) {
-    console.error('guideModal: could not read the launch preference', err);
-  }
-}
-
 // ─── Open / close ─────────────────────────────────────────
 
-/**
- * @param {{ launch?: boolean }} [opts] — true only from the launch sequence.
- */
-function open({ launch = false } = {}) {
+function open() {
   if (!overlayEl) return;
-  syncHideOnLaunch();
   if (isOpen) {
     go(0);
     return;
   }
   isOpen = true;
-  launchMode = launch;
   collapsed = new Set();
   loggedMissing = new Set();
   go(0);
@@ -189,10 +112,6 @@ function close({ via = 'dismiss' } = {}) {
   isOpen = false;
   overlayEl.classList.remove('visible');
   if (via !== 'action' && typeof window.terminalFocus === 'function') window.terminalFocus();
-  if (launchMode) {
-    launchMode = false;
-    if (via !== 'action') runLaunchDone();
-  }
   for (const fn of closeListeners) {
     try { fn({ via }); } catch (err) { console.error('guideModal: close listener failed', err); }
   }

@@ -7213,8 +7213,6 @@
         "isOpen"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
         "commandRegistry",
         "platform",
         "htmlUtils",
@@ -7223,124 +7221,99 @@
       ],
       "functions": {
         "init": {
-          "line": 72,
-          "params": [
-            "{ onLaunchDone"
-          ],
-          "purpose": "step is over (Welcome's launch show)."
-        },
-        "showOnLaunch": {
-          "line": 128
-        },
-        "runLaunchDone": {
-          "line": 143
-        },
-        "syncHideOnLaunch": {
-          "line": 151
+          "line": 54
         },
         "open": {
-          "line": 166,
-          "params": [
-            "{ launch = false } = {}"
-          ]
+          "line": 91
         },
         "close": {
-          "line": 187,
+          "line": 110,
           "params": [
             "{ via = 'dismiss' } = {}"
           ],
           "purpose": "link closed the guide: the target keeps focus."
         },
         "toggle": {
-          "line": 201
+          "line": 120
         },
         "onClose": {
-          "line": 206,
+          "line": 125,
           "params": [
             "fn"
           ]
         },
         "go": {
-          "line": 212,
+          "line": 131,
           "params": [
             "i"
           ]
         },
         "onKeydown": {
-          "line": 223,
+          "line": 142,
           "params": [
             "e"
           ]
         },
         "onTreeClick": {
-          "line": 242,
+          "line": 161,
           "params": [
             "e"
           ]
         },
         "onContentClick": {
-          "line": 257,
+          "line": 176,
           "params": [
             "e"
           ]
         },
         "renderTree": {
-          "line": 274
+          "line": 193
         },
         "renderPage": {
-          "line": 302
+          "line": 221
         },
         "renderSketch": {
-          "line": 323,
+          "line": 242,
           "params": [
             "sketch"
           ],
           "purpose": "The page's illustration. A kind guideSketches does not draw leaves the slot"
         },
         "renderBlock": {
-          "line": 338,
+          "line": 257,
           "params": [
             "block"
           ]
         },
         "renderInline": {
-          "line": 346,
+          "line": 265,
           "params": [
             "text"
           ]
         },
         "renderKbd": {
-          "line": 355,
+          "line": 274,
           "params": [
             "id"
           ],
           "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
         },
         "renderAction": {
-          "line": 364,
+          "line": 283,
           "params": [
             "action"
           ]
         },
         "logMissing": {
-          "line": 382,
+          "line": 301,
           "params": [
             "id",
             "message"
           ]
         },
         "renderFooter": {
-          "line": 388
-        },
-        "onLaunchDone": {
-          "line": 63
+          "line": 307
         }
-      },
-      "ipc": {
-        "listens": [
-          "WORKSPACE_DATA"
-        ],
-        "emits": []
       }
     },
     "renderer/healthNotice": {
@@ -7891,30 +7864,30 @@
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 315,
+          "line": 314,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 425,
+          "line": 424,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 535,
+          "line": 534,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 561,
+          "line": 560,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 587,
+          "line": 586,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 985,
+          "line": 984,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -11840,8 +11813,7 @@
         "init",
         "open",
         "close",
-        "reopen",
-        "showOnLaunch"
+        "reopen"
       ],
       "depends": [
         "electron",
@@ -11852,42 +11824,38 @@
       ],
       "functions": {
         "init": {
-          "line": 29
+          "line": 25
         },
         "loadAITools": {
-          "line": 49
+          "line": 55
         },
         "maybeShowOnLaunch": {
-          "line": 60
-        },
-        "showOnLaunch": {
-          "line": 71,
-          "purpose": "The launch-time show, run by the guide's launch sequence (see the header)."
+          "line": 66
         },
         "setupListeners": {
-          "line": 77
+          "line": 73
         },
         "persistDismissPreference": {
-          "line": 138
+          "line": 134
         },
         "renderToolOptions": {
-          "line": 146
+          "line": 142
         },
         "updateToolSelection": {
-          "line": 181
+          "line": 177
         },
         "open": {
-          "line": 192
+          "line": 188
         },
         "close": {
-          "line": 198
+          "line": 194
         },
         "reopen": {
-          "line": 212,
+          "line": 208,
           "purpose": "Reopen welcome from Command Palette. Resets the dismissed flag so the"
         },
         "escapeAttr": {
-          "line": 220,
+          "line": 216,
           "params": [
             "s"
           ]
@@ -11895,6 +11863,7 @@
       },
       "ipc": {
         "listens": [
+          "WORKSPACE_DATA",
           "AI_TOOL_CHANGED"
         ],
         "emits": []

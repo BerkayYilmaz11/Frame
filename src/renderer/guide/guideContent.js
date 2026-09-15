@@ -107,7 +107,7 @@ const CHAPTERS = [
             'Clone a repository from GitHub by its URL.',
             'Try the sample project — a small fictional codebase with specs, tasks and notes already filled in.'
           ] },
-          { p: 'The project switcher in the middle of the header shows the current project; its menu lists your other projects and ends with “+ Add a project…”. The Welcome screen, which follows this guide when Frame starts, has all four too.' }
+          { p: 'The project switcher in the middle of the header shows the current project; its menu lists your other projects and ends with “+ Add a project…”. The Welcome screen that greets you when Frame starts has all four too.' }
         ],
         actions: [
           { id: 'project.add', label: 'Add a project' },
@@ -142,7 +142,7 @@ const CHAPTERS = [
       },
       {
         id: 'projects.git',
-        title: 'Share it, or keep it local',
+        title: 'Git sharing',
         sketch: { kind: 'gitSharing' },
         blocks: [
           { p: 'Initialize asks how Frame\'s files relate to git:' },
@@ -239,7 +239,7 @@ const CHAPTERS = [
       },
       {
         id: 'terminals.states',
-        title: 'Know which agent needs you',
+        title: 'Agent states',
         sketch: { kind: 'laneStates' },
         blocks: [
           { p: 'Frame watches every terminal. An agent terminal is in one of three states:' },
@@ -313,7 +313,7 @@ const CHAPTERS = [
       },
       {
         id: 'specs.plan',
-        title: 'Plan it, then break it down',
+        title: 'Plan and tasks',
         sketch: { kind: 'specFlow', focus: 'plan,tasks' },
         blocks: [
           { p: 'Generate Plan sends the agent back to the code: it checks every claim the spec makes, asks you the decisions that are genuinely yours, and writes `plan.md` together with a visual plan report you can open from the spec\'s page.' },
@@ -340,7 +340,7 @@ const CHAPTERS = [
       },
       {
         id: 'specs.where',
-        title: 'Where specs and tasks live',
+        title: 'Specs & tasks boards',
         sketch: { kind: 'boards' },
         blocks: [
           { list: [
@@ -364,7 +364,7 @@ const CHAPTERS = [
     pages: [
       {
         id: 'orch.what',
-        title: 'What Orchestration does',
+        title: 'What it does',
         sketch: { kind: 'orchestrator', focus: 'conductor,workers' },
         blocks: [
           { p: 'Orchestration runs several specs in parallel. A conductor agent schedules the work; each assigned spec gets its own worker agent, in its own git worktree under `.frame/worktrees/`, on its own branch.' },
@@ -413,7 +413,7 @@ const CHAPTERS = [
     pages: [
       {
         id: 'sessions.list',
-        title: 'Pick up where you left off',
+        title: 'Resume a session',
         sketch: { kind: 'sessions' },
         claudeOnly: true,
         blocks: [
@@ -433,7 +433,7 @@ const CHAPTERS = [
     pages: [
       {
         id: 'context.files',
-        title: 'What the agent remembers',
+        title: 'Context files',
         sketch: { kind: 'fileTree', focus: 'context' },
         blocks: [
           { p: 'An agent session starts from zero. Frame\'s answer is a set of plain files in `.frame/` that every session reads, so the project\'s memory lives in the project rather than in any one conversation:' },
@@ -498,7 +498,7 @@ const CHAPTERS = [
   },
   {
     id: 'multi',
-    title: 'Several projects at once',
+    title: 'Multiple projects',
     pages: [
       {
         id: 'multi.switch',
@@ -514,7 +514,7 @@ const CHAPTERS = [
       },
       {
         id: 'multi.watch',
-        title: 'Agents in other projects',
+        title: "Other projects' agents",
         sketch: { kind: 'multiProject', focus: 'others' },
         blocks: [
           { p: 'The left of the status bar shows the agents running in your other projects — only the other ones, since this project\'s agents are already on screen.' },
@@ -590,7 +590,7 @@ const CHAPTERS = [
       },
       {
         id: 'look.keys',
-        title: 'Commands and shortcuts',
+        title: 'Commands & shortcuts',
         sketch: { kind: 'keys' },
         blocks: [
           { p: 'Everything in Frame is a command, and every command is in the Command Palette {kbd:palette.toggle}. Type a few letters of what you want — a view, a setting, a project, a terminal, a spec — and press Enter.' },
@@ -605,7 +605,7 @@ const CHAPTERS = [
   },
   {
     id: 'frame',
-    title: 'Settings, feedback, this guide',
+    title: 'Settings & help',
     pages: [
       {
         id: 'frame.settings',
@@ -642,11 +642,11 @@ const CHAPTERS = [
       },
       {
         id: 'frame.guide',
-        title: 'Come back to this guide',
+        title: 'Open this guide',
         sketch: { kind: 'shell', focus: 'rail-guide' },
         blocks: [
           { p: 'This guide is always one click away: the question-mark button at the very bottom of the rail, Help › How to Use Frame, or "How to Use Frame" in the Command Palette.' },
-          { p: 'It opens by itself each time Frame starts. Tick Don\'t show this on launch below to stop that — reopening it by hand still works. The Welcome screen, with its project shortcuts, is under Help › Welcome.' }
+          { p: 'The Welcome screen that opens when Frame starts, with its project shortcuts, is under Help › Welcome.' }
         ],
         actions: [
           { id: 'help.welcome', label: 'Show the Welcome screen' }

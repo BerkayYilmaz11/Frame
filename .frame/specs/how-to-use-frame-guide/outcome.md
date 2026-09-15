@@ -88,3 +88,11 @@ _Captured: 2026-09-15 · 6 file change(s)_
 
 ---
 
+## Follow-up — the guide is reference, not onboarding
+
+After running it the user judged the guide good but not onboarding: it should stay reachable from the rail's help button and not open at launch, and the "Don't show this on launch" checkbox is then pointless. Reverted T06's launch hand-off (`welcomeOverlay.js` back to its own `WORKSPACE_DATA` trigger, `guideModal` lost the launch code and the checkbox, markup and CSS removed), which overturns plan D2/D4/D5/D11. Also shortened twelve tree titles and made tree rows wrap instead of ending in an ellipsis, and reworded the two pages that mentioned the launch behaviour. 7 files.
+
+_Captured: 2026-09-15 · 7 file change(s)_
+
+---
+
