@@ -353,7 +353,7 @@ span.tv-pane-assign {
   padding: 4px 6px 6px;
 }
 
-/* ─── Ghost pane / empty state ─── */
+/* ─── Ghost pane / first-terminal ghost ─── */
 
 .tv-ghost {
   display: flex;
@@ -373,51 +373,102 @@ span.tv-pane-assign {
   border-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
-.tv-empty {
-  max-width: 480px;
-  margin: 60px auto;
-  padding: 34px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-xl);
+/* The first-terminal ghost. A grid cell the size of a pane (same 300px as
+   .tv-pane) so the empty view is already shaped like the grid it becomes.
+   The whole box is the button. The only motion is the pointer acting out a
+   click every few seconds — it drifts in, presses, and a small ring spreads
+   from the tip — a tour-guide nudge, not a demo. The frame itself stays
+   still; hover is the one thing that lights it. Off under reduced motion. */
+.tv-ghost.tv-empty {
+  flex-direction: column;
+  gap: 6px;
+  height: 300px;
+  min-height: 160px;
+  padding: 24px;
+  background: transparent;
+  font-family: var(--font-mono);
   text-align: center;
-  color: var(--text-secondary);
+}
+
+.tv-ghost.tv-empty:hover,
+.tv-ghost.tv-empty:focus-visible {
+  color: var(--accent-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  outline: none;
+}
+
+/* The pointer and its click ring share one box; the ring is centered on
+   the pointer's tip (top-left of the lucide glyph, ~30%/25% of the icon). */
+.tv-empty-cursor {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 28px;
+  color: var(--accent-primary);
+  margin-bottom: 4px;
+  transform-origin: 30% 25%;
+  animation: tv-empty-click 3.2s ease-in-out infinite;
+}
+
+.tv-empty-cursor::before {
+  content: '';
+  position: absolute;
+  left: 30%;
+  top: 25%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-primary);
+  opacity: 0;
+  transform: scale(0.5);
+  animation: tv-empty-ring 3.2s ease-out infinite;
+}
+
+/* Come in from up-right, press (shrink), release, rest. */
+@keyframes tv-empty-click {
+  0%        { transform: translate(22px, -22px) scale(1); }
+  40%       { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(0, 0) scale(0.8); }
+  58%       { transform: translate(0, 0) scale(1); }
+  80%, 100% { transform: translate(0, 0) scale(1); }
+}
+
+/* The ring fires on the press and fades as it spreads. */
+@keyframes tv-empty-ring {
+  0%, 48%   { opacity: 0; transform: scale(0.5); }
+  52%       { opacity: 0.9; transform: scale(1); }
+  80%, 100% { opacity: 0; transform: scale(4.5); }
 }
 
 .tv-empty-title {
   color: var(--text-primary);
   font-weight: 700;
   font-size: 13px;
-  margin-bottom: 6px;
 }
 
 .tv-empty-hint {
   font-family: var(--font-sans);
   font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 14px;
+  max-width: 320px;
 }
 
 .tv-empty-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--accent-primary);
-  color: #07130b;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
+  gap: 5px;
+  margin-top: 8px;
+  color: var(--accent-primary);
   font-weight: 700;
   font-size: 11px;
-  padding: 7px 14px;
-  cursor: pointer;
 }
 
-.tv-empty-cta:hover {
-  background: color-mix(in srgb, var(--accent-primary) 85%, white);
-}
-
-[data-scheme="light"] .tv-empty-cta {
-  color: #ffffff;
+@media (prefers-reduced-motion: reduce) {
+  .tv-empty-cursor,
+  .tv-empty-cursor::before {
+    animation: none;
+  }
 }
 
 /* ─── Sidebar workspace nav (under the selected project) ─── */
