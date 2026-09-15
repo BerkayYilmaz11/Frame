@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T10:53:02.534Z",
+  "lastUpdated": "2026-09-15T10:55:48.483Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7951,13 +7951,13 @@
       "title": "Build `src/renderer/guideModal.js`: render the collapsible tree (expanded by default, auto-expand on navigate) and page blocks with HTML-escaped text, `{kbd:id}` via `commandRegistry.getById` + `platform.formatShortcut`, the Claude-only chip and a sketch placeholder; wire Back/Next/Done, the counter, ←/→, Escape, × and backdrop close, dialog focus and terminal focus restore; render action links that close then `runById` (except `stay`) and render disabled with one `console.error` when unregistered; register `help.guide` in `index.js`",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T10:55:48.483Z",
+      "completedAt": "2026-09-15T10:55:48.483Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T05",

@@ -24,3 +24,11 @@ _Captured: 2026-09-15 · 4 file change(s)_
 
 ---
 
+## T04 — Build the guide modal host and register help.guide
+
+Added `src/renderer/guideModal.js`: renders the tree (numbered chapters, expanded by default, collapsible, auto-expanding on navigation), the page (chapter eyebrow, title, Claude-only chip, blocks with escaped text, `{kbd:id}` from the registry via `formatShortcut`, actions), Back / counter / Next→Done, ←/→, Escape, × and backdrop close, dialog focus and terminal focus restore; action links close with `via: 'action'` then `runById`, `stay` links run in place, unregistered ids render disabled with one `console.error`. Registered `help.guide` in `index.js`. Diverged: the sketch slot stays empty (CSS hides it) rather than drawing a placeholder, `close` notifies `onClose` listeners (the hook T06 uses), and buttons keep default tab order instead of the app's usual `tabindex=-1` so the dialog is keyboard reachable; also fixed a doubled full stop in `start.open`. Verified in an isolated dev Frame via Playwright. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+

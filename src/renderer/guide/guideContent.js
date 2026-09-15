@@ -107,7 +107,7 @@ const CHAPTERS = [
             'Clone a repository from GitHub by its URL.',
             'Try the sample project — a small fictional codebase with specs, tasks and notes already filled in.'
           ] },
-          { p: 'The project switcher in the middle of the header shows the current project; its menu lists your other projects and ends with + Add a project…. The Welcome screen that opens after this guide has all four options too.' }
+          { p: 'The project switcher in the middle of the header shows the current project; its menu lists your other projects and ends with “+ Add a project…”. The Welcome screen that opens after this guide has all four options too.' }
         ],
         actions: [
           { id: 'project.add', label: 'Add a project' },

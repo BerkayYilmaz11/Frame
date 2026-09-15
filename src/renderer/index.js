@@ -40,6 +40,7 @@ const { applyTheme, currentTheme } = require('./terminalTabBar');
 const themes = require('./themes');
 const uiZoom = require('../shared/uiZoom');
 const welcomeOverlay = require('./welcomeOverlay');
+const guideModal = require('./guideModal');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const doneWindow = require('./doneWindow');
@@ -278,6 +279,7 @@ function init() {
   require('./paletteSources').init(multiTerminalUI); // dynamic ⌘K jump targets
   cheatSheet.init();
   welcomeOverlay.init();
+  guideModal.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
   feedbackPanel.init();
@@ -598,6 +600,12 @@ function registerCommands() {
     category: 'Help',
     shortcut: 'CmdOrCtrl+Shift+K',
     run: () => cheatSheet.toggle()
+  });
+  r({
+    id: 'help.guide',
+    title: 'How to Use Frame',
+    category: 'Help',
+    run: () => guideModal.open()
   });
   r({
     id: 'help.welcome',

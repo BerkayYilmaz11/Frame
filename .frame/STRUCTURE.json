@@ -7129,6 +7129,116 @@
         }
       }
     },
+    "renderer/guideModal": {
+      "file": "src/renderer/guideModal.js",
+      "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec).",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "onClose",
+        "isOpen"
+      ],
+      "depends": [
+        "commandRegistry",
+        "platform",
+        "htmlUtils",
+        "guide/guideContent"
+      ],
+      "functions": {
+        "init": {
+          "line": 48
+        },
+        "open": {
+          "line": 85
+        },
+        "close": {
+          "line": 104,
+          "params": [
+            "{ via = 'dismiss' } = {}"
+          ],
+          "purpose": "link closed the guide: the target keeps focus."
+        },
+        "toggle": {
+          "line": 114
+        },
+        "onClose": {
+          "line": 119,
+          "params": [
+            "fn"
+          ]
+        },
+        "go": {
+          "line": 125,
+          "params": [
+            "i"
+          ]
+        },
+        "onKeydown": {
+          "line": 136,
+          "params": [
+            "e"
+          ]
+        },
+        "onTreeClick": {
+          "line": 155,
+          "params": [
+            "e"
+          ]
+        },
+        "onContentClick": {
+          "line": 170,
+          "params": [
+            "e"
+          ]
+        },
+        "renderTree": {
+          "line": 182
+        },
+        "renderPage": {
+          "line": 210
+        },
+        "renderSketch": {
+          "line": 228,
+          "purpose": "Sketches arrive with guide/guideSketches.js; until then the slot stays empty."
+        },
+        "renderBlock": {
+          "line": 232,
+          "params": [
+            "block"
+          ]
+        },
+        "renderInline": {
+          "line": 240,
+          "params": [
+            "text"
+          ]
+        },
+        "renderKbd": {
+          "line": 249,
+          "params": [
+            "id"
+          ],
+          "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
+        },
+        "renderAction": {
+          "line": 258,
+          "params": [
+            "action"
+          ]
+        },
+        "logMissing": {
+          "line": 276,
+          "params": [
+            "id"
+          ]
+        },
+        "renderFooter": {
+          "line": 282
+        }
+      }
+    },
     "renderer/healthNotice": {
       "file": "src/renderer/healthNotice.js",
       "description": "Health Notice Banner",
@@ -7650,6 +7760,7 @@
         "themes",
         "shared/uiZoom",
         "welcomeOverlay",
+        "guideModal",
         "appLoader",
         "projectSettingsModal",
         "doneWindow",
@@ -7672,34 +7783,34 @@
       ],
       "functions": {
         "init": {
-          "line": 61,
+          "line": 62,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 312,
+          "line": 314,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 413,
+          "line": 415,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 523,
+          "line": 525,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 549,
+          "line": 551,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 575,
+          "line": 577,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 959,
+          "line": 967,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -13906,6 +14017,18 @@
         "description": "GitHub Panel — the sidebar's GitHub tab (github-view-tree-layout spec)."
       }
     ],
+    "guide": [
+      {
+        "module": "renderer/guide/guideContent",
+        "file": "src/renderer/guide/guideContent.js",
+        "description": "How to Use Frame — the guide's content (how-to-use-frame-guide spec)."
+      },
+      {
+        "module": "renderer/guideModal",
+        "file": "src/renderer/guideModal.js",
+        "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec)."
+      }
+    ],
     "health": [
       {
         "module": "renderer/docsHealthHint",
@@ -13983,6 +14106,11 @@
         "module": "renderer/frameSettingsModal",
         "file": "src/renderer/frameSettingsModal.js",
         "description": "Frame Settings"
+      },
+      {
+        "module": "renderer/guideModal",
+        "file": "src/renderer/guideModal.js",
+        "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec)."
       },
       {
         "module": "renderer/implementModeModal",
