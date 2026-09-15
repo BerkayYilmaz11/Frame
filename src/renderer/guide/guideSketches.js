@@ -22,7 +22,8 @@
 const {
   Package, Files, FilePlus2, Github, Plug, MessageSquarePlus, Settings, CircleHelp,
   Play, Sun, GitBranch, Bot, KeyRound, ChevronDown, SquareTerminal, Folder, File,
-  Users, Lock, Plus, Maximize2, History, ListChecks, FileText
+  Users, Lock, Plus, Maximize2, History, ListChecks, FileText, Check, GitMerge,
+  Workflow, Search
 } = require('lucide');
 const { lucideIcon } = require('../dock');
 const { escapeHtml } = require('../htmlUtils');
@@ -329,6 +330,103 @@ const KINDS = {
         ${card('sessions', History, 'Last Sessions', [bar(70), bar(55), bar(62)])}
         ${card('specs', FileText, 'Active Specs', [`${bar(50)} ${chip('planned', { cls: 'gs-chip-tiny' })}`, `${bar(40)} ${chip('2/7', { cls: 'gs-chip-tiny' })}`])}
         ${card('tasks', ListChecks, 'Active Tasks', [bar(66), bar(48), bar(58)])}
+      </div>`);
+  },
+  /**
+   * The spec flow. Regions: spec, plan, tasks, implement, done; gate marks
+   * the steps Orchestration can take a spec from.
+   */
+  specFlow(focused) {
+    const steps = [
+      ['spec', 'Spec', 'spec.md', 'Write the Spec'],
+      ['plan', 'Plan', 'plan.md', 'Generate Plan'],
+      ['tasks', 'Tasks', 'tasks.md', 'Break into Tasks'],
+      ['implement', 'Implement', 'outcome.md', 'Implement Tasks…'],
+      ['done', 'Done', 'digest.md', '']
+    ];
+    const nodes = steps.map(([name, title, file, action], i) => `
+      ${i ? '<span class="gs-flow-arrow" aria-hidden="true"></span>' : ''}
+      ${region(name, focused, 'gs-flow-step', `
+        <div class="gs-flow-num">${i + 1}</div>
+        ${label(title, 'gs-strong')}
+        ${chip(file)}
+        ${action ? `<span class="gs-flow-action">${escapeHtml(action)}</span>` : `<span class="gs-flow-action gs-flow-done">${icon(Check, 10)}</span>`}`)}`).join('');
+    const gate = focused.has('gate')
+      ? `<div class="gs-flow-gate">${region('gate', focused, 'gs-flow-gate-bar', `${icon(Workflow, 10)}${label('assignable to Orchestration')}`)}</div>`
+      : '';
+    return frame('specFlow', focused, `
+      <div class="gs-flow">${nodes}</div>
+      ${gate}
+      <div class="gs-flow-folder">${icon(Folder, 10)}${label('.frame/specs/add-retry-to-uploads/', 'gs-dim')}</div>`);
+  },
+
+  /** The Implement Tasks… choice. Regions: step, guided, autonomous, custom. */
+  implementModes(focused) {
+    const mode = (name, title, line, chosen) => region(name, focused, 'gs-choice gs-mode', `
+      <div class="gs-choice-head"><span class="gs-radio${chosen ? ' gs-radio-on' : ''}"></span>${label(title, 'gs-strong')}</div>
+      <div class="gs-choice-line">${label(line, 'gs-dim')}</div>`);
+    return frame('implementModes', focused, `
+      <div class="gs-choice-q">${label('Implement Tasks…')}${chip('3 / 7 done', { cls: 'gs-chip-tiny' })}</div>
+      <div class="gs-grid gs-grid-2 gs-modes">
+        ${mode('step', 'Step by step', 'one task, then your go-ahead', true)}
+        ${mode('guided', 'Guided run', 'every task, CLI prompts pace it')}
+        ${mode('autonomous', 'Autonomous + report', 'unattended, one commit each')}
+        ${mode('custom', 'Describe your own', 'your cadence, your rules')}
+      </div>`);
+  },
+
+  /** Specs and Tasks dashboards. Regions: specs, tasks. */
+  boards(focused) {
+    const specCard = (phase, dot, n) => `
+      <div class="gs-board-card">${bar(n)}<div>${chip(phase, { dot, cls: 'gs-chip-tiny' })}</div></div>`;
+    const col = (title, cards) => `<div class="gs-board-col">${label(title, 'gs-eyebrow')}${cards.map((w) => `<div class="gs-board-card">${bar(w)}</div>`).join('')}</div>`;
+    return frame('boards', focused, `
+      <div class="gs-grid gs-grid-2">
+        ${region('specs', focused, 'gs-board', `
+          <div class="gs-board-head">${icon(FileText, 10)}${label('Specs Dashboard', 'gs-strong')}${icon(Search, 10)}</div>
+          <div class="gs-board-filters">${label('All', 'gs-tab gs-tab-active')}${label('Specified', 'gs-tab')}${label('Planned', 'gs-tab')}${label('Implementing', 'gs-tab')}</div>
+          <div class="gs-grid gs-grid-2">
+            ${specCard('specified', 'warn', 62)}${specCard('planned', 'accent', 48)}
+            ${specCard('implementing', 'ok', 70)}${specCard('done', '', 54)}
+          </div>`)}
+        ${region('tasks', focused, 'gs-board', `
+          <div class="gs-board-head">${icon(ListChecks, 10)}${label('Tasks Dashboard', 'gs-strong')}</div>
+          <div class="gs-grid gs-grid-3">
+            ${col('PENDING', [60, 44, 52])}${col('IN PROGRESS', [56])}${col('DONE', [48, 62])}
+          </div>`)}
+      </div>`);
+  },
+
+  /**
+   * The orchestrator. Regions: conductor, workers, specs, pipeline, main.
+   */
+  orchestrator(focused) {
+    const STAGES = ['Queued', 'Running', 'Done', 'Approved'];
+    const worker = (slug, stage) => `
+      <div class="gs-worker">
+        <div class="gs-worker-head">${icon(Bot, 10)}${label(slug)}</div>
+        <div class="gs-worker-branch">${icon(GitBranch, 9)}${label(`frame/${slug}/work`, 'gs-dim')}</div>
+        ${region('pipeline', focused, 'gs-pipeline', STAGES.map((st, k) => `<span class="gs-pipe-step${st === stage ? ' gs-pipe-on' : ''}${k < STAGES.indexOf(stage) ? ' gs-pipe-past' : ''}">${escapeHtml(st)}</span>`).join(''))}
+      </div>`;
+    const specRow = (title, assigned) => `<div class="gs-orch-spec">${label(title)}${chip(assigned ? 'Assigned' : 'Assign', { cls: `gs-chip-tiny${assigned ? '' : ' gs-chip-cta'}` })}</div>`;
+    return frame('orchestrator', focused, `
+      <div class="gs-orch">
+        <div class="gs-orch-left">
+          ${region('conductor', focused, 'gs-orch-conductor', `
+            <div class="gs-tv-pane-head">${label('Conductor')}${chip('Beta', { cls: 'gs-chip-tiny' })}</div>
+            ${terminalLines('reads CONDUCTOR.md', [60, 44])}`)}
+          ${region('workers', focused, 'gs-orch-workers', `
+            ${worker('add-retry', 'Running')}
+            ${worker('dark-mode', 'Done')}`)}
+        </div>
+        <div class="gs-orch-right">
+          ${region('specs', focused, 'gs-orch-specs', `
+            ${label('SPECS', 'gs-eyebrow')}
+            ${specRow('add-retry', true)}
+            ${specRow('dark-mode', true)}
+            ${specRow('export-csv', false)}`)}
+          ${region('main', focused, 'gs-orch-main', `${icon(Lock, 10)}${label('main — never touched', 'gs-dim')}`)}
+        </div>
       </div>`);
   }
 };

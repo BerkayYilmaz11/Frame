@@ -268,6 +268,144 @@ const CHAPTERS = [
         ]
       }
     ]
+  },
+  {
+    id: 'specs',
+    title: 'Specs',
+    pages: [
+      {
+        id: 'specs.why',
+        title: 'Why specs',
+        sketch: { kind: 'specFlow' },
+        blocks: [
+          { p: 'An agent works best when it knows exactly what to build, how, and in what order — and when the next session can still read why. That is what a spec is: a short folder of documents that carries a piece of work from idea to done.' },
+          { p: 'Spec-driven development is on for new projects. When you describe sizable work in a session, the agent offers to start a spec instead of diving into code; it never insists, and small fixes just get done.' },
+          { note: 'Specs are also what Orchestration runs, so a project without specs has nothing to orchestrate. You can switch spec-driven development off per project in Project Settings › Workflow; existing specs stay on disk.' }
+        ]
+      },
+      {
+        id: 'specs.flow',
+        title: 'The flow',
+        sketch: { kind: 'specFlow', focus: 'spec,plan,tasks,implement,done' },
+        blocks: [
+          { p: 'Every spec moves through the same steps, and each step leaves a file in `.frame/specs/<name>/`:' },
+          { list: [
+            'Spec — `spec.md`: the problem, the goal, constraints and success criteria.',
+            'Plan — `plan.md`: the architecture, the files it touches and the order of work.',
+            'Tasks — `tasks.md`: small tasks, each roughly one commit.',
+            'Implement — the agent works through the tasks; the spec is done when none remain.'
+          ] },
+          { p: 'A spec always shows its next step as one button — Write the Spec, Generate Plan, Break into Tasks, Implement Tasks… — so you never have to remember where it stands.' }
+        ]
+      },
+      {
+        id: 'specs.new',
+        title: 'Start a spec',
+        sketch: { kind: 'specFlow', focus: 'spec' },
+        blocks: [
+          { p: 'Open Specs from the sidebar and press New Spec. Describe the work in your own words — no template to fill in.' },
+          { p: 'Frame opens a terminal named Spec Creator, starts your agent and hands it the description. The agent picks a title, checks the existing specs for related decisions, asks you a question if the description is too thin, and writes `spec.md`.' },
+          { p: 'You can also just ask the agent in any session — "let\'s write a spec for this" — and it runs the same flow.' }
+        ],
+        actions: [
+          { id: 'panel.toggleSpecsDashboard', label: 'Open the Specs Dashboard' }
+        ]
+      },
+      {
+        id: 'specs.plan',
+        title: 'Plan it, then break it down',
+        sketch: { kind: 'specFlow', focus: 'plan,tasks' },
+        blocks: [
+          { p: 'Generate Plan sends the agent back to the code: it checks every claim the spec makes, asks you the decisions that are genuinely yours, and writes `plan.md` together with a visual plan report you can open from the spec\'s page.' },
+          { p: 'Break into Tasks turns the plan into `tasks.md`. Frame imports those tasks into the Tasks board by itself, so progress shows up there as the agent completes them.' }
+        ],
+        actions: [
+          { id: 'panel.toggleTasksDashboard', label: 'Open the Tasks Dashboard' }
+        ]
+      },
+      {
+        id: 'specs.implement',
+        title: 'Implement',
+        sketch: { kind: 'implementModes' },
+        blocks: [
+          { p: 'Implement Tasks… asks how the agent should run:' },
+          { list: [
+            'Step by step — one task, a report of what changed and why, then it waits for your go-ahead to commit and continue.',
+            'Guided run — every task in order without check-ins; the CLI\'s own permission prompts pace it, and a live implementation report builds as it goes.',
+            'Autonomous + report — every task unattended, one commit each. It needs a fresh terminal launched with the autonomous permission flags, which Frame starts for you.',
+            'Describe your own — tell the agent how to run it: commit cadence, verification, reporting.'
+          ] },
+          { note: 'Whatever the mode, each finished task gets a short outcome entry in the spec folder, so the next session knows what actually shipped and where it differed from the plan.' }
+        ]
+      },
+      {
+        id: 'specs.where',
+        title: 'Where specs and tasks live',
+        sketch: { kind: 'boards' },
+        blocks: [
+          { list: [
+            'Specs Dashboard {kbd:panel.toggleSpecsDashboard} — every spec as a card, filtered by phase. Open one to read its spec, plan, tasks and outcome, and to press its next step.',
+            'A spec can also open as its own tab in the top bar, with the project\'s other specs in a rail beside it.',
+            'Reports — View Plan Report and View Implementation Report open the generated reports inside Frame.',
+            'Tasks Dashboard {kbd:panel.toggleTasksDashboard} — every task, spec-generated or added by hand, by status.'
+          ] },
+          { p: 'Finished specs and tasks drop off the boards after a while; Project Settings › Boards sets how long.' }
+        ],
+        actions: [
+          { id: 'panel.toggleSpecsDashboard', label: 'Specs Dashboard' },
+          { id: 'panel.toggleTasksDashboard', label: 'Tasks Dashboard' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'orchestration',
+    title: 'Orchestration (Beta)',
+    pages: [
+      {
+        id: 'orch.what',
+        title: 'What Orchestration does',
+        sketch: { kind: 'orchestrator', focus: 'conductor,workers' },
+        blocks: [
+          { p: 'Orchestration runs several specs in parallel. A conductor agent schedules the work; each assigned spec gets its own worker agent, in its own git worktree under `.frame/worktrees/`, on its own branch.' },
+          { list: [
+            'Two specs that would touch the same files are not run at the same time — Frame reads each plan\'s footprint and holds back the collision.',
+            'Workers never push and never merge. You approve each worker\'s changes.',
+            'Your main branch is never touched. Promoting the result is up to you.'
+          ] },
+          { note: 'Orchestration is in beta: guardrailed, human-steered parallelism rather than fire-and-forget automation.' }
+        ]
+      },
+      {
+        id: 'orch.needs',
+        title: 'It needs specs',
+        sketch: { kind: 'specFlow', focus: 'tasks,implement,gate' },
+        blocks: [
+          { p: 'Orchestration has nothing to work on without specs. A spec can be assigned once it has tasks — after Break into Tasks — because a worker implements exactly that task list.' },
+          { p: 'The plan matters too: its footprint, the list of files the spec will touch, is what keeps parallel workers from colliding.' },
+          { p: 'So the path is always the same: write specs, plan them, break them into tasks — then orchestrate.' }
+        ],
+        actions: [
+          { id: 'panel.toggleSpecsDashboard', label: 'Open the Specs Dashboard' }
+        ]
+      },
+      {
+        id: 'orch.run',
+        title: 'Run it',
+        sketch: { kind: 'orchestrator', focus: 'specs,pipeline' },
+        blocks: [
+          { p: 'Open it from Work › Orchestration in the sidebar, or {kbd:orchestrator.open}.' },
+          { list: [
+            'Start Orchestrator opens the conductor\'s terminal.',
+            'Assign the specs you want run from the list on the right.',
+            'Each worker moves through Queued → Running → Done → Approved. Open a worker to watch it, Approve to collect its branch, or Remove it — an un-merged branch is kept.'
+          ] }
+        ],
+        actions: [
+          { id: 'orchestrator.open', label: 'Open Orchestration' }
+        ]
+      }
+    ]
   }
 ];
 

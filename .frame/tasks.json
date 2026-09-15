@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T11:09:26.824Z",
+  "lastUpdated": "2026-09-15T11:12:48.762Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8016,13 +8016,13 @@
       "title": "Write chapters 4–5 (Specs; Orchestration) page copy in `guideContent.js`, verified against the code, and add the `specFlow`, `implementModes`, `boards` and `orchestrator` sketches, extending ACTION_IDS and test expectations",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T11:12:48.762Z",
+      "completedAt": "2026-09-15T11:12:48.762Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T10",

@@ -1292,3 +1292,252 @@
 .gs-gitSharing {
   min-height: 0;
 }
+
+/* ── specFlow ── */
+
+.gs-specFlow { min-height: 0; }
+
+.gs-flow {
+  display: flex;
+  align-items: stretch;
+}
+
+.gs-flow-step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 9px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-flow-num {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 9px;
+}
+
+.gs-focus .gs-flow-num {
+  background: var(--accent-primary);
+  color: var(--bg-secondary);
+}
+
+.gs-flow-action {
+  margin-top: auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.gs-focus .gs-flow-action {
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
+}
+
+.gs-flow-done { display: inline-flex; }
+
+.gs-flow-arrow {
+  align-self: center;
+  flex: 0 0 14px;
+  height: 2px;
+  background: var(--border-strong);
+}
+
+.gs-flow-gate {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  margin-top: 8px;
+}
+
+.gs-flow-gate-bar {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px dashed var(--accent-primary);
+}
+
+.gs-flow-folder {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  color: var(--text-muted);
+}
+
+/* ── implementModes ── */
+
+.gs-implementModes { min-height: 0; }
+
+.gs-choice-q .gs-chip { margin-left: 8px; }
+
+.gs-mode { padding: 10px 12px; }
+
+/* ── boards ── */
+
+.gs-boards { min-height: 0; }
+
+.gs-board {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-board-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gs-board-head svg:last-child { margin-left: auto; }
+
+.gs-board-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.gs-board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px;
+  background: var(--bg-primary);
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+}
+
+.gs-board-card .gs-board-card {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.gs-board-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ── orchestrator ── */
+
+.gs-orchestrator { min-height: 0; }
+
+.gs-orch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px;
+  gap: 8px;
+}
+
+.gs-orch-left,
+.gs-orch-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gs-orch-conductor {
+  padding: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-orch-workers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.gs-worker {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+  border-radius: 5px;
+}
+
+.gs-worker-head,
+.gs-worker-branch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gs-pipeline {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+}
+
+.gs-pipe-step {
+  flex: 1;
+  padding: 2px 0;
+  text-align: center;
+  font-size: 8px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.gs-pipe-past { color: var(--text-tertiary); }
+
+.gs-pipe-on {
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
+}
+
+.gs-orch-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-orch-spec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.gs-chip-cta {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.gs-orch-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px dashed var(--border-strong);
+}
+
+@media (max-width: 760px) {
+  .gs-flow { flex-wrap: wrap; gap: 6px; }
+  .gs-flow-arrow { display: none; }
+  .gs-orch { grid-template-columns: 1fr; }
+}

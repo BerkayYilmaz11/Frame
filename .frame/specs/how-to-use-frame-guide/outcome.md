@@ -64,3 +64,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T09 — Write chapters 4–5 and their sketches
+
+Added the Specs chapter (Why specs, The flow, Start a spec, Plan it then break it down, Implement, Where specs and tasks live) and the Orchestration (Beta) chapter (What Orchestration does, It needs specs, Run it) to `guideContent.js`, with labels taken from `specNextAction`, `implementModeModal`, `specPanel`'s New Spec modal, `agentDispatch`'s Spec Creator lane and `orchestrator.js` (assignable phases, pipeline stages, Start Orchestrator, Approve/Remove). Added the `specFlow` (with a `gate` marker for assignable steps), `implementModes`, `boards` and `orchestrator` sketches. Dropped one drafted sentence claiming specs without a footprint cannot be scheduled, which the code does not establish. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+

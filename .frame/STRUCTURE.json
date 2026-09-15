@@ -7100,28 +7100,28 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 279,
+          "line": 417,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 294,
+          "line": 432,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 310,
+          "line": 448,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 320,
+          "line": 458,
           "params": [
             "chapters = CHAPTERS"
           ],
@@ -7143,14 +7143,14 @@
       ],
       "functions": {
         "focusSet": {
-          "line": 35,
+          "line": 36,
           "params": [
             "focus"
           ],
           "purpose": "Parse `focus` (\"a\" | \"a,b\" | [\"a\",\"b\"]) into a Set of region names."
         },
         "region": {
-          "line": 45,
+          "line": 46,
           "params": [
             "name",
             "focused",
@@ -7160,7 +7160,7 @@
           "purpose": "A focusable region. Regions named in `focus` get .gs-focus; when the"
         },
         "chip": {
-          "line": 57,
+          "line": 58,
           "params": [
             "text",
             "{ dot",
@@ -7169,7 +7169,7 @@
           "purpose": "A small bordered pill, optionally with a status dot ('ok'|'warn'|'err'|'accent')."
         },
         "terminalLines": {
-          "line": 63,
+          "line": 64,
           "params": [
             "prompt",
             "widths = [72",
@@ -7179,7 +7179,7 @@
           "purpose": "A fake terminal body: a prompt line plus a few output bars."
         },
         "frame": {
-          "line": 80,
+          "line": 81,
           "params": [
             "kind",
             "focused",
@@ -7189,7 +7189,7 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 341,
+          "line": 439,
           "params": [
             "kind",
             "focus"
