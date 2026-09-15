@@ -72,3 +72,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T10 — Write chapters 6–8 and their sketches
+
+Added Sessions (Pick up where you left off, Claude Code only), Context that survives (What the agent remembers, The panel, Decisions, Prompts, Activity) and Several projects at once (Switch projects, Agents in other projects) to `guideContent.js`, checked against `sessionsPanel`/`agentDispatch` (resume always in a new terminal), `promptLogger` (redaction), `activityPanel` (muted suppressions), `decisionsView` and `statusBar` (other-projects popover jumps to the terminal). Added the `sessions`, `dockTabs` and `multiProject` sketches; the `context.files` page reuses `fileTree` with the `context` focus. Beyond the plan: the dock got its own page (`context.dock`) and the focus rule now accents only a region's direct labels, because screenshots showed whole panels turning green; dropped a drafted claim that non-Claude CLIs load AGENTS.md through hooks, which was not verified. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+

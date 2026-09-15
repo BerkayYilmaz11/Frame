@@ -7100,28 +7100,28 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 417,
+          "line": 537,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 432,
+          "line": 552,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 448,
+          "line": 568,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 458,
+          "line": 578,
           "params": [
             "chapters = CHAPTERS"
           ],
@@ -7189,7 +7189,7 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 439,
+          "line": 518,
           "params": [
             "kind",
             "focus"

@@ -406,6 +406,126 @@ const CHAPTERS = [
         ]
       }
     ]
+  },
+  {
+    id: 'sessions',
+    title: 'Sessions',
+    pages: [
+      {
+        id: 'sessions.list',
+        title: 'Pick up where you left off',
+        sketch: { kind: 'sessions' },
+        claudeOnly: true,
+        blocks: [
+          { p: 'Sessions {kbd:panel.toggleSessions} lists this project\'s past Claude Code conversations, newest first, read from Claude Code\'s own transcripts. Open it from Context › Sessions in the sidebar.' },
+          { p: 'Resume opens a new terminal and continues that conversation with `claude --resume`, so the agent comes back with its whole history. Home\'s Last Sessions card shows the three most recent, one click each.' },
+          { note: 'Sessions come from Claude Code\'s transcripts, so the list and the Last Sessions card only appear when Claude Code is your agent.' }
+        ],
+        actions: [
+          { id: 'panel.toggleSessions', label: 'Open Sessions' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'context',
+    title: 'Context that survives',
+    pages: [
+      {
+        id: 'context.files',
+        title: 'What the agent remembers',
+        sketch: { kind: 'fileTree', focus: 'context' },
+        blocks: [
+          { p: 'An agent session starts from zero. Frame\'s answer is a set of plain files in `.frame/` that every session reads, so the project\'s memory lives in the project rather than in any one conversation:' },
+          { list: [
+            '`AGENTS.md` — how to work in this project. Claude Code loads it at every session start through `.claude/rules/frame.md`.',
+            '`STRUCTURE.json` — where things are, so the agent opens the right file instead of searching.',
+            '`PROJECT_NOTES.md` — decisions and why they were made.',
+            '`tasks.json` and `specs/` — what is planned, in progress and done, and what earlier specs decided.'
+          ] },
+          { p: 'For Claude Code, hooks go a step further: before the agent edits a file, it is shown which earlier specs changed that file and why. The git pre-commit hook keeps `STRUCTURE.json` current, so commit often.' }
+        ]
+      },
+      {
+        id: 'context.dock',
+        title: 'The panel',
+        sketch: { kind: 'shell', focus: 'dock' },
+        blocks: [
+          { p: 'The panel {kbd:dock.toggle} holds the project\'s readable history — Decisions, Prompts and Activity — one tab at a time, without replacing what is on screen.' },
+          { p: 'It opens at the bottom; move it to the right from its header or the View menu. Drag its edge to resize and its tabs to reorder. The status bar has an icon per tab, too.' }
+        ],
+        actions: [
+          { id: 'dock.toggle', label: 'Toggle the panel' }
+        ]
+      },
+      {
+        id: 'context.decisions',
+        title: 'Decisions',
+        sketch: { kind: 'dockTabs', focus: 'decisions' },
+        blocks: [
+          { p: 'Decisions {kbd:dock.decisions} lists every dated entry in `PROJECT_NOTES.md` — the decisions you and your agents recorded, with the reasoning behind them. Click one to read it; search filters by date, title or text.' },
+          { p: 'It is the fastest way to answer "why is it like this?" before asking an agent to change it.' }
+        ],
+        actions: [
+          { id: 'dock.decisions', label: 'Show Decisions' }
+        ]
+      },
+      {
+        id: 'context.prompts',
+        title: 'Prompts',
+        sketch: { kind: 'dockTabs', focus: 'prompts' },
+        blocks: [
+          { p: 'Prompts {kbd:dock.prompts} is the history of what was typed into this project\'s terminals, searchable, so a prompt that worked last week is one search away.' },
+          { note: 'Lines are redacted before they are saved, so API keys and tokens typed into a terminal are not kept in the history.' }
+        ],
+        actions: [
+          { id: 'dock.prompts', label: 'Show Prompts' }
+        ]
+      },
+      {
+        id: 'context.activity',
+        title: 'Activity',
+        sketch: { kind: 'dockTabs', focus: 'activity' },
+        blocks: [
+          { p: 'Activity {kbd:dock.activity} shows the work Frame does on its own: file watchers syncing tasks and specs, hooks handing context to the agent, the module map being refreshed, recoveries from a damaged file.' },
+          { p: 'Work a guard deliberately skipped is listed too, drawn muted — so when something did not happen, you can see that Frame decided not to.' }
+        ],
+        actions: [
+          { id: 'dock.activity', label: 'Show Activity' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'multi',
+    title: 'Several projects at once',
+    pages: [
+      {
+        id: 'multi.switch',
+        title: 'Switch projects',
+        sketch: { kind: 'multiProject', focus: 'switcher' },
+        blocks: [
+          { p: 'Frame keeps all your projects in one window. The project switcher in the middle of the header lists them; {kbd:project.next} and {kbd:project.prev} step through them, and the Command Palette {kbd:palette.toggle} jumps straight to a project, a terminal or a spec by name.' },
+          { p: 'Switching never stops anything. Each project keeps its own terminals, and the agents in the projects you are not looking at keep working.' }
+        ],
+        actions: [
+          { id: 'palette.toggle', label: 'Open the Command Palette' }
+        ]
+      },
+      {
+        id: 'multi.watch',
+        title: 'Agents in other projects',
+        sketch: { kind: 'multiProject', focus: 'others' },
+        blocks: [
+          { p: 'The left of the status bar shows the agents running in your other projects — only the other ones, since this project\'s agents are already on screen.' },
+          { list: [
+            'A calm count means they are all working.',
+            'A coloured pill means one of them is waiting on you — it needs approval or its turn is finished.'
+          ] },
+          { p: 'Click it to see them grouped by project, and pick one to go straight to that project and terminal.' }
+        ]
+      }
+    ]
   }
 ];
 

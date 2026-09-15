@@ -23,7 +23,7 @@ const {
   Package, Files, FilePlus2, Github, Plug, MessageSquarePlus, Settings, CircleHelp,
   Play, Sun, GitBranch, Bot, KeyRound, ChevronDown, SquareTerminal, Folder, File,
   Users, Lock, Plus, Maximize2, History, ListChecks, FileText, Check, GitMerge,
-  Workflow, Search
+  Workflow, Search, RotateCcw, PanelRight, X
 } = require('lucide');
 const { lucideIcon } = require('../dock');
 const { escapeHtml } = require('../htmlUtils');
@@ -426,6 +426,85 @@ const KINDS = {
             ${specRow('dark-mode', true)}
             ${specRow('export-csv', false)}`)}
           ${region('main', focused, 'gs-orch-main', `${icon(Lock, 10)}${label('main — never touched', 'gs-dim')}`)}
+        </div>
+      </div>`);
+  },
+  /** The Sessions list. Regions: list, resume. */
+  sessions(focused) {
+    const row = (title, when, first) => `
+      <div class="gs-session">
+        <div class="gs-session-text">${label(title)}${label(when, 'gs-dim')}</div>
+        ${first ? region('resume', focused, 'gs-session-resume', `${icon(RotateCcw, 9)}${label('Resume')}`) : `<span class="gs-session-resume gs-session-resume-quiet">${icon(RotateCcw, 9)}${label('Resume')}</span>`}
+      </div>`;
+    return frame('sessions', focused, `
+      <div class="gs-grid gs-sessions-grid">
+        ${region('list', focused, 'gs-sessions-list', `
+          <div class="gs-board-head">${icon(History, 10)}${label('Sessions', 'gs-strong')}${chip('24', { cls: 'gs-chip-tiny' })}</div>
+          ${row('add a retry to the upload client', '12 min ago', true)}
+          ${row('why does the export test flake?', 'yesterday')}
+          ${row('plan the dark mode spec', '2 days ago')}
+          ${row('rename the session helper', 'last week')}`)}
+        <div class="gs-sessions-term gs-pane">
+          <div class="gs-tv-pane-head">${label('New terminal')}</div>
+          ${terminalLines('claude --resume 3f9c…', [66, 50, 58])}
+        </div>
+      </div>`);
+  },
+
+  /** The dock. Regions: decisions, prompts, activity (a tab each, with its body). */
+  dockTabs(focused) {
+    const active = ['decisions', 'prompts', 'activity'].find((t) => focused.has(t)) || 'decisions';
+    const tab = (name, title) => `<span class="gs-dock-tab${name === active ? ' gs-dock-tab-on' : ''}">${escapeHtml(title)}</span>`;
+    const bodies = {
+      decisions: `
+        <div class="gs-dock-search">${icon(Search, 9)}${label('Search decisions', 'gs-dim')}</div>
+        <div class="gs-dock-row">${label('2026-09-14', 'gs-dim')}${label('Uploads retry with backoff, not a queue')}</div>
+        <div class="gs-dock-row gs-dock-row-open">${label('2026-09-10', 'gs-dim')}${label('Settings split by scope')}<div class="gs-dock-row-body">${bar(88)}${bar(72)}</div></div>
+        <div class="gs-dock-row">${label('2026-09-02', 'gs-dim')}${label('Tasks keep their status across re-imports')}</div>`,
+      prompts: `
+        <div class="gs-dock-search">${icon(Search, 9)}${label('Search prompts', 'gs-dim')}</div>
+        <div class="gs-dock-row">${label('14:02', 'gs-dim')}${label('add a retry to the upload client')}</div>
+        <div class="gs-dock-row">${label('13:40', 'gs-dim')}${label('run the tests and fix what fails')}</div>
+        <div class="gs-dock-row">${label('11:15', 'gs-dim')}${label('explain how sessions are loaded')}</div>`,
+      activity: `
+        <div class="gs-dock-row">${chip('tasks', { cls: 'gs-chip-tiny' })}${label('tasks.json synced from specs/add-retry')}</div>
+        <div class="gs-dock-row">${chip('hooks', { cls: 'gs-chip-tiny' })}${label('spec history shown before an edit')}</div>
+        <div class="gs-dock-row">${chip('structure', { cls: 'gs-chip-tiny' })}${label('STRUCTURE.json updated on commit')}</div>
+        <div class="gs-dock-row gs-dock-row-muted">${chip('watchers', { cls: 'gs-chip-tiny' })}${label('skipped: Frame’s own write')}</div>`
+    };
+    return frame('dockTabs', focused, `
+      ${region(active, focused, 'gs-dock-panel', `
+        <div class="gs-dock-head">
+          <div class="gs-dock-tabrow">${tab('decisions', 'Decisions')}${tab('prompts', 'Prompts')}${tab('activity', 'Activity')}</div>
+          <div class="gs-dock-tools">${icon(PanelRight, 10)}${icon(X, 10)}</div>
+        </div>
+        <div class="gs-dock-list">${bodies[active]}</div>`)}`);
+  },
+
+  /** Several projects. Regions: switcher (header + its menu), others (status bar popover). */
+  multiProject(focused) {
+    const proj = (name, badge, current) => `<div class="gs-proj-row${current ? ' gs-proj-current' : ''}">${icon(Folder, 10)}${label(name)}${badge || ''}</div>`;
+    const agentRow = (name, state, dot) => `<div class="gs-proj-row">${icon(Bot, 10)}${label(name)}${chip(state, { dot, cls: 'gs-chip-tiny' })}</div>`;
+    return frame('multiProject', focused, `
+      <div class="gs-multi">
+        ${region('switcher', focused, 'gs-multi-switcher', `
+          <div class="gs-switcher gs-switcher-open">${label('web-app')}${icon(ChevronDown, 10)}</div>
+          <div class="gs-proj-menu">
+            ${proj('web-app', '', true)}
+            ${proj('api-server', chip('needs approval', { dot: 'err', cls: 'gs-chip-tiny' }))}
+            ${proj('docs-site')}
+            <div class="gs-proj-row gs-dim">${label('+ Add a project…')}</div>
+          </div>`)}
+        <div class="gs-multi-bottom">
+          ${region('others', focused, 'gs-multi-others', `
+            <div class="gs-proj-pop">
+              ${label('AGENTS IN OTHER PROJECTS', 'gs-eyebrow')}
+              ${label('api-server', 'gs-dim')}
+              ${agentRow('Terminal 2', 'needs approval', 'err')}
+              ${label('docs-site', 'gs-dim')}
+              ${agentRow('Terminal 1', 'working', 'accent')}
+            </div>
+            <div class="gs-status gs-multi-status">${icon(GitBranch, 10)}${label('main')}<span class="gs-status-sep"></span>${icon(Bot, 10)}${chip('1 waiting', { dot: 'err', cls: 'gs-chip-tiny' })}</div>`)}
         </div>
       </div>`);
   }

@@ -520,8 +520,10 @@
   color: var(--text-primary);
 }
 
-.gs-focus .gs-label,
-.gs-focus svg {
+/* Only a region's own labels and icons take the accent — a focused panel
+   full of rows stays readable. */
+.gs-focus > .gs-label,
+.gs-focus > svg {
   color: var(--accent-primary);
 }
 
@@ -1540,4 +1542,186 @@
   .gs-flow { flex-wrap: wrap; gap: 6px; }
   .gs-flow-arrow { display: none; }
   .gs-orch { grid-template-columns: 1fr; }
+}
+
+/* ── sessions ── */
+
+.gs-sessions { min-height: 0; }
+
+.gs-sessions-grid {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.gs-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+
+.gs-session-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gs-session-text .gs-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-session-resume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--gs-line);
+}
+
+.gs-session-resume-quiet { color: var(--text-muted); border-radius: 5px; }
+
+.gs-sessions-term { min-height: 120px; }
+
+/* ── dockTabs ── */
+
+.gs-dockTabs { min-height: 0; }
+
+.gs-dock-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-dock-tabrow { display: flex; gap: 12px; }
+
+.gs-dock-tab {
+  padding: 6px 0 5px;
+  color: var(--text-tertiary);
+}
+
+.gs-dock-tab-on {
+  color: var(--text-primary);
+  box-shadow: inset 0 -1.5px 0 var(--accent-primary);
+}
+
+.gs-dock-tools { display: flex; gap: 8px; color: var(--text-tertiary); }
+
+.gs-dock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+
+.gs-dock-search {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  margin-bottom: 2px;
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+
+.gs-dock-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+
+.gs-dock-row-body {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 2px 76px;
+}
+
+.gs-dock-row-muted { opacity: 0.55; }
+
+/* ── multiProject ── */
+
+.gs-multiProject { min-height: 0; }
+
+.gs-multi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.gs-multi-switcher,
+.gs-multi-others {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+}
+
+.gs-switcher-open {
+  margin: 0;
+  align-self: flex-start;
+  min-width: 150px;
+}
+
+.gs-proj-menu,
+.gs-proj-pop {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow-md);
+}
+
+.gs-proj-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+
+.gs-proj-row .gs-chip { margin-left: auto; }
+
+.gs-proj-current { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.gs-multi-status {
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+@media (max-width: 760px) {
+  .gs-sessions-grid,
+  .gs-multi { grid-template-columns: 1fr; }
 }
