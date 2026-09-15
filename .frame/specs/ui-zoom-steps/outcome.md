@@ -33,3 +33,10 @@ Added one passthrough to the custom key handler in `_initializeTerminal`: modifi
 _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
+## T06 — Replace the stock zoom roles in the View menu with Frame's commands
+
+Replaced the three stock roles in `src/main/menu.js` with `cmd(...)` items on `CmdOrCtrl+=`, `CmdOrCtrl+-`, `CmdOrCtrl+0` in the same position, plus the `visible: false` `CmdOrCtrl+Shift+=` alias for Zoom In (spread over a `cmd()` result). Built the template against an electron stub to confirm the four entries and accelerators; whether the hidden alias actually fires on macOS is left to the live pass after T09 — the task's "drop it if it does not" clause is still open until then.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---

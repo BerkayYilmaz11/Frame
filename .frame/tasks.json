@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:39:27.251Z",
+  "lastUpdated": "2026-09-15T08:40:16.437Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7860,13 +7860,13 @@
       "title": "Replace `{ role: 'zoomIn' }`, `{ role: 'zoomOut' }`, `{ role: 'resetZoom' }` in the View menu of `src/main/menu.js` with `cmd('Zoom In', 'view.zoomIn', 'CmdOrCtrl+=')`, `cmd('Zoom Out', 'view.zoomOut', 'CmdOrCtrl+-')`, `cmd('Reset Zoom', 'view.zoomReset', 'CmdOrCtrl+0')` in the same position, plus a `visible: false` `CmdOrCtrl+Shift+=` alias for Zoom In; verify the alias fires on macOS and drop it if it does not.",
       "description": "",
       "source": "spec:ui-zoom-steps:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:40:16.437Z",
+      "completedAt": "2026-09-15T08:40:16.437Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T07",

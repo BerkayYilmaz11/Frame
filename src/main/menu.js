@@ -152,9 +152,14 @@ function getMenuTemplate() {
         submenu: buildThemeSubmenu()
       },
       SEP,
-      { role: 'zoomIn' },
-      { role: 'zoomOut' },
-      { role: 'resetZoom' },
+      // Interface zoom (ui-zoom-steps spec): Frame's five-step ladder rather
+      // than Electron's stock roles, so the palette, the cheat sheet and the
+      // keyboard handler run the same ids. ⌘⇧= is the hidden alias Electron's
+      // own zoomIn role carries — '+' is shifted '=' on most layouts.
+      cmd('Zoom In', 'view.zoomIn', 'CmdOrCtrl+='),
+      { ...cmd('Zoom In', 'view.zoomIn', 'CmdOrCtrl+Shift+='), visible: false },
+      cmd('Zoom Out', 'view.zoomOut', 'CmdOrCtrl+-'),
+      cmd('Reset Zoom', 'view.zoomReset', 'CmdOrCtrl+0'),
       { role: 'togglefullscreen' },
       SEP,
       {
