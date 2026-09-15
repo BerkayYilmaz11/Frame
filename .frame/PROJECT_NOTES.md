@@ -3332,3 +3332,34 @@ that entry checked — the same rebuild the AI-tool switcher already does.
 The submenu is generated from `themes.THEME_IDS`, so main no longer carries
 its own copy of the labels. `counterpart` in the registry is now unused by
 the shell (kept for a future quick flip; tests still pin it).
+
+### [2026-09-15] UI zoom steps — page zoom owned by Frame, not a CSS rewrite
+
+> Frame için aklıma yeni bir feature geldi. zoom in ve zoom out. fontlar
+> iconlar vs tüm tasarım scale olabilir. default bu hali olur. 2 kademe
+> küçük 2 kademe büyük olabilir. … view menusu altına da koyalım bunu uygun
+> bir şekilde diğer uygulamalar gibi. ayrıca shortcut ekleyebiliriz
+
+**Analysis.** The View menu already carried Electron's stock `zoomIn` /
+`zoomOut` / `resetZoom` roles, so ⌘= zoomed the page today — through
+Chromium's dozen-step ladder, with no indicator, no Settings entry, and a
+value Chromium persisted per origin on its own. The stylesheets are px-only
+(2,357 px values, 0 rem), the density pass's 12px base is deliberate, and
+xterm / the d3 map sit outside CSS anyway. Three mechanisms were weighed:
+Chromium page zoom under Frame's control (chosen), a rem refactor (16k lines,
+still leaves xterm and SVG), CSS `zoom` on body (breaks rect math and xterm
+measurement).
+
+**Decisions (spec `ui-zoom-steps`, planned and task-generated this session).**
+Five steps −2…+2 → 0.85 / 0.92 / 1.00 / 1.10 / 1.20, step 0 byte-identical
+to today. `src/main/uiZoom.js` owns the factor: seeds
+`webPreferences.zoomFactor` from `user-settings.json` (`uiZoomStep`),
+re-applies on `did-finish-load` so a stale Chromium per-origin level never
+wins, snaps pinch / Ctrl+wheel (`zoom-changed`) to the ladder. Three registry
+commands `view.zoomIn` / `view.zoomOut` / `view.zoomReset` on ⌘= ⌘- ⌘0
+replace the stock roles in the View menu (same position, plus a hidden ⌘⇧=
+alias like Electron's own role), so palette and cheat sheet list them for
+free. Frame Settings gains an Appearance row with a `.settings-select`
+(machine-wide, so the gear side per settings-by-scope). Status bar shows
+`110%` at the right end only away from step 0; click resets. Minimum window
+stays 900×600. Tests: the pure ladder module under `src/shared/` only.
