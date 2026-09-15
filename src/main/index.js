@@ -35,6 +35,7 @@ const aiToolManager = require('./aiToolManager');
 const claudeSessionsManager = require('./claudeSessionsManager');
 const updateChecker = require('./updateChecker');
 const userSettings = require('./userSettings');
+const uiZoom = require('./uiZoom');
 const gitStatusManager = require('./gitStatusManager');
 const gitDiffManager = require('./gitDiffManager');
 const telemetry = require('./telemetry');
@@ -75,7 +76,10 @@ function createWindow() {
     minHeight: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      // The stored interface scale, so the first paint is already at the
+      // user's step (ui-zoom-steps spec); uiZoom re-applies it on load.
+      zoomFactor: uiZoom.currentFactor()
     },
     backgroundColor: '#0c0b09',
     title: 'Frame',
@@ -132,6 +136,7 @@ function createWindow() {
 
   // Initialize modules with window reference
   crashGuard.attachWindow(mainWindow);
+  uiZoom.attachWindow(mainWindow);
   pty.init(mainWindow);
   ptyManager.init(mainWindow);
   aiToolManager.init(mainWindow, app);
@@ -294,6 +299,9 @@ function init() {
 
   // Initialize user settings (must run after app is ready so userData path resolves)
   userSettings.init();
+  // The interface scale reads its step from user settings, and createWindow
+  // reads the factor from it — so it sits between the two.
+  uiZoom.init();
 
   // Global crash handlers + local-only crash dumps. After userSettings
   // (reads the crashDumpsEnabled toggle), before everything else so no

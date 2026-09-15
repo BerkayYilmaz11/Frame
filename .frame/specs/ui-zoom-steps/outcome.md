@@ -12,3 +12,10 @@ Added `UI_ZOOM_GET` / `UI_ZOOM_SET` / `UI_ZOOM_CHANGED` beside the user-setting 
 _Captured: 2026-09-15 · 2 file change(s)_
 
 ---
+## T03 — Wire the zoom owner into the main-process startup
+
+Wired `src/main/index.js` exactly as planned: `uiZoom.init()` after `userSettings.init()`, `webPreferences.zoomFactor: uiZoom.currentFactor()` in `createWindow`, `uiZoom.attachWindow(mainWindow)` beside the other window-bound attaches (before `pty.init`) so `did-finish-load` is hooked before `loadFile`. From here a stored `uiZoomStep` is honoured at launch and trackpad / wheel zoom snaps to the ladder; no user-facing control exists yet.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---

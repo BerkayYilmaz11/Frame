@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:36:11.738Z",
+  "lastUpdated": "2026-09-15T08:37:14.304Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7821,13 +7821,13 @@
       "title": "Wire `src/main/index.js`: call `uiZoom.init()` after `userSettings.init()`, pass `webPreferences.zoomFactor: uiZoom.currentFactor()` in `createWindow`, and call `uiZoom.attachWindow(mainWindow)` once the window exists.",
       "description": "",
       "source": "spec:ui-zoom-steps:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:37:14.304Z",
+      "completedAt": "2026-09-15T08:37:14.304Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T04",

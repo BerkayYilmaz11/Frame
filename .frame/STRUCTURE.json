@@ -2240,6 +2240,7 @@
         "claudeSessionsManager",
         "updateChecker",
         "userSettings",
+        "uiZoom",
         "gitStatusManager",
         "gitDiffManager",
         "telemetry",
@@ -2249,26 +2250,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 52,
+          "line": 53,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 70,
+          "line": 71,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 167
+          "line": 172
         },
         "setupAllIPC": {
-          "line": 197,
+          "line": 202,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 275,
+          "line": 280,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 315,
+          "line": 323,
           "params": [
             "window"
           ],
