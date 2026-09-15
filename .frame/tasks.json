@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T10:55:48.483Z",
+  "lastUpdated": "2026-09-15T10:57:20.157Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7964,13 +7964,13 @@
       "title": "Add the guide's entry points: register `plugins.open` (title \"Plugins\", category Help, `pluginsPanel.toggle()`) in `index.js`, add Help › How to Use Frame dispatching `help.guide` above Welcome in `src/main/menu.js`, and add `#guide-btn` below `#frame-settings-btn` in the rail foot with the lucide `CircleHelp` icon and \"How to Use Frame\" tooltip running `help.guide`",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T10:57:20.157Z",
+      "completedAt": "2026-09-15T10:57:20.157Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T06",

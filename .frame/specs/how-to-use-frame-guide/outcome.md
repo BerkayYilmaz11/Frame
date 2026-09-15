@@ -32,3 +32,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T05 — Add the guide's entry points and the plugins.open command
+
+Registered `plugins.open` (Plugins, category Help, `pluginsPanel.toggle()`) in `index.js`, added Help › How to Use Frame (`help.guide`) above Welcome in `src/main/menu.js`, and added `#guide-btn` as the last rail-foot button under the gear with a CircleHelp icon and a "How to Use Frame" tooltip that runs `help.guide`. The icon is inline SVG in `index.html` like the other rail buttons, not rendered through lucide at runtime as the task wording suggested; the paths are lucide's CircleHelp. Verified live: the button sits below the gear, opens and closes the guide, and an action link closed the guide and opened Open Project. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+

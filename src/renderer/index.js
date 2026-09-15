@@ -387,6 +387,15 @@ function setupButtonHandlers() {
     tooltip.attach(frameSettingsBtn, 'Frame Settings (Cmd+,)', { placement: 'right' });
   }
 
+  // How to Use Frame, the last button at the rail's foot (under the gear).
+  // Runs the same registered command as Help › How to Use Frame and the
+  // palette (how-to-use-frame-guide spec).
+  const guideBtn = document.getElementById('guide-btn');
+  if (guideBtn) {
+    guideBtn.addEventListener('click', () => commandRegistry.runById('help.guide'));
+    tooltip.attach(guideBtn, 'How to Use Frame', { placement: 'right' });
+  }
+
   // Theme toggle now lives in the top bar and is wired by terminalTabBar,
   // which renders it and already owns the boot-time theme restore
   // (status-bar spec). Binding it from here would attach a listener before
@@ -729,6 +738,14 @@ function registerCommands() {
     category: 'View',
     shortcut: dockState.TAB_SHORTCUTS.activity,
     run: () => dock.toggleTab('activity')
+  });
+  // Plugins has no menu item; the command exists so the How to Use Frame
+  // guide can link to it the way the rail's foot button opens it.
+  r({
+    id: 'plugins.open',
+    title: 'Plugins',
+    category: 'Help',
+    run: () => pluginsPanel.toggle()
   });
   // Feedback is a modal, not a dock tab: the rail's foot button, the Help
   // menu and the palette all run this.

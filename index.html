@@ -204,11 +204,12 @@
           </svg>
         </button>
         <!-- The foot of the rail, below the view tabs: Plugins, Feedback,
-             then Frame Settings. All three open a modal (#plugins-modal,
-             #feedback-modal, the Frame Settings overlay) rather than
-             switching views — hence no .sidebar-tab-btn (that class drives
-             view switching). .sidebar-rail-btn-foot on the first pushes the
-             group to the bottom. -->
+             Frame Settings, then How to Use Frame. All four open a modal
+             (#plugins-modal, #feedback-modal, the Frame Settings overlay,
+             #guide-overlay) rather than switching views — hence no
+             .sidebar-tab-btn (that class drives view switching).
+             .sidebar-rail-btn-foot on the first pushes the group to the
+             bottom. -->
         <button id="plugins-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" aria-label="Plugins" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>
@@ -225,6 +226,14 @@
         <button id="frame-settings-btn" class="sidebar-rail-btn" aria-label="Frame Settings" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+        <!-- How to Use Frame (how-to-use-frame-guide spec): reopens the guide
+             that shows on launch. Runs help.guide, like Help › How to Use
+             Frame and the palette. -->
+        <button id="guide-btn" class="sidebar-rail-btn" aria-label="How to Use Frame" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
           </svg>
         </button>
       </nav>
