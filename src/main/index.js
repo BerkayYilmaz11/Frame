@@ -294,6 +294,9 @@ function init() {
 
   // Initialize user settings (must run after app is ready so userData path resolves)
   userSettings.init();
+  // Before anything can write a setting: an unreadable settings file must
+  // leave telemetry durably off, not just off until the next write.
+  telemetry.enforceFailClosed();
 
   // Global crash handlers + local-only crash dumps. After userSettings
   // (reads the crashDumpsEnabled toggle), before everything else so no

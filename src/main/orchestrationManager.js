@@ -530,7 +530,11 @@ function pollStatuses(session) {
     if (!info) {
       w.status = 'failed';
       w.lastActivityAt = Date.now();
-      telemetry.track('error_occurred', { category: 'orch_worker_failed' });
+      // A lane Frame closed itself (user closed it, reload, removal) is not a
+      // worker failure — only count one that died on its own.
+      if (!ptyManager.wasDestroyedOnRequest(w.terminalId)) {
+        telemetry.track('error_occurred', { category: 'orch_worker_failed' });
+      }
       relayToConductor(session, `WORKER FAILED: "${w.slug}" — its lane exited unexpectedly.`);
       changed = true;
       continue;

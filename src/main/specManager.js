@@ -21,6 +21,7 @@ const tasksManager = require('./tasksManager');
 const commandStaging = require('./commandStaging');
 const frameProject = require('./frameProject');
 const telemetry = require('./telemetry');
+const { diffSpecLifecycle, renameSpecLifecycle } = require('./telemetryEvents');
 const activityLog = require('./activityLog');
 const perfMonitor = require('./perfMonitor');
 
@@ -480,12 +481,11 @@ function reconcilePhase(projectPath, slug, tasksDataOrNull) {
     updated_at: now,
     last_phase_at: now
   });
-  // Deliberately no `spec_phase_advanced` here. That event measures a spec
-  // being carried through the workflow; this path is Frame reconciling on its
-  // own, it fires on regressions as readily as advances, and a bulk reconcile
-  // — opening a repository an older Frame walked backwards — sends one per
-  // spec in a burst and trips the analytics rate limit. The activity record
-  // below is where reconciliation belongs.
+  // Deliberately no `spec_phase_advanced` here. This path fires on regressions
+  // as readily as advances, and a bulk reconcile — opening a repository an
+  // older Frame walked backwards — would send one per spec in a burst. The
+  // push that follows counts a forward move once (trackSpecLifecycle); the
+  // activity record below is where reconciliation itself belongs.
   //
   // Nobody asked for this: reconcile derives the phase from task statuses and
   // rewrites status.json on its own. A conflicted tasks.json once walked 18
@@ -818,7 +818,7 @@ function buildSpecCommandFile(projectPath, slug, command, aiTool, description) {
   const slugless = isSlugless(slug, command);
   // Staging a slug-less spec.new prompt is the one thing only Frame's own New
   // Spec launcher does — it is the origin signal for the telemetry below.
-  if (slugless) markSpecNewLaunch();
+  if (slugless) markSpecNewLaunch(projectPath);
   const filename = slugless
     ? uniquePromptFilename(promptsDir, specNewPromptFilename())
     : `${slug}__${command}.md`;
@@ -1116,7 +1116,8 @@ function updateSpecStatus(projectPath, slug, partial) {
   const reason = validateSpecStatus(merged);
   if (reason) return { error: reason };
   writeStatus(projectPath, slug, merged);
-  if (phaseChanged) telemetry.track('spec_phase_advanced', { phase: merged.phase });
+  // No `spec_phase_advanced` here: the watcher's push sees this write like any
+  // other and counts it there (trackSpecLifecycle).
   return { status: merged };
 }
 
@@ -1231,6 +1232,9 @@ function renameSpec(projectPath, oldSlug, opts) {
       console.error('specManager: tasks.json source-marker update failed', err);
     }
   }
+
+  // The renamed folder is the same spec — not a new one appearing.
+  if (folderRenamed) renameSpecLifecycle(specLifecycle.get(projectPath), oldSlug, newSlug);
 
   // Trigger a fresh SPEC_DATA push so the panel reflects the new slug
   pushSpecData(projectPath);
@@ -1351,9 +1355,8 @@ function stopWatching() {
   activeTasksWatcher = null;
   activeWatchedProject = null;
   busySpecSlugs.clear();
-  // Another project's specs are not this one's creations — the next push
-  // reseeds from whatever that project already has on disk.
-  authoredSpecSlugs = null;
+  // specLifecycle is kept: it is per project, and a spec created while the
+  // user looked at another project should count when they come back.
   if (watchDebounce) {
     clearTimeout(watchDebounce);
     watchDebounce = null;
@@ -1376,26 +1379,37 @@ function stopWatching() {
 // was created. Specs written by the CLI or the conductor now count too, which
 // is what PRIVACY.md already documents the event as meaning.
 //
-// null = no snapshot yet. The first push after a project opens seeds it from
-// what is already on disk, so nothing is backfilled and a deleted-then-
-// rewritten spec.md is not counted twice.
-let authoredSpecSlugs = null;
+// `spec_phase_advanced` is read off the same push, because agents write
+// status.json themselves and no Frame write path ever saw their phases move.
+// The comparison — and what keeps checkouts, renames and flip-flops out of it
+// — lives in telemetryEvents.diffSpecLifecycle.
+//
+// projectPath → the state diffSpecLifecycle returned last. Absent = no look
+// yet this run: the first push seeds from what is on disk, nothing is
+// backfilled.
+const specLifecycle = new Map();
 
-// Outstanding New Spec launches — one timestamp per slug-less spec.new prompt
-// Frame staged, consumed by the spec it produces. A run the user abandoned
-// would otherwise sit here forever and attribute someone else's spec to the
-// button, so a marker expires; `button` may undercount, never overcount.
+// Outstanding New Spec launches per project — one timestamp per slug-less
+// spec.new prompt Frame staged, consumed by the spec it produces. A run the
+// user abandoned would otherwise sit here forever and attribute someone else's
+// spec to the button, so a marker expires; `button` may undercount, never
+// overcount. Keyed by project so a launch in one never claims a spec in another.
 const SPEC_NEW_LAUNCH_TTL_MS = 30 * 60 * 1000;
-let pendingSpecNewLaunches = [];
+const pendingSpecNewLaunches = new Map();
 
-function markSpecNewLaunch() {
-  pendingSpecNewLaunches.push(Date.now());
+function markSpecNewLaunch(projectPath) {
+  const launches = pendingSpecNewLaunches.get(projectPath) || [];
+  launches.push(Date.now());
+  pendingSpecNewLaunches.set(projectPath, launches);
 }
 
-function consumeSpecNewLaunch() {
+function consumeSpecNewLaunch(projectPath) {
   const cutoff = Date.now() - SPEC_NEW_LAUNCH_TTL_MS;
-  pendingSpecNewLaunches = pendingSpecNewLaunches.filter((at) => at >= cutoff);
-  return pendingSpecNewLaunches.length ? (pendingSpecNewLaunches.shift(), true) : false;
+  const launches = (pendingSpecNewLaunches.get(projectPath) || []).filter((at) => at >= cutoff);
+  const consumed = launches.length > 0;
+  if (consumed) launches.shift();
+  pendingSpecNewLaunches.set(projectPath, launches);
+  return consumed;
 }
 
 /**
@@ -1406,7 +1420,7 @@ function consumeSpecNewLaunch() {
  * command. Required lazily: orchestrationManager requires this module.
  */
 function resolveSpecOrigin(projectPath) {
-  if (consumeSpecNewLaunch()) return 'button';
+  if (consumeSpecNewLaunch(projectPath)) return 'button';
   try {
     const orchState = require('./orchestrationManager').getState(projectPath);
     if (orchState && orchState.active) return 'conductor';
@@ -1416,23 +1430,31 @@ function resolveSpecOrigin(projectPath) {
   return 'agent';
 }
 
-function trackNewlyAuthoredSpecs(projectPath, specs) {
-  const authored = new Set();
-  for (const spec of specs) {
-    if (fileExists(projectPath, spec.slug, SPEC_FILE)) authored.add(spec.slug);
-  }
-  const previous = authoredSpecSlugs;
-  authoredSpecSlugs = authored;
-  if (!previous) return;
+function trackSpecLifecycle(projectPath, specs) {
+  const looked = specs.map((spec) => {
+    // last_phase_at is not in the panel payload; read it rather than grow it.
+    const status = spec.malformed ? null : readStatus(projectPath, spec.slug);
+    return {
+      slug: spec.slug,
+      phase: spec.phase,
+      authored: fileExists(projectPath, spec.slug, SPEC_FILE),
+      created_at: spec.created_at,
+      last_phase_at: (status && status.last_phase_at) || null
+    };
+  });
+  const { state, created, advanced } = diffSpecLifecycle(specLifecycle.get(projectPath) || null, looked, Date.now());
+  specLifecycle.set(projectPath, state);
 
-  const appeared = [...authored].filter((slug) => !previous.has(slug));
   // Two specs in one push: nothing says which launch produced which, so
   // neither is attributed. The event still fires — it is the origin that is
   // unknown, not the creation.
-  const attributable = appeared.length === 1;
-  for (const _slug of appeared) {
+  const attributable = created.length === 1;
+  for (const _slug of created) {
     const origin = attributable ? resolveSpecOrigin(projectPath) : null;
     telemetry.track('spec_created', origin ? { origin } : undefined);
+  }
+  for (const { phase } of advanced) {
+    telemetry.track('spec_phase_advanced', { phase });
   }
 }
 
@@ -1446,9 +1468,10 @@ function pushSpecData(projectPath) {
   syncAllSpecTasks(projectPath);
   const specs = listSpecs(projectPath);
   perfMonitor.opEnd('spec-push');
-  // Before the skip-unchanged gate: a newly authored spec.md must be counted
-  // on the push that first sees it, whatever the payload comparison decides.
-  trackNewlyAuthoredSpecs(projectPath, specs);
+  // Before the skip-unchanged gate: a newly authored spec.md or a new phase
+  // must be counted on the push that first sees it, whatever the payload
+  // comparison decides.
+  trackSpecLifecycle(projectPath, specs);
   // Skip-unchanged: same channel, same payload shape — but only send when
   // the data actually changed since the last push.
   const payloadJson = JSON.stringify({ projectPath, specs });
