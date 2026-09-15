@@ -80,3 +80,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T11 — Write chapters 9–11 and their sketches
+
+Added Plugins (Plugins and skills), Look & keys (Four themes, Zoom in and out, Commands and shortcuts) and Settings, feedback, this guide (Frame Settings, Send feedback, Come back to this guide) to `guideContent.js`, completing 36 pages, with theme and zoom actions marked `stay`. Added the `plugins`, `themes` (swatches from the themes registry, since tokens only hold the current theme), `zoom` (from `shared/uiZoom`), `keys` (shortcuts read from the registry) and `feedback` sketches, and made `guideModal` redraw the page after a `stay` link so the current-theme marker follows. Verifying copy against the code corrected three earlier claims: Plugins is not hidden for other agents, Sessions' Claude-only note was softened to what the code shows, and the start page's note now says those features work only with Claude Code rather than only appear with it. Checked live at 1400×900, 1100×700 and 740px wide; wrote `digest.md` and a PROJECT_NOTES entry. 4 files plus spec docs.
+
+_Captured: 2026-09-15 · 6 file change(s)_
+
+---
+

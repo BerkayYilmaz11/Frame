@@ -23,10 +23,15 @@ const {
   Package, Files, FilePlus2, Github, Plug, MessageSquarePlus, Settings, CircleHelp,
   Play, Sun, GitBranch, Bot, KeyRound, ChevronDown, SquareTerminal, Folder, File,
   Users, Lock, Plus, Maximize2, History, ListChecks, FileText, Check, GitMerge,
-  Workflow, Search, RotateCcw, PanelRight, X
+  Workflow, Search, RotateCcw, PanelRight, X, Bug, Lightbulb, Mail, Command, Keyboard,
+  ZoomIn, ZoomOut
 } = require('lucide');
 const { lucideIcon } = require('../dock');
 const { escapeHtml } = require('../htmlUtils');
+const themes = require('../themes');
+const uiZoom = require('../../shared/uiZoom');
+const commandRegistry = require('../commandRegistry');
+const { formatShortcut } = require('../platform');
 
 // ─── Primitives ───────────────────────────────────────────
 
@@ -507,6 +512,120 @@ const KINDS = {
             <div class="gs-status gs-multi-status">${icon(GitBranch, 10)}${label('main')}<span class="gs-status-sep"></span>${icon(Bot, 10)}${chip('1 waiting', { dot: 'err', cls: 'gs-chip-tiny' })}</div>`)}
         </div>
       </div>`);
+  },
+  /** The Plugins modal. Regions: filters, install, toggle. */
+  plugins(focused) {
+    const row = (name, desc, status, control) => `
+      <div class="gs-plugin">
+        <span class="gs-plugin-icon">${icon(Plug, 11)}</span>
+        <div class="gs-plugin-text">
+          <div class="gs-plugin-name">${label(name, 'gs-strong')}${chip(status, { cls: 'gs-chip-tiny' })}</div>
+          ${label(desc, 'gs-dim')}
+        </div>
+        ${control}
+      </div>`;
+    return frame('plugins', focused, `
+      <div class="gs-set-panel gs-plugins-panel">
+        <div class="gs-set-title">${label('Plugins', 'gs-strong')}<span class="gs-x">×</span></div>
+        ${region('filters', focused, 'gs-board-filters', `${label('All', 'gs-tab gs-tab-active')}${label('Installed', 'gs-tab')}${label('Enabled', 'gs-tab')}`)}
+        ${row('frontend-design', 'skill · distinctive UI work', 'Enabled', region('toggle', focused, 'gs-plugin-ctl', toggle(true)))}
+        ${row('code-review', 'commands · review a diff', 'Installed', region('toggle', focused, 'gs-plugin-ctl', toggle(false)))}
+        ${row('pr-helper', 'agent · draft pull requests', 'Available', region('install', focused, 'gs-plugin-ctl', chip('Install', { cls: 'gs-chip-cta' })))}
+      </div>
+      <div class="gs-agents-arrow gs-plugins-arrow" aria-hidden="true"><span></span></div>
+      <div class="gs-pane gs-plugins-term">
+        <div class="gs-tv-pane-head">${label('Terminal 1 · Claude Code')}</div>
+        <div class="gs-term-prompt"><span class="gs-term-caret">&gt;</span>/plugin install pr-helper</div>
+        ${terminalLines('', [58, 40])}
+      </div>`);
+  },
+
+  /**
+   * The four themes as swatches. Tokens cannot draw them — they only hold the
+   * current theme — so each swatch takes its terminal colours from the theme
+   * registry, and its accent from the scheme (Frame keeps its green in both
+   * families; the values mirror variables.css).
+   */
+  themes(focused) {
+    const ACCENT = { dark: '#8ff0ae', light: '#286b44' };
+    const current = document.documentElement.getAttribute('data-theme');
+    const swatch = (id) => {
+      const t = themes.THEMES[id];
+      const bg = t.terminal.background;
+      const fg = t.terminal.foreground;
+      const accent = ACCENT[t.scheme];
+      const on = themes.normalize(current) === id;
+      return region(id, focused, `gs-swatch${on ? ' gs-swatch-on' : ''}`, `
+        <div class="gs-swatch-screen" style="background:${bg};color:${fg};border-color:${t.scheme === 'dark' ? '#3a342b' : 'rgba(0,0,0,0.12)'}">
+          <div class="gs-swatch-line"><span style="color:${accent}">$</span> claude</div>
+          <span class="gs-swatch-bar" style="background:${fg};width:70%"></span>
+          <span class="gs-swatch-bar" style="background:${fg};width:48%"></span>
+          <span class="gs-swatch-btn" style="background:${accent}"></span>
+        </div>
+        <div class="gs-swatch-label">${label(t.label, 'gs-strong')}${on ? label('current', 'gs-dim') : ''}</div>`);
+    };
+    return frame('themes', focused, `<div class="gs-grid gs-swatches">${themes.THEME_IDS.map(swatch).join('')}</div>`);
+  },
+
+  /** The five interface sizes. Regions: ladder, settings, readout. */
+  zoom(focused) {
+    const steps = uiZoom.STEPS.map((step) => {
+      const pct = uiZoom.percentFor(step);
+      const on = step === uiZoom.DEFAULT_STEP;
+      return `<div class="gs-zoom-step${on ? ' gs-zoom-on' : ''}">
+          <span class="gs-zoom-a" style="font-size:${Math.round(9 * uiZoom.factorFor(step) * 1.25)}px">Aa</span>
+          ${label(`${pct}%`)}
+          ${label(uiZoom.labelFor(step), 'gs-dim')}
+        </div>`;
+    }).join('');
+    return frame('zoom', focused, `
+      ${region('ladder', focused, 'gs-zoom-ladder', `${icon(ZoomOut, 12)}${steps}${icon(ZoomIn, 12)}`)}
+      <div class="gs-grid gs-grid-2 gs-zoom-bottom">
+        ${region('settings', focused, 'gs-set-panel', `
+          ${label('APPEARANCE', 'gs-eyebrow')}
+          ${settingRow('Interface size', select('Default'))}`)}
+        ${region('readout', focused, 'gs-status gs-zoom-status', `${label('Session', 'gs-dim')}<span class="gs-meter"><span style="width:38%"></span></span><span class="gs-status-sep"></span>${chip('110%', { cls: 'gs-chip-tiny' })}`)}
+      </div>`);
+  },
+
+  /** The Command Palette. Regions: palette, shortcuts. Shortcuts come from the registry. */
+  keys(focused) {
+    const kbd = (id) => {
+      const cmd = commandRegistry.getById(id);
+      return cmd && cmd.shortcut ? `<span class="gs-kbd">${escapeHtml(formatShortcut(cmd.shortcut))}</span>` : '';
+    };
+    const row = (title, category, id, on) => `<div class="gs-pal-row${on ? ' gs-pal-on' : ''}">${label(title)}${label(category, 'gs-dim')}${kbd(id)}</div>`;
+    return frame('keys', focused, `
+      <div class="gs-grid gs-keys-grid">
+        ${region('palette', focused, 'gs-palette', `
+          <div class="gs-pal-input">${icon(Command, 10)}${label('panel')}<span class="gs-cursor"></span></div>
+          ${row('Toggle Panel', 'View', 'dock.toggle', true)}
+          ${row('Toggle Sidebar (Projects & Files)', 'Panel', 'panel.toggleSidebar')}
+          ${row('Toggle Specs Dashboard', 'Panel', 'panel.toggleSpecsDashboard')}
+          ${row('Move Panel Right', 'View', 'dock.moveRight')}`)}
+        ${region('shortcuts', focused, 'gs-set-panel gs-shortcuts', `
+          <div class="gs-board-head">${icon(Keyboard, 10)}${label('Keyboard Shortcuts', 'gs-strong')}</div>
+          ${label('TERMINALS', 'gs-eyebrow')}
+          <div class="gs-set-row">${label('New Terminal')}${kbd('terminal.new')}</div>
+          <div class="gs-set-row">${label('Go to Home')}${kbd('lane.home')}</div>
+          ${label('VIEW', 'gs-eyebrow')}
+          <div class="gs-set-row">${label('Toggle Decisions')}${kbd('dock.decisions')}</div>`)}
+      </div>`);
+  },
+
+  /** Send Feedback's three kinds. Regions: bug, idea, reach. */
+  feedback(focused) {
+    const card = (name, icn, title, line, where) => region(name, focused, 'gs-choice gs-feedback', `
+      <div class="gs-choice-head">${icon(icn, 13)}${label(title, 'gs-strong')}</div>
+      <div class="gs-feedback-line">${label(line, 'gs-dim')}</div>
+      ${chip(where, { cls: 'gs-chip-tiny' })}`);
+    return frame('feedback', focused, `
+      <div class="gs-grid gs-grid-3">
+        ${card('bug', Bug, 'Bug', 'something broke', 'GitHub issue draft')}
+        ${card('idea', Lightbulb, 'Feature idea', 'something to add', 'GitHub discussion draft')}
+        ${card('reach', Mail, 'Reach us', 'a question, a thought', 'email draft')}
+      </div>
+      <div class="gs-feedback-note">${label('You read every draft and send it yourself.', 'gs-dim')}</div>`);
   }
 };
 

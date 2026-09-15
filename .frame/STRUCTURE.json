@@ -7100,28 +7100,28 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 537,
+          "line": 664,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 552,
+          "line": 679,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 568,
+          "line": 695,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 578,
+          "line": 705,
           "params": [
             "chapters = CHAPTERS"
           ],
@@ -7139,18 +7139,22 @@
       "depends": [
         "lucide",
         "dock",
-        "htmlUtils"
+        "htmlUtils",
+        "themes",
+        "../shared/uiZoom",
+        "commandRegistry",
+        "platform"
       ],
       "functions": {
         "focusSet": {
-          "line": 36,
+          "line": 41,
           "params": [
             "focus"
           ],
           "purpose": "Parse `focus` (\"a\" | \"a,b\" | [\"a\",\"b\"]) into a Set of region names."
         },
         "region": {
-          "line": 46,
+          "line": 51,
           "params": [
             "name",
             "focused",
@@ -7160,7 +7164,7 @@
           "purpose": "A focusable region. Regions named in `focus` get .gs-focus; when the"
         },
         "chip": {
-          "line": 58,
+          "line": 63,
           "params": [
             "text",
             "{ dot",
@@ -7169,7 +7173,7 @@
           "purpose": "A small bordered pill, optionally with a status dot ('ok'|'warn'|'err'|'accent')."
         },
         "terminalLines": {
-          "line": 64,
+          "line": 69,
           "params": [
             "prompt",
             "widths = [72",
@@ -7179,7 +7183,7 @@
           "purpose": "A fake terminal body: a prompt line plus a few output bars."
         },
         "frame": {
-          "line": 81,
+          "line": 86,
           "params": [
             "kind",
             "focused",
@@ -7189,7 +7193,7 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 518,
+          "line": 637,
           "params": [
             "kind",
             "focus"
@@ -7281,52 +7285,52 @@
           ]
         },
         "renderTree": {
-          "line": 269
+          "line": 274
         },
         "renderPage": {
-          "line": 297
+          "line": 302
         },
         "renderSketch": {
-          "line": 318,
+          "line": 323,
           "params": [
             "sketch"
           ],
           "purpose": "The page's illustration. A kind guideSketches does not draw leaves the slot"
         },
         "renderBlock": {
-          "line": 333,
+          "line": 338,
           "params": [
             "block"
           ]
         },
         "renderInline": {
-          "line": 341,
+          "line": 346,
           "params": [
             "text"
           ]
         },
         "renderKbd": {
-          "line": 350,
+          "line": 355,
           "params": [
             "id"
           ],
           "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
         },
         "renderAction": {
-          "line": 359,
+          "line": 364,
           "params": [
             "action"
           ]
         },
         "logMissing": {
-          "line": 377,
+          "line": 382,
           "params": [
             "id",
             "message"
           ]
         },
         "renderFooter": {
-          "line": 383
+          "line": 388
         },
         "onLaunchDone": {
           "line": 63

@@ -3378,3 +3378,34 @@ Turkish Q). A digit token now also matches `e.code === 'Digit<n>'`, so the
 shortcut works on every layout; unshifted digit shortcuts (⌘1–9) are
 unaffected. Verified live: ⇧⌘0 steps up and clamps at 120%, ⌘= does nothing,
 both work with a terminal focused, and the View menu and palette show ⇧⌘0.
+
+### [2026-09-15] How to Use Frame — an in-app guide that opens before Welcome (spec: how-to-use-frame-guide)
+
+The user asked for a first-run "how to use" onboarding: a wide modal, index
+tree on the left and details on the right, walking through all of Frame step
+by step — init and what `.frame/` gets, bring-your-own agent subscription,
+terminals and Start, specs and the spec flow, Orchestration being beta and
+needing specs, sessions and resume, where decisions / prompts / activity
+live, several projects at once, four themes, zoom, plugins — reopenable from
+a button under the rail's gear and from the Help menu.
+
+**Decisions taken with the user.** Illustrations are inline sketches drawn
+from the design tokens, not screenshots ("eskizleri deneyelim, beğenmezsek
+güncelleriz") — so they live in one replaceable module,
+`src/renderer/guide/guideSketches.js`. The Welcome overlay stays for now and
+opens after the guide closes on launch. Reopening always starts on the first
+page, and a "Don't show this on launch" checkbox (`guideHideOnLaunch`) stops
+the automatic open.
+
+**How it hangs together.** Content is pure data in `guideContent.js` with a
+`validate()` the test runs, so a page citing a missing command or sketch kind
+fails `npm test`. Shortcuts in copy are `{kbd:commandId}` tokens rendered
+from the command registry, never typed. The guide owns the launch trigger
+and hands off to `welcomeOverlay.showOnLaunch()`; closing through an action
+link skips Welcome for that launch so the chosen view stays in front.
+
+**Keep it true.** The guide describes the app, so a change that renames a
+view, a label or a command should touch the matching page. While writing it,
+three drafted claims turned out wrong against the code (Plugins is not hidden
+for other agents; Home's first card is "Terminals", not "Agents"; nothing
+shows other CLIs loading AGENTS.md through hooks) and were corrected.

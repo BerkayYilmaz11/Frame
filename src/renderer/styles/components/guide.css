@@ -1725,3 +1725,217 @@
   .gs-sessions-grid,
   .gs-multi { grid-template-columns: 1fr; }
 }
+
+/* ── plugins ── */
+
+.gs-plugins {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.gs-plugin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+
+.gs-plugin-icon {
+  display: flex;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+}
+
+.gs-plugin-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gs-plugin-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gs-plugin-ctl {
+  display: flex;
+  padding: 2px;
+}
+
+.gs-plugins-term { align-self: stretch; justify-content: flex-start; }
+
+/* ── themes ── */
+
+.gs-themes { min-height: 0; }
+
+.gs-swatches { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+
+.gs-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+}
+
+.gs-swatch-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 96px;
+  padding: 10px;
+  border: 1px solid;
+  border-radius: 6px;
+}
+
+.gs-swatch-line { font-size: 10px; }
+
+.gs-swatch-bar {
+  height: 4px;
+  border-radius: 2px;
+  opacity: 0.35;
+}
+
+.gs-swatch-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 26px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.gs-swatch-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.gs-swatch-on .gs-swatch-screen {
+  box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+/* ── zoom ── */
+
+.gs-zoom { min-height: 0; }
+
+.gs-zoom-ladder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  color: var(--text-tertiary);
+}
+
+.gs-zoom-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border: 1px solid var(--gs-line);
+  border-radius: 5px;
+  background: var(--bg-secondary);
+}
+
+.gs-zoom-a {
+  height: 22px;
+  display: flex;
+  align-items: flex-end;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.gs-zoom-on {
+  border-color: var(--accent-primary);
+  background: var(--accent-glow);
+}
+
+.gs-zoom-bottom { margin-top: 10px; align-items: center; }
+
+.gs-zoom-status {
+  justify-content: flex-end;
+  gap: 6px;
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+}
+
+/* ── keys ── */
+
+.gs-keys { min-height: 0; }
+
+.gs-keys-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; }
+
+.gs-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.gs-pal-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  margin-bottom: 3px;
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.gs-pal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 7px;
+  border-radius: 4px;
+}
+
+.gs-pal-row .gs-kbd { margin-left: auto; }
+
+.gs-pal-on { background: var(--accent-subtle); color: var(--text-primary); }
+
+.gs-kbd {
+  padding: 0 4px;
+  border: 1px solid var(--gs-line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* ── feedback ── */
+
+.gs-feedback { min-height: 0; }
+
+.gs-feedback .gs-chip { align-self: flex-start; }
+
+.gs-feedback-line { padding-left: 19px; }
+
+.gs-feedback-note { margin-top: 10px; text-align: center; }
+
+@media (max-width: 760px) {
+  .gs-plugins { grid-template-columns: 1fr; }
+  .gs-plugins-arrow { display: none; }
+  .gs-swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gs-keys-grid { grid-template-columns: 1fr; }
+}

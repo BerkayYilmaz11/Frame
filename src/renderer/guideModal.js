@@ -258,10 +258,15 @@ function onContentClick(e) {
   const btn = e.target.closest('[data-action-id]');
   if (!btn || btn.disabled) return;
   const id = btn.dataset.actionId;
-  if (btn.dataset.stay !== 'true') close({ via: 'action' });
+  const stay = btn.dataset.stay === 'true';
+  if (!stay) close({ via: 'action' });
   if (!commandRegistry.runById(id)) {
     console.error(`guideModal: command "${id}" did not run`);
+    return;
   }
+  // A theme or zoom link ran in place: redraw so the page (the theme
+  // swatches mark the current one) reflects what just changed.
+  if (stay && isOpen) renderPage();
 }
 
 // ─── Rendering ────────────────────────────────────────────

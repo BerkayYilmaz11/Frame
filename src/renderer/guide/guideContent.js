@@ -92,7 +92,7 @@ const CHAPTERS = [
         blocks: [
           { p: 'Frame works with three agent CLIs: Claude Code, Codex CLI and Gemini CLI. Install the one you use and sign in to it once in a terminal before starting it from Frame.' },
           { p: 'On first run Frame picks the first of them it finds installed. Change it any time with the Agent picker in the header — Start launches whichever agent is selected there. The agent\'s own menu in the menu bar has the same switch under Switch AI Tool.' },
-          { note: 'A few features read Claude Code\'s own data and only appear when Claude Code is the agent: Sessions, Plugins and the usage meters in the status bar.' }
+          { note: 'A few features are built on Claude Code\'s own data and work only with it: Sessions, Plugins and the usage meters in the status bar.' }
         ]
       },
       {
@@ -419,7 +419,7 @@ const CHAPTERS = [
         blocks: [
           { p: 'Sessions {kbd:panel.toggleSessions} lists this project\'s past Claude Code conversations, newest first, read from Claude Code\'s own transcripts. Open it from Context › Sessions in the sidebar.' },
           { p: 'Resume opens a new terminal and continues that conversation with `claude --resume`, so the agent comes back with its whole history. Home\'s Last Sessions card shows the three most recent, one click each.' },
-          { note: 'Sessions come from Claude Code\'s transcripts, so the list and the Last Sessions card only appear when Claude Code is your agent.' }
+          { note: 'Sessions are read from Claude Code\'s transcripts, so they cover Claude Code conversations only, and Home shows the Last Sessions card only while Claude Code is your agent.' }
         ],
         actions: [
           { id: 'panel.toggleSessions', label: 'Open Sessions' }
@@ -523,6 +523,133 @@ const CHAPTERS = [
             'A coloured pill means one of them is waiting on you — it needs approval or its turn is finished.'
           ] },
           { p: 'Click it to see them grouped by project, and pick one to go straight to that project and terminal.' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'plugins',
+    title: 'Plugins',
+    pages: [
+      {
+        id: 'plugins.install',
+        title: 'Plugins and skills',
+        sketch: { kind: 'plugins' },
+        claudeOnly: true,
+        blocks: [
+          { p: 'Plugins extend Claude Code with skills, commands and agents. The Plugins button at the foot of the rail lists the ones in Claude Code\'s official marketplace, with filters for All, Installed and Enabled.' },
+          { list: [
+            'Install hands off to the agent: Frame types `/plugin install <name>` into the active terminal, so the install runs — and asks anything it needs to — where you can see it.',
+            'Once installed, the switch on a plugin enables or disables it, so a skill you only need sometimes can stay installed and off.'
+          ] },
+          { note: 'Plugins belong to Claude Code: they install through it and only Claude Code sessions use them.' }
+        ],
+        actions: [
+          { id: 'plugins.open', label: 'Open Plugins' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'look',
+    title: 'Look & keys',
+    pages: [
+      {
+        id: 'look.themes',
+        title: 'Four themes',
+        sketch: { kind: 'themes' },
+        blocks: [
+          { p: 'Frame comes in four themes: Dark and Light, Frame\'s own warm palette, and Dark+ and Light+, closer to VS Code\'s defaults. Terminals follow the theme too.' },
+          { p: 'Pick one from the theme button in the header or View › Theme — or try them right here; the guide changes with them.' }
+        ],
+        actions: [
+          { id: 'theme.dark', label: 'Dark', stay: true },
+          { id: 'theme.light', label: 'Light', stay: true },
+          { id: 'theme.darkPlus', label: 'Dark+', stay: true },
+          { id: 'theme.lightPlus', label: 'Light+', stay: true }
+        ]
+      },
+      {
+        id: 'look.zoom',
+        title: 'Zoom in and out',
+        sketch: { kind: 'zoom' },
+        blocks: [
+          { p: 'The whole interface — text, terminals, panels — scales in five steps, from 85% to 120%.' },
+          { list: [
+            'Zoom in {kbd:view.zoomIn}, zoom out {kbd:view.zoomOut}, back to default {kbd:view.zoomReset}. The View menu has the same three.',
+            'Frame Settings › Appearance › Interface size sets it from a list.',
+            'Away from 100% the status bar shows the current size; click it to reset.'
+          ] },
+          { p: 'The size is remembered across launches.' }
+        ],
+        actions: [
+          { id: 'view.zoomOut', label: 'Zoom out', stay: true },
+          { id: 'view.zoomReset', label: 'Reset', stay: true },
+          { id: 'view.zoomIn', label: 'Zoom in', stay: true }
+        ]
+      },
+      {
+        id: 'look.keys',
+        title: 'Commands and shortcuts',
+        sketch: { kind: 'keys' },
+        blocks: [
+          { p: 'Everything in Frame is a command, and every command is in the Command Palette {kbd:palette.toggle}. Type a few letters of what you want — a view, a setting, a project, a terminal, a spec — and press Enter.' },
+          { p: 'Keyboard Shortcuts {kbd:help.shortcuts} lists every shortcut, grouped and searchable.' }
+        ],
+        actions: [
+          { id: 'palette.toggle', label: 'Open the Command Palette' },
+          { id: 'help.shortcuts', label: 'Show Keyboard Shortcuts' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'frame',
+    title: 'Settings, feedback, this guide',
+    pages: [
+      {
+        id: 'frame.settings',
+        title: 'Frame Settings',
+        sketch: { kind: 'settings', focus: 'frame' },
+        blocks: [
+          { p: 'Frame Settings {kbd:settings.open} — the gear at the foot of the rail — holds what belongs to Frame on this machine rather than to a project:' },
+          { list: [
+            'Appearance — the interface size.',
+            'Privacy & Analytics — anonymous usage stats (app version and OS only, never code, paths or prompts) and local crash dumps, each with its own switch.',
+            'About — your version, Check for Updates, and Open Logs Folder for bug reports.'
+          ] }
+        ],
+        actions: [
+          { id: 'settings.open', label: 'Open Frame Settings' }
+        ]
+      },
+      {
+        id: 'frame.feedback',
+        title: 'Send feedback',
+        sketch: { kind: 'feedback' },
+        blocks: [
+          { p: 'Found a bug or want something changed? Send Feedback — the speech-bubble button at the foot of the rail, or Help › Send Feedback… — offers three kinds:' },
+          { list: [
+            'Bug — a GitHub issue draft, with your Frame version and OS filled in.',
+            'Feature idea — a GitHub discussion draft under Ideas.',
+            'Reach us — an email draft to the people who build Frame.'
+          ] },
+          { p: 'Each one opens a draft you read and send yourself. Frame never posts anything on your behalf.' }
+        ],
+        actions: [
+          { id: 'feedback.open', label: 'Send feedback' }
+        ]
+      },
+      {
+        id: 'frame.guide',
+        title: 'Come back to this guide',
+        sketch: { kind: 'shell', focus: 'rail-guide' },
+        blocks: [
+          { p: 'This guide is always one click away: the question-mark button at the very bottom of the rail, Help › How to Use Frame, or "How to Use Frame" in the Command Palette.' },
+          { p: 'It opens by itself each time Frame starts. Tick Don\'t show this on launch below to stop that — reopening it by hand still works. The Welcome screen, with its project shortcuts, is under Help › Welcome.' }
+        ],
+        actions: [
+          { id: 'help.welcome', label: 'Show the Welcome screen' }
         ]
       }
     ]
