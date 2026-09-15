@@ -115,6 +115,159 @@ const CHAPTERS = [
         ]
       }
     ]
+  },
+  {
+    id: 'projects',
+    title: 'Projects',
+    pages: [
+      {
+        id: 'projects.init',
+        title: 'Initialize a project',
+        sketch: { kind: 'fileTree', focus: 'frame,pointer' },
+        blocks: [
+          { p: 'When you open a folder Frame has not set up yet, it offers to initialize it. Initializing writes Frame\'s context files so every agent session starts oriented — and everything Frame writes lives in one folder, `.frame/`:' },
+          { list: [
+            '`AGENTS.md` — the project\'s always-on rules for agents, with the details in `docs/REFERENCE.md`.',
+            '`STRUCTURE.json` — a module map, so an agent finds the right file without searching.',
+            '`PROJECT_NOTES.md` — decisions and the context behind them.',
+            '`tasks.json` and `specs/` — tracked work and the spec archive.',
+            '`bin/` — the small scripts the hooks run.'
+          ] },
+          { p: 'Outside `.frame/` there is one pointer, `.claude/rules/frame.md`, a copy of `AGENTS.md` that Claude Code loads by itself. For Claude Code, Frame also adds hook entries to `.claude/settings.json` (or `settings.local.json`), and a git pre-commit hook if the project has none.' },
+          { note: 'Nothing is added to the project root, and no existing file is read, moved or replaced — your own CLAUDE.md or AGENTS.md stays yours. Project Settings can remove Frame again.' }
+        ],
+        actions: [
+          { id: 'project.initializeFrame', label: 'Initialize this project' }
+        ]
+      },
+      {
+        id: 'projects.git',
+        title: 'Share it, or keep it local',
+        sketch: { kind: 'gitSharing' },
+        blocks: [
+          { p: 'Initialize asks how Frame\'s files relate to git:' },
+          { list: [
+            'Share with the repo — commit `.frame/` so teammates get the same context. Machine-local files are ignored by `.frame/.gitignore`.',
+            'Keep it local to me — Frame excludes its files through `.git/info/exclude`, so `git status` shows nothing Frame made.'
+          ] },
+          { p: 'Either way Frame never edits your tracked `.gitignore`. You can change the choice later under Project Settings › Workflow › Git sharing.' }
+        ],
+        actions: [
+          { id: 'settings.openProject', label: 'Open Project Settings' }
+        ]
+      },
+      {
+        id: 'projects.sidebar',
+        title: 'The sidebar',
+        sketch: { kind: 'shell', focus: 'rail-views,sidebar-nav' },
+        blocks: [
+          { p: 'The thin rail on the far left switches the sidebar between Projects, Files, Changes and GitHub {kbd:sidebar.github}.' },
+          { p: 'Projects is the project\'s own navigation, in two groups:' },
+          { list: [
+            'Work — Terminals, and Orchestration (beta).',
+            'Context — Specs and Tasks with their counts, and Sessions.'
+          ] },
+          { p: 'Project Settings sits at the foot of that list. {kbd:panel.toggleSidebar} collapses the sidebar to the rail when you want the room back.' }
+        ],
+        actions: [
+          { id: 'panel.toggleSidebar', label: 'Toggle the sidebar' }
+        ]
+      },
+      {
+        id: 'projects.settings',
+        title: 'Two kinds of settings',
+        sketch: { kind: 'settings', focus: 'project,frame' },
+        blocks: [
+          { p: 'Settings are split by what they belong to.' },
+          { list: [
+            'Project Settings — this project only: spec-driven development on or off, git sharing, open this project on launch, how many finished tasks and specs the boards show, and removing Frame from the project. Open it from the foot of the sidebar\'s project navigation.',
+            'Frame Settings {kbd:settings.open} — Frame itself, on this machine: interface size, privacy choices, updates and logs. Open it from the gear at the foot of the rail.'
+          ] }
+        ],
+        actions: [
+          { id: 'settings.openProject', label: 'Open Project Settings' },
+          { id: 'settings.open', label: 'Open Frame Settings' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'terminals',
+    title: 'Terminals & agents',
+    pages: [
+      {
+        id: 'terminals.open',
+        title: 'Open terminals',
+        sketch: { kind: 'terminalGrid', focus: 'ghost,columns' },
+        blocks: [
+          { p: 'Terminals are where the work happens — your shell, and the agents. Open one with {kbd:terminal.new}, or click the empty cell in the Terminals view.' },
+          { list: [
+            'The view shows every terminal of the project in a grid of one, two or three columns. Drag a pane\'s header to reorder it; enlarge one pane to work in it alone.',
+            'A project holds up to nine terminals. Terminals keep running when you switch views or projects.',
+            'Each terminal also gets a chip in the bar across the top. The × on a chip only removes it from the bar — the terminal keeps running.'
+          ] }
+        ],
+        actions: [
+          { id: 'terminal.new', label: 'Open a terminal' }
+        ]
+      },
+      {
+        id: 'terminals.start',
+        title: 'Start the agent',
+        sketch: { kind: 'shell', focus: 'header-agent,header-start' },
+        blocks: [
+          { p: 'Start in the header launches the selected agent. If you are looking at an idle terminal it starts there; otherwise Frame opens a new terminal for it. If the terminal you are in is busy, Frame asks whether to open a new terminal or restart that one.' },
+          { p: 'Home has the same launcher — Start an agent — next to the list of what is already running.' },
+          { note: 'The agent runs exactly as it would in any terminal, with its own sign-in and permissions. Frame only types the command that starts it.' }
+        ],
+        actions: [
+          { id: 'lane.home', label: 'Go to Home' }
+        ]
+      },
+      {
+        id: 'terminals.talk',
+        title: 'Talk to the agent',
+        sketch: { kind: 'terminalGrid', focus: 'prompt' },
+        blocks: [
+          { p: 'Click into the terminal and type — prompts, answers, approvals — as you would anywhere else. Frame does not sit between you and the agent.' },
+          { p: 'The menu named after your agent (Claude Code, Codex CLI or Gemini CLI) lists its common slash commands and types them into the active terminal.' },
+          { p: 'Some of Frame\'s own buttons talk to the agent for you. Write the Spec, Generate Plan and the other spec actions open or reuse a terminal, start the agent if needed, and type the prompt — you watch it work and answer its questions there.' }
+        ],
+        actions: [
+          { id: 'terminal.next', label: 'Next terminal' }
+        ]
+      },
+      {
+        id: 'terminals.states',
+        title: 'Know which agent needs you',
+        sketch: { kind: 'laneStates' },
+        blocks: [
+          { p: 'Frame watches every terminal. An agent terminal is in one of three states:' },
+          { list: [
+            'Agent working — leave it be.',
+            'Needs approval — it is blocked on a permission prompt. This is the most urgent.',
+            'Awaiting input — its turn finished and it is waiting for you.'
+          ] },
+          { p: 'Plain terminals are Idle or Running. The two waiting states are marked wherever the terminal shows up — its chip, Home, and the status bar for other projects. When a terminal is enlarged, the Other Terminals rail beside it lists the rest, waiting ones first.' }
+        ]
+      },
+      {
+        id: 'terminals.home',
+        title: 'Home',
+        sketch: { kind: 'home', focus: 'launcher,terminals' },
+        blocks: [
+          { p: 'Home {kbd:lane.home} is the project at a glance, and the permanent first chip in the top bar:' },
+          { list: [
+            'Terminals — the Start an agent launcher and every running terminal, the ones waiting on you first.',
+            'Last Sessions — your three most recent Claude Code sessions, one click to resume.',
+            'Active Specs and Active Tasks — the work in progress.'
+          ] }
+        ],
+        actions: [
+          { id: 'lane.home', label: 'Go to Home' }
+        ]
+      }
+    ]
   }
 ];
 

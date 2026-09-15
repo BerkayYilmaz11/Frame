@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T11:04:00.631Z",
+  "lastUpdated": "2026-09-15T11:09:26.824Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8003,13 +8003,13 @@
       "title": "Write chapters 2–3 (Projects; Terminals & agents) page copy in `guideContent.js`, verified against the code, and add the `fileTree`, `gitSharing`, `settings`, `terminalGrid`, `laneStates` and `home` sketches, extending ACTION_IDS and test expectations",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T11:09:26.824Z",
+      "completedAt": "2026-09-15T11:09:26.824Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T09",

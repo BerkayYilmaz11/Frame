@@ -21,7 +21,8 @@
 
 const {
   Package, Files, FilePlus2, Github, Plug, MessageSquarePlus, Settings, CircleHelp,
-  Play, Sun, GitBranch, Bot, KeyRound, ChevronDown, SquareTerminal
+  Play, Sun, GitBranch, Bot, KeyRound, ChevronDown, SquareTerminal, Folder, File,
+  Users, Lock, Plus, Maximize2, History, ListChecks, FileText
 } = require('lucide');
 const { lucideIcon } = require('../dock');
 const { escapeHtml } = require('../htmlUtils');
@@ -65,6 +66,15 @@ function terminalLines(prompt, widths = [72, 54, 63]) {
       ${widths.map((w) => `<div>${bar(w)}</div>`).join('')}
     </div>`;
 }
+
+/** A settings-style toggle, on or off. */
+const toggle = (on) => `<span class="gs-toggle${on ? ' gs-toggle-on' : ''}"><span></span></span>`;
+
+/** A settings row: label left, control right. */
+const settingRow = (text, control) => `<div class="gs-set-row">${label(text)}${control}</div>`;
+
+/** A mini select. */
+const select = (text) => `<span class="gs-select">${escapeHtml(text)}${icon(ChevronDown, 9)}</span>`;
 
 /** The sketch's outer frame. */
 function frame(kind, focused, inner, cls = '') {
@@ -168,6 +178,158 @@ const KINDS = {
         <div class="gs-shell-main">${center}${dock}</div>
       </div>
       ${status}`);
+  },
+
+  /**
+   * What Initialize writes. Rows carry tags; a row is focused when any of its
+   * tags is. Tags: frame (everything under .frame/), context (the files an
+   * agent reads), pointer (.claude/rules/frame.md), hooks, yours (files Frame
+   * never touches).
+   */
+  fileTree(focused) {
+    const rows = [
+      { depth: 0, dir: true, name: 'my-project/', tags: [] },
+      { depth: 1, dir: true, name: '.frame/', tags: ['frame'], note: 'everything Frame writes' },
+      { depth: 2, name: 'AGENTS.md', tags: ['frame', 'context'], note: 'rules for agents' },
+      { depth: 2, name: 'STRUCTURE.json', tags: ['frame', 'context'], note: 'module map' },
+      { depth: 2, name: 'PROJECT_NOTES.md', tags: ['frame', 'context'], note: 'decisions' },
+      { depth: 2, name: 'tasks.json', tags: ['frame', 'context'], note: 'tasks' },
+      { depth: 2, dir: true, name: 'specs/', tags: ['frame', 'context'], note: 'spec archive' },
+      { depth: 2, dir: true, name: 'docs/ · bin/', tags: ['frame'] },
+      { depth: 1, dir: true, name: '.claude/', tags: [] },
+      { depth: 2, name: 'rules/frame.md', tags: ['pointer'], note: 'copy of AGENTS.md' },
+      { depth: 2, name: 'settings.json', tags: ['hooks'], note: 'hook entries' },
+      { depth: 1, name: 'CLAUDE.md', tags: ['yours'], note: 'yours — untouched' },
+      { depth: 1, dir: true, name: 'src/', tags: ['yours'] }
+    ];
+    const body = rows.map((r) => {
+      const on = r.tags.some((t) => focused.has(t));
+      const inner = `<span class="gs-tree-indent" style="width:${r.depth * 14}px"></span>${icon(r.dir ? Folder : File, 11)}${label(r.name)}${r.note ? label(r.note, 'gs-tree-note') : ''}`;
+      return `<div class="gs-region gs-tree-row${on ? ' gs-focus' : ''}">${inner}</div>`;
+    }).join('');
+    return frame('fileTree', focused, `<div class="gs-tree">${body}</div>`);
+  },
+
+  /** The git-sharing choice at Initialize. Regions: repo, local. */
+  gitSharing(focused) {
+    const card = (name, icn, title, lines, chosen) => region(name, focused, 'gs-choice', `
+      <div class="gs-choice-head"><span class="gs-radio${chosen ? ' gs-radio-on' : ''}"></span>${icon(icn, 12)}${label(title, 'gs-strong')}</div>
+      ${lines.map((l) => `<div class="gs-choice-line">${l}</div>`).join('')}`);
+    return frame('gitSharing', focused, `
+      <div class="gs-choice-q">${label('How should Frame’s files relate to git?')}</div>
+      <div class="gs-grid gs-grid-2">
+        ${card('repo', Users, 'Share with the repo', [
+          `${chip('.frame/')} ${label('committed', 'gs-dim')}`,
+          `${label('teammates get the same context', 'gs-dim')}`
+        ], true)}
+        ${card('local', Lock, 'Keep it local to me', [
+          `${chip('.git/info/exclude')}`,
+          `${label('git status shows nothing Frame made', 'gs-dim')}`
+        ], false)}
+      </div>`);
+  },
+
+  /** The two settings surfaces. Regions: project, frame. */
+  settings(focused) {
+    const panel = (name, title, sections) => region(name, focused, 'gs-set-panel', `
+      <div class="gs-set-title">${label(title, 'gs-strong')}<span class="gs-x">×</span></div>
+      ${sections.map(([heading, rows]) => `<div class="gs-set-section">${label(heading, 'gs-eyebrow')}${rows.join('')}</div>`).join('')}`);
+    return frame('settings', focused, `
+      <div class="gs-grid gs-grid-2">
+        ${panel('project', 'Project Settings', [
+          ['WORKFLOW', [
+            settingRow('Spec-Driven Development', toggle(true)),
+            settingRow('Git sharing', select('Share with the repo')),
+            settingRow('Open this project on launch', chip('Make Default', { cls: 'gs-chip-tiny' })),
+            settingRow('Remove Frame from this project', chip('Remove', { cls: 'gs-chip-tiny' }))
+          ]],
+          ['BOARDS', [settingRow('Completed tasks shown', select('Last 7 days'))]]
+        ])}
+        ${panel('frame', 'Frame Settings', [
+          ['APPEARANCE', [settingRow('Interface size', select('100%'))]],
+          ['PRIVACY & ANALYTICS', [
+            settingRow('Send anonymous usage stats', toggle(true)),
+            settingRow('Keep local crash dumps', toggle(true))
+          ]],
+          ['ABOUT', [settingRow('Frame', chip('Check for Updates', { cls: 'gs-chip-tiny' }))]]
+        ])}
+      </div>`);
+  },
+
+  /**
+   * The Terminals view. Regions: chips (top bar), columns, panes, ghost,
+   * prompt (the first pane, shown mid-conversation).
+   */
+  terminalGrid(focused) {
+    const talking = focused.has('prompt');
+    const pane = (name, prompt, widths, extra = '') => `
+      <div class="gs-pane gs-tv-pane">
+        <div class="gs-tv-pane-head">${label(name)}${icon(Maximize2, 9)}</div>
+        ${terminalLines(prompt, widths)}${extra}
+      </div>`;
+    const first = talking
+      ? region('prompt', focused, 'gs-pane gs-tv-pane', `
+          <div class="gs-tv-pane-head">${label('Terminal 1 · Claude Code')}${icon(Maximize2, 9)}</div>
+          <div class="gs-term-lines">
+            <div class="gs-term-out">${bar(62)}</div>
+            <div class="gs-term-prompt"><span class="gs-term-caret">&gt;</span>add a retry to the upload client<span class="gs-cursor"></span></div>
+            <div>${chip('/review')} ${chip('/model')} ${chip('/help')}</div>
+          </div>`)
+      : pane('Terminal 1 · Claude Code', 'claude', [66, 40]);
+    return frame('terminalGrid', focused, `
+      <div class="gs-tv-bar">
+        ${region('chips', focused, 'gs-tv-chips', `${label('Home', 'gs-tab')}${label('Terminals', 'gs-tab gs-tab-active')}${chip('Terminal 1')}${chip('Terminal 2')}`)}
+        ${region('columns', focused, 'gs-tv-cols', `${label('1', 'gs-col-btn')}${label('2', 'gs-col-btn')}${label('3', 'gs-col-btn gs-col-on')}`)}
+      </div>
+      ${region('panes', focused, 'gs-grid gs-grid-3 gs-tv-grid', `
+        ${first}
+        ${pane('Terminal 2', 'npm run dev', [48, 70])}
+        ${region('ghost', focused, 'gs-tv-ghost', `${icon(Plus, 14)}${label('New terminal')}`)}`)}`);
+  },
+
+  /** Lane states. Regions: working, approval, input, rail. */
+  laneStates(focused) {
+    const tile = (name, title, state, dot, mark) => region(name, focused, 'gs-lane', `
+      <div class="gs-lane-head">${icon(Bot, 11)}${label(title, 'gs-strong')}${mark ? `<span class="gs-mark-badge gs-mark-${dot}">${mark}</span>` : ''}</div>
+      ${terminalLines('', [70, 52])}
+      ${chip(state, { dot })}`);
+    return frame('laneStates', focused, `
+      <div class="gs-lanes">
+        ${tile('working', 'Terminal 1', 'Agent working', 'accent')}
+        ${tile('approval', 'Terminal 2', 'Needs approval', 'err', '!')}
+        ${tile('input', 'Terminal 3', 'Awaiting input', 'warn', '•')}
+        ${region('rail', focused, 'gs-lane-rail', `
+          ${label('OTHER TERMINALS', 'gs-eyebrow')}
+          <div class="gs-rail-row">${chip('Terminal 2', { dot: 'err' })}</div>
+          <div class="gs-rail-row">${chip('Terminal 3', { dot: 'warn' })}</div>
+          <div class="gs-rail-row">${chip('Terminal 1', { dot: 'accent' })}</div>
+          <div class="gs-rail-row">${chip('Terminal 4')}</div>`)}
+      </div>`);
+  },
+
+  /** Home. Regions: launcher, terminals, sessions, specs, tasks. */
+  home(focused) {
+    const card = (name, icn, title, rows) => region(name, focused, 'gs-home-card', `
+      <div class="gs-home-card-head">${icon(icn, 10)}${label(title, 'gs-strong')}</div>
+      ${rows.map((r) => `<div class="gs-home-row">${r}</div>`).join('')}`);
+    return frame('home', focused, `
+      <div class="gs-home-title">${label('Welcome to Frame!', 'gs-strong')}${label('my-project · main', 'gs-dim')}</div>
+      ${region('terminals', focused, 'gs-home-top', `
+        <div class="gs-home-card-head">${icon(SquareTerminal, 10)}${label('Terminals', 'gs-strong')}</div>
+        <div class="gs-home-top-body">
+          ${region('launcher', focused, 'gs-home-launcher', `
+            ${label('Start an agent', 'gs-strong')}
+            <div class="gs-home-launch-row">${select('Claude Code')}<span class="gs-start">${icon(Play, 9)}${label('Start')}</span></div>`)}
+          <div class="gs-home-tiles">
+            <div class="gs-home-tile">${label('Terminal 2')}${chip('Needs approval', { dot: 'err', cls: 'gs-chip-tiny' })}</div>
+            <div class="gs-home-tile">${label('Terminal 1')}${chip('Working', { dot: 'accent', cls: 'gs-chip-tiny' })}</div>
+          </div>
+        </div>`)}
+      <div class="gs-grid gs-grid-3 gs-home-bottom">
+        ${card('sessions', History, 'Last Sessions', [bar(70), bar(55), bar(62)])}
+        ${card('specs', FileText, 'Active Specs', [`${bar(50)} ${chip('planned', { cls: 'gs-chip-tiny' })}`, `${bar(40)} ${chip('2/7', { cls: 'gs-chip-tiny' })}`])}
+        ${card('tasks', ListChecks, 'Active Tasks', [bar(66), bar(48), bar(58)])}
+      </div>`);
   }
 };
 

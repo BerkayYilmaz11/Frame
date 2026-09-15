@@ -56,3 +56,11 @@ _Captured: 2026-09-15 · 3 file change(s)_
 
 ---
 
+## T08 — Write chapters 2–3 and their sketches
+
+Added the Projects chapter (Initialize a project, Share it or keep it local, The sidebar, Two kinds of settings) and the Terminals & agents chapter (Open terminals, Start the agent, Talk to the agent, Know which agent needs you, Home) to `guideContent.js`, each checked against index.html's init modal and settings markup, `terminalManager`'s nine-terminal cap, `laneStatus` labels, `agentDispatch`'s start and busy-terminal flow and the Home widgets. Added the `fileTree` (tag-based focus), `gitSharing`, `settings`, `terminalGrid` (with a `prompt` variant), `laneStates` and `home` sketches plus shared toggle/select controls. Diverged: Home's first card is titled Terminals in code (not Agents, as the plan said), so copy and sketch use that; no test changes were needed because the suite checks every page generically. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+

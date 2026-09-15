@@ -928,3 +928,367 @@
   .gs-agents-arrow { display: none; }
   .gs-sidebar { width: 90px; }
 }
+
+/* ── shared controls ── */
+
+.gs-toggle {
+  position: relative;
+  width: 18px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+
+.gs-toggle span {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+}
+
+.gs-toggle-on { background: var(--accent-primary); }
+.gs-toggle-on span { left: 10px; }
+
+.gs-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border: 1px solid var(--gs-line);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  white-space: nowrap;
+}
+
+.gs-cursor {
+  display: inline-block;
+  width: 5px;
+  height: 10px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background: var(--accent-primary);
+}
+
+/* ── fileTree ── */
+
+.gs-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 460px;
+}
+
+.gs-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+.gs-tree-indent { flex-shrink: 0; }
+
+.gs-tree-note {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.gs-focus .gs-tree-note { color: var(--text-tertiary); }
+
+/* ── gitSharing ── */
+
+.gs-choice-q {
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.gs-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-choice-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.gs-choice-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 20px;
+}
+
+.gs-radio {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  flex-shrink: 0;
+}
+
+.gs-radio-on {
+  border-color: var(--accent-primary);
+  box-shadow: inset 0 0 0 2px var(--bg-secondary);
+  background: var(--accent-primary);
+}
+
+/* ── settings ── */
+
+.gs-set-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-set-title {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-x { color: var(--text-muted); }
+
+.gs-set-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gs-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 9px;
+}
+
+.gs-set-row .gs-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── terminalGrid ── */
+
+.gs-tv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gs-tv-chips,
+.gs-tv-cols {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+}
+
+.gs-tv-cols { gap: 3px; }
+
+.gs-col-btn {
+  padding: 1px 6px;
+  border: 1px solid var(--gs-line);
+  border-radius: 3px;
+  color: var(--text-tertiary);
+}
+
+.gs-col-on {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+}
+
+.gs-tv-grid {
+  height: auto;
+  min-height: 150px;
+  padding: 3px;
+}
+
+.gs-tv-pane {
+  justify-content: flex-start;
+}
+
+.gs-tv-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--gs-line);
+  color: var(--text-tertiary);
+}
+
+.gs-tv-ghost {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-tertiary);
+}
+
+.gs-term-out { opacity: 0.7; }
+
+/* ── laneStates ── */
+
+.gs-lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 130px;
+  gap: 8px;
+}
+
+.gs-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  background: var(--bg-primary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-lane-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gs-lane .gs-chip { align-self: flex-start; }
+
+.gs-mark-badge {
+  margin-left: auto;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--bg-secondary);
+}
+
+.gs-mark-err { background: var(--error); }
+.gs-mark-warn { background: var(--warning); }
+
+.gs-lane-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+/* ── home ── */
+
+.gs-home-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.gs-home-title .gs-dim { font-size: 9px; }
+
+.gs-home-top,
+.gs-home-card {
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+}
+
+.gs-home-card-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.gs-home-top-body {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.gs-home-launcher {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-subtle);
+}
+
+.gs-home-launch-row {
+  display: flex;
+  gap: 5px;
+}
+
+.gs-home-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.gs-home-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px;
+  background: var(--bg-primary);
+  border: 1px solid var(--gs-line);
+  border-radius: 5px;
+}
+
+.gs-home-tile .gs-chip { align-self: flex-start; }
+
+.gs-home-bottom {
+  margin-top: 8px;
+  height: auto;
+}
+
+.gs-home-row {
+  padding: 3px 0;
+}
+
+@media (max-width: 760px) {
+  .gs-lanes { grid-template-columns: 1fr 1fr; }
+  .gs-home-top-body { grid-template-columns: 1fr; }
+}
+
+/* Tree rows and lane tiles are dense: a focused row is a tinted band, not a
+   ring per row, and short sketches do not keep the default floor. */
+.gs-tree-row.gs-focus {
+  box-shadow: inset 2px 0 0 var(--accent-primary);
+  background: var(--accent-subtle);
+  border-radius: 0 4px 4px 0;
+}
+
+.gs-laneStates,
+.gs-terminalGrid,
+.gs-settings,
+.gs-gitSharing {
+  min-height: 0;
+}
