@@ -3330,8 +3330,8 @@ in the renderer's localStorage), so `applyTheme` reports the id over a new
 `THEME_CHANGED` channel and `menu.js` rebuilds the application menu with
 that entry checked — the same rebuild the AI-tool switcher already does.
 The submenu is generated from `themes.THEME_IDS`, so main no longer carries
-its own copy of the labels. `counterpart` in the registry is now unused by
-the shell (kept for a future quick flip; tests still pin it).
+its own copy of the labels. The registry's `counterpart` field and
+`counterpartOf()` only existed for the old flip, so they were removed with it.
 
 ### [2026-09-15] UI zoom steps — page zoom owned by Frame, not a CSS rewrite
 

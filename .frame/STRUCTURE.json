@@ -11501,34 +11501,26 @@
         "DEFAULT_THEME",
         "normalize",
         "schemeOf",
-        "counterpartOf",
         "terminalTheme"
       ],
       "depends": [],
       "functions": {
         "normalize": {
-          "line": 126,
+          "line": 119,
           "params": [
             "name"
           ],
           "purpose": "A valid theme id for any input — unknown, missing or garbage falls back to the default."
         },
         "schemeOf": {
-          "line": 131,
+          "line": 124,
           "params": [
             "name"
           ],
           "purpose": "'dark' | 'light' for a theme id (normalized first)."
         },
-        "counterpartOf": {
-          "line": 136,
-          "params": [
-            "name"
-          ],
-          "purpose": "The theme the toggle flips to from `name`."
-        },
         "terminalTheme": {
-          "line": 141,
+          "line": 129,
           "params": [
             "name"
           ],
