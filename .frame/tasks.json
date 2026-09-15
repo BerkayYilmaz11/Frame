@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T10:42:41.494Z",
+  "lastUpdated": "2026-09-15T10:49:49.625Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7912,13 +7912,13 @@
       "title": "Create `src/renderer/guide/guideContent.js` as a pure module (no electron, DOM or lucide) with the CHAPTERS data shape, SKETCH_KINDS (20 kinds), ACTION_IDS, `flattenPages()`, `validate()`, and chapter 1 (`start.what`, `start.agent`, `start.open`) written in full with `project.add` / `project.create` actions",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T10:49:49.625Z",
+      "completedAt": "2026-09-15T10:49:49.625Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T02",

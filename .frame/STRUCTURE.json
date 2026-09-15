@@ -7085,6 +7085,50 @@
         ]
       }
     },
+    "renderer/guide/guideContent": {
+      "file": "src/renderer/guide/guideContent.js",
+      "description": "How to Use Frame — the guide's content (how-to-use-frame-guide spec).",
+      "exports": [
+        "CHAPTERS",
+        "SKETCH_KINDS",
+        "ACTION_IDS",
+        "STAY_IDS",
+        "flattenPages",
+        "parseInline",
+        "validate"
+      ],
+      "depends": [],
+      "functions": {
+        "flattenPages": {
+          "line": 126,
+          "params": [
+            "chapters = CHAPTERS"
+          ],
+          "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
+        },
+        "parseInline": {
+          "line": 141,
+          "params": [
+            "text"
+          ],
+          "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
+        },
+        "blockTexts": {
+          "line": 157,
+          "params": [
+            "block"
+          ],
+          "purpose": "Every string of a block, for token scanning."
+        },
+        "validate": {
+          "line": 167,
+          "params": [
+            "chapters = CHAPTERS"
+          ],
+          "purpose": "Check the content against every rule the host relies on."
+        }
+      }
+    },
     "renderer/healthNotice": {
       "file": "src/renderer/healthNotice.js",
       "description": "Health Notice Banner",

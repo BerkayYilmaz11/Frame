@@ -1,7 +1,7 @@
 {
   "slug": "how-to-use-frame-guide",
   "title": "How to Use Frame guide",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-how-to-use-frame-guide-T01",
     "task-spec-how-to-use-frame-guide-T02",
@@ -17,6 +17,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-15T08:34:45Z",
-  "updated_at": "2026-09-15T10:42:46Z",
-  "last_phase_at": "2026-09-15T10:42:46Z"
+  "updated_at": "2026-09-15T10:49:03.398Z",
+  "last_phase_at": "2026-09-15T10:49:03.398Z",
+  "implement_mode": "guided"
 }
