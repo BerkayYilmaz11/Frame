@@ -47,3 +47,10 @@ Added the Appearance section as the first section of the Frame Settings modal in
 _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
+## T08 — Wire the Interface size select in Frame Settings
+
+Wired `#settings-ui-zoom` in `frameSettingsModal.js`: options filled from `uiZoom.STEPS` as "Label (N%)", `change` invokes `UI_ZOOM_SET`, the value is read from `UI_ZOOM_GET` on every open by hooking into `syncToggleFromSettings` (the overlay's existing on-open callback), and a `UI_ZOOM_CHANGED` listener follows changes from any entry point. One `npm test` run right after the change reported a single failure that did not reproduce in five further runs; no test covers this module.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---

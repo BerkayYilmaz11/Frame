@@ -18,6 +18,7 @@
 const { ipcRenderer, shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
+const uiZoom = require('../shared/uiZoom');
 
 const TELEMETRY_KEY = 'telemetryEnabled';
 const CRASH_DUMPS_KEY = 'crashDumpsEnabled';
@@ -26,6 +27,9 @@ const DISMISSED_VERSION_KEY = 'dismissedUpdateVersion';
 let overlay = null;
 let toggleEl = null;
 let crashDumpsToggleEl = null;
+// Appearance › Interface size (ui-zoom-steps spec). Main owns the step; this
+// select shows it and asks for another over UI_ZOOM_SET.
+let zoomSelectEl = null;
 
 // About section elements + state
 let aboutVersionEl = null;
@@ -41,6 +45,8 @@ let currentUpdateInfo = null;
 function init() {
   toggleEl = document.getElementById('settings-telemetry-toggle');
   crashDumpsToggleEl = document.getElementById('settings-crash-dumps-toggle');
+  zoomSelectEl = document.getElementById('settings-ui-zoom');
+  initZoomSelect();
 
   // About section
   aboutVersionEl = document.getElementById('settings-version');
@@ -76,6 +82,13 @@ function init() {
       await ipcRenderer.invoke(IPC.SET_USER_SETTING, CRASH_DUMPS_KEY, crashDumpsToggleEl.checked);
     });
   }
+
+  // Interface size: every entry point (shortcut, menu, status bar, trackpad)
+  // ends in main's setStep and comes back over UI_ZOOM_CHANGED, so the select
+  // follows a change made anywhere — including its own.
+  ipcRenderer.on(IPC.UI_ZOOM_CHANGED, (event, { step }) => {
+    if (zoomSelectEl) zoomSelectEl.value = String(step);
+  });
 
   // Open from menu trigger — the app menu's Settings item is application
   // preferences, so it lands here rather than on the project's panel.
@@ -268,8 +281,43 @@ function formatRelative(date) {
   return `${days}d ago`;
 }
 
+/**
+ * Fill the Interface size select from the shared ladder — one option per
+ * step, labelled the way the ladder labels it plus the percentage — so the
+ * markup can never disagree with the numbers main applies.
+ */
+function initZoomSelect() {
+  if (!zoomSelectEl) return;
+  zoomSelectEl.innerHTML = '';
+  for (const step of uiZoom.STEPS) {
+    const opt = document.createElement('option');
+    opt.value = String(step);
+    opt.textContent = `${uiZoom.labelFor(step)} (${uiZoom.percentFor(step)}%)`;
+    zoomSelectEl.appendChild(opt);
+  }
+  zoomSelectEl.addEventListener('change', async () => {
+    const step = uiZoom.clampStep(Number(zoomSelectEl.value));
+    try {
+      await ipcRenderer.invoke(IPC.UI_ZOOM_SET, step);
+    } catch (err) {
+      console.error('Frame settings: could not set the interface size', err);
+    }
+  });
+}
+
+async function syncZoomFromMain() {
+  if (!zoomSelectEl) return;
+  try {
+    const { step } = await ipcRenderer.invoke(IPC.UI_ZOOM_GET);
+    zoomSelectEl.value = String(step);
+  } catch (err) {
+    console.error('Frame settings: could not read the interface size', err);
+  }
+}
+
 async function syncToggleFromSettings() {
   if (!toggleEl) return;
+  syncZoomFromMain();
   const value = await ipcRenderer.invoke(IPC.GET_USER_SETTING, TELEMETRY_KEY);
   // Default ON when unset (opt-out semantics)
   toggleEl.checked = value !== false;

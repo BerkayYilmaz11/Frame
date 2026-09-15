@@ -6344,23 +6344,24 @@
         "electron",
         "shared/ipcChannels",
         "settingsOverlay",
+        "shared/uiZoom",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 41
+          "line": 45
         },
         "initAboutSection": {
-          "line": 91
+          "line": 104
         },
         "runCheck": {
-          "line": 176,
+          "line": 189,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 215,
+          "line": 228,
           "params": [
             "{ checked",
             "found",
@@ -6372,29 +6373,37 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 239,
+          "line": 252,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 250
+          "line": 263
         },
         "hideSidebarDot": {
-          "line": 254
+          "line": 267
         },
         "formatRelative": {
-          "line": 260,
+          "line": 273,
           "params": [
             "date"
           ]
         },
+        "initZoomSelect": {
+          "line": 289,
+          "purpose": "Fill the Interface size select from the shared ladder — one option per"
+        },
+        "syncZoomFromMain": {
+          "line": 308
+        },
         "syncToggleFromSettings": {
-          "line": 271
+          "line": 318
         }
       },
       "ipc": {
         "listens": [
+          "UI_ZOOM_CHANGED",
           "OPEN_SETTINGS",
           "UPDATE_AVAILABLE"
         ],

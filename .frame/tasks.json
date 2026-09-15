@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:41:25.985Z",
+  "lastUpdated": "2026-09-15T09:41:16.085Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7886,13 +7886,13 @@
       "title": "Wire the Appearance select in `src/renderer/frameSettingsModal.js`: populate the five options from the shared module (label + percent, values −2…2), read the current step via `UI_ZOOM_GET` when the overlay opens alongside `syncToggleFromSettings`, apply on `change` via `UI_ZOOM_SET`, and follow `UI_ZOOM_CHANGED`.",
       "description": "",
       "source": "spec:ui-zoom-steps:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T09:41:16.085Z",
+      "completedAt": "2026-09-15T09:41:16.085Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T09",
