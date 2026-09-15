@@ -528,3 +528,34 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* ─── Interface zoom readout (ui-zoom-steps spec, D2) ─── */
+/* Only present away from 100%. Reads like the version beside it — tertiary
+   text, tabular figures — but it is a control (click resets), so it takes
+   the bar's hover wash the way the branch and dock buttons do. */
+.sb-zoom {
+  flex-shrink: 0;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-sm);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sb-zoom:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-zoom:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}

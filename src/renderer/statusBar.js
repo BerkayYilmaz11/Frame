@@ -40,6 +40,7 @@ const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const tooltip = require('./tooltip');
+const uiZoom = require('../shared/uiZoom');
 const { GitBranch, Bot } = require('lucide');
 const branchPicker = require('./statusBar/branchPicker');
 const githubPanel = require('./githubPanel');
@@ -90,6 +91,50 @@ function init() {
   _buildBranch();
   _buildDockIcons();
   _buildAgentSlot();
+  _buildZoom();
+}
+
+// ─── The right end: the interface zoom readout ──────────────
+// ui-zoom-steps spec, D2. A readout that appears only away from the default
+// step — so a zoomed UI always shows its cause — and resets on click, the
+// same command as ⌘0. Sits just before the version, the bar's other
+// glanceable fact about the app itself. Main owns the step; this follows
+// UI_ZOOM_CHANGED like every other subscriber.
+
+function _buildZoom() {
+  const version = barEl.querySelector('#app-version');
+  const slot = barEl.querySelector('.status-bar-right');
+  if (!slot) {
+    console.error('statusBar: .status-bar-right not found — the zoom readout will not render');
+    return;
+  }
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'sb-zoom';
+  btn.hidden = true;
+  if (version && version.parentNode === slot) slot.insertBefore(btn, version);
+  else slot.appendChild(btn);
+
+  // The status bar can build before registerCommands() runs, so the
+  // registry's shortcut is a preference, not a dependency.
+  const shortcut = (commandRegistry.getById('view.zoomReset') || {}).shortcut || 'CmdOrCtrl+0';
+  tooltip.attach(btn, `Reset zoom (${formatShortcut(shortcut)})`);
+  btn.addEventListener('click', () => {
+    if (!commandRegistry.runById('view.zoomReset')) {
+      console.error('statusBar: view.zoomReset is not registered');
+    }
+  });
+
+  const render = ({ step }) => {
+    btn.hidden = step === uiZoom.DEFAULT_STEP;
+    btn.textContent = `${uiZoom.percentFor(step)}%`;
+    btn.setAttribute('aria-label', `Interface zoom ${uiZoom.percentFor(step)}% — reset`);
+  };
+  ipcRenderer.on(IPC.UI_ZOOM_CHANGED, (event, next) => render(next));
+  ipcRenderer.invoke(IPC.UI_ZOOM_GET).then(render).catch((err) => {
+    console.error('statusBar: could not read the interface zoom', err);
+  });
 }
 
 // ─── The left slot, first: the current git branch ───────────

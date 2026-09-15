@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T09:41:16.085Z",
+  "lastUpdated": "2026-09-15T09:43:19.141Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7899,13 +7899,13 @@
       "title": "Add `_buildZoom()` to `src/renderer/statusBar.js` — a `.sb-zoom` button inserted before `#app-version`, hidden at step 0, text `percentFor(step) + '%'`, tooltip \"Reset zoom (⌘0)\", click runs `view.zoomReset` through the command registry, initialised from `UI_ZOOM_GET` and following `UI_ZOOM_CHANGED` — and style `.sb-zoom` beside `.sb-version` in `src/renderer/styles/components/status-bar.css`.",
       "description": "",
       "source": "spec:ui-zoom-steps:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T09:43:19.141Z",
+      "completedAt": "2026-09-15T09:43:19.141Z"
     }
   ],
   "metadata": {
