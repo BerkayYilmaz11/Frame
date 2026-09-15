@@ -270,6 +270,91 @@
   background: var(--bg-elevated);
 }
 
+/* ─── Theme picker ─── */
+/* The popover hangs off the button's wrapper, right-aligned so it never
+   leaves the window. Same elevated-surface language as .sidebar-project-menu,
+   sized to its four rows. */
+.theme-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 50;
+  min-width: 148px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.theme-menu[hidden] {
+  display: none;
+}
+
+/* Rows are ordinary buttons, but not the header's 32px icon squares — the
+   generic `.app-header-right button:not(.primary-btn)` rule is matched in
+   specificity and beaten by order here. */
+.app-header-right button.theme-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 6px var(--space-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.app-header-right button.theme-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.app-header-right button.theme-menu-item.active {
+  color: var(--accent-primary);
+}
+
+.app-header-right button.theme-menu-item svg {
+  width: 13px;
+  height: 13px;
+  color: var(--accent-primary);
+}
+
+.theme-menu-item-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* A disc split on the diagonal: the theme's terminal background above,
+   its foreground below — surface and text, a preview rather than a chip.
+   The ring keeps the dark discs visible on the dark elevated surface. */
+.theme-menu-swatch {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--border-default);
+  background: linear-gradient(135deg, var(--swatch-bg) 50%, var(--swatch-fg) 50%);
+}
+
 /* Update Notification */
 .btn-update-notify .update-badge {
   position: absolute;

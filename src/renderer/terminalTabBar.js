@@ -51,14 +51,17 @@ function lucideIcon(data, size = 18) {
  * (its light/dark family — see themes.js) is the whole contract:
  * terminalManager observes it for the xterm theme, CSS does the rest.
  * The choice persists under 'frame-theme' and is restored at boot by
- * appHeader.init. Shared by the header's toggle and the theme.* commands
- * (View › Theme menu, palette).
+ * appHeader.init. Shared by the header's theme picker and the theme.*
+ * commands (View › Theme menu, palette).
  */
 function applyTheme(name) {
   const next = themes.normalize(name);
   document.documentElement.setAttribute('data-theme', next);
   document.documentElement.setAttribute('data-scheme', themes.schemeOf(next));
   try { localStorage.setItem('frame-theme', next); } catch (_) { /* non-fatal */ }
+  // Main keeps a copy so the native View › Theme submenu can check the
+  // current entry (it rebuilds the menu on each change).
+  ipcRenderer.send(IPC.THEME_CHANGED, next);
 }
 
 /** The theme currently applied — a themes.js id. */

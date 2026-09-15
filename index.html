@@ -133,13 +133,16 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex-shrink:0"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
         <span class="update-badge"></span>
       </button>
-      <!-- Theme toggle: window-level control at the header's right end
-           (status-bar spec). Wired by appHeader.js. -->
-      <button id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Toggle light/dark theme" aria-label="Toggle theme">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-        </svg>
-      </button>
+      <!-- Theme picker: window-level control at the header's right end
+           (status-bar spec). The button shows the current scheme (sun /
+           moon) and opens a popover listing every theme in themes.js with
+           the current one checked. Icon, list and state are all painted by
+           appHeader.js from data-theme, so the palette and the View menu
+           keep it right too. -->
+      <div class="theme-picker">
+        <button type="button" id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Theme" aria-label="Theme" aria-haspopup="menu" aria-expanded="false"></button>
+        <div id="theme-menu" class="theme-menu" role="menu" aria-label="Theme" hidden></div>
+      </div>
     </div>
   </header>
 

@@ -14,8 +14,9 @@
  *                 the embedded report shells, which know two palettes) reads
  *                 this, so a new theme never needs a second copy of those.
  *
- * `counterpart` is what the top-bar toggle flips to: the other scheme of the
- * same family, so a Dark+ user lands on Light+.
+ * `counterpart` is the other scheme of the same family (Dark+ ↔ Light+).
+ * The header used to flip between the two; it is a picker now, so nothing
+ * in the shell reads this — it stays for a future quick flip.
  */
 
 // xterm ANSI tables, shared by reference — a theme picks one and adds its own

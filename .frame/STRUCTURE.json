@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-14",
+  "lastUpdated": "2026-09-15",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -2555,11 +2555,12 @@
         "electron",
         "path",
         "fs",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "renderer/themes"
       ],
       "functions": {
         "init": {
-          "line": 33,
+          "line": 40,
           "params": [
             "window",
             "app",
@@ -2568,7 +2569,7 @@
           "purpose": "Initialize menu module"
         },
         "cmd": {
-          "line": 40,
+          "line": 55,
           "params": [
             "label",
             "commandId",
@@ -2577,48 +2578,54 @@
           "purpose": "Menu item that runs a command-registry id in the renderer."
         },
         "getMenuTemplate": {
-          "line": 51,
+          "line": 66,
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 231
+          "line": 241
         },
         "buildAICommandsSubmenu": {
-          "line": 242,
+          "line": 252,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 291,
+          "line": 301,
           "purpose": "Build tool switcher submenu"
         },
+        "buildThemeSubmenu": {
+          "line": 322,
+          "purpose": "View › Theme: one radio item per registry entry, the current one checked."
+        },
         "sendCommand": {
-          "line": 310,
+          "line": 337,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 320,
+          "line": 347,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 329,
+          "line": 356,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 343,
+          "line": 370,
           "purpose": "Create and set application menu"
         }
       },
       "ipc": {
-        "listens": [],
+        "listens": [
+          "THEME_CHANGED"
+        ],
         "emits": [
           "OPEN_SETTINGS",
           "RUN_COMMAND",
@@ -4959,19 +4966,19 @@
       ],
       "functions": {
         "initTheme": {
-          "line": 42,
+          "line": 45,
           "params": [
             "root"
           ]
         },
         "initUpdateBell": {
-          "line": 52,
+          "line": 123,
           "params": [
             "root"
           ]
         },
         "paintToggle": {
-          "line": 73,
+          "line": 144,
           "params": [
             "btn",
             "{ on",
@@ -4982,13 +4989,13 @@
           "purpose": "Paint one toggle: pressed state, title, icon."
         },
         "initLayoutToggles": {
-          "line": 80,
+          "line": 151,
           "params": [
             "root"
           ]
         },
         "init": {
-          "line": 105
+          "line": 176
         }
       },
       "ipc": {
@@ -11361,9 +11368,15 @@
           "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 65,
+          "line": 68,
           "purpose": "The theme currently applied — a themes.js id."
         }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "THEME_CHANGED"
+        ]
       }
     },
     "renderer/terminalsView": {
@@ -11417,28 +11430,28 @@
       "depends": [],
       "functions": {
         "normalize": {
-          "line": 125,
+          "line": 126,
           "params": [
             "name"
           ],
           "purpose": "A valid theme id for any input — unknown, missing or garbage falls back to the default."
         },
         "schemeOf": {
-          "line": 130,
+          "line": 131,
           "params": [
             "name"
           ],
           "purpose": "'dark' | 'light' for a theme id (normalized first)."
         },
         "counterpartOf": {
-          "line": 135,
+          "line": 136,
           "params": [
             "name"
           ],
           "purpose": "The theme the toggle flips to from `name`."
         },
         "terminalTheme": {
-          "line": 140,
+          "line": 141,
           "params": [
             "name"
           ],
@@ -13408,6 +13421,13 @@
       },
       "SET_DONE_WINDOW": {
         "name": "set-done-window",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "theme": {
+      "THEME_CHANGED": {
+        "name": "theme-changed",
         "direction": "",
         "description": ""
       }

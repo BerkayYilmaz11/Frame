@@ -31,6 +31,7 @@ const IPC = {
   // Commands
   RUN_COMMAND: 'run-command',                        // main → renderer: type this into the active terminal (menu accelerators)
   RUN_APP_COMMAND: 'run-app-command',                // main → renderer: run this command-registry id (the View menu; dock-panel-readonly-views spec)
+  THEME_CHANGED: 'theme-changed',                    // renderer → main: the applied theme id, so View › Theme can check the current one
 
   // Workspace
   LOAD_WORKSPACE: 'load-workspace',

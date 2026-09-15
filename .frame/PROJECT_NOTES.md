@@ -3308,3 +3308,27 @@ helper comes out executable and a terminal opens in the dev instance.
 Alternative not taken: installing an arm64 Node so the native build itself
 is arm64 — correct too, but it depends on the machine, and the chmod is
 harmless alongside it.
+
+### [2026-09-15] Header theme control is a picker; View › Theme shows the current one
+
+**Context.** Frame has four themes (Dark, Light, Dark+, Light+) but the
+header button only flipped between a theme and its light/dark counterpart,
+so two of the four were reachable only through the palette or the View
+menu. The View › Theme submenu also gave no sign of which theme was on.
+
+**Decision.** The header button (`#sidebar-theme-btn`) opens a popover
+listing every `themes.js` entry — a diagonal swatch built from the theme's
+own terminal background/foreground, the label, a check on the current one.
+The button's icon is the current scheme (sun / moon) and its tooltip the
+theme's name. Everything is painted from `data-theme` via a
+MutationObserver, so a theme set from the palette or the View menu shows in
+the header too. `appHeader.js` owns the popover; `applyTheme` in
+`terminalTabBar.js` stays the one write path.
+
+View › Theme became a radio group. Main does not own theme state (it lives
+in the renderer's localStorage), so `applyTheme` reports the id over a new
+`THEME_CHANGED` channel and `menu.js` rebuilds the application menu with
+that entry checked — the same rebuild the AI-tool switcher already does.
+The submenu is generated from `themes.THEME_IDS`, so main no longer carries
+its own copy of the labels. `counterpart` in the registry is now unused by
+the shell (kept for a future quick flip; tests still pin it).

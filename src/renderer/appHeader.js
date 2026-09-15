@@ -11,9 +11,12 @@
  * for that render (aiToolSelector.mountSelector, the theme button).
  *
  * What is wired here and why here:
- *   - Theme restore + toggle. The persisted choice is applied at init, before
+ *   - Theme restore + picker. The persisted choice is applied at init, before
  *     the strip renders, exactly when TerminalTabBar's constructor used to do
- *     it; the button flips to the theme's counterpart (themes.js). The
+ *     it. The button opens a popover with one row per themes.js entry (a
+ *     swatch, the label, a check on the current one) and shows the current
+ *     scheme as its icon. Both are painted from data-theme, so a theme set
+ *     from the palette or the View menu shows here too. The
  *     applyTheme / currentTheme contract stays in terminalTabBar.js — the
  *     theme.* commands and terminalManager depend on it there.
  *   - The update bell: hidden until UPDATE_AVAILABLE, click opens the release.
@@ -30,7 +33,7 @@
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
-const { PanelLeft, PanelBottom, PanelRight } = require('lucide');
+const { PanelLeft, PanelBottom, PanelRight, Sun, Moon, Check } = require('lucide');
 const themes = require('./themes');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
 const sidebarResize = require('./sidebarResize');
@@ -44,9 +47,77 @@ function initTheme(root) {
   try { saved = localStorage.getItem('frame-theme'); } catch (_) { /* non-fatal */ }
   applyTheme(saved);
 
-  root.querySelector('#sidebar-theme-btn')?.addEventListener('click', () => {
-    applyTheme(themes.counterpartOf(currentTheme()));
-  });
+  const btn = root.querySelector('#sidebar-theme-btn');
+  const menu = root.querySelector('#theme-menu');
+  if (!btn || !menu) return;
+
+  // The button's face: the current scheme's icon and the theme's name.
+  const paintButton = () => {
+    const id = currentTheme();
+    const t = themes.THEMES[id];
+    btn.innerHTML = dock.lucideIcon(t.scheme === 'light' ? Sun : Moon, 16);
+    btn.title = `Theme: ${t.label}`;
+  };
+
+  // One row per registry entry. The swatch is the theme's own terminal
+  // colours (background disc, foreground wedge), so the four read apart
+  // even before their labels do.
+  const render = () => {
+    const active = currentTheme();
+    menu.innerHTML = '';
+    for (const id of themes.THEME_IDS) {
+      const t = themes.THEMES[id];
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'theme-menu-item' + (id === active ? ' active' : '');
+      item.setAttribute('role', 'menuitemradio');
+      item.setAttribute('aria-checked', id === active ? 'true' : 'false');
+      item.dataset.theme = id;
+      item.innerHTML = '<span class="theme-menu-swatch" aria-hidden="true"></span>'
+        + '<span class="theme-menu-item-name"></span>'
+        + (id === active ? dock.lucideIcon(Check, 13) : '');
+      const swatch = item.querySelector('.theme-menu-swatch');
+      swatch.style.setProperty('--swatch-bg', t.terminal.background);
+      swatch.style.setProperty('--swatch-fg', t.terminal.foreground);
+      item.querySelector('.theme-menu-item-name').textContent = t.label;
+      item.addEventListener('click', () => {
+        close();
+        if (id !== active) applyTheme(id);
+      });
+      menu.appendChild(item);
+    }
+  };
+
+  const onDocClick = (e) => {
+    if (!menu.contains(e.target) && !btn.contains(e.target)) close();
+  };
+  const onKeydown = (e) => {
+    if (e.key === 'Escape') close();
+  };
+  const close = () => {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onDocClick, true);
+    document.removeEventListener('keydown', onKeydown, true);
+  };
+  const open = () => {
+    render();
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onKeydown, true);
+  };
+
+  btn.addEventListener('click', () => (menu.hidden ? open() : close()));
+
+  // Follow data-theme wherever it is set from (palette, View menu, this
+  // popover) — the same signal terminalManager watches for xterm.
+  paintButton();
+  new MutationObserver(() => {
+    paintButton();
+    if (!menu.hidden) render();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }
 
 function initUpdateBell(root) {
