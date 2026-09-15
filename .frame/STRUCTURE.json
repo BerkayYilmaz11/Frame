@@ -12171,6 +12171,58 @@
       "depends": [],
       "functions": {}
     },
+    "shared/uiZoom": {
+      "file": "src/shared/uiZoom.js",
+      "description": "UI zoom ladder — the five interface sizes Frame offers (ui-zoom-steps spec).",
+      "exports": [
+        "MIN_STEP",
+        "MAX_STEP",
+        "DEFAULT_STEP",
+        "STEPS",
+        "LADDER",
+        "clampStep",
+        "parseStep",
+        "factorFor",
+        "percentFor",
+        "labelFor"
+      ],
+      "depends": [],
+      "functions": {
+        "clampStep": {
+          "line": 41,
+          "params": [
+            "n"
+          ],
+          "purpose": "Integer within [MIN_STEP, MAX_STEP]; non-numbers land on the default."
+        },
+        "parseStep": {
+          "line": 51,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A stored value → a step. Only an in-range integer counts; anything else"
+        },
+        "factorFor": {
+          "line": 57,
+          "params": [
+            "step"
+          ]
+        },
+        "percentFor": {
+          "line": 62,
+          "params": [
+            "step"
+          ],
+          "purpose": "Whole-number percentage: 85, 92, 100, 110, 120."
+        },
+        "labelFor": {
+          "line": 66,
+          "params": [
+            "step"
+          ]
+        }
+      }
+    },
     "templates/bin/implement-launch": {
       "file": "src/templates/bin/implement-launch.js",
       "description": "",

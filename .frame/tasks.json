@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T08:28:52.264Z",
+  "lastUpdated": "2026-09-15T08:34:37.279Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7795,13 +7795,13 @@
       "title": "Add `src/shared/uiZoom.js` — the pure ladder (`MIN_STEP`/`MAX_STEP`/`DEFAULT_STEP`, `LADDER` 0.85/0.92/1.00/1.10/1.20, `clampStep`, `parseStep`, `factorFor`, `percentFor`, `labelFor`) — with `test/uiZoom.test.js` pinning the five factors, clamping at −2 and +2, `parseStep` on null/strings/floats/out-of-range, and the labels and percents.",
       "description": "",
       "source": "spec:ui-zoom-steps:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: ui-zoom-steps",
       "createdAt": "2026-09-15T08:28:52.263Z",
-      "updatedAt": "2026-09-15T08:28:52.263Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T08:34:37.279Z",
+      "completedAt": "2026-09-15T08:34:37.279Z"
     },
     {
       "id": "task-spec-ui-zoom-steps-T02",

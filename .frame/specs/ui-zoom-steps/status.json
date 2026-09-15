@@ -1,7 +1,7 @@
 {
   "slug": "ui-zoom-steps",
   "title": "UI zoom steps",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-ui-zoom-steps-T01",
     "task-spec-ui-zoom-steps-T02",
@@ -15,6 +15,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-15T08:18:29Z",
-  "updated_at": "2026-09-15T08:28:52.263Z",
-  "last_phase_at": "2026-09-15T08:28:51Z"
+  "updated_at": "2026-09-15T08:33:07.743Z",
+  "last_phase_at": "2026-09-15T08:33:07.743Z",
+  "implement_mode": "guided"
 }
