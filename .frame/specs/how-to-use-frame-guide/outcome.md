@@ -8,3 +8,11 @@ _Captured: 2026-09-15 · 1 file change(s)_
 
 ---
 
+## T02 — Write the guide content test suite
+
+Added `test/guideContent.test.js` (19 tests): the shipped content validates clean with unique ids, known sketch kinds and allowlisted commands; `flattenPages` order across chapters; `parseInline` segments; and a sound fixture broken one rule at a time proves `validate` reports each mistake. Also pins SKETCH_KINDS at twenty and the first page as `start.what`. 1 file.
+
+_Captured: 2026-09-15 · 1 file change(s)_
+
+---
+

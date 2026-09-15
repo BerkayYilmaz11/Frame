@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-15T10:49:49.625Z",
+  "lastUpdated": "2026-09-15T10:51:05.233Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7925,13 +7925,13 @@
       "title": "Write `test/guideContent.test.js`: module requires without electron/lucide, unique chapter and page ids, `flattenPages` order and length, every page has a title and ≥ 1 block, sketch kinds in SKETCH_KINDS, action and `{kbd:}` ids in ACTION_IDS, `stay` only on theme/zoom ids, `validate()` returns `[]`, and `validate()` reports each problem on a broken fixture",
       "description": "",
       "source": "spec:how-to-use-frame-guide:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: how-to-use-frame-guide",
       "createdAt": "2026-09-15T10:42:41.494Z",
-      "updatedAt": "2026-09-15T10:42:41.494Z",
-      "completedAt": null
+      "updatedAt": "2026-09-15T10:51:05.233Z",
+      "completedAt": "2026-09-15T10:51:05.233Z"
     },
     {
       "id": "task-spec-how-to-use-frame-guide-T03",
