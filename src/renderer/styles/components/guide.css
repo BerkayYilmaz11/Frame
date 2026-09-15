@@ -474,3 +474,457 @@
     font-size: 11px;
   }
 }
+
+/* ══ Sketches (guide/guideSketches.js) ══════════════════════════════════
+ * Wireframes drawn from the design tokens, so they follow every theme.
+ * Vocabulary: .gs is the frame; .gs-region is a named part a page can
+ * focus; with a focus (.gs-has-focus) the focused regions take the accent
+ * and everything else recedes. Content is deliberately abstract: literal
+ * labels only where the words are what the page teaches, bars elsewhere.
+ */
+
+.gs {
+  --gs-line: var(--border-default);
+  --gs-fill: var(--bg-tertiary);
+  --gs-ink: var(--text-secondary);
+  position: relative;
+  max-width: 720px;
+  min-height: 200px;
+  padding: 14px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--gs-ink);
+  overflow: hidden;
+  user-select: none;
+}
+
+.gs svg {
+  flex-shrink: 0;
+}
+
+.gs-region {
+  border-radius: 5px;
+  transition: opacity 0.15s, box-shadow 0.15s;
+}
+
+.gs-has-focus .gs-region:not(.gs-focus):not(:has(.gs-focus)):not(.gs-focus .gs-region) {
+  opacity: 0.4;
+}
+
+.gs-focus {
+  box-shadow: 0 0 0 1.5px var(--accent-primary), 0 0 14px var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.gs-focus .gs-label,
+.gs-focus svg {
+  color: var(--accent-primary);
+}
+
+.gs-bar {
+  display: inline-block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--border-strong);
+  vertical-align: middle;
+}
+
+.gs-label {
+  white-space: nowrap;
+}
+
+.gs-strong { color: var(--text-primary); font-weight: 600; }
+.gs-dim { color: var(--text-tertiary); }
+
+.gs-eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.gs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--gs-line);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.gs-chip-tiny {
+  padding: 0 5px;
+  font-size: 8px;
+}
+
+.gs-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.gs-dot-accent { background: var(--accent-primary); }
+.gs-dot-ok { background: var(--success); }
+.gs-dot-warn { background: var(--warning); }
+.gs-dot-err { background: var(--error); }
+
+.gs-mark {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.gs-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px;
+  min-width: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--gs-line);
+  border-radius: 5px;
+}
+
+.gs-pane .gs-chip {
+  align-self: flex-start;
+}
+
+.gs-term-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gs-term-prompt {
+  color: var(--text-primary);
+}
+
+.gs-term-caret {
+  color: var(--accent-primary);
+  margin-right: 5px;
+}
+
+.gs-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-grid {
+  display: grid;
+  gap: 6px;
+  height: 100%;
+}
+
+.gs-grid-2 { grid-template-columns: 1fr 1fr; }
+.gs-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── agents ── */
+
+.gs-agents {
+  display: grid;
+  grid-template-columns: minmax(0, 190px) 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.gs-agents-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gs-agents-clis {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gs-agent-card {
+  padding: 7px 9px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--gs-line);
+  border-radius: 6px;
+}
+
+.gs-agent-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.gs-agent-cmd {
+  margin: 3px 0 0 19px;
+  color: var(--text-tertiary);
+}
+
+.gs-agents-key {
+  display: flex;
+  align-items: center;
+  white-space: normal;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-tertiary);
+}
+
+.gs-agents-key .gs-label {
+  white-space: normal;
+}
+
+.gs-agents-arrow {
+  position: relative;
+  height: 2px;
+  background: var(--border-strong);
+}
+
+.gs-agents-arrow span {
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border: 5px solid transparent;
+  border-left-color: var(--border-strong);
+  border-right: 0;
+}
+
+.gs-agents-frame {
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+}
+
+.gs-agents-panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.gs-agents-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* ── shell ── */
+
+.gs-shell {
+  display: flex;
+  flex-direction: column;
+  height: 230px;
+  padding: 0;
+}
+
+.gs-shell-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--gs-line);
+  background: var(--bg-primary);
+}
+
+.gs-switcher {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 auto;
+  padding: 2px 10px;
+  border: 1px solid var(--gs-line);
+  background: var(--bg-secondary);
+  min-width: 120px;
+  justify-content: center;
+}
+
+.gs-header-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gs-agent-picker,
+.gs-start,
+.gs-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--gs-line);
+  background: var(--bg-secondary);
+}
+
+.gs-start {
+  background: var(--accent-subtle);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.gs-shell-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.gs-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 26px;
+  padding: 6px 0;
+  border-right: 1px solid var(--gs-line);
+  background: var(--bg-primary);
+}
+
+.gs-rail-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 3px;
+}
+
+.gs-rail-spacer { flex: 1; }
+
+.gs-rail-icon,
+.gs-rail-btn {
+  display: flex;
+  color: var(--text-tertiary);
+  padding: 1px;
+}
+
+.gs-rail-active { color: var(--text-primary); }
+
+.gs-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 136px;
+  padding: 6px;
+  border-right: 1px solid var(--gs-line);
+  border-radius: 0;
+  background: var(--bg-secondary);
+}
+
+.gs-nav-group {
+  margin-top: 3px;
+}
+
+.gs-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 3px;
+}
+
+.gs-nav-icon {
+  width: 7px !important;
+  height: 7px;
+  border-radius: 2px;
+}
+
+.gs-nav-foot {
+  margin-top: auto;
+  padding-top: 3px;
+  border-top: 1px solid var(--gs-line);
+}
+
+.gs-shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gs-center {
+  flex: 1;
+  min-height: 0;
+  padding: 6px;
+  border-radius: 0;
+}
+
+.gs-dock {
+  height: 58px;
+  border-top: 1px solid var(--gs-line);
+  border-radius: 0;
+  background: var(--bg-secondary);
+}
+
+.gs-dock-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-tab { color: var(--text-tertiary); padding-bottom: 1px; }
+.gs-tab-active { color: var(--text-primary); box-shadow: inset 0 -1px 0 var(--accent-primary); }
+
+.gs-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+}
+
+.gs-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 20px;
+  padding: 0 6px;
+  border-top: 1px solid var(--gs-line);
+  background: var(--bg-primary);
+  font-size: 9px;
+}
+
+.gs-status-left,
+.gs-status-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 4px;
+}
+
+.gs-status-sep {
+  width: 1px;
+  height: 10px;
+  background: var(--gs-line);
+}
+
+.gs-meter {
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-default);
+  overflow: hidden;
+}
+
+.gs-meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent-primary);
+}
+
+@media (max-width: 760px) {
+  .gs-agents {
+    grid-template-columns: 1fr;
+  }
+  .gs-agents-arrow { display: none; }
+  .gs-sidebar { width: 90px; }
+}

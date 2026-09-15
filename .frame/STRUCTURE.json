@@ -7129,6 +7129,74 @@
         }
       }
     },
+    "renderer/guide/guideSketches": {
+      "file": "src/renderer/guide/guideSketches.js",
+      "description": "How to Use Frame — page illustrations (how-to-use-frame-guide spec).",
+      "exports": [
+        "render",
+        "DRAWN_KINDS"
+      ],
+      "depends": [
+        "lucide",
+        "dock",
+        "htmlUtils"
+      ],
+      "functions": {
+        "focusSet": {
+          "line": 34,
+          "params": [
+            "focus"
+          ],
+          "purpose": "Parse `focus` (\"a\" | \"a,b\" | [\"a\",\"b\"]) into a Set of region names."
+        },
+        "region": {
+          "line": 44,
+          "params": [
+            "name",
+            "focused",
+            "cls",
+            "inner"
+          ],
+          "purpose": "A focusable region. Regions named in `focus` get .gs-focus; when the"
+        },
+        "chip": {
+          "line": 56,
+          "params": [
+            "text",
+            "{ dot",
+            "cls = '' } = {}"
+          ],
+          "purpose": "A small bordered pill, optionally with a status dot ('ok'|'warn'|'err'|'accent')."
+        },
+        "terminalLines": {
+          "line": 62,
+          "params": [
+            "prompt",
+            "widths = [72",
+            "54",
+            "63]"
+          ],
+          "purpose": "A fake terminal body: a prompt line plus a few output bars."
+        },
+        "frame": {
+          "line": 70,
+          "params": [
+            "kind",
+            "focused",
+            "inner",
+            "cls = ''"
+          ],
+          "purpose": "The sketch's outer frame."
+        },
+        "render": {
+          "line": 179,
+          "params": [
+            "kind",
+            "focus"
+          ]
+        }
+      }
+    },
     "renderer/guideModal": {
       "file": "src/renderer/guideModal.js",
       "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec).",
@@ -7146,117 +7214,122 @@
         "commandRegistry",
         "platform",
         "htmlUtils",
-        "guide/guideContent"
+        "guide/guideContent",
+        "guide/guideSketches"
       ],
       "functions": {
         "init": {
-          "line": 71,
+          "line": 72,
           "params": [
             "{ onLaunchDone"
           ],
           "purpose": "step is over (Welcome's launch show)."
         },
         "showOnLaunch": {
-          "line": 127
+          "line": 128
         },
         "runLaunchDone": {
-          "line": 142
+          "line": 143
         },
         "syncHideOnLaunch": {
-          "line": 150
+          "line": 151
         },
         "open": {
-          "line": 165,
+          "line": 166,
           "params": [
             "{ launch = false } = {}"
           ]
         },
         "close": {
-          "line": 186,
+          "line": 187,
           "params": [
             "{ via = 'dismiss' } = {}"
           ],
           "purpose": "link closed the guide: the target keeps focus."
         },
         "toggle": {
-          "line": 200
+          "line": 201
         },
         "onClose": {
-          "line": 205,
+          "line": 206,
           "params": [
             "fn"
           ]
         },
         "go": {
-          "line": 211,
+          "line": 212,
           "params": [
             "i"
           ]
         },
         "onKeydown": {
-          "line": 222,
+          "line": 223,
           "params": [
             "e"
           ]
         },
         "onTreeClick": {
-          "line": 241,
+          "line": 242,
           "params": [
             "e"
           ]
         },
         "onContentClick": {
-          "line": 256,
+          "line": 257,
           "params": [
             "e"
           ]
         },
         "renderTree": {
-          "line": 268
+          "line": 269
         },
         "renderPage": {
-          "line": 296
+          "line": 297
         },
         "renderSketch": {
-          "line": 314,
-          "purpose": "Sketches arrive with guide/guideSketches.js; until then the slot stays empty."
+          "line": 318,
+          "params": [
+            "sketch"
+          ],
+          "purpose": "The page's illustration. A kind guideSketches does not draw leaves the slot"
         },
         "renderBlock": {
-          "line": 318,
+          "line": 333,
           "params": [
             "block"
           ]
         },
         "renderInline": {
-          "line": 326,
+          "line": 341,
           "params": [
             "text"
           ]
         },
         "renderKbd": {
-          "line": 335,
+          "line": 350,
           "params": [
             "id"
           ],
           "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
         },
         "renderAction": {
-          "line": 344,
+          "line": 359,
           "params": [
             "action"
           ]
         },
         "logMissing": {
-          "line": 362,
+          "line": 377,
           "params": [
-            "id"
+            "id",
+            "message"
           ]
         },
         "renderFooter": {
-          "line": 368
+          "line": 383
         },
         "onLaunchDone": {
-          "line": 62
+          "line": 63
         }
       },
       "ipc": {
@@ -14053,6 +14126,11 @@
         "module": "renderer/guide/guideContent",
         "file": "src/renderer/guide/guideContent.js",
         "description": "How to Use Frame — the guide's content (how-to-use-frame-guide spec)."
+      },
+      {
+        "module": "renderer/guide/guideSketches",
+        "file": "src/renderer/guide/guideSketches.js",
+        "description": "How to Use Frame — page illustrations (how-to-use-frame-guide spec)."
       },
       {
         "module": "renderer/guideModal",

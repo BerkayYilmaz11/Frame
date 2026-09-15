@@ -38,6 +38,7 @@ const commandRegistry = require('./commandRegistry');
 const { formatShortcut } = require('./platform');
 const { escapeHtml } = require('./htmlUtils');
 const guideContent = require('./guide/guideContent');
+const guideSketches = require('./guide/guideSketches');
 
 let overlayEl = null;
 let modalEl = null;
@@ -310,9 +311,23 @@ function renderPage() {
     ${actions ? `<div class="guide-actions">${actions}</div>` : ''}`;
 }
 
-/** Sketches arrive with guide/guideSketches.js; until then the slot stays empty. */
-function renderSketch() {
-  return '';
+/**
+ * The page's illustration. A kind guideSketches does not draw leaves the slot
+ * empty (CSS hides it) and is logged once per open.
+ */
+function renderSketch(sketch) {
+  if (!sketch) return '';
+  let html = null;
+  try {
+    html = guideSketches.render(sketch.kind, sketch.focus);
+  } catch (err) {
+    console.error(`guideModal: sketch "${sketch.kind}" failed to render`, err);
+  }
+  if (html === null) {
+    logMissing(`sketch:${sketch.kind}`, `the guide cites sketch kind "${sketch.kind}", which guideSketches does not draw`);
+    return '';
+  }
+  return html;
 }
 
 function renderBlock(block) {
@@ -359,10 +374,10 @@ function renderAction(action) {
     </button>`;
 }
 
-function logMissing(id) {
+function logMissing(id, message) {
   if (loggedMissing.has(id)) return;
   loggedMissing.add(id);
-  console.error(`guideModal: the guide cites command "${id}", which is not registered`);
+  console.error(`guideModal: ${message || `the guide cites command "${id}", which is not registered`}`);
 }
 
 function renderFooter() {

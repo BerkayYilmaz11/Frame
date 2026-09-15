@@ -48,3 +48,11 @@ _Captured: 2026-09-15 · 4 file change(s)_
 
 ---
 
+## T07 — Add the sketch system with the agents and shell kinds
+
+Added `src/renderer/guide/guideSketches.js`: `render(kind, focus)` returning HTML or null, primitives (frame, region, bar, label, chip with status dot, terminal lines), comma-separated focus, and the `agents` (three CLIs + own sign-in into a Frame window with lane chips and context files) and `shell` (header, rail with split foot buttons, nav, terminal grid, dock, status bar) kinds; the `.gs-*` vocabulary and a focus rule that accents the named region and fades the rest went into `guide.css`. `guideModal.js` now renders sketches and logs an undrawn kind once. Rail-foot buttons became individual regions so a single one (e.g. `rail-guide`) can be focused, and the focus CSS uses `:has()` so a focused child is never dimmed by its parent. Checked in dark and light themes in an isolated instance. 3 files.
+
+_Captured: 2026-09-15 · 3 file change(s)_
+
+---
+
