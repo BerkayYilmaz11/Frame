@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-14",
+  "lastUpdated": "2026-09-16",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -465,6 +465,410 @@
           "CLAUDE_USAGE_DATA",
           "CLAUDE_USAGE_DATA"
         ]
+      }
+    },
+    "main/cloud/cloudSession": {
+      "file": "src/main/cloud/cloudSession.js",
+      "description": "cloudSession — the Electron shell around the Frame Cloud device flow.",
+      "exports": [
+        "init",
+        "setupIPC",
+        "startup",
+        "signIn",
+        "cancel",
+        "refresh",
+        "signOut",
+        "getState",
+        "getPublicState",
+        "toPublicState"
+      ],
+      "depends": [
+        "os",
+        "child_process",
+        "electron",
+        "../shared/ipcChannels",
+        "userSettings",
+        "logger",
+        "sessionStore",
+        "deviceFlow"
+      ],
+      "functions": {
+        "resolveUrl": {
+          "line": 61
+        },
+        "fetchJson": {
+          "line": 73,
+          "params": [
+            "url",
+            "{ method = 'GET'",
+            "body",
+            "token",
+            "signal } = {}"
+          ],
+          "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
+        },
+        "sleep": {
+          "line": 114,
+          "params": [
+            "ms",
+            "signal"
+          ]
+        },
+        "openUrl": {
+          "line": 134,
+          "params": [
+            "url"
+          ]
+        },
+        "readComputerName": {
+          "line": 147
+        },
+        "deviceInfo": {
+          "line": 169
+        },
+        "toPublicState": {
+          "line": 181
+        },
+        "getPublicState": {
+          "line": 189
+        },
+        "publish": {
+          "line": 193
+        },
+        "setState": {
+          "line": 198,
+          "params": [
+            "next"
+          ]
+        },
+        "signedInState": {
+          "line": 203,
+          "params": [
+            "serverUrl",
+            "session",
+            "ephemeral"
+          ]
+        },
+        "bringToFront": {
+          "line": 218,
+          "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
+        },
+        "abortAttempt": {
+          "line": 226
+        },
+        "signIn": {
+          "line": 235,
+          "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
+        },
+        "cancel": {
+          "line": 286
+        },
+        "refresh": {
+          "line": 294,
+          "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
+        },
+        "signOut": {
+          "line": 324,
+          "purpose": "Tell the server, then forget the session locally whatever it said."
+        },
+        "startup": {
+          "line": 349,
+          "purpose": "Launch: show the stored session at once, then refresh it in the background."
+        },
+        "loadSession": {
+          "line": 353
+        },
+        "getState": {
+          "line": 374,
+          "purpose": "The current state, re-resolving first if the server address changed underneath."
+        },
+        "init": {
+          "line": 381,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 385,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_SIGN_IN",
+          "CLOUD_CANCEL_SIGN_IN",
+          "CLOUD_SIGN_OUT",
+          "CLOUD_GET_STATE",
+          "CLOUD_REFRESH"
+        ],
+        "emits": [
+          "CLOUD_SESSION_STATE"
+        ]
+      }
+    },
+    "main/cloud/deviceFlow": {
+      "file": "src/main/cloud/deviceFlow.js",
+      "description": "deviceFlow — the pure core of Frame Cloud sign-in.",
+      "exports": [
+        "CLIENT_ID",
+        "DEVICE_GRANT_TYPE",
+        "SLOW_DOWN_STEP_MS",
+        "MAX_BACKOFF_MS",
+        "CloudError",
+        "resolveServerUrl",
+        "parseCodeResponse",
+        "formatUserCode",
+        "classifyTokenResponse",
+        "classifyTrpcError",
+        "deviceName",
+        "formatDeviceInfo",
+        "requestDeviceCode",
+        "pollForToken",
+        "registerDevice",
+        "fetchMe",
+        "signOutDevice",
+        "runSignIn",
+        "refreshSession"
+      ],
+      "depends": [],
+      "functions": {
+        "isAbort": {
+          "line": 39,
+          "params": [
+            "err",
+            "signal"
+          ]
+        },
+        "resolveServerUrl": {
+          "line": 46,
+          "params": [
+            "{ env",
+            "setting",
+            "defaultUrl } = {}"
+          ],
+          "purpose": "First non-empty of env → setting → default, without trailing slashes."
+        },
+        "parseCodeResponse": {
+          "line": 56,
+          "params": [
+            "body"
+          ],
+          "purpose": "`/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body."
+        },
+        "formatUserCode": {
+          "line": 79,
+          "params": [
+            "userCode"
+          ],
+          "purpose": "Display-only grouping: 'TTN4YFST' → 'TTN4-YFST'. Other shapes are returned as-is."
+        },
+        "classifyTokenResponse": {
+          "line": 86,
+          "params": [
+            "res"
+          ],
+          "purpose": "One `/api/auth/device/token` answer → what the poll loop does next."
+        },
+        "classifyTrpcError": {
+          "line": 114,
+          "params": [
+            "res"
+          ],
+          "purpose": "A failed tRPC answer → CloudError kind."
+        },
+        "looksLikeAddress": {
+          "line": 130,
+          "params": [
+            "name"
+          ],
+          "purpose": "A hostname that is really a network address (macOS without a HostName"
+        },
+        "cleanName": {
+          "line": 134,
+          "params": [
+            "raw"
+          ]
+        },
+        "deviceName": {
+          "line": 144,
+          "params": [
+            "hostname"
+          ],
+          "purpose": "A machine name → the name the server shows for this device."
+        },
+        "formatDeviceInfo": {
+          "line": 153,
+          "params": [
+            "{ computerName",
+            "hostname",
+            "platform",
+            "release",
+            "appVersion } = {}"
+          ],
+          "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
+        },
+        "send": {
+          "line": 163,
+          "params": [
+            "fetchJson",
+            "url",
+            "opts"
+          ]
+        },
+        "requestDeviceCode": {
+          "line": 172,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "callTrpc": {
+          "line": 185,
+          "params": [
+            "{ api",
+            "name",
+            "method",
+            "token",
+            "input",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "registerDevice": {
+          "line": 198,
+          "params": [
+            "{ api",
+            "token",
+            "info",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "fetchMe": {
+          "line": 207,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "signOutDevice": {
+          "line": 211,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "pollForToken": {
+          "line": 221,
+          "params": [
+            "{ api",
+            "code",
+            "fetchJson",
+            "sleep",
+            "now",
+            "signal }"
+          ],
+          "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
+        },
+        "signInReason": {
+          "line": 274,
+          "params": [
+            "err"
+          ]
+        },
+        "runSignIn": {
+          "line": 290,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "sleep",
+            "now",
+            "signal",
+            "openUrl",
+            "deviceInfo",
+            "onState }"
+          ],
+          "purpose": "The whole sign-in: code → browser → poll → register."
+        },
+        "refreshReason": {
+          "line": 349,
+          "params": [
+            "err"
+          ]
+        },
+        "sessionFromMe": {
+          "line": 361,
+          "params": [
+            "data"
+          ]
+        },
+        "refreshSession": {
+          "line": 375,
+          "params": [
+            "{ api",
+            "token",
+            "deviceInfo",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "`device.me`, re-registering once when the server has forgotten this device."
+        }
+      }
+    },
+    "main/cloud/sessionStore": {
+      "file": "src/main/cloud/sessionStore.js",
+      "description": "sessionStore — where the Frame Cloud session lives between launches.",
+      "exports": [
+        "load",
+        "save",
+        "clear"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "electron",
+        "fsSafe",
+        "logger"
+      ],
+      "functions": {
+        "sessionPath": {
+          "line": 24
+        },
+        "encryptionAvailable": {
+          "line": 28
+        },
+        "pickSession": {
+          "line": 36,
+          "params": [
+            "source",
+            "token"
+          ]
+        },
+        "load": {
+          "line": 54,
+          "params": [
+            "serverUrl"
+          ],
+          "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
+        },
+        "save": {
+          "line": 83,
+          "params": [
+            "session"
+          ],
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, access, device })."
+        },
+        "clear": {
+          "line": 104,
+          "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
+        }
       }
     },
     "main/commandStaging": {
@@ -2245,30 +2649,31 @@
         "telemetry",
         "specManager",
         "orchestrationManager",
+        "cloud/cloudSession",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 52,
+          "line": 53,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 70,
+          "line": 71,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 167
+          "line": 174
         },
         "setupAllIPC": {
-          "line": 197,
+          "line": 204,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 275,
+          "line": 285,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 318,
+          "line": 328,
           "params": [
             "window"
           ],
@@ -6326,7 +6731,10 @@
         "init",
         "open",
         "close",
-        "toggle"
+        "toggle",
+        "signIn",
+        "signOut",
+        "accountState"
       ],
       "depends": [
         "electron",
@@ -6336,19 +6744,101 @@
       ],
       "functions": {
         "init": {
-          "line": 41
+          "line": 60
+        },
+        "initAccountSection": {
+          "line": 116
+        },
+        "pullAccountState": {
+          "line": 140
+        },
+        "refreshAccountOnOpen": {
+          "line": 155,
+          "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
+        },
+        "onAccountAction": {
+          "line": 164,
+          "params": [
+            "action",
+            "btn"
+          ]
+        },
+        "invokeAccount": {
+          "line": 186,
+          "params": [
+            "channel",
+            "btn"
+          ]
+        },
+        "renderAccount": {
+          "line": 197,
+          "params": [
+            "state"
+          ]
+        },
+        "showSignedInNote": {
+          "line": 226
+        },
+        "renderSignedIn": {
+          "line": 234,
+          "params": [
+            "s"
+          ]
+        },
+        "setNote": {
+          "line": 247,
+          "params": [
+            "name",
+            "visible"
+          ]
+        },
+        "setText": {
+          "line": 252,
+          "params": [
+            "id",
+            "text"
+          ]
+        },
+        "setValue": {
+          "line": 258,
+          "params": [
+            "id",
+            "primary",
+            "secondary"
+          ],
+          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
+        },
+        "isWebUrl": {
+          "line": 270,
+          "params": [
+            "url"
+          ]
+        },
+        "webOrigin": {
+          "line": 274,
+          "params": [
+            "url"
+          ]
+        },
+        "signIn": {
+          "line": 284,
+          "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
+        },
+        "signOut": {
+          "line": 292,
+          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "initAboutSection": {
-          "line": 91
+          "line": 298
         },
         "runCheck": {
-          "line": 176,
+          "line": 383,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 215,
+          "line": 422,
           "params": [
             "{ checked",
             "found",
@@ -6360,31 +6850,32 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 239,
+          "line": 446,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 250
+          "line": 457
         },
         "hideSidebarDot": {
-          "line": 254
+          "line": 461
         },
         "formatRelative": {
-          "line": 260,
+          "line": 467,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 271
+          "line": 478
         }
       },
       "ipc": {
         "listens": [
           "OPEN_SETTINGS",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "CLOUD_SESSION_STATE"
         ],
         "emits": []
       }
@@ -7633,7 +8124,7 @@
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 918,
+          "line": 934,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -13467,6 +13958,38 @@
         "direction": "",
         "description": ""
       }
+    },
+    "cloud": {
+      "CLOUD_SIGN_IN": {
+        "name": "cloud-sign-in",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_CANCEL_SIGN_IN": {
+        "name": "cloud-cancel-sign-in",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_SIGN_OUT": {
+        "name": "cloud-sign-out",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_GET_STATE": {
+        "name": "cloud-get-state",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_REFRESH": {
+        "name": "cloud-refresh",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_SESSION_STATE": {
+        "name": "cloud-session-state",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -14048,6 +14571,16 @@
     ],
     "session": [
       {
+        "module": "main/cloud/cloudSession",
+        "file": "src/main/cloud/cloudSession.js",
+        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
+      },
+      {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
         "module": "renderer/home/sessionRows",
         "file": "src/renderer/home/sessionRows.js",
         "description": "Which Claude sessions Home offers to resume, and how they are labelled."
@@ -14148,6 +14681,18 @@
         "module": "renderer/statusBar",
         "file": "src/renderer/statusBar.js",
         "description": "Status Bar Module"
+      }
+    ],
+    "store": [
+      {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
+        "module": "main/frameStore",
+        "file": "src/main/frameStore.js",
+        "description": "frameStore — the one module that knows where a project's meta files live."
       }
     ],
     "structure": [

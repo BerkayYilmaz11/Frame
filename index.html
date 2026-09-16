@@ -1562,6 +1562,88 @@
         <button type="button" class="settings-close" data-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
+        <!-- Frame Cloud account. Hidden until main resolves a server address
+             (FRAME_CLOUD_URL / cloudServerUrl); every pane below only draws
+             the CLOUD_SESSION_STATE push — frameSettingsModal.renderAccount. -->
+        <div class="settings-section" id="settings-account" hidden>
+          <h4 class="settings-section-title">Account</h4>
+          <div class="settings-about">
+            <div data-account-state="signedOut" hidden>
+              <div class="settings-about-row">
+                <div class="settings-about-version">Sign in to Frame Cloud</div>
+                <button type="button" class="settings-about-btn settings-about-btn-primary" data-account-action="signIn">Sign in</button>
+              </div>
+              <p class="settings-about-status settings-account-note" data-account-note="signedOutUnreachable" hidden>
+                Signed out on this Mac. The server couldn't be reached, so the session there ends within 30 days.
+              </p>
+            </div>
+
+            <div data-account-state="requestingCode" hidden>
+              <p class="settings-about-status">Starting sign-in…</p>
+            </div>
+
+            <div data-account-state="awaitingApproval" hidden>
+              <div id="settings-account-code" class="settings-account-code"></div>
+              <p class="settings-about-status">Waiting for approval in your browser</p>
+              <div class="settings-account-url">
+                <span id="settings-account-url" class="settings-account-url-text"></span>
+                <button type="button" class="settings-about-btn" data-account-action="copyUrl">Copy</button>
+              </div>
+              <div class="settings-account-actions">
+                <button type="button" class="settings-about-btn" data-account-action="openBrowser">Open browser again</button>
+                <button type="button" class="settings-about-btn" data-account-action="cancel">Cancel</button>
+              </div>
+            </div>
+
+            <div data-account-state="registering" hidden>
+              <p class="settings-about-status">Finishing sign-in…</p>
+            </div>
+
+            <div data-account-state="signedIn" hidden>
+              <p class="settings-account-success" data-account-note="justSignedIn" role="status" hidden>
+                Signed in to Frame Cloud
+              </p>
+              <div class="settings-account-rows">
+                <div class="settings-about-row">
+                  <div class="settings-about-version">Account</div>
+                  <div class="settings-account-value" id="settings-account-user"></div>
+                </div>
+                <div class="settings-about-row">
+                  <div class="settings-about-version">Workspace</div>
+                  <div class="settings-account-value" id="settings-account-workspace"></div>
+                </div>
+                <div class="settings-about-row">
+                  <div class="settings-about-version">Plan</div>
+                  <span class="settings-status-chip" id="settings-account-plan"></span>
+                </div>
+                <div class="settings-about-row">
+                  <div class="settings-about-version">This device</div>
+                  <div class="settings-account-value" id="settings-account-device"></div>
+                </div>
+              </div>
+              <p class="settings-about-status settings-account-note" data-account-note="ephemeral" hidden>
+                Your system has no secure storage, so you'll sign in again next launch.
+              </p>
+              <p class="settings-about-status settings-account-note" data-account-note="signedInUnreachable" hidden>
+                Frame Cloud couldn't be reached — showing the last known details.
+              </p>
+              <div class="settings-account-actions">
+                <button type="button" class="settings-about-btn" data-account-action="signOut">Sign out</button>
+              </div>
+            </div>
+
+            <div data-account-state="failed" hidden>
+              <p class="settings-about-status settings-account-reason">
+                <span id="settings-account-reason"></span>
+                <a href="#" id="settings-account-web-link" hidden>Open Frame Cloud</a>
+              </p>
+              <div class="settings-account-actions">
+                <button type="button" class="settings-about-btn" data-account-action="signIn">Try again</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="settings-section">
           <h4 class="settings-section-title">Privacy &amp; Analytics</h4>
           <div class="settings-row">

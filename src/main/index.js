@@ -40,6 +40,7 @@ const gitDiffManager = require('./gitDiffManager');
 const telemetry = require('./telemetry');
 const specManager = require('./specManager');
 const orchestrationManager = require('./orchestrationManager');
+const cloudSession = require('./cloud/cloudSession');
 
 let mainWindow = null;
 let quitConfirmed = false;
@@ -154,6 +155,12 @@ function createWindow() {
     probeCoreDeps();
   });
 
+  // Frame Cloud: show a stored session, then refresh it in the background.
+  // Once per window, never awaited — a hung server must not hold the app.
+  mainWindow.webContents.once('did-finish-load', () => {
+    setImmediate(() => cloudSession.startup());
+  });
+
   return mainWindow;
 }
 
@@ -217,6 +224,9 @@ function setupAllIPC() {
   // User settings (renderer-side preferences persisted to userData JSON)
   ipcMain.handle(IPC.GET_USER_SETTING, (event, key) => userSettings.get(key));
   ipcMain.handle(IPC.SET_USER_SETTING, (event, key, value) => userSettings.set(key, value));
+
+  // Frame Cloud sign-in (Settings → Account)
+  cloudSession.setupIPC(ipcMain);
 
   // Git status (file tree decoration polling)
   gitStatusManager.setupIPC(ipcMain);
@@ -329,6 +339,7 @@ function initModulesWithWindow(window) {
   gitStatusManager.init(window);
   specManager.init(window);
   orchestrationManager.init(window);
+  cloudSession.init(window);
   activityLog.attachWindow(window);
 }
 

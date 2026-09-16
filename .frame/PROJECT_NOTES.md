@@ -3382,3 +3382,94 @@ failure, since that cannot be told apart from a crash.
 `test/telemetry.test.js`; `npm run build` succeeds. Not committed. Not tried
 in the running app. Worth checking there: move a spec forward with an agent
 and watch the events, rename a spec, switch branches.
+
+### [2026-09-16] Frame Cloud sign-in: the desktop half of the device flow
+
+**Context.** This spec (`.frame/specs/frame-cloud-sign-in`) is the Frame side
+of FrameCloud's device flow, which is FrameCloud PR #14. That PR serves RFC 8628
+under `/api/auth/device/*` plus `device.register` / `device.me` /
+`device.signOut`. Before implementation started the user asked for an
+umbrella branch on the fork, the same pattern as `feat/pm-enhancement`:
+`feat/frame-cloud-adaptor` was cut at the spec + plan commits and pushed to
+origin. `feat/frame-cloud-sign-in` tracks it, and its PR targets the umbrella,
+not `upstream/main`. Every later FrameCloud piece branches from the umbrella.
+The run was autonomous: T01–T08, one commit per task. After that the user
+tested by hand against a local FrameCloud, which added a device-name fix and
+T09.
+
+**Shape.** `src/main/cloud/` is the connection module's home:
+- `deviceFlow.js` is the pure core. It holds the endpoint calls, the poll
+  loop, and `runSignIn` / `refreshSession`, with fetch, sleep, clock and
+  browser all injected, so a future CLI can wrap it.
+- `cloudSession.js` is the Electron shell. It uses `net.fetch` with a 15 s
+  timeout, owns the state machine, pushes an allowlisted state to the
+  renderer, and registers IPC.
+- `sessionStore.js` writes `userData/cloud-session.json` with the token
+  encrypted by `safeStorage`. Without secure storage the session stays in
+  memory only.
+
+Settings → Account draws only what main pushes. The palette offers
+`cloud.signIn` / `cloud.signOut` only when they apply.
+
+**Where the server address lives.** The user asked. It is resolved on every
+use from `process.env.FRAME_CLOUD_URL`, then `cloudServerUrl` in
+`user-settings.json`, then `DEFAULT_CLOUD_SERVER_URL` in `cloudSession.js`,
+which is `''` today. With nothing resolved, Account is hidden and no request is
+made. A packaged Frame started from Finder or the Dock does not inherit shell
+variables, because `envPath.js` only carries PATH over. The user decided
+against a settings field for the URL: the prod address will be a hard-coded
+constant. The user asked whether open-source users will see the address.
+They will, and that is fine. A server URL is not a secret. `frame-desktop` is
+a public client with no client secret, and all security is server-side:
+browser approval, bearer tokens, rate limits. The server must treat every
+client as untrusted, including forks. Only server-side secrets must stay out
+of the repo. The env and setting overrides stay for development and
+self-hosting.
+
+**Findings from manual testing.**
+- *Device name was an IP.* On the user's Mac `HostName` is unset, so
+  `os.hostname()` returned `192.168.1.104` (a DHCP address), and the device
+  registered under it. The user chose ComputerName. On macOS the shell now
+  reads `scutil --get ComputerName`, then `LocalHostName`, then the hostname,
+  and caches the result. The core also never uses an IP-shaped name. Devices
+  registered before the fix keep their old name until the next sign-in.
+- *Workspace-less users.* Asked how the flow works with no workspace. The web
+  `/device` guard sends a signed-out user to `/login` and a user without a
+  workspace to `/onboarding`. Both carry `redirect=/device?user_code=…`, which
+  `safeRedirect` restricts to that path, and both come back to the approval
+  page. The GitHub-connect step is skipped on this path. The whole detour must
+  fit inside the code's 15 minutes. Frame's `noWorkspace` failure is
+  therefore a safety net that the web practically never lets happen.
+- *The waiting screen felt dead.* The user asked whether a static "Waiting
+  for approval" is right and how the industry does it. Device flow cannot
+  report browser progress. Most desktop apps (VS Code, Slack, Figma, Linear)
+  use authorization code + PKCE with a URL scheme or loopback redirect
+  (RFC 8252), so the app comes to the front by itself. We kept device flow:
+  no protocol registration or port, the same core serves the future CLI, and
+  the server already ships it. Instead the user picked one improvement as its
+  own task, T09 (plan D16): a completed sign-in restores and focuses the
+  window, using `app.focus({ steal: true })` on macOS, and Account shows a 4 s
+  "Signed in to Frame Cloud" note. Suggested and not done: a spinner and
+  expiry countdown, a first-sign-in hint, a "Get a new code" button, and on
+  FrameCloud's side the duplicated "Frame Desktop is signed in" copy plus a
+  "close this tab" line. PKCE is deferred, not rejected.
+
+**Other decisions made while implementing** (details in `outcome.md`):
+- `scripts/redact.js` already had the Bearer pattern. The real hole was that
+  no JSON-quoted secret key (`"access_token":"…"`) matched, and that is now
+  fixed for every key.
+- `startup()` runs once, because the renderer's first `CLOUD_GET_STATE`
+  arrives before `did-finish-load`.
+- A request timeout is surfaced as a plain Error, so the core does not read
+  it as a cancel.
+- Sign-out also deletes fsSafe's `.bak` copy of the session file.
+
+**State.** Nine tasks plus the device-name fix are committed on
+`feat/frame-cloud-sign-in`. `npm test` passes 808 tests; 40 of them are in
+`test/cloudDeviceFlow.test.js`. The shell and UI were checked in the dev app
+against a fake FrameCloud with a scratch `userData`. The user walked the real
+local FrameCloud through sign-in successfully, which surfaced the IP name.
+Still open: the plan's full manual walk (plan change → Pro, deny, expiry,
+revoked token → silent sign-out, offline sign-out), and confirming by hand
+that T09 takes focus while the browser is in front. One of three scripted
+runs read `isFocused()` false right after approval.

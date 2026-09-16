@@ -603,6 +603,22 @@ function registerCommands() {
     shortcut: 'CmdOrCtrl+,',
     run: () => frameSettingsModal.open()
   });
+  // Frame Cloud: offered only where a server resolved (never in packaged
+  // builds today), and only the one that applies to the current session.
+  r({
+    id: 'cloud.signIn',
+    title: 'Frame Cloud: Sign in',
+    category: 'Help',
+    when: () => !['unavailable', 'signedIn'].includes(frameSettingsModal.accountState()),
+    run: () => frameSettingsModal.signIn()
+  });
+  r({
+    id: 'cloud.signOut',
+    title: 'Frame Cloud: Sign out',
+    category: 'Help',
+    when: () => frameSettingsModal.accountState() === 'signedIn',
+    run: () => frameSettingsModal.signOut()
+  });
   r({
     id: 'settings.openProject',
     title: 'Project Settings',
