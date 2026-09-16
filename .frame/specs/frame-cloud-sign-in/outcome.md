@@ -6,3 +6,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T02 — Redact access_token and Bearer tokens
+
+Added `access[_-]?token` to `KEYED_PATTERN` in `scripts/redact.js` and let the separator group swallow the key's closing quote, so `"access_token":"…"` in a JSON body is scrubbed; `test/logger.test.js` got a JSON-body `access_token` case, a JSON-header `Bearer` case and a clean `"token_type":"Bearer"` case. Diverged from plan.md D6: the `Bearer <token>` value pattern already existed, so none was added — the actual gap was that no JSON-quoted secret key matched at all, which the quote fix closes for every key.
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
+

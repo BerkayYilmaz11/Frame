@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:19:22Z",
+  "lastUpdated": "2026-09-16T08:20:23Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7808,13 +7808,13 @@
       "title": "Add `access_token` key and `Bearer <token>` value patterns to `scripts/redact.js` with two cases in `test/logger.test.js`",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:20:23Z",
+      "completedAt": "2026-09-16T08:20:23Z"
     },
     {
       "id": "task-spec-frame-cloud-sign-in-T03",
