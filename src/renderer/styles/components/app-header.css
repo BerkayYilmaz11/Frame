@@ -1,7 +1,7 @@
 /* ==================== APP HEADER ==================== */
 /* One row across the whole window, above the sidebar and the center
-   (shell-chrome-app-header-collapsible-panels spec). The same 35px as the
-   center's strip (.terminal-tab-bar), so the sidebar's first row and the
+   (shell-chrome-app-header-collapsible-panels spec). 39px — 4px taller than the
+   center's 35px strip (.terminal-tab-bar); the sidebar's first row and the
    strip share a top edge; nothing taller than 32px belongs in it. Three
    slots: the mark on the left, the current-project switcher 18px after it,
    the window-level controls and the layout toggles on the right.
@@ -13,7 +13,7 @@
   position: relative;
   z-index: 60;
   flex-shrink: 0;
-  height: 35px;
+  height: 39px;
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -226,7 +226,7 @@
   background: transparent;
   border: none;
   /* Icon buttons (theme, bell, layout toggles): secondary at rest, primary
-     on hover (below). 32px squares in a 35px row. */
+     on hover (below). 32px squares in a 39px row. */
   color: var(--text-secondary);
   cursor: pointer;
   width: 32px;
