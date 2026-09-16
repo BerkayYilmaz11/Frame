@@ -16,6 +16,7 @@
  */
 
 const os = require('os');
+const { execFileSync } = require('child_process');
 const { app, net, shell } = require('electron');
 const { IPC } = require('../../shared/ipcChannels');
 const userSettings = require('../userSettings');
@@ -138,8 +139,36 @@ function openUrl(url) {
   });
 }
 
+// The name the user gave this machine. On macOS `os.hostname()` is often a
+// DHCP address, while ComputerName is what System Settings shows ("MacBook
+// Pro"); LocalHostName is the Bonjour fallback. Read once, then cached.
+let computerName = null;
+
+function readComputerName() {
+  if (computerName !== null) return computerName;
+  computerName = '';
+  if (process.platform !== 'darwin') return computerName;
+  for (const key of ['ComputerName', 'LocalHostName']) {
+    try {
+      const value = execFileSync('/usr/sbin/scutil', ['--get', key], {
+        encoding: 'utf8',
+        timeout: 1000,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (value) {
+        computerName = value;
+        break;
+      }
+    } catch {
+      /* not set — try the next one, then the hostname */
+    }
+  }
+  return computerName;
+}
+
 function deviceInfo() {
   return formatDeviceInfo({
+    computerName: readComputerName(),
     hostname: os.hostname(),
     platform: process.platform,
     release: os.release(),

@@ -484,6 +484,7 @@
       ],
       "depends": [
         "os",
+        "child_process",
         "electron",
         "../shared/ipcChannels",
         "userSettings",
@@ -493,10 +494,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 60
+          "line": 61
         },
         "fetchJson": {
-          "line": 72,
+          "line": 73,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -507,38 +508,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 113,
+          "line": 114,
           "params": [
             "ms",
             "signal"
           ]
         },
         "openUrl": {
-          "line": 133,
+          "line": 134,
           "params": [
             "url"
           ]
         },
+        "readComputerName": {
+          "line": 147
+        },
         "deviceInfo": {
-          "line": 141
+          "line": 169
         },
         "toPublicState": {
-          "line": 152
+          "line": 181
         },
         "getPublicState": {
-          "line": 160
+          "line": 189
         },
         "publish": {
-          "line": 164
+          "line": 193
         },
         "setState": {
-          "line": 169,
+          "line": 198,
           "params": [
             "next"
           ]
         },
         "signedInState": {
-          "line": 174,
+          "line": 203,
           "params": [
             "serverUrl",
             "session",
@@ -546,42 +550,42 @@
           ]
         },
         "abortAttempt": {
-          "line": 186
+          "line": 215
         },
         "signIn": {
-          "line": 195,
+          "line": 224,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 245
+          "line": 274
         },
         "refresh": {
-          "line": 253,
+          "line": 282,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
         "signOut": {
-          "line": 283,
+          "line": 312,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 308,
+          "line": 337,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 312
+          "line": 341
         },
         "getState": {
-          "line": 333,
+          "line": 362,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 340,
+          "line": 369,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 344,
+          "line": 373,
           "params": [
             "ipcMain"
           ]
@@ -670,17 +674,31 @@
           ],
           "purpose": "A failed tRPC answer → CloudError kind."
         },
+        "looksLikeAddress": {
+          "line": 130,
+          "params": [
+            "name"
+          ],
+          "purpose": "A hostname that is really a network address (macOS without a HostName"
+        },
+        "cleanName": {
+          "line": 134,
+          "params": [
+            "raw"
+          ]
+        },
         "deviceName": {
-          "line": 128,
+          "line": 144,
           "params": [
             "hostname"
           ],
-          "purpose": "`os.hostname()` → the name the server shows for this device."
+          "purpose": "A machine name → the name the server shows for this device."
         },
         "formatDeviceInfo": {
-          "line": 138,
+          "line": 153,
           "params": [
-            "{ hostname",
+            "{ computerName",
+            "hostname",
             "platform",
             "release",
             "appVersion } = {}"
@@ -688,7 +706,7 @@
           "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
         },
         "send": {
-          "line": 148,
+          "line": 163,
           "params": [
             "fetchJson",
             "url",
@@ -696,7 +714,7 @@
           ]
         },
         "requestDeviceCode": {
-          "line": 157,
+          "line": 172,
           "params": [
             "{ api",
             "fetchJson",
@@ -704,7 +722,7 @@
           ]
         },
         "callTrpc": {
-          "line": 170,
+          "line": 185,
           "params": [
             "{ api",
             "name",
@@ -716,7 +734,7 @@
           ]
         },
         "registerDevice": {
-          "line": 183,
+          "line": 198,
           "params": [
             "{ api",
             "token",
@@ -726,7 +744,7 @@
           ]
         },
         "fetchMe": {
-          "line": 192,
+          "line": 207,
           "params": [
             "{ api",
             "token",
@@ -735,7 +753,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 196,
+          "line": 211,
           "params": [
             "{ api",
             "token",
@@ -744,7 +762,7 @@
           ]
         },
         "pollForToken": {
-          "line": 206,
+          "line": 221,
           "params": [
             "{ api",
             "code",
@@ -756,13 +774,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 259,
+          "line": 274,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 275,
+          "line": 290,
           "params": [
             "{ api",
             "fetchJson",
@@ -776,19 +794,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 334,
+          "line": 349,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 346,
+          "line": 361,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 360,
+          "line": 375,
           "params": [
             "{ api",
             "token",

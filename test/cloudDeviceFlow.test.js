@@ -120,6 +120,20 @@ test('deviceName strips a trailing .local, cuts to 100 characters and never retu
   assert.equal(flow.deviceName(undefined), 'Unknown device');
 });
 
+test('deviceName never uses a network address as a name', () => {
+  assert.equal(flow.deviceName('192.168.1.104'), 'Unknown device');
+  assert.equal(flow.deviceName('fe80::1c2b:3aff:fe4d:5e6f'), 'Unknown device');
+  assert.equal(flow.deviceName('build-01'), 'build-01');
+  assert.equal(flow.deviceName('Studio 2024'), 'Studio 2024');
+});
+
+test('formatDeviceInfo prefers the computer name and falls back to the hostname', () => {
+  assert.equal(flow.formatDeviceInfo({ computerName: 'MacBook Pro (2)', hostname: '192.168.1.104' }).name, 'MacBook Pro (2)');
+  assert.equal(flow.formatDeviceInfo({ computerName: '  ', hostname: 'MacBook-Pro-2.local' }).name, 'MacBook-Pro-2');
+  assert.equal(flow.formatDeviceInfo({ computerName: '', hostname: '192.168.1.104' }).name, 'Unknown device');
+  assert.equal(flow.formatDeviceInfo({ computerName: 'x'.repeat(150) }).name.length, 100);
+});
+
 test('formatDeviceInfo builds the register input within the server limits', () => {
   const info = flow.formatDeviceInfo({
     hostname: 'studio.local',

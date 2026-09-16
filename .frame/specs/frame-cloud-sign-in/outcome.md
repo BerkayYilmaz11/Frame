@@ -62,3 +62,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
 
+## Fix — Device name from ComputerName
+
+Manual testing against the local FrameCloud showed "This device" as `192.168.1.104`: on this Mac `HostName` is unset, so `os.hostname()` returns the DHCP address. Diverged from plan.md D13: on macOS `cloudSession.js` now reads `scutil --get ComputerName` (then `LocalHostName`, then `os.hostname()`, cached, 1 s timeout), `formatDeviceInfo()` takes a `computerName` that wins over `hostname`, and `deviceName()` rejects IPv4/IPv6-shaped names as `Unknown device`; two cases added to `test/cloudDeviceFlow.test.js`. A device registered before the fix keeps its old name until the next sign-in.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---
+

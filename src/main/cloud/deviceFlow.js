@@ -124,20 +124,35 @@ function classifyTrpcError(res) {
   return 'other';
 }
 
-/** `os.hostname()` → the name the server shows for this device. */
-function deviceName(hostname) {
-  const name = String(hostname == null ? '' : hostname)
+// A hostname that is really a network address (macOS without a HostName
+// takes one from DHCP) says nothing about the machine and changes with the
+// network, so it is never used as a name.
+function looksLikeAddress(name) {
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(name) || (name.includes(':') && /^[0-9a-f:.]+$/i.test(name));
+}
+
+function cleanName(raw) {
+  const name = String(raw == null ? '' : raw)
     .trim()
     .replace(/\.local$/i, '')
     .trim()
     .slice(0, 100);
-  return name || 'Unknown device';
+  return looksLikeAddress(name) ? '' : name;
 }
 
-/** Raw machine facts → the `device.register` input, cut to the server's limits. */
-function formatDeviceInfo({ hostname, platform, release, appVersion } = {}) {
+/** A machine name → the name the server shows for this device. */
+function deviceName(hostname) {
+  return cleanName(hostname) || 'Unknown device';
+}
+
+/**
+ * Raw machine facts → the `device.register` input, cut to the server's limits.
+ * `computerName` (the name the user gave the machine, e.g. macOS's
+ * ComputerName) wins over `hostname` when the shell can supply it.
+ */
+function formatDeviceInfo({ computerName, hostname, platform, release, appVersion } = {}) {
   return {
-    name: deviceName(hostname),
+    name: cleanName(computerName) || deviceName(hostname),
     os: [platform, release].filter(Boolean).join(' ').slice(0, 100),
     appVersion: String(appVersion || '').slice(0, 40),
   };

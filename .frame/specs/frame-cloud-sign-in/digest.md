@@ -6,7 +6,7 @@ Desktop half of FrameCloud's device flow. Frame signs in from Settings → Accou
 Layout (D4/D15): `src/main/cloud/` is the connection module's home. `deviceFlow.js` is the pure core: the five endpoint calls, the poll loop, and `runSignIn`/`refreshSession`, with every side effect injected. `cloudSession.js` is the thin Electron shell (net.fetch, shell, IPC, allowlisted state push). `sessionStore.js` holds the token in `userData/cloud-session.json`, safeStorage-encrypted. A future CLI is a second shell over the same core. Rejected: flow logic inside the Electron service, which a CLI would have had to rewrite.
 Decisions: no safeStorage → memory-only session (`ephemeral: true`), not plaintext; empty packaged default URL → Account hidden, and `FRAME_CLOUD_URL` / `cloudServerUrl` turn it on; tests cover only the pure core (38 cases), while the shell was checked against a fake FrameCloud in the dev app.
 Diverged from the plan:
-- `formatDeviceInfo()` lives in the core.
+- `formatDeviceInfo()` lives in the core; the device name is macOS `ComputerName` first (D13's `os.hostname()` returned a DHCP IP in manual testing), and IP-shaped names are never used.
 - redact.js already had the Bearer pattern; the real gap was JSON-quoted keys, now fixed for every secret key.
 - `startup()` runs once, because the renderer's first CLOUD_GET_STATE arrives before did-finish-load.
 - Palette commands carry `when` predicates, so packaged builds list neither.
