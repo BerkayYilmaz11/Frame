@@ -99,7 +99,7 @@ const KINDS = {
       </div>`;
     return frame('agents', focused, `
       <div class="gs-agents-col">
-        ${region('clis', focused, 'gs-agents-clis', cli('Claude Code', 'claude') + cli('Codex CLI', 'codex') + cli('Gemini CLI', 'gemini'))}
+        ${region('clis', focused, 'gs-agents-clis', cli('Claude Code', 'claude') + cli('Codex CLI', 'codex'))}
         ${region('key', focused, 'gs-agents-key', `${icon(KeyRound, 12)}${label('your own sign-in')}`)}
       </div>
       <div class="gs-agents-arrow" aria-hidden="true"><span></span></div>

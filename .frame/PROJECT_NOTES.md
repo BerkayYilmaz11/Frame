@@ -3417,3 +3417,29 @@ bottom-left of the rail, do not open it first thing, and drop the "Don't show th
 the launch open. Welcome is back to owning the launch on its own (its code is exactly what it was before the guide), and the
 guide is on-demand only — rail button, Help › How to Use Frame, palette. The same pass fixed index titles that ended in "…":
 twelve were shortened (e.g. "Know which agent needs you" → "Agent states") and tree rows now wrap instead of truncating.
+
+### [2026-09-16] Welcome slimmed down, sample project and Gemini CLI dropped
+
+The user asked for three things after living with the launch greeting: take
+the sample project out of the Welcome modal, remove Gemini CLI from the agent
+choices everywhere (Welcome, the header picker, Home's launcher), and make
+the modal "daha simple, göz yormayan".
+
+**Agents.** `gemini` left `AI_TOOLS` in `aiToolManager.js`, which is the one
+list every surface reads, so the header select, Home's launcher, the Welcome
+chips and the menu's Switch AI Tool all lost it at once; `detectDefaultTool`
+now probes claude → codex. `loadConfig` gained a fallback: a saved
+`activeTool` that no longer exists (an old `gemini` choice, a deleted custom
+tool) is rewritten to `claude` instead of leaving the file naming a tool
+nothing can select. Left alone on purpose: `laneStatus.KNOWN_AGENTS` still
+recognises a `gemini` process someone starts by hand, telemetry still accepts
+the old value from stored configs, and `specManager` still stages the (empty)
+`gemini` template directory.
+
+**Welcome.** Now one column: mark, title, one line, three single-line actions
+(Open a folder / Create a new project / Clone from GitHub), the agent chips,
+and a footer with "Don't show this again" and a link to How to Use Frame. The
+sample project and the "Start →" CTA that opened it are gone, as are the
+four-line feature cards and the shortcut tip — explanation lives in the guide
+now. `state.openSampleProject` and the sample IPC path stay; nothing in the
+UI calls them any more.

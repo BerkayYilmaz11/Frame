@@ -2,9 +2,13 @@
  * Welcome Overlay (Launch Greeting)
  *
  * Single-screen welcome shown on every launch unless the user explicitly
- * opts out via the "Don't show this again" checkbox. Pitches the value
- * prop, lets them pick a default AI tool, and routes to the existing
- * project-creation actions.
+ * opts out via the "Don't show this again" checkbox. One line about what
+ * Frame is, the three ways into a project, the default agent, and a way out.
+ *
+ * It stopped pitching on 2026-09-16: the sample project and the "Start" CTA
+ * that opened it are gone, and explanation moved to How to Use Frame, which
+ * the footer links to. What is left is the one thing a launch greeting is
+ * for — getting a project open.
  */
 
 const { ipcRenderer } = require('electron');
@@ -72,13 +76,6 @@ async function maybeShowOnLaunch() {
 
 function setupListeners() {
   document
-    .getElementById('welcome-try-sample')
-    .addEventListener('click', () => {
-      close();
-      state.openSampleProject();
-    });
-
-  document
     .getElementById('welcome-open-folder')
     .addEventListener('click', () => {
       close();
@@ -104,13 +101,11 @@ function setupListeners() {
     close();
   });
 
-  // "Start" is the primary CTA — it commits the user into the sample
-  // project so they don't get dropped onto a blank screen. The dedicated
-  // featured action above still exists for users who want to be explicit;
-  // this footer button is the obvious "just proceed" path.
-  document.getElementById('welcome-start').addEventListener('click', () => {
+  // The one pointer out of here: the guide, by its registered command, like
+  // every other way of opening it.
+  document.getElementById('welcome-guide').addEventListener('click', () => {
     close();
-    state.openSampleProject();
+    require('./commandRegistry').runById('help.guide');
   });
 
   // Persist checkbox state immediately on change so Cmd+Q while the modal
@@ -157,8 +152,7 @@ function renderToolOptions() {
       <label class="welcome-tool-option ${checked ? 'selected' : ''}" data-tool-id="${escapeAttr(tool.id)}">
         <input type="radio" name="welcome-tool" value="${escapeAttr(tool.id)}" ${checked ? 'checked' : ''}>
         <span class="welcome-tool-name">${escapeHtml(tool.name)}</span>
-      </label>
-    `;
+      </label>`;
     })
     .join('');
 

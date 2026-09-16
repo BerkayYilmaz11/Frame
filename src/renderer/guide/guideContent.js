@@ -74,7 +74,7 @@ const CHAPTERS = [
         title: 'What Frame is',
         sketch: { kind: 'agents' },
         blocks: [
-          { p: 'Frame is a terminal-first IDE for working with AI coding agents. The agent is a command-line tool you already use — Claude Code, Codex CLI or Gemini CLI — and Frame runs it in real terminals, next to your project.' },
+          { p: 'Frame is a terminal-first IDE for working with AI coding agents. The agent is a command-line tool you already use — Claude Code or Codex CLI — and Frame runs it in real terminals, next to your project.' },
           { p: 'You bring your own agent. Sign in to the CLI with your own subscription or API key, the way you would in any terminal. Frame never calls a model itself and never sees your credentials.' },
           { p: 'What Frame adds around the agent:' },
           { list: [
@@ -90,7 +90,7 @@ const CHAPTERS = [
         title: 'Pick your agent',
         sketch: { kind: 'shell', focus: 'header-agent' },
         blocks: [
-          { p: 'Frame works with three agent CLIs: Claude Code, Codex CLI and Gemini CLI. Install the one you use and sign in to it once in a terminal before starting it from Frame.' },
+          { p: 'Frame works with two agent CLIs: Claude Code and Codex CLI. Install the one you use and sign in to it once in a terminal before starting it from Frame.' },
           { p: 'On first run Frame picks the first of them it finds installed. Change it any time with the Agent picker in the header — Start launches whichever agent is selected there. The agent\'s own menu in the menu bar has the same switch under Switch AI Tool.' },
           { note: 'A few features are built on Claude Code\'s own data and work only with it: Sessions, Plugins and the usage meters in the status bar.' }
         ]
@@ -230,7 +230,7 @@ const CHAPTERS = [
         sketch: { kind: 'terminalGrid', focus: 'prompt' },
         blocks: [
           { p: 'Click into the terminal and type — prompts, answers, approvals — as you would anywhere else. Frame does not sit between you and the agent.' },
-          { p: 'The menu named after your agent (Claude Code, Codex CLI or Gemini CLI) lists its common slash commands and types them into the active terminal.' },
+          { p: 'The menu named after your agent (Claude Code or Codex CLI) lists its common slash commands and types them into the active terminal.' },
           { p: 'Some of Frame\'s own buttons talk to the agent for you. Write the Spec, Generate Plan and the other spec actions open or reuse a terminal, start the agent if needed, and type the prompt — you watch it work and answer its questions there.' }
         ],
         actions: [

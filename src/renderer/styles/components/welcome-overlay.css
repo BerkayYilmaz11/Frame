@@ -1,9 +1,16 @@
-/* Welcome Overlay (First-run Onboarding) */
+/* Welcome (launch greeting)
+ *
+ * Rewritten 2026-09-16 to be quiet: one column, three single-line actions,
+ * two agent chips, and a footer. No feature cards, no descriptions under
+ * every button, one accent in the whole card (the selected agent) — the
+ * greeting is a door, not a pitch, and How to Use Frame carries what this
+ * used to try to say.
+ */
 
 .welcome-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 10001;
@@ -15,7 +22,7 @@
 
 .welcome-overlay.visible {
   display: flex;
-  animation: welcome-fade 0.2s ease-out;
+  animation: welcome-fade 0.18s ease-out;
 }
 
 @keyframes welcome-fade {
@@ -24,276 +31,210 @@
 }
 
 .welcome-card {
-  width: min(560px, 100%);
+  position: relative;
+  width: min(400px, 100%);
   max-height: 90vh;
   overflow-y: auto;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-strong);
-  border-radius: 14px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-  padding: 36px 36px 28px;
-  animation: welcome-rise 0.22s ease-out;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  padding: 28px 26px 18px;
+  animation: welcome-rise 0.2s ease-out;
 }
 
 @keyframes welcome-rise {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-overlay.visible,
+  .welcome-card { animation: none; }
+}
+
+/* ── Header ───────────────────────────────────────────── */
+
+.welcome-dismiss {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.welcome-dismiss:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
 .welcome-header {
-  text-align: center;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .welcome-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  font-size: 18px;
+  display: block;
+  width: 18px;
+  height: 18px;
   margin-bottom: 14px;
+  color: var(--text-tertiary);
+}
+
+.welcome-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .welcome-title {
-  font-size: 18px;
+  margin: 0 0 6px;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px;
   letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .welcome-subtitle {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-secondary);
   margin: 0;
-  max-width: 420px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.welcome-section {
-  margin-top: 22px;
-}
-
-.welcome-section-title {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  line-height: 1.5;
   color: var(--text-tertiary);
-  margin: 0 0 10px;
 }
+
+/* ── Actions ──────────────────────────────────────────── */
 
 .welcome-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .welcome-action {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 14px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 12px;
+  padding: 10px 10px;
+  background: none;
+  border: none;
+  border-radius: 7px;
   font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+  transition: background 0.12s;
 }
 
 .welcome-action:hover {
   background: var(--bg-hover);
-  border-color: var(--border-strong);
-}
-
-.welcome-action:active {
-  transform: scale(0.99);
-}
-
-/* Featured action — the sample-project entry. Marked visually so first-
-   time users have a low-friction option that doesn't require picking a
-   folder. */
-.welcome-action-featured {
-  background: var(--accent-subtle);
-  border-color: var(--accent-primary);
-}
-
-.welcome-action-featured:hover {
-  background: var(--accent-subtle);
-  border-color: var(--accent-secondary);
-}
-
-.welcome-action-featured .welcome-action-icon {
-  color: var(--accent-primary);
 }
 
 .welcome-action-icon {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: var(--accent-primary);
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
+  color: var(--text-tertiary);
 }
 
-.welcome-action-text {
+.welcome-action:hover .welcome-action-icon {
+  color: var(--text-secondary);
+}
+
+.welcome-action-label {
   flex: 1;
   min-width: 0;
 }
 
-.welcome-action-title {
-  display: block;
-  color: var(--text-primary);
-  font-weight: 500;
+.welcome-action-go {
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity 0.12s, transform 0.12s;
 }
 
-.welcome-action-desc {
-  display: block;
-  font-size: 11px;
+.welcome-action:hover .welcome-action-go {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Default agent ────────────────────────────────────── */
+
+.welcome-agent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.welcome-agent-label {
+  font-size: 12px;
   color: var(--text-tertiary);
-  margin-top: 2px;
 }
 
 .welcome-tool-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .welcome-tool-option {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
+  padding: 4px 10px;
   border: 1px solid var(--border-default);
-  border-radius: 7px;
-  cursor: pointer;
+  border-radius: 999px;
   font-size: 12px;
-  color: var(--text-primary);
-  transition: background 0.12s, border-color 0.12s;
-  user-select: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
 .welcome-tool-option:hover {
   background: var(--bg-hover);
-}
-
-.welcome-tool-option.selected {
-  border-color: var(--accent-primary);
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .welcome-tool-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.welcome-tool-name {
-  font-weight: 500;
+.welcome-tool-option.selected {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+  color: var(--text-primary);
 }
 
 .welcome-tool-empty {
   font-size: 12px;
-  color: var(--text-tertiary);
-  padding: 10px 12px;
+  color: var(--text-muted);
 }
 
-.welcome-tip {
-  margin-top: 22px;
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 7px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.welcome-tip kbd {
-  font-family: 'JetBrains Mono', monospace;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 10px;
-  color: var(--text-primary);
-}
+/* ── Footer ───────────────────────────────────────────── */
 
 .welcome-footer {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.welcome-footer .welcome-dont-show-label {
-  justify-self: start;
-}
-
-.welcome-footer-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  justify-self: end;
-}
-
-/* Primary CTA — proceed into the sample */
-.welcome-start-btn {
-  background: var(--accent-primary);
-  color: var(--bg-secondary);
-  border: 1px solid var(--accent-primary);
-  border-radius: 7px;
-  padding: 8px 24px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.12s, transform 0.08s;
-}
-
-.welcome-start-btn:hover {
-  background: var(--accent-secondary);
-  border-color: var(--accent-secondary);
-}
-
-.welcome-start-btn:active {
-  transform: scale(0.98);
-}
-
-/* Secondary — dismiss without opening anything */
-.welcome-close-btn {
-  background: none;
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  border-radius: 7px;
-  padding: 8px 18px;
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.welcome-close-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-strong);
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .welcome-dont-show-label {
@@ -301,7 +242,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   cursor: pointer;
   user-select: none;
   transition: color 0.12s;
@@ -314,17 +255,17 @@
 .welcome-dont-show-label input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
+  margin: 0;
   border: 1px solid var(--border-strong);
   border-radius: 3px;
   background: var(--bg-tertiary);
-  cursor: pointer;
-  margin: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
 
@@ -335,24 +276,24 @@
 
 .welcome-dont-show-label input[type="checkbox"]:checked::after {
   content: '';
-  width: 4px;
-  height: 8px;
+  width: 3px;
+  height: 7px;
   border: solid var(--bg-secondary);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) translate(-1px, -1px);
 }
 
-.welcome-skip {
+.welcome-link {
   background: none;
   border: none;
-  color: var(--text-tertiary);
-  font-size: 12px;
+  padding: 4px 2px;
   font-family: inherit;
+  font-size: 12px;
+  color: var(--text-tertiary);
   cursor: pointer;
-  padding: 6px 10px;
   transition: color 0.12s;
 }
 
-.welcome-skip:hover {
-  color: var(--text-secondary);
+.welcome-link:hover {
+  color: var(--accent-primary);
 }

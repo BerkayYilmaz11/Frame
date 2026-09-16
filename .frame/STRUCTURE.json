@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-15",
+  "lastUpdated": "2026-09-16",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -171,7 +171,7 @@
       ],
       "functions": {
         "init": {
-          "line": 83,
+          "line": 67,
           "params": [
             "window",
             "app"
@@ -179,72 +179,72 @@
           "purpose": "Initialize the AI Tool Manager"
         },
         "detectDefaultTool": {
-          "line": 97,
+          "line": 81,
           "purpose": "First run only: default the active tool to a CLI that is actually"
         },
         "loadConfig": {
-          "line": 113,
+          "line": 97,
           "purpose": "Load configuration from file"
         },
         "saveConfig": {
-          "line": 140,
+          "line": 133,
           "purpose": "Save configuration to file"
         },
         "getAvailableTools": {
-          "line": 151,
+          "line": 144,
           "purpose": "Get all available AI tools"
         },
         "getActiveTool": {
-          "line": 158,
+          "line": 151,
           "purpose": "Get the currently active tool"
         },
         "setActiveTool": {
-          "line": 166,
+          "line": 159,
           "params": [
             "toolId"
           ],
           "purpose": "Set the active AI tool"
         },
         "getConfig": {
-          "line": 186,
+          "line": 179,
           "purpose": "Get full configuration for renderer"
         },
         "addCustomTool": {
-          "line": 196,
+          "line": 189,
           "params": [
             "tool"
           ],
           "purpose": "Add a custom AI tool"
         },
         "removeCustomTool": {
-          "line": 213,
+          "line": 206,
           "params": [
             "toolId"
           ],
           "purpose": "Remove a custom AI tool"
         },
         "quoteArg": {
-          "line": 233,
+          "line": 226,
           "params": [
             "arg"
           ],
           "purpose": "Compose the command line a lane actually types: the resolved CLI plus any"
         },
         "composeLaunchCommand": {
-          "line": 241,
+          "line": 234,
           "params": [
             "command",
             "launchFlags"
           ]
         },
         "isPathLike": {
-          "line": 246,
+          "line": 239,
           "params": [
             "command"
           ]
         },
         "isCommandAvailable": {
-          "line": 264,
+          "line": 257,
           "params": [
             "command",
             "projectPath"
@@ -252,24 +252,24 @@
           "purpose": "Check whether a CLI command can actually be launched on this system."
         },
         "trackProbeFailure": {
-          "line": 331,
+          "line": 324,
           "params": [
             "reason"
           ]
         },
         "setupIPC": {
-          "line": 339,
+          "line": 332,
           "purpose": "Setup IPC handlers"
         },
         "getCommand": {
-          "line": 407,
+          "line": 400,
           "params": [
             "action"
           ],
           "purpose": "Get command for specific action"
         },
         "getStartCommand": {
-          "line": 415,
+          "line": 408,
           "purpose": "Get the start command for active tool"
         }
       },
@@ -11820,42 +11820,43 @@
         "shared/ipcChannels",
         "state",
         "openProjectModal",
-        "htmlUtils"
+        "htmlUtils",
+        "commandRegistry"
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 29
         },
         "loadAITools": {
-          "line": 55
+          "line": 59
         },
         "maybeShowOnLaunch": {
-          "line": 66
+          "line": 70
         },
         "setupListeners": {
-          "line": 73
+          "line": 77
         },
         "persistDismissPreference": {
-          "line": 134
+          "line": 129
         },
         "renderToolOptions": {
-          "line": 142
+          "line": 137
         },
         "updateToolSelection": {
-          "line": 177
+          "line": 171
         },
         "open": {
-          "line": 188
+          "line": 182
         },
         "close": {
-          "line": 194
+          "line": 188
         },
         "reopen": {
-          "line": 208,
+          "line": 202,
           "purpose": "Reopen welcome from Command Palette. Resets the dismissed flag so the"
         },
         "escapeAttr": {
-          "line": 216,
+          "line": 210,
           "params": [
             "s"
           ]
