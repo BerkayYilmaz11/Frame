@@ -20,8 +20,9 @@
 
 /* ==================== SIDEBAR ==================== */
 #sidebar {
-  width: 280px;
-  min-width: 180px;
+  width: 300px;
+  /* The module's drag detent (sidebarResize.js MIN_WIDTH). */
+  min-width: 231px;
   max-width: 500px;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   /* A card: border all round, rounded (see #shell). Not overflow: hidden —
@@ -39,16 +40,20 @@
 
 /* Collapsed to the rail (sidebarResize.hide): the panel goes, the icon rail
    stays, VS Code activity-bar style. The inline width is cleared by the
-   module, so the card shrinks to the rail plus symmetric 6px insets; the
-   resize handle has nothing to resize. */
+   module, so the card shrinks to the rail plus symmetric 6px insets. The
+   resize handle stays (without its grip dots) so dragging it out reopens
+   the panel. */
 #sidebar.collapsed {
   width: auto;
   min-width: 0;
   padding: var(--space-sm);
 }
 
-#sidebar.collapsed .sidebar-panel,
-#sidebar.collapsed #sidebar-resize-handle {
+#sidebar.collapsed .sidebar-panel {
+  display: none;
+}
+
+#sidebar.collapsed #sidebar-resize-handle::before {
   display: none;
 }
 
