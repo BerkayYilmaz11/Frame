@@ -40,3 +40,11 @@ _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
 
+## T06 — Step 1 waits for a project
+
+Wired step 1 in `src/renderer/guidedTour.js`: a `state.onProjectChange` handler advances from the project step two frames after a project arrives, and the card shows an 'Add a project to continue' hint instead of Next. Beyond plan.md: a reposition that finds the empty Home block gone also reaches step 2, so the handler re-checks the step inside its frame callback to avoid a double advance, and that expected disappearance is not logged as a missing target.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+

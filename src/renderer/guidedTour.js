@@ -65,6 +65,18 @@ function init(opts = {}) {
   if (initialized) return;
   initialized = true;
   hooks = opts;
+
+  // Step 1 has no Next: it waits for a project, by whichever route arrives —
+  // the highlighted boxes, the header switcher, the palette. Two frames later
+  // the header and the sidebar nav have rendered the project, so step 2's
+  // target is there to measure.
+  state.onProjectChange((path) => {
+    if (!isOpen || !path || index === -1) return;
+    if (STEPS[index].advance !== 'project') return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (isOpen && index !== -1 && STEPS[index].advance === 'project') next();
+    }));
+  });
 }
 
 /**
@@ -229,7 +241,11 @@ function show(i) {
 /** A step whose target is gone: log it once, move on, never end the tour on it. */
 function skipMissing(i) {
   const step = STEPS[i];
-  if (step && !loggedMissing.has(step.id)) {
+  // Step 1's target leaving because a project arrived is its success, not a
+  // missing target — the project-change handler and this path both land on
+  // step 2.
+  const done = step && step.advance === 'project' && hasProject();
+  if (step && !done && !loggedMissing.has(step.id)) {
     loggedMissing.add(step.id);
     console.error(`guidedTour: step "${step.id}" has no target on screen — skipped`);
   }
@@ -277,10 +293,15 @@ function renderCard(step, i) {
   }
   foot.append(el('span', 'tour-card-spacer'));
 
-  const primary = el('button', 'primary-btn tour-card-next', last ? 'Done' : 'Next');
-  primary.type = 'button';
-  primary.dataset.tourAction = last ? 'done' : 'next';
-  foot.append(primary);
+  if (step.advance === 'project') {
+    // The boxes in the cutout are the way forward, not a button here.
+    foot.append(el('span', 'tour-card-hint', 'Add a project to continue'));
+  } else {
+    const primary = el('button', 'primary-btn tour-card-next', last ? 'Done' : 'Next');
+    primary.type = 'button';
+    primary.dataset.tourAction = last ? 'done' : 'next';
+    foot.append(primary);
+  }
 
   cardEl.append(foot);
 }

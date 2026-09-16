@@ -7540,37 +7540,37 @@
           "purpose": "tab (index.js's revealSidebarTab), so a nav row can be measured"
         },
         "finish": {
-          "line": 74,
+          "line": 86,
           "params": [
             "outcome"
           ],
           "purpose": "End the tour and remember it. `outcome` is 'finished' or 'skipped'. A write"
         },
         "hasProject": {
-          "line": 89
+          "line": 101
         },
         "start": {
-          "line": 97,
+          "line": 109,
           "purpose": "Start (or restart) the tour from the first step that applies: step 1 with"
         },
         "close": {
-          "line": 116,
+          "line": 128,
           "purpose": "Leave the tour: remove the layer and every listener it bound."
         },
         "next": {
-          "line": 126
+          "line": 138
         },
         "ensureNodes": {
-          "line": 137
+          "line": 149
         },
         "isVisible": {
-          "line": 165,
+          "line": 177,
           "params": [
             "el"
           ]
         },
         "resolveTarget": {
-          "line": 179,
+          "line": 191,
           "params": [
             "step",
             "{ reveal = false } = {}"
@@ -7578,47 +7578,47 @@
           "purpose": "The step's first usable target, with its entry."
         },
         "isAvailable": {
-          "line": 192,
+          "line": 204,
           "params": [
             "step"
           ]
         },
         "revealNav": {
-          "line": 196,
+          "line": 208,
           "params": [
             "view"
           ]
         },
         "show": {
-          "line": 209,
+          "line": 221,
           "params": [
             "i"
           ]
         },
         "skipMissing": {
-          "line": 230,
+          "line": 242,
           "params": [
             "i"
           ],
           "purpose": "A step whose target is gone: log it once, move on, never end the tour on it."
         },
         "countedSteps": {
-          "line": 245,
+          "line": 261,
           "purpose": "The steps this run of the tour counts: step 1 only if it began without a project."
         },
         "renderCard": {
-          "line": 249,
+          "line": 265,
           "params": [
             "step",
             "i"
           ]
         },
         "focusCard": {
-          "line": 289,
+          "line": 310,
           "purpose": "Put focus on the card's primary control so Enter, → and Escape reach it."
         },
         "el": {
-          "line": 295,
+          "line": 316,
           "params": [
             "tag",
             "className",
@@ -7626,34 +7626,34 @@
           ]
         },
         "onCardClick": {
-          "line": 302,
+          "line": 323,
           "params": [
             "e"
           ]
         },
         "onCardKeydown": {
-          "line": 321,
+          "line": 342,
           "params": [
             "e"
           ],
           "purpose": "Bound on the card, not the document: the keys answer only while focus is in"
         },
         "position": {
-          "line": 338,
+          "line": 359,
           "purpose": "Measure the current target and move the cutout and the card to it."
         },
         "queueReposition": {
-          "line": 375,
+          "line": 396,
           "purpose": "Coalesce bursts (a sidebar drag, a scroll) into one measurement per frame."
         },
         "observeTarget": {
-          "line": 384,
+          "line": 405,
           "params": [
             "target"
           ]
         },
         "bindWhileOpen": {
-          "line": 391
+          "line": 412
         }
       }
     },
