@@ -8276,13 +8276,13 @@
       "title": "Add `src/renderer/statusBar/noticeTray.js` with the `!` indicator button (lucide `CircleAlert`, count, blue info dot) painted from `indicator()`, a tooltip describing the state, and `push()` that accumulates notices before `init()`",
       "description": "",
       "source": "spec:status-bar-notice-tray:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:51:55.867Z",
+      "completedAt": "2026-09-16T13:51:55.867Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T03",

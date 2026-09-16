@@ -5,3 +5,10 @@ Added `src/renderer/statusBar/noticeTrayModel.js` (`add`, `dismiss`, `clear`, `m
 _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
+## T02 — Add the notice tray host with the indicator button
+
+Added `src/renderer/statusBar/noticeTray.js` with `init({ slotEl })` building the `.sb-notices` button (CircleAlert, count, info dot) and `push()` recording notices through `noticeTrayModel.add`, usable before `init()`. The button's tone classes and count come from `indicator()`. Divergence: plan.md had the tooltip describe the state, but `tooltip.attach` only takes fixed text, so the tooltip says "Notices" and the state goes in the aria-label and the count. Not mounted yet (T06).
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---

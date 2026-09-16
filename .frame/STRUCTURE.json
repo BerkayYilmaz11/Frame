@@ -11160,6 +11160,45 @@
         }
       }
     },
+    "renderer/statusBar/noticeTray": {
+      "file": "src/renderer/statusBar/noticeTray.js",
+      "description": "Notice tray — the `!` indicator at the right end of the status bar and",
+      "exports": [
+        "init",
+        "push"
+      ],
+      "depends": [
+        "lucide",
+        "dock",
+        "tooltip",
+        "noticeTrayModel"
+      ],
+      "functions": {
+        "init": {
+          "line": 35,
+          "params": [
+            "opts"
+          ]
+        },
+        "push": {
+          "line": 59,
+          "params": [
+            "notice"
+          ],
+          "purpose": "Record a notice. Safe before init()."
+        },
+        "_paintIndicator": {
+          "line": 65
+        },
+        "_describe": {
+          "line": 76,
+          "params": [
+            "tone",
+            "unread"
+          ]
+        }
+      }
+    },
     "renderer/statusBar/noticeTrayModel": {
       "file": "src/renderer/statusBar/noticeTrayModel.js",
       "description": "Notice tray model — pure (status-bar-notice-tray spec, D6).",
@@ -14893,6 +14932,11 @@
     ],
     "notice": [
       {
+        "module": "renderer/statusBar/noticeTray",
+        "file": "src/renderer/statusBar/noticeTray.js",
+        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
+      },
+      {
         "module": "renderer/statusBar/noticeTrayModel",
         "file": "src/renderer/statusBar/noticeTrayModel.js",
         "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
@@ -15302,6 +15346,18 @@
         "module": "renderer/tour/tourSteps",
         "file": "src/renderer/tour/tourSteps.js",
         "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
+      }
+    ],
+    "tray": [
+      {
+        "module": "renderer/statusBar/noticeTray",
+        "file": "src/renderer/statusBar/noticeTray.js",
+        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
+      },
+      {
+        "module": "renderer/statusBar/noticeTrayModel",
+        "file": "src/renderer/statusBar/noticeTrayModel.js",
+        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
       }
     ],
     "view": [
