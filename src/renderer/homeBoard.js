@@ -57,7 +57,6 @@ class HomeBoard {
     this.shellMenu = null;
     this.availableShells = [];
     this._lastState = null;
-    this.headerEl = null;
     // Resolved at mount: [{ widget, span }] plus the unsubscribes that feed them.
     this._layout = null;
     this._widgetUnsubs = [];
@@ -97,12 +96,9 @@ class HomeBoard {
       return;
     }
 
-    this.headerEl = this._buildHeader();
-    this.boardEl.appendChild(this.headerEl);
-
     // One grid of independent widgets, split in two halves: the first widget
-    // (Agents) takes the whole top half, the rest share the bottom half in
-    // equal columns. The registry decides what is shown and in what order;
+    // (the prompt composer) takes the whole top half, the rest share the
+    // bottom half in equal columns. The registry decides what is shown and in what order;
     // the grid's stylesheet decides where each order slot lands.
     this.gridEl = document.createElement('div');
     this.gridEl.className = 'home-grid';
@@ -134,20 +130,6 @@ class HomeBoard {
       && !!this.gridEl === !!state.currentProjectPath;
   }
 
-  // ─── Header ─────────────────────────────────────────────
-
-  /** Home greets — the project and its branch already live in the sidebar. */
-  _buildHeader() {
-    const el = document.createElement('div');
-    el.className = 'home-header';
-    el.innerHTML = `
-      <div class="home-header-top">
-        <h1 class="home-header-title">Welcome to Frame!</h1>
-      </div>
-    `;
-    return el;
-  }
-
   // ─── Widgets ────────────────────────────────────────────
 
   /**
@@ -157,9 +139,6 @@ class HomeBoard {
   _widgetCtx() {
     return {
       state: this._lastState,
-      // The per-project lane cap the Agents widget draws its slots from — the
-      // same number every "maximum reached" error quotes.
-      maxAgents: this.manager.maxTerminals,
       enterLane: (id) => this.onEnterLane(id),
       openTerminals: () => this.onOpenTerminals && this.onOpenTerminals(),
       createLane: (shellPath) => this._createLane(shellPath),
@@ -276,7 +255,7 @@ class HomeBoard {
     document.body.appendChild(this.shellMenu);
 
     document.addEventListener('click', (e) => {
-      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action, .home-agent-launcher')) {
+      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action, .home-composer')) {
         this._hideShellMenu();
       }
     });
