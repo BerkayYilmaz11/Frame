@@ -24,7 +24,7 @@ let cloneError = null;
 
 /**
  * Show the modal. Pass `{ clone: true }` to open straight into the clone form
- * (used by the welcome overlay's "Clone GitHub" entry point).
+ * (used by the onboarding screen's "Clone from GitHub" box).
  */
 function open(opts = {}) {
   if (!modal) return;

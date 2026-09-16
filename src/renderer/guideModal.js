@@ -23,7 +23,7 @@
  *
  * It never opens by itself: it is reference, reached from the rail's help
  * button, Help › How to Use Frame and the palette. (It used to own the launch
- * and open before Welcome; the user found it is not onboarding and moved it
+ * and open before the greeting; the user found it is not onboarding, moved it
  * back to on-demand only.)
  */
 

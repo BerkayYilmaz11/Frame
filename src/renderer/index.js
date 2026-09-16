@@ -617,7 +617,7 @@ function registerCommands() {
   });
   r({
     id: 'help.welcome',
-    title: 'Show Welcome Screen',
+    title: 'Show the Start Screen',
     category: 'Help',
     run: () => onboarding.open()
   });

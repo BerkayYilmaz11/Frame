@@ -227,7 +227,7 @@ function getMenuTemplate() {
     role: 'help',
     label: 'Help',
     submenu: [
-      cmd('Welcome', 'help.welcome'),
+      cmd('Start with a Project', 'help.welcome'),
       cmd('How to Use Frame', 'help.guide'),
       cmd('Keyboard Shortcuts', 'help.shortcuts', 'CmdOrCtrl+Shift+K'),
       SEP,

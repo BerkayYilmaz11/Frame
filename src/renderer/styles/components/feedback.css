@@ -238,9 +238,9 @@
   padding-right: var(--space-lg);
 }
 
-/* The one primary action in the modal, filled in the accent the way the
-   welcome overlay's Start is — the shared .btn-primary carries no fill of
-   its own, and a flat grey button beside three cards reads as secondary. */
+/* The one primary action in the modal, filled in the accent — the shared
+   .btn-primary carries no fill of its own, and a flat grey button beside
+   three cards reads as secondary. */
 .feedback-actions .btn-primary {
   background: var(--accent-primary);
   border-color: var(--accent-primary);

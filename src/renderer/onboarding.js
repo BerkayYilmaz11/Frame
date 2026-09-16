@@ -71,7 +71,7 @@ function takeOver(projects) {
   return true;
 }
 
-/** The palette's Show Welcome Screen, at any project count. */
+/** The palette's Show the Start Screen, at any project count. */
 function open(canDismiss) {
   if (!surfaceEl || !panelEl) return;
   if (isOpen) return;

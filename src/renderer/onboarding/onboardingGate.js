@@ -14,7 +14,7 @@
 
 /** Boot: the loader consults the gate once, on the first WORKSPACE_DATA. */
 const LAUNCH = 'launch';
-/** The palette's Show Welcome Screen command, at any project count. */
+/** The palette's Show the Start Screen command, at any project count. */
 const COMMAND = 'command';
 
 /**

@@ -2,8 +2,9 @@
  *
  * A wide two-column dialog: the index tree on the left, the page on the
  * right (sketch on top, explanation under it), Back / counter / Next in the
- * footer. Same overlay family as Welcome and the settings surfaces — the
- * guide and Welcome are never open together, so they share a z-index.
+ * footer. Same overlay family as the settings surfaces — the guide and the
+ * onboarding screen are never open together (its link closes it first), so
+ * they need no z-index argument between them.
  */
 
 .guide-overlay {

@@ -8298,7 +8298,7 @@
           "params": [
             "canDismiss"
           ],
-          "purpose": "The palette's Show Welcome Screen, at any project count."
+          "purpose": "The palette's Show the Start Screen, at any project count."
         },
         "close": {
           "line": 93

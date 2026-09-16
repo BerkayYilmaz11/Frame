@@ -55,3 +55,11 @@ Deleted `src/renderer/welcomeOverlay.js`, `src/renderer/styles/components/welcom
 _Captured: 2026-09-16 · 4 file change(s)_
 
 ---
+
+## T08 — the sweep, and one order-dependent rule
+
+Renamed Help › Welcome to "Start with a Project" and the palette command's title to "Show the Start Screen" (the id `help.welcome` stays — `guideContent.js` lists it, and ids are references), corrected the two guide strings this spec falsified, and rewrote the stale Welcome comments in `appLoader.js`, `openProjectModal.js`, `telemetryNotice.js`, `guideModal.js` and three stylesheets, including a `.welcome-tool-option` pointer in `panels.css` that named a deleted class. The sweep also caught a real defect: `.app-loader-failed`'s hide rule tied with onboarding.css's reveal rule on specificity and only won on `@import` order, so it is now two classes deep. 10 files.
+
+_Captured: 2026-09-16 · 10 file change(s)_
+
+---

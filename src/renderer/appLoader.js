@@ -15,7 +15,7 @@
  * projects the surface is handed to onboarding.js instead, keeping the lockup
  * exactly where the intro put it (first-run-onboarding-screen spec). That is
  * also why the splash is parked rather than removed — the palette's Show
- * Welcome Screen reuses this same element, and its same lockup, later on.
+ * the Start Screen reuses this same element, and its same lockup, later.
  *
  * If the failsafe timeout fires before any data, the splash swaps to a
  * "couldn't load workspace" state with a Retry button instead of silently
@@ -52,10 +52,10 @@ function init() {
   if (initialized) return;
   initialized = true;
 
-  // Hide as soon as workspace data arrives the first time. Registered before
-  // welcomeOverlay's listener so the loader fades out before the welcome
-  // modal can open behind it. Also resolves the failure state: if data
-  // arrives late (slow main, or after Retry), the loader still goes away.
+  // The first workspace push is what the surface is waiting for: it both
+  // releases the loader and tells the gate whether this is a first run. It
+  // also resolves the failure state — if data arrives late (slow main, or
+  // after Retry), the loader stops being an error screen.
   ipcRenderer.on(IPC.WORKSPACE_DATA, (event, payload) => {
     if (firstDataArrived) return;
     firstDataArrived = true;

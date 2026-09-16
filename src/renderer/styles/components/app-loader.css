@@ -203,7 +203,7 @@
 }
 
 /* Parked: the surface is done but stays in the DOM, so the palette's
-   Show Welcome Screen can reuse this element and its lockup instead of
+   Show the Start Screen can reuse this element and its lockup instead of
    rebuilding them somewhere else (plan D3). */
 .app-loader.app-loader-parked {
   display: none;
@@ -251,8 +251,11 @@
    succeeds still has an onboarding panel to show; these two rules are what
    gets it out of the way meanwhile. */
 
-.app-loader-failed .app-loader-brand,
-.app-loader-failed .onboarding {
+/* Two classes deep on purpose: the reveal rule in onboarding.css is also two
+   classes, so an equal-specificity rule here would only win on import order —
+   a dependency on @import sequence is not something to leave lying around. */
+.app-loader.app-loader-failed .app-loader-brand,
+.app-loader.app-loader-failed .onboarding {
   display: none;
 }
 

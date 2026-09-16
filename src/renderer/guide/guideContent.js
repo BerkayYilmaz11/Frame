@@ -646,10 +646,10 @@ const CHAPTERS = [
         sketch: { kind: 'shell', focus: 'rail-guide' },
         blocks: [
           { p: 'This guide is always one click away: the question-mark button at the very bottom of the rail, Help › How to Use Frame, or "How to Use Frame" in the Command Palette.' },
-          { p: 'The Welcome screen that opens when Frame starts, with its project shortcuts, is under Help › Welcome.' }
+          { p: 'The start screen with its project shortcuts — the one Frame opens on when you have no projects yet — is under Help › Start with a Project.' }
         ],
         actions: [
-          { id: 'help.welcome', label: 'Show the Welcome screen' }
+          { id: 'help.welcome', label: 'Show the start screen' }
         ]
       }
     ]

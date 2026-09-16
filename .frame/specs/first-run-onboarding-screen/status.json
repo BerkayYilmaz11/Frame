@@ -1,7 +1,7 @@
 {
   "slug": "first-run-onboarding-screen",
   "title": "First-run onboarding screen",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-first-run-onboarding-screen-T01",
     "task-spec-first-run-onboarding-screen-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-16T06:10:00Z",
-  "updated_at": "2026-09-16T06:50:00Z",
-  "last_phase_at": "2026-09-16T06:50:00Z",
+  "updated_at": "2026-09-16T07:30:00Z",
+  "last_phase_at": "2026-09-16T07:30:00Z",
   "implement_mode": "guided"
 }
