@@ -40,3 +40,10 @@ Wired `noticeTray` into `src/renderer/statusBar.js`: `_buildNoticeTray()` mounts
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+## T07 — Route every health notice into the tray and remove the banner
+
+Replaced `src/renderer/healthNotice.js`'s banner with `noticeTray.push()`: every listener passes a severity (`warn` → `warning`) and a source key, message strings unchanged, `showMigration` signature unchanged. Divergence: added a `'main-process'` label to `noticeTrayModel`'s `SOURCE_LABELS` (and its test) for a `MAIN_PROCESS_ERROR` payload with no `source`. The banner's `role="alert"` announcement is gone with it — the tray does not announce new notices to screen readers.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---

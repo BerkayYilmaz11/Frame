@@ -21,6 +21,7 @@ const SEVERITIES = ['error', 'warning', 'info'];
 const RANK = { error: 3, warning: 2, info: 1 };
 
 const SOURCE_LABELS = {
+  'main-process': 'Main process',
   'uncaught-exception': 'Main process',
   'unhandled-rejection': 'Main process',
   dependency: 'Dependencies',

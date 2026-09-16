@@ -8341,13 +8341,13 @@
       "title": "Route `src/renderer/healthNotice.js`'s `MAIN_PROCESS_ERROR` (with severity), `STATE_FILE_RECOVERED`, `CODEX_HOOKS_UNTRUSTED`, `TASKS_FILE_ERROR` and `showMigration` into `noticeTray.push()` with source keys, and remove the banner code",
       "description": "",
       "source": "spec:status-bar-notice-tray:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:57:45.779Z",
+      "completedAt": "2026-09-16T13:57:45.779Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T08",

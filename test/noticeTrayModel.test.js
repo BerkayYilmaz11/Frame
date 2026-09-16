@@ -114,6 +114,7 @@ test('dismiss removes one row; clear empties; neither mutates the input', () => 
 test('sourceLabel names known sources and falls back to the key', () => {
   assert.equal(model.sourceLabel('uncaught-exception'), 'Main process');
   assert.equal(model.sourceLabel('migration'), 'Layout migration');
+  assert.equal(model.sourceLabel('main-process'), 'Main process');
   assert.equal(model.sourceLabel('something-new'), 'something-new');
   assert.equal(model.sourceLabel(undefined), 'Frame');
 });

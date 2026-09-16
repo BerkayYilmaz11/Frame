@@ -7675,31 +7675,30 @@
     },
     "renderer/healthNotice": {
       "file": "src/renderer/healthNotice.js",
-      "description": "Health Notice Banner",
+      "description": "Health notices",
       "exports": [
         "init",
         "showMigration"
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "statusBar/noticeTray"
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 24
         },
         "show": {
-          "line": 50,
+          "line": 52,
           "params": [
-            "kind",
+            "severity",
+            "source",
             "message"
           ]
         },
-        "dismiss": {
-          "line": 86
-        },
         "showMigration": {
-          "line": 107,
+          "line": 64,
           "params": [
             "migration"
           ],
@@ -11280,13 +11279,13 @@
       "depends": [],
       "functions": {
         "normalizeSeverity": {
-          "line": 33,
+          "line": 34,
           "params": [
             "severity"
           ]
         },
         "add": {
-          "line": 45,
+          "line": 46,
           "params": [
             "list",
             "input",
@@ -11296,36 +11295,36 @@
           "purpose": "Add a notice, merging it into an identical row when one exists."
         },
         "dismiss": {
-          "line": 68,
+          "line": 69,
           "params": [
             "list",
             "id"
           ]
         },
         "clear": {
-          "line": 72
+          "line": 73
         },
         "markAllRead": {
-          "line": 76,
+          "line": 77,
           "params": [
             "list"
           ]
         },
         "indicator": {
-          "line": 85,
+          "line": 86,
           "params": [
             "list"
           ],
           "purpose": "What the indicator shows."
         },
         "sourceLabel": {
-          "line": 96,
+          "line": 97,
           "params": [
             "source"
           ]
         },
         "moveFocus": {
-          "line": 101,
+          "line": 102,
           "params": [
             "index",
             "length",
@@ -14656,7 +14655,7 @@
       {
         "module": "renderer/healthNotice",
         "file": "src/renderer/healthNotice.js",
-        "description": "Health Notice Banner"
+        "description": "Health notices"
       }
     ],
     "dock": [
