@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T07:03:39.104Z",
+  "lastUpdated": "2026-09-16T07:04:27.925Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8068,13 +8068,13 @@
       "title": "Add the `#onboarding` panel markup inside `#app-loader` in `index.html`: three action boxes (Open a folder, Create a new project, Clone from GitHub), the default-agent row, and the foot carrying Skip, the How to Use Frame link and a `×`.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:04:27.925Z",
+      "completedAt": "2026-09-16T07:04:27.925Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T03",
