@@ -8328,13 +8328,13 @@
       "title": "Mount the tray as the last item of the status bar from `src/renderer/statusBar.js` and enforce one popover at a time with the branch picker and the agents menu in both directions",
       "description": "",
       "source": "spec:status-bar-notice-tray:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:56:40.423Z",
+      "completedAt": "2026-09-16T13:56:40.423Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T07",

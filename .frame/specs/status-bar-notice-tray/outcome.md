@@ -33,3 +33,10 @@ Added the notices section to `src/renderer/styles/components/status-bar.css`: `.
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+## T06 — Mount the tray in the status bar with one popover at a time
+
+Wired `noticeTray` into `src/renderer/statusBar.js`: `_buildNoticeTray()` mounts it last on `.status-bar-right` (logging if the slot is missing), its `onOpen` closes the branch picker and agents menu, and both of those now close the tray when they open. No deviation from plan.md; `index.html` untouched.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---

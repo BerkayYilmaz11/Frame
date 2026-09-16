@@ -10879,37 +10879,41 @@
         "shared/uiZoom",
         "lucide",
         "statusBar/branchPicker",
+        "statusBar/noticeTray",
         "githubPanel",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 71
+          "line": 77
         },
         "_buildZoom": {
-          "line": 104
+          "line": 111
+        },
+        "_buildNoticeTray": {
+          "line": 152
         },
         "_buildBranch": {
-          "line": 142
+          "line": 169
         },
         "_manageBranches": {
-          "line": 187,
+          "line": 217,
           "purpose": "\"Manage branches…\" — the GitHub view's Branches section, where delete,"
         },
         "_renderBranch": {
-          "line": 194,
+          "line": 224,
           "params": [
             "branch"
           ]
         },
         "_buildDockIcons": {
-          "line": 209
+          "line": 239
         },
         "_buildAgentSlot": {
-          "line": 259
+          "line": 289
         },
         "updateAgents": {
-          "line": 309,
+          "line": 339,
           "params": [
             "states",
             "counts"
@@ -10917,34 +10921,34 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 341,
+          "line": 371,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 345
+          "line": 375
         },
         "_renderMenu": {
-          "line": 382
+          "line": 412
         },
         "_paintMenuHighlight": {
-          "line": 409
+          "line": 439
         },
         "_activateRow": {
-          "line": 418,
+          "line": 448,
           "params": [
             "row"
           ]
         },
         "_onMenuKeydown": {
-          "line": 423,
+          "line": 453,
           "params": [
             "e"
           ]
         },
         "_focus": {
-          "line": 445,
+          "line": 475,
           "params": [
             "projectPath",
             "terminalId"
@@ -10952,26 +10956,26 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_toggleMenu": {
-          "line": 455
+          "line": 485
         },
         "_openMenu": {
-          "line": 459
+          "line": 489
         },
         "_closeMenu": {
-          "line": 474,
+          "line": 505,
           "params": [
             "{ refocus = false } = {}"
           ]
         },
         "updateUsage": {
-          "line": 486,
+          "line": 517,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 515,
+          "line": 546,
           "params": [
             "item",
             "usage",
@@ -10980,7 +10984,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 538,
+          "line": 569,
           "params": [
             "isoString"
           ],
