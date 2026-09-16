@@ -299,6 +299,9 @@ function init() {
 
   // Initialize user settings (must run after app is ready so userData path resolves)
   userSettings.init();
+  // Before anything can write a setting: an unreadable settings file must
+  // leave telemetry durably off, not just off until the next write.
+  telemetry.enforceFailClosed();
   // The interface scale reads its step from user settings, and createWindow
   // reads the factor from it — so it sits between the two.
   uiZoom.init();

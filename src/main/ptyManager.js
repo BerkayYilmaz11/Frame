@@ -370,12 +370,22 @@ function resizeTerminal(terminalId, cols, rows) {
   }
 }
 
+// Terminals Frame killed on purpose (a lane closed, a reload reconcile, a
+// worker removed) — so a watcher that only sees the PTY gone can tell that
+// from a lane that died on its own. Ids are never reused; the set stays tiny.
+const destroyedOnRequest = new Set();
+
+function wasDestroyedOnRequest(terminalId) {
+  return destroyedOnRequest.has(terminalId);
+}
+
 /**
  * Destroy specific terminal
  */
 function destroyTerminal(terminalId) {
   const instance = ptyInstances.get(terminalId);
   if (instance) {
+    destroyedOnRequest.add(terminalId);
     if (instance.processPoll) instance.processPoll.dispose();
     if (instance.flushTimer) clearTimeout(instance.flushTimer);
     try {
@@ -393,6 +403,7 @@ function destroyTerminal(terminalId) {
  */
 function destroyAll() {
   for (const [terminalId, instance] of ptyInstances) {
+    destroyedOnRequest.add(terminalId);
     if (instance.processPoll) instance.processPoll.dispose();
     if (instance.flushTimer) clearTimeout(instance.flushTimer);
     try {
@@ -511,6 +522,7 @@ module.exports = {
   hasTerminal,
   getTerminalsByProject,
   getTerminalInfo,
+  wasDestroyedOnRequest,
   getLastOutputAt,
   getAvailableShells,
   setupIPC

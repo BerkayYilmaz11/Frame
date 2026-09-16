@@ -170,3 +170,90 @@ test('the session ceiling holds even when every window is under the cap', () => 
   assert.equal(over.allowed, false);
   assert.match(over.notice, /this run has sent 5 events/);
 });
+
+// ─── diffSpecLifecycle — spec_created / spec_phase_advanced ─
+
+const { diffSpecLifecycle, renameSpecLifecycle } = require('../src/main/telemetryEvents');
+
+const HOUR = 60 * 60 * 1000;
+const T0 = Date.parse('2026-09-14T10:00:00Z');
+const iso = (ms) => new Date(ms).toISOString();
+const spec = (slug, phase, extra) => Object.assign(
+  { slug, phase, authored: true, created_at: iso(T0 - 24 * HOUR), last_phase_at: iso(T0 - 24 * HOUR) },
+  extra
+);
+
+function seed(specs) {
+  return diffSpecLifecycle(null, specs, T0).state;
+}
+
+test('the first look seeds without counting anything already on disk', () => {
+  const r = diffSpecLifecycle(null, [spec('a', 'done'), spec('b', 'planned')], T0);
+  assert.deepEqual(r.created, []);
+  assert.deepEqual(r.advanced, []);
+});
+
+test('a spec authored now counts once, and not again after leaving and returning', () => {
+  let state = seed([]);
+  const now = T0 + 60_000;
+  const fresh = spec('a', 'specified', { created_at: iso(now) });
+  let r = diffSpecLifecycle(state, [fresh], now);
+  assert.deepEqual(r.created, ['a']);
+  state = r.state;
+  // branch switched away (spec gone), then back
+  state = diffSpecLifecycle(state, [], now + 1000).state;
+  r = diffSpecLifecycle(state, [fresh], now + 2000);
+  assert.deepEqual(r.created, [], 'a returning spec is not a new one');
+});
+
+test('a spec.md added to a slug already seen counts regardless of its created_at', () => {
+  let state = seed([spec('a', 'draft', { authored: false })]);
+  const r = diffSpecLifecycle(state, [spec('a', 'draft')], T0 + 60_000);
+  assert.deepEqual(r.created, ['a']);
+});
+
+test('a checked-out or pulled spec stamped before the last look does not count', () => {
+  const state = seed([]);
+  const r = diffSpecLifecycle(state, [spec('old', 'done')], T0 + 60_000);
+  assert.deepEqual(r.created, []);
+  assert.deepEqual(r.advanced, []);
+});
+
+test('an unreadable or date-only created_at counts — Frame cannot tell it is old', () => {
+  const state = seed([]);
+  const r = diffSpecLifecycle(state, [
+    spec('x', 'draft', { created_at: null }),
+    spec('y', 'draft', { created_at: '2026-01-01' })
+  ], T0 + 60_000);
+  assert.deepEqual(r.created, ['x', 'y']);
+});
+
+test('a phase counts only past the furthest one seen — regressions and ping-pong do not', () => {
+  let state = seed([spec('a', 'planned')]);
+  const now = T0 + 60_000;
+  let r = diffSpecLifecycle(state, [spec('a', 'tasks_generated', { last_phase_at: iso(now) })], now);
+  assert.deepEqual(r.advanced, [{ slug: 'a', phase: 'tasks_generated' }]);
+  r = diffSpecLifecycle(r.state, [spec('a', 'planned', { last_phase_at: iso(now) })], now + 1000);
+  assert.deepEqual(r.advanced, []);
+  r = diffSpecLifecycle(r.state, [spec('a', 'tasks_generated', { last_phase_at: iso(now + 2000) })], now + 2000);
+  assert.deepEqual(r.advanced, [], 'returning to a phase already counted');
+});
+
+test('a phase jump stamped before the last look (checkout) does not count', () => {
+  const state = seed([spec('a', 'planned')]);
+  const r = diffSpecLifecycle(state, [spec('a', 'done')], T0 + 60_000);
+  assert.deepEqual(r.advanced, []);
+});
+
+test('a spec that never had a readable phase is not advancing when it gets one', () => {
+  const state = seed([spec('a', null)]);
+  const r = diffSpecLifecycle(state, [spec('a', 'draft', { last_phase_at: iso(T0 + 1000) })], T0 + 1000);
+  assert.deepEqual(r.advanced, []);
+});
+
+test('a rename carries history — the new slug is not a created spec', () => {
+  const state = renameSpecLifecycle(seed([spec('old-name', 'planned', { created_at: iso(T0) })]), 'old-name', 'new-name');
+  const r = diffSpecLifecycle(state, [spec('new-name', 'planned', { created_at: iso(T0) })], T0 + 1000);
+  assert.deepEqual(r.created, []);
+  assert.deepEqual(r.advanced, []);
+});

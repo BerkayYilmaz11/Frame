@@ -3465,3 +3465,77 @@ Terminals text was updated to match. Left alone: the Terminals chip's own ×
 (still only drops it from the bar, shown only when there are no terminals),
 and the `hiddenFromBar` prefs plumbing — `terminalsView.hideFromBar` has no
 caller any more.
+
+### [2026-09-14] Telemetry audit — fixes for misleading counts
+
+**Context.** The user asked for a review of the telemetry, looking only for
+implementation bugs that could produce misleading or incomplete data, not
+for missing features or improvements. The review found six. The user said to
+fix them without a separate spec ("not a big job").
+
+**What the audit found.**
+1. `spec_phase_advanced` effectively never fired. Its only trigger was
+   `updateSpecStatus`, whose single caller writes `implement_mode` and never
+   a phase. Agents write `status.json` themselves, and `reconcilePhase`
+   deliberately sends no event, so the dashboard would have suggested nobody
+   uses the spec workflow.
+2. `spec_created` counted specs that were not new: a rename (the new slug
+   looks like it just appeared), a git checkout or pull that brings in
+   `spec.md` files, switching back and forth between branches, deleting and
+   rewriting a spec. It also missed specs created while the user was looking
+   at another project, because the snapshot was reset on every project switch.
+   New Spec markers were global, so a click in one project could label a spec
+   in another as `button`.
+3. The fail-closed opt-out did not hold. When the settings file was corrupt
+   and there was no usable `.bak`, the cache was left empty. The next write of
+   any setting (for example dismissing the telemetry notice, which reappears
+   because its own flag was lost too) cleared `failed`, and telemetry came
+   back on. On top of that, `fsSafe` moves the corrupt file aside, so the next
+   launch reads "no file" as a fresh install and defaults to ON.
+4. `agent_run_started` from the Start button and from Resume fired before the
+   command was typed, so launching a CLI that is not installed counted as a
+   run. `dispatch()` only counts once the CLI is ready.
+5. `orch_worker_failed` also counted worker lanes that Frame closed on
+   purpose: the user closing the lane, a reload reconcile, removing the worker.
+6. `plugin_marketplace_failed` fired on every Plugins panel open for users
+   without git or offline, and `ai_tool_selected` fired when the tool that was
+   already active was picked again.
+
+**Decisions.**
+- Both spec events are now read off the watcher's push by comparing it with
+  earlier looks. The pure logic is `diffSpecLifecycle` /
+  `renameSpecLifecycle` in `src/main/telemetryEvents.js`, and the state is
+  kept per project in `specManager.specLifecycle`, which is not reset on
+  project switch. A slug counts as created once per app run. A phase counts
+  only when it passes the furthest phase seen for that spec, so regressions
+  and ping-pong between two Frames send nothing. A spec that arrives already
+  authored, or a phase with no earlier look behind it, counts only if its
+  `created_at` / `last_phase_at` is later than the previous look minus
+  10 minutes of skew. That keeps checkouts and pulls out. A timestamp that
+  cannot be read, or holds only a date, counts, because Frame cannot tell it
+  is old. A rename carries the spec's history over to the new slug. New Spec
+  markers are per project.
+- Fail-closed: `telemetry.enforceFailClosed()` runs right after
+  `userSettings.init()` and writes `telemetryEnabled: false` to disk when the
+  load failed. The earlier decision that a successful write clears the flag
+  (audit-q3-product-analytics D2) stays as it was; the opt-out is now
+  persisted on top of it. The user can turn telemetry back on in Settings.
+  PRIVACY.md was updated to say this.
+- `agent_run_started` from Start and Resume uses the same bar as `dispatch()`:
+  it fires when the CLI reaches ready. Custom CLIs are the exception. laneStatus
+  cannot recognize them as agents, so they still count on launch.
+- `ptyManager.wasDestroyedOnRequest` records terminals Frame killed on
+  purpose, and `orch_worker_failed` is not sent for those. Worker status and
+  the relay to the conductor are unchanged.
+- `plugin_marketplace_failed` is counted once until a clone or pull succeeds
+  again. `ai_tool_selected` fires only when the tool actually changes, and
+  PRIVACY.md now describes it as a switch rather than a preference.
+
+**Known limits, accepted.** Specs created while the app was closed are not
+counted. A user typing `exit` in a worker lane still counts as a worker
+failure, since that cannot be told apart from a crash.
+
+**State.** `npm test` 761 pass, including 9 new tests in
+`test/telemetry.test.js`; `npm run build` succeeds. Not committed. Not tried
+in the running app. Worth checking there: move a spec forward with an agent
+and watch the events, rename a spec, switch branches.

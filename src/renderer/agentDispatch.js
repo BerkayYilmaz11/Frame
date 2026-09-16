@@ -288,10 +288,25 @@ function _startAgentIn(terminalId, { fresh = false } = {}) {
     return;
   }
   const currentTool = aiToolSelector.getCurrentTool();
-  ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', {
-    tool: currentTool ? currentTool.id : null
-  });
-  setTimeout(() => multiTerminalUI.sendCommand(startCommand, terminalId), fresh ? 800 : 50);
+  const toolId = currentTool ? currentTool.id : null;
+  setTimeout(() => {
+    _trackAgentRunWhenReady(terminalId, toolId);
+    multiTerminalUI.sendCommand(startCommand, terminalId);
+  }, fresh ? 800 : 50);
+}
+
+// `agent_run_started` means the CLI came up — the bar dispatch() already
+// holds it to. Typing a start command proves nothing when the CLI is not
+// installed. Call before sending: a fast CLI can reach its input box between
+// "send" and "listen". A custom CLI is never recognized as an agent by
+// laneStatus, so it cannot be seen coming up and counts on launch.
+function _trackAgentRunWhenReady(terminalId, toolId) {
+  const track = () => ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', { tool: toolId });
+  if (!laneStatus.KNOWN_AGENTS.has(toolId)) {
+    track();
+    return;
+  }
+  _waitForAgentReady(terminalId).then((ready) => { if (ready) track(); });
 }
 
 async function _startAgentInNewFrame() {
@@ -353,9 +368,9 @@ async function resumeClaudeSession(sessionId) {
   }
 
   multiTerminalUI.enterLane(id);
-  ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', { tool: 'claude' });
   // Same settle a freshly spawned shell gets before the Start button types.
   setTimeout(() => {
+    _trackAgentRunWhenReady(id, 'claude');
     multiTerminalUI.sendCommand(`${claudeCommand} --resume ${sessionId}`, id);
   }, 800);
 }
