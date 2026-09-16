@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-14",
+  "lastUpdated": "2026-09-16",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -465,6 +465,206 @@
           "CLAUDE_USAGE_DATA",
           "CLAUDE_USAGE_DATA"
         ]
+      }
+    },
+    "main/cloud/deviceFlow": {
+      "file": "src/main/cloud/deviceFlow.js",
+      "description": "deviceFlow — the pure core of Frame Cloud sign-in.",
+      "exports": [
+        "CLIENT_ID",
+        "DEVICE_GRANT_TYPE",
+        "SLOW_DOWN_STEP_MS",
+        "MAX_BACKOFF_MS",
+        "CloudError",
+        "resolveServerUrl",
+        "parseCodeResponse",
+        "formatUserCode",
+        "classifyTokenResponse",
+        "classifyTrpcError",
+        "deviceName",
+        "formatDeviceInfo",
+        "requestDeviceCode",
+        "pollForToken",
+        "registerDevice",
+        "fetchMe",
+        "signOutDevice",
+        "runSignIn",
+        "refreshSession"
+      ],
+      "depends": [],
+      "functions": {
+        "isAbort": {
+          "line": 39,
+          "params": [
+            "err",
+            "signal"
+          ]
+        },
+        "resolveServerUrl": {
+          "line": 46,
+          "params": [
+            "{ env",
+            "setting",
+            "defaultUrl } = {}"
+          ],
+          "purpose": "First non-empty of env → setting → default, without trailing slashes."
+        },
+        "parseCodeResponse": {
+          "line": 56,
+          "params": [
+            "body"
+          ],
+          "purpose": "`/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body."
+        },
+        "formatUserCode": {
+          "line": 79,
+          "params": [
+            "userCode"
+          ],
+          "purpose": "Display-only grouping: 'TTN4YFST' → 'TTN4-YFST'. Other shapes are returned as-is."
+        },
+        "classifyTokenResponse": {
+          "line": 86,
+          "params": [
+            "res"
+          ],
+          "purpose": "One `/api/auth/device/token` answer → what the poll loop does next."
+        },
+        "classifyTrpcError": {
+          "line": 114,
+          "params": [
+            "res"
+          ],
+          "purpose": "A failed tRPC answer → CloudError kind."
+        },
+        "deviceName": {
+          "line": 128,
+          "params": [
+            "hostname"
+          ],
+          "purpose": "`os.hostname()` → the name the server shows for this device."
+        },
+        "formatDeviceInfo": {
+          "line": 138,
+          "params": [
+            "{ hostname",
+            "platform",
+            "release",
+            "appVersion } = {}"
+          ],
+          "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
+        },
+        "send": {
+          "line": 148,
+          "params": [
+            "fetchJson",
+            "url",
+            "opts"
+          ]
+        },
+        "requestDeviceCode": {
+          "line": 157,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "callTrpc": {
+          "line": 170,
+          "params": [
+            "{ api",
+            "name",
+            "method",
+            "token",
+            "input",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "registerDevice": {
+          "line": 183,
+          "params": [
+            "{ api",
+            "token",
+            "info",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "fetchMe": {
+          "line": 192,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "signOutDevice": {
+          "line": 196,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ]
+        },
+        "pollForToken": {
+          "line": 206,
+          "params": [
+            "{ api",
+            "code",
+            "fetchJson",
+            "sleep",
+            "now",
+            "signal }"
+          ],
+          "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
+        },
+        "signInReason": {
+          "line": 259,
+          "params": [
+            "err"
+          ]
+        },
+        "runSignIn": {
+          "line": 275,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "sleep",
+            "now",
+            "signal",
+            "openUrl",
+            "deviceInfo",
+            "onState }"
+          ],
+          "purpose": "The whole sign-in: code → browser → poll → register."
+        },
+        "refreshReason": {
+          "line": 334,
+          "params": [
+            "err"
+          ]
+        },
+        "sessionFromMe": {
+          "line": 346,
+          "params": [
+            "data"
+          ]
+        },
+        "refreshSession": {
+          "line": 360,
+          "params": [
+            "{ api",
+            "token",
+            "deviceInfo",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "`device.me`, re-registering once when the server has forgotten this device."
+        }
       }
     },
     "main/commandStaging": {

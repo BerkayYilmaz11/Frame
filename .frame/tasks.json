@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:09:25.341Z",
+  "lastUpdated": "2026-09-16T08:19:22Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7795,13 +7795,13 @@
       "title": "Write the pure core `src/main/cloud/deviceFlow.js` (building blocks, the five endpoint calls, `pollForToken`, `runSignIn`, `refreshSession`; every side effect injected, no Electron) and `test/cloudDeviceFlow.test.js` covering the poll loop, endpoint wire shapes, orchestration order and the building blocks with a fake `fetchJson`, `sleep`, clock, `openUrl` and `onState`",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:19:22Z",
+      "completedAt": "2026-09-16T08:19:22Z"
     },
     {
       "id": "task-spec-frame-cloud-sign-in-T02",
