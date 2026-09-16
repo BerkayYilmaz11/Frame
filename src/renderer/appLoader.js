@@ -44,6 +44,11 @@ let projects = null;      // the first WORKSPACE_DATA payload, for the gate
 let failsafeTimer = null;
 let introTimers = [];
 let initialized = false;
+// The boot is over the first time the surface parks — after the fade to the
+// app, or when the onboarding screen hands the app over. Listeners hear it
+// once; a later park (the palette's start screen closing) is not a boot.
+let bootLeft = false;
+let bootLeaveListeners = [];
 
 function init() {
   loaderEl = document.getElementById('app-loader');
@@ -197,6 +202,30 @@ function hide() {
 function park() {
   if (!loaderEl) return;
   loaderEl.classList.add('app-loader-hidden', 'app-loader-parked');
+  if (bootLeft) return;
+  bootLeft = true;
+  const listeners = bootLeaveListeners;
+  bootLeaveListeners = [];
+  listeners.forEach((cb) => {
+    try {
+      cb();
+    } catch (err) {
+      console.error('appLoader: a boot-leave listener failed', err);
+    }
+  });
 }
 
-module.exports = { init };
+/**
+ * Run `cb` once, when the boot surface first gets out of the way of the app
+ * (the guided tour starts from here). Already gone → on the next tick.
+ */
+function onBootLeave(cb) {
+  if (typeof cb !== 'function') return;
+  if (bootLeft) {
+    setTimeout(cb, 0);
+    return;
+  }
+  bootLeaveListeners.push(cb);
+}
+
+module.exports = { init, onBootLeave };

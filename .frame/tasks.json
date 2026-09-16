@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T13:31:50.970Z",
+  "lastUpdated": "2026-09-16T13:36:25.254Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8237,13 +8237,13 @@
       "title": "Add `onBootLeave(cb)` to `src/renderer/appLoader.js`, fired once on the first `park()` (the splash fade and onboarding's close both end there) and at once if the surface already parked. In `guidedTour.init`, read `guidedTourDone` via `GET_USER_SETTING`, register it before `appLoader.init()`, and auto-start when `shouldAutoStart` holds. A failed read logs `console.error` and does not start.",
       "description": "",
       "source": "spec:first-run-guided-tour:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-guided-tour",
       "createdAt": "2026-09-16T13:07:36.350Z",
-      "updatedAt": "2026-09-16T13:07:36.350Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:36:25.254Z",
+      "completedAt": "2026-09-16T13:36:25.254Z"
     },
     {
       "id": "task-spec-first-run-guided-tour-T08",

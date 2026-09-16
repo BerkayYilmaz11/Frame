@@ -35,7 +35,7 @@
   border-radius: var(--radius-lg);
   box-shadow:
     0 0 0 2px var(--accent-primary),
-    0 0 0 9999px color-mix(in srgb, #000 38%, transparent);
+    0 0 0 9999px color-mix(in srgb, #000 50%, transparent);
   pointer-events: none;
   transition:
     top 0.22s ease,

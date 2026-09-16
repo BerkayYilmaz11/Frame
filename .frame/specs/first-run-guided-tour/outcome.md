@@ -48,3 +48,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
 
+## T07 — Automatic start after boot
+
+Added `onBootLeave(cb)` to `src/renderer/appLoader.js` (once, on the first `park()`) and the automatic start in `src/renderer/guidedTour.js`: read `guidedTourDone`, `shouldAutoStart`, then two frames. Diverged from plan.md after a live run: the auto-start also waits for the first-launch telemetry notice to close, since it covers the header targets of the first steps; the last-card check now uses the run's step order (step 1 had shown the guide link instead of Skip tour); and the dim in `tour.css` went from 38% to 50% because the dark theme barely showed it. Step 1's advance on a real added project was not driven live (it needs the native folder picker).
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---
+

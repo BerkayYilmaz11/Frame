@@ -5177,7 +5177,8 @@
       "file": "src/renderer/appLoader.js",
       "description": "App Loader",
       "exports": [
-        "init"
+        "init",
+        "onBootLeave"
       ],
       "depends": [
         "electron",
@@ -5186,39 +5187,46 @@
       ],
       "functions": {
         "init": {
-          "line": 48
+          "line": 53
         },
         "playIntro": {
-          "line": 77,
+          "line": 82,
           "purpose": "Drives the intro's beats by class. The wordmark's target width is measured"
         },
         "finishIntro": {
-          "line": 99
-        },
-        "clearIntroTimers": {
           "line": 104
         },
+        "clearIntroTimers": {
+          "line": 109
+        },
         "hideWhenReady": {
-          "line": 114,
+          "line": 119,
           "purpose": "The splash owes the user two things: a finished intro and a loaded"
         },
         "armFailsafe": {
-          "line": 128
+          "line": 133
         },
         "showFailureState": {
-          "line": 142,
+          "line": 147,
           "purpose": "Additive, not destructive. This used to replace the surface's innerHTML,"
         },
         "clearFailureState": {
-          "line": 172,
+          "line": 177,
           "purpose": "A retry that worked: drop the error and let the normal join decide between"
         },
         "hide": {
-          "line": 179
+          "line": 184
         },
         "park": {
-          "line": 197,
+          "line": 202,
           "purpose": "The end of the fade, and onboarding's way out. The node is kept and hidden"
+        },
+        "onBootLeave": {
+          "line": 222,
+          "params": [
+            "cb"
+          ],
+          "purpose": "Run `cb` once, when the boot surface first gets out of the way of the app"
         }
       },
       "ipc": {
@@ -7529,48 +7537,56 @@
         "commandRegistry",
         "sidebarResize",
         "projectListUI",
+        "appLoader",
         "tour/tourSteps"
       ],
       "functions": {
         "init": {
-          "line": 62,
+          "line": 67,
           "params": [
             "opts = {}"
           ],
           "purpose": "tab (index.js's revealSidebarTab), so a nav row can be measured"
         },
+        "autoStart": {
+          "line": 94,
+          "purpose": "The once-per-user start. The setting is read here rather than at init so"
+        },
+        "noticesGone": {
+          "line": 120
+        },
         "finish": {
-          "line": 86,
+          "line": 137,
           "params": [
             "outcome"
           ],
           "purpose": "End the tour and remember it. `outcome` is 'finished' or 'skipped'. A write"
         },
         "hasProject": {
-          "line": 101
+          "line": 152
         },
         "start": {
-          "line": 109,
+          "line": 160,
           "purpose": "Start (or restart) the tour from the first step that applies: step 1 with"
         },
         "close": {
-          "line": 128,
+          "line": 179,
           "purpose": "Leave the tour: remove the layer and every listener it bound."
         },
         "next": {
-          "line": 138
+          "line": 189
         },
         "ensureNodes": {
-          "line": 149
+          "line": 200
         },
         "isVisible": {
-          "line": 177,
+          "line": 228,
           "params": [
             "el"
           ]
         },
         "resolveTarget": {
-          "line": 191,
+          "line": 242,
           "params": [
             "step",
             "{ reveal = false } = {}"
@@ -7578,47 +7594,47 @@
           "purpose": "The step's first usable target, with its entry."
         },
         "isAvailable": {
-          "line": 204,
+          "line": 255,
           "params": [
             "step"
           ]
         },
         "revealNav": {
-          "line": 208,
+          "line": 259,
           "params": [
             "view"
           ]
         },
         "show": {
-          "line": 221,
+          "line": 272,
           "params": [
             "i"
           ]
         },
         "skipMissing": {
-          "line": 242,
+          "line": 293,
           "params": [
             "i"
           ],
           "purpose": "A step whose target is gone: log it once, move on, never end the tour on it."
         },
         "countedSteps": {
-          "line": 261,
+          "line": 312,
           "purpose": "The steps this run of the tour counts: step 1 only if it began without a project."
         },
         "renderCard": {
-          "line": 265,
+          "line": 316,
           "params": [
             "step",
             "i"
           ]
         },
         "focusCard": {
-          "line": 310,
+          "line": 363,
           "purpose": "Put focus on the card's primary control so Enter, → and Escape reach it."
         },
         "el": {
-          "line": 316,
+          "line": 369,
           "params": [
             "tag",
             "className",
@@ -7626,34 +7642,34 @@
           ]
         },
         "onCardClick": {
-          "line": 323,
+          "line": 376,
           "params": [
             "e"
           ]
         },
         "onCardKeydown": {
-          "line": 342,
+          "line": 395,
           "params": [
             "e"
           ],
           "purpose": "Bound on the card, not the document: the keys answer only while focus is in"
         },
         "position": {
-          "line": 359,
+          "line": 412,
           "purpose": "Measure the current target and move the cutout and the card to it."
         },
         "queueReposition": {
-          "line": 396,
+          "line": 449,
           "purpose": "Coalesce bursts (a sidebar drag, a scroll) into one measurement per frame."
         },
         "observeTarget": {
-          "line": 405,
+          "line": 458,
           "params": [
             "target"
           ]
         },
         "bindWhileOpen": {
-          "line": 412
+          "line": 465
         }
       }
     },

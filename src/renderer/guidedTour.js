@@ -19,6 +19,10 @@
  * Listeners that follow layout (resize, sidebar, scroll, ResizeObserver) are
  * bound only while the tour is open, so a closed tour costs nothing.
  *
+ * It starts by itself once per user, the first time the boot surface gets
+ * out of the way (appLoader.onBootLeave): with a project open at step 2, with
+ * none at step 1. The palette's Take the Frame Tour starts it any time.
+ *
  * Skip tour, Escape and Done record `guidedTourDone` so the tour does not come
  * back by itself; quitting mid-tour records nothing. The keys answer only while
  * focus is inside the card — Frame is terminal-first, and Escape typed into an
@@ -32,6 +36,7 @@ const notify = require('./notify');
 const commandRegistry = require('./commandRegistry');
 const sidebarResize = require('./sidebarResize');
 const projectListUI = require('./projectListUI');
+const appLoader = require('./appLoader');
 const tourSteps = require('./tour/tourSteps');
 
 const { STEPS } = tourSteps;
@@ -76,6 +81,52 @@ function init(opts = {}) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (isOpen && index !== -1 && STEPS[index].advance === 'project') next();
     }));
+  });
+
+  appLoader.onBootLeave(autoStart);
+}
+
+/**
+ * The once-per-user start. The setting is read here rather than at init so
+ * the answer is current when the app appears; a read that fails does not
+ * start the tour (tourSteps.shouldAutoStart).
+ */
+async function autoStart() {
+  let done = null;
+  let readFailed = false;
+  try {
+    done = await ipcRenderer.invoke(IPC.GET_USER_SETTING, tourSteps.SETTING_KEY);
+  } catch (err) {
+    readFailed = true;
+    console.error('guidedTour: could not read whether the tour was already seen — not starting it', err);
+  }
+  if (!tourSteps.shouldAutoStart({ done, readFailed })) return;
+  await noticesGone();
+  // The app has only just been uncovered: give the header, the nav and Home
+  // two frames to lay out before the first target is measured.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!isOpen) start();
+  }));
+}
+
+/*
+ * Banners that sit over the header on a first launch. The first steps point
+ * at the header, and a notice above the tour (by design — the tour never
+ * covers a notice) would hide their targets, so the automatic start waits
+ * for the user to dismiss them. A manual start does not wait.
+ */
+const HEADER_NOTICES = ['#telemetry-notice.visible'];
+
+function noticesGone() {
+  const showing = () => HEADER_NOTICES.some((selector) => document.querySelector(selector));
+  if (!showing()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (showing()) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
   });
 }
 
@@ -265,7 +316,9 @@ function countedSteps() {
 function renderCard(step, i) {
   const counted = countedSteps();
   const position = counted.indexOf(step) + 1;
-  const last = tourSteps.isLastStep(i, { hasProject: hasProject() });
+  // Last in this run's order, not "nothing follows right now": without a
+  // project nothing follows step 1 either, and it is not the end.
+  const last = counted[counted.length - 1] === step;
 
   cardEl.replaceChildren();
   cardEl.setAttribute('aria-label', step.title);
