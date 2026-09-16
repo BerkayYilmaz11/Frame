@@ -803,11 +803,12 @@
       "depends": [
         "fs",
         "path",
+        "electron",
         "shared/ipcChannels"
       ],
       "functions": {
         "getFileTree": {
-          "line": 27,
+          "line": 28,
           "params": [
             "dirPath",
             "maxDepth = 5",
@@ -815,8 +816,55 @@
           ],
           "purpose": "Get file tree for a directory (async — the whole-subtree walk must not"
         },
+        "exists": {
+          "line": 67,
+          "params": [
+            "p"
+          ]
+        },
+        "isSameOrInside": {
+          "line": 77,
+          "params": [
+            "child",
+            "parent"
+          ],
+          "purpose": "True when `child` is `parent` itself or lies anywhere beneath it."
+        },
+        "uniqueCopyPath": {
+          "line": 86,
+          "params": [
+            "dir",
+            "name",
+            "isDirectory"
+          ],
+          "purpose": "Finder-style free name in `dir` for a copy of `name`:"
+        },
+        "renameEntry": {
+          "line": 101,
+          "params": [
+            "oldPath",
+            "newName"
+          ],
+          "purpose": "Rename an entry in place. Only the name changes — the entry stays in its"
+        },
+        "pasteEntry": {
+          "line": 121,
+          "params": [
+            "{ source",
+            "mode",
+            "destDir }"
+          ],
+          "purpose": "Paste a copied or cut entry into `destDir`. A copy that collides gets a"
+        },
+        "guarded": {
+          "line": 152,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Run a file operation, turning a thrown error into `{ ok: false, error }`."
+        },
         "setupIPC": {
-          "line": 69,
+          "line": 164,
           "params": [
             "ipcMain"
           ],
@@ -825,7 +873,10 @@
       },
       "ipc": {
         "listens": [
-          "LOAD_FILE_TREE"
+          "LOAD_FILE_TREE",
+          "FILE_TREE_RENAME",
+          "FILE_TREE_TRASH",
+          "FILE_TREE_PASTE"
         ],
         "emits": [
           "FILE_TREE_DATA"
@@ -6279,11 +6330,13 @@
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "notify",
+        "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 41,
+          "line": 50,
           "params": [
             "elementId",
             "getProjectPath"
@@ -6291,21 +6344,21 @@
           "purpose": "Initialize file tree UI"
         },
         "setProjectPathGetter": {
-          "line": 57,
+          "line": 66,
           "params": [
             "getter"
           ],
           "purpose": "Set project path getter"
         },
         "setOnFileClick": {
-          "line": 64,
+          "line": 73,
           "params": [
             "callback"
           ],
           "purpose": "Set file click callback"
         },
         "renderFileTree": {
-          "line": 71,
+          "line": 80,
           "params": [
             "files",
             "parentElement",
@@ -6314,87 +6367,149 @@
           "purpose": "Render file tree recursively"
         },
         "clearFileTree": {
-          "line": 167,
+          "line": 176,
           "params": [
             "{ unwatch = false } = {}"
           ],
           "purpose": "Clear file tree"
         },
         "refreshFileTree": {
-          "line": 181,
+          "line": 190,
           "params": [
             "projectPath"
           ],
           "purpose": "Refresh file tree"
         },
         "loadFileTree": {
-          "line": 191,
+          "line": 200,
           "params": [
             "projectPath"
           ],
           "purpose": "Load file tree for path"
         },
         "setupIPC": {
-          "line": 199,
+          "line": 208,
           "purpose": "Setup IPC listeners"
         },
+        "setFolderExpanded": {
+          "line": 237,
+          "params": [
+            "folderItem",
+            "expanded"
+          ]
+        },
+        "getExpandedFolderPaths": {
+          "line": 245
+        },
+        "restoreExpandedFolders": {
+          "line": 256,
+          "params": [
+            "paths"
+          ]
+        },
         "focus": {
-          "line": 220,
+          "line": 266,
           "purpose": "Focus file tree for keyboard navigation"
         },
         "getVisibleItems": {
-          "line": 250,
+          "line": 296,
           "purpose": "Get all visible file items (for navigation). Uses offsetParent so it"
         },
         "handleKeydown": {
-          "line": 259,
+          "line": 305,
           "params": [
             "e"
           ],
           "purpose": "Handle keyboard navigation in file tree"
         },
         "blur": {
-          "line": 321,
+          "line": 367,
           "purpose": "Blur/unfocus file tree"
         },
         "setupSearch": {
-          "line": 331
+          "line": 377
         },
         "applyFilter": {
-          "line": 359,
+          "line": 405,
           "params": [
             "query"
           ]
         },
         "filterWrapper": {
-          "line": 372,
+          "line": 418,
           "params": [
             "wrapper",
             "query"
           ]
         },
         "setupContextMenu": {
-          "line": 408
+          "line": 454
+        },
+        "getProjectRoot": {
+          "line": 495
+        },
+        "configureMenu": {
+          "line": 504,
+          "params": [
+            "target"
+          ],
+          "purpose": "Show only what applies to the target: the project root gets Paste alone;"
         },
         "showContextMenu": {
-          "line": 432,
+          "line": 523,
           "params": [
             "x",
             "y",
-            "path"
+            "target"
           ]
         },
         "hideContextMenu": {
-          "line": 449
+          "line": 541
         },
         "handleContextMenuAction": {
-          "line": 455,
+          "line": 547,
           "params": [
-            "action"
+            "action",
+            "target"
+          ]
+        },
+        "baseName": {
+          "line": 578,
+          "params": [
+            "p"
+          ]
+        },
+        "applyCutDecoration": {
+          "line": 583,
+          "purpose": "Dim the row that is cut and waiting for a paste."
+        },
+        "pasteInto": {
+          "line": 594,
+          "params": [
+            "destDir"
+          ]
+        },
+        "findItem": {
+          "line": 609,
+          "params": [
+            "p"
+          ]
+        },
+        "startRename": {
+          "line": 620,
+          "params": [
+            "targetPath"
+          ],
+          "purpose": "Inline rename: the name span becomes an input. Enter or blur commits,"
+        },
+        "confirmDelete": {
+          "line": 672,
+          "params": [
+            "target"
           ]
         },
         "applyGitStatusDecoration": {
-          "line": 472,
+          "line": 697,
           "purpose": "Walk every rendered .file-item and apply the git status class matching its"
         }
       },
@@ -13979,6 +14094,23 @@
       },
       "UI_ZOOM_CHANGED": {
         "name": "ui-zoom-changed",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "file": {
+      "FILE_TREE_RENAME": {
+        "name": "file-tree-rename",
+        "direction": "",
+        "description": ""
+      },
+      "FILE_TREE_TRASH": {
+        "name": "file-tree-trash",
+        "direction": "",
+        "description": ""
+      },
+      "FILE_TREE_PASTE": {
+        "name": "file-tree-paste",
         "direction": "",
         "description": ""
       }

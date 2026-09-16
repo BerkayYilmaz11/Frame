@@ -11,6 +11,7 @@
 
 const fsp = require('fs').promises;
 const path = require('path');
+const { shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 
 /** Never walked: repository plumbing and installed dependencies. */
@@ -63,6 +64,100 @@ async function getFileTree(dirPath, maxDepth = 5, currentDepth = 0) {
   }
 }
 
+async function exists(p) {
+  try {
+    await fsp.lstat(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True when `child` is `parent` itself or lies anywhere beneath it. */
+function isSameOrInside(child, parent) {
+  const rel = path.relative(parent, child);
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+/**
+ * Finder-style free name in `dir` for a copy of `name`:
+ * "a.txt" → "a copy.txt" → "a copy 2.txt" … (folders keep no extension).
+ */
+async function uniqueCopyPath(dir, name, isDirectory) {
+  const first = path.join(dir, name);
+  if (!(await exists(first))) return first;
+  const ext = isDirectory ? '' : path.extname(name);
+  const base = ext ? name.slice(0, -ext.length) : name;
+  for (let i = 1; ; i++) {
+    const candidate = path.join(dir, `${base} copy${i === 1 ? '' : ` ${i}`}${ext}`);
+    if (!(await exists(candidate))) return candidate;
+  }
+}
+
+/**
+ * Rename an entry in place. Only the name changes — the entry stays in its
+ * directory, so a name containing a path separator is rejected.
+ */
+async function renameEntry(oldPath, newName) {
+  const name = typeof newName === 'string' ? newName.trim() : '';
+  if (!name || name === '.' || name === '..' || /[\\/]/.test(name)) {
+    return { ok: false, error: 'Invalid name' };
+  }
+  const target = path.join(path.dirname(oldPath), name);
+  if (target === oldPath) return { ok: true, path: target };
+  // A case-only rename on a case-insensitive disk "exists" as itself.
+  if (target.toLowerCase() !== oldPath.toLowerCase() && (await exists(target))) {
+    return { ok: false, error: `"${name}" already exists` };
+  }
+  await fsp.rename(oldPath, target);
+  return { ok: true, path: target };
+}
+
+/**
+ * Paste a copied or cut entry into `destDir`. A copy that collides gets a
+ * "copy" name; a move that collides is refused rather than silently renamed
+ * or overwriting.
+ */
+async function pasteEntry({ source, mode, destDir }) {
+  const stat = await fsp.lstat(source);
+  const isDirectory = stat.isDirectory();
+  const name = path.basename(source);
+
+  if (isDirectory && isSameOrInside(destDir, source)) {
+    return { ok: false, error: 'A folder cannot be pasted into itself' };
+  }
+
+  if (mode === 'cut') {
+    const target = path.join(destDir, name);
+    if (target === source) return { ok: true, path: target };
+    if (await exists(target)) {
+      return { ok: false, error: `"${name}" already exists in the destination` };
+    }
+    try {
+      await fsp.rename(source, target);
+    } catch (err) {
+      if (err.code !== 'EXDEV') throw err;
+      await fsp.cp(source, target, { recursive: true, errorOnExist: true, force: false });
+      await fsp.rm(source, { recursive: true, force: true });
+    }
+    return { ok: true, path: target };
+  }
+
+  const target = await uniqueCopyPath(destDir, name, isDirectory);
+  await fsp.cp(source, target, { recursive: true, errorOnExist: true, force: false });
+  return { ok: true, path: target };
+}
+
+/** Run a file operation, turning a thrown error into `{ ok: false, error }`. */
+async function guarded(fn) {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error('File tree operation failed:', err);
+    return { ok: false, error: err.code === 'ENOENT' ? 'The item no longer exists' : err.message };
+  }
+}
+
 /**
  * Setup IPC handlers
  */
@@ -73,6 +168,18 @@ function setupIPC(ipcMain) {
       event.sender.send(IPC.FILE_TREE_DATA, files);
     }
   });
+
+  ipcMain.handle(IPC.FILE_TREE_RENAME, (event, oldPath, newName) =>
+    guarded(() => renameEntry(oldPath, newName)));
+
+  ipcMain.handle(IPC.FILE_TREE_TRASH, (event, targetPath) =>
+    guarded(async () => {
+      await shell.trashItem(targetPath);
+      return { ok: true };
+    }));
+
+  ipcMain.handle(IPC.FILE_TREE_PASTE, (event, payload) =>
+    guarded(() => pasteEntry(payload || {})));
 }
 
 module.exports = {

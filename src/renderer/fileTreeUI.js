@@ -3,8 +3,10 @@
  * Renders collapsible file tree in sidebar
  */
 
-const { ipcRenderer, clipboard } = require('electron');
+const { ipcRenderer, clipboard, shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const notify = require('./notify');
+const taskConfirmModal = require('./taskConfirmModal');
 
 let fileTreeElement = null;
 let currentProjectPath = null;
@@ -17,9 +19,16 @@ let searchClearBtn = null;
 let searchWrapper = null;
 let currentQuery = '';
 
-// Context menu state
+// Context menu state — the right-clicked entry ({ path, isDirectory }), or
+// { root: true } for the tree's empty space (the project folder itself)
 let contextMenuEl = null;
-let contextMenuPath = null;
+let contextMenuTarget = null;
+
+// In-app cut/copy clipboard: { path, mode: 'cut' | 'copy' } awaiting a paste
+let fileClipboard = null;
+// Folder to open on the next render — a paste target that may have been
+// empty (no children container to expand yet)
+let pendingExpandPath = null;
 
 // Git status decoration cache (relative path -> classification)
 let gitStatusFiles = {};
@@ -116,7 +125,7 @@ function renderFileTree(files, parentElement, indent = 0) {
     fileItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      showContextMenu(e.clientX, e.clientY, file.path);
+      showContextMenu(e.clientX, e.clientY, { path: file.path, isDirectory: file.isDirectory });
     });
 
     // Create children container for folders
@@ -198,8 +207,19 @@ function loadFileTree(projectPath) {
  */
 function setupIPC() {
   ipcRenderer.on(IPC.FILE_TREE_DATA, (event, files) => {
+    // A re-render (refresh, or after a rename/paste/delete) keeps the open
+    // folders and the scroll position instead of collapsing everything.
+    const expanded = getExpandedFolderPaths();
+    if (pendingExpandPath) {
+      expanded.add(pendingExpandPath);
+      pendingExpandPath = null;
+    }
+    const scrollTop = fileTreeElement ? fileTreeElement.scrollTop : 0;
     clearFileTree();
     renderFileTree(files, fileTreeElement);
+    restoreExpandedFolders(expanded);
+    applyCutDecoration();
+    if (fileTreeElement) fileTreeElement.scrollTop = scrollTop;
     // Re-apply any active search filter to the new tree
     if (currentQuery) applyFilter(currentQuery);
     // Re-apply git decoration to the new tree
@@ -211,6 +231,32 @@ function setupIPC() {
     gitStatusProjectPath = payload.projectPath;
     gitStatusFiles = payload.isRepo ? (payload.files || {}) : {};
     applyGitStatusDecoration();
+  });
+}
+
+function setFolderExpanded(folderItem, expanded) {
+  const children = folderItem.parentElement.querySelector(':scope > .folder-children');
+  const arrow = folderItem.querySelector('.folder-arrow');
+  if (!children) return;
+  children.style.display = expanded ? 'block' : 'none';
+  if (arrow) arrow.style.transform = expanded ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+
+function getExpandedFolderPaths() {
+  if (!fileTreeElement) return new Set();
+  const paths = new Set();
+  fileTreeElement.querySelectorAll('.folder-children').forEach((children) => {
+    if (children.style.display === 'none') return;
+    const item = children.parentElement.querySelector(':scope > .file-item');
+    if (item) paths.add(item.dataset.path);
+  });
+  return paths;
+}
+
+function restoreExpandedFolders(paths) {
+  if (!fileTreeElement || paths.size === 0) return;
+  fileTreeElement.querySelectorAll('.file-item.folder').forEach((item) => {
+    if (paths.has(item.dataset.path)) setFolderExpanded(item, true);
   });
 }
 
@@ -409,12 +455,29 @@ function setupContextMenu() {
   contextMenuEl = document.getElementById('file-tree-context-menu');
   if (!contextMenuEl) return;
 
+  const revealBtn = contextMenuEl.querySelector('[data-action="reveal"]');
+  if (revealBtn && process.platform !== 'darwin') {
+    revealBtn.textContent = process.platform === 'win32' ? 'Reveal in File Explorer' : 'Reveal in File Manager';
+  }
+
   contextMenuEl.querySelectorAll('.context-menu-item').forEach((btn) => {
     btn.addEventListener('click', () => {
-      handleContextMenuAction(btn.dataset.action);
+      const target = contextMenuTarget;
       hideContextMenu();
+      handleContextMenuAction(btn.dataset.action, target);
     });
   });
+
+  // Right-click on the tree's empty space targets the project folder itself —
+  // the only thing to do there is paste. Rows stop propagation, so this only
+  // sees clicks outside them.
+  if (fileTreeElement) {
+    fileTreeElement.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (!fileClipboard || !getProjectRoot()) return;
+      showContextMenu(e.clientX, e.clientY, { root: true });
+    });
+  }
 
   // Dismiss on outside click / scroll / Esc / window blur
   document.addEventListener('mousedown', (e) => {
@@ -429,9 +492,38 @@ function setupContextMenu() {
   window.addEventListener('scroll', hideContextMenu, true);
 }
 
-function showContextMenu(x, y, path) {
+function getProjectRoot() {
+  return currentProjectPath ? currentProjectPath() : null;
+}
+
+/**
+ * Show only what applies to the target: the project root gets Paste alone;
+ * a file gets everything but Paste; a folder also gets Paste while
+ * something is cut or copied.
+ */
+function configureMenu(target) {
+  const canPaste = !!fileClipboard && (target.root || target.isDirectory);
+  const visible = {
+    reveal: !target.root,
+    cut: !target.root,
+    copy: !target.root,
+    paste: canPaste,
+    'copy-path': !target.root,
+    rename: !target.root,
+    delete: !target.root
+  };
+  contextMenuEl.querySelectorAll('.context-menu-item').forEach((btn) => {
+    btn.hidden = !visible[btn.dataset.action];
+  });
+  contextMenuEl.querySelectorAll('.context-menu-separator').forEach((sep) => {
+    sep.hidden = !!target.root;
+  });
+}
+
+function showContextMenu(x, y, target) {
   if (!contextMenuEl) return;
-  contextMenuPath = path;
+  contextMenuTarget = target;
+  configureMenu(target);
 
   // Position first off-screen so we can measure its actual size,
   // then clamp to viewport to avoid overflow on right/bottom edges.
@@ -449,17 +541,150 @@ function showContextMenu(x, y, path) {
 function hideContextMenu() {
   if (!contextMenuEl) return;
   contextMenuEl.classList.remove('visible');
-  contextMenuPath = null;
+  contextMenuTarget = null;
 }
 
-function handleContextMenuAction(action) {
-  if (action === 'copy-path' && contextMenuPath) {
-    try {
-      clipboard.writeText(contextMenuPath);
-    } catch (e) {
-      console.error('Failed to copy filepath', e);
-    }
+function handleContextMenuAction(action, target) {
+  if (!target) return;
+
+  switch (action) {
+    case 'reveal':
+      shell.showItemInFolder(target.path);
+      break;
+    case 'cut':
+    case 'copy':
+      fileClipboard = { path: target.path, mode: action };
+      applyCutDecoration();
+      break;
+    case 'paste':
+      pasteInto(target.root ? getProjectRoot() : target.path);
+      break;
+    case 'copy-path':
+      try {
+        clipboard.writeText(target.path);
+      } catch (e) {
+        console.error('Failed to copy filepath', e);
+      }
+      break;
+    case 'rename':
+      startRename(target.path);
+      break;
+    case 'delete':
+      confirmDelete(target);
+      break;
   }
+}
+
+function baseName(p) {
+  return p.split(/[\\/]/).filter(Boolean).pop() || p;
+}
+
+/** Dim the row that is cut and waiting for a paste. */
+function applyCutDecoration() {
+  if (!fileTreeElement) return;
+  fileTreeElement.querySelectorAll('.file-item.cut-pending').forEach((item) => {
+    item.classList.remove('cut-pending');
+  });
+  if (!fileClipboard || fileClipboard.mode !== 'cut') return;
+  fileTreeElement.querySelectorAll('.file-item').forEach((item) => {
+    if (item.dataset.path === fileClipboard.path) item.classList.add('cut-pending');
+  });
+}
+
+async function pasteInto(destDir) {
+  if (!fileClipboard || !destDir) return;
+  const { path: source, mode } = fileClipboard;
+  const result = await ipcRenderer.invoke(IPC.FILE_TREE_PASTE, { source, mode, destDir });
+  if (!result || !result.ok) {
+    notify.error(`Couldn't paste "${baseName(source)}": ${result ? result.error : 'unknown error'}`);
+    return;
+  }
+  // A cut is spent once it lands; a copy can be pasted again.
+  if (mode === 'cut') fileClipboard = null;
+  // Open the destination so the pasted item is visible after the refresh.
+  pendingExpandPath = destDir;
+  refreshFileTree();
+}
+
+function findItem(p) {
+  if (!fileTreeElement) return null;
+  return Array.from(fileTreeElement.querySelectorAll('.file-item'))
+    .find((item) => item.dataset.path === p) || null;
+}
+
+/**
+ * Inline rename: the name span becomes an input. Enter or blur commits,
+ * Esc cancels. Key and mouse events stay inside the input so the tree's
+ * keyboard navigation and row click (open file / toggle folder) don't fire.
+ */
+function startRename(targetPath) {
+  const item = findItem(targetPath);
+  if (!item) return;
+  const nameEl = item.querySelector('span:last-child');
+  if (!nameEl) return;
+
+  const oldName = nameEl.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'file-tree-rename-input';
+  input.value = oldName;
+  input.spellcheck = false;
+  nameEl.replaceWith(input);
+
+  let done = false;
+  const finish = async (commit) => {
+    if (done) return;
+    done = true;
+    const newName = input.value.trim();
+    input.replaceWith(nameEl);
+    if (!commit || !newName || newName === oldName) return;
+
+    const result = await ipcRenderer.invoke(IPC.FILE_TREE_RENAME, targetPath, newName);
+    if (!result || !result.ok) {
+      notify.error(`Couldn't rename "${oldName}": ${result ? result.error : 'unknown error'}`);
+      return;
+    }
+    if (fileClipboard && fileClipboard.path === targetPath) fileClipboard.path = result.path;
+    refreshFileTree();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      finish(true);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      finish(false);
+    }
+  });
+  input.addEventListener('blur', () => finish(true));
+  ['click', 'mousedown', 'dblclick'].forEach((type) => {
+    input.addEventListener(type, (e) => e.stopPropagation());
+  });
+
+  input.focus();
+  // Select the name without its extension, like Finder does.
+  const dot = item.classList.contains('folder') ? -1 : oldName.lastIndexOf('.');
+  input.setSelectionRange(0, dot > 0 ? dot : oldName.length);
+}
+
+function confirmDelete(target) {
+  const name = baseName(target.path);
+  taskConfirmModal.open({
+    heading: target.isDirectory ? 'Delete folder?' : 'Delete file?',
+    message: `"${name}" will be moved to the Trash.`,
+    confirmLabel: 'Move to Trash',
+    onConfirm: async () => {
+      const result = await ipcRenderer.invoke(IPC.FILE_TREE_TRASH, target.path);
+      if (!result || !result.ok) {
+        notify.error(`Couldn't delete "${name}": ${result ? result.error : 'unknown error'}`);
+        return;
+      }
+      if (fileClipboard && fileClipboard.path === target.path) fileClipboard = null;
+      refreshFileTree();
+    }
+  });
 }
 
 /* ──────────────────────── Git status decoration ──────────────────────── */

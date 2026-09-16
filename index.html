@@ -1393,7 +1393,15 @@
 
   <!-- File Tree Context Menu -->
   <div id="file-tree-context-menu" class="context-menu" role="menu">
+    <button class="context-menu-item" data-action="reveal" type="button">Reveal in Finder</button>
+    <div class="context-menu-separator" data-group="reveal"></div>
+    <button class="context-menu-item" data-action="cut" type="button">Cut</button>
+    <button class="context-menu-item" data-action="copy" type="button">Copy</button>
+    <button class="context-menu-item" data-action="paste" type="button">Paste</button>
     <button class="context-menu-item" data-action="copy-path" type="button">Copy Filepath</button>
+    <div class="context-menu-separator" data-group="edit"></div>
+    <button class="context-menu-item" data-action="rename" type="button">Rename</button>
+    <button class="context-menu-item danger" data-action="delete" type="button">Delete</button>
   </div>
 
   <!-- Settings, in two surfaces. The split is the scope: what belongs to

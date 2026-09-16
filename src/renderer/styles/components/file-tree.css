@@ -114,6 +114,43 @@
   background: var(--accent-subtle);
 }
 
+#file-tree-context-menu .context-menu-item.danger:hover,
+#file-tree-context-menu .context-menu-item.danger:focus {
+  color: var(--error);
+  background: rgba(232, 147, 138, 0.12);
+}
+
+.context-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border-subtle);
+}
+
+.context-menu [hidden] {
+  display: none;
+}
+
+/* Cut, waiting for a paste */
+.file-item.cut-pending {
+  opacity: 0.5;
+}
+
+/* Inline rename field — sits where the name span was */
+.file-tree-rename-input {
+  flex: 1;
+  width: 0; /* grow into the row instead of the input's intrinsic width */
+  min-width: 0;
+  margin: -2px 4px -2px 0;
+  padding: 1px 4px;
+  border: 1px solid var(--accent-primary);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
 /* ───────── Git status decoration ───────── */
 
 /* Color tokens — reused for both file-item and inherited folder rollup */

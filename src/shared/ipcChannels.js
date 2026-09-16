@@ -23,6 +23,9 @@ const IPC = {
   // File Tree
   LOAD_FILE_TREE: 'load-file-tree',
   FILE_TREE_DATA: 'file-tree-data',
+  FILE_TREE_RENAME: 'file-tree-rename',              // invoke: (path, newName) → { ok, path } | { ok: false, error }
+  FILE_TREE_TRASH: 'file-tree-trash',                // invoke: (path) → { ok } | { ok: false, error } — moves to the OS trash
+  FILE_TREE_PASTE: 'file-tree-paste',                // invoke: ({ source, mode: 'copy'|'cut', destDir }) → { ok, path } | { ok: false, error }
 
   // History
   LOAD_PROMPT_HISTORY: 'load-prompt-history',
