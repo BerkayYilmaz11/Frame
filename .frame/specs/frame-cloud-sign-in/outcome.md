@@ -22,3 +22,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
 
+## T04 — Electron shell cloudSession.js
+
+Wrote `src/main/cloud/cloudSession.js`: `net.fetch`-backed `fetchJson` (15 s timeout surfaced as a plain Error so the core reads it as `network`, not `cancelled`), abortable `sleep`, http(s)-only `openUrl`, D13 device info, the allowlisted public state, and `signIn`/`cancel`/`refresh`/`signOut`/`startup`/`getState` with `init(window)` and `setupIPC(ipcMain)`. Additions beyond plan.md: `CLOUD_SIGN_IN` returns immediately while the attempt runs, `getState()` re-runs `startup()` when the resolved server URL changed, a successful sign-in fires one `refresh()` (register returns no device), and `failed` keeps `verificationUrl` for the noWorkspace link. Verified once against a fake server with stubbed Electron (scratch, not committed).
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+

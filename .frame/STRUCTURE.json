@@ -467,6 +467,136 @@
         ]
       }
     },
+    "main/cloud/cloudSession": {
+      "file": "src/main/cloud/cloudSession.js",
+      "description": "cloudSession — the Electron shell around the Frame Cloud device flow.",
+      "exports": [
+        "init",
+        "setupIPC",
+        "startup",
+        "signIn",
+        "cancel",
+        "refresh",
+        "signOut",
+        "getState",
+        "getPublicState",
+        "toPublicState"
+      ],
+      "depends": [
+        "os",
+        "electron",
+        "../shared/ipcChannels",
+        "userSettings",
+        "logger",
+        "sessionStore",
+        "deviceFlow"
+      ],
+      "functions": {
+        "resolveUrl": {
+          "line": 59
+        },
+        "fetchJson": {
+          "line": 71,
+          "params": [
+            "url",
+            "{ method = 'GET'",
+            "body",
+            "token",
+            "signal } = {}"
+          ],
+          "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
+        },
+        "sleep": {
+          "line": 112,
+          "params": [
+            "ms",
+            "signal"
+          ]
+        },
+        "openUrl": {
+          "line": 132,
+          "params": [
+            "url"
+          ]
+        },
+        "deviceInfo": {
+          "line": 140
+        },
+        "toPublicState": {
+          "line": 151
+        },
+        "getPublicState": {
+          "line": 159
+        },
+        "publish": {
+          "line": 163
+        },
+        "setState": {
+          "line": 168,
+          "params": [
+            "next"
+          ]
+        },
+        "signedInState": {
+          "line": 173,
+          "params": [
+            "serverUrl",
+            "session",
+            "ephemeral"
+          ]
+        },
+        "abortAttempt": {
+          "line": 185
+        },
+        "signIn": {
+          "line": 194,
+          "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
+        },
+        "cancel": {
+          "line": 243
+        },
+        "refresh": {
+          "line": 251,
+          "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
+        },
+        "signOut": {
+          "line": 281,
+          "purpose": "Tell the server, then forget the session locally whatever it said."
+        },
+        "startup": {
+          "line": 303,
+          "purpose": "Launch: show the stored session at once, then refresh it in the background."
+        },
+        "getState": {
+          "line": 323,
+          "purpose": "The current state, re-resolving first if the server address changed underneath."
+        },
+        "init": {
+          "line": 330,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 334,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_SIGN_IN",
+          "CLOUD_CANCEL_SIGN_IN",
+          "CLOUD_SIGN_OUT",
+          "CLOUD_GET_STATE",
+          "CLOUD_REFRESH"
+        ],
+        "emits": [
+          "CLOUD_SESSION_STATE"
+        ]
+      }
+    },
     "main/cloud/deviceFlow": {
       "file": "src/main/cloud/deviceFlow.js",
       "description": "deviceFlow — the pure core of Frame Cloud sign-in.",
@@ -14296,6 +14426,11 @@
       }
     ],
     "session": [
+      {
+        "module": "main/cloud/cloudSession",
+        "file": "src/main/cloud/cloudSession.js",
+        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
+      },
       {
         "module": "main/cloud/sessionStore",
         "file": "src/main/cloud/sessionStore.js",
