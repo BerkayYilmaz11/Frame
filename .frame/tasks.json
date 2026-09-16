@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T07:07:57.688Z",
+  "lastUpdated": "2026-09-16T07:10:35.168Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8120,13 +8120,13 @@
       "title": "Hand the surface over in `src/renderer/appLoader.js`: capture the projects array from the first `WORKSPACE_DATA` push, consult the gate where the loader would leave, call `onboarding.takeOver()` or park; change `hide()` to fade-and-park instead of fade-and-remove, preserving the init-once guard and the failsafe's precedence over both.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:10:35.168Z",
+      "completedAt": "2026-09-16T07:10:35.168Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T07",

@@ -5074,34 +5074,44 @@
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "onboarding"
       ],
       "functions": {
         "init": {
-          "line": 40
+          "line": 48
         },
         "playIntro": {
-          "line": 64,
+          "line": 77,
           "purpose": "Drives the intro's beats by class. The wordmark's target width is measured"
         },
         "finishIntro": {
-          "line": 86
+          "line": 99
         },
         "clearIntroTimers": {
-          "line": 91
+          "line": 104
         },
         "hideWhenReady": {
-          "line": 98,
+          "line": 114,
           "purpose": "The splash owes the user two things: a finished intro and a loaded"
         },
         "armFailsafe": {
-          "line": 103
+          "line": 128
         },
         "showFailureState": {
-          "line": 110
+          "line": 142,
+          "purpose": "Additive, not destructive. This used to replace the surface's innerHTML,"
+        },
+        "clearFailureState": {
+          "line": 172,
+          "purpose": "A retry that worked: drop the error and let the normal join decide between"
         },
         "hide": {
-          "line": 130
+          "line": 179
+        },
+        "park": {
+          "line": 197,
+          "purpose": "The end of the fade, and onboarding's way out. The node is kept and hidden"
         }
       },
       "ipc": {

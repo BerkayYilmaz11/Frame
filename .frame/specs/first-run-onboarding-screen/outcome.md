@@ -39,3 +39,11 @@ Wired the three boxes in `onboarding.js` to `state.selectProjectFolder()`, `stat
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+
+## T06 — the hand-off, and a failure state that survives it
+
+`appLoader.js` keeps the first `WORKSPACE_DATA` payload, and where it would have left it asks `onboarding.takeOver(projects)`; on a take-over it clears its timers and stays, otherwise it fades and parks. `hide()` no longer removes the node — `park()` hides it, so the palette reuses this surface and its lockup. Unplanned but forced by the task: `showFailureState()` used to replace the surface's innerHTML, which would now destroy the lockup and the panel that a successful retry needs, so it appends the error and hides the rest by class, and `hideWhenReady` clears it. Verified live on two isolated profiles — empty workspace ends on the screen with both agent chips, seeded workspace parks as before. 3 files.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---

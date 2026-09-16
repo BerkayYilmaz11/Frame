@@ -11,6 +11,12 @@
  * arrived — whichever is slower — so the animation is never cut mid-beat and
  * a slow boot never adds the intro's length on top of itself.
  *
+ * Where it would have left, it asks whether this is a first run: with no
+ * projects the surface is handed to onboarding.js instead, keeping the lockup
+ * exactly where the intro put it (first-run-onboarding-screen spec). That is
+ * also why the splash is parked rather than removed — the palette's Show
+ * Welcome Screen reuses this same element, and its same lockup, later on.
+ *
  * If the failsafe timeout fires before any data, the splash swaps to a
  * "couldn't load workspace" state with a Retry button instead of silently
  * dropping the user into a blank app. Main has no error variant for
@@ -19,6 +25,7 @@
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const onboarding = require('./onboarding');
 
 const FAILSAFE_MS = 10000;
 const FADE_MS = 280;
@@ -33,6 +40,7 @@ const REDUCED_MOTION_MS = 500; // no beats to play; just don't blink past it
 let loaderEl = null;
 let firstDataArrived = false;
 let introDone = false;
+let projects = null;      // the first WORKSPACE_DATA payload, for the gate
 let failsafeTimer = null;
 let introTimers = [];
 let initialized = false;
@@ -48,12 +56,17 @@ function init() {
   // welcomeOverlay's listener so the loader fades out before the welcome
   // modal can open behind it. Also resolves the failure state: if data
   // arrives late (slow main, or after Retry), the loader still goes away.
-  ipcRenderer.on(IPC.WORKSPACE_DATA, () => {
+  ipcRenderer.on(IPC.WORKSPACE_DATA, (event, payload) => {
     if (firstDataArrived) return;
     firstDataArrived = true;
+    // Kept for the gate: the project count decides whether this boot ends on
+    // the app or on the onboarding screen. Only the first push is consulted,
+    // so a later one cannot re-open a screen the user has already left.
+    projects = payload;
     hideWhenReady();
   });
 
+  onboarding.init({ onLeave: park });
   playIntro();
   armFailsafe();
 }
@@ -94,9 +107,21 @@ function clearIntroTimers() {
 }
 
 /* The splash owes the user two things: a finished intro and a loaded
-   workspace. Neither alone is enough to leave. */
+   workspace. Neither alone is enough to leave.
+
+   And it may not leave at all: on a first run the surface becomes the
+   onboarding screen, which parks it later through the onLeave hook. */
 function hideWhenReady() {
   if (!firstDataArrived || !introDone) return;
+  clearFailureState();
+  if (onboarding.takeOver(projects)) {
+    clearIntroTimers();
+    if (failsafeTimer) {
+      clearTimeout(failsafeTimer);
+      failsafeTimer = null;
+    }
+    return;
+  }
   hide();
 }
 
@@ -107,6 +132,13 @@ function armFailsafe() {
   }, FAILSAFE_MS);
 }
 
+/*
+ * Additive, not destructive. This used to replace the surface's innerHTML,
+ * which was fine when the splash had nothing to lose — but it would now take
+ * the lockup and the onboarding panel with it, and a retry that succeeds on a
+ * first run has to be able to show that panel. So the error is appended and
+ * the rest is hidden by class.
+ */
 function showFailureState() {
   if (!loaderEl) return;
   // The intro is beside the point once boot has failed — stop its beats so a
@@ -114,17 +146,34 @@ function showFailureState() {
   clearIntroTimers();
   introDone = true;
   loaderEl.classList.remove('app-loader-run', 'app-loader-reveal');
-  loaderEl.innerHTML = `
-    <div class="app-loader-error-mark">&#10022;</div>
-    <div class="app-loader-error-title">Couldn't load your workspace</div>
-    <div class="app-loader-error-detail">The workspace didn't respond in time. You can retry, or restart Frame if this keeps happening.</div>
-    <button type="button" class="btn app-loader-retry">Retry</button>
-  `;
-  loaderEl.querySelector('.app-loader-retry').addEventListener('click', () => {
-    loaderEl.querySelector('.app-loader-error-title').textContent = 'Retrying…';
-    ipcRenderer.send(IPC.LOAD_WORKSPACE);
-    armFailsafe();
-  });
+  loaderEl.classList.add('app-loader-failed');
+
+  let errorEl = loaderEl.querySelector('.app-loader-error');
+  if (!errorEl) {
+    errorEl = document.createElement('div');
+    errorEl.className = 'app-loader-error';
+    errorEl.innerHTML = `
+      <div class="app-loader-error-mark">&#10022;</div>
+      <div class="app-loader-error-title">Couldn't load your workspace</div>
+      <div class="app-loader-error-detail">The workspace didn't respond in time. You can retry, or restart Frame if this keeps happening.</div>
+      <button type="button" class="btn app-loader-retry">Retry</button>
+    `;
+    loaderEl.appendChild(errorEl);
+    errorEl.querySelector('.app-loader-retry').addEventListener('click', () => {
+      errorEl.querySelector('.app-loader-error-title').textContent = 'Retrying…';
+      ipcRenderer.send(IPC.LOAD_WORKSPACE);
+      armFailsafe();
+    });
+  }
+}
+
+/* A retry that worked: drop the error and let the normal join decide between
+   the app and the onboarding screen. */
+function clearFailureState() {
+  if (!loaderEl) return;
+  loaderEl.classList.remove('app-loader-failed');
+  const errorEl = loaderEl.querySelector('.app-loader-error');
+  if (errorEl) errorEl.remove();
 }
 
 function hide() {
@@ -135,12 +184,19 @@ function hide() {
   clearIntroTimers();
   if (!loaderEl) return;
   loaderEl.classList.add('app-loader-hidden');
-  setTimeout(() => {
-    if (loaderEl && loaderEl.parentNode) {
-      loaderEl.parentNode.removeChild(loaderEl);
-    }
-    loaderEl = null;
-  }, FADE_MS);
+  setTimeout(park, FADE_MS);
+}
+
+/*
+ * The end of the fade, and onboarding's way out. The node is kept and hidden
+ * rather than removed: the palette can reopen the onboarding screen on this
+ * same surface later in the session, and rebuilding it elsewhere would mean a
+ * second copy of the lockup that can sit a pixel off the first. Hidden, it is
+ * inert — nothing else in the renderer queries #app-loader.
+ */
+function park() {
+  if (!loaderEl) return;
+  loaderEl.classList.add('app-loader-hidden', 'app-loader-parked');
 }
 
 module.exports = { init };

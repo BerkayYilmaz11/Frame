@@ -246,7 +246,22 @@
   }
 }
 
-/* Failure state — shown when the failsafe fires before any WORKSPACE_DATA */
+/* Failure state — shown when the failsafe fires before any WORKSPACE_DATA.
+   Appended beside the lockup rather than replacing it, so a retry that
+   succeeds still has an onboarding panel to show; these two rules are what
+   gets it out of the way meanwhile. */
+
+.app-loader-failed .app-loader-brand,
+.app-loader-failed .onboarding {
+  display: none;
+}
+
+.app-loader-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
 
 .app-loader-error-mark {
   font-size: 48px;
