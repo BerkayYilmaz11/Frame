@@ -45,6 +45,9 @@ let currentUpdateInfo = null;
 // Account section elements + the last state main pushed
 let accountSection = null;
 let accountState = { state: 'unavailable' };
+let signedInNoteTimer = null;
+
+const SIGNED_IN_NOTE_MS = 4000;
 
 const ACCOUNT_REASONS = {
   denied: 'Sign-in was denied in the browser.',
@@ -193,6 +196,7 @@ async function invokeAccount(channel, btn) {
 
 function renderAccount(state) {
   if (!accountSection) return;
+  const previous = accountState.state;
   accountState = state && state.state ? state : { state: 'unavailable' };
   const s = accountState;
 
@@ -203,17 +207,28 @@ function renderAccount(state) {
   setNote('signedOutUnreachable', s.state === 'signedOut' && s.serverUnreachable);
   setNote('ephemeral', s.state === 'signedIn' && s.ephemeral);
   setNote('signedInUnreachable', s.state === 'signedIn' && s.serverUnreachable);
+  if (s.state !== 'signedIn') setNote('justSignedIn', false);
 
   if (s.state === 'awaitingApproval') {
     setText('settings-account-code', s.userCode || '');
     setText('settings-account-url', s.verificationUrl || '');
   } else if (s.state === 'signedIn') {
     renderSignedIn(s);
+    // Main brought the window forward; land the user on the result.
+    if (previous === 'registering') showSignedInNote();
   } else if (s.state === 'failed') {
     setText('settings-account-reason', ACCOUNT_REASONS[s.reason] || ACCOUNT_REASONS.network);
     const webLink = document.getElementById('settings-account-web-link');
     if (webLink) webLink.hidden = !(s.reason === 'noWorkspace' && webOrigin(s.verificationUrl));
   }
+}
+
+function showSignedInNote() {
+  if (overlay && !overlay.isOpen()) overlay.open();
+  accountSection.scrollIntoView({ block: 'start' });
+  setNote('justSignedIn', true);
+  clearTimeout(signedInNoteTimer);
+  signedInNoteTimer = setTimeout(() => setNote('justSignedIn', false), SIGNED_IN_NOTE_MS);
 }
 
 function renderSignedIn(s) {

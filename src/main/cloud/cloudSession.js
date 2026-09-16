@@ -212,6 +212,17 @@ function signedInState(serverUrl, session, ephemeral) {
   };
 }
 
+// Device flow has no redirect back to the app, so a completed sign-in is what
+// brings Frame to the front. macOS will not hand focus over from the browser
+// to a plain focus(); `steal` makes Frame the active app.
+function bringToFront() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+  if (process.platform === 'darwin') app.focus({ steal: true });
+}
+
 function abortAttempt() {
   if (!attempt) return;
   attempt.abort();
@@ -260,6 +271,7 @@ async function signIn() {
     token = result.token;
     const { ephemeral } = sessionStore.save({ serverUrl, token, ...result.session });
     setState(signedInState(serverUrl, result.session, ephemeral));
+    bringToFront();
     // register does not describe the device; me does.
     refresh();
   } else if (result.reason === 'cancelled') {

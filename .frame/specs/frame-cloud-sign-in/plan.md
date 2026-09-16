@@ -92,6 +92,22 @@
   `.settings-status-chip`; only the large code display and the URL row need
   new rules.
 
+- **D16 · Frame comes to the front when sign-in completes.** (asked,
+  2026-09-16, after manual testing — the waiting screen gave no sign the
+  browser step had finished) Industry desktop apps return to the foreground
+  after browser sign-in (usually via a URL-scheme or loopback redirect);
+  device flow has no redirect, so the success result itself triggers it:
+  `cloudSession.js` restores, shows and focuses the window, with
+  `app.focus({ steal: true })` on macOS where a plain `focus()` cannot take
+  focus from the browser. The renderer shows a short "Signed in to Frame
+  Cloud" confirmation on the registering → signedIn transition and opens
+  Frame Settings on Account if the user had closed it, so the confirmation
+  is visible. No new payload field: the transition is detected from the
+  previous pushed state. Rejected for now: switching to authorization code +
+  PKCE with a `frame://` or loopback redirect (server work in FrameCloud, and
+  the future CLI still needs device flow). Only a completed sign-in raises
+  the window — not a launch refresh, a sign-out or a failure.
+
 ### Components
 
 ```
@@ -331,3 +347,10 @@ Electron 28.3.3; tests use Node's built-in runner.
    (the one the user configured, never Aptabase), where the token lives
    (`cloud-session.json`, `safeStorage`-encrypted, or memory only), and that
    it is excluded from logs, the activity record and telemetry.
+9. **Foreground on success (D16).** In `src/main/cloud/cloudSession.js`,
+   after a successful `signIn` restore a minimized window, show and focus
+   it, and call `app.focus({ steal: true })` on macOS. In
+   `src/renderer/frameSettingsModal.js`, on the registering → signedIn
+   transition open the overlay if it is closed, scroll Account into view and
+   show a "Signed in to Frame Cloud" note for a few seconds; its style goes
+   in `settings-modal.css`. The Files list above already covers all three.

@@ -70,3 +70,11 @@ _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
 
+## T09 — Bring Frame to the front when sign-in completes
+
+Added after manual testing (plan D16): `cloudSession.js` calls a new `bringToFront()` after a successful `signIn` (restore if minimized, `show()`, `focus()`, and `app.focus({ steal: true })` on macOS), and `frameSettingsModal.js` reacts to the registering → signedIn transition by opening Frame Settings if closed, scrolling to Account and showing a 4 s "Signed in to Frame Cloud" note (`index.html`, `settings-modal.css`). The transition is read from the previous pushed state, so the payload is unchanged; launch, refresh, sign-out and failures never raise the window. Checked in the dev app with a minimized window; one of three runs read `isFocused()` false immediately after approval, later reads were true — worth confirming by hand with the browser in front.
+
+_Captured: 2026-09-16 · 4 file change(s)_
+
+---
+

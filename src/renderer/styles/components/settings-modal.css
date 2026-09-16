@@ -456,3 +456,15 @@
 .settings-account-reason a:hover {
   text-decoration: underline;
 }
+
+/* Brief confirmation after a completed sign-in (plan D16). */
+.settings-account-success {
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-primary);
+  border-radius: 6px;
+  animation: settings-fade 0.14s ease-out;
+}

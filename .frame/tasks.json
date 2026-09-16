@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:31:44Z",
+  "lastUpdated": "2026-09-16T10:16:23Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7893,6 +7893,22 @@
       "createdAt": "2026-09-16T08:09:25.341Z",
       "updatedAt": "2026-09-16T08:31:44Z",
       "completedAt": "2026-09-16T08:31:44Z"
+    },
+    {
+      "id": "task-spec-frame-cloud-sign-in-T09",
+      "title": "Bring Frame to the front when sign-in completes: `cloudSession.js` restores, shows and focuses the window (`app.focus({ steal: true })` on macOS) on success; `frameSettingsModal.js` opens Frame Settings on Account if it is closed and shows a brief \"Signed in to Frame Cloud\" confirmation on the registering → signedIn transition",
+      "description": "When the device flow succeeds, cloudSession.js restores, shows and focuses the main window, and on macOS calls app.focus({ steal: true }) so Frame takes focus from the browser. frameSettingsModal.js detects the registering → signedIn transition from the previous pushed state, opens Frame Settings on Account if it is closed, and shows a short \"Signed in to Frame Cloud\" note. Files: src/main/cloud/cloudSession.js, src/renderer/frameSettingsModal.js, src/renderer/styles/components/settings-modal.css, index.html.",
+      "userRequest": "User said: Onaydan sonra: Onay gelince Frame penceresi öne gelsin (BrowserWindow.focus()) ve kısa bir \"Signed in\" durumu göstersin. Endüstrideki \"uygulama kendiliğinden öne gelir\" hissini bu sağlar. Onaydan sonra otomatik öne getirmeyi bu spec içerisinde ayrı bir task olarak yapalım",
+      "acceptanceCriteria": "Approving in the browser brings the Frame window to the front (also when it was minimized or behind the browser); Frame Settings is open on Account with a visible \"Signed in to Frame Cloud\" note that fades after a few seconds; a relaunch with a stored session, a refresh, a sign-out or a failed sign-in never raises the window; npm test passes.",
+      "notes": "Device flow has no redirect back to the app, so the success result is the trigger (plan D16). Switching to authorization code + PKCE with a frame:// or loopback redirect was discussed and deferred.",
+      "source": "spec:frame-cloud-sign-in:T09",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-cloud-sign-in — 2026-09-16 manual testing",
+      "createdAt": "2026-09-16T10:13:08Z",
+      "updatedAt": "2026-09-16T10:16:23Z",
+      "completedAt": "2026-09-16T10:16:23Z"
     }
   ],
   "metadata": {

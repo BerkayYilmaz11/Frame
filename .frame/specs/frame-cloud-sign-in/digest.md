@@ -10,6 +10,7 @@ Diverged from the plan:
 - redact.js already had the Bearer pattern; the real gap was JSON-quoted keys, now fixed for every secret key.
 - `startup()` runs once, because the renderer's first CLOUD_GET_STATE arrives before did-finish-load.
 - Palette commands carry `when` predicates, so packaged builds list neither.
+- Added after manual testing (D16): a completed sign-in raises and focuses the window (`app.focus({ steal: true })` on macOS), and Account shows a brief "Signed in" note. Authorization code + PKCE with a URL-scheme or loopback redirect was deferred, because the future CLI still needs device flow.
 - `clear()` also removes fsSafe's `.bak`.
 Rules for later work:
 - The token never enters the push payload; extend `PUBLIC_KEYS`, never delete fields.

@@ -549,43 +549,47 @@
             "ephemeral"
           ]
         },
+        "bringToFront": {
+          "line": 218,
+          "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
+        },
         "abortAttempt": {
-          "line": 215
+          "line": 226
         },
         "signIn": {
-          "line": 224,
+          "line": 235,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 274
+          "line": 286
         },
         "refresh": {
-          "line": 282,
+          "line": 294,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
         "signOut": {
-          "line": 312,
+          "line": 324,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 337,
+          "line": 349,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 341
+          "line": 353
         },
         "getState": {
-          "line": 362,
+          "line": 374,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 369,
+          "line": 381,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 373,
+          "line": 385,
           "params": [
             "ipcMain"
           ]
@@ -6740,60 +6744,63 @@
       ],
       "functions": {
         "init": {
-          "line": 57
+          "line": 60
         },
         "initAccountSection": {
-          "line": 113
+          "line": 116
         },
         "pullAccountState": {
-          "line": 137
+          "line": 140
         },
         "refreshAccountOnOpen": {
-          "line": 152,
+          "line": 155,
           "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
         },
         "onAccountAction": {
-          "line": 161,
+          "line": 164,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeAccount": {
-          "line": 183,
+          "line": 186,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderAccount": {
-          "line": 194,
+          "line": 197,
           "params": [
             "state"
           ]
         },
+        "showSignedInNote": {
+          "line": 226
+        },
         "renderSignedIn": {
-          "line": 219,
+          "line": 234,
           "params": [
             "s"
           ]
         },
         "setNote": {
-          "line": 232,
+          "line": 247,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 237,
+          "line": 252,
           "params": [
             "id",
             "text"
           ]
         },
         "setValue": {
-          "line": 243,
+          "line": 258,
           "params": [
             "id",
             "primary",
@@ -6802,36 +6809,36 @@
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "isWebUrl": {
-          "line": 255,
+          "line": 270,
           "params": [
             "url"
           ]
         },
         "webOrigin": {
-          "line": 259,
+          "line": 274,
           "params": [
             "url"
           ]
         },
         "signIn": {
-          "line": 269,
+          "line": 284,
           "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
         },
         "signOut": {
-          "line": 277,
+          "line": 292,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "initAboutSection": {
-          "line": 283
+          "line": 298
         },
         "runCheck": {
-          "line": 368,
+          "line": 383,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 407,
+          "line": 422,
           "params": [
             "{ checked",
             "found",
@@ -6843,25 +6850,25 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 431,
+          "line": 446,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 442
+          "line": 457
         },
         "hideSidebarDot": {
-          "line": 446
+          "line": 461
         },
         "formatRelative": {
-          "line": 452,
+          "line": 467,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 463
+          "line": 478
         }
       },
       "ipc": {
