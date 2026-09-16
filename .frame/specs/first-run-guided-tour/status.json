@@ -1,0 +1,20 @@
+{
+  "slug": "first-run-guided-tour",
+  "title": "First-run guided tour",
+  "phase": "tasks_generated",
+  "generated_task_ids": [
+    "task-spec-first-run-guided-tour-T01",
+    "task-spec-first-run-guided-tour-T02",
+    "task-spec-first-run-guided-tour-T03",
+    "task-spec-first-run-guided-tour-T04",
+    "task-spec-first-run-guided-tour-T05",
+    "task-spec-first-run-guided-tour-T06",
+    "task-spec-first-run-guided-tour-T07",
+    "task-spec-first-run-guided-tour-T08"
+  ],
+  "ai_tool": "claude-code",
+  "created_at": "2026-09-16T12:42:00Z",
+  "updated_at": "2026-09-16T13:07:39.000Z",
+  "last_phase_at": "2026-09-16T13:07:39.000Z",
+  "implement_mode": "guided"
+}
