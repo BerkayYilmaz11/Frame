@@ -10,6 +10,11 @@
  * It carries no link to the guide: a first run is for getting a project open,
  * and How to Use Frame is a click away from the rail once the app is up.
  *
+ * The screen outlives the pickers it opens. Its three boxes start a route and
+ * leave the screen standing; only an opened project — or Skip — takes it
+ * down, so cancelling a dialog returns the user here instead of stranding
+ * them in the empty app they were trying to leave.
+ *
  * It replaced the welcome modal, which asked for a project from on top of the
  * empty app that needed one, and asked again on every launch until the user
  * found a checkbox. Nothing is persisted here: the project count is the whole
@@ -61,6 +66,15 @@ function init({ onLeave: leave } = {}) {
       paintToolSelection();
     }
   });
+
+  // The one thing that ends the screen besides Skip: a project is open. All
+  // three boxes reach here — the folder picker and the new-project dialog
+  // through PROJECT_SELECTED, the clone through its own result handler — so
+  // the screen does not need to know which route the user took, only that one
+  // of them arrived.
+  state.onProjectChange((path) => {
+    if (path) close();
+  });
 }
 
 /**
@@ -88,6 +102,9 @@ function open(canDismiss) {
   dismissible = resolved;
   surfaceEl.classList.remove('app-loader-parked', 'app-loader-hidden');
   surfaceEl.classList.add('app-loader-onboarding');
+  // The clone form is an ordinary modal, far below this surface's z-index.
+  // Mark the document so it can be lifted above the screen it opens from.
+  document.body.classList.add('onboarding-active');
   // On the surface, not the panel: the × lives outside #onboarding so a
   // transformed panel cannot capture its fixed positioning.
   surfaceEl.classList.toggle('app-loader-dismissible', dismissible);
@@ -103,6 +120,7 @@ function close() {
   if (!isOpen) return;
   isOpen = false;
   surfaceEl.classList.remove('app-loader-onboarding', 'app-loader-dismissible', 'app-loader-complete');
+  document.body.classList.remove('onboarding-active');
   if (typeof onLeave === 'function') onLeave();
 }
 
@@ -118,22 +136,13 @@ function measureWordmark() {
 }
 
 function setupListeners() {
-  // The three ways in. Each leaves the screen first, then runs the route that
-  // already exists — none of these flows is forked here.
-  bind('onboarding-open-folder', () => {
-    close();
-    state.selectProjectFolder();
-  });
-
-  bind('onboarding-create-project', () => {
-    close();
-    state.createNewProject();
-  });
-
-  bind('onboarding-clone-github', () => {
-    close();
-    openProjectModal.open({ clone: true });
-  });
+  // The three ways in. None of them closes the screen: a folder picker the
+  // user cancels, or a clone form they back out of, has to land them back
+  // here rather than in the empty app they were trying to leave. The screen
+  // goes when a project actually opens — see onProjectChange below.
+  bind('onboarding-open-folder', () => state.selectProjectFolder());
+  bind('onboarding-create-project', () => state.createNewProject());
+  bind('onboarding-clone-github', () => openProjectModal.open({ clone: true }));
 
   bind('onboarding-skip', close);
   bind('onboarding-close', close);
@@ -141,10 +150,12 @@ function setupListeners() {
   document.addEventListener('keydown', (e) => {
     // Only the summoned screen answers to Escape. At boot this surface is the
     // app's state rather than a dialog over one, and Skip is the way past it.
-    if (isOpen && dismissible && e.key === 'Escape') {
-      e.preventDefault();
-      close();
-    }
+    if (!isOpen || !dismissible || e.key !== 'Escape') return;
+    // And never out from under a modal opened on top of it: the clone form
+    // has its own Escape, and one keypress should close one thing.
+    if (document.querySelector('.modal-overlay.visible')) return;
+    e.preventDefault();
+    close();
   });
 }
 

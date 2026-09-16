@@ -199,6 +199,14 @@
   color: var(--text-primary);
 }
 
+/* The clone form opens from this screen, and `.modal-overlay` sits at z-index
+   1000 while the boot surface is at 100000 — so without this the modal would
+   open behind the screen that asked for it. Scoped to while the screen is up;
+   onboarding.js puts the class on <body>. */
+body.onboarding-active .modal-overlay {
+  z-index: 100001;
+}
+
 /* ── Narrow windows ────────────────────────────────────── */
 
 @media (max-width: 700px) {

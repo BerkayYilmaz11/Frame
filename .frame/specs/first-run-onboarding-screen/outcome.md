@@ -79,3 +79,11 @@ The user asked for the How to Use Frame link to come off the first-run screen, w
 _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
+
+## Follow-up — the screen outlives the routes it starts (revises T05)
+
+The three boxes closed the screen before running their route, so cancelling the folder picker or backing out of the clone form dropped the user into the empty app they were trying to leave — with no way back except the palette. They now start the route and leave the screen standing; `state.onProjectChange` closes it when a project actually opens, which covers all three routes without the screen knowing which one the user took. Two things that made the old shape necessary also had to be fixed: `.modal-overlay` sits at z-index 1000 against this surface's 100000, so the clone form would have opened behind the screen that asked for it (lifted while `body.onboarding-active`), and a summoned screen's Escape would have closed both the modal and the screen, so it now bails while a visible modal is on top. 2 files.
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
