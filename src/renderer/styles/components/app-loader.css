@@ -173,6 +173,79 @@
   }
 }
 
+/* ── The onboarding hand-off (first-run-onboarding-screen spec) ──
+ *
+ * With no projects the surface does not leave: appLoader adds
+ * .app-loader-onboarding and the first-run panel arrives beneath the lockup.
+ *
+ * The panel is positioned from the surface's centre downward rather than
+ * placed in the column's flow, because flow would re-centre the column and
+ * carry the lockup upward — and the whole point of D1 is that the mark and
+ * wordmark stay exactly where the intro left them. 64px clears the 76px
+ * mark's lower half with room to breathe.
+ */
+
+.app-loader-onboarding .onboarding {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: 64px;
+  transform: translate(-50%, 10px);
+  opacity: 0;
+  animation: app-loader-onboarding-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 60ms forwards;
+}
+
+@keyframes app-loader-onboarding-in {
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* Parked: the surface is done but stays in the DOM, so the palette's
+   Show Welcome Screen can reuse this element and its lockup instead of
+   rebuilding them somewhere else (plan D3). */
+.app-loader.app-loader-parked {
+  display: none;
+}
+
+/* Short windows: holding the lockup would push Skip off the bottom edge, so
+   here the column re-centres and the lockup rides up with it. Losing the hold
+   beats losing the way out. Its own animation name rather than a redefined
+   one — two @keyframes blocks of the same name resolve by source order, which
+   is a trap for whoever edits this next. */
+@media (max-height: 640px) {
+  .app-loader-onboarding .onboarding {
+    position: static;
+    margin-top: 0;
+    transform: translateY(10px);
+    animation-name: app-loader-onboarding-in-flow;
+  }
+}
+
+@keyframes app-loader-onboarding-in-flow {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Reduced motion: the finished frame, straight away. Must sit after the
+   animation it turns off — same specificity, so source order decides. */
+@media (prefers-reduced-motion: reduce) {
+  .app-loader-onboarding .onboarding {
+    animation: none;
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-height: 640px) {
+  .app-loader-onboarding .onboarding {
+    transform: none;
+  }
+}
+
 /* Failure state — shown when the failsafe fires before any WORKSPACE_DATA */
 
 .app-loader-error-mark {

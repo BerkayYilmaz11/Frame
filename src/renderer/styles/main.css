@@ -30,7 +30,7 @@
 @import 'components/cheat-sheet.css';
 
 /* 8. Welcome Overlay */
-@import 'components/welcome-overlay.css';
+@import 'components/onboarding.css';
 
 /* 8a. How to Use Frame guide (wide two-column modal) */
 @import 'components/guide.css';

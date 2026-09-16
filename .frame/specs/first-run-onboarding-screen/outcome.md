@@ -15,3 +15,11 @@ Added `#onboarding` to `index.html` as the last child of `#app-loader`, after th
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+
+## T03 — the panel's stylesheet, and holding the lockup
+
+Added `onboarding.css` (boxes, agent chips carried over from the retired card, foot, a `×` that only appears with `.onboarding-dismissible`, single-column under 700px) and swapped the `main.css` import. Deviation from the plan: the panel is positioned from the surface's centre downward rather than placed in the loader's flex flow — flow re-centres the column and carries the lockup upward, which is exactly what D1 forbids — with a `max-height: 640px` fallback that gives the hold up rather than push Skip off-screen. Also split the reduced-motion override into its own block after the animation, since the earlier block sat before it and lost on source order. 3 files.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---

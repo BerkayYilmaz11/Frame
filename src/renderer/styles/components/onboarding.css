@@ -1,0 +1,224 @@
+/* First-run onboarding screen (first-run-onboarding-screen spec)
+ *
+ * Not a card on a backdrop — this is the boot surface itself, still showing
+ * the mark and wordmark the intro placed. So there is no panel, no border and
+ * no shadow: the content simply arrives under the lockup, on the same field.
+ * `.app-loader-onboarding` on the surface is what reveals it; appLoader.js
+ * adds that class instead of hiding, and onboarding.js owns what is inside.
+ *
+ * The agent chips keep the retired welcome card's shape and the one accent it
+ * allowed itself (the selected agent) — that part of the greeting was right,
+ * it was the modal around it that wasn't.
+ */
+
+.onboarding {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  width: min(760px, 100%);
+  padding: 0 24px;
+}
+
+.app-loader-onboarding .onboarding {
+  display: flex;
+}
+
+/* ── The three ways in ─────────────────────────────────── */
+
+.onboarding-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.onboarding-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 18px 16px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, transform 0.14s;
+}
+
+.onboarding-box:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.onboarding-box:active {
+  transform: translateY(0);
+}
+
+.onboarding-box:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.onboarding-box-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: color 0.14s;
+}
+
+.onboarding-box:hover .onboarding-box-icon {
+  color: var(--accent-primary);
+}
+
+.onboarding-box-label {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.onboarding-box-hint {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+/* ── Default agent ─────────────────────────────────────── */
+
+.onboarding-agent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-agent-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.onboarding-tool-options {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.onboarding-tool-option {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.onboarding-tool-option:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.onboarding-tool-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-tool-option.selected {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.onboarding-tool-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Foot ──────────────────────────────────────────────── */
+
+.onboarding-foot {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.onboarding-skip {
+  padding: 6px 20px;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.onboarding-skip:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.onboarding-link {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.onboarding-link:hover {
+  color: var(--accent-primary);
+}
+
+/* The × exists only for the palette-summoned screen: at boot this surface is
+   the app's state, not a dialog over one, and Skip is the way past it (D2).
+   onboarding.js adds .onboarding-dismissible when the gate allows it. */
+.onboarding-close {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  display: none;
+  padding: 6px 9px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.onboarding-dismissible .onboarding-close {
+  display: block;
+}
+
+.onboarding-close:hover {
+  color: var(--text-primary);
+}
+
+/* ── Narrow windows ────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .onboarding-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-agent {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

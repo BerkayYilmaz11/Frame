@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T07:04:27.925Z",
+  "lastUpdated": "2026-09-16T07:06:53.573Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8081,13 +8081,13 @@
       "title": "Add `src/renderer/styles/components/onboarding.css` with its `main.css` import, plus the `app-loader.css` rules that hold the lockup in place and fade the panel up beneath it — both schemes via the `--brand-mark` tokens, boxes wrapping to a column on a narrow window, and no fade under `prefers-reduced-motion`.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:06:53.573Z",
+      "completedAt": "2026-09-16T07:06:53.573Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T04",
