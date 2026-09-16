@@ -312,25 +312,15 @@ function init() {
  * Setup button click handlers
  */
 function setupButtonHandlers() {
-  // Clone GitHub result. The clone request is sent from the Open Project modal
-  // (openProjectModal.js); here we just route the result back to it: on success
-  // open the project + close the modal, on failure show the error inline (or a
-  // dialog if the modal isn't open).
-  // Two things can own a clone: a projectStart block (the first-run screen or
-  // Home's no-project state) and the Open a Project modal. The block answers
-  // only for a clone it sent, so each failure is reported where the user is
-  // looking.
+  // Clone GitHub result. Every clone is sent by a projectStart block — the
+  // first-run screen, Home's no-project state or the Open a Project modal —
+  // and the block answers for the one it sent, so a failure is reported where
+  // the user is looking. Success opens the project; each host leaves on
+  // state.onProjectChange.
   ipcRenderer.on(IPC.CLONE_GITHUB_REPO_RESULT, (event, result) => {
-    if (result.cancelled) {
-      projectStart.handleCloneResult(result);
-      return;
-    }
-    if (result.success) {
-      state.setProjectPath(result.projectPath);
-      if (!projectStart.handleCloneResult(result)) openProjectModal.handleCloneResult(result);
-      return;
-    }
-    const consumed = projectStart.handleCloneResult(result) || openProjectModal.handleCloneResult(result);
+    if (result.success) state.setProjectPath(result.projectPath);
+    const consumed = projectStart.handleCloneResult(result);
+    if (result.cancelled || result.success) return;
     // Was a bare alert(), which blocks the renderer and every IPC behind it.
     if (!consumed) notify.error('Clone failed: ' + (result.error || 'unknown error'));
   });

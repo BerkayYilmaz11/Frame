@@ -7,84 +7,11 @@
  */
 
 /* ==================== OPEN PROJECT MODAL ==================== */
+/* The body is the shared projectStart block (project-start.css). The host
+   only sets the measure: wide enough for the three boxes side by side. */
 
-.open-project-options {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.open-project-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  width: 100%;
-  text-align: left;
-  padding: var(--space-md);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
-}
-
-.open-project-option:hover {
-  background: var(--bg-hover);
-  border-color: var(--accent-primary);
-}
-
-.open-project-option-icon {
-  flex: 0 0 auto;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.open-project-option-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.open-project-option-title {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.open-project-option-desc {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-/* ---- In-modal clone form ---- */
-.open-project-clone-form {
-  margin-top: var(--space-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-#open-project-clone-url {
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: 12px;
-  outline: none;
-  transition: border-color var(--transition-fast);
-}
-
-#open-project-clone-url:focus {
-  border-color: var(--accent-primary);
-}
-
-.open-project-clone-error {
-  font-size: 12px;
-  color: var(--danger, #f85149);
-  white-space: pre-wrap;
+#open-project-modal {
+  --modal-width: 680px;
 }
 
 /* ==================== WORKSPACE PANEL (project-dropdown spec) ==================== */

@@ -7706,29 +7706,27 @@
     },
     "renderer/home/widgets/agents": {
       "file": "src/renderer/home/widgets/agents.js",
-      "description": "Agents widget.",
+      "description": "Agents widget — the prompt composer.",
       "exports": [
         "id",
         "title",
         "icon",
         "sources",
-        "'aiTool']",
         "defaultSpan",
         "defaultEnabled",
         "isAvailable",
         "mount(el",
-        "ctx) {\n    this.ctx = ctx;\n    this.card = widgetShell({\n      id",
-        "icon",
-        "title"
+        "ctx) {\n    this.ctx = ctx;\n    this._starting = false;\n\n    this.el = document.createElement('div');\n    this.el.className = 'home-composer';\n    // The picker is the shared .ai-tool-picker (the terminal header's)",
+        "the native <select> underneath stays the\n    // interactive element",
+        "so clicking anywhere on the box opens it.\n    // The greeting sits centred over the box",
+        "and the agent picker just\n    // under its bottom-left corner — Start stays inside",
+        "where you type.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n        <div class=\"home-composer-box\">\n          <textarea class=\"home-composer-input\" rows=\"5\" spellcheck=\"false\"\n                    aria-label=\"Prompt for the agent\" placeholder=\"${escapeHtml(PLACEHOLDER)"
       ],
       "depends": [
         "lucide",
         "../../htmlUtils",
         "../../notify",
-        "../../laneStatus",
         "../homeData",
-        "../agentRows",
-        "../widgetShell",
         "../../agentDispatch"
       ],
       "functions": {}
@@ -7893,26 +7891,26 @@
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 432,
+          "line": 422,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 542,
+          "line": 532,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 568,
+          "line": 558,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 594,
+          "line": 584,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 992,
+          "line": 982,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -8367,55 +8365,27 @@
         "init",
         "open",
         "close",
-        "isVisible",
-        "handleCloneResult"
+        "isVisible"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
-        "state"
+        "state",
+        "projectStart"
       ],
       "functions": {
         "open": {
-          "line": 31,
-          "purpose": "Show the modal, always on its option list. It used to take"
+          "line": 28,
+          "purpose": "Show the modal, always on the three boxes with the clone row folded."
         },
         "close": {
-          "line": 40,
-          "purpose": "Hide the modal and reset the clone form."
+          "line": 34
         },
         "isVisible": {
-          "line": 46
-        },
-        "resetCloneForm": {
-          "line": 53,
-          "purpose": "Collapse the clone form back to the option list and clear its state."
-        },
-        "showCloneForm": {
-          "line": 66,
-          "purpose": "Reveal the in-modal clone URL form and focus the input."
-        },
-        "submitClone": {
-          "line": 81,
-          "purpose": "Send the clone request for the current URL value (if any)."
-        },
-        "handleCloneResult": {
-          "line": 93,
-          "params": [
-            "result"
-          ],
-          "purpose": "Called by the `CLONE_GITHUB_REPO_RESULT` listener in index.js. Shows the"
+          "line": 40
         },
         "init": {
-          "line": 110,
-          "purpose": "Wire all modal controls. Safe to call once at startup."
+          "line": 47,
+          "purpose": "Mount the block and wire the modal chrome. Safe to call once at startup."
         }
-      },
-      "ipc": {
-        "listens": [],
-        "emits": [
-          "CLONE_GITHUB_REPO"
-        ]
       }
     },
     "renderer/orchestrator": {
@@ -9146,7 +9116,8 @@
       "exports": [
         "create",
         "handleCloneResult",
-        "isCloneOpen"
+        "isCloneOpen",
+        "reset"
       ],
       "depends": [
         "electron",
@@ -9155,56 +9126,63 @@
       ],
       "functions": {
         "icon": {
-          "line": 23,
+          "line": 22,
           "params": [
             "paths"
           ]
         },
         "create": {
-          "line": 36,
+          "line": 35,
           "purpose": "Build one instance of the block."
         },
+        "reset": {
+          "line": 100,
+          "params": [
+            "el"
+          ],
+          "purpose": "Fold the clone row back and clear it. For hosts that are re-shown rather"
+        },
         "isCloneOpen": {
-          "line": 98,
+          "line": 105,
           "params": [
             "el"
           ],
           "purpose": "Is this block's clone row open? Surfaces ask before claiming Escape."
         },
         "showClone": {
-          "line": 102,
-          "params": [
-            "el"
-          ]
-        },
-        "hideClone": {
           "line": 109,
           "params": [
             "el"
           ]
         },
+        "hideClone": {
+          "line": 116,
+          "params": [
+            "el"
+          ]
+        },
         "submitClone": {
-          "line": 117,
+          "line": 124,
           "params": [
             "el"
           ]
         },
         "handleCloneResult": {
-          "line": 137,
+          "line": 144,
           "params": [
             "result"
           ],
-          "purpose": "Called by the CLONE_GITHUB_REPO_RESULT listener in index.js, before the"
+          "purpose": "Called by the CLONE_GITHUB_REPO_RESULT listener in index.js. Returns true"
         },
         "setBusy": {
-          "line": 153,
+          "line": 160,
           "params": [
             "el",
             "value"
           ]
         },
         "setError": {
-          "line": 159,
+          "line": 166,
           "params": [
             "el",
             "message"
@@ -11746,20 +11724,20 @@
     },
     "renderer/terminalChipNotice": {
       "file": "src/renderer/terminalChipNotice.js",
-      "description": "\"Remove from the top bar\" notice.",
+      "description": "\"Close this terminal?\" confirmation.",
       "exports": [
-        "confirmRemoval"
+        "confirmClose"
       ],
       "depends": [],
       "functions": {
         "_suppressed": {
-          "line": 26
+          "line": 25
         },
         "_persistSuppression": {
-          "line": 34
+          "line": 33
         },
         "_build": {
-          "line": 43
+          "line": 42
         },
         "_close": {
           "line": 93
@@ -11770,13 +11748,13 @@
         "_accept": {
           "line": 105
         },
-        "confirmRemoval": {
+        "confirmClose": {
           "line": 119,
           "params": [
             "{ name",
             "onConfirm }"
           ],
-          "purpose": "Drop a chip, explaining what that means unless the user opted out."
+          "purpose": "Close a terminal from its chip, asking first unless the user opted out."
         }
       }
     },
@@ -11873,21 +11851,21 @@
       ],
       "functions": {
         "lucideIcon": {
-          "line": 41,
+          "line": 40,
           "params": [
             "data",
             "size = 18"
           ]
         },
         "applyTheme": {
-          "line": 57,
+          "line": 56,
           "params": [
             "name"
           ],
           "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 68,
+          "line": 67,
           "purpose": "The theme currently applied — a themes.js id."
         }
       },

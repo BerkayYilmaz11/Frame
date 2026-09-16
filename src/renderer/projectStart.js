@@ -2,10 +2,9 @@
  * Project Start — the three ways into a project, as one block
  *
  * Open a folder · Create a new project · Clone from GitHub, with the clone
- * form inline rather than behind a modal. Two surfaces show it and they must
- * not drift: the first-run onboarding screen, and Home's no-project state,
- * which used to offer a lone "Add New Project" button into the Open a Project
- * modal — a second, differently-worded answer to the same question.
+ * form inline rather than behind a modal. Three surfaces show it and they must
+ * not drift: the first-run onboarding screen, Home's no-project state, and the
+ * Open a Project modal behind the header switcher's "Add a project…".
  *
  * Each `create()` returns its own element, but the clone in flight is
  * module-level: main answers on one channel, and the reply belongs to
@@ -94,6 +93,14 @@ function create() {
   return el;
 }
 
+/**
+ * Fold the clone row back and clear it. For hosts that are re-shown rather
+ * than rebuilt (the Open a Project modal); a clone in flight is left alone.
+ */
+function reset(el) {
+  if (el) hideClone(el);
+}
+
 /** Is this block's clone row open? Surfaces ask before claiming Escape. */
 function isCloneOpen(el) {
   return !!el && el.classList.contains('project-start-cloning');
@@ -130,9 +137,9 @@ function submitClone(el) {
 }
 
 /**
- * Called by the CLONE_GITHUB_REPO_RESULT listener in index.js, before the
- * Open a Project modal gets its turn. Returns true when a block owned this
- * clone, so the failure is reported where the user is looking.
+ * Called by the CLONE_GITHUB_REPO_RESULT listener in index.js. Returns true
+ * when a block owned this clone, so the failure is reported where the user is
+ * looking.
  */
 function handleCloneResult(result) {
   const el = cloningBlock;
@@ -163,4 +170,4 @@ function setError(el, message) {
   box.dataset.shown = message ? 'true' : 'false';
 }
 
-module.exports = { create, handleCloneResult, isCloneOpen };
+module.exports = { create, handleCloneResult, isCloneOpen, reset };
