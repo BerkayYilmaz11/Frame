@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T07:10:35.168Z",
+  "lastUpdated": "2026-09-16T07:11:40.229Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8133,13 +8133,13 @@
       "title": "Delete `src/renderer/welcomeOverlay.js`, `src/renderer/styles/components/welcome-overlay.css` and the `#welcome-overlay` markup, drop the stylesheet's `main.css` import, and in `src/renderer/index.js` require and init `onboarding` in Welcome's place with `help.welcome` repointed at `onboarding.open()`.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:11:40.229Z",
+      "completedAt": "2026-09-16T07:11:40.229Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T08",

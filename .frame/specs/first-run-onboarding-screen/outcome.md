@@ -47,3 +47,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
+
+## T07 — the welcome modal is gone
+
+Deleted `src/renderer/welcomeOverlay.js`, `src/renderer/styles/components/welcome-overlay.css` and the 57-line `#welcome-overlay` block from `index.html`; `index.js` now requires `onboarding` in its place, drops the separate `welcomeOverlay.init()` (appLoader initializes it with the parker hook), and `help.welcome` runs `onboarding.open()` — which resolves dismissible through the gate's command branch, so the summoned screen gets its × and Escape. The `onboardingDismissed` user setting is now read by nothing; left in place deliberately, per the plan's deferral. 4 files.
+
+_Captured: 2026-09-16 · 4 file change(s)_
+
+---

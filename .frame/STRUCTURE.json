@@ -7860,7 +7860,7 @@
         "terminalTabBar",
         "themes",
         "shared/uiZoom",
-        "welcomeOverlay",
+        "onboarding",
         "guideModal",
         "appLoader",
         "projectSettingsModal",
@@ -7888,30 +7888,30 @@
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 314,
+          "line": 313,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 424,
+          "line": 423,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 534,
+          "line": 533,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 560,
+          "line": 559,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 586,
+          "line": 585,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 984,
+          "line": 983,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -11931,70 +11931,6 @@
         }
       }
     },
-    "renderer/welcomeOverlay": {
-      "file": "src/renderer/welcomeOverlay.js",
-      "description": "Welcome Overlay (Launch Greeting)",
-      "exports": [
-        "init",
-        "open",
-        "close",
-        "reopen"
-      ],
-      "depends": [
-        "electron",
-        "shared/ipcChannels",
-        "state",
-        "openProjectModal",
-        "htmlUtils",
-        "commandRegistry"
-      ],
-      "functions": {
-        "init": {
-          "line": 29
-        },
-        "loadAITools": {
-          "line": 59
-        },
-        "maybeShowOnLaunch": {
-          "line": 70
-        },
-        "setupListeners": {
-          "line": 77
-        },
-        "persistDismissPreference": {
-          "line": 129
-        },
-        "renderToolOptions": {
-          "line": 137
-        },
-        "updateToolSelection": {
-          "line": 171
-        },
-        "open": {
-          "line": 182
-        },
-        "close": {
-          "line": 188
-        },
-        "reopen": {
-          "line": 202,
-          "purpose": "Reopen welcome from Command Palette. Resets the dismissed flag so the"
-        },
-        "escapeAttr": {
-          "line": 210,
-          "params": [
-            "s"
-          ]
-        }
-      },
-      "ipc": {
-        "listens": [
-          "WORKSPACE_DATA",
-          "AI_TOOL_CHANGED"
-        ],
-        "emits": []
-      }
-    },
     "shared/activityEvents": {
       "file": "src/shared/activityEvents.js",
       "description": "Activity events — pure policy module.",
@@ -14402,18 +14338,6 @@
         "module": "renderer/orchestrator",
         "file": "src/renderer/orchestrator.js",
         "description": "Orchestrator (renderer) — a section viewport"
-      }
-    ],
-    "overlay": [
-      {
-        "module": "renderer/settingsOverlay",
-        "file": "src/renderer/settingsOverlay.js",
-        "description": "Settings Overlay Plumbing"
-      },
-      {
-        "module": "renderer/welcomeOverlay",
-        "file": "src/renderer/welcomeOverlay.js",
-        "description": "Welcome Overlay (Launch Greeting)"
       }
     ],
     "panel": [

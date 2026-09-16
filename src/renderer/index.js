@@ -39,7 +39,7 @@ const cheatSheet = require('./cheatSheet');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
 const themes = require('./themes');
 const uiZoom = require('../shared/uiZoom');
-const welcomeOverlay = require('./welcomeOverlay');
+const onboarding = require('./onboarding');
 const guideModal = require('./guideModal');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -270,15 +270,14 @@ function init() {
   // Setup button handlers
   setupButtonHandlers();
 
-  // Initialize command palette + cheat sheet, register all commands, then bind keyboard
-  // App loader registers its WORKSPACE_DATA listener first so it fades out
-  // before welcomeOverlay's listener can open the welcome modal.
+  // Initialize command palette + cheat sheet, register all commands, then bind
+  // keyboard. appLoader also initializes onboarding: on a first run the boot
+  // surface becomes the onboarding screen instead of fading to an empty app.
   appLoader.init();
 
   commandPalette.init();
   require('./paletteSources').init(multiTerminalUI); // dynamic ⌘K jump targets
   cheatSheet.init();
-  welcomeOverlay.init();
   guideModal.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
@@ -620,7 +619,7 @@ function registerCommands() {
     id: 'help.welcome',
     title: 'Show Welcome Screen',
     category: 'Help',
-    run: () => welcomeOverlay.reopen()
+    run: () => onboarding.open()
   });
   r({
     id: 'settings.open',

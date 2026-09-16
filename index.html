@@ -733,63 +733,6 @@
       </div>
     </div>
 
-    <!-- Welcome (launch greeting). Deliberately small: one line about what
-         Frame is, the three ways into a project, the default agent, and a way
-         out. The sample project and the "Start" CTA were removed on
-         2026-09-16 — How to Use Frame is where explanation lives now. -->
-    <div id="welcome-overlay" class="welcome-overlay">
-      <div class="welcome-card" role="dialog" aria-label="Welcome to Frame">
-        <button id="welcome-close" class="welcome-dismiss" aria-label="Close">&#x2715;</button>
-
-        <div class="welcome-header">
-          <span class="welcome-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
-            </svg>
-          </span>
-          <h2 class="welcome-title">Welcome to Frame</h2>
-          <p class="welcome-subtitle">A terminal-first IDE for coding agents. Start with a project.</p>
-        </div>
-
-        <div class="welcome-actions">
-          <button id="welcome-open-folder" class="welcome-action">
-            <svg class="welcome-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
-            </svg>
-            <span class="welcome-action-label">Open a folder</span>
-            <span class="welcome-action-go" aria-hidden="true">&rarr;</span>
-          </button>
-          <button id="welcome-create-project" class="welcome-action">
-            <svg class="welcome-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 5v14"/><path d="M5 12h14"/>
-            </svg>
-            <span class="welcome-action-label">Create a new project</span>
-            <span class="welcome-action-go" aria-hidden="true">&rarr;</span>
-          </button>
-          <button id="welcome-clone-github" class="welcome-action">
-            <svg class="welcome-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>
-            </svg>
-            <span class="welcome-action-label">Clone from GitHub</span>
-            <span class="welcome-action-go" aria-hidden="true">&rarr;</span>
-          </button>
-        </div>
-
-        <div class="welcome-agent">
-          <span class="welcome-agent-label">Default agent</span>
-          <div id="welcome-tool-options" class="welcome-tool-options"></div>
-        </div>
-
-        <div class="welcome-footer">
-          <label class="welcome-dont-show-label">
-            <input type="checkbox" id="welcome-dont-show" />
-            <span>Don&rsquo;t show this again</span>
-          </label>
-          <button id="welcome-guide" class="welcome-link">How to Use Frame</button>
-        </div>
-      </div>
-    </div>
-
     <!-- How to Use Frame (how-to-use-frame-guide spec). A static frame only:
          guideModal.js renders the index tree, the page and the counter from
          src/renderer/guide/guideContent.js. Never opens by itself: the rail's
