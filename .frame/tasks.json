@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T13:26:38.233Z",
+  "lastUpdated": "2026-09-16T13:28:17.229Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8185,13 +8185,13 @@
       "title": "Build the host `src/renderer/guidedTour.js` (init-once): `start()` builds the JS-created overlay and opens `firstStepIndex`. `show(index)` re-queries the step's candidate selectors, positions the hole (rect + 6px) and the card via `placeCard`, and skips to `nextStepIndex` with `console.error` when no target is visible. Next / Skip tour / Done work. Reposition on window resize, `sidebarResize.onChange`, a ResizeObserver on `#terminal-container` and capture-phase scroll, all unbound on close. In `src/renderer/index.js`, call `guidedTour.init` and register the palette command `help.tour` (\"Take the Frame Tour\").",
       "description": "",
       "source": "spec:first-run-guided-tour:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-guided-tour",
       "createdAt": "2026-09-16T13:07:36.350Z",
-      "updatedAt": "2026-09-16T13:07:36.350Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:28:17.229Z",
+      "completedAt": "2026-09-16T13:28:17.229Z"
     },
     {
       "id": "task-spec-first-run-guided-tour-T04",

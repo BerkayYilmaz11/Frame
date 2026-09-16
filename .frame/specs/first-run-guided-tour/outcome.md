@@ -16,3 +16,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T03 — Tour host with manual start
+
+Added `src/renderer/guidedTour.js` (overlay built in JS, first-visible-target resolution re-queried on every reposition, card rendering, `placeCard` positioning, rAF-coalesced repositioning on resize, capture scroll, `sidebarResize.onChange` and ResizeObservers, all bound only while open) and wired `guidedTour.init()` plus the `help.tour` command in `src/renderer/index.js`. A target that vanishes mid-step is skipped like a missing one; the counter excludes step 1 when the tour starts with a project open. Skip and Done close without recording yet (T04).
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
+

@@ -42,6 +42,7 @@ const uiZoom = require('../shared/uiZoom');
 const onboarding = require('./onboarding');
 const projectStart = require('./projectStart');
 const guideModal = require('./guideModal');
+const guidedTour = require('./guidedTour');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const doneWindow = require('./doneWindow');
@@ -274,6 +275,8 @@ function init() {
   // Initialize command palette + cheat sheet, register all commands, then bind
   // keyboard. appLoader also initializes onboarding: on a first run the boot
   // surface becomes the onboarding screen instead of fading to an empty app.
+  // The guided tour initializes first: it waits on the loader's exit.
+  guidedTour.init();
   appLoader.init();
 
   commandPalette.init();
@@ -613,6 +616,12 @@ function registerCommands() {
     title: 'How to Use Frame',
     category: 'Help',
     run: () => guideModal.open()
+  });
+  r({
+    id: 'help.tour',
+    title: 'Take the Frame Tour',
+    category: 'Help',
+    run: () => guidedTour.start()
   });
   r({
     id: 'help.welcome',

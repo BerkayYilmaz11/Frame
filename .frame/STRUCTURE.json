@@ -7511,6 +7511,117 @@
         }
       }
     },
+    "renderer/guidedTour": {
+      "file": "src/renderer/guidedTour.js",
+      "description": "Guided tour — the DOM host (first-run-guided-tour spec).",
+      "exports": [
+        "init",
+        "start",
+        "close",
+        "isOpen"
+      ],
+      "depends": [
+        "state",
+        "sidebarResize",
+        "tour/tourSteps"
+      ],
+      "functions": {
+        "init": {
+          "line": 46
+        },
+        "hasProject": {
+          "line": 53
+        },
+        "start": {
+          "line": 61,
+          "purpose": "Start (or restart) the tour from the first step that applies: step 1 with"
+        },
+        "close": {
+          "line": 80,
+          "purpose": "Leave the tour: remove the layer and every listener it bound."
+        },
+        "next": {
+          "line": 90
+        },
+        "ensureNodes": {
+          "line": 100
+        },
+        "isVisible": {
+          "line": 127,
+          "params": [
+            "el"
+          ]
+        },
+        "resolveTarget": {
+          "line": 134,
+          "params": [
+            "step"
+          ],
+          "purpose": "The step's first target that is on screen right now, with its entry."
+        },
+        "isAvailable": {
+          "line": 142,
+          "params": [
+            "step"
+          ]
+        },
+        "show": {
+          "line": 148,
+          "params": [
+            "i"
+          ]
+        },
+        "skipMissing": {
+          "line": 167,
+          "params": [
+            "i"
+          ],
+          "purpose": "A step whose target is gone: log it once, move on, never end the tour on it."
+        },
+        "countedSteps": {
+          "line": 182,
+          "purpose": "The steps this run of the tour counts: step 1 only if it began without a project."
+        },
+        "renderCard": {
+          "line": 186,
+          "params": [
+            "step",
+            "i"
+          ]
+        },
+        "el": {
+          "line": 216,
+          "params": [
+            "tag",
+            "className",
+            "text"
+          ]
+        },
+        "onCardClick": {
+          "line": 223,
+          "params": [
+            "e"
+          ]
+        },
+        "position": {
+          "line": 232,
+          "purpose": "Measure the current target and move the cutout and the card to it."
+        },
+        "queueReposition": {
+          "line": 268,
+          "purpose": "Coalesce bursts (a sidebar drag, a scroll) into one measurement per frame."
+        },
+        "observeTarget": {
+          "line": 277,
+          "params": [
+            "target"
+          ]
+        },
+        "bindWhileOpen": {
+          "line": 284
+        }
+      }
+    },
     "renderer/healthNotice": {
       "file": "src/renderer/healthNotice.js",
       "description": "Health Notice Banner",
@@ -8032,6 +8143,7 @@
         "onboarding",
         "projectStart",
         "guideModal",
+        "guidedTour",
         "appLoader",
         "projectSettingsModal",
         "doneWindow",
@@ -8054,34 +8166,34 @@
       ],
       "functions": {
         "init": {
-          "line": 63,
+          "line": 64,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 314,
+          "line": 317,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 422,
+          "line": 425,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 532,
+          "line": 535,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 558,
+          "line": 561,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 584,
+          "line": 587,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 982,
+          "line": 991,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -15031,6 +15143,18 @@
         "module": "renderer/terminalsView",
         "file": "src/renderer/terminalsView.js",
         "description": "Terminals View Module"
+      }
+    ],
+    "tour": [
+      {
+        "module": "renderer/guidedTour",
+        "file": "src/renderer/guidedTour.js",
+        "description": "Guided tour — the DOM host (first-run-guided-tour spec)."
+      },
+      {
+        "module": "renderer/tour/tourSteps",
+        "file": "src/renderer/tour/tourSteps.js",
+        "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
       }
     ],
     "view": [
