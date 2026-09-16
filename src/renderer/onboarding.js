@@ -141,12 +141,11 @@ function measureWordmark() {
 }
 
 function setupListeners() {
-  // The three ways in. None of them closes the screen: a folder picker the
-  // user cancels, or a clone form they back out of, has to land them back
-  // here rather than in the empty app they were trying to leave. The screen
-  // goes when a project actually opens — see onProjectChange below.
-  bind('onboarding-open-folder', () => state.selectProjectFolder());
-  bind('onboarding-create-project', () => state.createNewProject());
+  // The three ways in are projectStart's own buttons (mounted in init), which
+  // wire themselves. None of them closes the screen: a folder picker the user
+  // cancels, or a clone form they back out of, has to land them back here
+  // rather than in the empty app they were trying to leave. The screen goes
+  // when a project actually opens — see the onProjectChange handler in init.
   bind('onboarding-skip', close);
   bind('onboarding-close', close);
 

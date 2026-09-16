@@ -8643,27 +8643,27 @@
           "line": 143
         },
         "bind": {
-          "line": 165,
+          "line": 164,
           "params": [
             "id",
             "handler"
           ]
         },
         "loadAITools": {
-          "line": 174
+          "line": 173
         },
         "renderToolOptions": {
-          "line": 187
+          "line": 186
         },
         "selectTool": {
-          "line": 217,
+          "line": 216,
           "params": [
             "toolId"
           ],
           "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
         },
         "paintToolSelection": {
-          "line": 233
+          "line": 232
         }
       },
       "ipc": {

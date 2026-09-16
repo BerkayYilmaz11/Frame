@@ -3539,3 +3539,33 @@ failure, since that cannot be told apart from a crash.
 `test/telemetry.test.js`; `npm run build` succeeds. Not committed. Not tried
 in the running app. Worth checking there: move a spec forward with an agent
 and watch the events, rename a spec, switch branches.
+
+### [2026-09-16] Telemetry notice moves from a top strip to a corner card
+
+**Context.** After the guided tour shipped (first-run-guided-tour), the user
+saw the one-time telemetry notice in the live run and said: "İstatistik
+bildirimi bu şekilde olmamalı zaten bence. header'ı kapatıyor ve anlaşılmıyor
+opacity var diye. Buna daha iyi bir UI bul lütfen." The strip was
+`position: fixed; top: 0` across the window on `--accent-subtle`, which is
+translucent, so it sat on `#app-header` and the header's text showed through.
+
+**Decision.** `#telemetry-notice` is now a 320px opaque card in the
+bottom-right corner, `calc(var(--status-bar-height) + 12px)` above the foot:
+`--bg-secondary`, border, 12px radius, `--shadow-lg`, a title ("Anonymous
+usage stats") with a chart icon and ×, one line of copy, and a foot with
+"Manage in Settings" and a `.primary-btn` "Got it". The corner was free:
+toasts are top-centre and the tour's cards sit beside their targets. z-index
+stays 9000, above the tour. The ids, `telemetryNotice.js`'s behaviour and the
+`telemetryNoticeShown` setting are unchanged. The guided tour still waits for
+the notice to be dismissed before its automatic start, now so the two
+first-run layers arrive one at a time rather than because the notice hid the
+header.
+
+Same pass: `onboarding.js` stopped binding `#onboarding-open-folder` and
+`#onboarding-create-project`. Those buttons were replaced by the shared
+`projectStart` block, which wires itself, so each launch logged two
+"not found" console errors for handlers that could never fire.
+
+Left alone: `healthNotice` still uses a top strip; the separate
+`status-bar-notice-tray` spec (specified the same day) moves it into the
+status bar.

@@ -110,15 +110,15 @@ async function autoStart() {
 }
 
 /*
- * Banners that sit over the header on a first launch. The first steps point
- * at the header, and a notice above the tour (by design — the tour never
- * covers a notice) would hide their targets, so the automatic start waits
- * for the user to dismiss them. A manual start does not wait.
+ * One-time notices a first launch can show. They sit above the tour by
+ * design (the tour never dims a notice), so rather than put two first-run
+ * layers on screen at once, the automatic start waits until the user has
+ * dismissed them. A manual start does not wait.
  */
-const HEADER_NOTICES = ['#telemetry-notice.visible'];
+const FIRST_RUN_NOTICES = ['#telemetry-notice.visible'];
 
 function noticesGone() {
-  const showing = () => HEADER_NOTICES.some((selector) => document.querySelector(selector));
+  const showing = () => FIRST_RUN_NOTICES.some((selector) => document.querySelector(selector));
   if (!showing()) return Promise.resolve();
   return new Promise((resolve) => {
     const observer = new MutationObserver(() => {

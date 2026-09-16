@@ -18,17 +18,26 @@
   <link rel="stylesheet" href="src/renderer/styles/main.css">
 </head>
 <body>
-  <!-- Telemetry Notice (one-time, dismissable) -->
-  <div id="telemetry-notice" class="telemetry-notice" role="status">
-    <span class="telemetry-notice-icon">&#10022;</span>
-    <span class="telemetry-notice-text">
-      Frame sends anonymous usage stats (app version + OS only) to count active users — no code or file paths.
-      <a href="#" id="telemetry-notice-settings-link">Manage in Settings</a>.
-    </span>
-    <span class="telemetry-notice-actions">
-      <button type="button" id="telemetry-notice-ack" class="telemetry-notice-ack">Got it</button>
+  <!-- Telemetry Notice (one-time, dismissable): a small solid card in the
+       bottom-right corner, above the status bar. It used to be a translucent
+       strip across the top that sat over the app header and was hard to read
+       through; the corner is free (toasts appear top-centre) and covers
+       nothing the user needs on a first launch. -->
+  <div id="telemetry-notice" class="telemetry-notice" role="status" aria-labelledby="telemetry-notice-title">
+    <div class="telemetry-notice-head">
+      <span class="telemetry-notice-icon" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      </span>
+      <span id="telemetry-notice-title" class="telemetry-notice-title">Anonymous usage stats</span>
       <button type="button" id="telemetry-notice-close" class="telemetry-notice-close" aria-label="Dismiss">&#x2715;</button>
-    </span>
+    </div>
+    <p class="telemetry-notice-text">
+      Frame sends your app version and OS to count active users. No code or file paths.
+    </p>
+    <div class="telemetry-notice-actions">
+      <a href="#" id="telemetry-notice-settings-link" class="telemetry-notice-link">Manage in Settings</a>
+      <button type="button" id="telemetry-notice-ack" class="primary-btn telemetry-notice-ack">Got it</button>
+    </div>
   </div>
 
   <!-- Sample-project banner (only visible while inside the bundled sample) -->
