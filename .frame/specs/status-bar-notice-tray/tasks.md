@@ -1,0 +1,10 @@
+# Tasks — Status bar notice tray
+
+- T01 · Add pure `src/renderer/statusBar/noticeTrayModel.js` (`add` with severity+source+message merging and the 50-row cap, `dismiss`, `clear`, `markAllRead`, `indicator` tone/unread, `sourceLabel`, `moveFocus`) with `test/noticeTrayModel.test.js` covering merging, cap, tone precedence, info excluded from the unread count, dismiss/clear and focus wrapping
+- T02 · Add `src/renderer/statusBar/noticeTray.js` with the `!` indicator button (lucide `CircleAlert`, count, blue info dot) painted from `indicator()`, a tooltip describing the state, and `push()` that accumulates notices before `init()`
+- T03 · Build the tray popover in `noticeTray.js`: newest-first rows (severity glyph, source label, time, `×N`, wrapped message via `textContent`), empty state, header "Clear all", mark-all-read on open, and notices pushed while open added as read
+- T04 · Add row actions and keyboard handling to the popover: copy via electron `clipboard` with a `notify.success` confirmation, per-row dismiss, Escape closing and refocusing the button, ArrowUp/Down between rows, outside mousedown closing
+- T05 · Style the indicator tones (muted, info dot, amber, red) and the upward right-aligned `.sb-notice-tray` popover in `src/renderer/styles/components/status-bar.css`, making `.status-bar-right` the positioning context, in both themes
+- T06 · Mount the tray as the last item of the status bar from `src/renderer/statusBar.js` and enforce one popover at a time with the branch picker and the agents menu in both directions
+- T07 · Route `src/renderer/healthNotice.js`'s `MAIN_PROCESS_ERROR` (with severity), `STATE_FILE_RECOVERED`, `CODEX_HOOKS_UNTRUSTED`, `TASKS_FILE_ERROR` and `showMigration` into `noticeTray.push()` with source keys, and remove the banner code
+- T08 · Delete `src/renderer/styles/components/health-notice.css` and its `main.css` import, update the receipt comment in `src/renderer/state.js`, and add the tray modules to the crash intent in `scripts/intent-map.json`
