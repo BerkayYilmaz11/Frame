@@ -32,3 +32,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
 
+## T05 — Nav-row steps reveal the sidebar
+
+Added `revealNavItem(view)` to `src/renderer/projectListUI.js` (expands the row's group, not persisted) and a `revealProjectsTab` hook on `guidedTour.init`, passed from `src/renderer/index.js` as `revealSidebarTab('projects')`. `guidedTour.js` counts a hidden-but-present nav row as available and reveals it only when its step opens; repositioning never reveals, so collapsing the sidebar mid-step skips that step instead of fighting the user.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---
+

@@ -276,7 +276,7 @@ function init() {
   // keyboard. appLoader also initializes onboarding: on a first run the boot
   // surface becomes the onboarding screen instead of fading to an empty app.
   // The guided tour initializes first: it waits on the loader's exit.
-  guidedTour.init();
+  guidedTour.init({ revealProjectsTab: () => revealSidebarTab('projects') });
   appLoader.init();
 
   commandPalette.init();

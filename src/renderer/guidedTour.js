@@ -31,6 +31,7 @@ const state = require('./state');
 const notify = require('./notify');
 const commandRegistry = require('./commandRegistry');
 const sidebarResize = require('./sidebarResize');
+const projectListUI = require('./projectListUI');
 const tourSteps = require('./tour/tourSteps');
 
 const { STEPS } = tourSteps;
@@ -39,6 +40,7 @@ const { STEPS } = tourSteps;
 const HOLE_PADDING = 6;
 
 let initialized = false;
+let hooks = {};
 let rootEl = null;
 let holeEl = null;
 let cardEl = null;
@@ -52,11 +54,17 @@ let observedTarget = null;
 let repositionQueued = false;
 let loggedMissing = new Set();
 
-function init() {
+/**
+ * @param {object} [opts]
+ * @param {Function} [opts.revealProjectsTab]  open the sidebar on its Projects
+ *   tab (index.js's revealSidebarTab), so a nav row can be measured
+ */
+function init(opts = {}) {
   // Init-once, like every other surface in the renderer: a reload must not
   // stack a second set of listeners (audit-q3-performance-resources T06).
   if (initialized) return;
   initialized = true;
+  hooks = opts;
 }
 
 /**
@@ -160,11 +168,23 @@ function isVisible(el) {
   return rect.width > 0 && rect.height > 0;
 }
 
-/** The step's first target that is on screen right now, with its entry. */
-function resolveTarget(step) {
+/**
+ * The step's first usable target, with its entry.
+ *
+ * A target on screen always wins. A nav-row target that exists but is hidden
+ * — sidebar collapsed, another rail tab showing, its group collapsed — counts
+ * as usable too: with `reveal` the nav is opened and the row measured again;
+ * without it (the availability check) it is reported without touching the UI.
+ */
+function resolveTarget(step, { reveal = false } = {}) {
   for (const target of step.targets) {
     const el = document.querySelector(target.selector);
     if (isVisible(el)) return { el, target };
+    if (!target.needsNav || !el) continue;
+    if (!reveal) return { el, target };
+    revealNav(target.needsNav);
+    const revealed = document.querySelector(target.selector);
+    if (isVisible(revealed)) return { el: revealed, target };
   }
   return null;
 }
@@ -173,11 +193,22 @@ function isAvailable(step) {
   return !!resolveTarget(step);
 }
 
+function revealNav(view) {
+  if (typeof hooks.revealProjectsTab === 'function') {
+    try {
+      hooks.revealProjectsTab();
+    } catch (err) {
+      console.error('guidedTour: revealing the Projects tab failed', err);
+    }
+  }
+  projectListUI.revealNavItem(view);
+}
+
 // ─── painting ─────────────────────────────────────────────
 
 function show(i) {
   const step = STEPS[i];
-  const resolved = step && resolveTarget(step);
+  const resolved = step && resolveTarget(step, { reveal: true });
   if (!resolved) {
     skipMissing(i);
     return;
@@ -308,9 +339,10 @@ function position() {
   if (!isOpen || index === -1) return;
   const step = STEPS[index];
   const resolved = resolveTarget(step);
-  if (!resolved) {
+  if (!resolved || !isVisible(resolved.el)) {
     // It was there when the step opened and has gone since (a project
-    // removed, a view re-rendered away): treat it like any missing target.
+    // removed, the sidebar collapsed, a view re-rendered away): treat it like
+    // any missing target rather than re-opening what the user just closed.
     skipMissing(index);
     return;
   }
