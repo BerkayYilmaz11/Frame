@@ -3,7 +3,7 @@
    (shell-chrome-app-header-collapsible-panels spec). The same 35px as the
    center's strip (.terminal-tab-bar), so the sidebar's first row and the
    strip share a top edge; nothing taller than 32px belongs in it. Three
-   slots: the mark on the left, the current-project switcher in the middle,
+   slots: the mark on the left, the current-project switcher 18px after it,
    the window-level controls and the layout toggles on the right.
 
    position + z-index: the switcher's dropdown is absolutely positioned
@@ -44,7 +44,9 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  /* 18px from the brand: the header's own gap plus the rest. */
+  padding-left: calc(18px - var(--space-md));
 }
 
 .app-header-right {
@@ -69,15 +71,15 @@
 }
 
 /* ─── Current-project switcher ─── */
-/* The one project selector, in the header's center. Class names kept from
+/* The one project selector, 18px right of the brand. Class names kept from
    its sidebar days (index.js binds them); only the box changed: a clamped
-   width centered in the slot instead of a full-width sidebar row, and the
-   menu anchored under the header row. */
+   width at the start of the slot instead of a full-width sidebar row, and
+   the menu anchored under the header row. */
 .sidebar-current-project-wrap {
   position: relative;
-  flex: 0 1 360px;
+  flex: 0 1 216px;
   min-width: 0;
-  max-width: 360px;
+  max-width: 216px;
 }
 
 .sidebar-current-project {
