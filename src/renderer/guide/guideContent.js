@@ -204,7 +204,7 @@ const CHAPTERS = [
           { list: [
             'The view shows every terminal of the project in a grid of one, two or three columns. Drag a pane\'s header to reorder it; enlarge one pane to work in it alone.',
             'A project holds up to nine terminals. Terminals keep running when you switch views or projects.',
-            'Each terminal also gets a chip in the bar across the top. The × on a chip only removes it from the bar — the terminal keeps running.'
+            'Each terminal also gets a chip in the bar across the top. The × on a chip closes that terminal — Frame asks before it does.'
           ] }
         ],
         actions: [

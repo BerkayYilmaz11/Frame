@@ -3443,3 +3443,25 @@ sample project and the "Start →" CTA that opened it are gone, as are the
 four-line feature cards and the shortcut tip — explanation lives in the guide
 now. `state.openSampleProject` and the sample IPC path stay; nothing in the
 UI calls them any more.
+
+### [2026-09-16] A terminal chip's × closes the terminal
+
+The user found the chip × in the top bar confusing: clicking it showed
+"Terminal 3 keeps running — this only takes it out of the top bar … To close
+the terminal for good, use the × on its pane in Terminals." Their words: "aslında
+böyle olmamalı. Terminal kill ediliyor tamamen kapanıyor emin misin gibi uygun bir
+dille yazı olmalı. Ve terminal gerçekten de kill edilmeli burada."
+
+**This reverses T15 of terminals-home-agents**, where × on a chip meant "drop
+from this bar, never destroy". Now `multiTerminalUI.closeTerminalFromStrip`
+asks through `terminalChipNotice.confirmClose` ("Close this terminal?", red
+Close terminal button, Cancel focused so a stray Enter backs out) and then
+calls `manager.closeTerminal` — the same path as the pane × (PTY destroyed).
+Closing the enlarged terminal falls back to the grid via
+`terminalsView._normalizeShown`. "Don't ask again" uses a new localStorage
+key (`frame-terminal-close-confirm-off`) so anyone who dismissed the old
+harmless notice is not silently switched to killing terminals. The guide's
+Terminals text was updated to match. Left alone: the Terminals chip's own ×
+(still only drops it from the bar, shown only when there are no terminals),
+and the `hiddenFromBar` prefs plumbing — `terminalsView.hideFromBar` has no
+caller any more.

@@ -8,13 +8,12 @@
  * chip is that one terminal enlarged. Then a chip per open section
  * (task / spec / diff / orchestrator).
  *
- * × means "drop from this bar", never "destroy" — on Terminals and on a
- * terminal chip alike. A dropped chip's terminal keeps running and Terminals
- * still holds it; going back to it there puts the chip back. That is how a
- * busy project's bar stays readable, and terminalChipNotice teaches it until
- * the user opts out. One departure from the rule: Terminals itself carries
- * an × only while the project has **no** terminals — with terminals in it
- * the breadcrumb beside it would be orphaned.
+ * × on a terminal chip closes that terminal for good — its process is
+ * killed, the same as the × on its pane in Terminals — after
+ * terminalChipNotice asks for confirmation (until the user opts out).
+ * Terminals itself carries an × only while the project has **no** terminals
+ * — with terminals in it the breadcrumb beside it would be orphaned — and
+ * that × only drops it from the bar.
  *
  * What earns a place here is a surface with *live state*. Terminals has
  * running processes; the Specs grid does not, so Specs, Tasks, Decisions and
@@ -80,7 +79,7 @@ class TerminalTabBar {
     this.onEnterTerminals = null;  // Callback: show the Terminals section
     this.onDropTerminals = null;   // Callback: drop Terminals from this strip
     this.onEnterTerminal = null;   // Callback: (terminalId) => enlarge that terminal
-    this.onDropTerminal = null;    // Callback: (terminalId) => drop its chip from the bar
+    this.onCloseTerminal = null;   // Callback: (terminalId) => close that terminal
     this.onLaneCreated = null;    // Callback: (terminalId) => after + creates a lane
     this.onActivateSection = null; // Callback: (key) => focus an open section tab
     this.onCloseSection = null;    // Callback: (key) => close a section tab
@@ -262,7 +261,7 @@ class TerminalTabBar {
       <button class="lane-bar-section lane-bar-terminal ${current ? 'current' : ''}" data-terminal-id="${escapeHtml(state.id)}" title="${escapeHtml(name)}">
         <span class="lane-status-dot ${laneStatus.getStatus(state.id).status}"></span>
         <span class="lane-bar-section-label">${escapeHtml(name)}</span>
-        <span class="lane-bar-section-close" title="Remove from the bar — the terminal keeps running">${lucideIcon(X, 12)}</span>
+        <span class="lane-bar-section-close" title="Close terminal">${lucideIcon(X, 12)}</span>
       </button>
     `;
   }
@@ -294,13 +293,13 @@ class TerminalTabBar {
         return;
       }
       // A terminal's breadcrumb chip: the body goes to that terminal, and
-      // its × takes the chip out of the bar, leaving the terminal alone.
+      // its × closes the terminal (after a confirmation).
       const termEl = e.target.closest('.lane-bar-terminal');
       if (termEl) {
         const id = termEl.dataset.terminalId;
         if (e.target.closest('.lane-bar-section-close')) {
           e.stopPropagation();
-          if (this.onDropTerminal) this.onDropTerminal(id);
+          if (this.onCloseTerminal) this.onCloseTerminal(id);
         } else if (this.onEnterTerminal) {
           this.onEnterTerminal(id);
         }

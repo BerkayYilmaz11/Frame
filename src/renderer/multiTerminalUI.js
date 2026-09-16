@@ -106,7 +106,7 @@ class MultiTerminalUI {
     this.tabBar.onEnterTerminals = () => this.showTerminals();
     this.tabBar.onDropTerminals = () => this.dropTerminalsFromStrip();
     this.tabBar.onEnterTerminal = (terminalId) => this.enterLane(terminalId);
-    this.tabBar.onDropTerminal = (terminalId) => this.dropTerminalFromStrip(terminalId);
+    this.tabBar.onCloseTerminal = (terminalId) => this.closeTerminalFromStrip(terminalId);
     this.tabBar.onLaneCreated = (terminalId) => this.enterLane(terminalId);
     this.tabBar.onActivateSection = (key) => this.activateSection(key);
     this.tabBar.onCloseSection = (key) => this.closeSection(key);
@@ -704,28 +704,19 @@ class MultiTerminalUI {
   }
 
   /**
-   * The × on a terminal's breadcrumb chip: drop the chip, nothing else. The
-   * terminal keeps running and Terminals still holds it — × means "drop from
-   * this bar", never "destroy", the same as it does on Terminals itself.
+   * The × on a terminal's breadcrumb chip: close the terminal for good — the
+   * same as the × on its pane in Terminals, after a confirmation, since the
+   * chip is far from the terminal and whatever runs in it dies with it.
    *
-   * A bar carrying every terminal of a busy project stops being readable, so
-   * this is how the user thins it out. The notice explains that the first
-   * times, since an × beside a terminal's name reads as "close" until told
-   * otherwise.
+   * Closing the terminal you are looking at falls back to the grid on its
+   * own: terminalsView drops a shown id that is no longer live.
    */
-  dropTerminalFromStrip(terminalId) {
+  closeTerminalFromStrip(terminalId) {
     const state = this.manager.getTerminalStates().find(t => t.id === terminalId);
     const name = state ? (state.customName || state.name) : null;
-    terminalChipNotice.confirmRemoval({
+    terminalChipNotice.confirmClose({
       name,
-      onConfirm: () => {
-        this.terminalsView.hideFromBar(terminalId);
-        // Dropping the chip you are looking at would leave you enlarged with
-        // nothing in the bar highlighted — go back to the grid, the same way
-        // dropping Terminals itself lands you on Home.
-        if (this.terminalsView.getShownTerminal() === terminalId) this.showTerminals();
-        else this._onStateChange(this._currentState());
-      }
+      onConfirm: () => this.manager.closeTerminal(terminalId)
     });
   }
 
