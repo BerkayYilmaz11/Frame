@@ -1,4 +1,21 @@
-/* App Loader (boot splash) */
+/* App Loader (boot splash)
+ *
+ * The intro runs in three beats, driven by classes appLoader.js adds:
+ *   .app-loader-run     — the mark fills along its perimeter
+ *   .app-loader-reveal  — the wordmark grows out of the mark, pushing it left
+ *   .app-loader-hidden  — the whole splash fades and is removed
+ * Timings here and the phase constants in appLoader.js are one contract:
+ * change one, change the other.
+ */
+
+/* The fill head's travel, as an angle swept clockwise from the mark's
+   top-left corner. Registered so it can be animated — an unregistered
+   custom property jumps instead of interpolating. */
+@property --app-loader-sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
 
 .app-loader {
   position: fixed;
@@ -18,38 +35,150 @@
   pointer-events: none;
 }
 
+/* Screen-reader-only status: the visual intro says nothing out loud. */
+.app-loader-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Mark + wordmark on one centred row. The wordmark starts at zero width, so
+   at rest the row is just the mark, dead centre; as the wordmark grows the
+   row's centring slides the mark left on its own. */
+.app-loader-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
 .app-loader-mark {
-  font-size: 48px;
-  color: var(--accent-primary);
-  line-height: 1;
-  animation: app-loader-pulse 1.6s ease-in-out infinite;
-  text-shadow: 0 0 24px var(--accent-glow);
+  position: relative;
+  flex: none;
+  width: 76px;
+  height: 76px;
+  /* Same token as the header's mark: white on dark, black on light. */
+  color: var(--brand-mark);
+  filter: drop-shadow(0 0 22px var(--brand-mark-glow));
 }
 
-.app-loader-text {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.app-loader-mark-base,
+.app-loader-mark-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes app-loader-pulse {
-  0%, 100% {
-    opacity: 0.55;
-    transform: scale(0.92);
+/* Half-lit mark underneath; the fill copy on top is revealed by a wedge that
+   sweeps clockwise from the top-left corner (-45deg in conic terms is exactly
+   that corner of a square), so the reveal tracks the perimeter: across the
+   top, down the right, back along the bottom, up the left. */
+.app-loader-mark-base {
+  opacity: 0.5;
+}
+
+/* The head isn't a hard edge — it trails FEATHER degrees of gradient behind
+   it, so each bracket eases from half-lit to lit instead of snapping on, and
+   the short gaps between brackets stay lively rather than reading as stalls.
+   The sweep overshoots 360deg by exactly the feather's width: at a clean
+   360deg the trailing gradient would still be fading in over the last
+   brackets and the mark would never settle at full strength. */
+.app-loader-mark-fill {
+  --app-loader-feather: 26deg;
+  opacity: 1;
+  -webkit-mask-image: conic-gradient(
+    from -45deg,
+    #000 0deg,
+    #000 max(0deg, calc(var(--app-loader-sweep) - var(--app-loader-feather))),
+    transparent var(--app-loader-sweep),
+    transparent 360deg
+  );
+  mask-image: conic-gradient(
+    from -45deg,
+    #000 0deg,
+    #000 max(0deg, calc(var(--app-loader-sweep) - var(--app-loader-feather))),
+    transparent var(--app-loader-sweep),
+    transparent 360deg
+  );
+}
+
+/* Eased rather than linear: the head gathers pace out of the top-left corner
+   and glides into it again, which reads as one continuous motion where a
+   constant crawl read as a machine ticking. */
+.app-loader-run .app-loader-mark-fill {
+  animation: app-loader-sweep 1900ms cubic-bezier(0.5, 0.02, 0.3, 1) forwards;
+}
+
+@keyframes app-loader-sweep {
+  from { --app-loader-sweep: 0deg; }
+  to { --app-loader-sweep: 386deg; }
+}
+
+/* Wordmark: clipped to nothing and zero-width until the reveal beat, so it
+   unrolls from the mark's right edge rather than fading in beside it.
+   --app-loader-wordmark-w is measured in JS right before the beat starts. */
+.app-loader-wordmark {
+  overflow: hidden;
+  max-width: 0;
+  transition: max-width 560ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.app-loader-wordmark-text {
+  display: block;
+  padding-left: 18px;
+  white-space: nowrap;
+  /* The app speaks in mono; the splash shouldn't switch voice. Stated
+     outright rather than inherited — the splash outlives no stylesheet but
+     its own. */
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  -webkit-clip-path: inset(0 100% 0 0);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 560ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.app-loader-reveal .app-loader-wordmark {
+  max-width: var(--app-loader-wordmark-w, 420px);
+}
+
+.app-loader-reveal .app-loader-wordmark-text {
+  -webkit-clip-path: inset(0 0 0 0);
+  clip-path: inset(0 0 0 0);
+}
+
+/* Reduced motion: no sweep, no unroll — the finished frame, straight away. */
+@media (prefers-reduced-motion: reduce) {
+  .app-loader-mark-base {
+    opacity: 0;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1);
+
+  .app-loader-mark-fill,
+  .app-loader-run .app-loader-mark-fill {
+    animation: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .app-loader-wordmark,
+  .app-loader-wordmark-text {
+    transition: none;
   }
 }
 
 /* Failure state — shown when the failsafe fires before any WORKSPACE_DATA */
 
-.app-loader-mark-error {
-  animation: none;
+.app-loader-error-mark {
+  font-size: 48px;
+  line-height: 1;
   color: var(--error);
-  text-shadow: none;
   opacity: 0.85;
 }
 

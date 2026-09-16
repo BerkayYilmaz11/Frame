@@ -5078,16 +5078,30 @@
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 40
+        },
+        "playIntro": {
+          "line": 64,
+          "purpose": "Drives the intro's beats by class. The wordmark's target width is measured"
+        },
+        "finishIntro": {
+          "line": 86
+        },
+        "clearIntroTimers": {
+          "line": 91
+        },
+        "hideWhenReady": {
+          "line": 98,
+          "purpose": "The splash owes the user two things: a finished intro and a loaded"
         },
         "armFailsafe": {
-          "line": 45
+          "line": 103
         },
         "showFailureState": {
-          "line": 52
+          "line": 110
         },
         "hide": {
-          "line": 67
+          "line": 130
         }
       },
       "ipc": {

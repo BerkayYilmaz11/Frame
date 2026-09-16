@@ -55,7 +55,9 @@
    shape carries the identity, a halo on a 15px glyph only muddies it. */
 .app-header-mark {
   flex: none;
-  color: var(--accent-primary);
+  /* The mark is ink, not accent — white on dark, black on light. One token,
+     shared with the boot splash, so the two can never disagree. */
+  color: var(--brand-mark);
   display: block;
 }
 

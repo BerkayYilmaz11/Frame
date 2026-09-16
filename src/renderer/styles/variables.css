@@ -20,6 +20,13 @@
   --text-tertiary: #948c7c;
   --text-muted: #5c564a;
 
+  /* Frame's mark — the four corner brackets, wherever they appear (app
+     header, boot splash). Deliberately not the accent: the mark is the
+     product's signature and reads as ink, so it takes the scheme's extreme
+     — white on dark, black on light — and the green stays the accent. */
+  --brand-mark: #ffffff;
+  --brand-mark-glow: rgba(255, 255, 255, 0.10);
+
   /* Accent Colors */
   --accent-primary: #8ff0ae;
   --accent-secondary: #6fd693;
@@ -117,6 +124,9 @@
   --text-secondary: #5a5550;
   --text-tertiary: #8a8480;
   --text-muted: #b0aba5;
+
+  --brand-mark: #000000;
+  --brand-mark-glow: rgba(0, 0, 0, 0.08);
 
   /* Darkened until text in these colours clears WCAG AA (4.5:1) on its own
      12% tint — the badges and chips throughout the app pair the two, and at

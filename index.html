@@ -47,10 +47,26 @@
     <button type="button" id="detection-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
   </div>
 
-  <!-- App Loader (boot splash, hidden once workspace data arrives) -->
+  <!-- App Loader (boot splash, hidden once workspace data arrives and the
+       intro has played). Frame's mark sits at half opacity and fills along
+       its own perimeter — top-left → right → down → left → back up — the way a
+       progress ring fills, so the wait reads as the logo drawing itself.
+       Once full, the wordmark grows out of the mark's right edge and pushes
+       the mark left. Static markup: the splash must paint before any script
+       runs. appLoader.js drives the phases. -->
   <div id="app-loader" class="app-loader">
-    <div class="app-loader-mark">&#10022;</div>
-    <div class="app-loader-text">Loading workspace…</div>
+    <div class="app-loader-brand">
+      <div class="app-loader-mark">
+        <svg class="app-loader-mark-base" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
+        </svg>
+        <svg class="app-loader-mark-fill" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
+        </svg>
+      </div>
+      <div class="app-loader-wordmark" aria-hidden="true"><span class="app-loader-wordmark-text">Your engineering mind, in Frame!</span></div>
+    </div>
+    <span class="app-loader-sr">Loading workspace…</span>
   </div>
 
   <!-- App header: one row across the whole window, above the sidebar and
