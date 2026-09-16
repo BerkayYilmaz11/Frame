@@ -394,6 +394,26 @@ function buildWorkspaceNav() {
   return nav;
 }
 
+/**
+ * Make a nav row reachable without changing the user's saved layout: expand
+ * the group that holds it if that group is collapsed, but do not write
+ * `frame-nav-groups` — a reload shows the groups as the user left them. Used
+ * by the guided tour to point at a row. Returns the row, or null when there
+ * is no project nav (or no such row).
+ */
+function revealNavItem(view) {
+  if (!workspaceNavEl || !workspaceNavEl.isConnected) return null;
+  const row = workspaceNavEl.querySelector(`.workspace-nav-item[data-view="${view}"]`);
+  if (!row) return null;
+  const group = row.closest('.workspace-nav-group');
+  if (group && group.classList.contains('collapsed')) {
+    group.classList.remove('collapsed');
+    const header = group.querySelector('.workspace-nav-group-header');
+    if (header) header.setAttribute('aria-expanded', 'true');
+  }
+  return row;
+}
+
 function placeWorkspaceNav() {
   const panel = document.getElementById('workspace-panel');
   if (!panel) return;
@@ -510,5 +530,6 @@ module.exports = {
   focus,
   blur,
   applyAgentStatuses,
-  updateWorkspaceNav
+  updateWorkspaceNav,
+  revealNavItem
 };

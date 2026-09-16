@@ -1372,7 +1372,7 @@
    specificity they used to win on source order — that is what flattened this
    fieldset into stacked text with a full-width radio. The extra class keeps
    them off. The native radio is also taken out of the flow entirely and the
-   dot drawn beside it, the same way `.welcome-tool-option` does it; the input
+   dot drawn beside it, the same way `.onboarding-tool-option` does it; the input
    still carries the value `state.js` reads. */
 .modal-body .init-modal-sharing {
   border: 0;

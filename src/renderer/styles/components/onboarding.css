@@ -1,0 +1,149 @@
+/* First-run onboarding screen (first-run-onboarding-screen spec)
+ *
+ * Not a card on a backdrop — this is the boot surface itself, still showing
+ * the mark and wordmark the intro placed. So there is no panel, no border and
+ * no shadow: the content simply arrives under the lockup, on the same field.
+ * `.app-loader-onboarding` on the surface is what reveals it; appLoader.js
+ * adds that class instead of hiding, and onboarding.js owns what is inside.
+ *
+ * The agent chips keep the retired welcome card's shape and the one accent it
+ * allowed itself (the selected agent) — that part of the greeting was right,
+ * it was the modal around it that wasn't.
+ */
+
+.onboarding {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  width: min(760px, 100%);
+  padding: 0 24px;
+}
+
+.app-loader-onboarding .onboarding {
+  display: flex;
+}
+
+/* ── Default agent ─────────────────────────────────────── */
+
+.onboarding-agent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-agent-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.onboarding-tool-options {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.onboarding-tool-option {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.onboarding-tool-option:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.onboarding-tool-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-tool-option.selected {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.onboarding-tool-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Foot ──────────────────────────────────────────────── */
+
+/* Skip alone since the guide link was dropped — kept as a row so the foot
+   can take a second control again without moving. */
+.onboarding-foot {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.onboarding-skip {
+  padding: 6px 20px;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.onboarding-skip:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* The × exists only for the palette-summoned screen: at boot this surface is
+   the app's state, not a dialog over one, and Skip is the way past it (D2).
+   onboarding.js adds .app-loader-dismissible to the surface when the gate
+   allows it — to the surface, because this button sits outside #onboarding,
+   whose transform would otherwise capture its positioning. */
+.onboarding-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  display: none;
+  padding: 6px 9px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.app-loader-dismissible .onboarding-close {
+  display: block;
+}
+
+.onboarding-close:hover {
+  color: var(--text-primary);
+}
+
+/* ── Narrow windows ────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .onboarding-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-agent {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

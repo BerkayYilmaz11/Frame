@@ -447,7 +447,8 @@ function setupIPC() {
       setIsFrameProject(isFrame);
       // The open already moved this project's Frame-owned files, or decided
       // it could not. Either way the user is told rather than asked — the
-      // banner is the receipt, and the activity panel keeps it.
+      // status bar's notice tray holds the receipt, and the activity panel
+      // keeps it.
       require('./healthNotice').showMigration(migration);
       // Offered on every Frame project, not only a legacy one: a decision
       // outlives the migration that created it — by the time anyone is asked

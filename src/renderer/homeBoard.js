@@ -57,7 +57,6 @@ class HomeBoard {
     this.shellMenu = null;
     this.availableShells = [];
     this._lastState = null;
-    this.headerEl = null;
     // Resolved at mount: [{ widget, span }] plus the unsubscribes that feed them.
     this._layout = null;
     this._widgetUnsubs = [];
@@ -97,12 +96,9 @@ class HomeBoard {
       return;
     }
 
-    this.headerEl = this._buildHeader();
-    this.boardEl.appendChild(this.headerEl);
-
     // One grid of independent widgets, split in two halves: the first widget
-    // (Agents) takes the whole top half, the rest share the bottom half in
-    // equal columns. The registry decides what is shown and in what order;
+    // (the prompt composer) takes the whole top half, the rest share the
+    // bottom half in equal columns. The registry decides what is shown and in what order;
     // the grid's stylesheet decides where each order slot lands.
     this.gridEl = document.createElement('div');
     this.gridEl.className = 'home-grid';
@@ -134,20 +130,6 @@ class HomeBoard {
       && !!this.gridEl === !!state.currentProjectPath;
   }
 
-  // ─── Header ─────────────────────────────────────────────
-
-  /** Home greets — the project and its branch already live in the sidebar. */
-  _buildHeader() {
-    const el = document.createElement('div');
-    el.className = 'home-header';
-    el.innerHTML = `
-      <div class="home-header-top">
-        <h1 class="home-header-title">Welcome to Frame!</h1>
-      </div>
-    `;
-    return el;
-  }
-
   // ─── Widgets ────────────────────────────────────────────
 
   /**
@@ -157,9 +139,6 @@ class HomeBoard {
   _widgetCtx() {
     return {
       state: this._lastState,
-      // The per-project lane cap the Agents widget draws its slots from — the
-      // same number every "maximum reached" error quotes.
-      maxAgents: this.manager.maxTerminals,
       enterLane: (id) => this.onEnterLane(id),
       openTerminals: () => this.onOpenTerminals && this.onOpenTerminals(),
       createLane: (shellPath) => this._createLane(shellPath),
@@ -223,21 +202,23 @@ class HomeBoard {
     }
   }
 
+  /**
+   * Nothing to show until a project exists, so Home asks for one the same way
+   * the first-run screen does — the shared projectStart block, not the lone
+   * "Add New Project" button into the Open a Project modal that used to sit
+   * here. That button was a differently-worded third answer to a question the
+   * screen and the switcher already answer.
+   */
   _renderNoProjectState() {
     const empty = document.createElement('div');
-    empty.className = 'lane-board-empty';
+    empty.className = 'lane-board-empty lane-board-empty-start';
     empty.innerHTML = `
       <div class="lane-board-empty-icon">${lucideIcon(FolderOpen, 26)}</div>
       <p class="lane-board-empty-title">No project added yet</p>
-      <p class="lane-board-empty-hint">Add a project to get started — open a folder, create a new project, or clone a repo.</p>
-      <button class="lane-board-empty-cta">Add New Project</button>
+      <p class="lane-board-empty-hint">Start with a folder you already have, an empty project, or a repository to clone.</p>
     `;
-    empty.querySelector('.lane-board-empty-cta').addEventListener('click', () => {
-      // Same flow as the sidebar Projects "Add new Project" button — the Open
-      // Project modal (open folder / create / clone). Lazy-required to avoid
-      // load-order coupling.
-      require('./openProjectModal').open();
-    });
+    // Lazy-required to avoid load-order coupling, like the modal it replaces.
+    empty.appendChild(require('./projectStart').create());
     return empty;
   }
 
@@ -274,7 +255,7 @@ class HomeBoard {
     document.body.appendChild(this.shellMenu);
 
     document.addEventListener('click', (e) => {
-      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action, .home-agent-launcher')) {
+      if (!this.shellMenu.contains(e.target) && !e.target.closest('.home-card-action, .home-composer')) {
         this._hideShellMenu();
       }
     });

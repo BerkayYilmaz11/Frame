@@ -1,9 +1,9 @@
 /**
  * Telemetry Notice Banner
  *
- * One-time banner shown at the top of the app on the first launch after
- * telemetry was introduced. Independent of the welcome modal so users who
- * already dismissed welcome still see this disclosure.
+ * One-time card in the bottom-right corner, above the status bar, shown on
+ * the first launch after telemetry was introduced. Independent of the onboarding screen so users
+ * who never see that screen still get this disclosure.
  *
  * Once acknowledged, never shows again. Persisted via userSettings.
  */

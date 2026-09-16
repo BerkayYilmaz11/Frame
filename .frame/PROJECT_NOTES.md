@@ -3309,6 +3309,163 @@ Alternative not taken: installing an arm64 Node so the native build itself
 is arm64 — correct too, but it depends on the machine, and the chmod is
 harmless alongside it.
 
+### [2026-09-15] Header theme control is a picker; View › Theme shows the current one
+
+**Context.** Frame has four themes (Dark, Light, Dark+, Light+) but the
+header button only flipped between a theme and its light/dark counterpart,
+so two of the four were reachable only through the palette or the View
+menu. The View › Theme submenu also gave no sign of which theme was on.
+
+**Decision.** The header button (`#sidebar-theme-btn`) opens a popover
+listing every `themes.js` entry — a diagonal swatch built from the theme's
+own terminal background/foreground, the label, a check on the current one.
+The button's icon is the current scheme (sun / moon) and its tooltip the
+theme's name. Everything is painted from `data-theme` via a
+MutationObserver, so a theme set from the palette or the View menu shows in
+the header too. `appHeader.js` owns the popover; `applyTheme` in
+`terminalTabBar.js` stays the one write path.
+
+View › Theme became a radio group. Main does not own theme state (it lives
+in the renderer's localStorage), so `applyTheme` reports the id over a new
+`THEME_CHANGED` channel and `menu.js` rebuilds the application menu with
+that entry checked — the same rebuild the AI-tool switcher already does.
+The submenu is generated from `themes.THEME_IDS`, so main no longer carries
+its own copy of the labels. The registry's `counterpart` field and
+`counterpartOf()` only existed for the old flip, so they were removed with it.
+
+### [2026-09-15] UI zoom steps — page zoom owned by Frame, not a CSS rewrite
+
+> Frame için aklıma yeni bir feature geldi. zoom in ve zoom out. fontlar
+> iconlar vs tüm tasarım scale olabilir. default bu hali olur. 2 kademe
+> küçük 2 kademe büyük olabilir. … view menusu altına da koyalım bunu uygun
+> bir şekilde diğer uygulamalar gibi. ayrıca shortcut ekleyebiliriz
+
+**Analysis.** The View menu already carried Electron's stock `zoomIn` /
+`zoomOut` / `resetZoom` roles, so ⌘= zoomed the page today — through
+Chromium's dozen-step ladder, with no indicator, no Settings entry, and a
+value Chromium persisted per origin on its own. The stylesheets are px-only
+(2,357 px values, 0 rem), the density pass's 12px base is deliberate, and
+xterm / the d3 map sit outside CSS anyway. Three mechanisms were weighed:
+Chromium page zoom under Frame's control (chosen), a rem refactor (16k lines,
+still leaves xterm and SVG), CSS `zoom` on body (breaks rect math and xterm
+measurement).
+
+**Decisions (spec `ui-zoom-steps`, planned and task-generated this session).**
+Five steps −2…+2 → 0.85 / 0.92 / 1.00 / 1.10 / 1.20, step 0 byte-identical
+to today. `src/main/uiZoom.js` owns the factor: seeds
+`webPreferences.zoomFactor` from `user-settings.json` (`uiZoomStep`),
+re-applies on `did-finish-load` so a stale Chromium per-origin level never
+wins, snaps pinch / Ctrl+wheel (`zoom-changed`) to the ladder. Three registry
+commands `view.zoomIn` / `view.zoomOut` / `view.zoomReset` on ⌘= ⌘- ⌘0
+replace the stock roles in the View menu (same position, plus a hidden ⌘⇧=
+alias like Electron's own role), so palette and cheat sheet list them for
+free. Frame Settings gains an Appearance row with a `.settings-select`
+(machine-wide, so the gear side per settings-by-scope). Status bar shows
+`110%` at the right end only away from step 0; click resets. Minimum window
+stays 900×600. Tests: the pure ladder module under `src/shared/` only.
+
+### [2026-09-15] Zoom In moves to ⇧⌘0; digit shortcuts match the physical key
+
+> zoom in cmd shift 0 olsun zoom out cmd - olsun
+
+Overturns the `ui-zoom-steps` plan's `CmdOrCtrl+=` for Zoom In (and drops its
+hidden `CmdOrCtrl+Shift+=` alias). Zoom In is `CmdOrCtrl+Shift+0`, Zoom Out
+stays `CmdOrCtrl+-`, Reset stays `CmdOrCtrl+0`.
+
+Shift+digit never matched in `platform.matchesShortcut`: it compared `e.key`,
+and with Shift held that is the layout's shifted character (`)` on US, `=` on
+Turkish Q). A digit token now also matches `e.code === 'Digit<n>'`, so the
+shortcut works on every layout; unshifted digit shortcuts (⌘1–9) are
+unaffected. Verified live: ⇧⌘0 steps up and clamps at 120%, ⌘= does nothing,
+both work with a terminal focused, and the View menu and palette show ⇧⌘0.
+
+### [2026-09-15] How to Use Frame — an in-app guide that opens before Welcome (spec: how-to-use-frame-guide)
+
+The user asked for a first-run "how to use" onboarding: a wide modal, index
+tree on the left and details on the right, walking through all of Frame step
+by step — init and what `.frame/` gets, bring-your-own agent subscription,
+terminals and Start, specs and the spec flow, Orchestration being beta and
+needing specs, sessions and resume, where decisions / prompts / activity
+live, several projects at once, four themes, zoom, plugins — reopenable from
+a button under the rail's gear and from the Help menu.
+
+**Decisions taken with the user.** Illustrations are inline sketches drawn
+from the design tokens, not screenshots ("eskizleri deneyelim, beğenmezsek
+güncelleriz") — so they live in one replaceable module,
+`src/renderer/guide/guideSketches.js`. The Welcome overlay stays for now and
+opens after the guide closes on launch. Reopening always starts on the first
+page, and a "Don't show this on launch" checkbox (`guideHideOnLaunch`) stops
+the automatic open.
+
+**How it hangs together.** Content is pure data in `guideContent.js` with a
+`validate()` the test runs, so a page citing a missing command or sketch kind
+fails `npm test`. Shortcuts in copy are `{kbd:commandId}` tokens rendered
+from the command registry, never typed. The guide owns the launch trigger
+and hands off to `welcomeOverlay.showOnLaunch()`; closing through an action
+link skips Welcome for that launch so the chosen view stays in front.
+
+**Keep it true.** The guide describes the app, so a change that renames a
+view, a label or a command should touch the matching page. While writing it,
+three drafted claims turned out wrong against the code (Plugins is not hidden
+for other agents; Home's first card is "Terminals", not "Agents"; nothing
+shows other CLIs loading AGENTS.md through hooks) and were corrected.
+
+### [2026-09-15] How to Use Frame stops opening at launch
+
+After running the dev build the user said the guide "fena değil ancak onboarding sayılmaz": keep it behind the button at the
+bottom-left of the rail, do not open it first thing, and drop the "Don't show this on launch" checkbox that only existed for
+the launch open. Welcome is back to owning the launch on its own (its code is exactly what it was before the guide), and the
+guide is on-demand only — rail button, Help › How to Use Frame, palette. The same pass fixed index titles that ended in "…":
+twelve were shortened (e.g. "Know which agent needs you" → "Agent states") and tree rows now wrap instead of truncating.
+
+### [2026-09-16] Welcome slimmed down, sample project and Gemini CLI dropped
+
+The user asked for three things after living with the launch greeting: take
+the sample project out of the Welcome modal, remove Gemini CLI from the agent
+choices everywhere (Welcome, the header picker, Home's launcher), and make
+the modal "daha simple, göz yormayan".
+
+**Agents.** `gemini` left `AI_TOOLS` in `aiToolManager.js`, which is the one
+list every surface reads, so the header select, Home's launcher, the Welcome
+chips and the menu's Switch AI Tool all lost it at once; `detectDefaultTool`
+now probes claude → codex. `loadConfig` gained a fallback: a saved
+`activeTool` that no longer exists (an old `gemini` choice, a deleted custom
+tool) is rewritten to `claude` instead of leaving the file naming a tool
+nothing can select. Left alone on purpose: `laneStatus.KNOWN_AGENTS` still
+recognises a `gemini` process someone starts by hand, telemetry still accepts
+the old value from stored configs, and `specManager` still stages the (empty)
+`gemini` template directory.
+
+**Welcome.** Now one column: mark, title, one line, three single-line actions
+(Open a folder / Create a new project / Clone from GitHub), the agent chips,
+and a footer with "Don't show this again" and a link to How to Use Frame. The
+sample project and the "Start →" CTA that opened it are gone, as are the
+four-line feature cards and the shortcut tip — explanation lives in the guide
+now. `state.openSampleProject` and the sample IPC path stay; nothing in the
+UI calls them any more.
+
+### [2026-09-16] A terminal chip's × closes the terminal
+
+The user found the chip × in the top bar confusing: clicking it showed
+"Terminal 3 keeps running — this only takes it out of the top bar … To close
+the terminal for good, use the × on its pane in Terminals." Their words: "aslında
+böyle olmamalı. Terminal kill ediliyor tamamen kapanıyor emin misin gibi uygun bir
+dille yazı olmalı. Ve terminal gerçekten de kill edilmeli burada."
+
+**This reverses T15 of terminals-home-agents**, where × on a chip meant "drop
+from this bar, never destroy". Now `multiTerminalUI.closeTerminalFromStrip`
+asks through `terminalChipNotice.confirmClose` ("Close this terminal?", red
+Close terminal button, Cancel focused so a stray Enter backs out) and then
+calls `manager.closeTerminal` — the same path as the pane × (PTY destroyed).
+Closing the enlarged terminal falls back to the grid via
+`terminalsView._normalizeShown`. "Don't ask again" uses a new localStorage
+key (`frame-terminal-close-confirm-off`) so anyone who dismissed the old
+harmless notice is not silently switched to killing terminals. The guide's
+Terminals text was updated to match. Left alone: the Terminals chip's own ×
+(still only drops it from the bar, shown only when there are no terminals),
+and the `hiddenFromBar` prefs plumbing — `terminalsView.hideFromBar` has no
+caller any more.
+
 ### [2026-09-14] Telemetry audit — fixes for misleading counts
 
 **Context.** The user asked for a review of the telemetry, looking only for
@@ -3382,3 +3539,33 @@ failure, since that cannot be told apart from a crash.
 `test/telemetry.test.js`; `npm run build` succeeds. Not committed. Not tried
 in the running app. Worth checking there: move a spec forward with an agent
 and watch the events, rename a spec, switch branches.
+
+### [2026-09-16] Telemetry notice moves from a top strip to a corner card
+
+**Context.** After the guided tour shipped (first-run-guided-tour), the user
+saw the one-time telemetry notice in the live run and said: "İstatistik
+bildirimi bu şekilde olmamalı zaten bence. header'ı kapatıyor ve anlaşılmıyor
+opacity var diye. Buna daha iyi bir UI bul lütfen." The strip was
+`position: fixed; top: 0` across the window on `--accent-subtle`, which is
+translucent, so it sat on `#app-header` and the header's text showed through.
+
+**Decision.** `#telemetry-notice` is now a 320px opaque card in the
+bottom-right corner, `calc(var(--status-bar-height) + 12px)` above the foot:
+`--bg-secondary`, border, 12px radius, `--shadow-lg`, a title ("Anonymous
+usage stats") with a chart icon and ×, one line of copy, and a foot with
+"Manage in Settings" and a `.primary-btn` "Got it". The corner was free:
+toasts are top-centre and the tour's cards sit beside their targets. z-index
+stays 9000, above the tour. The ids, `telemetryNotice.js`'s behaviour and the
+`telemetryNoticeShown` setting are unchanged. The guided tour still waits for
+the notice to be dismissed before its automatic start, now so the two
+first-run layers arrive one at a time rather than because the notice hid the
+header.
+
+Same pass: `onboarding.js` stopped binding `#onboarding-open-folder` and
+`#onboarding-create-project`. Those buttons were replaced by the shared
+`projectStart` block, which wires itself, so each launch logged two
+"not found" console errors for handlers that could never fire.
+
+Left alone: `healthNotice` still uses a top strip; the separate
+`status-bar-notice-tray` spec (specified the same day) moves it into the
+status bar.

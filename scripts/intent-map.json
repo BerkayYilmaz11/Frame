@@ -77,8 +77,8 @@
     "synonyms": ["analytics", "metrics"]
   },
   "crash": {
-    "modules": ["main/crashGuard", "renderer/healthNotice"],
-    "synonyms": ["crash-guard", "health", "recovery", "crash-recovery"]
+    "modules": ["main/crashGuard", "renderer/healthNotice", "renderer/statusBar/noticeTray", "renderer/statusBar/noticeTrayModel"],
+    "synonyms": ["crash-guard", "health", "recovery", "crash-recovery", "notices", "errors", "notification"]
   },
   "commands": {
     "modules": ["renderer/commandPalette", "renderer/commandRegistry", "renderer/cheatSheet"],

@@ -1,9 +1,9 @@
 /* ==================== APP HEADER ==================== */
 /* One row across the whole window, above the sidebar and the center
-   (shell-chrome-app-header-collapsible-panels spec). The same 35px as the
-   center's strip (.terminal-tab-bar), so the sidebar's first row and the
+   (shell-chrome-app-header-collapsible-panels spec). 39px — 4px taller than the
+   center's 35px strip (.terminal-tab-bar); the sidebar's first row and the
    strip share a top edge; nothing taller than 32px belongs in it. Three
-   slots: the mark on the left, the current-project switcher in the middle,
+   slots: the mark on the left, the current-project switcher 18px after it,
    the window-level controls and the layout toggles on the right.
 
    position + z-index: the switcher's dropdown is absolutely positioned
@@ -13,7 +13,7 @@
   position: relative;
   z-index: 60;
   flex-shrink: 0;
-  height: 35px;
+  height: 39px;
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -44,7 +44,9 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  /* 18px from the brand: the header's own gap plus the rest. */
+  padding-left: calc(18px - var(--space-md));
 }
 
 .app-header-right {
@@ -55,7 +57,9 @@
    shape carries the identity, a halo on a 15px glyph only muddies it. */
 .app-header-mark {
   flex: none;
-  color: var(--accent-primary);
+  /* The mark is ink, not accent — white on dark, black on light. One token,
+     shared with the boot splash, so the two can never disagree. */
+  color: var(--brand-mark);
   display: block;
 }
 
@@ -67,15 +71,15 @@
 }
 
 /* ─── Current-project switcher ─── */
-/* The one project selector, in the header's center. Class names kept from
+/* The one project selector, 18px right of the brand. Class names kept from
    its sidebar days (index.js binds them); only the box changed: a clamped
-   width centered in the slot instead of a full-width sidebar row, and the
-   menu anchored under the header row. */
+   width at the start of the slot instead of a full-width sidebar row, and
+   the menu anchored under the header row. */
 .sidebar-current-project-wrap {
   position: relative;
-  flex: 0 1 360px;
+  flex: 0 1 216px;
   min-width: 0;
-  max-width: 360px;
+  max-width: 216px;
 }
 
 .sidebar-current-project {
@@ -222,7 +226,7 @@
   background: transparent;
   border: none;
   /* Icon buttons (theme, bell, layout toggles): secondary at rest, primary
-     on hover (below). 32px squares in a 35px row. */
+     on hover (below). 32px squares in a 39px row. */
   color: var(--text-secondary);
   cursor: pointer;
   width: 32px;
@@ -268,6 +272,91 @@
 .app-header-right select:hover {
   border-color: var(--border-default);
   background: var(--bg-elevated);
+}
+
+/* ─── Theme picker ─── */
+/* The popover hangs off the button's wrapper, right-aligned so it never
+   leaves the window. Same elevated-surface language as .sidebar-project-menu,
+   sized to its four rows. */
+.theme-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 50;
+  min-width: 148px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.theme-menu[hidden] {
+  display: none;
+}
+
+/* Rows are ordinary buttons, but not the header's 32px icon squares — the
+   generic `.app-header-right button:not(.primary-btn)` rule is matched in
+   specificity and beaten by order here. */
+.app-header-right button.theme-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 6px var(--space-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.app-header-right button.theme-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.app-header-right button.theme-menu-item.active {
+  color: var(--accent-primary);
+}
+
+.app-header-right button.theme-menu-item svg {
+  width: 13px;
+  height: 13px;
+  color: var(--accent-primary);
+}
+
+.theme-menu-item-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* A disc split on the diagonal: the theme's terminal background above,
+   its foreground below — surface and text, a preview rather than a chip.
+   The ring keeps the dark discs visible on the dark elevated surface. */
+.theme-menu-swatch {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--border-default);
+  background: linear-gradient(135deg, var(--swatch-bg) 50%, var(--swatch-fg) 50%);
 }
 
 /* Update Notification */

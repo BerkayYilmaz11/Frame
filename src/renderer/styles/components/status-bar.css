@@ -37,9 +37,11 @@
   min-width: 0;
 }
 
-/* The slot needs to anchor its own menu, and the menu has to escape the bar
-   upward — so the slot is the positioning context and the bar does not clip. */
-.status-bar-left {
+/* Each slot anchors its own popover, and the popover has to escape the bar
+   upward — so the slot is the positioning context and the bar does not clip.
+   The right slot holds the notice tray (status-bar-notice-tray spec). */
+.status-bar-left,
+.status-bar-right {
   position: relative;
 }
 
@@ -527,4 +529,305 @@
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* ─── Interface zoom readout (ui-zoom-steps spec, D2) ─── */
+/* Only present away from 100%. Reads like the version beside it — tertiary
+   text, tabular figures — but it is a control (click resets), so it takes
+   the bar's hover wash the way the branch and dock buttons do. */
+.sb-zoom {
+  flex-shrink: 0;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-sm);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+/* display: flex above beats the UA [hidden] rule — restate it, as .sb-branch does. */
+.sb-zoom[hidden] {
+  display: none;
+}
+
+.sb-zoom:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-zoom:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+/* ─── Notices (status-bar-notice-tray spec) ─── */
+/* The last thing in the bar: a glyph that is quiet until something goes
+   wrong. Muted at rest; red for an unread error and amber for an unread
+   warning, with the unread count beside it; a small blue dot for unread
+   information (D1). It never animates — the bar is ambient. */
+.sb-notices {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 24px;
+  min-width: 24px;
+  justify-content: center;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sb-notices:hover,
+.sb-notices[aria-expanded="true"] {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-notices:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.sb-notices.tone-error,
+.sb-notices.tone-error:hover {
+  color: var(--error);
+}
+
+.sb-notices.tone-warning,
+.sb-notices.tone-warning:hover {
+  color: var(--warning-ink, var(--warning));
+}
+
+.sb-notices-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-notices-count:empty {
+  display: none;
+}
+
+.sb-notices-dot {
+  display: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--info);
+  box-shadow: 0 0 0 1.5px var(--bg-deep);
+}
+
+.sb-notices.tone-info .sb-notices-dot {
+  display: block;
+}
+
+/* The popover: the branch picker's surface, anchored to the right end. */
+.sb-notice-tray {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 6px;
+  width: 400px;
+  max-width: calc(100vw - 2 * var(--space-md));
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+  color: var(--text-secondary);
+  outline: none;
+  z-index: 2;
+}
+
+.sb-notice-tray[hidden] {
+  display: none;
+}
+
+.sb-nt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 6px 6px 6px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sb-nt-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.sb-nt-clear {
+  padding: 2px 6px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.sb-nt-clear:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.sb-nt-clear[hidden] {
+  display: none;
+}
+
+.sb-nt-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.sb-nt-empty {
+  padding: 14px 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.sb-nt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 6px 6px 8px;
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.sb-nt-row + .sb-nt-row {
+  margin-top: 2px;
+}
+
+.sb-nt-row:hover,
+.sb-nt-row:focus,
+.sb-nt-row:focus-within {
+  background: var(--bg-hover);
+}
+
+.sb-nt-icon {
+  display: flex;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.sb-nt-row.error .sb-nt-icon {
+  color: var(--error);
+}
+
+.sb-nt-row.warning .sb-nt-icon {
+  color: var(--warning-ink, var(--warning));
+}
+
+.sb-nt-row.info .sb-nt-icon {
+  color: var(--info);
+}
+
+.sb-nt-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-nt-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.sb-nt-source {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sb-nt-time,
+.sb-nt-repeat {
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-nt-repeat {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* The whole message, wrapped: the banner's ellipsis hid the part that
+   mattered. Selectable, for the user who wants only part of it. */
+.sb-nt-message {
+  margin-top: 2px;
+  color: var(--text-primary);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.sb-nt-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.sb-nt-row:hover .sb-nt-actions,
+.sb-nt-row:focus .sb-nt-actions,
+.sb-nt-row:focus-within .sb-nt-actions {
+  opacity: 1;
+}
+
+.sb-nt-action {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.sb-nt-action:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.sb-nt-action:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
 }

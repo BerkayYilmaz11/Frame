@@ -1,33 +1,33 @@
 /**
- * Agents widget.
+ * Agents widget — the prompt composer.
  *
- * What is running, and how to start one more. Two jobs, and the second is
- * why the top bar can drop its tool `<select>`: the launcher lives here now,
- * where there is room for the choice next to the button (G8).
+ * The top half of Home is one thing: say what you want done, pick the
+ * agent, press Start. Frame opens a new terminal, starts the agent there and
+ * hands it the prompt — the same `agentDispatch.dispatch({ createNew })` door
+ * task runs go through, so the pre-flight, the agent-ready wait and every
+ * error toast come with it. An empty prompt still starts the agent, just
+ * without anything to say to it.
  *
- * Rows are `agentRows`' output — the filter and the attention order are
- * tested there, not here (C8). This module's job is drawing them and wiring
- * the clicks. Every action that can fail says so through `notify.error` (C7);
- * none of them touches `ipcRenderer` (D3, S6) — `homeData` owns the write.
+ * Home no longer lists terminals: the sidebar and the Terminals section are
+ * where running work lives, and a composer sharing the half with a slot board
+ * would be squeezed into a footnote.
+ *
+ * None of this touches `ipcRenderer` (D3, S6) — `homeData` owns the tool
+ * write, `agentDispatch` owns the launch.
  */
 
 const { Terminal } = require('lucide');
 const { escapeHtml } = require('./../../htmlUtils');
 const notify = require('./../../notify');
-const laneStatus = require('./../../laneStatus');
 const homeData = require('./../homeData');
-const { agentRows } = require('./../agentRows');
-const { widgetShell } = require('./../widgetShell');
 
-// Fallback for a host that does not say how many lanes a project may hold;
-// the real number comes from the terminal manager through `ctx.maxAgents`.
-const DEFAULT_MAX_AGENTS = 9;
+const PLACEHOLDER = 'e.g. Add a dark mode toggle to the settings page and remember the choice between sessions';
 
 module.exports = {
   id: 'agents',
-  title: 'Terminals',
+  title: 'New agent',
   icon: Terminal,
-  sources: ['lanes', 'aiTool'],
+  sources: ['aiTool'],
   defaultSpan: 1,
   defaultEnabled: true,
 
@@ -35,108 +35,99 @@ module.exports = {
 
   mount(el, ctx) {
     this.ctx = ctx;
-    this.card = widgetShell({
-      id: 'agents',
-      icon: Terminal,
-      title: 'Terminals',
-      // The header is not a doorway: this card is not the Terminals section,
-      // and a chevron that pretended to open it would be a lie.
-      onOpen: null
-    });
+    this._starting = false;
 
-    // The launcher is the first thing in the card, above the slots, and is
-    // always there — an agent you want to start is not something you only
-    // want when none is running. It is the one action Home exists for, so
-    // it sits centred where the eye lands first, with a line saying what it
-    // does and the controls directly under it.
-    this.launcher = document.createElement('div');
-    this.launcher.className = 'home-agent-launcher';
-    // Same picker as the terminal header (.ai-tool-picker in terminal.css):
-    // the <label> is the visible box, the native <select> underneath stays
-    // the interactive element, so clicking anywhere on the box opens it.
-    this.launcher.innerHTML = `
-      <div class="home-agent-launcher-text">
-        <p class="home-agent-launcher-lead">Start an agent</p>
-        <p class="home-agent-launcher-hint">This is where work in Frame begins. Pick a tool and press Start — Frame opens it in a terminal and tracks it here: when it finishes, needs input, or asks to run something.</p>
-      </div>
-      <div class="home-agent-launcher-controls">
-        <label class="ai-tool-picker" title="Default agent — Start launches this one">
+    this.el = document.createElement('div');
+    this.el.className = 'home-composer';
+    // The picker is the shared .ai-tool-picker (the terminal header's): the
+    // <label> is the visible box, the native <select> underneath stays the
+    // interactive element, so clicking anywhere on the box opens it.
+    // The greeting sits centred over the box, and the agent picker just
+    // under its bottom-left corner — Start stays inside, where you type.
+    this.el.innerHTML = `
+      <div class="home-composer-stack">
+        <h1 class="home-composer-title">Welcome to Frame!</h1>
+        <div class="home-composer-box">
+          <textarea class="home-composer-input" rows="5" spellcheck="false"
+                    aria-label="Prompt for the agent" placeholder="${escapeHtml(PLACEHOLDER)}"></textarea>
+          <div class="home-composer-controls">
+            <span class="home-composer-shortcut">${process.platform === 'darwin' ? '⌘' : 'Ctrl'} ↵ to start</span>
+            <button type="button" class="primary-btn home-agent-start" title="Start the agent in a new terminal">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              <span>Start</span>
+            </button>
+          </div>
+        </div>
+        <label class="ai-tool-picker" title="Agent — Start launches this one">
           <span class="ai-tool-picker-label">Agent</span>
-          <select class="ai-tool-select home-agent-tool" aria-label="Default agent"></select>
+          <select class="ai-tool-select home-agent-tool" aria-label="Agent"></select>
           <svg class="ai-tool-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </label>
-        <button type="button" class="primary-btn home-agent-start" title="Start the default agent">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-          <span>Start</span>
-        </button>
       </div>
     `;
-    this.card.el.insertBefore(this.launcher, this.card.body);
 
-    this.toolEl = this.launcher.querySelector('.home-agent-tool');
+    this.inputEl = this.el.querySelector('.home-composer-input');
+    this.toolEl = this.el.querySelector('.home-agent-tool');
+    this.startEl = this.el.querySelector('.home-agent-start');
+
     this.toolEl.addEventListener('change', () => this._setTool(this.toolEl.value));
-
-    const start = this.launcher.querySelector('.home-agent-start');
-    // startDefaultAgent already routes every failure it can hit to
-    // notify.error; this catches the ones it cannot reach.
-    start.addEventListener('click', () => {
-      Promise.resolve()
-        .then(() => require('./../../agentDispatch').startDefaultAgent())
-        .catch(err => notify.error(`Could not start the agent: ${err.message || 'launch failed'}`));
+    this.startEl.addEventListener('click', () => this._start());
+    this.inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        this._start();
+      }
     });
-    // The same right-click affordance the old New-terminal tile had: pick the
-    // shell the agent will run in.
-    start.addEventListener('contextmenu', (e) => {
+    // The same right-click affordance the launcher always had: pick the
+    // shell for a plain terminal.
+    this.startEl.addEventListener('contextmenu', (e) => {
       if (!ctx.showShellMenu) return;
       e.preventDefault();
       ctx.showShellMenu(e.clientX, e.clientY);
     });
 
-    el.appendChild(this.card.el);
+    el.appendChild(this.el);
   },
 
-  update({ lanes, aiTool }) {
-    const card = this.card;
-    if (!card) return;
-
+  update({ aiTool }) {
+    if (!this.el) return;
     this._renderTool(aiTool);
+  },
 
-    const rows = agentRows(lanes);
-    const max = (this.ctx && this.ctx.maxAgents) || DEFAULT_MAX_AGENTS;
-    card.count.textContent = `${rows.length} / ${max}`;
+  _start() {
+    if (this._starting) return;
+    // dispatch() types the prompt into the agent's input and presses Enter
+    // once; a line break inside it would reach the TUI as its own keypress
+    // and could send half the prompt. One line keeps it one message.
+    const prompt = this.inputEl.value.replace(/\s*\n\s*/g, ' ').trim();
+    const agentDispatch = require('./../../agentDispatch');
 
-    // One tile per open terminal, agent or plain shell — nothing drawn for
-    // the room that is left; the count in the header already says that.
-    // Approval first, then input, then working, then shells — the order
-    // agentRows fixed. The mark and the label come from laneStatus so that
-    // Home and the rails describe the same state in the same words.
-    const tiles = rows.slice(0, max).map((r) => {
-      const mark = laneStatus.attentionMark(r.status);
-      const label = laneStatus.statusLabel(r.status, {
-        agentName: r.agentName, foreground: r.foreground, commandLine: r.commandLine, short: true
-      });
-      const when = laneStatus.formatRelativeTime(r.lastActivityAt);
-      return `
-        <button type="button" class="home-card-row home-agent-tile ${r.status}" data-id="${escapeHtml(r.id)}"
-                title="${escapeHtml(label)}">
-          <span class="home-card-row-name">
-            <span class="lane-status-dot ${r.status}"></span>${escapeHtml(r.name)}
-            ${mark ? `<span class="home-card-row-mark">${mark}</span>` : ''}
-          </span>
-          <span class="home-card-row-meta">${escapeHtml(label)}${when ? ` · ${escapeHtml(when)}` : ''}</span>
-        </button>
-      `;
-    });
-    card.body.innerHTML = '<div class="home-agent-grid">' + tiles.join('') + '</div>';
+    if (!prompt) {
+      // Nothing to say yet — start the agent the way the launcher always did.
+      Promise.resolve()
+        .then(() => agentDispatch.startDefaultAgent())
+        .catch(err => notify.error(`Could not start the agent: ${err.message || 'launch failed'}`));
+      return;
+    }
 
-    // A row is the way into the lane it names — the whole reason to list it.
-    card.body.querySelectorAll('.home-card-row').forEach((row) => {
-      row.addEventListener('click', () => this.ctx.enterLane(row.dataset.id));
-    });
+    this._setStarting(true);
+    // dispatch() moves the view into the new terminal at once and toasts its
+    // own failures; the prompt is only cleared once it actually got there.
+    agentDispatch.dispatch({ createNew: true, toolId: this.toolEl.value || null, prompt })
+      .then((result) => {
+        if (result && result.success && this.inputEl) this.inputEl.value = '';
+      })
+      .catch(err => notify.error(`Could not start the agent: ${err.message || 'launch failed'}`))
+      .finally(() => this._setStarting(false));
+  },
+
+  _setStarting(on) {
+    this._starting = on;
+    if (this.startEl) this.startEl.disabled = on;
   },
 
   /** The options and the selection, from homeData's `aiTool` source. */
@@ -173,9 +164,10 @@ module.exports = {
   },
 
   dispose() {
-    this.card = null;
-    this.launcher = null;
+    this.el = null;
+    this.inputEl = null;
     this.toolEl = null;
+    this.startEl = null;
     this._toolIds = null;
     this.ctx = null;
   }

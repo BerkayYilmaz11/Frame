@@ -38,7 +38,11 @@ const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
 const { applyTheme, currentTheme } = require('./terminalTabBar');
 const themes = require('./themes');
-const welcomeOverlay = require('./welcomeOverlay');
+const uiZoom = require('../shared/uiZoom');
+const onboarding = require('./onboarding');
+const projectStart = require('./projectStart');
+const guideModal = require('./guideModal');
+const guidedTour = require('./guidedTour');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const doneWindow = require('./doneWindow');
@@ -268,15 +272,17 @@ function init() {
   // Setup button handlers
   setupButtonHandlers();
 
-  // Initialize command palette + cheat sheet, register all commands, then bind keyboard
-  // App loader registers its WORKSPACE_DATA listener first so it fades out
-  // before welcomeOverlay's listener can open the welcome modal.
+  // Initialize command palette + cheat sheet, register all commands, then bind
+  // keyboard. appLoader also initializes onboarding: on a first run the boot
+  // surface becomes the onboarding screen instead of fading to an empty app.
+  // The guided tour initializes first: it waits on the loader's exit.
+  guidedTour.init({ revealProjectsTab: () => revealSidebarTab('projects') });
   appLoader.init();
 
   commandPalette.init();
   require('./paletteSources').init(multiTerminalUI); // dynamic ⌘K jump targets
   cheatSheet.init();
-  welcomeOverlay.init();
+  guideModal.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
   feedbackPanel.init();
@@ -309,24 +315,30 @@ function init() {
  * Setup button click handlers
  */
 function setupButtonHandlers() {
-  // Clone GitHub result. The clone request is sent from the Open Project modal
-  // (openProjectModal.js); here we just route the result back to it: on success
-  // open the project + close the modal, on failure show the error inline (or a
-  // dialog if the modal isn't open).
+  // Clone GitHub result. Every clone is sent by a projectStart block — the
+  // first-run screen, Home's no-project state or the Open a Project modal —
+  // and the block answers for the one it sent, so a failure is reported where
+  // the user is looking. Success opens the project; each host leaves on
+  // state.onProjectChange.
   ipcRenderer.on(IPC.CLONE_GITHUB_REPO_RESULT, (event, result) => {
-    if (result.cancelled) return;
-    if (result.success) {
-      state.setProjectPath(result.projectPath);
-      openProjectModal.handleCloneResult(result);
-      return;
-    }
-    const consumed = openProjectModal.handleCloneResult(result);
-    if (!consumed) alert('Clone failed:\n' + result.error);
+    if (result.success) state.setProjectPath(result.projectPath);
+    const consumed = projectStart.handleCloneResult(result);
+    if (result.cancelled || result.success) return;
+    // Was a bare alert(), which blocks the renderer and every IPC behind it.
+    if (!consumed) notify.error('Clone failed: ' + (result.error || 'unknown error'));
   });
 
   // The native View menu's one channel to the renderer: a command-registry
   // id, run through the same registry the palette, the status bar and the
   // shortcuts use (dock-panel-readonly-views spec, C6 / D12).
+  // A zoom step changes every pane's CSS-px size: the terminals' own
+  // ResizeObserver fits them too, but a fit on the next frame — after
+  // layout has settled at the new factor — is what makes the PTY grid
+  // certain to match (ui-zoom-steps spec, C6). _sendResize dedupes.
+  ipcRenderer.on(IPC.UI_ZOOM_CHANGED, () => {
+    requestAnimationFrame(() => terminal.fitTerminal());
+  });
+
   ipcRenderer.on(IPC.RUN_APP_COMMAND, (event, commandId) => {
     if (!commandRegistry.runById(commandId)) {
       console.error(`Menu command '${commandId}' did not run — unknown id or unavailable right now`);
@@ -374,6 +386,15 @@ function setupButtonHandlers() {
   if (frameSettingsBtn) {
     frameSettingsBtn.addEventListener('click', () => frameSettingsModal.toggle());
     tooltip.attach(frameSettingsBtn, 'Frame Settings (Cmd+,)', { placement: 'right' });
+  }
+
+  // How to Use Frame, the last button at the rail's foot (under the gear).
+  // Runs the same registered command as Help › How to Use Frame and the
+  // palette (how-to-use-frame-guide spec).
+  const guideBtn = document.getElementById('guide-btn');
+  if (guideBtn) {
+    guideBtn.addEventListener('click', () => commandRegistry.runById('help.guide'));
+    tooltip.attach(guideBtn, 'How to Use Frame', { placement: 'right' });
   }
 
   // Theme toggle now lives in the top bar and is wired by terminalTabBar,
@@ -591,10 +612,22 @@ function registerCommands() {
     run: () => cheatSheet.toggle()
   });
   r({
-    id: 'help.welcome',
-    title: 'Show Welcome Screen',
+    id: 'help.guide',
+    title: 'How to Use Frame',
     category: 'Help',
-    run: () => welcomeOverlay.reopen()
+    run: () => guideModal.open()
+  });
+  r({
+    id: 'help.tour',
+    title: 'Take the Frame Tour',
+    category: 'Help',
+    run: () => guidedTour.start()
+  });
+  r({
+    id: 'help.welcome',
+    title: 'Show the Start Screen',
+    category: 'Help',
+    run: () => onboarding.open()
   });
   r({
     id: 'settings.open',
@@ -713,6 +746,14 @@ function registerCommands() {
     shortcut: dockState.TAB_SHORTCUTS.activity,
     run: () => dock.toggleTab('activity')
   });
+  // Plugins has no menu item; the command exists so the How to Use Frame
+  // guide can link to it the way the rail's foot button opens it.
+  r({
+    id: 'plugins.open',
+    title: 'Plugins',
+    category: 'Help',
+    run: () => pluginsPanel.toggle()
+  });
   // Feedback is a modal, not a dock tab: the rail's foot button, the Help
   // menu and the palette all run this.
   r({
@@ -757,6 +798,38 @@ function registerCommands() {
       run: () => applyTheme(id)
     });
   }
+
+  // ---------- View: zoom ----------
+  // Five-step interface scale (ui-zoom-steps spec). The factor is owned by
+  // main (src/main/uiZoom.js): these commands read the current step, move it
+  // along the shared ladder and ask main to apply it. The View menu in
+  // src/main/menu.js carries the same ids and accelerators; keep it in step.
+  // A press at the end of the ladder is a no-op — main returns early.
+  const stepZoom = async (delta) => {
+    const { step } = await ipcRenderer.invoke(IPC.UI_ZOOM_GET);
+    await ipcRenderer.invoke(IPC.UI_ZOOM_SET, uiZoom.clampStep(step + delta));
+  };
+  r({
+    id: 'view.zoomIn',
+    title: 'Zoom In',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+Shift+0',
+    run: () => stepZoom(1)
+  });
+  r({
+    id: 'view.zoomOut',
+    title: 'Zoom Out',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+-',
+    run: () => stepZoom(-1)
+  });
+  r({
+    id: 'view.zoomReset',
+    title: 'Reset Zoom',
+    category: 'View',
+    shortcut: 'CmdOrCtrl+0',
+    run: () => ipcRenderer.invoke(IPC.UI_ZOOM_SET, uiZoom.DEFAULT_STEP)
+  });
 
   // ---------- Focus ----------
   r({

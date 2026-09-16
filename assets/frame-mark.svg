@@ -3,10 +3,24 @@
   Drawn on a 24×24 grid with `currentColor`, so a caller sets the size and the
   colour; the sidebar header takes it in the accent, the app icon renders it in
   parchment on charcoal (see build/icon.png).
+
+  Brand proportions — taken from the master artwork, where the mark's own box
+  is 738 units wide and each bracket is a 56-unit stroke whose arms run 285
+  with a 168-unit gap between opposing pairs. Scaled onto this grid the mark
+  sits in a 20-unit box (inset 2 on every side): arm 7.72 (0.386 of the box),
+  stroke 1.52 (0.076), centre gap 4.56 (0.228). The brackets are drawn as
+  filled outlines rather than strokes — identical shape, since the master's
+  90° miter joins square off exactly the same corners — so callers control
+  everything with fill/currentColor alone.
+
+  The airy gap and the thin stroke ARE the brand: do not thicken the stroke
+  or close the gap. Anything that repeats these four paths (index.html's
+  loader + header marks, the plan-report templates) must carry the same
+  numbers.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-  <path d="M2 2h9v2.6H4.6V11H2V2Z"/>
-  <path d="M22 2v9h-2.6V4.6H13V2h9Z"/>
-  <path d="M2 22v-9h2.6v6.4H11V22H2Z"/>
-  <path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
+  <path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/>
+  <path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/>
+  <path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/>
+  <path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/>
 </svg>

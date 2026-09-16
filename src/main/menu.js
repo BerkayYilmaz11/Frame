@@ -11,19 +11,26 @@
  * RUN_APP_COMMAND (dock-panel-readonly-views spec, C6): the same ids the
  * status bar, the palette and the keyboard shortcuts run, registered in
  * src/renderer/index.js registerCommands(). The accelerators shown here
- * are copied from there — keep the two in step. The menu carries no
- * checkbox / radio state (main does not know the dock's state); the one
- * radio group is the AI-tool switcher, whose state lives in main.
+ * are copied from there — keep the two in step. The menu carries almost
+ * no checkbox / radio state (main does not know the dock's state). Two
+ * radio groups: the AI-tool switcher, whose state lives in main, and
+ * View › Theme, whose state the renderer owns and reports over
+ * THEME_CHANGED — the menu is rebuilt on each change so the check follows.
  */
 
-const { Menu, shell } = require('electron');
+const { Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { IPC } = require('../shared/ipcChannels');
+// Pure registry (no DOM / electron) — the one list of themes, shared with
+// the renderer so the submenu and the theme.* commands can never disagree.
+const themes = require('../renderer/themes');
 
 let mainWindow = null;
 let appPath = null;
 let aiToolManager = null;
+/** The theme the renderer last applied — drives the View › Theme radio. */
+let currentTheme = themes.DEFAULT_THEME;
 
 const isMac = process.platform === 'darwin';
 
@@ -34,6 +41,14 @@ function init(window, app, toolManager) {
   mainWindow = window;
   appPath = app.getPath('userData');
   aiToolManager = toolManager;
+
+  ipcMain.removeAllListeners(IPC.THEME_CHANGED);
+  ipcMain.on(IPC.THEME_CHANGED, (event, id) => {
+    const next = themes.normalize(id);
+    if (next === currentTheme) return;
+    currentTheme = next;
+    createMenu();
+  });
 }
 
 /** Menu item that runs a command-registry id in the renderer. */
@@ -134,17 +149,16 @@ function getMenuTemplate() {
       SEP,
       {
         label: 'Theme',
-        submenu: [
-          cmd('Light', 'theme.light'),
-          cmd('Dark', 'theme.dark'),
-          cmd('Light+', 'theme.lightPlus'),
-          cmd('Dark+', 'theme.darkPlus')
-        ]
+        submenu: buildThemeSubmenu()
       },
       SEP,
-      { role: 'zoomIn' },
-      { role: 'zoomOut' },
-      { role: 'resetZoom' },
+      // Interface zoom (ui-zoom-steps spec): Frame's five-step ladder rather
+      // than Electron's stock roles, so the palette, the cheat sheet and the
+      // keyboard handler run the same ids. Zoom In is ⇧⌘0 by the user's
+      // choice (2026-09-15), not the conventional ⌘=.
+      cmd('Zoom In', 'view.zoomIn', 'CmdOrCtrl+Shift+0'),
+      cmd('Zoom Out', 'view.zoomOut', 'CmdOrCtrl+-'),
+      cmd('Reset Zoom', 'view.zoomReset', 'CmdOrCtrl+0'),
       { role: 'togglefullscreen' },
       SEP,
       {
@@ -213,7 +227,9 @@ function getMenuTemplate() {
     role: 'help',
     label: 'Help',
     submenu: [
-      cmd('Welcome', 'help.welcome'),
+      cmd('Start with a Project', 'help.welcome'),
+      cmd('How to Use Frame', 'help.guide'),
+      cmd('Take the Frame Tour', 'help.tour'),
       cmd('Keyboard Shortcuts', 'help.shortcuts', 'CmdOrCtrl+Shift+K'),
       SEP,
       cmd('Send Feedback…', 'feedback.open'),
@@ -302,6 +318,23 @@ function buildToolSwitcherSubmenu() {
       createMenu();
     }
   }));
+}
+
+/**
+ * View › Theme: one radio item per registry entry, the current one checked.
+ * Clicking runs the theme.* command in the renderer like any other item;
+ * the check is confirmed when the renderer reports back over THEME_CHANGED.
+ */
+function buildThemeSubmenu() {
+  return themes.THEME_IDS.map((id) => {
+    const t = themes.THEMES[id];
+    return {
+      label: t.label,
+      type: 'radio',
+      checked: id === currentTheme,
+      click: () => sendAppCommand(t.command)
+    };
+  });
 }
 
 /**

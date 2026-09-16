@@ -23,6 +23,9 @@ const IPC = {
   // File Tree
   LOAD_FILE_TREE: 'load-file-tree',
   FILE_TREE_DATA: 'file-tree-data',
+  FILE_TREE_RENAME: 'file-tree-rename',              // invoke: (path, newName) → { ok, path } | { ok: false, error }
+  FILE_TREE_TRASH: 'file-tree-trash',                // invoke: (path) → { ok } | { ok: false, error } — moves to the OS trash
+  FILE_TREE_PASTE: 'file-tree-paste',                // invoke: ({ source, mode: 'copy'|'cut', destDir }) → { ok, path } | { ok: false, error }
 
   // History
   LOAD_PROMPT_HISTORY: 'load-prompt-history',
@@ -31,6 +34,7 @@ const IPC = {
   // Commands
   RUN_COMMAND: 'run-command',                        // main → renderer: type this into the active terminal (menu accelerators)
   RUN_APP_COMMAND: 'run-app-command',                // main → renderer: run this command-registry id (the View menu; dock-panel-readonly-views spec)
+  THEME_CHANGED: 'theme-changed',                    // renderer → main: the applied theme id, so View › Theme can check the current one
 
   // Workspace
   LOAD_WORKSPACE: 'load-workspace',
@@ -140,6 +144,11 @@ const IPC = {
   // User Settings (renderer-side preferences persisted to userData JSON)
   GET_USER_SETTING: 'get-user-setting',
   SET_USER_SETTING: 'set-user-setting',
+
+  // UI zoom (ui-zoom-steps spec) — main owns the factor; the renderer asks for a step
+  UI_ZOOM_GET: 'ui-zoom-get',                        // renderer → main (invoke): { step, factor }
+  UI_ZOOM_SET: 'ui-zoom-set',                        // renderer → main (invoke): apply + persist a step; returns { step, factor }
+  UI_ZOOM_CHANGED: 'ui-zoom-changed',                // main → renderer: { step, factor } after a change (any entry point)
 
   // Git Status (file tree decoration)
   WATCH_GIT_STATUS: 'watch-git-status',
