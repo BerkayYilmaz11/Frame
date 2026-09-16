@@ -479,5 +479,6 @@ module.exports = {
   close: () => overlay && overlay.close(),
   toggle: () => overlay && overlay.toggle(),
   signIn,
-  signOut
+  signOut,
+  accountState: () => accountState.state
 };

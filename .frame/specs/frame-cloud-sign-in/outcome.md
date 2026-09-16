@@ -46,3 +46,11 @@ _Captured: 2026-09-16 · 4 file change(s)_
 
 ---
 
+## T07 — Palette commands for Frame Cloud
+
+Registered `cloud.signIn` ("Frame Cloud: Sign in" → `frameSettingsModal.signIn()`) and `cloud.signOut` ("Frame Cloud: Sign out" → `frameSettingsModal.signOut()`) in `registerCommands()` (Help category, beside `settings.open`), and exported `accountState()` from `frameSettingsModal.js`. Beyond plan.md: both commands carry `when` predicates — Sign in only when a server resolved and nobody is signed in, Sign out only while signed in — so packaged builds without a server list neither. Verified in the dev app against the fake FrameCloud.
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
+

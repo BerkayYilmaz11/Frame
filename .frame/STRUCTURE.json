@@ -6711,7 +6711,8 @@
         "close",
         "toggle",
         "signIn",
-        "signOut"
+        "signOut",
+        "accountState"
       ],
       "depends": [
         "electron",
@@ -8098,7 +8099,7 @@
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 918,
+          "line": 934,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
