@@ -14,3 +14,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T03 — Session store on safeStorage + fsSafe
+
+Wrote `src/main/cloud/sessionStore.js`: `load(serverUrl)` (null on a server mismatch, an unknown version or a decrypt failure; never throws), `save(session)` (encrypted token in `cloud-session.json` via `writeFileAtomic`, or a memory-only copy with `{ ephemeral: true }` when `safeStorage` is unavailable) and `clear()`. Beyond plan.md: `clear()` also deletes the `.bak`/`.tmp` siblings `writeFileAtomic` leaves, so no copy of the old encrypted token outlives sign-out, and a failed write falls back to the memory copy instead of failing the sign-in.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+

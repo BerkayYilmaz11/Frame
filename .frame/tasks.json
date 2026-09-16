@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:20:23Z",
+  "lastUpdated": "2026-09-16T08:21:26Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7821,13 +7821,13 @@
       "title": "Write `src/main/cloud/sessionStore.js`: `load(serverUrl)` / `save` / `clear` on `userData/cloud-session.json` via `safeStorage` + `fsSafe`, `serverUrl` and version checks, memory-only session returning `{ ephemeral: true }` when encryption is unavailable",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:21:26Z",
+      "completedAt": "2026-09-16T08:21:26Z"
     },
     {
       "id": "task-spec-frame-cloud-sign-in-T04",

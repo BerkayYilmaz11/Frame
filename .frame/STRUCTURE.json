@@ -667,6 +667,55 @@
         }
       }
     },
+    "main/cloud/sessionStore": {
+      "file": "src/main/cloud/sessionStore.js",
+      "description": "sessionStore — where the Frame Cloud session lives between launches.",
+      "exports": [
+        "load",
+        "save",
+        "clear"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "electron",
+        "fsSafe",
+        "logger"
+      ],
+      "functions": {
+        "sessionPath": {
+          "line": 24
+        },
+        "encryptionAvailable": {
+          "line": 28
+        },
+        "pickSession": {
+          "line": 36,
+          "params": [
+            "source",
+            "token"
+          ]
+        },
+        "load": {
+          "line": 54,
+          "params": [
+            "serverUrl"
+          ],
+          "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
+        },
+        "save": {
+          "line": 83,
+          "params": [
+            "session"
+          ],
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, access, device })."
+        },
+        "clear": {
+          "line": 104,
+          "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
+        }
+      }
+    },
     "main/commandStaging": {
       "file": "src/main/commandStaging.js",
       "description": "Command staging (cli-spec-command-parity).",
@@ -14248,6 +14297,11 @@
     ],
     "session": [
       {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
         "module": "renderer/home/sessionRows",
         "file": "src/renderer/home/sessionRows.js",
         "description": "Which Claude sessions Home offers to resume, and how they are labelled."
@@ -14348,6 +14402,18 @@
         "module": "renderer/statusBar",
         "file": "src/renderer/statusBar.js",
         "description": "Status Bar Module"
+      }
+    ],
+    "store": [
+      {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
+        "module": "main/frameStore",
+        "file": "src/main/frameStore.js",
+        "description": "frameStore — the one module that knows where a project's meta files live."
       }
     ],
     "structure": [
