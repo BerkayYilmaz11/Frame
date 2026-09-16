@@ -58,7 +58,7 @@ export const EXCLUDED_PATHS = ['.frame', 'tasks.json', 'STRUCTURE.json'];
 // The badge's two colours are literal on purpose — a logo does not answer to
 // the theme. Regenerate the geometry from assets/icon.png if the icon changes.
 export const FRAME_MARK_SVG = '<svg class="rpt-mark" viewBox="0 0 24 24" aria-hidden="true">'
-  + '<rect x="1" y="1" width="22" height="22" rx="5" fill="#14120e" stroke="currentColor" stroke-width="0.75"/><g fill="#f2eee4" transform="translate(5.4 5.4) scale(0.55)"><path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/></g>'
+  + '<rect x="1" y="1" width="22" height="22" rx="5" fill="#14120e" stroke="currentColor" stroke-width="0.75"/><g fill="#f2eee4" transform="translate(5.4 5.4) scale(0.55)"><path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/><path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/><path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/><path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/></g>'
   + '</svg>';
 
 /**
