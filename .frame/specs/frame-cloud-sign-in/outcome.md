@@ -54,3 +54,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T08 — PRIVACY.md: Frame Cloud sign-in
+
+Added a "Frame Cloud sign-in" section to `PRIVACY.md`: optional and hidden without a configured server, requests only to that server (never Aptabase), sign-in sends machine name / OS / app version, what is received and displayed, `cloud-session.json` under app data with a `safeStorage`-encrypted token (memory-only without secure storage, deleted with its backup on sign-out), and no token in logs, activity record or telemetry. Beyond the task text: the Local logging redaction list now names `access_token` and the JSON key form, matching T02.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+

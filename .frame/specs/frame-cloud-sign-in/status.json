@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-sign-in",
   "title": "Frame Cloud sign-in",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-frame-cloud-sign-in-T01",
     "task-spec-frame-cloud-sign-in-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-15T14:10:09Z",
-  "updated_at": "2026-09-16T08:16:39Z",
-  "last_phase_at": "2026-09-16T08:16:39Z",
+  "updated_at": "2026-09-16T08:31:44Z",
+  "last_phase_at": "2026-09-16T08:31:44Z",
   "implement_mode": "autonomous"
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:30:41Z",
+  "lastUpdated": "2026-09-16T08:31:44Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7886,13 +7886,13 @@
       "title": "Add a \"Frame Cloud sign-in\" section to `PRIVACY.md`: what leaves the machine (machine name, OS, app version) and to which server, where the token lives (`cloud-session.json`, `safeStorage`-encrypted, or memory only), and its exclusion from logs, the activity record and telemetry",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:31:44Z",
+      "completedAt": "2026-09-16T08:31:44Z"
     }
   ],
   "metadata": {

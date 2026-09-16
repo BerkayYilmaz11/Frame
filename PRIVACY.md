@@ -54,7 +54,7 @@ Frame keeps a **local** log file to make bugs debuggable — it never leaves you
 
 - **Location:** Electron's standard logs directory — on macOS `~/Library/Logs/Frame/main.log` (find it via **Settings → About → Open Logs Folder**).
 - **Rotation:** capped at 5 MB with up to 3 archived files (`main.old.1.log` … `main.old.3.log`); old content is discarded, never uploaded.
-- **Redaction:** every line is scrubbed before it is written. Recognized secret shapes — API keys (`sk-…`), GitHub/Slack tokens, AWS keys, JWTs, `Bearer` headers, and `password=`/`token=`/`api_key=` values — are replaced with `[REDACTED]`. The same redaction applies to the per-project prompt history under `~/.frame/prompts/`.
+- **Redaction:** every line is scrubbed before it is written. Recognized secret shapes — API keys (`sk-…`), GitHub/Slack tokens, AWS keys, JWTs, `Bearer` headers, and `password=`/`token=`/`access_token=`/`api_key=` values (including their JSON `"key": "value"` form) — are replaced with `[REDACTED]`. The same redaction applies to the per-project prompt history under `~/.frame/prompts/`.
 
 When filing a bug report, attaching the log is the fastest way to help us help you — skim it first if you want to double-check its contents.
 
@@ -73,6 +73,16 @@ On a crash, Frame saves a **minidump on your machine** using Electron's built-in
 
 - Toggle it off under **Settings → Privacy & Analytics → "Keep local crash dumps"** (takes effect on next launch).
 - If Frame ever gains the ability to *send* crash reports, that will be a separate, **opt-in** setting and will be disclosed here first.
+
+## Frame Cloud sign-in
+
+Signing in to Frame Cloud is optional, and nothing in Frame requires it. It is reachable only from **Settings → Account** and the command palette. Packaged builds do not ship a server address yet, so the section stays hidden and Frame makes no requests to any cloud server.
+
+- **Where requests go:** only to the Frame Cloud server you configured (`FRAME_CLOUD_URL`, or `cloudServerUrl` in Frame's user settings). Nothing about sign-in is sent to Aptabase or anyone else.
+- **What sign-in sends:** a request for a sign-in code, then, once you approve in your browser, this device's **name** (your machine's hostname without `.local`), its **OS** (platform and release) and **Frame's version**, so the device can appear in your account. After that, Frame asks the server who you are when it launches and when you open Account. When you sign out, Frame tells the server to end this device's session.
+- **What Frame receives and shows:** your account name and email, your workspace name and slug, a plan label, and this device's name and last-seen time. These are kept only to display them in Account.
+- **Where the session is kept:** `cloud-session.json` in Frame's app data directory (on macOS `~/Library/Application Support/Frame/`). It never goes in your projects or in `user-settings.json`. The access token is encrypted with your OS's secure storage (Keychain on macOS), and the rest of the file is plain JSON. If your system has no secure storage, the session lives in memory only and you sign in again on the next launch. Signing out deletes the file, including its backup copy, even if the server couldn't be reached. In that case the server-side session expires within 30 days.
+- **What never contains the token:** the log file, which also redacts token shapes as a safety net; the activity record; and telemetry. Only Frame's main process holds the token. The app window receives your account details without it.
 
 ## Questions
 
