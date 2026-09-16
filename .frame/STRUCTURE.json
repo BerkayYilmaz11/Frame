@@ -11165,7 +11165,11 @@
       "description": "Notice tray — the `!` indicator at the right end of the status bar and",
       "exports": [
         "init",
-        "push"
+        "push",
+        "open",
+        "close",
+        "toggle",
+        "isOpen"
       ],
       "depends": [
         "lucide",
@@ -11175,26 +11179,50 @@
       ],
       "functions": {
         "init": {
-          "line": 35,
+          "line": 54,
           "params": [
             "opts"
           ]
         },
         "push": {
-          "line": 59,
+          "line": 101,
           "params": [
             "notice"
           ],
           "purpose": "Record a notice. Safe before init()."
         },
+        "isOpen": {
+          "line": 108
+        },
+        "toggle": {
+          "line": 112
+        },
+        "open": {
+          "line": 116
+        },
+        "close": {
+          "line": 127
+        },
+        "_paint": {
+          "line": 134
+        },
         "_paintIndicator": {
-          "line": 65
+          "line": 139
         },
         "_describe": {
-          "line": 76,
+          "line": 150,
           "params": [
             "tone",
             "unread"
+          ]
+        },
+        "_renderList": {
+          "line": 164
+        },
+        "_buildRow": {
+          "line": 181,
+          "params": [
+            "notice"
           ]
         }
       }

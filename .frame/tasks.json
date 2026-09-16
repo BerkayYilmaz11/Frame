@@ -8289,13 +8289,13 @@
       "title": "Build the tray popover in `noticeTray.js`: newest-first rows (severity glyph, source label, time, `×N`, wrapped message via `textContent`), empty state, header \"Clear all\", mark-all-read on open, and notices pushed while open added as read",
       "description": "",
       "source": "spec:status-bar-notice-tray:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:53:08.978Z",
+      "completedAt": "2026-09-16T13:53:08.978Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T04",

@@ -12,3 +12,10 @@ Added `src/renderer/statusBar/noticeTray.js` with `init({ slotEl })` building th
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+## T03 — Build the tray popover list
+
+Added the popover to `src/renderer/statusBar/noticeTray.js`: header with "Clear all" (hidden when empty), newest-first rows (severity icon, source label, last-occurrence time, `×N`, wrapped message via `textContent`), empty state, and `open`/`close`/`toggle`/`isOpen` with `onOpen`. Opening runs `markAllRead`; `push()` while open marks the new row read at once. The button now toggles the popover. Row actions and keyboard follow in T04, styles in T05.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
