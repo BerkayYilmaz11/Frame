@@ -29,7 +29,8 @@
 /* 7. Cheat Sheet */
 @import 'components/cheat-sheet.css';
 
-/* 8. First-run onboarding screen */
+/* 8. First-run onboarding screen + the project-start block it shares with Home */
+@import 'components/project-start.css';
 @import 'components/onboarding.css';
 
 /* 8a. How to Use Frame guide (wide two-column modal) */

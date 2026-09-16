@@ -537,6 +537,16 @@
   text-align: center;
 }
 
+/* The no-project state hosts the shared projectStart block. The block fills
+   whatever it is given, so the host sets the measure — the same 760px the
+   first-run screen uses, so the three boxes are the same shape in both
+   places. The text above it stays centred; the boxes get their own room. */
+.lane-board-empty-start .project-start {
+  max-width: 760px;
+  margin-top: 18px;
+  text-align: left;
+}
+
 .lane-board-empty-icon {
   width: 52px;
   height: 52px;

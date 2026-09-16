@@ -223,21 +223,23 @@ class HomeBoard {
     }
   }
 
+  /**
+   * Nothing to show until a project exists, so Home asks for one the same way
+   * the first-run screen does — the shared projectStart block, not the lone
+   * "Add New Project" button into the Open a Project modal that used to sit
+   * here. That button was a differently-worded third answer to a question the
+   * screen and the switcher already answer.
+   */
   _renderNoProjectState() {
     const empty = document.createElement('div');
-    empty.className = 'lane-board-empty';
+    empty.className = 'lane-board-empty lane-board-empty-start';
     empty.innerHTML = `
       <div class="lane-board-empty-icon">${lucideIcon(FolderOpen, 26)}</div>
       <p class="lane-board-empty-title">No project added yet</p>
-      <p class="lane-board-empty-hint">Add a project to get started — open a folder, create a new project, or clone a repo.</p>
-      <button class="lane-board-empty-cta">Add New Project</button>
+      <p class="lane-board-empty-hint">Start with a folder you already have, an empty project, or a repository to clone.</p>
     `;
-    empty.querySelector('.lane-board-empty-cta').addEventListener('click', () => {
-      // Same flow as the sidebar Projects "Add new Project" button — the Open
-      // Project modal (open folder / create / clone). Lazy-required to avoid
-      // load-order coupling.
-      require('./openProjectModal').open();
-    });
+    // Lazy-required to avoid load-order coupling, like the modal it replaces.
+    empty.appendChild(require('./projectStart').create());
     return empty;
   }
 

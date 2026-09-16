@@ -10,10 +10,11 @@
  * It carries no link to the guide: a first run is for getting a project open,
  * and How to Use Frame is a click away from the rail once the app is up.
  *
- * The screen outlives the pickers it opens. Its three boxes start a route and
- * leave the screen standing; only an opened project — or Skip — takes it
- * down, so cancelling a dialog returns the user here instead of stranding
- * them in the empty app they were trying to leave.
+ * The screen outlives the pickers it opens. The three ways in are
+ * `projectStart.js`, shared with Home's no-project state; they start a route
+ * and leave the screen standing, and only an opened project — or Skip —
+ * takes it down, so cancelling a dialog returns the user here instead of
+ * stranding them in the empty app they were trying to leave.
  *
  * It replaced the welcome modal, which asked for a project from on top of the
  * empty app that needed one, and asked again on every launch until the user
@@ -26,6 +27,7 @@ const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const notify = require('./notify');
+const projectStart = require('./projectStart');
 const { escapeHtml } = require('./htmlUtils');
 const { decide, LAUNCH, COMMAND } = require('./onboarding/onboardingGate');
 
@@ -35,8 +37,7 @@ let isOpen = false;
 let dismissible = false;
 let initialized = false;
 let onLeave = null;     // appLoader's parker, set by init
-let cloneEl = null;     // the inline clone row
-let cloning = false;    // a clone is in flight; the row is waiting on main
+let startEl = null;     // the shared three-ways-in block
 let availableTools = {};
 let activeToolId = null;
 
@@ -48,7 +49,13 @@ let activeToolId = null;
 function init({ onLeave: leave } = {}) {
   surfaceEl = document.getElementById('app-loader');
   panelEl = document.getElementById('onboarding');
-  cloneEl = document.getElementById('onboarding-clone');
+  const mount = document.getElementById('onboarding-start');
+  if (mount) {
+    startEl = projectStart.create();
+    mount.appendChild(startEl);
+  } else {
+    console.error('Onboarding: #onboarding-start not found — the three ways in will not render');
+  }
   if (!surfaceEl || !panelEl) {
     console.error('Onboarding: surface or panel element not found');
     return;
@@ -119,7 +126,6 @@ function close() {
   if (!isOpen) return;
   isOpen = false;
   surfaceEl.classList.remove('app-loader-onboarding', 'app-loader-dismissible', 'app-loader-complete');
-  hideCloneForm();
   if (typeof onLeave === 'function') onLeave();
 }
 
@@ -141,25 +147,6 @@ function setupListeners() {
   // goes when a project actually opens — see onProjectChange below.
   bind('onboarding-open-folder', () => state.selectProjectFolder());
   bind('onboarding-create-project', () => state.createNewProject());
-  bind('onboarding-clone-github', showCloneForm);
-  bind('onboarding-clone-cancel', hideCloneForm);
-  bind('onboarding-clone-confirm', submitClone);
-
-  const url = document.getElementById('onboarding-clone-url');
-  if (url) {
-    url.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitClone();
-      } else if (e.key === 'Escape') {
-        // Escape backs out of the clone row, not out of the screen.
-        e.preventDefault();
-        e.stopPropagation();
-        hideCloneForm();
-      }
-    });
-  }
-
   bind('onboarding-skip', close);
   bind('onboarding-close', close);
 
@@ -169,7 +156,7 @@ function setupListeners() {
     if (!isOpen || !dismissible || e.key !== 'Escape') return;
     // One keypress closes one thing: while the clone row is open, Escape
     // belongs to it (its input handles that itself and stops the event).
-    if (panelEl.classList.contains('onboarding-cloning')) return;
+    if (projectStart.isCloneOpen(startEl)) return;
     e.preventDefault();
     close();
   });
@@ -254,70 +241,4 @@ function paintToolSelection() {
   });
 }
 
-/* ── Clone, inline ──────────────────────────────────────── */
-
-function showCloneForm() {
-  if (!panelEl) return;
-  panelEl.classList.add('onboarding-cloning');
-  setCloneError('');
-  const url = document.getElementById('onboarding-clone-url');
-  if (url) url.focus();
-}
-
-function hideCloneForm() {
-  if (!panelEl) return;
-  if (cloning) return;   // main is working; let it finish or fail first
-  panelEl.classList.remove('onboarding-cloning');
-  setCloneError('');
-  const url = document.getElementById('onboarding-clone-url');
-  if (url) url.value = '';
-}
-
-function submitClone() {
-  const url = document.getElementById('onboarding-clone-url');
-  if (!url) return;
-  const value = url.value.trim();
-  if (!value) {
-    setCloneError('Paste a repository URL first.');
-    url.focus();
-    return;
-  }
-  setCloneError('');
-  setBusy(true);
-  ipcRenderer.send(IPC.CLONE_GITHUB_REPO, value);
-}
-
-/**
- * Called by the CLONE_GITHUB_REPO_RESULT listener in index.js, before the
- * Open a Project modal gets its turn. Returns true when this screen owned the
- * clone, so a failure is reported here rather than anywhere else.
- */
-function handleCloneResult(result) {
-  if (!isOpen || !cloning) return false;
-  setBusy(false);
-  // Cancelled at main's destination picker: nothing failed, nothing happened.
-  if (result.cancelled) return true;
-  if (!result.success) {
-    setCloneError(result.error || 'Clone failed.');
-    return true;
-  }
-  // Success needs no close(): setProjectPath fires onProjectChange, which
-  // takes the screen down through the same path every other route uses.
-  return true;
-}
-
-function setBusy(value) {
-  cloning = value;
-  if (cloneEl) cloneEl.dataset.busy = value ? 'true' : 'false';
-  const go = document.getElementById('onboarding-clone-confirm');
-  if (go) go.textContent = value ? 'Cloning\u2026' : 'Clone';
-}
-
-function setCloneError(message) {
-  const el = document.getElementById('onboarding-clone-error');
-  if (!el) return;
-  el.textContent = message;
-  el.dataset.shown = message ? 'true' : 'false';
-}
-
-module.exports = { init, takeOver, open, close, handleCloneResult };
+module.exports = { init, takeOver, open, close };

@@ -95,3 +95,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 _Captured: 2026-09-16 · 5 file change(s)_
 
 ---
+
+## Follow-up — one block, two surfaces, and an empty sidebar that gets out of the way
+
+Home's no-project state offered a lone "Add New Project" button into the Open a Project modal — a third, differently-worded answer to the question the first-run screen had just asked properly. Extracted the three ways in (boxes + inline clone) into `src/renderer/projectStart.js` and `project-start.css`, which the first-run screen and Home both mount, so the two cannot drift; `index.js` routes `CLONE_GITHUB_REPO_RESULT` to the block rather than to the screen, and the block tracks which instance sent the clone. Removed the sidebar's pinned "Add new Project" CTA with the rest of `projectSection`'s old job, and put the opposite behaviour in its place: with no project the panel has nothing to show, so the sidebar collapses to its rail and unfolds when one opens — through a new `{ persist: false }` option on `sidebarResize.hide/show`, because a rule the app applies on the user's behalf must not come back as their own stored setting. The Work / Context groups needed no change: `placeWorkspaceNav` already drops them without an active project. 11 files.
+
+_Captured: 2026-09-16 · 11 file change(s)_
+
+---

@@ -109,10 +109,6 @@
   padding-left: 10px;
 }
 
-.sidebar-view-projects .project-add-btn {
-  margin-top: auto;
-}
-
 /* Switcher menu extras: agent-attention dot + per-row remove */
 .sidebar-project-menu-dot {
   flex: none;

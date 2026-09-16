@@ -1,23 +1,26 @@
 /**
  * Projects Section
  *
- * The Projects rail view. It is a thin wrapper over the workspace panel
- * (rendered/owned by `projectListUI`) plus the "Add new Project" button
- * pinned below it. The active project is shown by the switcher above.
+ * The Projects rail view: a thin wrapper over the workspace panel, which
+ * `projectListUI` renders and owns. The active project is shown by the
+ * switcher above.
  *
- * That button belongs to the empty sidebar only. With a project selected the
- * switcher already carries "+ Add a project…", and the panel below it is that
- * project's own navigation — an accent-filled CTA at its foot is the loudest
- * thing in the sidebar, pulling toward the one action the user is demonstrably
- * not taking. With no project there is nothing else to click, so it is the
- * whole point of the view.
+ * It used to pin an "Add new Project" CTA under the panel, shown only while
+ * no project was selected. That went on 2026-09-16: the first-run screen and
+ * Home's no-project state both carry the three ways into a project now, and a
+ * third, differently-worded answer in the sidebar was one too many. What is
+ * left in its place is the opposite move — with no project the panel has
+ * nothing to show at all, so the sidebar collapses to its rail and gives the
+ * width back to the screen that is actually asking the question.
  */
 
-const openProjectModal = require('./openProjectModal');
 const projectListUI = require('./projectListUI');
+const sidebarResize = require('./sidebarResize');
 const state = require('./state');
 
-let section = null;
+// Did we collapse the sidebar ourselves? Only then may we re-open it — a user
+// who collapsed it by hand keeps it collapsed when their project arrives.
+let collapsedByUs = false;
 
 /**
  * Move keyboard focus into the project list. Used by the "Focus Project List"
@@ -28,27 +31,30 @@ function focusList() {
 }
 
 function init() {
-  // The old #project-section wrapper is gone (project-dropdown spec); only
-  // the bottom-pinned Add button remains to wire.
-  //
-  // The `else` is not defensive noise: during the project-rail spec this
-  // init early-returned on a container that had been removed, silently
-  // leaving Add new Project dead until a user found it. A control that
-  // fails to bind must say so (audit-q3-ux-error-feedback discipline).
-  const addBtn = document.getElementById('project-add-btn');
-  if (addBtn) {
-    addBtn.addEventListener('click', () => openProjectModal.open());
+  // Follows the project both ways: removing the last one hands projectListUI
+  // a null path, and the sidebar folds away again.
+  state.onProjectChange(syncSidebar);
+  syncSidebar();
+}
 
-    // Follows the project, both ways: removing the last project hands
-    // projectListUI a null path, and the button has to come back — that is
-    // the state where it is the only way forward.
-    const syncAddBtn = () => {
-      addBtn.style.display = state.getProjectPath() ? 'none' : '';
-    };
-    state.onProjectChange(syncAddBtn);
-    syncAddBtn();
-  } else {
-    console.error('projectSection: #project-add-btn not found — Add new Project will not work');
+/**
+ * No project means an empty panel, so collapse to the rail. Never persisted:
+ * this is the app's rule, not the user's preference (sidebarResize's
+ * `{ persist: false }`), and it is undone only if we were the ones who
+ * applied it.
+ */
+function syncSidebar() {
+  const hasProject = !!state.getProjectPath();
+  if (!hasProject) {
+    if (sidebarResize.isVisible()) {
+      sidebarResize.hide({ persist: false });
+      collapsedByUs = true;
+    }
+    return;
+  }
+  if (collapsedByUs) {
+    sidebarResize.show({ persist: false });
+    collapsedByUs = false;
   }
 }
 

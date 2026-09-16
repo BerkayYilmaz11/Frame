@@ -40,6 +40,7 @@ const { applyTheme, currentTheme } = require('./terminalTabBar');
 const themes = require('./themes');
 const uiZoom = require('../shared/uiZoom');
 const onboarding = require('./onboarding');
+const projectStart = require('./projectStart');
 const guideModal = require('./guideModal');
 const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
@@ -315,20 +316,21 @@ function setupButtonHandlers() {
   // (openProjectModal.js); here we just route the result back to it: on success
   // open the project + close the modal, on failure show the error inline (or a
   // dialog if the modal isn't open).
-  // Two surfaces can own a clone: the first-run screen's inline row and the
-  // Open a Project modal. The screen asks first and answers only for a clone
-  // it started, so each failure is reported where the user is looking.
+  // Two things can own a clone: a projectStart block (the first-run screen or
+  // Home's no-project state) and the Open a Project modal. The block answers
+  // only for a clone it sent, so each failure is reported where the user is
+  // looking.
   ipcRenderer.on(IPC.CLONE_GITHUB_REPO_RESULT, (event, result) => {
     if (result.cancelled) {
-      onboarding.handleCloneResult(result);
+      projectStart.handleCloneResult(result);
       return;
     }
     if (result.success) {
       state.setProjectPath(result.projectPath);
-      if (!onboarding.handleCloneResult(result)) openProjectModal.handleCloneResult(result);
+      if (!projectStart.handleCloneResult(result)) openProjectModal.handleCloneResult(result);
       return;
     }
-    const consumed = onboarding.handleCloneResult(result) || openProjectModal.handleCloneResult(result);
+    const consumed = projectStart.handleCloneResult(result) || openProjectModal.handleCloneResult(result);
     // Was a bare alert(), which blocks the renderer and every IPC behind it.
     if (!consumed) notify.error('Clone failed: ' + (result.error || 'unknown error'));
   });
