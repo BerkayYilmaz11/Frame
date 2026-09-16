@@ -56,3 +56,11 @@ _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
 
+## T08 — Help menu entry
+
+Added Help › Take the Frame Tour (`help.tour`) to `src/main/menu.js`, beside How to Use Frame. Wrote `digest.md` and closed the spec.
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
+

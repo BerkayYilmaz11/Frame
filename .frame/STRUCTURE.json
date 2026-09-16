@@ -2634,43 +2634,43 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 246
+          "line": 247
         },
         "buildAICommandsSubmenu": {
-          "line": 257,
+          "line": 258,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 306,
+          "line": 307,
           "purpose": "Build tool switcher submenu"
         },
         "buildThemeSubmenu": {
-          "line": 327,
+          "line": 328,
           "purpose": "View › Theme: one radio item per registry entry, the current one checked."
         },
         "sendCommand": {
-          "line": 342,
+          "line": 343,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 352,
+          "line": 353,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 361,
+          "line": 362,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 375,
+          "line": 376,
           "purpose": "Create and set application menu"
         }
       },

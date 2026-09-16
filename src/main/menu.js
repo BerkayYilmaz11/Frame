@@ -229,6 +229,7 @@ function getMenuTemplate() {
     submenu: [
       cmd('Start with a Project', 'help.welcome'),
       cmd('How to Use Frame', 'help.guide'),
+      cmd('Take the Frame Tour', 'help.tour'),
       cmd('Keyboard Shortcuts', 'help.shortcuts', 'CmdOrCtrl+Shift+K'),
       SEP,
       cmd('Send Feedback…', 'feedback.open'),
