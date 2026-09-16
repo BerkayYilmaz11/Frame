@@ -1,0 +1,171 @@
+/* ==================== GUIDED TOUR ==================== */
+/* A light layer over the live app (first-run-guided-tour spec): the window
+   dims a little, the step's target sits in a clear cutout with an accent
+   ring, and a small card explains it. guidedTour.js builds the nodes and
+   positions both from the target's rect.
+
+   Nothing here captures a click except the card. The root and the hole are
+   pointer-events: none, so the highlighted target — and everything else —
+   keeps working while the tour is open.
+
+   z-index 8000: above the app, the status bar and the spec-driven hint;
+   below notices (9000+), tooltips (9600), every modal (10000+) and the boot
+   splash (100000). A modal opened from a highlighted target covers the tour
+   rather than the other way round. */
+
+#guided-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  pointer-events: none;
+}
+
+#guided-tour[hidden] {
+  display: none;
+}
+
+/* The cutout. Its own box is the clear hole; the huge spread shadow is the
+   dim around it, so the two can never drift apart. */
+.tour-hole {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 2px var(--accent-primary),
+    0 0 0 9999px color-mix(in srgb, #000 38%, transparent);
+  pointer-events: none;
+  transition:
+    top 0.22s ease,
+    left 0.22s ease,
+    width 0.22s ease,
+    height 0.22s ease;
+}
+
+.tour-card {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  pointer-events: auto;
+  transition:
+    top 0.22s ease,
+    left 0.22s ease,
+    opacity 0.18s ease;
+}
+
+/* Painted once measured: the first frame of a step has no position yet. */
+.tour-card.tour-card-measuring {
+  opacity: 0;
+  transition: none;
+}
+
+.tour-card:focus {
+  outline: none;
+}
+
+.tour-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.tour-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.tour-card-counter {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tour-card-body,
+.tour-card-closing {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.tour-card-closing {
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.tour-card-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.tour-card-skip,
+.tour-card-link {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tour-card-skip {
+  color: var(--text-tertiary);
+}
+
+.tour-card-skip:hover {
+  color: var(--text-primary);
+}
+
+.tour-card-link {
+  color: var(--accent-primary);
+}
+
+.tour-card-link:hover {
+  text-decoration: underline;
+}
+
+.tour-card-skip:focus-visible,
+.tour-card-link:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Next / Done sit at the right; the primary button's own styles come from
+   ui.css (.primary-btn). */
+.tour-card-spacer {
+  flex: 1;
+}
+
+.tour-card-hint {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-hole,
+  .tour-card {
+    transition: none;
+  }
+}

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T13:25:31.454Z",
+  "lastUpdated": "2026-09-16T13:26:38.233Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8172,13 +8172,13 @@
       "title": "Add `src/renderer/styles/components/tour.css` and import it in `src/renderer/styles/main.css`: a `#guided-tour` root at z-index 8000 with `pointer-events: none`; `.tour-hole` with a light `color-mix` dim via a 9999px box-shadow and an accent ring; `.tour-card` using design tokens (title, body, counter, Next/Done, Skip tour, guide link) with `pointer-events: auto`. Hole and card move with a short transition that `prefers-reduced-motion` removes, and both themes work.",
       "description": "",
       "source": "spec:first-run-guided-tour:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-guided-tour",
       "createdAt": "2026-09-16T13:07:36.350Z",
-      "updatedAt": "2026-09-16T13:07:36.350Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:26:38.233Z",
+      "completedAt": "2026-09-16T13:26:38.233Z"
     },
     {
       "id": "task-spec-first-run-guided-tour-T03",

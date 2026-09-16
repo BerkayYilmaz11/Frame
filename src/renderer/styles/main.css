@@ -36,6 +36,9 @@
 /* 8a. How to Use Frame guide (wide two-column modal) */
 @import 'components/guide.css';
 
+/* 8b. Guided tour (cutout highlight + card over the live UI) */
+@import 'components/tour.css';
+
 /* 9. App Loader (boot splash) */
 @import 'components/app-loader.css';
 
