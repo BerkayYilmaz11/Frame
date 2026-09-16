@@ -1,5 +1,5 @@
 /**
- * Notice tray — the `!` indicator at the right end of the status bar and
+ * Notice tray — the warning-triangle indicator at the right end of the status bar and
  * the popover behind it (status-bar-notice-tray spec).
  *
  * Replaces healthNotice's top-of-window banner, which sat on the app header
@@ -25,7 +25,7 @@
  */
 
 const { clipboard } = require('electron');
-const { CircleAlert, CircleX, TriangleAlert, Info, Copy, X } = require('lucide');
+const { CircleX, TriangleAlert, Info, Copy, X } = require('lucide');
 const dock = require('../dock');
 const notify = require('../notify');
 const tooltip = require('../tooltip');
@@ -69,7 +69,7 @@ function init(opts) {
   buttonEl.className = 'sb-notices';
   buttonEl.setAttribute('aria-haspopup', 'dialog');
   buttonEl.setAttribute('aria-expanded', 'false');
-  buttonEl.innerHTML = `${dock.lucideIcon(CircleAlert, 16)}<span class="sb-notices-count"></span><span class="sb-notices-dot" aria-hidden="true"></span>`;
+  buttonEl.innerHTML = `${dock.lucideIcon(TriangleAlert, 16)}<span class="sb-notices-count"></span><span class="sb-notices-dot" aria-hidden="true"></span>`;
   countEl = buttonEl.querySelector('.sb-notices-count');
 
   rootEl = document.createElement('div');

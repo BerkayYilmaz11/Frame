@@ -11165,7 +11165,7 @@
     },
     "renderer/statusBar/noticeTray": {
       "file": "src/renderer/statusBar/noticeTray.js",
-      "description": "Notice tray — the `!` indicator at the right end of the status bar and",
+      "description": "Notice tray — the warning-triangle indicator at the right end of the status bar and",
       "exports": [
         "init",
         "push",
@@ -14660,7 +14660,7 @@
       {
         "module": "renderer/statusBar/noticeTray",
         "file": "src/renderer/statusBar/noticeTray.js",
-        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
+        "description": "Notice tray — the warning-triangle indicator at the right end of the status bar and"
       },
       {
         "module": "renderer/statusBar/noticeTrayModel",
