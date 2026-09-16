@@ -7,6 +7,9 @@
  * a project, the default agent, and Skip — arrives beneath them. With
  * projects, none of this runs.
  *
+ * It carries no link to the guide: a first run is for getting a project open,
+ * and How to Use Frame is a click away from the rail once the app is up.
+ *
  * It replaced the welcome modal, which asked for a project from on top of the
  * empty app that needed one, and asked again on every launch until the user
  * found a checkbox. Nothing is persisted here: the project count is the whole
@@ -134,13 +137,6 @@ function setupListeners() {
 
   bind('onboarding-skip', close);
   bind('onboarding-close', close);
-
-  // The guide is reference, not onboarding — this links to it, it never opens
-  // it by itself (how-to-use-frame-guide's own follow-up decision).
-  bind('onboarding-guide', () => {
-    close();
-    require('./commandRegistry').runById('help.guide');
-  });
 
   document.addEventListener('keydown', (e) => {
     // Only the summoned screen answers to Escape. At boot this surface is the

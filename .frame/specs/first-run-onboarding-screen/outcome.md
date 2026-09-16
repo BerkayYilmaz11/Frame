@@ -71,3 +71,11 @@ Summoning the screen from the palette exposed both. The `×` sat inside `#onboar
 _Captured: 2026-09-16 · 4 file change(s)_
 
 ---
+
+## Follow-up — the guide link is gone (overturns D6)
+
+The user asked for the How to Use Frame link to come off the first-run screen, which reverses plan decision D6 — a silent one, where I had kept the retired modal's footer link on the grounds that it was a first run's only visible pointer to the guide. Removed the button from `index.html`, its handler (and with it this module's only `commandRegistry` use) from `onboarding.js`, and the `.onboarding-link` rules that had one user. The foot keeps its row layout for Skip alone. Constraint C1 still holds either way: it forbade the screen opening the guide by itself, and it now does not link to it at all. 3 files.
+
+_Captured: 2026-09-16 · 3 file change(s)_
+
+---

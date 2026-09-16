@@ -8275,63 +8275,62 @@
         "openProjectModal",
         "notify",
         "htmlUtils",
-        "onboarding/onboardingGate",
-        "commandRegistry"
+        "onboarding/onboardingGate"
       ],
       "functions": {
         "init": {
-          "line": 39,
+          "line": 42,
           "params": [
             "{ onLeave"
           ],
           "purpose": "surface; appLoader parks it from here."
         },
         "takeOver": {
-          "line": 67,
+          "line": 70,
           "params": [
             "projects"
           ],
           "purpose": "The loader's hand-off at boot. Returns true when the screen took the"
         },
         "open": {
-          "line": 75,
+          "line": 78,
           "params": [
             "canDismiss"
           ],
           "purpose": "The palette's Show the Start Screen, at any project count."
         },
         "close": {
-          "line": 99
+          "line": 102
         },
         "measureWordmark": {
-          "line": 110,
+          "line": 113,
           "purpose": "The wordmark's width is a measurement, not a constant, and the palette path"
         },
         "setupListeners": {
-          "line": 117
+          "line": 120
         },
         "bind": {
-          "line": 155,
+          "line": 151,
           "params": [
             "id",
             "handler"
           ]
         },
         "loadAITools": {
-          "line": 164
+          "line": 160
         },
         "renderToolOptions": {
-          "line": 177
+          "line": 173
         },
         "selectTool": {
-          "line": 207,
+          "line": 203,
           "params": [
             "toolId"
           ],
           "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
         },
         "paintToolSelection": {
-          "line": 223
+          "line": 219
         }
       },
       "ipc": {

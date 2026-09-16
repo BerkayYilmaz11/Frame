@@ -145,6 +145,8 @@
 
 /* ── Foot ──────────────────────────────────────────────── */
 
+/* Skip alone since the guide link was dropped — kept as a row so the foot
+   can take a second control again without moving. */
 .onboarding-foot {
   display: flex;
   align-items: center;
@@ -167,21 +169,6 @@
   background: var(--bg-hover);
   border-color: var(--border-strong);
   color: var(--text-primary);
-}
-
-.onboarding-link {
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: color 0.12s;
-}
-
-.onboarding-link:hover {
-  color: var(--accent-primary);
 }
 
 /* The × exists only for the palette-summoned screen: at boot this surface is
