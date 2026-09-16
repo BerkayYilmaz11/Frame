@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T13:07:36.351Z",
+  "lastUpdated": "2026-09-16T13:25:31.454Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8159,13 +8159,13 @@
       "title": "Add the pure module `src/renderer/tour/tourSteps.js` with `SETTING_KEY` (`guidedTourDone`), the 8 steps (`project`, `switcher`, `agent`, `terminals`, `specs`, `tasks`, `settings`, `orchestration`), each with English copy, ordered target selectors, placement, `needsNav`, `advance` and project requirements. Export `shouldAutoStart`, `firstStepIndex`, `nextStepIndex`, `placeCard` (flip and clamp inside the viewport) and `validate`. Check every copy claim against the code: the `agent` and `terminals` steps carry the bring-your-own-agent, terminal-first message; `orchestration` says beta and more than one spec with tasks, and closes with the guide link. Add `test/tourSteps.test.js` covering shipped-step validation, first and next step resolution with and without a project and with unavailable steps, `shouldAutoStart`, and `placeCard`.",
       "description": "",
       "source": "spec:first-run-guided-tour:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-guided-tour",
       "createdAt": "2026-09-16T13:07:36.350Z",
-      "updatedAt": "2026-09-16T13:07:36.350Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:25:31.454Z",
+      "completedAt": "2026-09-16T13:25:31.454Z"
     },
     {
       "id": "task-spec-first-run-guided-tour-T02",

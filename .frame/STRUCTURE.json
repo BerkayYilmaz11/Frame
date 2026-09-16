@@ -12165,6 +12165,98 @@
         }
       }
     },
+    "renderer/tour/tourSteps": {
+      "file": "src/renderer/tour/tourSteps.js",
+      "description": "The guided tour's steps and rules (first-run-guided-tour spec).",
+      "exports": [
+        "SETTING_KEY",
+        "STEPS",
+        "PLACEMENTS",
+        "shouldAutoStart",
+        "nextStepIndex",
+        "firstStepIndex",
+        "isLastStep",
+        "placeCard",
+        "validate"
+      ],
+      "depends": [],
+      "functions": {
+        "shouldAutoStart": {
+          "line": 111,
+          "params": [
+            "{ done",
+            "readFailed } = {}"
+          ],
+          "purpose": "Does the tour start by itself after boot? Once per user: any stored value"
+        },
+        "applies": {
+          "line": 116,
+          "params": [
+            "step",
+            "hasProject"
+          ]
+        },
+        "nextStepIndex": {
+          "line": 132,
+          "params": [
+            "from",
+            "{ hasProject",
+            "isAvailable",
+            "steps = STEPS } = {}"
+          ],
+          "purpose": "The index of the first step after `from` that applies to the current"
+        },
+        "firstStepIndex": {
+          "line": 143,
+          "params": [
+            "ctx = {}"
+          ],
+          "purpose": "Where a tour begins: step 1 with no project open, step 2 with one."
+        },
+        "isLastStep": {
+          "line": 148,
+          "params": [
+            "index",
+            "{ hasProject",
+            "steps = STEPS } = {}"
+          ],
+          "purpose": "The last step that applies with a project open, for the Done button."
+        },
+        "clamp": {
+          "line": 154,
+          "params": [
+            "value",
+            "min",
+            "max"
+          ]
+        },
+        "placeCard": {
+          "line": 173,
+          "params": [
+            "target",
+            "card",
+            "viewport",
+            "placement = 'bottom'",
+            "{ gap = 12",
+            "margin = 16 } = {}"
+          ],
+          "purpose": "Place a card of `card` size beside `target` inside `viewport`."
+        },
+        "sentenceCount": {
+          "line": 205,
+          "params": [
+            "text"
+          ]
+        },
+        "validate": {
+          "line": 210,
+          "params": [
+            "steps = STEPS"
+          ],
+          "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
+        }
+      }
+    },
     "shared/activityEvents": {
       "file": "src/shared/activityEvents.js",
       "description": "Activity events — pure policy module.",
