@@ -18,9 +18,18 @@
  *
  * Listeners that follow layout (resize, sidebar, scroll, ResizeObserver) are
  * bound only while the tour is open, so a closed tour costs nothing.
+ *
+ * Skip tour, Escape and Done record `guidedTourDone` so the tour does not come
+ * back by itself; quitting mid-tour records nothing. The keys answer only while
+ * focus is inside the card — Frame is terminal-first, and Escape typed into an
+ * agent's terminal belongs to the agent.
  */
 
+const { ipcRenderer } = require('electron');
+const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
+const notify = require('./notify');
+const commandRegistry = require('./commandRegistry');
 const sidebarResize = require('./sidebarResize');
 const tourSteps = require('./tour/tourSteps');
 
@@ -48,6 +57,25 @@ function init() {
   // stack a second set of listeners (audit-q3-performance-resources T06).
   if (initialized) return;
   initialized = true;
+}
+
+/**
+ * End the tour and remember it. `outcome` is 'finished' or 'skipped'. A write
+ * that fails is told to the user: the tour may show again on the next launch.
+ */
+async function finish(outcome) {
+  if (!isOpen) return;
+  close();
+  try {
+    const ok = await ipcRenderer.invoke(IPC.SET_USER_SETTING, tourSteps.SETTING_KEY, {
+      outcome,
+      at: new Date().toISOString()
+    });
+    if (ok === false) throw new Error('userSettings.set returned false');
+  } catch (err) {
+    console.error('guidedTour: failed to record the tour as done', err);
+    notify.error('Could not save that the tour is done. It may show again next time Frame opens.');
+  }
 }
 
 function hasProject() {
@@ -90,8 +118,9 @@ function close() {
 function next() {
   if (!isOpen) return;
   const following = tourSteps.nextStepIndex(index, { hasProject: hasProject(), isAvailable });
+  // Nothing left on screen to show counts as reaching the end.
   if (following === -1) {
-    close();
+    finish('finished');
     return;
   }
   show(following);
@@ -116,6 +145,7 @@ function ensureNodes() {
   cardEl.setAttribute('aria-live', 'polite');
   cardEl.tabIndex = -1;
   cardEl.addEventListener('click', onCardClick);
+  cardEl.addEventListener('keydown', onCardKeydown);
 
   rootEl.append(holeEl, cardEl);
   document.body.appendChild(rootEl);
@@ -159,7 +189,9 @@ function show(i) {
   // One frame measured and placed, then let it be seen (and animate from
   // here on).
   requestAnimationFrame(() => {
-    if (cardEl) cardEl.classList.remove('tour-card-measuring');
+    if (!cardEl) return;
+    cardEl.classList.remove('tour-card-measuring');
+    focusCard();
   });
 }
 
@@ -172,7 +204,7 @@ function skipMissing(i) {
   }
   const following = tourSteps.nextStepIndex(i, { hasProject: hasProject(), isAvailable });
   if (following === -1) {
-    close();
+    finish('finished');
     return;
   }
   show(following);
@@ -200,10 +232,19 @@ function renderCard(step, i) {
   if (step.closing) cardEl.append(el('p', 'tour-card-closing', step.closing));
 
   const foot = el('div', 'tour-card-foot');
-  const skip = el('button', 'tour-card-skip', 'Skip tour');
-  skip.type = 'button';
-  skip.dataset.tourAction = 'skip';
-  foot.append(skip, el('span', 'tour-card-spacer'));
+  if (!last) {
+    const skip = el('button', 'tour-card-skip', 'Skip tour');
+    skip.type = 'button';
+    skip.dataset.tourAction = 'skip';
+    foot.append(skip);
+  } else {
+    // The details live in the guide; the tour only points at it.
+    const guide = el('button', 'tour-card-link', 'How to Use Frame');
+    guide.type = 'button';
+    guide.dataset.tourAction = 'guide';
+    foot.append(guide);
+  }
+  foot.append(el('span', 'tour-card-spacer'));
 
   const primary = el('button', 'primary-btn tour-card-next', last ? 'Done' : 'Next');
   primary.type = 'button';
@@ -211,6 +252,13 @@ function renderCard(step, i) {
   foot.append(primary);
 
   cardEl.append(foot);
+}
+
+/** Put focus on the card's primary control so Enter, → and Escape reach it. */
+function focusCard() {
+  if (!cardEl) return;
+  const primary = cardEl.querySelector('.tour-card-next') || cardEl;
+  primary.focus({ preventScroll: true });
 }
 
 function el(tag, className, text) {
@@ -225,7 +273,34 @@ function onCardClick(e) {
   if (!btn) return;
   const action = btn.dataset.tourAction;
   if (action === 'next') next();
-  else if (action === 'skip' || action === 'done') close();
+  else if (action === 'done') finish('finished');
+  else if (action === 'skip') finish('skipped');
+  else if (action === 'guide') {
+    finish('finished');
+    if (!commandRegistry.runById('help.guide')) {
+      console.error('guidedTour: help.guide did not run');
+    }
+  }
+}
+
+/*
+ * Bound on the card, not the document: the keys answer only while focus is in
+ * the tour, never while the user types into a terminal or a form.
+ */
+function onCardKeydown(e) {
+  if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    finish('skipped');
+    return;
+  }
+  if (e.key === 'ArrowRight' || (e.key === 'Enter' && !e.target.closest('button'))) {
+    const primary = cardEl.querySelector('.tour-card-next');
+    if (!primary) return;
+    e.preventDefault();
+    primary.click();
+  }
 }
 
 /** Measure the current target and move the cutout and the card to it. */
@@ -308,4 +383,4 @@ function bindWhileOpen() {
   }
 }
 
-module.exports = { init, start, close, isOpen: () => isOpen };
+module.exports = { init, start, close, finish, isOpen: () => isOpen };

@@ -24,3 +24,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T04 — Tour persistence, keyboard and guide link
+
+Added `finish(outcome)` to `src/renderer/guidedTour.js`, recording `{ outcome, at }` under `guidedTourDone` and reporting a failed write through `notify.error`; Skip tour and Escape record `skipped`, Done, the guide link and an exhausted step list record `finished`. Escape / → / Enter are handled on the card itself, and each step focuses its primary button. Beyond plan.md: the last card shows the guide link in Skip tour's place, and running out of on-screen steps finishes rather than silently closing.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+

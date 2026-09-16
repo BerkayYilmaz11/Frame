@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T13:28:17.229Z",
+  "lastUpdated": "2026-09-16T13:29:44.116Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8198,13 +8198,13 @@
       "title": "Add persistence and keyboard to `src/renderer/guidedTour.js`. `finish(outcome)` writes `{ outcome, at }` to `guidedTourDone` through `SET_USER_SETTING` on Skip tour, Escape and Done, and calls `notify.error` when the write fails. Enter / → / Escape act only while focus is inside the card, and each step moves focus to the card's primary button. The last card's How to Use Frame link finishes the tour, then runs `help.guide`.",
       "description": "",
       "source": "spec:first-run-guided-tour:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-guided-tour",
       "createdAt": "2026-09-16T13:07:36.350Z",
-      "updatedAt": "2026-09-16T13:07:36.350Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:29:44.116Z",
+      "completedAt": "2026-09-16T13:29:44.116Z"
     },
     {
       "id": "task-spec-first-run-guided-tour-T05",
