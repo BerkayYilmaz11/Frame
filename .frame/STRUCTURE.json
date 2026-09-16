@@ -11172,57 +11172,90 @@
         "isOpen"
       ],
       "depends": [
+        "electron",
         "lucide",
         "dock",
+        "notify",
         "tooltip",
         "noticeTrayModel"
       ],
       "functions": {
         "init": {
-          "line": 54,
+          "line": 63,
           "params": [
             "opts"
           ]
         },
         "push": {
-          "line": 101,
+          "line": 129,
           "params": [
             "notice"
           ],
           "purpose": "Record a notice. Safe before init()."
         },
         "isOpen": {
-          "line": 108
+          "line": 136
         },
         "toggle": {
-          "line": 112
+          "line": 140
         },
         "open": {
-          "line": 116
+          "line": 144
         },
         "close": {
-          "line": 127
+          "line": 155,
+          "params": [
+            "{ refocus = false } = {}"
+          ]
+        },
+        "_copy": {
+          "line": 163,
+          "params": [
+            "id"
+          ]
+        },
+        "_dismiss": {
+          "line": 175,
+          "params": [
+            "id"
+          ]
+        },
+        "_rows": {
+          "line": 187
+        },
+        "_onKeydown": {
+          "line": 191,
+          "params": [
+            "e"
+          ]
         },
         "_paint": {
-          "line": 134
+          "line": 207
         },
         "_paintIndicator": {
-          "line": 139
+          "line": 212
         },
         "_describe": {
-          "line": 150,
+          "line": 223,
           "params": [
             "tone",
             "unread"
           ]
         },
         "_renderList": {
-          "line": 164
+          "line": 237
         },
         "_buildRow": {
-          "line": 181,
+          "line": 254,
           "params": [
             "notice"
+          ]
+        },
+        "_actionButton": {
+          "line": 297,
+          "params": [
+            "action",
+            "label"
           ]
         }
       }

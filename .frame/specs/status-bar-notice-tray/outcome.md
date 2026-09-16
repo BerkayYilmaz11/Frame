@@ -19,3 +19,10 @@ Added the popover to `src/renderer/statusBar/noticeTray.js`: header with "Clear 
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+## T04 — Add row actions and keyboard handling to the tray
+
+Added per-row copy and dismiss buttons to `src/renderer/statusBar/noticeTray.js` (copy uses electron `clipboard` with a `notify.success` confirmation and `notify.error` on failure), Escape → `close({ refocus: true })`, arrow keys between focusable rows via `moveFocus`, and outside mousedown closing. After a dismiss, focus moves to the neighbouring row so the keyboard stays in the list. No deviation from plan.md.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---

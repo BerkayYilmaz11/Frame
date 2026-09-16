@@ -14,7 +14,9 @@
  * "Clear all" in its header. Opening marks everything read, and a notice
  * that arrives while it is open is added already read — the user is looking.
  * Messages carry error text and paths, so every one is set with
- * `textContent`, never `innerHTML`.
+ * `textContent`, never `innerHTML`. Each row copies its message or dismisses
+ * itself; arrows move between rows, Escape closes back to the button, and an
+ * outside click closes — the branch picker's keyboard and pointer idiom.
  *
  * This is the DOM host. What the list holds and what the indicator shows
  * come from `noticeTrayModel` (pure, tested); this file keeps the state,
@@ -22,8 +24,10 @@
  * arrives before the bar is built is kept and painted once it is.
  */
 
-const { CircleAlert, CircleX, TriangleAlert, Info } = require('lucide');
+const { clipboard } = require('electron');
+const { CircleAlert, CircleX, TriangleAlert, Info, Copy, X } = require('lucide');
 const dock = require('../dock');
+const notify = require('../notify');
 const tooltip = require('../tooltip');
 const model = require('./noticeTrayModel');
 
@@ -44,6 +48,11 @@ const SEVERITY_ICON = {
   error: dock.lucideIcon(CircleX, 14),
   warning: dock.lucideIcon(TriangleAlert, 14),
   info: dock.lucideIcon(Info, 14)
+};
+
+const ACTION_ICON = {
+  copy: dock.lucideIcon(Copy, 13),
+  dismiss: dock.lucideIcon(X, 13)
 };
 
 /**
@@ -88,6 +97,25 @@ function init(opts) {
   clearEl.addEventListener('click', () => {
     list = model.clear();
     _paint();
+    rootEl.focus();
+  });
+  listEl.addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]');
+    if (!action) return;
+    const row = action.closest('.sb-nt-row');
+    if (!row) return;
+    const id = Number(row.dataset.id);
+    if (action.dataset.action === 'copy') _copy(id);
+    else if (action.dataset.action === 'dismiss') _dismiss(id);
+  });
+  rootEl.addEventListener('keydown', _onKeydown);
+
+  // Clicks inside stay inside; the document listener closes on the rest.
+  rootEl.addEventListener('mousedown', (e) => e.stopPropagation());
+  document.addEventListener('mousedown', (e) => {
+    if (!opened) return;
+    if (rootEl.contains(e.target) || buttonEl.contains(e.target)) return;
+    close();
   });
 
   _paint();
@@ -124,11 +152,56 @@ function open() {
   rootEl.focus();
 }
 
-function close() {
+function close({ refocus = false } = {}) {
   if (!rootEl || !opened) return;
   opened = false;
   rootEl.hidden = true;
   buttonEl.setAttribute('aria-expanded', 'false');
+  if (refocus) buttonEl.focus();
+}
+
+function _copy(id) {
+  const notice = list.find((n) => n.id === id);
+  if (!notice) return;
+  try {
+    clipboard.writeText(notice.message);
+    notify.success('Copied to clipboard');
+  } catch (err) {
+    console.error('noticeTray: could not copy the notice', err);
+    notify.error('Could not copy the notice');
+  }
+}
+
+function _dismiss(id) {
+  const rows = _rows();
+  const index = rows.findIndex((r) => Number(r.dataset.id) === id);
+  list = model.dismiss(list, id);
+  _paint();
+  // Keep the keyboard in the list: the row that took this one's place, or
+  // the popover itself once the list is empty.
+  const next = _rows();
+  if (next.length) next[Math.min(index, next.length - 1)].focus();
+  else rootEl.focus();
+}
+
+function _rows() {
+  return listEl ? Array.from(listEl.querySelectorAll('.sb-nt-row')) : [];
+}
+
+function _onKeydown(e) {
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    e.stopPropagation();
+    close({ refocus: true });
+    return;
+  }
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const rows = _rows();
+  if (!rows.length) return;
+  e.preventDefault();
+  const current = rows.indexOf(document.activeElement && document.activeElement.closest('.sb-nt-row'));
+  const next = model.moveFocus(current, rows.length, e.key === 'ArrowDown' ? 1 : -1);
+  if (next >= 0) rows[next].focus();
 }
 
 function _paint() {
@@ -182,6 +255,7 @@ function _buildRow(notice) {
   const row = document.createElement('div');
   row.className = `sb-nt-row ${notice.severity}`;
   row.dataset.id = String(notice.id);
+  row.tabIndex = -1;
 
   const icon = document.createElement('span');
   icon.className = 'sb-nt-icon';
@@ -211,8 +285,24 @@ function _buildRow(notice) {
   message.textContent = notice.message;
 
   body.append(meta, message);
-  row.append(icon, body);
+
+  const actions = document.createElement('div');
+  actions.className = 'sb-nt-actions';
+  actions.append(_actionButton('copy', 'Copy message'), _actionButton('dismiss', 'Dismiss'));
+
+  row.append(icon, body, actions);
   return row;
+}
+
+function _actionButton(action, label) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'sb-nt-action';
+  btn.dataset.action = action;
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
+  btn.innerHTML = ACTION_ICON[action];
+  return btn;
 }
 
 module.exports = { init, push, open, close, toggle, isOpen };

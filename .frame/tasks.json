@@ -8302,13 +8302,13 @@
       "title": "Add row actions and keyboard handling to the popover: copy via electron `clipboard` with a `notify.success` confirmation, per-row dismiss, Escape closing and refocusing the button, ArrowUp/Down between rows, outside mousedown closing",
       "description": "",
       "source": "spec:status-bar-notice-tray:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:54:12.003Z",
+      "completedAt": "2026-09-16T13:54:12.003Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T05",
