@@ -7892,26 +7892,26 @@
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 423,
+          "line": 430,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 533,
+          "line": 540,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 559,
+          "line": 566,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 585,
+          "line": 592,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 983,
+          "line": 990,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -8266,78 +8266,108 @@
         "init",
         "takeOver",
         "open",
-        "close"
+        "close",
+        "handleCloneResult"
       ],
       "depends": [
         "electron",
         "shared/ipcChannels",
         "state",
-        "openProjectModal",
         "notify",
         "htmlUtils",
         "onboarding/onboardingGate"
       ],
       "functions": {
         "init": {
-          "line": 47,
+          "line": 48,
           "params": [
             "{ onLeave"
           ],
           "purpose": "surface; appLoader parks it from here."
         },
         "takeOver": {
-          "line": 84,
+          "line": 86,
           "params": [
             "projects"
           ],
           "purpose": "The loader's hand-off at boot. Returns true when the screen took the"
         },
         "open": {
-          "line": 92,
+          "line": 94,
           "params": [
             "canDismiss"
           ],
           "purpose": "The palette's Show the Start Screen, at any project count."
         },
         "close": {
-          "line": 119
+          "line": 118
         },
         "measureWordmark": {
-          "line": 131,
+          "line": 130,
           "purpose": "The wordmark's width is a measurement, not a constant, and the palette path"
         },
         "setupListeners": {
-          "line": 138
+          "line": 137
         },
         "bind": {
-          "line": 162,
+          "line": 178,
           "params": [
             "id",
             "handler"
           ]
         },
         "loadAITools": {
-          "line": 171
+          "line": 187
         },
         "renderToolOptions": {
-          "line": 184
+          "line": 200
         },
         "selectTool": {
-          "line": 214,
+          "line": 230,
           "params": [
             "toolId"
           ],
           "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
         },
         "paintToolSelection": {
-          "line": 230
+          "line": 246
+        },
+        "showCloneForm": {
+          "line": 259
+        },
+        "hideCloneForm": {
+          "line": 267
+        },
+        "submitClone": {
+          "line": 276
+        },
+        "handleCloneResult": {
+          "line": 295,
+          "params": [
+            "result"
+          ],
+          "purpose": "Called by the CLONE_GITHUB_REPO_RESULT listener in index.js, before the"
+        },
+        "setBusy": {
+          "line": 309,
+          "params": [
+            "value"
+          ]
+        },
+        "setCloneError": {
+          "line": 316,
+          "params": [
+            "message"
+          ]
         }
       },
       "ipc": {
         "listens": [
           "AI_TOOL_CHANGED"
         ],
-        "emits": []
+        "emits": [
+          "CLONE_GITHUB_REPO"
+        ]
       }
     },
     "renderer/onboarding/onboardingGate": {
@@ -8376,40 +8406,37 @@
       ],
       "functions": {
         "open": {
-          "line": 29,
-          "params": [
-            "opts = {}"
-          ],
-          "purpose": "Show the modal. Pass `{ clone: true }` to open straight into the clone form"
+          "line": 31,
+          "purpose": "Show the modal, always on its option list. It used to take"
         },
         "close": {
-          "line": 39,
+          "line": 40,
           "purpose": "Hide the modal and reset the clone form."
         },
         "isVisible": {
-          "line": 45
+          "line": 46
         },
         "resetCloneForm": {
-          "line": 52,
+          "line": 53,
           "purpose": "Collapse the clone form back to the option list and clear its state."
         },
         "showCloneForm": {
-          "line": 65,
+          "line": 66,
           "purpose": "Reveal the in-modal clone URL form and focus the input."
         },
         "submitClone": {
-          "line": 80,
+          "line": 81,
           "purpose": "Send the clone request for the current URL value (if any)."
         },
         "handleCloneResult": {
-          "line": 92,
+          "line": 93,
           "params": [
             "result"
           ],
           "purpose": "Called by the `CLONE_GITHUB_REPO_RESULT` listener in index.js. Shows the"
         },
         "init": {
-          "line": 109,
+          "line": 110,
           "purpose": "Wire all modal controls. Safe to call once at startup."
         }
       },

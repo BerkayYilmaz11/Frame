@@ -107,6 +107,25 @@
         </button>
       </div>
 
+      <!-- Clone, inline. Revealed under the boxes by .onboarding-cloning
+           rather than handing off to the Open a Project modal, which would
+           answer a choice already made by offering the same three again. -->
+      <div id="onboarding-clone" class="onboarding-clone">
+        <div class="onboarding-clone-row">
+          <input
+            id="onboarding-clone-url"
+            type="text"
+            placeholder="https://github.com/user/repo"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Repository URL"
+          />
+          <button type="button" id="onboarding-clone-confirm" class="onboarding-clone-go">Clone</button>
+          <button type="button" id="onboarding-clone-cancel" class="onboarding-clone-cancel">Cancel</button>
+        </div>
+        <div id="onboarding-clone-error" class="onboarding-clone-error"></div>
+      </div>
+
       <div class="onboarding-agent">
         <span class="onboarding-agent-label">Default agent</span>
         <div id="onboarding-tool-options" class="onboarding-tool-options"></div>

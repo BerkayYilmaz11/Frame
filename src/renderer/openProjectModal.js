@@ -23,14 +23,15 @@ let cloneUrlInput = null;
 let cloneError = null;
 
 /**
- * Show the modal. Pass `{ clone: true }` to open straight into the clone form
- * (used by the onboarding screen's "Clone from GitHub" box).
+ * Show the modal, always on its option list. It used to take
+ * `{ clone: true }` to open straight into the clone form for the first-run
+ * screen; that screen now clones inline, and opening this modal on a choice
+ * the user had already made meant answering it with the same three options.
  */
-function open(opts = {}) {
+function open() {
   if (!modal) return;
   resetCloneForm();
   modal.classList.add('visible');
-  if (opts && opts.clone) showCloneForm();
 }
 
 /**

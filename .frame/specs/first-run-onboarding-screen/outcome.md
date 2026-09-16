@@ -87,3 +87,11 @@ The three boxes closed the screen before running their route, so cancelling the 
 _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
+
+## Follow-up — the screen clones for itself (revises T05, retires an entry point)
+
+"Clone from GitHub" opened the Open a Project modal, which answered a choice the user had just made by offering the same three choices again. The box now reveals an inline row under the boxes — URL field, Clone, Cancel, an inline error and a quiet busy state while main works — and `onboarding.handleCloneResult()` takes the result before the modal does, so a failure is reported where the user is looking. Success needs no special case: `setProjectPath` fires `onProjectChange` and the screen leaves by the same path the other two routes use. `openProjectModal.open()` lost its `{ clone: true }` parameter with its only caller, the `body.onboarding-active` z-index lift went with the modal it was lifting, and the clone-failure `alert()` in `index.js` — which blocks the renderer and every IPC behind it — became `notify.error`. 5 files.
+
+_Captured: 2026-09-16 · 5 file change(s)_
+
+---

@@ -315,15 +315,22 @@ function setupButtonHandlers() {
   // (openProjectModal.js); here we just route the result back to it: on success
   // open the project + close the modal, on failure show the error inline (or a
   // dialog if the modal isn't open).
+  // Two surfaces can own a clone: the first-run screen's inline row and the
+  // Open a Project modal. The screen asks first and answers only for a clone
+  // it started, so each failure is reported where the user is looking.
   ipcRenderer.on(IPC.CLONE_GITHUB_REPO_RESULT, (event, result) => {
-    if (result.cancelled) return;
-    if (result.success) {
-      state.setProjectPath(result.projectPath);
-      openProjectModal.handleCloneResult(result);
+    if (result.cancelled) {
+      onboarding.handleCloneResult(result);
       return;
     }
-    const consumed = openProjectModal.handleCloneResult(result);
-    if (!consumed) alert('Clone failed:\n' + result.error);
+    if (result.success) {
+      state.setProjectPath(result.projectPath);
+      if (!onboarding.handleCloneResult(result)) openProjectModal.handleCloneResult(result);
+      return;
+    }
+    const consumed = onboarding.handleCloneResult(result) || openProjectModal.handleCloneResult(result);
+    // Was a bare alert(), which blocks the renderer and every IPC behind it.
+    if (!consumed) notify.error('Clone failed: ' + (result.error || 'unknown error'));
   });
 
   // The native View menu's one channel to the renderer: a command-registry

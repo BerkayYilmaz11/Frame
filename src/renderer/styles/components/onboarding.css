@@ -88,6 +88,104 @@
   color: var(--text-tertiary);
 }
 
+/* ── Clone, inline ─────────────────────────────────────── */
+
+.onboarding-clone {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: -12px;
+}
+
+.onboarding-cloning .onboarding-clone {
+  display: flex;
+}
+
+/* The box that opened it stays lit, so the row reads as its continuation
+   rather than as something that arrived on its own. */
+.onboarding-cloning #onboarding-clone-github {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+.onboarding-clone-row {
+  display: flex;
+  gap: 8px;
+}
+
+.onboarding-clone-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.onboarding-clone-row input::placeholder {
+  color: var(--text-muted);
+}
+
+.onboarding-clone-row input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.onboarding-clone-go,
+.onboarding-clone-cancel {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s, background 0.12s, color 0.12s;
+}
+
+.onboarding-clone-go {
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  color: var(--bg-deep);
+}
+
+.onboarding-clone-go:hover {
+  filter: brightness(1.08);
+}
+
+.onboarding-clone-cancel {
+  background: none;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.onboarding-clone-cancel:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Cloning is main's work and takes as long as it takes; the row goes quiet
+   rather than pretending it can still be edited. */
+.onboarding-clone[data-busy="true"] input,
+.onboarding-clone[data-busy="true"] button {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.onboarding-clone-error {
+  display: none;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--error);
+}
+
+.onboarding-clone-error[data-shown="true"] {
+  display: block;
+}
+
 /* ── Default agent ─────────────────────────────────────── */
 
 .onboarding-agent {
@@ -197,14 +295,6 @@
 
 .onboarding-close:hover {
   color: var(--text-primary);
-}
-
-/* The clone form opens from this screen, and `.modal-overlay` sits at z-index
-   1000 while the boot surface is at 100000 — so without this the modal would
-   open behind the screen that asked for it. Scoped to while the screen is up;
-   onboarding.js puts the class on <body>. */
-body.onboarding-active .modal-overlay {
-  z-index: 100001;
 }
 
 /* ── Narrow windows ────────────────────────────────────── */

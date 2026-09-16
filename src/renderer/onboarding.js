@@ -25,7 +25,6 @@
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
-const openProjectModal = require('./openProjectModal');
 const notify = require('./notify');
 const { escapeHtml } = require('./htmlUtils');
 const { decide, LAUNCH, COMMAND } = require('./onboarding/onboardingGate');
@@ -36,6 +35,8 @@ let isOpen = false;
 let dismissible = false;
 let initialized = false;
 let onLeave = null;     // appLoader's parker, set by init
+let cloneEl = null;     // the inline clone row
+let cloning = false;    // a clone is in flight; the row is waiting on main
 let availableTools = {};
 let activeToolId = null;
 
@@ -47,6 +48,7 @@ let activeToolId = null;
 function init({ onLeave: leave } = {}) {
   surfaceEl = document.getElementById('app-loader');
   panelEl = document.getElementById('onboarding');
+  cloneEl = document.getElementById('onboarding-clone');
   if (!surfaceEl || !panelEl) {
     console.error('Onboarding: surface or panel element not found');
     return;
@@ -102,9 +104,6 @@ function open(canDismiss) {
   dismissible = resolved;
   surfaceEl.classList.remove('app-loader-parked', 'app-loader-hidden');
   surfaceEl.classList.add('app-loader-onboarding');
-  // The clone form is an ordinary modal, far below this surface's z-index.
-  // Mark the document so it can be lifted above the screen it opens from.
-  document.body.classList.add('onboarding-active');
   // On the surface, not the panel: the × lives outside #onboarding so a
   // transformed panel cannot capture its fixed positioning.
   surfaceEl.classList.toggle('app-loader-dismissible', dismissible);
@@ -120,7 +119,7 @@ function close() {
   if (!isOpen) return;
   isOpen = false;
   surfaceEl.classList.remove('app-loader-onboarding', 'app-loader-dismissible', 'app-loader-complete');
-  document.body.classList.remove('onboarding-active');
+  hideCloneForm();
   if (typeof onLeave === 'function') onLeave();
 }
 
@@ -142,7 +141,24 @@ function setupListeners() {
   // goes when a project actually opens — see onProjectChange below.
   bind('onboarding-open-folder', () => state.selectProjectFolder());
   bind('onboarding-create-project', () => state.createNewProject());
-  bind('onboarding-clone-github', () => openProjectModal.open({ clone: true }));
+  bind('onboarding-clone-github', showCloneForm);
+  bind('onboarding-clone-cancel', hideCloneForm);
+  bind('onboarding-clone-confirm', submitClone);
+
+  const url = document.getElementById('onboarding-clone-url');
+  if (url) {
+    url.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitClone();
+      } else if (e.key === 'Escape') {
+        // Escape backs out of the clone row, not out of the screen.
+        e.preventDefault();
+        e.stopPropagation();
+        hideCloneForm();
+      }
+    });
+  }
 
   bind('onboarding-skip', close);
   bind('onboarding-close', close);
@@ -151,9 +167,9 @@ function setupListeners() {
     // Only the summoned screen answers to Escape. At boot this surface is the
     // app's state rather than a dialog over one, and Skip is the way past it.
     if (!isOpen || !dismissible || e.key !== 'Escape') return;
-    // And never out from under a modal opened on top of it: the clone form
-    // has its own Escape, and one keypress should close one thing.
-    if (document.querySelector('.modal-overlay.visible')) return;
+    // One keypress closes one thing: while the clone row is open, Escape
+    // belongs to it (its input handles that itself and stops the event).
+    if (panelEl.classList.contains('onboarding-cloning')) return;
     e.preventDefault();
     close();
   });
@@ -238,4 +254,70 @@ function paintToolSelection() {
   });
 }
 
-module.exports = { init, takeOver, open, close };
+/* ── Clone, inline ──────────────────────────────────────── */
+
+function showCloneForm() {
+  if (!panelEl) return;
+  panelEl.classList.add('onboarding-cloning');
+  setCloneError('');
+  const url = document.getElementById('onboarding-clone-url');
+  if (url) url.focus();
+}
+
+function hideCloneForm() {
+  if (!panelEl) return;
+  if (cloning) return;   // main is working; let it finish or fail first
+  panelEl.classList.remove('onboarding-cloning');
+  setCloneError('');
+  const url = document.getElementById('onboarding-clone-url');
+  if (url) url.value = '';
+}
+
+function submitClone() {
+  const url = document.getElementById('onboarding-clone-url');
+  if (!url) return;
+  const value = url.value.trim();
+  if (!value) {
+    setCloneError('Paste a repository URL first.');
+    url.focus();
+    return;
+  }
+  setCloneError('');
+  setBusy(true);
+  ipcRenderer.send(IPC.CLONE_GITHUB_REPO, value);
+}
+
+/**
+ * Called by the CLONE_GITHUB_REPO_RESULT listener in index.js, before the
+ * Open a Project modal gets its turn. Returns true when this screen owned the
+ * clone, so a failure is reported here rather than anywhere else.
+ */
+function handleCloneResult(result) {
+  if (!isOpen || !cloning) return false;
+  setBusy(false);
+  // Cancelled at main's destination picker: nothing failed, nothing happened.
+  if (result.cancelled) return true;
+  if (!result.success) {
+    setCloneError(result.error || 'Clone failed.');
+    return true;
+  }
+  // Success needs no close(): setProjectPath fires onProjectChange, which
+  // takes the screen down through the same path every other route uses.
+  return true;
+}
+
+function setBusy(value) {
+  cloning = value;
+  if (cloneEl) cloneEl.dataset.busy = value ? 'true' : 'false';
+  const go = document.getElementById('onboarding-clone-confirm');
+  if (go) go.textContent = value ? 'Cloning\u2026' : 'Clone';
+}
+
+function setCloneError(message) {
+  const el = document.getElementById('onboarding-clone-error');
+  if (!el) return;
+  el.textContent = message;
+  el.dataset.shown = message ? 'true' : 'false';
+}
+
+module.exports = { init, takeOver, open, close, handleCloneResult };
