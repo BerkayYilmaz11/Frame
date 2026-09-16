@@ -75,26 +75,31 @@ function takeOver(projects) {
 function open(canDismiss) {
   if (!surfaceEl || !panelEl) return;
   if (isOpen) return;
-  const resolved = typeof canDismiss === 'boolean'
-    ? canDismiss
-    : decide({ trigger: COMMAND }).dismissible;
+  // No argument means the palette asked; the loader passes the gate's answer.
+  const fromCommand = typeof canDismiss !== 'boolean';
+  const resolved = fromCommand
+    ? decide({ trigger: COMMAND }).dismissible
+    : canDismiss;
 
   isOpen = true;
   dismissible = resolved;
   surfaceEl.classList.remove('app-loader-parked', 'app-loader-hidden');
   surfaceEl.classList.add('app-loader-onboarding');
-  panelEl.classList.toggle('onboarding-dismissible', dismissible);
-  // Summoned over a running app, the intro has long since finished — show the
-  // lockup in its end state rather than replaying the sweep.
+  // On the surface, not the panel: the × lives outside #onboarding so a
+  // transformed panel cannot capture its fixed positioning.
+  surfaceEl.classList.toggle('app-loader-dismissible', dismissible);
   surfaceEl.classList.add('app-loader-run', 'app-loader-reveal');
+  // A summoned screen un-parks the surface, and leaving display:none restarts
+  // every animation on it. Freeze them at their end state instead of making
+  // the user watch the intro again.
+  if (fromCommand) surfaceEl.classList.add('app-loader-complete');
   measureWordmark();
 }
 
 function close() {
   if (!isOpen) return;
   isOpen = false;
-  surfaceEl.classList.remove('app-loader-onboarding');
-  panelEl.classList.remove('onboarding-dismissible');
+  surfaceEl.classList.remove('app-loader-onboarding', 'app-loader-dismissible', 'app-loader-complete');
   if (typeof onLeave === 'function') onLeave();
 }
 

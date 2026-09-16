@@ -8301,37 +8301,37 @@
           "purpose": "The palette's Show the Start Screen, at any project count."
         },
         "close": {
-          "line": 93
+          "line": 99
         },
         "measureWordmark": {
-          "line": 105,
+          "line": 110,
           "purpose": "The wordmark's width is a measurement, not a constant, and the palette path"
         },
         "setupListeners": {
-          "line": 112
+          "line": 117
         },
         "bind": {
-          "line": 150,
+          "line": 155,
           "params": [
             "id",
             "handler"
           ]
         },
         "loadAITools": {
-          "line": 159
+          "line": 164
         },
         "renderToolOptions": {
-          "line": 172
+          "line": 177
         },
         "selectTool": {
-          "line": 202,
+          "line": 207,
           "params": [
             "toolId"
           ],
           "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
         },
         "paintToolSelection": {
-          "line": 218
+          "line": 223
         }
       },
       "ipc": {

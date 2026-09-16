@@ -63,3 +63,11 @@ Renamed Help › Welcome to "Start with a Project" and the palette command's tit
 _Captured: 2026-09-16 · 10 file change(s)_
 
 ---
+
+## Follow-up — two defects the final pass found
+
+Summoning the screen from the palette exposed both. The `×` sat inside `#onboarding`, which the reveal animation transforms — and a transformed ancestor becomes the containing block for `position: fixed` — so it rendered over the third box instead of the window corner; it now lives on the surface beside the panel, with `.app-loader-dismissible` moved there too. And un-parking the surface restarted every animation on it (leaving `display: none` starts them from zero), so the mark re-swept on every summon; `.app-loader-complete` now freezes the lockup and the panel at their end state for the command path, which the boot path never takes. 4 files.
+
+_Captured: 2026-09-16 · 4 file change(s)_
+
+---

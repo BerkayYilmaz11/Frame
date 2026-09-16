@@ -202,6 +202,28 @@
   }
 }
 
+/* Summoned after boot rather than arriving with it: the intro is long over,
+   so the lockup is shown finished instead of re-drawing itself. Un-parking
+   the surface restarts every animation on it — display:none takes the element
+   out of rendering, and returning it starts them again from zero — which is
+   what made the mark re-sweep on the palette's Show the Start Screen.
+   Two classes deep so it beats the .app-loader-run rule whatever the order. */
+.app-loader.app-loader-complete .app-loader-mark-fill {
+  animation: none;
+  --app-loader-sweep: 386deg;
+}
+
+.app-loader.app-loader-complete .app-loader-wordmark,
+.app-loader.app-loader-complete .app-loader-wordmark-text {
+  transition: none;
+}
+
+.app-loader.app-loader-complete .onboarding {
+  animation: none;
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
 /* Parked: the surface is done but stays in the DOM, so the palette's
    Show the Start Screen can reuse this element and its lockup instead of
    rebuilding them somewhere else (plan D3). */

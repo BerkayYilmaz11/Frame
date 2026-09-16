@@ -186,9 +186,11 @@
 
 /* The × exists only for the palette-summoned screen: at boot this surface is
    the app's state, not a dialog over one, and Skip is the way past it (D2).
-   onboarding.js adds .onboarding-dismissible when the gate allows it. */
+   onboarding.js adds .app-loader-dismissible to the surface when the gate
+   allows it — to the surface, because this button sits outside #onboarding,
+   whose transform would otherwise capture its positioning. */
 .onboarding-close {
-  position: fixed;
+  position: absolute;
   top: 16px;
   right: 18px;
   display: none;
@@ -202,7 +204,7 @@
   transition: color 0.12s;
 }
 
-.onboarding-dismissible .onboarding-close {
+.app-loader-dismissible .onboarding-close {
   display: block;
 }
 

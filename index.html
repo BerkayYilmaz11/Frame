@@ -77,9 +77,12 @@
 
     <!-- First-run content. Hidden until onboarding.takeOver() reveals it, so
          a user with projects never sees it and the boot path is unchanged. -->
-    <div id="onboarding" class="onboarding" role="group" aria-label="Start with a project">
-      <button type="button" id="onboarding-close" class="onboarding-close" aria-label="Close">&#x2715;</button>
+    <!-- Outside #onboarding on purpose: the panel is transformed while it
+         fades up, and a transformed ancestor becomes the containing block for
+         position: fixed — the × would follow the panel instead of the window. -->
+    <button type="button" id="onboarding-close" class="onboarding-close" aria-label="Close">&#x2715;</button>
 
+    <div id="onboarding" class="onboarding" role="group" aria-label="Start with a project">
       <div class="onboarding-actions">
         <button type="button" id="onboarding-open-folder" class="onboarding-box">
           <svg class="onboarding-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
