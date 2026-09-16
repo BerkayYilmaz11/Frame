@@ -8249,6 +8249,88 @@
         }
       }
     },
+    "renderer/onboarding": {
+      "file": "src/renderer/onboarding.js",
+      "description": "First-run onboarding screen (first-run-onboarding-screen spec)",
+      "exports": [
+        "init",
+        "takeOver",
+        "open",
+        "close"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "openProjectModal",
+        "notify",
+        "htmlUtils",
+        "onboarding/onboardingGate",
+        "commandRegistry"
+      ],
+      "functions": {
+        "init": {
+          "line": 39,
+          "params": [
+            "{ onLeave"
+          ],
+          "purpose": "surface; appLoader parks it from here."
+        },
+        "takeOver": {
+          "line": 67,
+          "params": [
+            "projects"
+          ],
+          "purpose": "The loader's hand-off at boot. Returns true when the screen took the"
+        },
+        "open": {
+          "line": 75,
+          "params": [
+            "canDismiss"
+          ],
+          "purpose": "The palette's Show Welcome Screen, at any project count."
+        },
+        "close": {
+          "line": 93
+        },
+        "measureWordmark": {
+          "line": 105,
+          "purpose": "The wordmark's width is a measurement, not a constant, and the palette path"
+        },
+        "setupListeners": {
+          "line": 112
+        },
+        "bind": {
+          "line": 150,
+          "params": [
+            "id",
+            "handler"
+          ]
+        },
+        "loadAITools": {
+          "line": 159
+        },
+        "renderToolOptions": {
+          "line": 172
+        },
+        "selectTool": {
+          "line": 202,
+          "params": [
+            "toolId"
+          ],
+          "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
+        },
+        "paintToolSelection": {
+          "line": 218
+        }
+      },
+      "ipc": {
+        "listens": [
+          "AI_TOOL_CHANGED"
+        ],
+        "emits": []
+      }
+    },
     "renderer/onboarding/onboardingGate": {
       "file": "src/renderer/onboarding/onboardingGate.js",
       "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5).",
@@ -14271,6 +14353,18 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      }
+    ],
+    "onboarding": [
+      {
+        "module": "renderer/onboarding",
+        "file": "src/renderer/onboarding.js",
+        "description": "First-run onboarding screen (first-run-onboarding-screen spec)"
+      },
+      {
+        "module": "renderer/onboarding/onboardingGate",
+        "file": "src/renderer/onboarding/onboardingGate.js",
+        "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5)."
       }
     ],
     "orchestration": [

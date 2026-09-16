@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T07:06:53.573Z",
+  "lastUpdated": "2026-09-16T07:07:57.688Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8094,26 +8094,26 @@
       "title": "Build `src/renderer/onboarding.js`: render the agent chips from `GET_AI_TOOL_CONFIG`, keep them in sync on `AI_TOOL_CHANGED`, persist through `SET_AI_TOOL` and move the selection only once it resolves true, and route every failed invoke and the empty-tools case to `notify.error`.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:07:57.591Z",
+      "completedAt": "2026-09-16T07:07:57.591Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T05",
       "title": "Wire the three boxes to `state.selectProjectFolder()`, `state.createNewProject()` and `openProjectModal.open({ clone: true })`, wire Skip to `close()`, and bind `×` and Escape only when the gate returned `dismissible`.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:07:57.688Z",
+      "completedAt": "2026-09-16T07:07:57.688Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T06",

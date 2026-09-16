@@ -23,3 +23,19 @@ Added `onboarding.css` (boxes, agent chips carried over from the retired card, f
 _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
+
+## T04 — the host: agent chips and failure reporting
+
+Added `src/renderer/onboarding.js`, owning `#onboarding` inside the loader's surface: agent chips rendered from `GET_AI_TOOL_CONFIG`, kept in sync on `AI_TOOL_CHANGED`, persisted through `SET_AI_TOOL`. The selection does not move until main answers true — a chip lighting up on a failed write would tell the user they chose something they did not — and every failure path (read, write, a resolve of false) reports through `notify.error` on top of the `console.error`. Carries the same init-once guard the other surfaces took from audit-q3-performance-resources T06. 1 file.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
+
+## T05 — the host: routes, Skip, and the two ways out
+
+Wired the three boxes in `onboarding.js` to `state.selectProjectFolder()`, `state.createNewProject()` and `openProjectModal.open({ clone: true })` — each closes the screen first, then runs the route that already exists, so no project-entry flow is forked. Skip and the guide link close it the same way; `×` and Escape answer only when the gate returned `dismissible`, which is the palette path alone. `takeOver(projects)` asks the gate and returns whether it took the surface, so the loader knows not to park it. 1 file.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
