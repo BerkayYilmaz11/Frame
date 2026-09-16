@@ -13,9 +13,13 @@
  *
  * The sidebar's update dot and banner lead here — into About, which is where
  * the release they are announcing can actually be read.
+ *
+ * Account (Frame Cloud) only draws the session state main pushes over
+ * CLOUD_SESSION_STATE; its buttons invoke channels and wait for the next
+ * push. The token never comes this way.
  */
 
-const { ipcRenderer, shell } = require('electron');
+const { ipcRenderer, shell, clipboard } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
 
@@ -38,6 +42,18 @@ let updateLinkEl = null;
 let updateDismissBtn = null;
 let currentUpdateInfo = null;
 
+// Account section elements + the last state main pushed
+let accountSection = null;
+let accountState = { state: 'unavailable' };
+
+const ACCOUNT_REASONS = {
+  denied: 'Sign-in was denied in the browser.',
+  expired: 'The code expired. Start again.',
+  network: "Frame Cloud couldn't be reached.",
+  rateLimited: 'Too many sign-in attempts. Wait a minute and try again.',
+  noWorkspace: 'Create a workspace on the web first.'
+};
+
 function init() {
   toggleEl = document.getElementById('settings-telemetry-toggle');
   crashDumpsToggleEl = document.getElementById('settings-crash-dumps-toggle');
@@ -52,7 +68,10 @@ function init() {
   updateLinkEl = document.getElementById('settings-update-link');
   updateDismissBtn = document.getElementById('settings-update-dismiss');
 
-  overlay = settingsOverlay.create('frame-settings-overlay', syncToggleFromSettings);
+  overlay = settingsOverlay.create('frame-settings-overlay', () => {
+    syncToggleFromSettings();
+    refreshAccountOnOpen();
+  });
   if (!overlay || !toggleEl) {
     if (!toggleEl) console.error('Frame settings: required elements not found');
     return;
@@ -60,6 +79,7 @@ function init() {
 
   // Load current value
   syncToggleFromSettings();
+  initAccountSection();
   initAboutSection();
 
   // Toggle: persist + tell main process to enable/disable Aptabase
@@ -87,6 +107,178 @@ function init() {
     renderUpdateState({ checked: true, found: true, info });
   });
 }
+
+// ─── Account (Frame Cloud) ────────────────────────────────
+
+function initAccountSection() {
+  accountSection = document.getElementById('settings-account');
+  if (!accountSection) {
+    console.error('Frame settings: #settings-account not found — Frame Cloud sign-in is unavailable');
+    return;
+  }
+
+  accountSection.querySelectorAll('[data-account-action]').forEach((btn) => {
+    btn.addEventListener('click', () => onAccountAction(btn.dataset.accountAction, btn));
+  });
+
+  const webLink = document.getElementById('settings-account-web-link');
+  if (webLink) {
+    webLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const origin = webOrigin(accountState.verificationUrl);
+      if (origin) shell.openExternal(origin);
+    });
+  }
+
+  ipcRenderer.on(IPC.CLOUD_SESSION_STATE, (event, state) => renderAccount(state));
+  pullAccountState();
+}
+
+function pullAccountState() {
+  return ipcRenderer
+    .invoke(IPC.CLOUD_GET_STATE)
+    .then((state) => {
+      renderAccount(state);
+      return state;
+    })
+    .catch((err) => {
+      console.error('Frame settings: could not read the Frame Cloud state', err);
+      return null;
+    });
+}
+
+// Opening the modal re-reads the session, and a signed-in one asks the server
+// once (device.me) so a plan changed on the web shows up here.
+function refreshAccountOnOpen() {
+  if (!accountSection) return;
+  pullAccountState().then((state) => {
+    if (state && state.state === 'signedIn') {
+      ipcRenderer.invoke(IPC.CLOUD_REFRESH).then(renderAccount).catch(() => {});
+    }
+  });
+}
+
+async function onAccountAction(action, btn) {
+  switch (action) {
+    case 'signIn':
+      return invokeAccount(IPC.CLOUD_SIGN_IN, btn);
+    case 'cancel':
+      return invokeAccount(IPC.CLOUD_CANCEL_SIGN_IN, btn);
+    case 'signOut':
+      return invokeAccount(IPC.CLOUD_SIGN_OUT, btn);
+    case 'openBrowser':
+      if (isWebUrl(accountState.verificationUrl)) shell.openExternal(accountState.verificationUrl);
+      return;
+    case 'copyUrl':
+      if (!accountState.verificationUrl) return;
+      clipboard.writeText(accountState.verificationUrl);
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      return;
+    default:
+      return;
+  }
+}
+
+async function invokeAccount(channel, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    renderAccount(await ipcRenderer.invoke(channel));
+  } catch (err) {
+    console.error(`Frame settings: ${channel} failed`, err);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderAccount(state) {
+  if (!accountSection) return;
+  accountState = state && state.state ? state : { state: 'unavailable' };
+  const s = accountState;
+
+  accountSection.hidden = s.state === 'unavailable';
+  accountSection.querySelectorAll('[data-account-state]').forEach((pane) => {
+    pane.hidden = pane.dataset.accountState !== s.state;
+  });
+  setNote('signedOutUnreachable', s.state === 'signedOut' && s.serverUnreachable);
+  setNote('ephemeral', s.state === 'signedIn' && s.ephemeral);
+  setNote('signedInUnreachable', s.state === 'signedIn' && s.serverUnreachable);
+
+  if (s.state === 'awaitingApproval') {
+    setText('settings-account-code', s.userCode || '');
+    setText('settings-account-url', s.verificationUrl || '');
+  } else if (s.state === 'signedIn') {
+    renderSignedIn(s);
+  } else if (s.state === 'failed') {
+    setText('settings-account-reason', ACCOUNT_REASONS[s.reason] || ACCOUNT_REASONS.network);
+    const webLink = document.getElementById('settings-account-web-link');
+    if (webLink) webLink.hidden = !(s.reason === 'noWorkspace' && webOrigin(s.verificationUrl));
+  }
+}
+
+function renderSignedIn(s) {
+  const user = s.user || {};
+  const workspace = s.workspace || {};
+  const device = s.device || {};
+  setValue('settings-account-user', user.name || user.email || '—', user.name ? user.email : '');
+  setValue('settings-account-workspace', workspace.name || workspace.slug || '—', workspace.name ? workspace.slug : '');
+  // Plan is display text from the server; Frame never compares it.
+  setText('settings-account-plan', (s.access && s.access.planLabel) || '—');
+  const lastSeen = device.lastSeenAt || device.last_seen_at;
+  const seen = lastSeen ? `last seen ${formatRelative(new Date(lastSeen))}` : '';
+  setValue('settings-account-device', device.name || '—', seen);
+}
+
+function setNote(name, visible) {
+  const el = accountSection.querySelector(`[data-account-note="${name}"]`);
+  if (el) el.hidden = !visible;
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+// "Primary · secondary", built from text nodes — server strings never become HTML.
+function setValue(id, primary, secondary) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = primary;
+  if (secondary) {
+    const sub = document.createElement('span');
+    sub.className = 'settings-account-sub';
+    sub.textContent = secondary;
+    el.appendChild(sub);
+  }
+}
+
+function isWebUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url);
+}
+
+function webOrigin(url) {
+  if (!isWebUrl(url)) return '';
+  try {
+    return new URL(url).origin;
+  } catch (e) {
+    return '';
+  }
+}
+
+/** Palette "Frame Cloud: Sign in": open on Account and start the flow. */
+function signIn() {
+  if (!overlay) return;
+  overlay.open();
+  if (accountSection) accountSection.scrollIntoView({ block: 'start' });
+  invokeAccount(IPC.CLOUD_SIGN_IN);
+}
+
+/** Palette "Frame Cloud: Sign out": no modal. */
+function signOut() {
+  return invokeAccount(IPC.CLOUD_SIGN_OUT);
+}
+
+// ─── About ────────────────────────────────────────────────
 
 function initAboutSection() {
   // Version text from package.json
@@ -285,5 +477,7 @@ module.exports = {
   init,
   open: () => overlay && overlay.open(),
   close: () => overlay && overlay.close(),
-  toggle: () => overlay && overlay.toggle()
+  toggle: () => overlay && overlay.toggle(),
+  signIn,
+  signOut
 };

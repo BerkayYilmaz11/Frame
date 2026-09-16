@@ -38,3 +38,11 @@ _Captured: 2026-09-16 · 2 file change(s)_
 
 ---
 
+## T06 — Settings → Account section
+
+Added the hidden-by-default `#settings-account` section (one pane per state, ephemeral/unreachable notes) as the first section of Frame Settings in `index.html`, its styles in `settings-modal.css` (including a forced `[hidden]` rule, since the panes reuse About's flex classes), and in `frameSettingsModal.js` the binding, `renderAccount()`, the pull on init/open with `CLOUD_REFRESH` on open when signed in, Copy via `clipboard.writeText`, and `signIn()`/`signOut()` exports. Also touched `src/main/cloud/cloudSession.js` (T04's file): the renderer's first `CLOUD_GET_STATE` arrives before `did-finish-load`, so `startup()` is now once-only and `signIn()` marks the session started — otherwise launch did two `device.me` calls and a `getState()` could reload over a running sign-in. Verified in the dev app against a fake FrameCloud with a scratch `userData` (screenshots, request order, no plaintext token, file removed on sign-out).
+
+_Captured: 2026-09-16 · 4 file change(s)_
+
+---
+

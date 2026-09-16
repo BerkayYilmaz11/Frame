@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:24:52Z",
+  "lastUpdated": "2026-09-16T08:29:13Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7860,13 +7860,13 @@
       "title": "Add the Account section to Frame Settings: markup as the first section of `#frame-settings-overlay` in `index.html`, code display / URL row / note styles in `settings-modal.css`, and in `frameSettingsModal.js` the element binding, `renderAccount(state)` for every state, `CLOUD_GET_STATE` pull on init and open, `CLOUD_REFRESH` on open when signed in, Copy via `clipboard.writeText`, and `signIn` / `signOut` exports",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:29:13Z",
+      "completedAt": "2026-09-16T08:29:13Z"
     },
     {
       "id": "task-spec-frame-cloud-sign-in-T07",

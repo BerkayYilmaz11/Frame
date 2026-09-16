@@ -493,10 +493,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 59
+          "line": 60
         },
         "fetchJson": {
-          "line": 71,
+          "line": 72,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -507,38 +507,38 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 112,
+          "line": 113,
           "params": [
             "ms",
             "signal"
           ]
         },
         "openUrl": {
-          "line": 132,
+          "line": 133,
           "params": [
             "url"
           ]
         },
         "deviceInfo": {
-          "line": 140
+          "line": 141
         },
         "toPublicState": {
-          "line": 151
+          "line": 152
         },
         "getPublicState": {
-          "line": 159
+          "line": 160
         },
         "publish": {
-          "line": 163
+          "line": 164
         },
         "setState": {
-          "line": 168,
+          "line": 169,
           "params": [
             "next"
           ]
         },
         "signedInState": {
-          "line": 173,
+          "line": 174,
           "params": [
             "serverUrl",
             "session",
@@ -546,39 +546,42 @@
           ]
         },
         "abortAttempt": {
-          "line": 185
+          "line": 186
         },
         "signIn": {
-          "line": 194,
+          "line": 195,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 243
+          "line": 245
         },
         "refresh": {
-          "line": 251,
+          "line": 253,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
         "signOut": {
-          "line": 281,
+          "line": 283,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 303,
+          "line": 308,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
+        "loadSession": {
+          "line": 312
+        },
         "getState": {
-          "line": 323,
+          "line": 333,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 330,
+          "line": 340,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 334,
+          "line": 344,
           "params": [
             "ipcMain"
           ]
@@ -6706,7 +6709,9 @@
         "init",
         "open",
         "close",
-        "toggle"
+        "toggle",
+        "signIn",
+        "signOut"
       ],
       "depends": [
         "electron",
@@ -6716,19 +6721,98 @@
       ],
       "functions": {
         "init": {
-          "line": 41
+          "line": 57
+        },
+        "initAccountSection": {
+          "line": 113
+        },
+        "pullAccountState": {
+          "line": 137
+        },
+        "refreshAccountOnOpen": {
+          "line": 152,
+          "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
+        },
+        "onAccountAction": {
+          "line": 161,
+          "params": [
+            "action",
+            "btn"
+          ]
+        },
+        "invokeAccount": {
+          "line": 183,
+          "params": [
+            "channel",
+            "btn"
+          ]
+        },
+        "renderAccount": {
+          "line": 194,
+          "params": [
+            "state"
+          ]
+        },
+        "renderSignedIn": {
+          "line": 219,
+          "params": [
+            "s"
+          ]
+        },
+        "setNote": {
+          "line": 232,
+          "params": [
+            "name",
+            "visible"
+          ]
+        },
+        "setText": {
+          "line": 237,
+          "params": [
+            "id",
+            "text"
+          ]
+        },
+        "setValue": {
+          "line": 243,
+          "params": [
+            "id",
+            "primary",
+            "secondary"
+          ],
+          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
+        },
+        "isWebUrl": {
+          "line": 255,
+          "params": [
+            "url"
+          ]
+        },
+        "webOrigin": {
+          "line": 259,
+          "params": [
+            "url"
+          ]
+        },
+        "signIn": {
+          "line": 269,
+          "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
+        },
+        "signOut": {
+          "line": 277,
+          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "initAboutSection": {
-          "line": 91
+          "line": 283
         },
         "runCheck": {
-          "line": 176,
+          "line": 368,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 215,
+          "line": 407,
           "params": [
             "{ checked",
             "found",
@@ -6740,31 +6824,32 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 239,
+          "line": 431,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 250
+          "line": 442
         },
         "hideSidebarDot": {
-          "line": 254
+          "line": 446
         },
         "formatRelative": {
-          "line": 260,
+          "line": 452,
           "params": [
             "date"
           ]
         },
         "syncToggleFromSettings": {
-          "line": 271
+          "line": 463
         }
       },
       "ipc": {
         "listens": [
           "OPEN_SETTINGS",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "CLOUD_SESSION_STATE"
         ],
         "emits": []
       }

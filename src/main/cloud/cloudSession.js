@@ -53,6 +53,7 @@ let state = { state: 'unavailable' };
 let token = null;
 let attempt = null; // AbortController of the running sign-in
 let refreshing = null;
+let started = false;
 
 // ─── Dependencies for the core ────────────────────────────────
 
@@ -194,6 +195,7 @@ function abortAttempt() {
 async function signIn() {
   if (state.state === 'signedIn') return getPublicState();
   abortAttempt();
+  started = true; // a later getState() must not reload over this attempt
 
   const serverUrl = resolveUrl();
   if (!serverUrl) {
@@ -299,8 +301,16 @@ async function signOut() {
   return getPublicState();
 }
 
-/** Launch: show the stored session at once, then refresh it in the background. */
+/**
+ * Launch: show the stored session at once, then refresh it in the background.
+ * Runs once — the renderer's first CLOUD_GET_STATE may already have done it.
+ */
 function startup() {
+  if (!started) loadSession();
+}
+
+function loadSession() {
+  started = true;
   abortAttempt();
   const serverUrl = resolveUrl();
   if (!serverUrl) {
@@ -321,7 +331,7 @@ function startup() {
 
 /** The current state, re-resolving first if the server address changed underneath. */
 function getState() {
-  if (!attempt && resolveUrl() !== (state.serverUrl || '')) startup();
+  if (!started || (!attempt && resolveUrl() !== (state.serverUrl || ''))) loadSession();
   return getPublicState();
 }
 
