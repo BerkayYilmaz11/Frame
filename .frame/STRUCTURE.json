@@ -2624,30 +2624,31 @@
         "telemetry",
         "specManager",
         "orchestrationManager",
+        "cloud/cloudSession",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 52,
+          "line": 53,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 70,
+          "line": 71,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 167
+          "line": 174
         },
         "setupAllIPC": {
-          "line": 197,
+          "line": 204,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 275,
+          "line": 285,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 318,
+          "line": 328,
           "params": [
             "window"
           ],
@@ -13843,6 +13844,38 @@
       },
       "SET_DONE_WINDOW": {
         "name": "set-done-window",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "cloud": {
+      "CLOUD_SIGN_IN": {
+        "name": "cloud-sign-in",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_CANCEL_SIGN_IN": {
+        "name": "cloud-cancel-sign-in",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_SIGN_OUT": {
+        "name": "cloud-sign-out",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_GET_STATE": {
+        "name": "cloud-get-state",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_REFRESH": {
+        "name": "cloud-refresh",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_SESSION_STATE": {
+        "name": "cloud-session-state",
         "direction": "",
         "description": ""
       }

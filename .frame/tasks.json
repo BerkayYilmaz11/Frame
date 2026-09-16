@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T08:23:51Z",
+  "lastUpdated": "2026-09-16T08:24:52Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -7847,13 +7847,13 @@
       "title": "Add `CLOUD_SIGN_IN`, `CLOUD_CANCEL_SIGN_IN`, `CLOUD_SIGN_OUT`, `CLOUD_GET_STATE`, `CLOUD_REFRESH`, `CLOUD_SESSION_STATE` to `src/shared/ipcChannels.js` and wire `cloudSession.setupIPC`, `init(window)` and a fire-and-forget `startup()` in `src/main/index.js`",
       "description": "",
       "source": "spec:frame-cloud-sign-in:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-sign-in",
       "createdAt": "2026-09-16T08:09:25.341Z",
-      "updatedAt": "2026-09-16T08:09:25.341Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T08:24:52Z",
+      "completedAt": "2026-09-16T08:24:52Z"
     },
     {
       "id": "task-spec-frame-cloud-sign-in-T06",

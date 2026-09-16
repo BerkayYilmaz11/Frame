@@ -30,3 +30,11 @@ _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
 
+## T05 — Cloud IPC channels and main-process wiring
+
+Added the six `CLOUD_*` channels to `src/shared/ipcChannels.js` and wired `src/main/index.js`: `cloudSession.setupIPC(ipcMain)` after the user-settings handlers, `cloudSession.init(window)` in `initModulesWithWindow`, and `startup()` behind `webContents.once('did-finish-load')` + `setImmediate`. The `once` is a small departure from "after the window loads": the existing handler fires on every renderer reload, which would re-run startup and abort a sign-in in progress.
+
+_Captured: 2026-09-16 · 2 file change(s)_
+
+---
+

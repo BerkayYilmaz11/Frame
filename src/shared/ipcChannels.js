@@ -223,7 +223,15 @@ const IPC = {
 
   // Activity record (the work Frame does on its own — local only, never sent)
   GET_ACTIVITY: 'get-activity',                      // renderer → main: backlog (ring + what landed while closed)
-  ACTIVITY_DATA: 'activity-data'                     // main → renderer: coalesced batch of new entries
+  ACTIVITY_DATA: 'activity-data',                    // main → renderer: coalesced batch of new entries
+
+  // Frame Cloud sign-in (the token stays in main; payloads never carry it)
+  CLOUD_SIGN_IN: 'cloud-sign-in',                    // renderer → main (invoke): start the device flow → current state
+  CLOUD_CANCEL_SIGN_IN: 'cloud-cancel-sign-in',      // renderer → main (invoke): abort the waiting attempt → state
+  CLOUD_SIGN_OUT: 'cloud-sign-out',                  // renderer → main (invoke): device.signOut + forget locally → state
+  CLOUD_GET_STATE: 'cloud-get-state',                // renderer → main (invoke): the public session state
+  CLOUD_REFRESH: 'cloud-refresh',                    // renderer → main (invoke): one device.me → state
+  CLOUD_SESSION_STATE: 'cloud-session-state'         // main → renderer: public session state on every transition
 };
 
 module.exports = { IPC };
