@@ -8315,13 +8315,13 @@
       "title": "Style the indicator tones (muted, info dot, amber, red) and the upward right-aligned `.sb-notice-tray` popover in `src/renderer/styles/components/status-bar.css`, making `.status-bar-right` the positioning context, in both themes",
       "description": "",
       "source": "spec:status-bar-notice-tray:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:55:48.425Z",
+      "completedAt": "2026-09-16T13:55:48.425Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T06",

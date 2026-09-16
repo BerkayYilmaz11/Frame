@@ -26,3 +26,10 @@ Added per-row copy and dismiss buttons to `src/renderer/statusBar/noticeTray.js`
 _Captured: 2026-09-16 · 1 file change(s)_
 
 ---
+## T05 — Style the notice indicator and tray popover
+
+Added the notices section to `src/renderer/styles/components/status-bar.css`: `.sb-notices` tones (muted / red / amber / blue dot), the right-anchored upward `.sb-notice-tray` on the branch picker's surface, and row, meta, `×N`, wrapped message and hover-revealed action styles. `.status-bar-right` now shares `position: relative` with the left slot. Theme tokens only, so no separate light-theme rules.
+
+_Captured: 2026-09-16 · 1 file change(s)_
+
+---
