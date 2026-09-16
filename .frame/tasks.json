@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-16T06:29:18.631Z",
+  "lastUpdated": "2026-09-16T07:03:39.104Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8055,13 +8055,13 @@
       "title": "Add the pure gate `src/renderer/onboarding/onboardingGate.js` exposing `decide({ trigger, projects })`, with `test/onboardingGate.test.js` covering launch-with-zero-projects, launch-with-projects, a non-array payload treated as unknown, and the always-dismissible command trigger.",
       "description": "",
       "source": "spec:first-run-onboarding-screen:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: first-run-onboarding-screen",
       "createdAt": "2026-09-16T06:29:18.631Z",
-      "updatedAt": "2026-09-16T06:29:18.631Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T07:03:39.104Z",
+      "completedAt": "2026-09-16T07:03:39.104Z"
     },
     {
       "id": "task-spec-first-run-onboarding-screen-T02",

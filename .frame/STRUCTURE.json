@@ -8249,6 +8249,25 @@
         }
       }
     },
+    "renderer/onboarding/onboardingGate": {
+      "file": "src/renderer/onboarding/onboardingGate.js",
+      "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5).",
+      "exports": [
+        "decide",
+        "LAUNCH",
+        "COMMAND"
+      ],
+      "depends": [],
+      "functions": {
+        "decide": {
+          "line": 26,
+          "params": [
+            "{ trigger",
+            "projects } = {}"
+          ]
+        }
+      }
+    },
     "renderer/openProjectModal": {
       "file": "src/renderer/openProjectModal.js",
       "description": "Open Project Modal",
@@ -14039,6 +14058,18 @@
         "module": "shared/frameTemplates",
         "file": "src/shared/frameTemplates.js",
         "description": "Frame Templates"
+      }
+    ],
+    "gate": [
+      {
+        "module": "main/pollGate",
+        "file": "src/main/pollGate.js",
+        "description": "pollGate — visibility-gated intervals + TTL caching for polling loops."
+      },
+      {
+        "module": "renderer/onboarding/onboardingGate",
+        "file": "src/renderer/onboarding/onboardingGate.js",
+        "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5)."
       }
     ],
     "git": [
