@@ -11160,6 +11160,77 @@
         }
       }
     },
+    "renderer/statusBar/noticeTrayModel": {
+      "file": "src/renderer/statusBar/noticeTrayModel.js",
+      "description": "Notice tray model — pure (status-bar-notice-tray spec, D6).",
+      "exports": [
+        "MAX_NOTICES",
+        "add",
+        "dismiss",
+        "clear",
+        "markAllRead",
+        "indicator",
+        "sourceLabel",
+        "moveFocus"
+      ],
+      "depends": [],
+      "functions": {
+        "normalizeSeverity": {
+          "line": 33,
+          "params": [
+            "severity"
+          ]
+        },
+        "add": {
+          "line": 45,
+          "params": [
+            "list",
+            "input",
+            "{ now",
+            "id }"
+          ],
+          "purpose": "Add a notice, merging it into an identical row when one exists."
+        },
+        "dismiss": {
+          "line": 68,
+          "params": [
+            "list",
+            "id"
+          ]
+        },
+        "clear": {
+          "line": 72
+        },
+        "markAllRead": {
+          "line": 76,
+          "params": [
+            "list"
+          ]
+        },
+        "indicator": {
+          "line": 85,
+          "params": [
+            "list"
+          ],
+          "purpose": "What the indicator shows."
+        },
+        "sourceLabel": {
+          "line": 96,
+          "params": [
+            "source"
+          ]
+        },
+        "moveFocus": {
+          "line": 101,
+          "params": [
+            "index",
+            "length",
+            "delta"
+          ],
+          "purpose": "Row focus for ArrowUp/ArrowDown, wrapping; -1 when there are no rows."
+        }
+      }
+    },
     "renderer/structureMap": {
       "file": "src/renderer/structureMap.js",
       "description": "Structure Map Module",
@@ -14813,6 +14884,23 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      },
+      {
+        "module": "renderer/statusBar/noticeTrayModel",
+        "file": "src/renderer/statusBar/noticeTrayModel.js",
+        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
+      }
+    ],
+    "notice": [
+      {
+        "module": "renderer/statusBar/noticeTrayModel",
+        "file": "src/renderer/statusBar/noticeTrayModel.js",
+        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
+      },
+      {
+        "module": "renderer/terminalChipNotice",
+        "file": "src/renderer/terminalChipNotice.js",
+        "description": "\"Close this terminal?\" confirmation."
       }
     ],
     "onboarding": [

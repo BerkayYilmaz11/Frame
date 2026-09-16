@@ -8263,13 +8263,13 @@
       "title": "Add pure `src/renderer/statusBar/noticeTrayModel.js` (`add` with severity+source+message merging and the 50-row cap, `dismiss`, `clear`, `markAllRead`, `indicator` tone/unread, `sourceLabel`, `moveFocus`) with `test/noticeTrayModel.test.js` covering merging, cap, tone precedence, info excluded from the unread count, dismiss/clear and focus wrapping",
       "description": "",
       "source": "spec:status-bar-notice-tray:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T13:50:39.249Z",
+      "completedAt": "2026-09-16T13:50:39.249Z"
     },
     {
       "id": "task-spec-status-bar-notice-tray-T02",
