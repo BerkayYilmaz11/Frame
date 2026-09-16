@@ -8354,13 +8354,13 @@
       "title": "Delete `src/renderer/styles/components/health-notice.css` and its `main.css` import, update the receipt comment in `src/renderer/state.js`, and add the tray modules to the crash intent in `scripts/intent-map.json`",
       "description": "",
       "source": "spec:status-bar-notice-tray:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: status-bar-notice-tray",
       "createdAt": "2026-09-16T13:46:16.346Z",
-      "updatedAt": "2026-09-16T13:46:16.346Z",
-      "completedAt": null
+      "updatedAt": "2026-09-16T14:01:09.621Z",
+      "completedAt": "2026-09-16T14:01:09.621Z"
     }
   ],
   "metadata": {

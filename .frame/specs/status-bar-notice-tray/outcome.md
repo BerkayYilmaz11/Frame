@@ -47,3 +47,10 @@ Replaced `src/renderer/healthNotice.js`'s banner with `noticeTray.push()`: every
 _Captured: 2026-09-16 · 3 file change(s)_
 
 ---
+## T08 — Remove the banner stylesheet and tidy references
+
+Deleted `health-notice.css` and its `main.css` import, reworded the receipt comment in `src/renderer/state.js`, and added the tray modules plus `notices`/`errors`/`notification` synonyms to the crash intent in `scripts/intent-map.json` (STRUCTURE.json regenerated). Checked in an isolated dev Frame: no header overlay, indicator tones and counts, full wrapped messages, ×5 merge, dismiss, Escape, and the tray and branch picker closing each other. Not checked: light theme (the app kept its theme when forced from the script). Followup: `src/main/index.js:167`'s comment still says "health-notice banner" — reword once audit-q3-performance-resources releases that file.
+
+_Captured: 2026-09-16 · 5 file change(s)_
+
+---

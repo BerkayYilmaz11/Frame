@@ -14656,6 +14656,16 @@
         "module": "renderer/healthNotice",
         "file": "src/renderer/healthNotice.js",
         "description": "Health notices"
+      },
+      {
+        "module": "renderer/statusBar/noticeTray",
+        "file": "src/renderer/statusBar/noticeTray.js",
+        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
+      },
+      {
+        "module": "renderer/statusBar/noticeTrayModel",
+        "file": "src/renderer/statusBar/noticeTrayModel.js",
+        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
       }
     ],
     "dock": [
@@ -14987,28 +14997,6 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
-      },
-      {
-        "module": "renderer/statusBar/noticeTrayModel",
-        "file": "src/renderer/statusBar/noticeTrayModel.js",
-        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
-      }
-    ],
-    "notice": [
-      {
-        "module": "renderer/statusBar/noticeTray",
-        "file": "src/renderer/statusBar/noticeTray.js",
-        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
-      },
-      {
-        "module": "renderer/statusBar/noticeTrayModel",
-        "file": "src/renderer/statusBar/noticeTrayModel.js",
-        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
-      },
-      {
-        "module": "renderer/terminalChipNotice",
-        "file": "src/renderer/terminalChipNotice.js",
-        "description": "\"Close this terminal?\" confirmation."
       }
     ],
     "onboarding": [
@@ -15410,18 +15398,6 @@
         "module": "renderer/tour/tourSteps",
         "file": "src/renderer/tour/tourSteps.js",
         "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
-      }
-    ],
-    "tray": [
-      {
-        "module": "renderer/statusBar/noticeTray",
-        "file": "src/renderer/statusBar/noticeTray.js",
-        "description": "Notice tray — the `!` indicator at the right end of the status bar and"
-      },
-      {
-        "module": "renderer/statusBar/noticeTrayModel",
-        "file": "src/renderer/statusBar/noticeTrayModel.js",
-        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
       }
     ],
     "view": [
