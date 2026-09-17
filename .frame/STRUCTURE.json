@@ -6257,26 +6257,31 @@
       ],
       "functions": {
         "init": {
-          "line": 19,
+          "line": 58,
           "params": [
             "cloudHub"
           ]
         },
         "render": {
-          "line": 28,
+          "line": 67,
           "params": [
             "state",
             "activeTab"
           ]
         },
         "onShow": {
-          "line": 34,
+          "line": 80,
           "params": [
-            "tab"
+            "tab",
+            "opts = {}"
           ]
         },
+        "requestCandidates": {
+          "line": 90,
+          "purpose": "link.candidates runs when the tab is first shown and on every Refresh;"
+        },
         "el": {
-          "line": 40,
+          "line": 100,
           "params": [
             "tag",
             "className",
@@ -6284,7 +6289,7 @@
           ]
         },
         "button": {
-          "line": 47,
+          "line": 107,
           "params": [
             "label",
             "onClick",
@@ -6294,7 +6299,7 @@
           ]
         },
         "message": {
-          "line": 58,
+          "line": 118,
           "params": [
             "text",
             "{ retry = false",
@@ -6302,39 +6307,179 @@
           ]
         },
         "staleNote": {
-          "line": 65,
+          "line": 125,
           "params": [
             "state"
           ]
         },
         "workspaceName": {
-          "line": 73,
+          "line": 133,
           "params": [
             "state"
           ]
         },
         "renderProjectsTab": {
-          "line": 80,
+          "line": 140,
           "params": [
             "state"
           ]
         },
         "projectRow": {
-          "line": 109,
+          "line": 169,
           "params": [
             "project"
           ]
         },
         "openFolder": {
-          "line": 154,
+          "line": 214,
           "params": [
             "folderPath"
           ]
         },
+        "ui": {
+          "line": 222,
+          "params": [
+            "path"
+          ]
+        },
+        "effective": {
+          "line": 228,
+          "params": [
+            "folder"
+          ],
+          "purpose": "What a row does now: the plan, with whatever the user changed on top."
+        },
         "renderDeviceTab": {
-          "line": 162,
+          "line": 244,
           "params": [
             "state"
+          ]
+        },
+        "appendGroup": {
+          "line": 312,
+          "params": [
+            "title",
+            "folders",
+            "drawRow"
+          ]
+        },
+        "deviceRowShell": {
+          "line": 320,
+          "params": [
+            "folder",
+            "{ checkbox",
+            "checked",
+            "disabled } = {}"
+          ]
+        },
+        "connectRow": {
+          "line": 345,
+          "params": [
+            "folder",
+            "stale"
+          ]
+        },
+        "createRow": {
+          "line": 371,
+          "params": [
+            "folder",
+            "stale"
+          ]
+        },
+        "pendingRow": {
+          "line": 398,
+          "params": [
+            "folder",
+            "stale"
+          ]
+        },
+        "connectedRow": {
+          "line": 409,
+          "params": [
+            "folder",
+            "stale"
+          ]
+        },
+        "picker": {
+          "line": 445,
+          "params": [
+            "folder",
+            "e",
+            "{ allowCreate }"
+          ]
+        },
+        "field": {
+          "line": 486,
+          "params": [
+            "folder",
+            "key",
+            "label",
+            "value",
+            "disabled"
+          ]
+        },
+        "slugStatus": {
+          "line": 512,
+          "params": [
+            "u"
+          ]
+        },
+        "checkSlugSoon": {
+          "line": 536,
+          "params": [
+            "path",
+            "slug"
+          ]
+        },
+        "appendRowStatus": {
+          "line": 559,
+          "params": [
+            "row",
+            "folder",
+            "stale"
+          ]
+        },
+        "connectSelected": {
+          "line": 584
+        },
+        "connectRowNow": {
+          "line": 607,
+          "params": [
+            "path",
+            "flags"
+          ],
+          "purpose": "Claim or create one row. `flags` carries a question the user just"
+        },
+        "applyRefusal": {
+          "line": 642,
+          "params": [
+            "u",
+            "res"
+          ]
+        },
+        "disconnect": {
+          "line": 665,
+          "params": [
+            "folder"
+          ]
+        },
+        "rerender": {
+          "line": 690
+        },
+        "applyPendingFocus": {
+          "line": 694,
+          "params": [
+            "folders"
+          ]
+        },
+        "captureFocus": {
+          "line": 715,
+          "purpose": "A push while the user types must not steal the caret."
+        },
+        "restoreFocus": {
+          "line": 721,
+          "params": [
+            "focus"
           ]
         }
       }

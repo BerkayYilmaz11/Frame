@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:21:24.251Z",
+  "lastUpdated": "2026-09-17T10:25:06.025Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8578,13 +8578,13 @@
       "title": "Add the On this device tab to `cloudHubTabs.js`: groups Can be connected (match label \"Your repository\" / \"Same remote\" / \"Same name\", \"Already connected\" note, checkbox from the pushed `checked`), Not in Frame Cloud (editable name and slug, local validation, live `CLOUD_CHECK_SLUG`, `-2` suggestion on `SLUG_TAKEN`) and Connected; a picker to choose another candidate, \"Create a new project instead\" and \"Choose an existing project…\"; inline questions on the row for remote mismatch and for a different identity (\"This project is already connected to a Frame folder with a different identity — that happens with local sharing mode, or when .frame/ was recreated. Connect this folder instead? The other folder will read Not connected.\" · Connect this folder · Leave); **Connect selected (n)** running checked rows one after another with per-row progress, never stopping on a refusal and never touching unchecked rows; inline Disconnect confirmation (\"Disconnect from <project>? Disconnect · Cancel\") calling `CLOUD_LINK_RELEASE`; the \"<n> folders aren't Frame projects yet\" line; link actions disabled while the state is stale.",
       "description": "",
       "source": "spec:frame-cloud-projects:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:25:06.025Z",
+      "completedAt": "2026-09-17T10:25:06.025Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T09",

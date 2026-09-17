@@ -56,3 +56,11 @@ _Captured: 2026-09-17 · 4 file change(s)_
 
 ---
 
+## T08 — On this device tab
+
+Drew On this device in `cloudHubTabs.js`: Can be connected / Not in Frame Cloud / a pending "looking for matches" group / Connected, with the picker, the create form (debounced `CLOUD_CHECK_SLUG`, `-2` suggestion), inline remote-mismatch and different-identity questions (D4 copy), sequential Connect selected (n) that never answers a question, inline Disconnect, the S7 line, and stale-state disabling; styles in `cloud-hub.css`. Deviations: local slug validation runs through `CLOUD_CHECK_SLUG` (main validates before any request) instead of requiring main's core in the renderer, so editing the name does not re-suggest the slug; a pending group was added for folders whose candidates have not arrived. Followup: a shared pure `slug` module under `src/shared/` would let the renderer re-suggest slugs as the name changes.
+
+_Captured: 2026-09-17 · 2 file change(s)_
+
+---
+

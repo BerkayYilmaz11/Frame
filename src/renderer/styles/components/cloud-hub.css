@@ -325,3 +325,209 @@
   background: var(--success-subtle);
   border-color: transparent;
 }
+
+/* ─── On this device ────────────────────────────────────── */
+
+.cloud-bulk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px 8px;
+}
+
+.cloud-group {
+  margin-top: 10px;
+}
+
+.cloud-group-title {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cloud-device-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.cloud-row-focus {
+  background: var(--accent-subtle);
+}
+
+.cloud-device-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cloud-check {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--accent-primary);
+}
+
+.cloud-device-folder {
+  flex: 0 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cloud-device-target {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cloud-arrow {
+  color: var(--text-tertiary);
+}
+
+.cloud-device-main .cloud-cell-actions {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.cloud-chip-warn {
+  color: var(--warning-ink);
+}
+
+.cloud-create {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.cloud-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.cloud-field-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cloud-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.cloud-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.cloud-input-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.cloud-slug-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 26px;
+  font-size: 11px;
+}
+
+.cloud-ok {
+  color: var(--success);
+}
+
+.cloud-row-error {
+  color: var(--error);
+  margin: 0;
+}
+
+.cloud-row-status {
+  padding-left: 26px;
+}
+
+.cloud-device-row > .cloud-row-error {
+  padding-left: 26px;
+}
+
+.cloud-question {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 26px;
+  padding: 8px 10px;
+  line-height: 1.5;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.cloud-question > span {
+  flex: 1 1 320px;
+}
+
+.cloud-picker {
+  display: flex;
+  flex-direction: column;
+  margin-left: 26px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cloud-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+}
+
+.cloud-picker-item:last-child {
+  border-bottom: none;
+}
+
+.cloud-picker-item:hover,
+.cloud-picker-item.active {
+  background: var(--bg-hover);
+}
+
+.cloud-picker-create {
+  color: var(--accent-primary);
+}
+
+.cloud-uninitialised {
+  margin-top: 12px;
+}
