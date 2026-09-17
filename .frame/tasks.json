@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:25:06.025Z",
+  "lastUpdated": "2026-09-17T10:26:09.020Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8591,13 +8591,13 @@
       "title": "Handle the after-sign-in prompt in `cloudHub.js`: when a projects state arrives with `autoShowDevices`, switch to On this device and show one line — \"<n> projects on this device aren't in <cloud workspace>.\" with **Don't show again**, which writes `cloudConnectPromptDismissed` through the existing `SET_USER_SETTING` and stops only the automatic switch. Keep the tab count and every action available; open nothing on a launch with a stored session or on a silent refresh.",
       "description": "",
       "source": "spec:frame-cloud-projects:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:26:09.020Z",
+      "completedAt": "2026-09-17T10:26:09.020Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T10",

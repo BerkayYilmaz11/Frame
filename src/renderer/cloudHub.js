@@ -19,6 +19,7 @@ const settingsOverlay = require('./settingsOverlay');
 
 const SIGNED_IN_NOTE_MS = 4000;
 const TABS = ['projects', 'device'];
+const PROMPT_DISMISSED_KEY = 'cloudConnectPromptDismissed';
 
 const REASONS = {
   denied: 'Sign-in was denied in the browser.',
@@ -84,6 +85,8 @@ function init(opts = {}) {
 // Opening re-reads both states; a signed-in session asks the server once
 // (device.me) and re-reads the project list.
 function onOpen() {
+  // The after-sign-in notice belongs to that moment, not to later visits.
+  hideDevicesPrompt();
   pullSession().then((state) => {
     if (!state || state.state !== 'signedIn') return;
     ipcRenderer.invoke(IPC.CLOUD_REFRESH).then(renderSession).catch(() => {});
@@ -245,13 +248,53 @@ function renderProjects(state) {
     updated.classList.toggle('cloud-last-updated-stale', state.status === 'stale');
   }
   if (tabs) tabs.render(state, activeTab);
+  // One-shot, set by main only after a sign-in the user started.
+  if (state.autoShowDevices) showDevicesPrompt(state);
   for (const listener of projectsListeners) listener(state);
+}
+
+/**
+ * After a user-started sign-in with folders left to connect: switch the
+ * modal (already open from the sign-in) to On this device under one line.
+ * Never opens the modal itself.
+ */
+function showDevicesPrompt(state) {
+  if (!overlay || !overlay.isOpen()) return;
+  const n = Number(state.unconnectedCount) || 0;
+  const notice = document.getElementById('cloud-device-notice');
+  if (!n || !notice) return;
+  const ws = state.cloudWorkspace || {};
+  const where = ws.name || ws.slug || 'Frame Cloud';
+  const text = document.createElement('span');
+  text.textContent = n === 1
+    ? `1 project on this device isn't in ${where}.`
+    : `${n} projects on this device aren't in ${where}.`;
+  const dismiss = document.createElement('button');
+  dismiss.type = 'button';
+  dismiss.className = 'settings-about-btn cloud-row-btn';
+  dismiss.textContent = "Don't show again";
+  dismiss.addEventListener('click', () => {
+    notice.hidden = true;
+    // Stops only this automatic switch; the tab and its actions stay.
+    ipcRenderer.invoke(IPC.SET_USER_SETTING, PROMPT_DISMISSED_KEY, true).catch((err) => {
+      console.error('Frame Cloud: could not save the prompt preference', err);
+    });
+  });
+  notice.replaceChildren(text, dismiss);
+  notice.hidden = false;
+  setTab('device', { force: true });
+}
+
+function hideDevicesPrompt() {
+  const notice = document.getElementById('cloud-device-notice');
+  if (notice) notice.hidden = true;
 }
 
 function setTab(tab, opts = {}) {
   if (!TABS.includes(tab)) return;
   const changed = tab !== activeTab;
   activeTab = tab;
+  if (tab !== 'device') hideDevicesPrompt();
   if (rootEl) {
     rootEl.querySelectorAll('[data-cloud-tab]').forEach((btn) => {
       const on = btn.dataset.cloudTab === tab;

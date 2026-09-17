@@ -64,3 +64,11 @@ _Captured: 2026-09-17 · 2 file change(s)_
 
 ---
 
+## T09 — After-sign-in prompt
+
+Made `cloudHub.js` handle a projects push with `autoShowDevices`: when the modal is open it switches to On this device and shows "<n> projects on this device aren't in <workspace>." with **Don't show again** (writes `cloudConnectPromptDismissed` via `SET_USER_SETTING`); the notice hides on reopen or when leaving the tab. It never opens the modal itself, so a landing blocked by onboarding or the tour stays blocked; launch and silent refreshes can't trigger it because main sets the flag only after a user-started sign-in. Files: src/renderer/cloudHub.js.
+
+_Captured: 2026-09-17 · 1 file change(s)_
+
+---
+

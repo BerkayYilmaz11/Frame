@@ -6114,70 +6114,80 @@
       ],
       "functions": {
         "init": {
-          "line": 47,
+          "line": 48,
           "params": [
             "opts = {}"
           ],
           "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
         },
         "onOpen": {
-          "line": 86,
+          "line": 87,
           "purpose": "Opening re-reads both states; a signed-in session asks the server once"
         },
         "pullSession": {
-          "line": 95
+          "line": 98
         },
         "pullProjects": {
-          "line": 108
+          "line": 111
         },
         "refreshProjects": {
-          "line": 122,
+          "line": 125,
           "purpose": "Re-read the list; on On this device, the candidates follow."
         },
         "onAction": {
-          "line": 138,
+          "line": 141,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 165,
+          "line": 168,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 178,
+          "line": 181,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 209
+          "line": 212
         },
         "renderHeader": {
-          "line": 219,
+          "line": 222,
           "params": [
             "s"
           ]
         },
         "renderProjects": {
-          "line": 232,
+          "line": 235,
           "params": [
             "state"
           ]
         },
+        "showDevicesPrompt": {
+          "line": 261,
+          "params": [
+            "state"
+          ],
+          "purpose": "After a user-started sign-in with folders left to connect: switch the"
+        },
+        "hideDevicesPrompt": {
+          "line": 288
+        },
         "setTab": {
-          "line": 251,
+          "line": 293,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 277,
+          "line": 320,
           "params": [
             "{ tab",
             "folderPath } = {}"
@@ -6185,29 +6195,29 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 285,
+          "line": 328,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 292,
+          "line": 335,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 298,
+          "line": 341,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 304,
+          "line": 347,
           "params": [
             "id",
             "text"
           ]
         },
         "setValue": {
-          "line": 310,
+          "line": 353,
           "params": [
             "id",
             "primary",
@@ -6216,19 +6226,19 @@
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "isWebUrl": {
-          "line": 322,
+          "line": 365,
           "params": [
             "url"
           ]
         },
         "webOrigin": {
-          "line": 326,
+          "line": 369,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 335,
+          "line": 378,
           "params": [
             "date"
           ]
