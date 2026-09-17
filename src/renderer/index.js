@@ -48,6 +48,7 @@ const projectSettingsModal = require('./projectSettingsModal');
 const doneWindow = require('./doneWindow');
 const frameSettingsModal = require('./frameSettingsModal');
 const cloudHub = require('./cloudHub');
+const cloudHubTabs = require('./cloudHubTabs');
 const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
@@ -287,7 +288,7 @@ function init() {
   projectSettingsModal.init();
   frameSettingsModal.init();
   // Frame Cloud never lands over the first-run screen or the guided tour.
-  cloudHub.init({ isBlocked: () => onboarding.isOpen() || guidedTour.isOpen() });
+  cloudHub.init({ isBlocked: () => onboarding.isOpen() || guidedTour.isOpen(), tabs: cloudHubTabs });
   feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.

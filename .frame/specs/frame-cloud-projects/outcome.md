@@ -48,3 +48,11 @@ _Captured: 2026-09-17 · 10 file change(s)_
 
 ---
 
+## T07 — Cloud projects tab
+
+Created `cloudHubTabs.js` (passed to `cloudHub.init` as its tab renderer) and drew the Cloud projects tab: name/slug, source mark, Connected/Not connected, folder name(s) or "—", with Open (select + close), Connect a folder… (switch to On this device with the project id) and Open on the web (via `CLOUD_OPEN_ON_WEB`, only on rows without a folder here and with a per-row `canOpenWeb`); loading, error, stale and empty states with Retry. Server strings go through `textContent` only; row styles added to `cloud-hub.css`. Files: cloudHubTabs.js, cloudHub.js (comment), index.js, cloud-hub.css.
+
+_Captured: 2026-09-17 · 4 file change(s)_
+
+---
+

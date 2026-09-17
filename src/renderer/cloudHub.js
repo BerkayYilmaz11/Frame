@@ -281,7 +281,7 @@ function open({ tab, folderPath } = {}) {
   if (tab) setTab(tab, { folderPath, force: true });
 }
 
-/** Palette "Frame Cloud: Sign in" and every Sign in button elsewhere: open here and start. */
+/** Palette "Frame Cloud: Sign in" and the Sign in buttons in both settings surfaces: open here and start. */
 function signIn() {
   if (!overlay || sessionState.state === 'unavailable') return;
   overlay.open();

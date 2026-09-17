@@ -6186,7 +6186,7 @@
         },
         "signIn": {
           "line": 285,
-          "purpose": "Palette \"Frame Cloud: Sign in\" and every Sign in button elsewhere: open here and start."
+          "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
           "line": 292,
@@ -6240,6 +6240,103 @@
           "CLOUD_PROJECTS_STATE"
         ],
         "emits": []
+      }
+    },
+    "renderer/cloudHubTabs": {
+      "file": "src/renderer/cloudHubTabs.js",
+      "description": "Frame Cloud tabs — Cloud projects and On this device.",
+      "exports": [
+        "init",
+        "render",
+        "onShow"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "projectListUI"
+      ],
+      "functions": {
+        "init": {
+          "line": 19,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "render": {
+          "line": 28,
+          "params": [
+            "state",
+            "activeTab"
+          ]
+        },
+        "onShow": {
+          "line": 34,
+          "params": [
+            "tab"
+          ]
+        },
+        "el": {
+          "line": 40,
+          "params": [
+            "tag",
+            "className",
+            "text"
+          ]
+        },
+        "button": {
+          "line": 47,
+          "params": [
+            "label",
+            "onClick",
+            "{ primary = false",
+            "disabled = false",
+            "className = '' } = {}"
+          ]
+        },
+        "message": {
+          "line": 58,
+          "params": [
+            "text",
+            "{ retry = false",
+            "className = '' } = {}"
+          ]
+        },
+        "staleNote": {
+          "line": 65,
+          "params": [
+            "state"
+          ]
+        },
+        "workspaceName": {
+          "line": 73,
+          "params": [
+            "state"
+          ]
+        },
+        "renderProjectsTab": {
+          "line": 80,
+          "params": [
+            "state"
+          ]
+        },
+        "projectRow": {
+          "line": 109,
+          "params": [
+            "project"
+          ]
+        },
+        "openFolder": {
+          "line": 154,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "renderDeviceTab": {
+          "line": 162,
+          "params": [
+            "state"
+          ]
+        }
       }
     },
     "renderer/commandPalette": {
@@ -9183,6 +9280,7 @@
         "doneWindow",
         "frameSettingsModal",
         "cloudHub",
+        "cloudHubTabs",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -9201,34 +9299,34 @@
       ],
       "functions": {
         "init": {
-          "line": 65,
+          "line": 66,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 320,
+          "line": 321,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 455,
+          "line": 456,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 565,
+          "line": 566,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 591,
+          "line": 592,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 617,
+          "line": 618,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1044,
+          "line": 1045,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -15712,6 +15810,11 @@
         "module": "renderer/cloudHub",
         "file": "src/renderer/cloudHub.js",
         "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
+      },
+      {
+        "module": "renderer/cloudHubTabs",
+        "file": "src/renderer/cloudHubTabs.js",
+        "description": "Frame Cloud tabs — Cloud projects and On this device."
       }
     ],
     "commands": [
@@ -16002,6 +16105,18 @@
         "module": "renderer/promptsPanel",
         "file": "src/renderer/promptsPanel.js",
         "description": "Prompts Panel Module"
+      }
+    ],
+    "hub": [
+      {
+        "module": "renderer/cloudHub",
+        "file": "src/renderer/cloudHub.js",
+        "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
+      },
+      {
+        "module": "renderer/cloudHubTabs",
+        "file": "src/renderer/cloudHubTabs.js",
+        "description": "Frame Cloud tabs — Cloud projects and On this device."
       }
     ],
     "implement": [

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:19:59.367Z",
+  "lastUpdated": "2026-09-17T10:21:24.251Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8565,13 +8565,13 @@
       "title": "Add the Cloud projects tab in a new `src/renderer/cloudHubTabs.js`, drawn from `CLOUD_PROJECTS_STATE`: one row per project with name, slug, source mark, Connected / Not connected and the folder name(s) here or \"—\"; **Open** (select that project in Frame, close the modal) for a project with a folder here, **Open on the web** via `CLOUD_OPEN_ON_WEB` only when `canOpenWeb`, **Connect a folder…** on Not connected rows (switch to On this device, focus the folder whose suggestion is this project); empty, stale (\"Last updated …\" + Retry) and error states. Write every server string with `textContent`; no label may say \"elsewhere\" or imply a device owns a project.",
       "description": "",
       "source": "spec:frame-cloud-projects:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:21:24.251Z",
+      "completedAt": "2026-09-17T10:21:24.251Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T08",
