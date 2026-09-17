@@ -7303,28 +7303,28 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 664,
+          "line": 615,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 679,
+          "line": 630,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 695,
+          "line": 646,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 705,
+          "line": 656,
           "params": [
             "chapters = CHAPTERS"
           ],
@@ -7396,7 +7396,7 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 637,
+          "line": 636,
           "params": [
             "kind",
             "focus"
@@ -12527,7 +12527,7 @@
       "depends": [],
       "functions": {
         "shouldAutoStart": {
-          "line": 111,
+          "line": 102,
           "params": [
             "{ done",
             "readFailed } = {}"
@@ -12535,14 +12535,14 @@
           "purpose": "Does the tour start by itself after boot? Once per user: any stored value"
         },
         "applies": {
-          "line": 116,
+          "line": 107,
           "params": [
             "step",
             "hasProject"
           ]
         },
         "nextStepIndex": {
-          "line": 132,
+          "line": 123,
           "params": [
             "from",
             "{ hasProject",
@@ -12552,14 +12552,14 @@
           "purpose": "The index of the first step after `from` that applies to the current"
         },
         "firstStepIndex": {
-          "line": 143,
+          "line": 134,
           "params": [
             "ctx = {}"
           ],
           "purpose": "Where a tour begins: step 1 with no project open, step 2 with one."
         },
         "isLastStep": {
-          "line": 148,
+          "line": 139,
           "params": [
             "index",
             "{ hasProject",
@@ -12568,7 +12568,7 @@
           "purpose": "The last step that applies with a project open, for the Done button."
         },
         "clamp": {
-          "line": 154,
+          "line": 145,
           "params": [
             "value",
             "min",
@@ -12576,7 +12576,7 @@
           ]
         },
         "placeCard": {
-          "line": 173,
+          "line": 164,
           "params": [
             "target",
             "card",
@@ -12588,13 +12588,13 @@
           "purpose": "Place a card of `card` size beside `target` inside `viewport`."
         },
         "sentenceCount": {
-          "line": 205,
+          "line": 196,
           "params": [
             "text"
           ]
         },
         "validate": {
-          "line": 210,
+          "line": 201,
           "params": [
             "steps = STEPS"
           ],
