@@ -42,6 +42,7 @@ const telemetry = require('./telemetry');
 const specManager = require('./specManager');
 const orchestrationManager = require('./orchestrationManager');
 const cloudSession = require('./cloud/cloudSession');
+const cloudProjectsService = require('./cloud/cloudProjectsService');
 
 let mainWindow = null;
 let quitConfirmed = false;
@@ -232,6 +233,7 @@ function setupAllIPC() {
 
   // Frame Cloud sign-in (Settings → Account)
   cloudSession.setupIPC(ipcMain);
+  cloudProjectsService.setupIPC(ipcMain);
 
   // Git status (file tree decoration polling)
   gitStatusManager.setupIPC(ipcMain);
@@ -348,6 +350,7 @@ function initModulesWithWindow(window) {
   specManager.init(window);
   orchestrationManager.init(window);
   cloudSession.init(window);
+  cloudProjectsService.init(window);
   activityLog.attachWindow(window);
 }
 

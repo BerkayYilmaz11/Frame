@@ -32,3 +32,11 @@ _Captured: 2026-09-17 · 2 file change(s)_
 
 ---
 
+## T05 — Projects service and IPC
+
+Created `cloudProjectsService.js` (folder scan, remote read, one auth wrapper, `userData/cloud-projects.json` cache, three-at-a-time candidates, token-free push) and wired it in `src/main/index.js`; added the nine `CLOUD_PROJECTS_*` / `CLOUD_LINK_*` / `CLOUD_OPEN_ON_WEB` channels. Choices beyond the plan: the list re-reads on entering signed-in or on a user-started sign-in, not on every `device.me` re-save; link handlers return `{ ok, reason, field?, suggestion? }` instead of throwing; `release` treats `PROJECT_NOT_FOUND` as detached; link actions refuse with `network` while the list is stale; `CLOUD_CHECK_SLUG` validates locally first and suggests `nextSlug` when the slug is taken. Files: cloudProjectsService.js, ipcChannels.js, src/main/index.js.
+
+_Captured: 2026-09-17 · 3 file change(s)_
+
+---
+

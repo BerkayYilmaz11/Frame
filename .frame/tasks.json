@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:13:34.681Z",
+  "lastUpdated": "2026-09-17T10:16:09.454Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8539,13 +8539,13 @@
       "title": "Create `src/main/cloud/cloudProjectsService.js` and wire it: channels `CLOUD_PROJECTS_GET_STATE`, `CLOUD_PROJECTS_REFRESH`, `CLOUD_FOLDER_CANDIDATES`, `CLOUD_CHECK_SLUG`, `CLOUD_LINK_CLAIM`, `CLOUD_LINK_CREATE`, `CLOUD_LINK_RELEASE`, `CLOUD_OPEN_ON_WEB` and the `CLOUD_PROJECTS_STATE` push in `src/shared/ipcChannels.js`; `setupIPC` / `init(window)` beside `cloudSession` in `src/main/index.js`. The service scans known folders from `workspace.js` (existing paths with `.frame/config.json`, newest `lastOpenedAt` first; the rest counted as `uninitialisedCount`), reads ids with `frameStore.getProjectId` and calls `ensureProjectId` only inside claim / create, reads `git remote get-url origin` with `execFile`, runs every call through one auth wrapper (401 → `sessionExpired`, 412 not-registered → `reRegister` + one retry, network → stale), caches the list in `userData/cloud-projects.json` via `fsSafe.writeFileAtomic` (ignored on another server or workspace, deleted on sign-out), queues `link.candidates` three at a time, refreshes on launch, session change, request and window focus (60 s throttle), reads `cloudConnectPromptDismissed` from `userSettings`, and pushes a token-free state object.",
       "description": "",
       "source": "spec:frame-cloud-projects:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:16:09.454Z",
+      "completedAt": "2026-09-17T10:16:09.454Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T06",

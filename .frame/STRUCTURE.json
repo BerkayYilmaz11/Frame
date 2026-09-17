@@ -668,6 +668,191 @@
         }
       }
     },
+    "main/cloud/cloudProjectsService": {
+      "file": "src/main/cloud/cloudProjectsService.js",
+      "description": "cloudProjectsService — the Electron shell around Frame Cloud projects.",
+      "exports": [
+        "init",
+        "setupIPC",
+        "refresh",
+        "publicState"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "electron",
+        "../shared/ipcChannels",
+        "../shared/frameConstants",
+        "workspace",
+        "frameStore",
+        "userSettings",
+        "fsSafe",
+        "logger",
+        "cloudSession",
+        "cloudProjects"
+      ],
+      "functions": {
+        "hasConfig": {
+          "line": 67,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "scanFolders": {
+          "line": 76,
+          "purpose": "Known folders with `.frame/config.json`, most recently opened first. Read-only."
+        },
+        "findFolder": {
+          "line": 110,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "readRemote": {
+          "line": 115,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "`git remote get-url origin`, or undefined when there is none."
+        },
+        "cachePath": {
+          "line": 131
+        },
+        "loadCache": {
+          "line": 135,
+          "params": [
+            "serverUrl",
+            "workspaceSlug"
+          ]
+        },
+        "saveCache": {
+          "line": 147,
+          "params": [
+            "serverUrl",
+            "workspaceSlug"
+          ]
+        },
+        "deleteCache": {
+          "line": 162
+        },
+        "status": {
+          "line": 175
+        },
+        "publicState": {
+          "line": 185,
+          "purpose": "The renderer's view. Built field by field — no token, no identity, no remote."
+        },
+        "push": {
+          "line": 217
+        },
+        "resetList": {
+          "line": 225
+        },
+        "call": {
+          "line": 242,
+          "params": [
+            "fn"
+          ],
+          "purpose": "One bearer call through the shared rules: 401 signs out quietly, a"
+        },
+        "refresh": {
+          "line": 267,
+          "purpose": "Re-read the project list (and the folders). Concurrent callers share one request."
+        },
+        "loadCandidates": {
+          "line": 318,
+          "purpose": "`link.candidates` for every unconnected folder, three at a time, pushing as answers land."
+        },
+        "linkBlocked": {
+          "line": 350
+        },
+        "identityFor": {
+          "line": 357,
+          "params": [
+            "folder"
+          ],
+          "purpose": "Stamp the folder's identity at the moment the user links it (S6)."
+        },
+        "afterLink": {
+          "line": 366,
+          "params": [
+            "folderPath",
+            "result"
+          ]
+        },
+        "linkClaim": {
+          "line": 373,
+          "params": [
+            "{ path",
+            "projectId",
+            "acceptRemoteMismatch",
+            "takeOver } = {}"
+          ]
+        },
+        "linkCreate": {
+          "line": 395,
+          "params": [
+            "{ path",
+            "name",
+            "slug } = {}"
+          ]
+        },
+        "linkRelease": {
+          "line": 416,
+          "params": [
+            "{ path"
+          ]
+        },
+        "checkSlug": {
+          "line": 438,
+          "params": [
+            "slug"
+          ]
+        },
+        "openOnWeb": {
+          "line": 450,
+          "params": [
+            "projectId"
+          ],
+          "purpose": "The renderer sends a project id; the URL is built and opened here."
+        },
+        "onSessionChange": {
+          "line": 467,
+          "params": [
+            "{ state",
+            "userStarted }"
+          ]
+        },
+        "init": {
+          "line": 505,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 514,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_PROJECTS_GET_STATE",
+          "CLOUD_PROJECTS_REFRESH",
+          "CLOUD_FOLDER_CANDIDATES",
+          "CLOUD_CHECK_SLUG",
+          "CLOUD_LINK_CLAIM",
+          "CLOUD_LINK_CREATE",
+          "CLOUD_LINK_RELEASE",
+          "CLOUD_OPEN_ON_WEB"
+        ],
+        "emits": [
+          "CLOUD_PROJECTS_STATE"
+        ]
+      }
+    },
     "main/cloud/cloudSession": {
       "file": "src/main/cloud/cloudSession.js",
       "description": "cloudSession — the Electron shell around the Frame Cloud device flow.",
@@ -2938,30 +3123,31 @@
         "specManager",
         "orchestrationManager",
         "cloud/cloudSession",
+        "cloud/cloudProjectsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 54,
+          "line": 55,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 72,
+          "line": 73,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 179
+          "line": 180
         },
         "setupAllIPC": {
-          "line": 209,
+          "line": 210,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 290,
+          "line": 292,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 336,
+          "line": 338,
           "params": [
             "window"
           ],
@@ -15309,6 +15495,51 @@
         "name": "cloud-session-state",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_PROJECTS_GET_STATE": {
+        "name": "cloud-projects-get-state",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_PROJECTS_REFRESH": {
+        "name": "cloud-projects-refresh",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_FOLDER_CANDIDATES": {
+        "name": "cloud-folder-candidates",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_CHECK_SLUG": {
+        "name": "cloud-check-slug",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_CLAIM": {
+        "name": "cloud-link-claim",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_CREATE": {
+        "name": "cloud-link-create",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_RELEASE": {
+        "name": "cloud-link-release",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_OPEN_ON_WEB": {
+        "name": "cloud-open-on-web",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_PROJECTS_STATE": {
+        "name": "cloud-projects-state",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -15393,6 +15624,11 @@
         "module": "main/cloud/cloudProjects",
         "file": "src/main/cloud/cloudProjects.js",
         "description": "cloudProjects — the pure core of Frame Cloud projects."
+      },
+      {
+        "module": "main/cloud/cloudProjectsService",
+        "file": "src/main/cloud/cloudProjectsService.js",
+        "description": "cloudProjectsService — the Electron shell around Frame Cloud projects."
       },
       {
         "module": "main/cloud/cloudSession",
@@ -15885,6 +16121,18 @@
         "module": "renderer/projectStatusBadges",
         "file": "src/renderer/projectStatusBadges.js",
         "description": "Project Status Badges"
+      }
+    ],
+    "projects": [
+      {
+        "module": "main/cloud/cloudProjects",
+        "file": "src/main/cloud/cloudProjects.js",
+        "description": "cloudProjects — the pure core of Frame Cloud projects."
+      },
+      {
+        "module": "main/cloud/cloudProjectsService",
+        "file": "src/main/cloud/cloudProjectsService.js",
+        "description": "cloudProjectsService — the Electron shell around Frame Cloud projects."
       }
     ],
     "rail": [
