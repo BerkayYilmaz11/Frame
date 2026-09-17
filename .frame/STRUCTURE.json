@@ -473,9 +473,22 @@
       "exports": [
         "SLUG_MIN",
         "SLUG_MAX",
+        "RESERVED_SLUGS",
+        "MATCH_LABELS",
         "normalizeProject",
         "listProjects",
         "matchFolders",
+        "checkSlug",
+        "getCandidates",
+        "claim",
+        "create",
+        "release",
+        "classifyLinkError",
+        "suggestSlug",
+        "validateSlug",
+        "nextSlug",
+        "planFolderRow",
+        "shouldAutoShowDevices",
         "buildWebUrl"
       ],
       "depends": [
@@ -483,26 +496,26 @@
       ],
       "functions": {
         "str": {
-          "line": 24,
+          "line": 33,
           "params": [
             "value"
           ]
         },
         "slugShapeOk": {
-          "line": 28,
+          "line": 37,
           "params": [
             "slug"
           ]
         },
         "normalizeProject": {
-          "line": 35,
+          "line": 44,
           "params": [
             "raw"
           ],
           "purpose": "One `project.list` entry, reduced to the fields Frame uses."
         },
         "listProjects": {
-          "line": 49,
+          "line": 58,
           "params": [
             "{ api",
             "token",
@@ -512,15 +525,139 @@
           "purpose": "`project.list` → normalized projects, server order."
         },
         "matchFolders": {
-          "line": 72,
+          "line": 81,
           "params": [
             "projects",
             "folders"
           ],
           "purpose": "The workspace's projects and this device's folders, seen from each side."
         },
+        "compact": {
+          "line": 119,
+          "params": [
+            "input"
+          ],
+          "purpose": "Optional fields are left out rather than sent empty."
+        },
+        "checkSlug": {
+          "line": 128,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "slug }"
+          ],
+          "purpose": "`project.checkSlug` → true when the slug is free in the cloud workspace."
+        },
+        "normalizeCandidate": {
+          "line": 133,
+          "params": [
+            "raw"
+          ]
+        },
+        "getCandidates": {
+          "line": 145,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "folderName",
+            "remote",
+            "frameProjectId }"
+          ],
+          "purpose": "`link.candidates` → projects this folder could connect to, matches first (server order)."
+        },
+        "claim": {
+          "line": 156,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectId",
+            "frameProjectId",
+            "remote",
+            "acceptRemoteMismatch",
+            "takeOver }"
+          ],
+          "purpose": "`link.claim` → `{ projectId, projectSlug, workspaceSlug }`. Throws CloudError."
+        },
+        "create": {
+          "line": 166,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "name",
+            "slug",
+            "frameProjectId",
+            "remote }"
+          ],
+          "purpose": "`link.create` → the same answer as claim; the project is created already linked. Throws CloudError."
+        },
+        "release": {
+          "line": 180,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectId",
+            "frameProjectId }"
+          ],
+          "purpose": "`link.release`. A refusal because this folder is not the one the project"
+        },
+        "classifyLinkError": {
+          "line": 219,
+          "params": [
+            "err"
+          ],
+          "purpose": "A failed link call → what Frame does about it. The server puts its code in"
+        },
+        "suggestSlug": {
+          "line": 239,
+          "params": [
+            "name"
+          ],
+          "purpose": "A project name → a slug suggestion, or '' when none is valid. Mirrors the"
+        },
+        "validateSlug": {
+          "line": 252,
+          "params": [
+            "slug"
+          ],
+          "purpose": "null when `slug` is valid, else 'empty' | 'length' | 'format' | 'reserved'."
+        },
+        "nextSlug": {
+          "line": 261,
+          "params": [
+            "slug"
+          ],
+          "purpose": "The next slug to try after a collision: `app` → `app-2`, `app-2` → `app-3`, kept within 32."
+        },
+        "planFolderRow": {
+          "line": 281,
+          "params": [
+            "folderRow",
+            "candidates",
+            "projectId = null"
+          ],
+          "purpose": "An unconnected folder and its `link.candidates` → how On this device draws"
+        },
+        "shouldAutoShowDevices": {
+          "line": 307,
+          "params": [
+            "{ userStartedSignIn",
+            "dismissed",
+            "unconnectedCount } = {}"
+          ],
+          "purpose": "The one automatic tab switch: after a sign-in the user started, unless turned off."
+        },
         "buildWebUrl": {
-          "line": 115,
+          "line": 319,
           "params": [
             "{ apiUrl",
             "webOrigin",

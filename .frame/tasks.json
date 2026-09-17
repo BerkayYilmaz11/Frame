@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:10:20.760Z",
+  "lastUpdated": "2026-09-17T10:12:30.155Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8513,13 +8513,13 @@
       "title": "Add linking to `cloudProjects.js`: `checkSlug`, `getCandidates`, `claim`, `create`, `release`, `classifyLinkError` (`remoteMismatch`, `mismatch`, `taken`, `slugTaken`, `badRequest`, `notFound`, `unauthorized`, `notRegistered`, `noWorkspace`, `network`, `other`), `suggestSlug`, `validateSlug` (3–32, `a-z0-9`, single inner hyphens, reserved words), `nextSlug`, `planFolderRow(folderRow, candidates)` (group, candidate, match label, `alreadyConnected`, `checked` true only for `id` / `remote` matches on a candidate carrying no other id), and `shouldAutoShowDevices`. Tests: candidate order and labels, default checks, claim → `mismatch` → retry with `takeOver`, remote mismatch → retry with `acceptRemoteMismatch`, stale `taken`, release `mismatch` read as detached, slug suggestion (Turkish characters, reserved words, length, no valid result), validation and collision, 401 and 412 classes, the auto-show truth table.",
       "description": "",
       "source": "spec:frame-cloud-projects:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:12:30.155Z",
+      "completedAt": "2026-09-17T10:12:30.155Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T04",

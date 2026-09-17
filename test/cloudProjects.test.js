@@ -8,6 +8,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const core = require('../src/main/cloud/cloudProjects');
+const { CloudError } = require('../src/main/cloud/deviceFlow');
 
 const API = 'http://cloud.test';
 
@@ -37,6 +38,11 @@ function fakeFetch(routes) {
 }
 
 const ok = (data) => ({ status: 200, body: { result: { data } } });
+const trpcErr = (status, message, code) => ({
+  status,
+  body: { error: { message, data: { code: code || message, httpStatus: status } } },
+});
+const LINKED = { projectId: 'p1', projectSlug: 'my-app', workspaceSlug: 'lab' };
 
 function project(id, overrides = {}) {
   return {
@@ -151,6 +157,256 @@ test('matchFolders: a connected project with no folder here still reads connecte
   assert.equal(projectRows[0].connected, true);
   assert.deepEqual(projectRows[0].folderNames, []);
   assert.equal(projectRows[0].openPath, null);
+});
+
+// ─── Linking calls ────────────────────────────────────────────
+
+test('checkSlug sends the slug as query input and answers availability', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/project.checkSlug': [ok({ available: false }), ok({ available: true })] });
+  assert.equal(await core.checkSlug({ api: API, token: 'tk', fetchJson, slug: 'my-app' }), false);
+  assert.equal(await core.checkSlug({ api: API, token: 'tk', fetchJson, slug: 'my-app-2' }), true);
+  assert.equal(calls[0].method, 'GET');
+  assert.deepEqual(calls[0].input, { slug: 'my-app' });
+});
+
+test('getCandidates sends only the fields it has and keeps server order', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/link.candidates': [ok([
+      { id: 'p1', slug: 'app', name: 'App', match: 'id', frameProjectId: null },
+      { id: 'p2', slug: 'app-web', name: 'App web', match: 'remote', frameProjectId: 'f9' },
+      { id: 'p3', slug: 'app-3', name: 'app', match: 'name', frameProjectId: null },
+      { id: 'p4', slug: 'other', name: 'Other', match: null, frameProjectId: null },
+      { id: 'p5', slug: 'odd', name: 'Odd', match: 'guess' },
+    ])],
+  });
+  const list = await core.getCandidates({ api: API, token: 'tk', fetchJson, folderName: 'app', remote: undefined, frameProjectId: null });
+  assert.equal(calls[0].method, 'GET');
+  assert.deepEqual(calls[0].input, { folderName: 'app' });
+  assert.deepEqual(list.map((c) => [c.id, c.match]), [['p1', 'id'], ['p2', 'remote'], ['p3', 'name'], ['p4', null], ['p5', null]]);
+
+  await core.getCandidates({ api: API, token: 'tk', fetchJson, folderName: 'app', remote: 'git@x:a/b.git', frameProjectId: 'f1' });
+  assert.deepEqual(calls[1].input, { folderName: 'app', remote: 'git@x:a/b.git', frameProjectId: 'f1' });
+});
+
+test('claim → FRAME_PROJECT_MISMATCH → confirmed retry sends takeOver', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/link.claim': [trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT'), ok(LINKED)],
+  });
+  const args = { api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' };
+  await assert.rejects(core.claim(args), (err) => core.classifyLinkError(err) === 'mismatch');
+  assert.deepEqual(calls[0].body, { projectId: 'p1', frameProjectId: 'f1' });
+  assert.deepEqual(await core.claim({ ...args, takeOver: true }), LINKED);
+  assert.deepEqual(calls[1].body, { projectId: 'p1', frameProjectId: 'f1', takeOver: true });
+});
+
+test('claim → REMOTE_MISMATCH → confirmed retry sends acceptRemoteMismatch', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/link.claim': [trpcErr(409, 'REMOTE_MISMATCH', 'CONFLICT'), ok(LINKED)],
+  });
+  const args = { api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1', remote: 'git@x:a/b.git' };
+  await assert.rejects(core.claim(args), (err) => core.classifyLinkError(err) === 'remoteMismatch');
+  await core.claim({ ...args, acceptRemoteMismatch: true });
+  assert.deepEqual(calls[1].body, { projectId: 'p1', frameProjectId: 'f1', remote: 'git@x:a/b.git', acceptRemoteMismatch: true });
+});
+
+test('claim on a stale list answers taken', async () => {
+  const { fetchJson } = fakeFetch({ '/trpc/link.claim': [trpcErr(409, 'FRAME_PROJECT_TAKEN', 'CONFLICT')] });
+  await assert.rejects(
+    core.claim({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }),
+    (err) => core.classifyLinkError(err) === 'taken'
+  );
+});
+
+test('create posts name, slug and identity, and a taken slug classifies as slugTaken', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/link.create': [trpcErr(409, 'SLUG_TAKEN', 'CONFLICT'), ok(LINKED)] });
+  const args = { api: API, token: 'tk', fetchJson, name: 'My App', slug: 'my-app', frameProjectId: 'f1' };
+  await assert.rejects(core.create(args), (err) => core.classifyLinkError(err) === 'slugTaken');
+  assert.deepEqual(await core.create({ ...args, slug: core.nextSlug('my-app') }), LINKED);
+  assert.deepEqual(calls[1].body, { name: 'My App', slug: 'my-app-2', frameProjectId: 'f1' });
+});
+
+test('release answers ok, and reads FRAME_PROJECT_MISMATCH as already detached', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/link.release': [ok({ ok: true }), trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT')],
+  });
+  const args = { api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' };
+  assert.deepEqual(await core.release(args), { ok: true, notOwner: false });
+  assert.deepEqual(calls[0].body, { projectId: 'p1', frameProjectId: 'f1' });
+  assert.deepEqual(await core.release(args), { ok: true, notOwner: true });
+});
+
+test('release still throws on anything but a mismatch', async () => {
+  const { fetchJson } = fakeFetch({ '/trpc/link.release': [trpcErr(404, 'PROJECT_NOT_FOUND', 'NOT_FOUND')] });
+  await assert.rejects(
+    core.release({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }),
+    (err) => core.classifyLinkError(err) === 'notFound'
+  );
+});
+
+test('classifyLinkError maps server codes and transport kinds', async () => {
+  const cases = [
+    [trpcErr(409, 'REMOTE_MISMATCH', 'CONFLICT'), 'remoteMismatch'],
+    [trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT'), 'mismatch'],
+    [trpcErr(409, 'FRAME_PROJECT_TAKEN', 'CONFLICT'), 'taken'],
+    [trpcErr(409, 'SLUG_TAKEN', 'CONFLICT'), 'slugTaken'],
+    [trpcErr(400, 'Invalid input', 'BAD_REQUEST'), 'badRequest'],
+    [trpcErr(404, 'PROJECT_NOT_FOUND', 'NOT_FOUND'), 'notFound'],
+    [trpcErr(401, 'UNAUTHORIZED'), 'unauthorized'],
+    [trpcErr(412, 'Device not registered', 'DEVICE_NOT_REGISTERED'), 'notRegistered'],
+    [trpcErr(412, 'NO_WORKSPACE'), 'noWorkspace'],
+    [trpcErr(429, 'slow', 'TOO_MANY_REQUESTS'), 'network'],
+    [trpcErr(503, 'down', 'INTERNAL_SERVER_ERROR'), 'network'],
+    [new Error('offline'), 'network'],
+    [trpcErr(409, 'SOMETHING_NEW', 'CONFLICT'), 'other'],
+  ];
+  for (const [answer, kind] of cases) {
+    const { fetchJson } = fakeFetch({ '/trpc/link.claim': [answer] });
+    await assert.rejects(
+      core.claim({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }),
+      (err) => {
+        assert.equal(core.classifyLinkError(err), kind, JSON.stringify(answer.body || answer.message));
+        return true;
+      }
+    );
+  }
+  assert.equal(core.classifyLinkError(null), 'other');
+  assert.equal(core.classifyLinkError(new CloudError('other', { status: 401 })), 'unauthorized');
+});
+
+// ─── Slugs ────────────────────────────────────────────────────
+
+test('suggestSlug lowercases, transliterates and hyphenates', () => {
+  assert.equal(core.suggestSlug('My App'), 'my-app');
+  assert.equal(core.suggestSlug('  Frame -- Cloud!! '), 'frame-cloud');
+  assert.equal(core.suggestSlug('İstanbul Şehir Çiçekleri'), 'istanbul-sehir-cicekleri');
+  assert.equal(core.suggestSlug('Işık Ğüzel Ödev'), 'isik-guzel-odev');
+  assert.equal(core.suggestSlug('Café Straße'), 'cafe-strasse');
+  assert.equal(core.suggestSlug('app_v2.final'), 'app-v2-final');
+});
+
+test('suggestSlug cuts to 32 characters without a trailing hyphen', () => {
+  const slug = core.suggestSlug('abcdefghij abcdefghij abcdefghi xyz');
+  assert.equal(slug, 'abcdefghij-abcdefghij-abcdefghi');
+  assert.ok(slug.length <= 32);
+  assert.equal(core.suggestSlug('a'.repeat(40)).length, 32);
+});
+
+test('suggestSlug leaves the field empty when nothing valid comes out', () => {
+  for (const name of ['', 'ab', '日本語', '!!!', 'Settings', 'new', 'Projects', null, undefined]) {
+    assert.equal(core.suggestSlug(name), '', String(name));
+  }
+});
+
+test('validateSlug names what is wrong', () => {
+  assert.equal(core.validateSlug('my-app'), null);
+  assert.equal(core.validateSlug('abc'), null);
+  assert.equal(core.validateSlug('a'.repeat(32)), null);
+  assert.equal(core.validateSlug(''), 'empty');
+  assert.equal(core.validateSlug(undefined), 'empty');
+  assert.equal(core.validateSlug('ab'), 'length');
+  assert.equal(core.validateSlug('a'.repeat(33)), 'length');
+  for (const bad of ['My-app', 'my--app', '-app', 'app-', 'my_app', 'my app', 'çay']) {
+    assert.equal(core.validateSlug(bad), 'format', bad);
+  }
+  for (const word of core.RESERVED_SLUGS) assert.equal(core.validateSlug(word), 'reserved', word);
+});
+
+test('nextSlug counts up and stays within 32 characters', () => {
+  assert.equal(core.nextSlug('app'), 'app-2');
+  assert.equal(core.nextSlug('app-2'), 'app-3');
+  assert.equal(core.nextSlug('app-9'), 'app-10');
+  assert.equal(core.nextSlug('v-2-app'), 'v-2-app-2');
+  const long = core.nextSlug('a'.repeat(32));
+  assert.equal(long.length, 32);
+  assert.ok(long.endsWith('-2'));
+  assert.equal(core.validateSlug(long), null);
+  assert.equal(core.validateSlug(core.nextSlug('abcdefghijklmnopqrstuvwxyz-abcde')), null);
+});
+
+// ─── Row planning ─────────────────────────────────────────────
+
+const FOLDER = { path: '/code/my-app', name: 'My App', connected: false, project: null };
+const cand = (id, match, frameProjectId = null) => ({ id, slug: `${id}-slug`, name: `Project ${id}`, match, frameProjectId });
+
+test('planFolderRow: an id match is a checked connect row labelled "Your repository"', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'id'), cand('p2', null)]);
+  assert.equal(plan.group, 'connect');
+  assert.equal(plan.candidate.id, 'p1');
+  assert.equal(plan.matchLabel, 'Your repository');
+  assert.equal(plan.alreadyConnected, false);
+  assert.equal(plan.checked, true);
+  assert.deepEqual(plan.options.map((o) => o.id), ['p1', 'p2']);
+});
+
+test('planFolderRow: a remote match is checked and labelled "Same remote"', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'remote')]);
+  assert.equal(plan.matchLabel, 'Same remote');
+  assert.equal(plan.checked, true);
+});
+
+test('planFolderRow: a name match starts unchecked', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'name')]);
+  assert.equal(plan.group, 'connect');
+  assert.equal(plan.matchLabel, 'Same name');
+  assert.equal(plan.checked, false);
+});
+
+test('planFolderRow: a candidate carrying another identity is noted and unchecked (S4)', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'remote', 'f-other')], 'f-mine');
+  assert.equal(plan.alreadyConnected, true);
+  assert.equal(plan.checked, false);
+  const noId = core.planFolderRow(FOLDER, [cand('p1', 'id', 'f-other')]);
+  assert.equal(noId.alreadyConnected, true, 'a folder with no id differs from any identity (S6)');
+  assert.equal(noId.checked, false);
+});
+
+test('planFolderRow: a candidate carrying this folder\'s own id is not "already connected"', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'id', 'f-mine')], 'f-mine');
+  assert.equal(plan.alreadyConnected, false);
+  assert.equal(plan.checked, true);
+});
+
+test('planFolderRow: the first matching candidate wins, whatever sits before it', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p0', null), cand('p1', 'name'), cand('p2', 'id')]);
+  assert.equal(plan.candidate.id, 'p1');
+  assert.equal(plan.checked, false);
+});
+
+test('planFolderRow: no match makes an unchecked create row with name and slug prefilled (S2)', () => {
+  for (const candidates of [[], [cand('p1', null)], undefined]) {
+    const plan = core.planFolderRow(FOLDER, candidates);
+    assert.equal(plan.group, 'create');
+    assert.equal(plan.candidate, null);
+    assert.equal(plan.checked, false);
+    assert.equal(plan.name, 'My App');
+    assert.equal(plan.slug, 'my-app');
+  }
+});
+
+test('planFolderRow: every option carries its label and taken state for the picker', () => {
+  const plan = core.planFolderRow(FOLDER, [cand('p1', 'name'), cand('p2', null, 'f9')]);
+  assert.deepEqual(plan.options, [
+    { id: 'p1', slug: 'p1-slug', name: 'Project p1', match: 'name', matchLabel: 'Same name', alreadyConnected: false },
+    { id: 'p2', slug: 'p2-slug', name: 'Project p2', match: null, matchLabel: '', alreadyConnected: true },
+  ]);
+});
+
+test('shouldAutoShowDevices: only after a user-started sign-in, not dismissed, with work to do', () => {
+  const rows = [
+    [true, false, 2, true],
+    [true, false, 0, false],
+    [true, true, 2, false],
+    [false, false, 2, false],
+    [false, true, 0, false],
+  ];
+  for (const [userStartedSignIn, dismissed, unconnectedCount, expected] of rows) {
+    assert.equal(
+      core.shouldAutoShowDevices({ userStartedSignIn, dismissed, unconnectedCount }),
+      expected,
+      JSON.stringify({ userStartedSignIn, dismissed, unconnectedCount })
+    );
+  }
+  assert.equal(core.shouldAutoShowDevices(), false);
 });
 
 // ─── Web links ────────────────────────────────────────────────

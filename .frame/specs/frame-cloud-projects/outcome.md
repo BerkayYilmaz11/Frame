@@ -16,3 +16,11 @@ _Captured: 2026-09-17 · 2 file change(s)_
 
 ---
 
+## T03 — Pure core: linking, slugs, row planning
+
+Added the five link calls, `classifyLinkError`, `suggestSlug` / `validateSlug` / `nextSlug`, `planFolderRow` and `shouldAutoShowDevices` to `cloudProjects.js`, with tests for every case the task lists. Beyond the plan: `release()` itself turns `FRAME_PROJECT_MISMATCH` into `{ ok: true, notOwner: true }`; `planFolderRow` takes the folder's own id as an optional third argument and returns all candidates as `options` for the picker; `validateSlug` returns a reason code (`empty|length|format|reserved`) instead of a boolean. Files: src/main/cloud/cloudProjects.js, test/cloudProjects.test.js.
+
+_Captured: 2026-09-17 · 2 file change(s)_
+
+---
+
