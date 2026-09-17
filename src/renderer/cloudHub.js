@@ -315,13 +315,14 @@ function setTab(tab, opts = {}) {
 
 /**
  * Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the
- * device tab to bring that folder's row into view.
+ * device tab to bring that folder's row into view, and `confirmDisconnect`
+ * opens that row's Disconnect question.
  */
-function open({ tab, folderPath } = {}) {
+function open({ tab, folderPath, confirmDisconnect } = {}) {
   if (!overlay) return;
   if (sessionState.state === 'unavailable') return;
   overlay.open();
-  if (tab) setTab(tab, { folderPath, force: true });
+  if (tab) setTab(tab, { folderPath, confirmDisconnect, force: true });
 }
 
 /** Palette "Frame Cloud: Sign in" and the Sign in buttons in both settings surfaces: open here and start. */

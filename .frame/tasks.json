@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:26:09.020Z",
+  "lastUpdated": "2026-09-17T10:28:21.202Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8604,13 +8604,13 @@
       "title": "Add the project-scope pieces: `src/renderer/cloudProjectMark.js` showing a cloud mark inside `#sidebar-current-project-wrap` (tooltip \"Connected to <project> in <cloud workspace>\") only while signed in and the open folder is connected, updated on `CLOUD_PROJECTS_STATE` and `state.onProjectChange`; a Frame Cloud row in `#project-settings-overlay` with `syncCloudRow()` called from `syncFromProject()` in `projectSettingsModal.js` — Sign in (opens the modal), Not connected + Connect… (closes Project Settings, opens the modal on this folder's row), or the project's name with Open Frame Cloud and an inline-confirmed Disconnect — hidden for a folder without `.frame/config.json` or with no server resolved, and saying so when it fails to bind; palette commands `cloud.connectProject` and `cloud.disconnectProject` with `when` predicates in `src/renderer/index.js`.",
       "description": "",
       "source": "spec:frame-cloud-projects:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:28:21.202Z",
+      "completedAt": "2026-09-17T10:28:21.202Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T11",

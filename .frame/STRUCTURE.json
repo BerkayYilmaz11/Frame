@@ -6187,37 +6187,38 @@
           ]
         },
         "open": {
-          "line": 320,
+          "line": 321,
           "params": [
             "{ tab",
-            "folderPath } = {}"
+            "folderPath",
+            "confirmDisconnect } = {}"
           ],
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 328,
+          "line": 329,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 335,
+          "line": 336,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 341,
+          "line": 342,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 347,
+          "line": 348,
           "params": [
             "id",
             "text"
           ]
         },
         "setValue": {
-          "line": 353,
+          "line": 354,
           "params": [
             "id",
             "primary",
@@ -6226,19 +6227,19 @@
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "isWebUrl": {
-          "line": 365,
+          "line": 366,
           "params": [
             "url"
           ]
         },
         "webOrigin": {
-          "line": 369,
+          "line": 370,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 378,
+          "line": 379,
           "params": [
             "date"
           ]
@@ -6287,11 +6288,11 @@
           ]
         },
         "requestCandidates": {
-          "line": 90,
+          "line": 93,
           "purpose": "link.candidates runs when the tab is first shown and on every Refresh;"
         },
         "el": {
-          "line": 100,
+          "line": 103,
           "params": [
             "tag",
             "className",
@@ -6299,7 +6300,7 @@
           ]
         },
         "button": {
-          "line": 107,
+          "line": 110,
           "params": [
             "label",
             "onClick",
@@ -6309,7 +6310,7 @@
           ]
         },
         "message": {
-          "line": 118,
+          "line": 121,
           "params": [
             "text",
             "{ retry = false",
@@ -6317,56 +6318,56 @@
           ]
         },
         "staleNote": {
-          "line": 125,
+          "line": 128,
           "params": [
             "state"
           ]
         },
         "workspaceName": {
-          "line": 133,
+          "line": 136,
           "params": [
             "state"
           ]
         },
         "renderProjectsTab": {
-          "line": 140,
+          "line": 143,
           "params": [
             "state"
           ]
         },
         "projectRow": {
-          "line": 169,
+          "line": 172,
           "params": [
             "project"
           ]
         },
         "openFolder": {
-          "line": 214,
+          "line": 217,
           "params": [
             "folderPath"
           ]
         },
         "ui": {
-          "line": 222,
+          "line": 225,
           "params": [
             "path"
           ]
         },
         "effective": {
-          "line": 228,
+          "line": 231,
           "params": [
             "folder"
           ],
           "purpose": "What a row does now: the plan, with whatever the user changed on top."
         },
         "renderDeviceTab": {
-          "line": 244,
+          "line": 247,
           "params": [
             "state"
           ]
         },
         "appendGroup": {
-          "line": 312,
+          "line": 315,
           "params": [
             "title",
             "folders",
@@ -6374,7 +6375,7 @@
           ]
         },
         "deviceRowShell": {
-          "line": 320,
+          "line": 323,
           "params": [
             "folder",
             "{ checkbox",
@@ -6383,35 +6384,35 @@
           ]
         },
         "connectRow": {
-          "line": 345,
+          "line": 348,
           "params": [
             "folder",
             "stale"
           ]
         },
         "createRow": {
-          "line": 371,
+          "line": 374,
           "params": [
             "folder",
             "stale"
           ]
         },
         "pendingRow": {
-          "line": 398,
+          "line": 401,
           "params": [
             "folder",
             "stale"
           ]
         },
         "connectedRow": {
-          "line": 409,
+          "line": 412,
           "params": [
             "folder",
             "stale"
           ]
         },
         "picker": {
-          "line": 445,
+          "line": 448,
           "params": [
             "folder",
             "e",
@@ -6419,7 +6420,7 @@
           ]
         },
         "field": {
-          "line": 486,
+          "line": 489,
           "params": [
             "folder",
             "key",
@@ -6429,20 +6430,20 @@
           ]
         },
         "slugStatus": {
-          "line": 512,
+          "line": 515,
           "params": [
             "u"
           ]
         },
         "checkSlugSoon": {
-          "line": 536,
+          "line": 539,
           "params": [
             "path",
             "slug"
           ]
         },
         "appendRowStatus": {
-          "line": 559,
+          "line": 562,
           "params": [
             "row",
             "folder",
@@ -6450,10 +6451,10 @@
           ]
         },
         "connectSelected": {
-          "line": 584
+          "line": 587
         },
         "connectRowNow": {
-          "line": 607,
+          "line": 610,
           "params": [
             "path",
             "flags"
@@ -6461,36 +6462,62 @@
           "purpose": "Claim or create one row. `flags` carries a question the user just"
         },
         "applyRefusal": {
-          "line": 642,
+          "line": 645,
           "params": [
             "u",
             "res"
           ]
         },
         "disconnect": {
-          "line": 665,
+          "line": 668,
           "params": [
             "folder"
           ]
         },
         "rerender": {
-          "line": 690
+          "line": 693
         },
         "applyPendingFocus": {
-          "line": 694,
+          "line": 697,
           "params": [
             "folders"
           ]
         },
         "captureFocus": {
-          "line": 715,
+          "line": 718,
           "purpose": "A push while the user types must not steal the caret."
         },
         "restoreFocus": {
-          "line": 721,
+          "line": 724,
           "params": [
             "focus"
           ]
+        }
+      }
+    },
+    "renderer/cloudProjectMark": {
+      "file": "src/renderer/cloudProjectMark.js",
+      "description": "Frame Cloud — the Connected mark beside the project switcher.",
+      "exports": [
+        "init",
+        "openFolder"
+      ],
+      "depends": [
+        "state"
+      ],
+      "functions": {
+        "init": {
+          "line": 18,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "openFolder": {
+          "line": 41,
+          "purpose": "The open folder as Frame Cloud sees it:"
+        },
+        "update": {
+          "line": 51
         }
       }
     },
@@ -9436,6 +9463,7 @@
         "frameSettingsModal",
         "cloudHub",
         "cloudHubTabs",
+        "cloudProjectMark",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -9454,34 +9482,34 @@
       ],
       "functions": {
         "init": {
-          "line": 66,
+          "line": 67,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 321,
+          "line": 323,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 456,
+          "line": 458,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 566,
+          "line": 568,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 592,
+          "line": 594,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 618,
+          "line": 620,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1045,
+          "line": 1069,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -10619,71 +10647,94 @@
         "projectListUI",
         "settingsOverlay",
         "doneWindow",
+        "cloudHub",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 48
+          "line": 55
         },
         "syncFromProject": {
-          "line": 245
+          "line": 263
+        },
+        "syncCloudRow": {
+          "line": 280,
+          "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
+        },
+        "cloudButton": {
+          "line": 299,
+          "params": [
+            "label",
+            "onClick",
+            "{ primary = false",
+            "disabled = false } = {}"
+          ]
+        },
+        "renderCloudRow": {
+          "line": 309
+        },
+        "disconnectFromCloud": {
+          "line": 372,
+          "params": [
+            "projectPath"
+          ]
         },
         "renderDoneWindow": {
-          "line": 258,
+          "line": 395,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 270,
+          "line": 407,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 287,
+          "line": 424,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 306,
+          "line": 443,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 326,
+          "line": 463,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 346,
+          "line": 483,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 372,
+          "line": 509,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 397,
+          "line": 534,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 413
+          "line": 550
         },
         "setRemoveFrameNote": {
-          "line": 427,
+          "line": 564,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 433,
+          "line": 570,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 439,
+          "line": 576,
           "params": [
             "message"
           ]
@@ -15970,6 +16021,11 @@
         "module": "renderer/cloudHubTabs",
         "file": "src/renderer/cloudHubTabs.js",
         "description": "Frame Cloud tabs — Cloud projects and On this device."
+      },
+      {
+        "module": "renderer/cloudProjectMark",
+        "file": "src/renderer/cloudProjectMark.js",
+        "description": "Frame Cloud — the Connected mark beside the project switcher."
       }
     ],
     "commands": [
@@ -16444,6 +16500,11 @@
         "module": "main/projectInsights",
         "file": "src/main/projectInsights.js",
         "description": "Project Insights Module"
+      },
+      {
+        "module": "renderer/cloudProjectMark",
+        "file": "src/renderer/cloudProjectMark.js",
+        "description": "Frame Cloud — the Connected mark beside the project switcher."
       },
       {
         "module": "renderer/openProjectModal",

@@ -79,7 +79,10 @@ function render(state, activeTab) {
 
 function onShow(tab, opts = {}) {
   if (tab !== 'device') return;
-  if (opts.folderPath) pendingFocus = { folderPath: opts.folderPath };
+  if (opts.folderPath) {
+    pendingFocus = { folderPath: opts.folderPath };
+    if (opts.confirmDisconnect) ui(opts.folderPath).question = 'disconnect';
+  }
   else if (opts.projectId) pendingFocus = { projectId: opts.projectId };
   if (opts.force || !candidatesRequested) requestCandidates();
   if (lastState && deviceEl) renderDeviceTab(lastState);

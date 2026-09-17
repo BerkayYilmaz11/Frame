@@ -531,3 +531,32 @@
 .cloud-uninitialised {
   margin-top: 12px;
 }
+
+/* ─── With the project ──────────────────────────────────── */
+
+/* The Connected mark sits beside the project switcher, only when shown. */
+.sidebar-current-project-wrap.has-cloud-mark {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cloud-project-mark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-primary);
+}
+
+#cloud-project-mark[hidden],
+#settings-project-cloud[hidden] {
+  display: none !important;
+}
+
+.settings-project-cloud-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+}

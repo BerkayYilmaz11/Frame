@@ -143,6 +143,13 @@
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
+        <!-- Frame Cloud Connected mark (frame-cloud-projects spec): shown by
+             cloudProjectMark only while the open folder is connected. -->
+        <span id="cloud-project-mark" class="cloud-project-mark" role="img" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          </svg>
+        </span>
         <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
       </div>
     </div>
@@ -1550,6 +1557,21 @@
               <option value="90">Last 90 days</option>
               <option value="0">All</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Frame Cloud (frame-cloud-projects spec): one row, no picker of
+             its own — Connect… routes to the Frame Cloud modal. Hidden for a
+             folder without .frame/config.json or when no server resolves;
+             projectSettingsModal.syncCloudRow re-reads it on open. -->
+        <div class="settings-section" id="settings-project-cloud" hidden>
+          <h4 class="settings-section-title">Frame Cloud</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <div class="settings-row-label" id="settings-project-cloud-label">Frame Cloud</div>
+              <p class="settings-row-desc" id="settings-project-cloud-desc"></p>
+            </div>
+            <div class="settings-project-cloud-actions" id="settings-project-cloud-actions"></div>
           </div>
         </div>
       </div>

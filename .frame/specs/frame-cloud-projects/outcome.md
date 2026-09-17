@@ -72,3 +72,11 @@ _Captured: 2026-09-17 · 1 file change(s)_
 
 ---
 
+## T10 — Connected mark, Project Settings row, palette
+
+Added `cloudProjectMark.js` (mark slot in `#sidebar-current-project-wrap`, shown only when signed in and the open folder is connected; `openFolder()` shared with the palette), the Project Settings Frame Cloud row with `syncCloudRow()` (Sign in / Not connected + Connect… / connected + Open Frame Cloud + inline-confirmed Disconnect; hidden without a server or `.frame/config.json`; says so when the state can't be read), and the `cloud.connectProject` / `cloud.disconnectProject` palette commands. Deviations: the mark's tooltip is a native `title` (the tooltip module can't change its text); the disconnect command opens Frame Cloud on that row with its Disconnect question already open, via a new `confirmDisconnect` option on `cloudHub.open`. Files: cloudProjectMark.js, projectSettingsModal.js, index.js, index.html, cloudHub.js, cloudHubTabs.js, cloud-hub.css.
+
+_Captured: 2026-09-17 · 7 file change(s)_
+
+---
+

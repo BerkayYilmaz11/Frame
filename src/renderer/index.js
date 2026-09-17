@@ -49,6 +49,7 @@ const doneWindow = require('./doneWindow');
 const frameSettingsModal = require('./frameSettingsModal');
 const cloudHub = require('./cloudHub');
 const cloudHubTabs = require('./cloudHubTabs');
+const cloudProjectMark = require('./cloudProjectMark');
 const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
@@ -289,6 +290,7 @@ function init() {
   frameSettingsModal.init();
   // Frame Cloud never lands over the first-run screen or the guided tour.
   cloudHub.init({ isBlocked: () => onboarding.isOpen() || guidedTour.isOpen(), tabs: cloudHubTabs });
+  cloudProjectMark.init(cloudHub);
   feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.
@@ -689,6 +691,28 @@ function registerCommands() {
     category: 'Help',
     when: () => cloudHub.accountState() === 'signedIn',
     run: () => cloudHub.signOut()
+  });
+  // The open project, as Frame Cloud lists it. Both route to the one place
+  // that picks and confirms: Frame Cloud's On this device row.
+  r({
+    id: 'cloud.connectProject',
+    title: 'Frame Cloud: Connect this project',
+    category: 'Help',
+    when: () => {
+      const { signedIn, folder } = cloudProjectMark.openFolder();
+      return signedIn && state.getIsFrameProject() && Boolean(folder) && !folder.connected;
+    },
+    run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath() })
+  });
+  r({
+    id: 'cloud.disconnectProject',
+    title: 'Frame Cloud: Disconnect this project',
+    category: 'Help',
+    when: () => {
+      const { signedIn, folder } = cloudProjectMark.openFolder();
+      return signedIn && Boolean(folder && folder.connected);
+    },
+    run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath(), confirmDisconnect: true })
   });
   r({
     id: 'settings.openProject',
