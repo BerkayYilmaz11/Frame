@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:08:40.282Z",
+  "lastUpdated": "2026-09-17T10:10:20.760Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8500,13 +8500,13 @@
       "title": "Create the pure core `src/main/cloud/cloudProjects.js` (no Electron import) with `listProjects`, `matchFolders(projects, folders)` → `{ projectRows, folderRows }` matching only on `frameProjectId === projectId`, and `buildWebUrl({ apiUrl, webOrigin, workspaceSlug, projectSlug })` returning null unless the origin is http(s), the slugs pass the slug rule and are `encodeURIComponent`-written, and an https API has an https origin (`localhost` / `127.0.0.1` exempt). Start `test/cloudProjects.test.js` with a fake fetch: a cloud-only project, a connected folder, two folders sharing an id, an id no longer listed, a folder with no id, and every `buildWebUrl` guard.",
       "description": "",
       "source": "spec:frame-cloud-projects:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:10:20.760Z",
+      "completedAt": "2026-09-17T10:10:20.760Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T03",

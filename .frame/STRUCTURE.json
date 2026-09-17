@@ -467,6 +467,70 @@
         ]
       }
     },
+    "main/cloud/cloudProjects": {
+      "file": "src/main/cloud/cloudProjects.js",
+      "description": "cloudProjects — the pure core of Frame Cloud projects.",
+      "exports": [
+        "SLUG_MIN",
+        "SLUG_MAX",
+        "normalizeProject",
+        "listProjects",
+        "matchFolders",
+        "buildWebUrl"
+      ],
+      "depends": [
+        "deviceFlow"
+      ],
+      "functions": {
+        "str": {
+          "line": 24,
+          "params": [
+            "value"
+          ]
+        },
+        "slugShapeOk": {
+          "line": 28,
+          "params": [
+            "slug"
+          ]
+        },
+        "normalizeProject": {
+          "line": 35,
+          "params": [
+            "raw"
+          ],
+          "purpose": "One `project.list` entry, reduced to the fields Frame uses."
+        },
+        "listProjects": {
+          "line": 49,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "`project.list` → normalized projects, server order."
+        },
+        "matchFolders": {
+          "line": 72,
+          "params": [
+            "projects",
+            "folders"
+          ],
+          "purpose": "The workspace's projects and this device's folders, seen from each side."
+        },
+        "buildWebUrl": {
+          "line": 115,
+          "params": [
+            "{ apiUrl",
+            "webOrigin",
+            "workspaceSlug",
+            "projectSlug } = {}"
+          ],
+          "purpose": "`{webOrigin}/{workspace}/{project}`, or null when any guard fails:"
+        }
+      }
+    },
     "main/cloud/cloudSession": {
       "file": "src/main/cloud/cloudSession.js",
       "description": "cloudSession — the Electron shell around the Frame Cloud device flow.",
@@ -15152,6 +15216,18 @@
         "module": "main/claudeUsageManager",
         "file": "src/main/claudeUsageManager.js",
         "description": "Claude Usage Manager Module"
+      }
+    ],
+    "cloud": [
+      {
+        "module": "main/cloud/cloudProjects",
+        "file": "src/main/cloud/cloudProjects.js",
+        "description": "cloudProjects — the pure core of Frame Cloud projects."
+      },
+      {
+        "module": "main/cloud/cloudSession",
+        "file": "src/main/cloud/cloudSession.js",
+        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
       }
     ],
     "commands": [
