@@ -1,99 +1,56 @@
 /**
- * Health Notice Banner
+ * Health notices
  *
- * Dismissible one-liner at the top of the app for degraded/recovered states
- * pushed from the main process: crash-guard errors (MAIN_PROCESS_ERROR),
- * state files restored from backup (STATE_FILE_RECOVERED), and corrupt
- * tasks.json (TASKS_FILE_ERROR). It also carries the layout migration's
- * receipt — the one thing here that is news rather than a degraded state,
- * which is what the informational variant is for: Frame moved a project's
- * own files without asking, so it says so, and says where the backup is.
- * Same visual pattern as the telemetry notice, but created on demand — one
- * banner, latest message wins.
+ * Degraded/recovered states pushed from the main process: crash-guard errors
+ * (MAIN_PROCESS_ERROR, with a warning severity for missing git/gh), state
+ * files restored from backup (STATE_FILE_RECOVERED), Codex hooks that never
+ * ran (CODEX_HOOKS_UNTRUSTED) and corrupt tasks.json (TASKS_FILE_ERROR). It
+ * also carries the layout migration's receipt — the one thing here that is
+ * news rather than a degraded state, which is what the info severity is for:
+ * Frame moved a project's own files without asking, so it says so, and says
+ * where the backup is.
+ *
+ * This module owns the wording. Where it lands is the status bar's notice
+ * tray (status-bar-notice-tray spec), which replaced a banner fixed over the
+ * app header: the translucent strip let the header's text show through, and
+ * it kept only the latest message. The tray keeps every notice, merges
+ * repeats and colours its indicator by the worst unread severity.
  */
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
-
-let bannerEl = null;
-let messageEl = null;
-let iconEl = null;
-let lastMessage = null;
-
-const ICONS = { error: '⚠', warn: '⚠', info: 'ℹ' };
+const noticeTray = require('./statusBar/noticeTray');
 
 function init() {
   ipcRenderer.on(IPC.MAIN_PROCESS_ERROR, (event, payload) => {
-    const kind = payload && payload.severity === 'warning' ? 'warn' : 'error';
-    show(kind, payload && payload.message ? payload.message : 'An unexpected error occurred in the main process.');
+    show(
+      payload && payload.severity === 'warning' ? 'warning' : 'error',
+      (payload && payload.source) || 'main-process',
+      payload && payload.message ? payload.message : 'An unexpected error occurred in the main process.'
+    );
   });
 
   ipcRenderer.on(IPC.STATE_FILE_RECOVERED, (event, payload) => {
     const file = payload && payload.file ? payload.file : 'A state file';
-    show('warn', `${file} was corrupt and has been restored from its backup.`);
+    show('warning', 'state-file', `${file} was corrupt and has been restored from its backup.`);
   });
 
   ipcRenderer.on(IPC.CODEX_HOOKS_UNTRUSTED, () => {
-    show('warn', "Frame's Codex hooks are installed but have never run — open Codex and trust them, "
+    show('warning', 'codex-hooks', "Frame's Codex hooks are installed but have never run — open Codex and trust them, "
       + 'or its sessions get none of this project\u2019s context.');
   });
 
   ipcRenderer.on(IPC.TASKS_FILE_ERROR, (event, payload) => {
     if (payload && payload.recovered) {
-      show('warn', 'tasks.json was corrupt and has been restored from its backup.');
+      show('warning', 'tasks-file', 'tasks.json was corrupt and has been restored from its backup.');
     } else {
-      show('warn', 'tasks.json was corrupt — started a fresh file; the broken copy is preserved next to it.');
+      show('warning', 'tasks-file', 'tasks.json was corrupt — started a fresh file; the broken copy is preserved next to it.');
     }
   });
 }
 
-function show(kind, message) {
-  // An uncaught-exception loop must not stack/flicker banners.
-  if (bannerEl && message === lastMessage) return;
-  lastMessage = message;
-
-  if (!bannerEl) {
-    bannerEl = document.createElement('div');
-    bannerEl.className = 'health-notice';
-    bannerEl.setAttribute('role', 'alert');
-
-    iconEl = document.createElement('span');
-    iconEl.className = 'health-notice-icon';
-
-    messageEl = document.createElement('span');
-    messageEl.className = 'health-notice-text';
-
-    const close = document.createElement('button');
-    close.className = 'health-notice-close';
-    close.setAttribute('aria-label', 'Dismiss');
-    close.textContent = '✕';
-    close.addEventListener('click', dismiss);
-
-    bannerEl.append(iconEl, messageEl, close);
-    document.body.appendChild(bannerEl);
-  }
-
-  bannerEl.classList.toggle('health-notice-error', kind === 'error');
-  bannerEl.classList.toggle('health-notice-info', kind === 'info');
-  // A receipt is not an alert: announcing it as one interrupts a screen
-  // reader for something the user is not being asked to do anything about.
-  bannerEl.setAttribute('role', kind === 'info' ? 'status' : 'alert');
-  iconEl.textContent = ICONS[kind] || ICONS.warn;
-  messageEl.textContent = message;
-  bannerEl.classList.add('visible');
-}
-
-function dismiss() {
-  if (!bannerEl) return;
-  bannerEl.classList.remove('visible');
-  const el = bannerEl;
-  bannerEl = null;
-  messageEl = null;
-  iconEl = null;
-  lastMessage = null;
-  setTimeout(() => {
-    if (el.parentNode) el.parentNode.removeChild(el);
-  }, 220);
+function show(severity, source, message) {
+  noticeTray.push({ severity, source, message });
 }
 
 /**
@@ -109,7 +66,7 @@ function showMigration(migration) {
 
   if (migration.blocked === 'unmerged') {
     const files = (migration.unmerged || []).join(', ') || 'a Frame file';
-    show('warn', `Frame left this project alone: ${files} is in an unresolved merge. Finish the merge and reopen.`);
+    show('warning', 'migration', `Frame left this project alone: ${files} is in an unresolved merge. Finish the merge and reopen.`);
     return;
   }
 
@@ -134,7 +91,7 @@ function showMigration(migration) {
   const review = (migration.review || []).length;
   if (review) message += ` ${review} need${review === 1 ? 's' : ''} a look — see Activity.`;
 
-  show(migration.failedAt ? 'warn' : 'info', message);
+  show(migration.failedAt ? 'warning' : 'info', 'migration', message);
 }
 
 module.exports = { init, showMigration };

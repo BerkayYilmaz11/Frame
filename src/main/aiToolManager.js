@@ -52,22 +52,6 @@ const AI_TOOLS = {
     },
     menuLabel: 'Codex Commands',
     supportsPlugins: false
-  },
-  gemini: {
-    id: 'gemini',
-    name: 'Gemini CLI',
-    command: 'gemini',
-    description: 'Google Gemini CLI (reads GEMINI.md natively)',
-    commands: {
-      init: '/init',
-      model: '/model',
-      memory: '/memory',
-      compress: '/compress',
-      settings: '/settings',
-      help: '/help'
-    },
-    menuLabel: 'Gemini Commands',
-    supportsPlugins: false
   }
 };
 
@@ -89,13 +73,13 @@ function init(window, app) {
 
 /**
  * First run only: default the active tool to a CLI that is actually
- * installed (claude → codex → gemini), using the same interactive-login
- * probe as the terminal preflight. A hard "claude" default on a machine
- * that only has gemini presents a broken terminal as the first experience.
+ * installed (claude → codex), using the same interactive-login probe as the
+ * terminal preflight. A hard "claude" default on a machine that only has
+ * codex presents a broken terminal as the first experience.
  * Async and non-blocking — until it lands, the "claude" default stands.
  */
 async function detectDefaultTool() {
-  for (const id of ['claude', 'codex', 'gemini']) {
+  for (const id of ['claude', 'codex']) {
     const command = AI_TOOLS[id].fallbackCommand || AI_TOOLS[id].command;
     const probe = await isCommandAvailable(command);
     if (probe.found) {
@@ -119,6 +103,15 @@ function loadConfig() {
   }
   if (data) {
     config = { ...config, ...data };
+    // A saved choice for a tool Frame no longer offers (Gemini CLI, removed
+    // 2026-09-16; a deleted custom tool) would leave the file naming a tool
+    // no surface can select — getActiveTool already falls back to Claude
+    // Code, so make the file agree with it.
+    if (!getAvailableTools()[config.activeTool]) {
+      logger.info('aiToolManager', `saved tool "${config.activeTool}" is no longer available — falling back to claude`);
+      config.activeTool = 'claude';
+      saveConfig();
+    }
   } else if (!error) {
     // Fresh install, no saved choice yet — probe installed CLIs once in the
     // background and persist the result

@@ -8,13 +8,26 @@
  * it, VS Code activity-bar style — a rail click reveals the panel again
  * (index.js revealSidebarTab → show()). The CSS for the collapsed state
  * lives in layout.css; this module only flips the class and the width.
+ *
+ * Drag to collapse (2026-09-16): MIN_WIDTH is a detent, not a wall. The panel
+ * stops there while the pointer keeps going; pull COLLAPSE_PULL px past it
+ * and the sidebar collapses to the rail mid-drag, as if toggled. Keep dragging back out (or
+ * grab the handle beside the rail later) and once the pointer comes back
+ * within REOPEN_PULL of the detent, it reopens at MIN_WIDTH and follows.
  */
 
 const STORAGE_KEY = 'sidebar-width';
 const HIDDEN_KEY = 'sidebar-hidden';
-const MIN_WIDTH = 180;
+const MIN_WIDTH = 231;
 const MAX_WIDTH = 500;
-const DEFAULT_WIDTH = 280;
+const DEFAULT_WIDTH = 300;
+// How far past MIN_WIDTH the pointer must go before the sidebar collapses:
+// with MIN_WIDTH 231 that is onto the icon rail, near the most the window
+// leaves room for (~240px to its left edge).
+const COLLAPSE_PULL = 190;
+// While collapsed, how close to MIN_WIDTH the pointer must come to reopen.
+// Less than COLLAPSE_PULL, so the two thresholds don't flicker at one spot.
+const REOPEN_PULL = 50;
 
 let sidebar = null;
 let isHidden = false;
@@ -23,6 +36,9 @@ let resizeHandle = null;
 let isResizing = false;
 let startX = 0;
 let startWidth = 0;
+// Width at mousedown when the drag began expanded — what ⌘B restores after a
+// drag that ended collapsed.
+let dragRestoreWidth = DEFAULT_WIDTH;
 let onResizeCallback = null;
 const listeners = new Set();
 
@@ -84,6 +100,7 @@ function handleMouseDown(e) {
   isResizing = true;
   startX = e.clientX;
   startWidth = sidebar.offsetWidth;
+  dragRestoreWidth = isHidden ? widthBeforeHide : startWidth;
 
   resizeHandle.classList.add('dragging');
   document.body.classList.add('sidebar-resizing');
@@ -96,11 +113,25 @@ function handleMouseDown(e) {
 function handleMouseMove(e) {
   if (!isResizing) return;
 
-  const deltaX = e.clientX - startX;
-  let newWidth = startWidth + deltaX;
+  // Where the panel's right edge would be if it followed the pointer exactly.
+  // The sidebar's left edge never moves, so this holds across a mid-drag
+  // collapse / reopen too.
+  const pulled = startWidth + (e.clientX - startX);
 
-  // Clamp to min/max
-  newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
+  if (isHidden) {
+    if (pulled < MIN_WIDTH - REOPEN_PULL) return;
+    widthBeforeHide = MIN_WIDTH;
+    show();
+    return;
+  }
+
+  if (pulled < MIN_WIDTH - COLLAPSE_PULL) {
+    hide();
+    widthBeforeHide = dragRestoreWidth >= MIN_WIDTH ? dragRestoreWidth : DEFAULT_WIDTH;
+    return;
+  }
+
+  const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, pulled));
 
   sidebar.style.width = `${newWidth}px`;
 }
@@ -116,6 +147,12 @@ function handleMouseUp(e) {
   resizeHandle.classList.remove('dragging');
   document.body.classList.remove('sidebar-resizing');
 
+  // Ended collapsed: hide() already saved that and refit the terminal.
+  if (isHidden) {
+    localStorage.setItem(STORAGE_KEY, widthBeforeHide.toString());
+    return;
+  }
+
   // Save width to localStorage
   const currentWidth = sidebar.offsetWidth;
   localStorage.setItem(STORAGE_KEY, currentWidth.toString());
@@ -130,6 +167,13 @@ function handleMouseUp(e) {
  * Reset sidebar width to default
  */
 function resetWidth() {
+  if (isHidden) {
+    widthBeforeHide = DEFAULT_WIDTH;
+    localStorage.setItem(STORAGE_KEY, DEFAULT_WIDTH.toString());
+    show();
+    return;
+  }
+
   sidebar.style.width = `${DEFAULT_WIDTH}px`;
   localStorage.setItem(STORAGE_KEY, DEFAULT_WIDTH.toString());
 
@@ -177,15 +221,20 @@ function toggle() {
 
 /**
  * Collapse the sidebar to its rail (the panel goes, the icons stay).
+ *
+ * `{ persist: false }` collapses without touching the stored preference — for
+ * the automatic collapse while the workspace has no projects, where the panel
+ * has nothing to show. A rule the app applied on the user's behalf must not
+ * come back as the user's own setting after they add a project.
  */
-function hide() {
+function hide({ persist = true } = {}) {
   if (!sidebar || isHidden) return;
 
   widthBeforeHide = sidebar.offsetWidth;
   sidebar.style.width = '';
   sidebar.classList.add('collapsed');
   isHidden = true;
-  localStorage.setItem(HIDDEN_KEY, 'true');
+  if (persist) localStorage.setItem(HIDDEN_KEY, 'true');
 
   if (onResizeCallback) {
     onResizeCallback(0);
@@ -196,13 +245,13 @@ function hide() {
 /**
  * Bring the panel back at the width it had before collapsing.
  */
-function show() {
+function show({ persist = true } = {}) {
   if (!sidebar || !isHidden) return;
 
   sidebar.classList.remove('collapsed');
   sidebar.style.width = `${widthBeforeHide}px`;
   isHidden = false;
-  localStorage.setItem(HIDDEN_KEY, 'false');
+  if (persist) localStorage.setItem(HIDDEN_KEY, 'false');
 
   if (onResizeCallback) {
     onResizeCallback(widthBeforeHide);

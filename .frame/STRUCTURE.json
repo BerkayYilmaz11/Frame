@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-16",
+  "lastUpdated": "2026-09-17",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -171,7 +171,7 @@
       ],
       "functions": {
         "init": {
-          "line": 83,
+          "line": 67,
           "params": [
             "window",
             "app"
@@ -179,72 +179,72 @@
           "purpose": "Initialize the AI Tool Manager"
         },
         "detectDefaultTool": {
-          "line": 97,
+          "line": 81,
           "purpose": "First run only: default the active tool to a CLI that is actually"
         },
         "loadConfig": {
-          "line": 113,
+          "line": 97,
           "purpose": "Load configuration from file"
         },
         "saveConfig": {
-          "line": 140,
+          "line": 133,
           "purpose": "Save configuration to file"
         },
         "getAvailableTools": {
-          "line": 151,
+          "line": 144,
           "purpose": "Get all available AI tools"
         },
         "getActiveTool": {
-          "line": 158,
+          "line": 151,
           "purpose": "Get the currently active tool"
         },
         "setActiveTool": {
-          "line": 166,
+          "line": 159,
           "params": [
             "toolId"
           ],
           "purpose": "Set the active AI tool"
         },
         "getConfig": {
-          "line": 189,
+          "line": 182,
           "purpose": "Get full configuration for renderer"
         },
         "addCustomTool": {
-          "line": 199,
+          "line": 192,
           "params": [
             "tool"
           ],
           "purpose": "Add a custom AI tool"
         },
         "removeCustomTool": {
-          "line": 216,
+          "line": 209,
           "params": [
             "toolId"
           ],
           "purpose": "Remove a custom AI tool"
         },
         "quoteArg": {
-          "line": 236,
+          "line": 229,
           "params": [
             "arg"
           ],
           "purpose": "Compose the command line a lane actually types: the resolved CLI plus any"
         },
         "composeLaunchCommand": {
-          "line": 244,
+          "line": 237,
           "params": [
             "command",
             "launchFlags"
           ]
         },
         "isPathLike": {
-          "line": 249,
+          "line": 242,
           "params": [
             "command"
           ]
         },
         "isCommandAvailable": {
-          "line": 267,
+          "line": 260,
           "params": [
             "command",
             "projectPath"
@@ -252,24 +252,24 @@
           "purpose": "Check whether a CLI command can actually be launched on this system."
         },
         "trackProbeFailure": {
-          "line": 334,
+          "line": 327,
           "params": [
             "reason"
           ]
         },
         "setupIPC": {
-          "line": 342,
+          "line": 335,
           "purpose": "Setup IPC handlers"
         },
         "getCommand": {
-          "line": 410,
+          "line": 403,
           "params": [
             "action"
           ],
           "purpose": "Get command for specific action"
         },
         "getStartCommand": {
-          "line": 418,
+          "line": 411,
           "purpose": "Get the start command for active tool"
         }
       },
@@ -1207,11 +1207,12 @@
       "depends": [
         "fs",
         "path",
+        "electron",
         "shared/ipcChannels"
       ],
       "functions": {
         "getFileTree": {
-          "line": 27,
+          "line": 28,
           "params": [
             "dirPath",
             "maxDepth = 5",
@@ -1219,8 +1220,55 @@
           ],
           "purpose": "Get file tree for a directory (async — the whole-subtree walk must not"
         },
+        "exists": {
+          "line": 67,
+          "params": [
+            "p"
+          ]
+        },
+        "isSameOrInside": {
+          "line": 77,
+          "params": [
+            "child",
+            "parent"
+          ],
+          "purpose": "True when `child` is `parent` itself or lies anywhere beneath it."
+        },
+        "uniqueCopyPath": {
+          "line": 86,
+          "params": [
+            "dir",
+            "name",
+            "isDirectory"
+          ],
+          "purpose": "Finder-style free name in `dir` for a copy of `name`:"
+        },
+        "renameEntry": {
+          "line": 101,
+          "params": [
+            "oldPath",
+            "newName"
+          ],
+          "purpose": "Rename an entry in place. Only the name changes — the entry stays in its"
+        },
+        "pasteEntry": {
+          "line": 121,
+          "params": [
+            "{ source",
+            "mode",
+            "destDir }"
+          ],
+          "purpose": "Paste a copied or cut entry into `destDir`. A copy that collides gets a"
+        },
+        "guarded": {
+          "line": 152,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Run a file operation, turning a thrown error into `{ ok: false, error }`."
+        },
         "setupIPC": {
-          "line": 69,
+          "line": 164,
           "params": [
             "ipcMain"
           ],
@@ -1229,7 +1277,10 @@
       },
       "ipc": {
         "listens": [
-          "LOAD_FILE_TREE"
+          "LOAD_FILE_TREE",
+          "FILE_TREE_RENAME",
+          "FILE_TREE_TRASH",
+          "FILE_TREE_PASTE"
         ],
         "emits": [
           "FILE_TREE_DATA"
@@ -2644,6 +2695,7 @@
         "claudeSessionsManager",
         "updateChecker",
         "userSettings",
+        "uiZoom",
         "gitStatusManager",
         "gitDiffManager",
         "telemetry",
@@ -2654,26 +2706,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 53,
+          "line": 54,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 71,
+          "line": 72,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 174
+          "line": 179
         },
         "setupAllIPC": {
-          "line": 204,
+          "line": 209,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 285,
+          "line": 290,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 328,
+          "line": 336,
           "params": [
             "window"
           ],
@@ -2960,11 +3012,12 @@
         "electron",
         "path",
         "fs",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "renderer/themes"
       ],
       "functions": {
         "init": {
-          "line": 33,
+          "line": 40,
           "params": [
             "window",
             "app",
@@ -2973,7 +3026,7 @@
           "purpose": "Initialize menu module"
         },
         "cmd": {
-          "line": 40,
+          "line": 55,
           "params": [
             "label",
             "commandId",
@@ -2982,48 +3035,54 @@
           "purpose": "Menu item that runs a command-registry id in the renderer."
         },
         "getMenuTemplate": {
-          "line": 51,
+          "line": 66,
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 231
+          "line": 247
         },
         "buildAICommandsSubmenu": {
-          "line": 242,
+          "line": 258,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 291,
+          "line": 307,
           "purpose": "Build tool switcher submenu"
         },
+        "buildThemeSubmenu": {
+          "line": 328,
+          "purpose": "View › Theme: one radio item per registry entry, the current one checked."
+        },
         "sendCommand": {
-          "line": 310,
+          "line": 343,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 320,
+          "line": 353,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 329,
+          "line": 362,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 343,
+          "line": 376,
           "purpose": "Create and set application menu"
         }
       },
       "ipc": {
-        "listens": [],
+        "listens": [
+          "THEME_CHANGED"
+        ],
         "emits": [
           "OPEN_SETTINGS",
           "RUN_COMMAND",
@@ -4795,6 +4854,66 @@
         }
       }
     },
+    "main/uiZoom": {
+      "file": "src/main/uiZoom.js",
+      "description": "UI zoom — the main-process owner of the interface scale (ui-zoom-steps spec).",
+      "exports": [
+        "init",
+        "attachWindow",
+        "currentStep",
+        "currentFactor",
+        "setStep",
+        "SETTING_KEY"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "shared/uiZoom",
+        "userSettings"
+      ],
+      "functions": {
+        "init": {
+          "line": 31,
+          "purpose": "Load the stored step. Runs after userSettings.init(), before createWindow()."
+        },
+        "currentStep": {
+          "line": 35
+        },
+        "currentFactor": {
+          "line": 40,
+          "purpose": "What createWindow passes as webPreferences.zoomFactor — the first paint is already at the step."
+        },
+        "state": {
+          "line": 44
+        },
+        "applyToWindow": {
+          "line": 48
+        },
+        "setStep": {
+          "line": 57,
+          "params": [
+            "next"
+          ],
+          "purpose": "Apply, persist and broadcast a step. A step that does not change is a"
+        },
+        "attachWindow": {
+          "line": 73,
+          "params": [
+            "window"
+          ],
+          "purpose": "Wire the window: the load-time re-apply, the trackpad / wheel snap, and"
+        }
+      },
+      "ipc": {
+        "listens": [
+          "UI_ZOOM_GET",
+          "UI_ZOOM_SET"
+        ],
+        "emits": [
+          "UI_ZOOM_CHANGED"
+        ]
+      }
+    },
     "main/updateChecker": {
       "file": "src/main/updateChecker.js",
       "description": "Update Checker Module",
@@ -5420,19 +5539,19 @@
       ],
       "functions": {
         "initTheme": {
-          "line": 42,
+          "line": 45,
           "params": [
             "root"
           ]
         },
         "initUpdateBell": {
-          "line": 52,
+          "line": 123,
           "params": [
             "root"
           ]
         },
         "paintToggle": {
-          "line": 73,
+          "line": 144,
           "params": [
             "btn",
             "{ on",
@@ -5443,13 +5562,13 @@
           "purpose": "Paint one toggle: pressed state, title, icon."
         },
         "initLayoutToggles": {
-          "line": 80,
+          "line": 151,
           "params": [
             "root"
           ]
         },
         "init": {
-          "line": 105
+          "line": 176
         }
       },
       "ipc": {
@@ -5463,24 +5582,56 @@
       "file": "src/renderer/appLoader.js",
       "description": "App Loader",
       "exports": [
-        "init"
+        "init",
+        "onBootLeave"
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "onboarding"
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 53
+        },
+        "playIntro": {
+          "line": 82,
+          "purpose": "Drives the intro's beats by class. The wordmark's target width is measured"
+        },
+        "finishIntro": {
+          "line": 104
+        },
+        "clearIntroTimers": {
+          "line": 109
+        },
+        "hideWhenReady": {
+          "line": 119,
+          "purpose": "The splash owes the user two things: a finished intro and a loaded"
         },
         "armFailsafe": {
-          "line": 45
+          "line": 133
         },
         "showFailureState": {
-          "line": 52
+          "line": 147,
+          "purpose": "Additive, not destructive. This used to replace the surface's innerHTML,"
+        },
+        "clearFailureState": {
+          "line": 177,
+          "purpose": "A retry that worked: drop the error and let the normal join decide between"
         },
         "hide": {
-          "line": 67
+          "line": 184
+        },
+        "park": {
+          "line": 202,
+          "purpose": "The end of the fade, and onboarding's way out. The node is kept and hidden"
+        },
+        "onBootLeave": {
+          "line": 222,
+          "params": [
+            "cb"
+          ],
+          "purpose": "Run `cb` once, when the boot surface first gets out of the way of the app"
         }
       },
       "ipc": {
@@ -6592,11 +6743,13 @@
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "notify",
+        "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 41,
+          "line": 50,
           "params": [
             "elementId",
             "getProjectPath"
@@ -6604,21 +6757,21 @@
           "purpose": "Initialize file tree UI"
         },
         "setProjectPathGetter": {
-          "line": 57,
+          "line": 66,
           "params": [
             "getter"
           ],
           "purpose": "Set project path getter"
         },
         "setOnFileClick": {
-          "line": 64,
+          "line": 73,
           "params": [
             "callback"
           ],
           "purpose": "Set file click callback"
         },
         "renderFileTree": {
-          "line": 71,
+          "line": 80,
           "params": [
             "files",
             "parentElement",
@@ -6627,87 +6780,149 @@
           "purpose": "Render file tree recursively"
         },
         "clearFileTree": {
-          "line": 167,
+          "line": 176,
           "params": [
             "{ unwatch = false } = {}"
           ],
           "purpose": "Clear file tree"
         },
         "refreshFileTree": {
-          "line": 181,
+          "line": 190,
           "params": [
             "projectPath"
           ],
           "purpose": "Refresh file tree"
         },
         "loadFileTree": {
-          "line": 191,
+          "line": 200,
           "params": [
             "projectPath"
           ],
           "purpose": "Load file tree for path"
         },
         "setupIPC": {
-          "line": 199,
+          "line": 208,
           "purpose": "Setup IPC listeners"
         },
+        "setFolderExpanded": {
+          "line": 237,
+          "params": [
+            "folderItem",
+            "expanded"
+          ]
+        },
+        "getExpandedFolderPaths": {
+          "line": 245
+        },
+        "restoreExpandedFolders": {
+          "line": 256,
+          "params": [
+            "paths"
+          ]
+        },
         "focus": {
-          "line": 220,
+          "line": 266,
           "purpose": "Focus file tree for keyboard navigation"
         },
         "getVisibleItems": {
-          "line": 250,
+          "line": 296,
           "purpose": "Get all visible file items (for navigation). Uses offsetParent so it"
         },
         "handleKeydown": {
-          "line": 259,
+          "line": 305,
           "params": [
             "e"
           ],
           "purpose": "Handle keyboard navigation in file tree"
         },
         "blur": {
-          "line": 321,
+          "line": 367,
           "purpose": "Blur/unfocus file tree"
         },
         "setupSearch": {
-          "line": 331
+          "line": 377
         },
         "applyFilter": {
-          "line": 359,
+          "line": 405,
           "params": [
             "query"
           ]
         },
         "filterWrapper": {
-          "line": 372,
+          "line": 418,
           "params": [
             "wrapper",
             "query"
           ]
         },
         "setupContextMenu": {
-          "line": 408
+          "line": 454
+        },
+        "getProjectRoot": {
+          "line": 495
+        },
+        "configureMenu": {
+          "line": 504,
+          "params": [
+            "target"
+          ],
+          "purpose": "Show only what applies to the target: the project root gets Paste alone;"
         },
         "showContextMenu": {
-          "line": 432,
+          "line": 523,
           "params": [
             "x",
             "y",
-            "path"
+            "target"
           ]
         },
         "hideContextMenu": {
-          "line": 449
+          "line": 541
         },
         "handleContextMenuAction": {
-          "line": 455,
+          "line": 547,
           "params": [
-            "action"
+            "action",
+            "target"
+          ]
+        },
+        "baseName": {
+          "line": 578,
+          "params": [
+            "p"
+          ]
+        },
+        "applyCutDecoration": {
+          "line": 583,
+          "purpose": "Dim the row that is cut and waiting for a paste."
+        },
+        "pasteInto": {
+          "line": 594,
+          "params": [
+            "destDir"
+          ]
+        },
+        "findItem": {
+          "line": 609,
+          "params": [
+            "p"
+          ]
+        },
+        "startRename": {
+          "line": 620,
+          "params": [
+            "targetPath"
+          ],
+          "purpose": "Inline rename: the name span becomes an input. Enter or blur commits,"
+        },
+        "confirmDelete": {
+          "line": 672,
+          "params": [
+            "target"
           ]
         },
         "applyGitStatusDecoration": {
-          "line": 472,
+          "line": 697,
           "purpose": "Walk every rendered .file-item and apply the git status class matching its"
         }
       },
@@ -6740,67 +6955,68 @@
         "electron",
         "shared/ipcChannels",
         "settingsOverlay",
+        "shared/uiZoom",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 60
+          "line": 64
         },
         "initAccountSection": {
-          "line": 116
+          "line": 129
         },
         "pullAccountState": {
-          "line": 140
+          "line": 153
         },
         "refreshAccountOnOpen": {
-          "line": 155,
+          "line": 168,
           "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
         },
         "onAccountAction": {
-          "line": 164,
+          "line": 177,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeAccount": {
-          "line": 186,
+          "line": 199,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderAccount": {
-          "line": 197,
+          "line": 210,
           "params": [
             "state"
           ]
         },
         "showSignedInNote": {
-          "line": 226
+          "line": 239
         },
         "renderSignedIn": {
-          "line": 234,
+          "line": 247,
           "params": [
             "s"
           ]
         },
         "setNote": {
-          "line": 247,
+          "line": 260,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 252,
+          "line": 265,
           "params": [
             "id",
             "text"
           ]
         },
         "setValue": {
-          "line": 258,
+          "line": 271,
           "params": [
             "id",
             "primary",
@@ -6809,36 +7025,36 @@
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "isWebUrl": {
-          "line": 270,
+          "line": 283,
           "params": [
             "url"
           ]
         },
         "webOrigin": {
-          "line": 274,
+          "line": 287,
           "params": [
             "url"
           ]
         },
         "signIn": {
-          "line": 284,
+          "line": 297,
           "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
         },
         "signOut": {
-          "line": 292,
+          "line": 305,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "initAboutSection": {
-          "line": 298
+          "line": 311
         },
         "runCheck": {
-          "line": 383,
+          "line": 396,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 422,
+          "line": 435,
           "params": [
             "{ checked",
             "found",
@@ -6850,29 +7066,37 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 446,
+          "line": 459,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 457
+          "line": 470
         },
         "hideSidebarDot": {
-          "line": 461
+          "line": 474
         },
         "formatRelative": {
-          "line": 467,
+          "line": 480,
           "params": [
             "date"
           ]
         },
+        "initZoomSelect": {
+          "line": 496,
+          "purpose": "Fill the Interface size select from the shared ladder — one option per"
+        },
+        "syncZoomFromMain": {
+          "line": 515
+        },
         "syncToggleFromSettings": {
-          "line": 478
+          "line": 525
         }
       },
       "ipc": {
         "listens": [
+          "UI_ZOOM_CHANGED",
           "OPEN_SETTINGS",
           "UPDATE_AVAILABLE",
           "CLOUD_SESSION_STATE"
@@ -7555,33 +7779,417 @@
         ]
       }
     },
+    "renderer/guide/guideContent": {
+      "file": "src/renderer/guide/guideContent.js",
+      "description": "How to Use Frame — the guide's content (how-to-use-frame-guide spec).",
+      "exports": [
+        "CHAPTERS",
+        "SKETCH_KINDS",
+        "ACTION_IDS",
+        "STAY_IDS",
+        "flattenPages",
+        "parseInline",
+        "validate"
+      ],
+      "depends": [],
+      "functions": {
+        "flattenPages": {
+          "line": 664,
+          "params": [
+            "chapters = CHAPTERS"
+          ],
+          "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
+        },
+        "parseInline": {
+          "line": 679,
+          "params": [
+            "text"
+          ],
+          "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
+        },
+        "blockTexts": {
+          "line": 695,
+          "params": [
+            "block"
+          ],
+          "purpose": "Every string of a block, for token scanning."
+        },
+        "validate": {
+          "line": 705,
+          "params": [
+            "chapters = CHAPTERS"
+          ],
+          "purpose": "Check the content against every rule the host relies on."
+        }
+      }
+    },
+    "renderer/guide/guideSketches": {
+      "file": "src/renderer/guide/guideSketches.js",
+      "description": "How to Use Frame — page illustrations (how-to-use-frame-guide spec).",
+      "exports": [
+        "render",
+        "DRAWN_KINDS"
+      ],
+      "depends": [
+        "lucide",
+        "dock",
+        "htmlUtils",
+        "themes",
+        "../shared/uiZoom",
+        "commandRegistry",
+        "platform"
+      ],
+      "functions": {
+        "focusSet": {
+          "line": 41,
+          "params": [
+            "focus"
+          ],
+          "purpose": "Parse `focus` (\"a\" | \"a,b\" | [\"a\",\"b\"]) into a Set of region names."
+        },
+        "region": {
+          "line": 51,
+          "params": [
+            "name",
+            "focused",
+            "cls",
+            "inner"
+          ],
+          "purpose": "A focusable region. Regions named in `focus` get .gs-focus; when the"
+        },
+        "chip": {
+          "line": 63,
+          "params": [
+            "text",
+            "{ dot",
+            "cls = '' } = {}"
+          ],
+          "purpose": "A small bordered pill, optionally with a status dot ('ok'|'warn'|'err'|'accent')."
+        },
+        "terminalLines": {
+          "line": 69,
+          "params": [
+            "prompt",
+            "widths = [72",
+            "54",
+            "63]"
+          ],
+          "purpose": "A fake terminal body: a prompt line plus a few output bars."
+        },
+        "frame": {
+          "line": 86,
+          "params": [
+            "kind",
+            "focused",
+            "inner",
+            "cls = ''"
+          ],
+          "purpose": "The sketch's outer frame."
+        },
+        "render": {
+          "line": 637,
+          "params": [
+            "kind",
+            "focus"
+          ]
+        }
+      }
+    },
+    "renderer/guideModal": {
+      "file": "src/renderer/guideModal.js",
+      "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec).",
+      "exports": [
+        "init",
+        "open",
+        "close",
+        "toggle",
+        "onClose",
+        "isOpen"
+      ],
+      "depends": [
+        "commandRegistry",
+        "platform",
+        "htmlUtils",
+        "guide/guideContent",
+        "guide/guideSketches"
+      ],
+      "functions": {
+        "init": {
+          "line": 54
+        },
+        "open": {
+          "line": 91
+        },
+        "close": {
+          "line": 110,
+          "params": [
+            "{ via = 'dismiss' } = {}"
+          ],
+          "purpose": "link closed the guide: the target keeps focus."
+        },
+        "toggle": {
+          "line": 120
+        },
+        "onClose": {
+          "line": 125,
+          "params": [
+            "fn"
+          ]
+        },
+        "go": {
+          "line": 131,
+          "params": [
+            "i"
+          ]
+        },
+        "onKeydown": {
+          "line": 142,
+          "params": [
+            "e"
+          ]
+        },
+        "onTreeClick": {
+          "line": 161,
+          "params": [
+            "e"
+          ]
+        },
+        "onContentClick": {
+          "line": 176,
+          "params": [
+            "e"
+          ]
+        },
+        "renderTree": {
+          "line": 193
+        },
+        "renderPage": {
+          "line": 221
+        },
+        "renderSketch": {
+          "line": 242,
+          "params": [
+            "sketch"
+          ],
+          "purpose": "The page's illustration. A kind guideSketches does not draw leaves the slot"
+        },
+        "renderBlock": {
+          "line": 257,
+          "params": [
+            "block"
+          ]
+        },
+        "renderInline": {
+          "line": 265,
+          "params": [
+            "text"
+          ]
+        },
+        "renderKbd": {
+          "line": 274,
+          "params": [
+            "id"
+          ],
+          "purpose": "A command's shortcut as <kbd>, or nothing when it has none / is unknown."
+        },
+        "renderAction": {
+          "line": 283,
+          "params": [
+            "action"
+          ]
+        },
+        "logMissing": {
+          "line": 301,
+          "params": [
+            "id",
+            "message"
+          ]
+        },
+        "renderFooter": {
+          "line": 307
+        }
+      }
+    },
+    "renderer/guidedTour": {
+      "file": "src/renderer/guidedTour.js",
+      "description": "Guided tour — the DOM host (first-run-guided-tour spec).",
+      "exports": [
+        "init",
+        "start",
+        "close",
+        "finish",
+        "isOpen"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "notify",
+        "commandRegistry",
+        "sidebarResize",
+        "projectListUI",
+        "appLoader",
+        "tour/tourSteps"
+      ],
+      "functions": {
+        "init": {
+          "line": 67,
+          "params": [
+            "opts = {}"
+          ],
+          "purpose": "tab (index.js's revealSidebarTab), so a nav row can be measured"
+        },
+        "autoStart": {
+          "line": 94,
+          "purpose": "The once-per-user start. The setting is read here rather than at init so"
+        },
+        "noticesGone": {
+          "line": 120
+        },
+        "finish": {
+          "line": 137,
+          "params": [
+            "outcome"
+          ],
+          "purpose": "End the tour and remember it. `outcome` is 'finished' or 'skipped'. A write"
+        },
+        "hasProject": {
+          "line": 152
+        },
+        "start": {
+          "line": 160,
+          "purpose": "Start (or restart) the tour from the first step that applies: step 1 with"
+        },
+        "close": {
+          "line": 179,
+          "purpose": "Leave the tour: remove the layer and every listener it bound."
+        },
+        "next": {
+          "line": 189
+        },
+        "ensureNodes": {
+          "line": 200
+        },
+        "isVisible": {
+          "line": 228,
+          "params": [
+            "el"
+          ]
+        },
+        "resolveTarget": {
+          "line": 242,
+          "params": [
+            "step",
+            "{ reveal = false } = {}"
+          ],
+          "purpose": "The step's first usable target, with its entry."
+        },
+        "isAvailable": {
+          "line": 255,
+          "params": [
+            "step"
+          ]
+        },
+        "revealNav": {
+          "line": 259,
+          "params": [
+            "view"
+          ]
+        },
+        "show": {
+          "line": 272,
+          "params": [
+            "i"
+          ]
+        },
+        "skipMissing": {
+          "line": 293,
+          "params": [
+            "i"
+          ],
+          "purpose": "A step whose target is gone: log it once, move on, never end the tour on it."
+        },
+        "countedSteps": {
+          "line": 312,
+          "purpose": "The steps this run of the tour counts: step 1 only if it began without a project."
+        },
+        "renderCard": {
+          "line": 316,
+          "params": [
+            "step",
+            "i"
+          ]
+        },
+        "focusCard": {
+          "line": 363,
+          "purpose": "Put focus on the card's primary control so Enter, → and Escape reach it."
+        },
+        "el": {
+          "line": 369,
+          "params": [
+            "tag",
+            "className",
+            "text"
+          ]
+        },
+        "onCardClick": {
+          "line": 376,
+          "params": [
+            "e"
+          ]
+        },
+        "onCardKeydown": {
+          "line": 395,
+          "params": [
+            "e"
+          ],
+          "purpose": "Bound on the card, not the document: the keys answer only while focus is in"
+        },
+        "position": {
+          "line": 412,
+          "purpose": "Measure the current target and move the cutout and the card to it."
+        },
+        "queueReposition": {
+          "line": 449,
+          "purpose": "Coalesce bursts (a sidebar drag, a scroll) into one measurement per frame."
+        },
+        "observeTarget": {
+          "line": 458,
+          "params": [
+            "target"
+          ]
+        },
+        "bindWhileOpen": {
+          "line": 465
+        }
+      }
+    },
     "renderer/healthNotice": {
       "file": "src/renderer/healthNotice.js",
-      "description": "Health Notice Banner",
+      "description": "Health notices",
       "exports": [
         "init",
         "showMigration"
       ],
       "depends": [
         "electron",
-        "shared/ipcChannels"
+        "shared/ipcChannels",
+        "statusBar/noticeTray"
       ],
       "functions": {
         "init": {
-          "line": 25
+          "line": 24
         },
         "show": {
-          "line": 50,
+          "line": 52,
           "params": [
-            "kind",
+            "severity",
+            "source",
             "message"
           ]
         },
-        "dismiss": {
-          "line": 86
-        },
         "showMigration": {
-          "line": 107,
+          "line": 64,
           "params": [
             "migration"
           ],
@@ -7921,29 +8529,27 @@
     },
     "renderer/home/widgets/agents": {
       "file": "src/renderer/home/widgets/agents.js",
-      "description": "Agents widget.",
+      "description": "Agents widget — the prompt composer.",
       "exports": [
         "id",
         "title",
         "icon",
         "sources",
-        "'aiTool']",
         "defaultSpan",
         "defaultEnabled",
         "isAvailable",
         "mount(el",
-        "ctx) {\n    this.ctx = ctx;\n    this.card = widgetShell({\n      id",
-        "icon",
-        "title"
+        "ctx) {\n    this.ctx = ctx;\n    this._starting = false;\n\n    this.el = document.createElement('div');\n    this.el.className = 'home-composer';\n    // The picker is the shared .ai-tool-picker (the terminal header's)",
+        "the native <select> underneath stays the\n    // interactive element",
+        "so clicking anywhere on the box opens it.\n    // The greeting sits centred over the box",
+        "and the agent picker just\n    // under its bottom-left corner — Start stays inside",
+        "where you type.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n        <div class=\"home-composer-box\">\n          <textarea class=\"home-composer-input\" rows=\"5\" spellcheck=\"false\"\n                    aria-label=\"Prompt for the agent\" placeholder=\"${escapeHtml(PLACEHOLDER)"
       ],
       "depends": [
         "lucide",
         "../../htmlUtils",
         "../../notify",
-        "../../laneStatus",
         "../homeData",
-        "../agentRows",
-        "../widgetShell",
         "../../agentDispatch"
       ],
       "functions": {}
@@ -7984,7 +8590,7 @@
         "notify",
         "home/homeData",
         "home/registry",
-        "openProjectModal"
+        "projectStart"
       ],
       "functions": {
         "lucideIcon": {
@@ -8074,7 +8680,11 @@
         "cheatSheet",
         "terminalTabBar",
         "themes",
-        "welcomeOverlay",
+        "shared/uiZoom",
+        "onboarding",
+        "projectStart",
+        "guideModal",
+        "guidedTour",
         "appLoader",
         "projectSettingsModal",
         "doneWindow",
@@ -8097,40 +8707,41 @@
       ],
       "functions": {
         "init": {
-          "line": 60,
+          "line": 64,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 311,
+          "line": 317,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 404,
+          "line": 425,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 514,
+          "line": 535,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 540,
+          "line": 561,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 566,
+          "line": 587,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 934,
+          "line": 1007,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
       "ipc": {
         "listens": [
           "CLONE_GITHUB_REPO_RESULT",
+          "UI_ZOOM_CHANGED",
           "RUN_APP_COMMAND",
           "UPDATE_AVAILABLE"
         ],
@@ -8471,6 +9082,106 @@
         }
       }
     },
+    "renderer/onboarding": {
+      "file": "src/renderer/onboarding.js",
+      "description": "First-run onboarding screen (first-run-onboarding-screen spec)",
+      "exports": [
+        "init",
+        "takeOver",
+        "open",
+        "close"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "notify",
+        "projectStart",
+        "htmlUtils",
+        "onboarding/onboardingGate"
+      ],
+      "functions": {
+        "init": {
+          "line": 49,
+          "params": [
+            "{ onLeave"
+          ],
+          "purpose": "surface; appLoader parks it from here."
+        },
+        "takeOver": {
+          "line": 93,
+          "params": [
+            "projects"
+          ],
+          "purpose": "The loader's hand-off at boot. Returns true when the screen took the"
+        },
+        "open": {
+          "line": 101,
+          "params": [
+            "canDismiss"
+          ],
+          "purpose": "The palette's Show the Start Screen, at any project count."
+        },
+        "close": {
+          "line": 125
+        },
+        "measureWordmark": {
+          "line": 136,
+          "purpose": "The wordmark's width is a measurement, not a constant, and the palette path"
+        },
+        "setupListeners": {
+          "line": 143
+        },
+        "bind": {
+          "line": 164,
+          "params": [
+            "id",
+            "handler"
+          ]
+        },
+        "loadAITools": {
+          "line": 173
+        },
+        "renderToolOptions": {
+          "line": 186
+        },
+        "selectTool": {
+          "line": 216,
+          "params": [
+            "toolId"
+          ],
+          "purpose": "The selection does not move until main confirms it. A chip that lit up on a"
+        },
+        "paintToolSelection": {
+          "line": 232
+        }
+      },
+      "ipc": {
+        "listens": [
+          "AI_TOOL_CHANGED"
+        ],
+        "emits": []
+      }
+    },
+    "renderer/onboarding/onboardingGate": {
+      "file": "src/renderer/onboarding/onboardingGate.js",
+      "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5).",
+      "exports": [
+        "decide",
+        "LAUNCH",
+        "COMMAND"
+      ],
+      "depends": [],
+      "functions": {
+        "decide": {
+          "line": 26,
+          "params": [
+            "{ trigger",
+            "projects } = {}"
+          ]
+        }
+      }
+    },
     "renderer/openProjectModal": {
       "file": "src/renderer/openProjectModal.js",
       "description": "Open Project Modal",
@@ -8478,58 +9189,27 @@
         "init",
         "open",
         "close",
-        "isVisible",
-        "handleCloneResult"
+        "isVisible"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
-        "state"
+        "state",
+        "projectStart"
       ],
       "functions": {
         "open": {
-          "line": 29,
-          "params": [
-            "opts = {}"
-          ],
-          "purpose": "Show the modal. Pass `{ clone: true }` to open straight into the clone form"
+          "line": 28,
+          "purpose": "Show the modal, always on the three boxes with the clone row folded."
         },
         "close": {
-          "line": 39,
-          "purpose": "Hide the modal and reset the clone form."
+          "line": 34
         },
         "isVisible": {
-          "line": 45
-        },
-        "resetCloneForm": {
-          "line": 52,
-          "purpose": "Collapse the clone form back to the option list and clear its state."
-        },
-        "showCloneForm": {
-          "line": 65,
-          "purpose": "Reveal the in-modal clone URL form and focus the input."
-        },
-        "submitClone": {
-          "line": 80,
-          "purpose": "Send the clone request for the current URL value (if any)."
-        },
-        "handleCloneResult": {
-          "line": 92,
-          "params": [
-            "result"
-          ],
-          "purpose": "Called by the `CLONE_GITHUB_REPO_RESULT` listener in index.js. Shows the"
+          "line": 40
         },
         "init": {
-          "line": 109,
-          "purpose": "Wire all modal controls. Safe to call once at startup."
+          "line": 47,
+          "purpose": "Mount the block and wire the modal chrome. Safe to call once at startup."
         }
-      },
-      "ipc": {
-        "listens": [],
-        "emits": [
-          "CLONE_GITHUB_REPO"
-        ]
       }
     },
     "renderer/orchestrator": {
@@ -8971,7 +9651,8 @@
         "focus",
         "blur",
         "applyAgentStatuses",
-        "updateWorkspaceNav"
+        "updateWorkspaceNav",
+        "revealNavItem"
       ],
       "depends": [
         "electron",
@@ -9114,14 +9795,21 @@
         "buildWorkspaceNav": {
           "line": 335
         },
+        "revealNavItem": {
+          "line": 404,
+          "params": [
+            "view"
+          ],
+          "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
+        },
         "placeWorkspaceNav": {
-          "line": 397
+          "line": 417
         },
         "refreshWorkspaceNav": {
-          "line": 409
+          "line": 429
         },
         "updateWorkspaceNav": {
-          "line": 485,
+          "line": 505,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -9148,17 +9836,21 @@
         "focusList"
       ],
       "depends": [
-        "openProjectModal",
         "projectListUI",
+        "sidebarResize",
         "state"
       ],
       "functions": {
         "focusList": {
-          "line": 26,
+          "line": 29,
           "purpose": "Move keyboard focus into the project list. Used by the \"Focus Project List\""
         },
         "init": {
-          "line": 30
+          "line": 33
+        },
+        "syncSidebar": {
+          "line": 46,
+          "purpose": "No project means an empty panel, so collapse to the rail. Never persisted:"
         }
       }
     },
@@ -9248,6 +9940,92 @@
             "message"
           ]
         }
+      }
+    },
+    "renderer/projectStart": {
+      "file": "src/renderer/projectStart.js",
+      "description": "Project Start — the three ways into a project, as one block",
+      "exports": [
+        "create",
+        "handleCloneResult",
+        "isCloneOpen",
+        "reset"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state"
+      ],
+      "functions": {
+        "icon": {
+          "line": 22,
+          "params": [
+            "paths"
+          ]
+        },
+        "create": {
+          "line": 35,
+          "purpose": "Build one instance of the block."
+        },
+        "reset": {
+          "line": 100,
+          "params": [
+            "el"
+          ],
+          "purpose": "Fold the clone row back and clear it. For hosts that are re-shown rather"
+        },
+        "isCloneOpen": {
+          "line": 105,
+          "params": [
+            "el"
+          ],
+          "purpose": "Is this block's clone row open? Surfaces ask before claiming Escape."
+        },
+        "showClone": {
+          "line": 109,
+          "params": [
+            "el"
+          ]
+        },
+        "hideClone": {
+          "line": 116,
+          "params": [
+            "el"
+          ]
+        },
+        "submitClone": {
+          "line": 124,
+          "params": [
+            "el"
+          ]
+        },
+        "handleCloneResult": {
+          "line": 144,
+          "params": [
+            "result"
+          ],
+          "purpose": "Called by the CLONE_GITHUB_REPO_RESULT listener in index.js. Returns true"
+        },
+        "setBusy": {
+          "line": 160,
+          "params": [
+            "el",
+            "value"
+          ]
+        },
+        "setError": {
+          "line": 166,
+          "params": [
+            "el",
+            "message"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "CLONE_GITHUB_REPO"
+        ]
       }
     },
     "renderer/projectStatusBadges": {
@@ -9639,70 +10417,76 @@
       "depends": [],
       "functions": {
         "emitChange": {
-          "line": 30,
+          "line": 46,
           "purpose": "Tell every onChange listener whether the sidebar is now visible."
         },
         "init": {
-          "line": 41,
+          "line": 57,
           "params": [
             "onResize"
           ],
           "purpose": "Initialize sidebar resize functionality"
         },
         "handleMouseDown": {
-          "line": 82,
+          "line": 98,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse down on resize handle"
         },
         "handleMouseMove": {
-          "line": 96,
+          "line": 113,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse move during resize"
         },
         "handleMouseUp": {
-          "line": 112,
+          "line": 143,
           "params": [
             "e"
           ],
           "purpose": "Handle mouse up to finish resize"
         },
         "resetWidth": {
-          "line": 132,
+          "line": 169,
           "purpose": "Reset sidebar width to default"
         },
         "getWidth": {
-          "line": 145,
+          "line": 189,
           "purpose": "Get current sidebar width"
         },
         "setWidth": {
-          "line": 153,
+          "line": 197,
           "params": [
             "width"
           ],
           "purpose": "Set sidebar width programmatically"
         },
         "toggle": {
-          "line": 168,
+          "line": 212,
           "purpose": "Toggle sidebar visibility"
         },
         "hide": {
-          "line": 181,
+          "line": 230,
+          "params": [
+            "{ persist = true } = {}"
+          ],
           "purpose": "Collapse the sidebar to its rail (the panel goes, the icons stay)."
         },
         "show": {
-          "line": 199,
+          "line": 248,
+          "params": [
+            "{ persist = true } = {}"
+          ],
           "purpose": "Bring the panel back at the width it had before collapsing."
         },
         "isVisible": {
-          "line": 216,
+          "line": 265,
           "purpose": "Check if sidebar is hidden"
         },
         "onChange": {
-          "line": 226,
+          "line": 275,
           "params": [
             "fn"
           ],
@@ -10582,36 +11366,44 @@
         "platform",
         "htmlUtils",
         "tooltip",
+        "shared/uiZoom",
         "lucide",
         "statusBar/branchPicker",
+        "statusBar/noticeTray",
         "githubPanel",
         "terminal"
       ],
       "functions": {
         "init": {
-          "line": 70
+          "line": 77
+        },
+        "_buildZoom": {
+          "line": 111
+        },
+        "_buildNoticeTray": {
+          "line": 152
         },
         "_buildBranch": {
-          "line": 97
+          "line": 169
         },
         "_manageBranches": {
-          "line": 142,
+          "line": 217,
           "purpose": "\"Manage branches…\" — the GitHub view's Branches section, where delete,"
         },
         "_renderBranch": {
-          "line": 149,
+          "line": 224,
           "params": [
             "branch"
           ]
         },
         "_buildDockIcons": {
-          "line": 164
+          "line": 239
         },
         "_buildAgentSlot": {
-          "line": 214
+          "line": 289
         },
         "updateAgents": {
-          "line": 264,
+          "line": 339,
           "params": [
             "states",
             "counts"
@@ -10619,34 +11411,34 @@
           "purpose": "Fed by projectStatusBadges on every recompute — one traversal for every"
         },
         "_projectName": {
-          "line": 296,
+          "line": 371,
           "params": [
             "path"
           ]
         },
         "_renderAgents": {
-          "line": 300
+          "line": 375
         },
         "_renderMenu": {
-          "line": 337
+          "line": 412
         },
         "_paintMenuHighlight": {
-          "line": 364
+          "line": 439
         },
         "_activateRow": {
-          "line": 373,
+          "line": 448,
           "params": [
             "row"
           ]
         },
         "_onMenuKeydown": {
-          "line": 378,
+          "line": 453,
           "params": [
             "e"
           ]
         },
         "_focus": {
-          "line": 400,
+          "line": 475,
           "params": [
             "projectPath",
             "terminalId"
@@ -10654,26 +11446,26 @@
           "purpose": "A click switches project when the agent lives elsewhere, then opens its"
         },
         "_toggleMenu": {
-          "line": 410
+          "line": 485
         },
         "_openMenu": {
-          "line": 414
+          "line": 489
         },
         "_closeMenu": {
-          "line": 429,
+          "line": 505,
           "params": [
             "{ refocus = false } = {}"
           ]
         },
         "updateUsage": {
-          "line": 441,
+          "line": 517,
           "params": [
             "data"
           ],
           "purpose": "Paint both meters from a usage push."
         },
         "updateItem": {
-          "line": 470,
+          "line": 546,
           "params": [
             "item",
             "usage",
@@ -10682,7 +11474,7 @@
           ]
         },
         "formatResetTime": {
-          "line": 493,
+          "line": 569,
           "params": [
             "isoString"
           ],
@@ -10692,6 +11484,7 @@
       "ipc": {
         "listens": [
           "CLAUDE_USAGE_DATA",
+          "UI_ZOOM_CHANGED",
           "GIT_STATUS_DATA"
         ],
         "emits": [
@@ -10858,6 +11651,177 @@
             "items"
           ],
           "purpose": "The first enabled row after the current one, for the initial highlight."
+        }
+      }
+    },
+    "renderer/statusBar/noticeTray": {
+      "file": "src/renderer/statusBar/noticeTray.js",
+      "description": "Notice tray — the warning-triangle indicator at the right end of the status bar and",
+      "exports": [
+        "init",
+        "push",
+        "open",
+        "close",
+        "toggle",
+        "isOpen"
+      ],
+      "depends": [
+        "electron",
+        "lucide",
+        "dock",
+        "notify",
+        "tooltip",
+        "noticeTrayModel"
+      ],
+      "functions": {
+        "init": {
+          "line": 63,
+          "params": [
+            "opts"
+          ]
+        },
+        "push": {
+          "line": 129,
+          "params": [
+            "notice"
+          ],
+          "purpose": "Record a notice. Safe before init()."
+        },
+        "isOpen": {
+          "line": 136
+        },
+        "toggle": {
+          "line": 140
+        },
+        "open": {
+          "line": 144
+        },
+        "close": {
+          "line": 155,
+          "params": [
+            "{ refocus = false } = {}"
+          ]
+        },
+        "_copy": {
+          "line": 163,
+          "params": [
+            "id"
+          ]
+        },
+        "_dismiss": {
+          "line": 175,
+          "params": [
+            "id"
+          ]
+        },
+        "_rows": {
+          "line": 187
+        },
+        "_onKeydown": {
+          "line": 191,
+          "params": [
+            "e"
+          ]
+        },
+        "_paint": {
+          "line": 207
+        },
+        "_paintIndicator": {
+          "line": 212
+        },
+        "_describe": {
+          "line": 223,
+          "params": [
+            "tone",
+            "unread"
+          ]
+        },
+        "_renderList": {
+          "line": 237
+        },
+        "_buildRow": {
+          "line": 254,
+          "params": [
+            "notice"
+          ]
+        },
+        "_actionButton": {
+          "line": 297,
+          "params": [
+            "action",
+            "label"
+          ]
+        }
+      }
+    },
+    "renderer/statusBar/noticeTrayModel": {
+      "file": "src/renderer/statusBar/noticeTrayModel.js",
+      "description": "Notice tray model — pure (status-bar-notice-tray spec, D6).",
+      "exports": [
+        "MAX_NOTICES",
+        "add",
+        "dismiss",
+        "clear",
+        "markAllRead",
+        "indicator",
+        "sourceLabel",
+        "moveFocus"
+      ],
+      "depends": [],
+      "functions": {
+        "normalizeSeverity": {
+          "line": 34,
+          "params": [
+            "severity"
+          ]
+        },
+        "add": {
+          "line": 46,
+          "params": [
+            "list",
+            "input",
+            "{ now",
+            "id }"
+          ],
+          "purpose": "Add a notice, merging it into an identical row when one exists."
+        },
+        "dismiss": {
+          "line": 69,
+          "params": [
+            "list",
+            "id"
+          ]
+        },
+        "clear": {
+          "line": 73
+        },
+        "markAllRead": {
+          "line": 77,
+          "params": [
+            "list"
+          ]
+        },
+        "indicator": {
+          "line": 86,
+          "params": [
+            "list"
+          ],
+          "purpose": "What the indicator shows."
+        },
+        "sourceLabel": {
+          "line": 97,
+          "params": [
+            "source"
+          ]
+        },
+        "moveFocus": {
+          "line": 102,
+          "params": [
+            "index",
+            "length",
+            "delta"
+          ],
+          "purpose": "Row focus for ArrowUp/ArrowDown, wrapping; -1 when there are no rows."
         }
       }
     },
@@ -11767,20 +12731,20 @@
     },
     "renderer/terminalChipNotice": {
       "file": "src/renderer/terminalChipNotice.js",
-      "description": "\"Remove from the top bar\" notice.",
+      "description": "\"Close this terminal?\" confirmation.",
       "exports": [
-        "confirmRemoval"
+        "confirmClose"
       ],
       "depends": [],
       "functions": {
         "_suppressed": {
-          "line": 26
+          "line": 25
         },
         "_persistSuppression": {
-          "line": 34
+          "line": 33
         },
         "_build": {
-          "line": 43
+          "line": 42
         },
         "_close": {
           "line": 93
@@ -11791,13 +12755,13 @@
         "_accept": {
           "line": 105
         },
-        "confirmRemoval": {
+        "confirmClose": {
           "line": 119,
           "params": [
             "{ name",
             "onConfirm }"
           ],
-          "purpose": "Drop a chip, explaining what that means unless the user opted out."
+          "purpose": "Close a terminal from its chip, asking first unless the user opted out."
         }
       }
     },
@@ -11894,23 +12858,29 @@
       ],
       "functions": {
         "lucideIcon": {
-          "line": 41,
+          "line": 40,
           "params": [
             "data",
             "size = 18"
           ]
         },
         "applyTheme": {
-          "line": 57,
+          "line": 56,
           "params": [
             "name"
           ],
           "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 65,
+          "line": 67,
           "purpose": "The theme currently applied — a themes.js id."
         }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "THEME_CHANGED"
+        ]
       }
     },
     "renderer/terminalsView": {
@@ -11958,34 +12928,26 @@
         "DEFAULT_THEME",
         "normalize",
         "schemeOf",
-        "counterpartOf",
         "terminalTheme"
       ],
       "depends": [],
       "functions": {
         "normalize": {
-          "line": 125,
+          "line": 119,
           "params": [
             "name"
           ],
           "purpose": "A valid theme id for any input — unknown, missing or garbage falls back to the default."
         },
         "schemeOf": {
-          "line": 130,
+          "line": 124,
           "params": [
             "name"
           ],
           "purpose": "'dark' | 'light' for a theme id (normalized first)."
         },
-        "counterpartOf": {
-          "line": 135,
-          "params": [
-            "name"
-          ],
-          "purpose": "The theme the toggle flips to from `name`."
-        },
         "terminalTheme": {
-          "line": 140,
+          "line": 129,
           "params": [
             "name"
           ],
@@ -12039,67 +13001,96 @@
         }
       }
     },
-    "renderer/welcomeOverlay": {
-      "file": "src/renderer/welcomeOverlay.js",
-      "description": "Welcome Overlay (Launch Greeting)",
+    "renderer/tour/tourSteps": {
+      "file": "src/renderer/tour/tourSteps.js",
+      "description": "The guided tour's steps and rules (first-run-guided-tour spec).",
       "exports": [
-        "init",
-        "open",
-        "close",
-        "reopen"
+        "SETTING_KEY",
+        "STEPS",
+        "PLACEMENTS",
+        "shouldAutoStart",
+        "nextStepIndex",
+        "firstStepIndex",
+        "isLastStep",
+        "placeCard",
+        "validate"
       ],
-      "depends": [
-        "electron",
-        "shared/ipcChannels",
-        "state",
-        "openProjectModal",
-        "htmlUtils"
-      ],
+      "depends": [],
       "functions": {
-        "init": {
-          "line": 25
-        },
-        "loadAITools": {
-          "line": 55
-        },
-        "maybeShowOnLaunch": {
-          "line": 66
-        },
-        "setupListeners": {
-          "line": 73
-        },
-        "persistDismissPreference": {
-          "line": 134
-        },
-        "renderToolOptions": {
-          "line": 142
-        },
-        "updateToolSelection": {
-          "line": 177
-        },
-        "open": {
-          "line": 188
-        },
-        "close": {
-          "line": 194
-        },
-        "reopen": {
-          "line": 208,
-          "purpose": "Reopen welcome from Command Palette. Resets the dismissed flag so the"
-        },
-        "escapeAttr": {
-          "line": 216,
+        "shouldAutoStart": {
+          "line": 111,
           "params": [
-            "s"
+            "{ done",
+            "readFailed } = {}"
+          ],
+          "purpose": "Does the tour start by itself after boot? Once per user: any stored value"
+        },
+        "applies": {
+          "line": 116,
+          "params": [
+            "step",
+            "hasProject"
           ]
+        },
+        "nextStepIndex": {
+          "line": 132,
+          "params": [
+            "from",
+            "{ hasProject",
+            "isAvailable",
+            "steps = STEPS } = {}"
+          ],
+          "purpose": "The index of the first step after `from` that applies to the current"
+        },
+        "firstStepIndex": {
+          "line": 143,
+          "params": [
+            "ctx = {}"
+          ],
+          "purpose": "Where a tour begins: step 1 with no project open, step 2 with one."
+        },
+        "isLastStep": {
+          "line": 148,
+          "params": [
+            "index",
+            "{ hasProject",
+            "steps = STEPS } = {}"
+          ],
+          "purpose": "The last step that applies with a project open, for the Done button."
+        },
+        "clamp": {
+          "line": 154,
+          "params": [
+            "value",
+            "min",
+            "max"
+          ]
+        },
+        "placeCard": {
+          "line": 173,
+          "params": [
+            "target",
+            "card",
+            "viewport",
+            "placement = 'bottom'",
+            "{ gap = 12",
+            "margin = 16 } = {}"
+          ],
+          "purpose": "Place a card of `card` size beside `target` inside `viewport`."
+        },
+        "sentenceCount": {
+          "line": 205,
+          "params": [
+            "text"
+          ]
+        },
+        "validate": {
+          "line": 210,
+          "params": [
+            "steps = STEPS"
+          ],
+          "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
         }
-      },
-      "ipc": {
-        "listens": [
-          "WORKSPACE_DATA",
-          "AI_TOOL_CHANGED"
-        ],
-        "emits": []
       }
     },
     "shared/activityEvents": {
@@ -12704,6 +13695,58 @@
       ],
       "depends": [],
       "functions": {}
+    },
+    "shared/uiZoom": {
+      "file": "src/shared/uiZoom.js",
+      "description": "UI zoom ladder — the five interface sizes Frame offers (ui-zoom-steps spec).",
+      "exports": [
+        "MIN_STEP",
+        "MAX_STEP",
+        "DEFAULT_STEP",
+        "STEPS",
+        "LADDER",
+        "clampStep",
+        "parseStep",
+        "factorFor",
+        "percentFor",
+        "labelFor"
+      ],
+      "depends": [],
+      "functions": {
+        "clampStep": {
+          "line": 41,
+          "params": [
+            "n"
+          ],
+          "purpose": "Integer within [MIN_STEP, MAX_STEP]; non-numbers land on the default."
+        },
+        "parseStep": {
+          "line": 51,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A stored value → a step. Only an in-range integer counts; anything else"
+        },
+        "factorFor": {
+          "line": 57,
+          "params": [
+            "step"
+          ]
+        },
+        "percentFor": {
+          "line": 62,
+          "params": [
+            "step"
+          ],
+          "purpose": "Whole-number percentage: 85, 92, 100, 110, 120."
+        },
+        "labelFor": {
+          "line": 66,
+          "params": [
+            "step"
+          ]
+        }
+      }
     },
     "templates/bin/implement-launch": {
       "file": "src/templates/bin/implement-launch.js",
@@ -13959,6 +15002,47 @@
         "description": ""
       }
     },
+    "theme": {
+      "THEME_CHANGED": {
+        "name": "theme-changed",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "ui": {
+      "UI_ZOOM_GET": {
+        "name": "ui-zoom-get",
+        "direction": "",
+        "description": ""
+      },
+      "UI_ZOOM_SET": {
+        "name": "ui-zoom-set",
+        "direction": "",
+        "description": ""
+      },
+      "UI_ZOOM_CHANGED": {
+        "name": "ui-zoom-changed",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "file": {
+      "FILE_TREE_RENAME": {
+        "name": "file-tree-rename",
+        "direction": "",
+        "description": ""
+      },
+      "FILE_TREE_TRASH": {
+        "name": "file-tree-trash",
+        "direction": "",
+        "description": ""
+      },
+      "FILE_TREE_PASTE": {
+        "name": "file-tree-paste",
+        "direction": "",
+        "description": ""
+      }
+    },
     "cloud": {
       "CLOUD_SIGN_IN": {
         "name": "cloud-sign-in",
@@ -14094,7 +15178,17 @@
       {
         "module": "renderer/healthNotice",
         "file": "src/renderer/healthNotice.js",
-        "description": "Health Notice Banner"
+        "description": "Health notices"
+      },
+      {
+        "module": "renderer/statusBar/noticeTray",
+        "file": "src/renderer/statusBar/noticeTray.js",
+        "description": "Notice tray — the warning-triangle indicator at the right end of the status bar and"
+      },
+      {
+        "module": "renderer/statusBar/noticeTrayModel",
+        "file": "src/renderer/statusBar/noticeTrayModel.js",
+        "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
       }
     ],
     "dock": [
@@ -14215,6 +15309,18 @@
         "description": "Frame Templates"
       }
     ],
+    "gate": [
+      {
+        "module": "main/pollGate",
+        "file": "src/main/pollGate.js",
+        "description": "pollGate — visibility-gated intervals + TTL caching for polling loops."
+      },
+      {
+        "module": "renderer/onboarding/onboardingGate",
+        "file": "src/renderer/onboarding/onboardingGate.js",
+        "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5)."
+      }
+    ],
     "git": [
       {
         "module": "main/gitBranchRefs",
@@ -14281,6 +15387,23 @@
         "module": "renderer/githubPanel",
         "file": "src/renderer/githubPanel.js",
         "description": "GitHub Panel — the sidebar's GitHub tab (github-view-tree-layout spec)."
+      }
+    ],
+    "guide": [
+      {
+        "module": "renderer/guide/guideContent",
+        "file": "src/renderer/guide/guideContent.js",
+        "description": "How to Use Frame — the guide's content (how-to-use-frame-guide spec)."
+      },
+      {
+        "module": "renderer/guide/guideSketches",
+        "file": "src/renderer/guide/guideSketches.js",
+        "description": "How to Use Frame — page illustrations (how-to-use-frame-guide spec)."
+      },
+      {
+        "module": "renderer/guideModal",
+        "file": "src/renderer/guideModal.js",
+        "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec)."
       }
     ],
     "health": [
@@ -14362,6 +15485,11 @@
         "description": "Frame Settings"
       },
       {
+        "module": "renderer/guideModal",
+        "file": "src/renderer/guideModal.js",
+        "description": "How to Use Frame — the guide modal (how-to-use-frame-guide spec)."
+      },
+      {
         "module": "renderer/implementModeModal",
         "file": "src/renderer/implementModeModal.js",
         "description": "Implement Mode Modal"
@@ -14394,6 +15522,18 @@
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
+    "onboarding": [
+      {
+        "module": "renderer/onboarding",
+        "file": "src/renderer/onboarding.js",
+        "description": "First-run onboarding screen (first-run-onboarding-screen spec)"
+      },
+      {
+        "module": "renderer/onboarding/onboardingGate",
+        "file": "src/renderer/onboarding/onboardingGate.js",
+        "description": "The onboarding screen's gate (first-run-onboarding-screen spec, D4 / D5)."
+      }
+    ],
     "orchestration": [
       {
         "module": "main/orchestrationManager",
@@ -14419,18 +15559,6 @@
         "module": "renderer/orchestrator",
         "file": "src/renderer/orchestrator.js",
         "description": "Orchestrator (renderer) — a section viewport"
-      }
-    ],
-    "overlay": [
-      {
-        "module": "renderer/settingsOverlay",
-        "file": "src/renderer/settingsOverlay.js",
-        "description": "Settings Overlay Plumbing"
-      },
-      {
-        "module": "renderer/welcomeOverlay",
-        "file": "src/renderer/welcomeOverlay.js",
-        "description": "Welcome Overlay (Launch Greeting)"
       }
     ],
     "panel": [
@@ -14499,6 +15627,11 @@
         "module": "renderer/projectSettingsModal",
         "file": "src/renderer/projectSettingsModal.js",
         "description": "Project Settings"
+      },
+      {
+        "module": "renderer/projectStart",
+        "file": "src/renderer/projectStart.js",
+        "description": "Project Start — the three ways into a project, as one block"
       },
       {
         "module": "renderer/projectStatusBadges",
@@ -14800,6 +15933,18 @@
         "description": "Terminals View Module"
       }
     ],
+    "tour": [
+      {
+        "module": "renderer/guidedTour",
+        "file": "src/renderer/guidedTour.js",
+        "description": "Guided tour — the DOM host (first-run-guided-tour spec)."
+      },
+      {
+        "module": "renderer/tour/tourSteps",
+        "file": "src/renderer/tour/tourSteps.js",
+        "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
+      }
+    ],
     "view": [
       {
         "module": "renderer/decisionsView",
@@ -14822,6 +15967,18 @@
         "module": "shared/doneWindow",
         "file": "src/shared/doneWindow.js",
         "description": "doneWindow — how much of the \"done\" pile a board shows by default."
+      }
+    ],
+    "zoom": [
+      {
+        "module": "main/uiZoom",
+        "file": "src/main/uiZoom.js",
+        "description": "UI zoom — the main-process owner of the interface scale (ui-zoom-steps spec)."
+      },
+      {
+        "module": "shared/uiZoom",
+        "file": "src/shared/uiZoom.js",
+        "description": "UI zoom ladder — the five interface sizes Frame offers (ui-zoom-steps spec)."
       }
     ]
   },

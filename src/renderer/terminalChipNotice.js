@@ -1,26 +1,25 @@
 /**
- * "Remove from the top bar" notice.
+ * "Close this terminal?" confirmation.
  *
- * The × on a terminal's breadcrumb chip drops that chip from the top bar and
- * does nothing else — the terminal keeps running, and Terminals still holds
- * it. An × sitting next to a terminal's name does not say that on its own, so
- * until the user says they have got it, this explains itself before acting:
- * where the terminal went, and which × is the one that actually closes it.
+ * The × on a terminal's breadcrumb chip closes that terminal for good — its
+ * process is killed, and whatever is running in it (an agent mid-task, a dev
+ * server) stops. The chip sits in the top bar, far from the terminal itself,
+ * so it is easy to hit without looking at what is running; this asks first.
  *
- * The bar is a breadcrumb, not a tab strip, so this is the only place the
- * distinction has to be taught. "Don't show this again" is remembered in
- * localStorage (the same store the bar's other chrome preferences use); after
- * that the × drops the chip silently.
+ * "Don't ask again" is remembered in localStorage (the same store the bar's
+ * other chrome preferences use); after that the × closes silently. The key is
+ * new: an opt-out given to the old "only removes it from the bar" notice must
+ * not turn into silently killing terminals.
  */
 
-const SUPPRESS_KEY = 'frame-terminal-chip-notice-off';
+const SUPPRESS_KEY = 'frame-terminal-close-confirm-off';
 
 let modalEl = null;
 let titleEl = null;
 let bodyEl = null;
 let checkboxEl = null;
 let cancelBtn = null;
-let removeBtn = null;
+let closeBtn = null;
 let pending = null;   // the onConfirm of the open dialog
 
 function _suppressed() {
@@ -47,15 +46,15 @@ function _build() {
   modalEl.className = 'tcn-modal';
   modalEl.innerHTML = `
     <div class="tcn-container" role="dialog" aria-modal="true" aria-labelledby="tcn-title">
-      <h3 class="tcn-title" id="tcn-title">Remove from the top bar?</h3>
+      <h3 class="tcn-title" id="tcn-title">Close this terminal?</h3>
       <p class="tcn-body"></p>
       <label class="tcn-check">
         <input type="checkbox" />
-        <span>Don't show this again</span>
+        <span>Don't ask again</span>
       </label>
       <div class="tcn-footer">
         <button type="button" class="tcn-cancel">Cancel</button>
-        <button type="button" class="tcn-remove">Remove from bar</button>
+        <button type="button" class="tcn-close">Close terminal</button>
       </div>
     </div>
   `;
@@ -65,10 +64,10 @@ function _build() {
   bodyEl = modalEl.querySelector('.tcn-body');
   checkboxEl = modalEl.querySelector('.tcn-check input');
   cancelBtn = modalEl.querySelector('.tcn-cancel');
-  removeBtn = modalEl.querySelector('.tcn-remove');
+  closeBtn = modalEl.querySelector('.tcn-close');
 
   cancelBtn.addEventListener('click', _cancel);
-  removeBtn.addEventListener('click', _accept);
+  closeBtn.addEventListener('click', _accept);
   modalEl.addEventListener('click', (e) => {
     if (e.target === modalEl) _cancel();
   });
@@ -81,12 +80,13 @@ function _build() {
     _cancel();
   }, true);
 
-  // Nothing here is destructive, so Enter does the thing the user asked for.
+  // Closing kills a process, so Enter only closes when the Close button
+  // itself has focus — anywhere else it backs out.
   modalEl.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    if (document.activeElement === cancelBtn) _cancel();
-    else _accept();
+    if (document.activeElement === closeBtn) _accept();
+    else _cancel();
   });
 }
 
@@ -110,13 +110,13 @@ function _accept() {
 }
 
 /**
- * Drop a chip, explaining what that means unless the user opted out.
+ * Close a terminal from its chip, asking first unless the user opted out.
  *
  * @param {object} opts
  * @param {string} opts.name        - the terminal's display name
  * @param {Function} opts.onConfirm - run when the user goes ahead
  */
-function confirmRemoval({ name, onConfirm }) {
+function confirmClose({ name, onConfirm }) {
   if (typeof onConfirm !== 'function') return;
   if (_suppressed()) {
     onConfirm();
@@ -136,13 +136,14 @@ function confirmRemoval({ name, onConfirm }) {
   who.textContent = name || 'This terminal';
   bodyEl.appendChild(who);
   bodyEl.append(
-    ' keeps running — this only takes it out of the top bar. It is still in '
-    + 'Terminals, and going back to it there puts the chip back. To close the '
-    + 'terminal for good, use the × on its pane in Terminals.'
+    ' will be closed and its process stopped. Anything still running in it — '
+    + 'an agent mid-task, a server, a build — ends too, and its output is lost. '
+    + 'This cannot be undone.'
   );
 
   modalEl.classList.add('visible');
-  requestAnimationFrame(() => removeBtn && removeBtn.focus());
+  // Focus the safe choice: a stray Enter should not kill a terminal.
+  requestAnimationFrame(() => cancelBtn && cancelBtn.focus());
 }
 
-module.exports = { confirmRemoval };
+module.exports = { confirmClose };

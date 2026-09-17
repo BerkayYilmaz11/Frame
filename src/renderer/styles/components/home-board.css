@@ -22,30 +22,6 @@
   container-type: inline-size;
 }
 
-/* ─── Home header ───────────────────────────────────────── */
-/* One greeting, nothing else — the cards below are the busy part, and a header
-   competing with them would make the board harder to read, not richer. */
-
-.home-header {
-  flex: none;
-}
-
-.home-header-top {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  min-width: 0;
-}
-
-.home-header-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
 /* ─── Home grid ─────────────────────────────────────────── */
 /* One grid of independent widgets, split in two equal halves. Each widget is
    a summary and an entry point: the header opens the surface, the body teases
@@ -53,23 +29,22 @@
    is where the full list lives; a widget that grew into a list would be a
    second dashboard nobody asked for.
 
-   The top half is the first widget (Agents) at full width — starting an
-   agent is the first thing Home asks of you, so it gets the room. The bottom
+   The top half is the first widget (the prompt composer) at full width —
+   starting an agent is the first thing Home asks of you, so it gets the
+   room. The bottom
    half is the other three in equal columns. Both rows share the board's
    height; below a sensible floor the board scrolls instead of squeezing. */
 
 .home-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  /* The Agents half carries the launcher plus a 3×3 slot board, so it gets
-     a little more than half. */
-  grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-md);
   flex: 1;
   min-height: 460px;
 }
 
-.home-grid > .home-card-agents {
+.home-grid > .home-composer {
   grid-column: 1 / -1;
 }
 
@@ -79,9 +54,13 @@
   min-width: 0;
   /* Each half of the board is the card's height; the body scrolls inside. */
   min-height: 0;
+  /* The prompt box's surface (.home-composer-box), with smaller corners
+     and a lighter shadow. */
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px color-mix(in srgb, #000 8%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   overflow: hidden;
 }
 
@@ -96,7 +75,7 @@
     align-content: start;
   }
 
-  .home-grid > .home-card-agents {
+  .home-grid > .home-composer {
     grid-column: auto;
   }
 
@@ -122,7 +101,8 @@
   background: none;
   border: none;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 10px 12px;
+  /* Room for the card's rounded corners. */
+  padding: 10px 16px;
   color: var(--text-primary);
   font: inherit;
   cursor: pointer;
@@ -169,7 +149,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 6px;
+  padding: 6px 10px; /* rows' 6px + 10px = the header's 16px */
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -385,7 +365,7 @@
   margin-bottom: 2px;
   background: color-mix(in srgb, var(--warning, #e5a50a) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning, #e5a50a) 32%, transparent);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   padding: 5px 8px;
   color: var(--warning, #e5a50a);
   font: inherit;
@@ -535,6 +515,16 @@
   justify-content: center;
   gap: 8px;
   text-align: center;
+}
+
+/* The no-project state hosts the shared projectStart block. The block fills
+   whatever it is given, so the host sets the measure — the same 760px the
+   first-run screen uses, so the three boxes are the same shape in both
+   places. The text above it stays centred; the boxes get their own room. */
+.lane-board-empty-start .project-start {
+  max-width: 760px;
+  margin-top: 18px;
+  text-align: left;
 }
 
 .lane-board-empty-icon {
@@ -758,7 +748,7 @@
   opacity: 1;
 }
 
-/* ─── "Removed from the top bar" notice ─────────────────── */
+/* ─── "Close this terminal?" confirmation ───────────────── */
 
 .tcn-modal {
   display: none;
@@ -833,7 +823,7 @@
 }
 
 .tcn-cancel,
-.tcn-remove {
+.tcn-close {
   flex: 1;
   font-family: inherit;
   font-size: 12px;
@@ -855,18 +845,18 @@
   border-color: var(--border-strong);
 }
 
-/* Nothing here is destructive, so removing is the accented default. */
-.tcn-remove {
-  background: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
+/* Closing kills the terminal's process, so it wears the error color. */
+.tcn-close {
+  background: var(--error);
+  border: 1px solid var(--error);
   color: var(--bg-primary);
 }
 
-.tcn-remove:hover {
+.tcn-close:hover {
   opacity: 0.88;
 }
 
-.tcn-remove:focus-visible,
+.tcn-close:focus-visible,
 .tcn-cancel:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
@@ -1345,153 +1335,149 @@
 }
 
 
-/* ─── Agents launcher ───────────────────────────────────── */
-/* The one action Home exists for, so it is the first thing in the Agents
-   card — above the slots, not tucked under it as a footer. Centred, because
-   it is the board's headline: a lead, a line saying what pressing Start
-   does, and the picker and button directly under it, drawn larger than the
-   terminal header's pair so they read as the primary control on the board.
+/* ─── Prompt composer ───────────────────────────────────── */
+/* The one action Home exists for, so it owns the top half: the greeting
+   centred over a rounded box, the prompt inside it with Start along its
+   bottom edge, and the agent picker just outside, under its bottom-left
+   corner. The box itself is the field: its border lights up while the
+   textarea has focus.
 
-   The picker is the shared .ai-tool-picker (terminal.css) and Start is the
+   The picker is the shared .ai-tool-picker (app-header.css) and Start is the
    shared .primary-btn (ui.css); only their size is overridden here.
    .home-agent-start is only the JS hook. */
 
-.home-agent-launcher {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  flex: none;
-  margin: 10px 10px 6px;
-  padding: 14px 20px 14px;
-  background:
-    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent-primary) 14%, transparent), transparent 70%),
-    var(--accent-subtle);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
-  border-radius: var(--radius-md);
-}
-
-.home-agent-launcher-text {
-  min-width: 0;
-  max-width: 560px;
-  text-align: center;
-  font-family: var(--font-sans);
-}
-
-.home-agent-launcher-lead {
-  margin: 0 0 4px;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-}
-
-.home-agent-launcher-hint {
-  margin: 0;
-  font-size: 11.5px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
-.home-agent-launcher-controls {
+.home-composer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  flex: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
 }
 
-.home-agent-launcher .ai-tool-picker {
-  height: 36px;
-  min-width: 180px;
-  padding-left: 12px;
+.home-composer-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 920px;
+}
+
+.home-composer-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-composer-box {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 18px;
+  box-shadow: 0 6px 24px color-mix(in srgb, #000 12%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.home-agent-launcher .home-agent-tool {
+.home-composer-box:hover {
+  border-color: var(--border-strong);
+}
+
+.home-composer-box:focus-within {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  box-shadow:
+    0 0 0 3px var(--accent-subtle),
+    0 6px 24px color-mix(in srgb, #000 12%, transparent);
+}
+
+.home-composer-input {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  max-height: 320px;
+  box-sizing: border-box;
+  resize: none;
+  padding: 16px 18px 8px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.home-composer-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.home-composer-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 8px 10px 10px 12px;
+}
+
+/* Outside the box, flush with its left edge. */
+.home-composer .ai-tool-picker {
+  align-self: flex-start;
+  height: 34px;
+  min-width: 160px;
+  padding-left: 12px;
+  background: var(--bg-primary);
+  border-radius: 10px;
+}
+
+.home-composer .home-agent-tool {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
   font-size: 12px;
 }
 
-.home-agent-launcher .primary-btn {
-  height: 36px;
-  padding: 0 20px 0 16px;
+.home-composer-shortcut {
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.home-composer .primary-btn {
+  height: 34px;
+  padding: 0 18px 0 14px;
+  border-radius: 10px;
   font-size: 12.5px;
   font-weight: 600;
 }
 
-.home-agent-launcher .primary-btn svg {
+.home-composer .primary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.home-composer .primary-btn svg {
   width: 13px;
   height: 13px;
 }
 
-/* Narrow board: the controls stack and stretch. */
+/* Narrow board: the shortcut hint goes. */
 @container (max-width: 759px) {
-  .home-agent-launcher-controls {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
+  .home-composer {
+    padding: 4px 0;
   }
 
-  .home-agent-launcher .ai-tool-picker {
-    flex: 1 1 auto;
-    min-width: 0;
+  .home-composer-shortcut {
+    display: none;
   }
 }
-
-/* ─── Agent slots ───────────────────────────────────────── */
-/* A project holds at most nine lanes, so the card is a fixed 3×3 board of
-   slots that fills the space under the launcher — never a half-empty list.
-   Every open terminal is a tile: the name on the first line, the state on
-   the second, same colours as the rows. Only what is open is drawn — the
-   header count says how much room is left. */
-
-.home-card-agents .home-card-body {
-  padding: 6px 10px 10px;
-}
-
-.home-agent-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  /* A fixed 3×3 slot board: the three rows share whatever height the body
-     has, so a full board uses the card instead of leaving a strip of
-     nothing under the last row. 48px is the two-line floor a tile needs. */
-  grid-template-rows: repeat(3, minmax(48px, 1fr));
-  gap: 6px;
-  flex: 1;
-  min-height: 0;
-}
-
-.home-agent-tile {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 3px;
-  min-height: 0;
-  padding: 6px 12px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-primary);
-}
-
-.home-agent-tile:hover {
-  border-color: var(--border-strong);
-}
-
-.home-agent-tile .home-card-row-name {
-  flex: none;
-  width: 100%;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.home-agent-tile .home-card-row-mark {
-  margin-left: auto;
-}
-
-.home-agent-tile.agent-approval { border-color: color-mix(in srgb, var(--error, #d45555) 40%, transparent); }
-.home-agent-tile.agent-input    { border-color: color-mix(in srgb, var(--warning, #e5a50a) 40%, transparent); }
 
 
 /* ─── Session rows ──────────────────────────────────────── */

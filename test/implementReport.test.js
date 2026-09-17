@@ -261,7 +261,7 @@ test('renderReport takes its token values from the app, not the old amber docume
 test('renderReport wears the app icon as vector, not a raster logo', () => {
   const html = mod.renderReport(data());
   assert.match(html, /class="rpt-mark"/);
-  assert.match(html, /M2 2h9v2\.6H4\.6V11H2V2Z/);   // the bracket paths, inside the badge
+  assert.match(html, /M2 2h7\.72v1\.52H3\.52V9\.72H2V2Z/);  // the bracket paths, inside the badge
   assert.match(html, /rect x="1" y="1"[^>]*fill="#14120e"/);  // the badge, charcoal
   assert.match(html, /fill="#f2eee4"/);             // the brackets, parchment
   assert.doesNotMatch(html, /data:image\/png/);     // no raster, at any size
@@ -344,7 +344,7 @@ test('the plan template wears the shared header and no longer claims to be dark-
   assert.match(text, /class="rpt-doc-type">Spec Plan Report</);
   assert.match(text, /class="rpt-slug">\{\{SLUG\}\}</);
   assert.match(text, /class="rpt-mark"/);
-  assert.match(text, /M2 2h9v2\.6H4\.6V11H2V2Z/);
+  assert.match(text, /M2 2h7\.72v1\.52H3\.52V9\.72H2V2Z/);
   assert.doesNotMatch(text, /Dark-only/);
   assert.doesNotMatch(text, /color-scheme:dark/);
 });

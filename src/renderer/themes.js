@@ -3,7 +3,8 @@
  *
  * Pure by design (no DOM, no electron) so it can be tested and required from
  * both the renderer and the palette. Everything that needs to enumerate or
- * describe themes reads from here: terminalTabBar (apply / toggle / restore),
+ * describe themes reads from here: terminalTabBar (apply), appHeader (restore
+ * and the header picker), menu.js (View › Theme),
  * index.js (View › Theme commands), terminalManager (xterm palette).
  *
  * Two attributes on <html> carry a theme:
@@ -13,9 +14,6 @@
  *                 light-vs-dark (the light overrides in terminals-view.css,
  *                 the embedded report shells, which know two palettes) reads
  *                 this, so a new theme never needs a second copy of those.
- *
- * `counterpart` is what the top-bar toggle flips to: the other scheme of the
- * same family, so a Dark+ user lands on Light+.
  */
 
 // xterm ANSI tables, shared by reference — a theme picks one and adds its own
@@ -86,7 +84,6 @@ const THEMES = Object.freeze({
     label: 'Dark',
     command: 'theme.dark',
     scheme: 'dark',
-    counterpart: 'light',
     ansi: ANSI_VSCODE_DARK,
     terminal: { background: '#0a0908', foreground: '#c4bcac', cursor: '#8ff0ae' }
   },
@@ -94,7 +91,6 @@ const THEMES = Object.freeze({
     label: 'Light',
     command: 'theme.light',
     scheme: 'light',
-    counterpart: 'dark',
     ansi: ANSI_FRAME_LIGHT,
     terminal: { background: '#f7f5f2', foreground: '#1c1a18', cursor: '#1c1a18' }
   },
@@ -102,7 +98,6 @@ const THEMES = Object.freeze({
     label: 'Dark+',
     command: 'theme.darkPlus',
     scheme: 'dark',
-    counterpart: 'light-plus',
     ansi: ANSI_VSCODE_DARK,
     terminal: { background: '#1f1f1f', foreground: '#cccccc', cursor: '#cccccc' }
   },
@@ -110,7 +105,6 @@ const THEMES = Object.freeze({
     label: 'Light+',
     command: 'theme.lightPlus',
     scheme: 'light',
-    counterpart: 'dark-plus',
     ansi: ANSI_VSCODE_LIGHT,
     terminal: { background: '#ffffff', foreground: '#3b3b3b', cursor: '#3b3b3b' }
   }
@@ -131,11 +125,6 @@ function schemeOf(name) {
   return THEMES[normalize(name)].scheme;
 }
 
-/** The theme the toggle flips to from `name`. */
-function counterpartOf(name) {
-  return THEMES[normalize(name)].counterpart;
-}
-
 /** The xterm.js `theme` option for a theme id. */
 function terminalTheme(name) {
   const t = THEMES[normalize(name)];
@@ -144,5 +133,5 @@ function terminalTheme(name) {
 
 module.exports = {
   THEMES, THEME_IDS, DEFAULT_THEME,
-  normalize, schemeOf, counterpartOf, terminalTheme
+  normalize, schemeOf, terminalTheme
 };

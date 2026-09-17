@@ -18,17 +18,26 @@
   <link rel="stylesheet" href="src/renderer/styles/main.css">
 </head>
 <body>
-  <!-- Telemetry Notice (one-time, dismissable) -->
-  <div id="telemetry-notice" class="telemetry-notice" role="status">
-    <span class="telemetry-notice-icon">&#10022;</span>
-    <span class="telemetry-notice-text">
-      Frame sends anonymous usage stats (app version + OS only) to count active users — no code or file paths.
-      <a href="#" id="telemetry-notice-settings-link">Manage in Settings</a>.
-    </span>
-    <span class="telemetry-notice-actions">
-      <button type="button" id="telemetry-notice-ack" class="telemetry-notice-ack">Got it</button>
+  <!-- Telemetry Notice (one-time, dismissable): a small solid card in the
+       bottom-right corner, above the status bar. It used to be a translucent
+       strip across the top that sat over the app header and was hard to read
+       through; the corner is free (toasts appear top-centre) and covers
+       nothing the user needs on a first launch. -->
+  <div id="telemetry-notice" class="telemetry-notice" role="status" aria-labelledby="telemetry-notice-title">
+    <div class="telemetry-notice-head">
+      <span class="telemetry-notice-icon" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      </span>
+      <span id="telemetry-notice-title" class="telemetry-notice-title">Anonymous usage stats</span>
       <button type="button" id="telemetry-notice-close" class="telemetry-notice-close" aria-label="Dismiss">&#x2715;</button>
-    </span>
+    </div>
+    <p class="telemetry-notice-text">
+      Frame sends your app version and OS to count active users. No code or file paths.
+    </p>
+    <div class="telemetry-notice-actions">
+      <a href="#" id="telemetry-notice-settings-link" class="telemetry-notice-link">Manage in Settings</a>
+      <button type="button" id="telemetry-notice-ack" class="primary-btn telemetry-notice-ack">Got it</button>
+    </div>
   </div>
 
   <!-- Sample-project banner (only visible while inside the bundled sample) -->
@@ -47,10 +56,57 @@
     <button type="button" id="detection-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
   </div>
 
-  <!-- App Loader (boot splash, hidden once workspace data arrives) -->
+  <!-- App Loader — boot splash and, on a first run, the onboarding screen
+       (first-run-onboarding-screen spec). Frame's mark sits at half opacity
+       and fills along its own perimeter — top-left → right → down → left →
+       back up — the way a progress ring fills, so the wait reads as the logo
+       drawing itself. Once full, the wordmark grows out of the mark's right
+       edge and pushes the mark left.
+
+       Then one of two things happens. With projects, the surface fades and
+       parks. With none, the lockup stays exactly where the intro left it and
+       #onboarding fades up beneath it — one continuous page, which is why the
+       panel lives inside this element instead of being a second surface that
+       could drift by a pixel (plan D1/D3).
+
+       Static markup: the splash must paint before any script runs.
+       appLoader.js drives the phases; onboarding.js owns #onboarding. -->
   <div id="app-loader" class="app-loader">
-    <div class="app-loader-mark">&#10022;</div>
-    <div class="app-loader-text">Loading workspace…</div>
+    <div class="app-loader-brand">
+      <div class="app-loader-mark">
+        <svg class="app-loader-mark-base" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/><path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/><path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/><path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/>
+        </svg>
+        <svg class="app-loader-mark-fill" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/><path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/><path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/><path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/>
+        </svg>
+      </div>
+      <div class="app-loader-wordmark" aria-hidden="true"><span class="app-loader-wordmark-text">Your engineering mind, in Frame!</span></div>
+    </div>
+
+    <!-- First-run content. Hidden until onboarding.takeOver() reveals it, so
+         a user with projects never sees it and the boot path is unchanged. -->
+    <!-- Outside #onboarding on purpose: the panel is transformed while it
+         fades up, and a transformed ancestor becomes the containing block for
+         position: fixed — the × would follow the panel instead of the window. -->
+    <button type="button" id="onboarding-close" class="onboarding-close" aria-label="Close">&#x2715;</button>
+
+    <div id="onboarding" class="onboarding" role="group" aria-label="Start with a project">
+      <!-- The three ways into a project, built by projectStart.js and shared
+           with Home's no-project state so the two cannot drift. -->
+      <div id="onboarding-start"></div>
+
+      <div class="onboarding-agent">
+        <span class="onboarding-agent-label">Default agent</span>
+        <div id="onboarding-tool-options" class="onboarding-tool-options"></div>
+      </div>
+
+      <div class="onboarding-foot">
+        <button type="button" id="onboarding-skip" class="onboarding-skip">Skip</button>
+      </div>
+    </div>
+
+    <span class="app-loader-sr">Loading workspace…</span>
   </div>
 
   <!-- App header: one row across the whole window, above the sidebar and
@@ -67,7 +123,7 @@
            window says what the dock says. The version lives in the status
            bar's right end; an available update shows on the bell. -->
       <svg class="app-header-mark" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M2 2h9v2.6H4.6V11H2V2Z"/><path d="M22 2v9h-2.6V4.6H13V2h9Z"/><path d="M2 22v-9h2.6v6.4H11V22H2Z"/><path d="M22 22h-9v-2.6h6.4V13H22v9Z"/>
+        <path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/><path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/><path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/><path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/>
       </svg>
       <span class="app-header-brand">Frame</span>
     </div>
@@ -133,13 +189,16 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex-shrink:0"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
         <span class="update-badge"></span>
       </button>
-      <!-- Theme toggle: window-level control at the header's right end
-           (status-bar spec). Wired by appHeader.js. -->
-      <button id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Toggle light/dark theme" aria-label="Toggle theme">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-        </svg>
-      </button>
+      <!-- Theme picker: window-level control at the header's right end
+           (status-bar spec). The button shows the current scheme (sun /
+           moon) and opens a popover listing every theme in themes.js with
+           the current one checked. Icon, list and state are all painted by
+           appHeader.js from data-theme, so the palette and the View menu
+           keep it right too. -->
+      <div class="theme-picker">
+        <button type="button" id="sidebar-theme-btn" class="btn-theme-toggle" tabindex="-1" title="Theme" aria-label="Theme" aria-haspopup="menu" aria-expanded="false"></button>
+        <div id="theme-menu" class="theme-menu" role="menu" aria-label="Theme" hidden></div>
+      </div>
     </div>
   </header>
 
@@ -201,11 +260,12 @@
           </svg>
         </button>
         <!-- The foot of the rail, below the view tabs: Plugins, Feedback,
-             then Frame Settings. All three open a modal (#plugins-modal,
-             #feedback-modal, the Frame Settings overlay) rather than
-             switching views — hence no .sidebar-tab-btn (that class drives
-             view switching). .sidebar-rail-btn-foot on the first pushes the
-             group to the bottom. -->
+             Frame Settings, then How to Use Frame. All four open a modal
+             (#plugins-modal, #feedback-modal, the Frame Settings overlay,
+             #guide-overlay) rather than switching views — hence no
+             .sidebar-tab-btn (that class drives view switching).
+             .sidebar-rail-btn-foot on the first pushes the group to the
+             bottom. -->
         <button id="plugins-btn" class="sidebar-rail-btn sidebar-rail-btn-foot" aria-label="Plugins" tabindex="-1">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>
@@ -224,19 +284,25 @@
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
+        <!-- How to Use Frame (how-to-use-frame-guide spec): opens the guide.
+             Runs help.guide, like Help › How to Use Frame and the palette. -->
+        <button id="guide-btn" class="sidebar-rail-btn" aria-label="How to Use Frame" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+          </svg>
+        </button>
       </nav>
 
       <div class="sidebar-panel">
         <!-- Projects view (default) — the workspace panel for the selected
              project (project-dropdown spec): selection lives in the
              current-project switcher above, which also carries "+ Add a
-             project…". Add new Project sits pinned at the bottom and is shown
-             only while no project is selected (projectSection). -->
+             project…". The pinned "Add new Project" CTA was removed on
+             2026-09-16: with no project the sidebar collapses to its rail and
+             Home carries the three ways in, so the button was a third answer
+             to a question already answered twice. -->
         <div class="sidebar-tab-content sidebar-view-projects" data-sidebar-tab-content="projects">
           <div id="workspace-panel" class="workspace-panel"></div>
-          <button id="project-add-btn" class="project-add-btn" tabindex="-1" title="Open a project">
-            <span class="project-add-btn-icon">+</span><span class="project-add-btn-label">Add new Project</span>
-          </button>
         </div>
 
         <!-- Files view -->
@@ -657,69 +723,28 @@
       </div>
     </div>
 
-    <!-- Welcome Overlay (First-run Onboarding) -->
-    <div id="welcome-overlay" class="welcome-overlay">
-      <div class="welcome-card" role="dialog" aria-label="Welcome to Frame">
-        <div class="welcome-header">
-          <div class="welcome-mark">&#10022;</div>
-          <h2 class="welcome-title">Welcome to Frame</h2>
-          <p class="welcome-subtitle">
-            The terminal-first IDE for agentic development. One standard for every
-            project, every AI tool. Context that survives sessions.
-          </p>
+    <!-- How to Use Frame (how-to-use-frame-guide spec). A static frame only:
+         guideModal.js renders the index tree, the page and the counter from
+         src/renderer/guide/guideContent.js. Never opens by itself: the rail's
+         help button, Help › How to Use Frame and the palette (help.guide). -->
+    <div id="guide-overlay" class="guide-overlay">
+      <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-title" tabindex="-1">
+        <div class="guide-header">
+          <h3 id="guide-title" class="guide-title">How to Use Frame</h3>
+          <button type="button" id="guide-close" class="guide-close" aria-label="Close">&#x2715;</button>
         </div>
-
-        <div class="welcome-section">
-          <h4 class="welcome-section-title">Get started</h4>
-          <div class="welcome-actions">
-            <button id="welcome-try-sample" class="welcome-action welcome-action-featured">
-              <span class="welcome-action-icon">&#9733;</span>
-              <span class="welcome-action-text">
-                <span class="welcome-action-title">Try a Sample Project</span>
-                <span class="welcome-action-desc">Explore Frame on a fictional codebase — specs, tasks, notes already populated</span>
-              </span>
-            </button>
-            <button id="welcome-open-folder" class="welcome-action welcome-action-featured">
-              <span class="welcome-action-icon">&#128193;</span>
-              <span class="welcome-action-text">
-                <span class="welcome-action-title">Open Your Own Project</span>
-                <span class="welcome-action-desc">Any language, any layout — Frame detects the stack and sets up agent context</span>
-              </span>
-            </button>
-            <button id="welcome-create-project" class="welcome-action">
-              <span class="welcome-action-icon">&#10010;</span>
-              <span class="welcome-action-text">
-                <span class="welcome-action-title">Create New Project</span>
-                <span class="welcome-action-desc">Start a fresh Frame project from scratch</span>
-              </span>
-            </button>
-            <button id="welcome-clone-github" class="welcome-action">
-              <span class="welcome-action-icon">&#8623;</span>
-              <span class="welcome-action-text">
-                <span class="welcome-action-title">Clone from GitHub</span>
-                <span class="welcome-action-desc">Pull a repo and open it as a project</span>
-              </span>
-            </button>
-          </div>
+        <div class="guide-body">
+          <nav id="guide-tree" class="guide-tree" aria-label="Guide contents"></nav>
+          <article id="guide-page" class="guide-page" aria-live="polite">
+            <div id="guide-sketch" class="guide-sketch" aria-hidden="true"></div>
+            <div id="guide-page-content" class="guide-page-content"></div>
+          </article>
         </div>
-
-        <div class="welcome-section">
-          <h4 class="welcome-section-title">Default AI tool</h4>
-          <div id="welcome-tool-options" class="welcome-tool-options"></div>
-        </div>
-
-        <div class="welcome-tip">
-          Tip: press <kbd>⌘⇧K</kbd> any time to see all keyboard shortcuts.
-        </div>
-
-        <div class="welcome-footer">
-          <label class="welcome-dont-show-label">
-            <input type="checkbox" id="welcome-dont-show" />
-            <span>Don&rsquo;t show this again</span>
-          </label>
-          <div class="welcome-footer-actions">
-            <button id="welcome-close" class="welcome-close-btn">Close</button>
-            <button id="welcome-start" class="welcome-start-btn">Start &rarr;</button>
+        <div class="guide-footer">
+          <div class="guide-nav">
+            <button type="button" id="guide-back" class="guide-btn">&larr; Back</button>
+            <span id="guide-counter" class="guide-counter" aria-live="polite"></span>
+            <button type="button" id="guide-next" class="guide-btn guide-btn-primary">Next &rarr;</button>
           </div>
         </div>
       </div>
@@ -838,45 +863,7 @@
           <h3>Open a Project</h3>
           <button class="modal-close" id="open-project-modal-close">&#x2715;</button>
         </div>
-        <div class="modal-body">
-          <div class="open-project-options">
-            <button type="button" id="open-project-select" class="open-project-option">
-              <span class="open-project-option-icon">&#128193;</span>
-              <span class="open-project-option-text">
-                <span class="open-project-option-title">Select Project Folder</span>
-                <span class="open-project-option-desc">Open an existing folder on your machine</span>
-              </span>
-            </button>
-            <button type="button" id="open-project-create" class="open-project-option">
-              <span class="open-project-option-icon">&#10024;</span>
-              <span class="open-project-option-text">
-                <span class="open-project-option-title">Create New Project</span>
-                <span class="open-project-option-desc">Choose a location for a new project</span>
-              </span>
-            </button>
-            <button type="button" id="open-project-clone-toggle" class="open-project-option">
-              <span class="open-project-option-icon">&#128279;</span>
-              <span class="open-project-option-text">
-                <span class="open-project-option-title">Clone GitHub Repo</span>
-                <span class="open-project-option-desc">Clone a repository by its URL</span>
-              </span>
-            </button>
-          </div>
-          <div id="open-project-clone-form" class="open-project-clone-form" style="display:none;">
-            <input
-              id="open-project-clone-url"
-              type="text"
-              placeholder="https://github.com/user/repo"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <div id="open-project-clone-error" class="open-project-clone-error" style="display:none;"></div>
-          </div>
-        </div>
-        <div class="modal-footer" id="open-project-clone-footer" style="display:none;">
-          <button class="modal-btn modal-btn-cancel" id="open-project-clone-cancel">Back</button>
-          <button class="modal-btn modal-btn-primary" id="open-project-clone-confirm">Clone</button>
-        </div>
+        <div class="modal-body" id="open-project-start"></div>
       </div>
     </div>
 
@@ -1415,7 +1402,15 @@
 
   <!-- File Tree Context Menu -->
   <div id="file-tree-context-menu" class="context-menu" role="menu">
+    <button class="context-menu-item" data-action="reveal" type="button">Reveal in Finder</button>
+    <div class="context-menu-separator" data-group="reveal"></div>
+    <button class="context-menu-item" data-action="cut" type="button">Cut</button>
+    <button class="context-menu-item" data-action="copy" type="button">Copy</button>
+    <button class="context-menu-item" data-action="paste" type="button">Paste</button>
     <button class="context-menu-item" data-action="copy-path" type="button">Copy Filepath</button>
+    <div class="context-menu-separator" data-group="edit"></div>
+    <button class="context-menu-item" data-action="rename" type="button">Rename</button>
+    <button class="context-menu-item danger" data-action="delete" type="button">Delete</button>
   </div>
 
   <!-- Settings, in two surfaces. The split is the scope: what belongs to
@@ -1641,6 +1636,25 @@
                 <button type="button" class="settings-about-btn" data-account-action="signIn">Try again</button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Appearance (ui-zoom-steps spec). The interface scale is page zoom
+             owned by main; this select shows the current step and asks for
+             another. Options are filled from src/shared/uiZoom.js at runtime
+             so the labels and percentages can never drift from the ladder. -->
+        <div class="settings-section">
+          <h4 class="settings-section-title">Appearance</h4>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-ui-zoom">Interface size</label>
+              <p class="settings-row-desc">
+                Scales text, icons and spacing together. Zoom In and Zoom Out in the
+                View menu (and their shortcuts) step it from anywhere; Reset Zoom
+                returns to Default.
+              </p>
+            </div>
+            <select class="settings-select" id="settings-ui-zoom" aria-label="Interface size"></select>
           </div>
         </div>
 
