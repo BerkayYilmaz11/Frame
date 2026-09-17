@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-16",
+  "lastUpdated": "2026-09-17",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -2634,43 +2634,43 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 247
+          "line": 249
         },
         "buildAICommandsSubmenu": {
-          "line": 258,
+          "line": 260,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 307,
+          "line": 309,
           "purpose": "Build tool switcher submenu"
         },
         "buildThemeSubmenu": {
-          "line": 328,
+          "line": 330,
           "purpose": "View › Theme: one radio item per registry entry, the current one checked."
         },
         "sendCommand": {
-          "line": 343,
+          "line": 345,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 353,
+          "line": 355,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 362,
+          "line": 364,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 376,
+          "line": 378,
           "purpose": "Create and set application menu"
         }
       },
@@ -9293,32 +9293,32 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 318
+          "line": 321
         },
         "saveCollapsedGroups": {
-          "line": 327,
+          "line": 330,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 335
+          "line": 338
         },
         "revealNavItem": {
-          "line": 404,
+          "line": 407,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 417
+          "line": 420
         },
         "refreshWorkspaceNav": {
-          "line": 429
+          "line": 432
         },
         "updateWorkspaceNav": {
-          "line": 505,
+          "line": 508,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
