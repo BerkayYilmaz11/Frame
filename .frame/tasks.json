@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:16:09.454Z",
+  "lastUpdated": "2026-09-17T10:19:59.367Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8552,13 +8552,13 @@
       "title": "Build the Frame Cloud modal shell: `#cloud-btn` in the rail foot of `index.html` directly above Frame Settings (hidden while the session state is `unavailable`, no badge, tooltip \"Frame Cloud\" / \"Frame Cloud — <account>\"), `#cloud-overlay` opened through `settingsOverlay.create`, and `src/renderer/cloudHub.js` owning the sign-in panes moved from `#settings-account` / `frameSettingsModal.js` (renamed `cloud-*`, copy unchanged), the signed-in header (account · cloud workspace · this device · Sign out, `ephemeral` and unreachable notes), an empty tab strip with Refresh and \"Last updated …\", `open({ tab, folderPath })`, `toggle`, `signIn`, `signOut`, `accountState`, and the landing on `registering → signedIn` (open the modal unless `onboarding.isOpen()` — new export in `onboarding.js` — or `guidedTour.isOpen()`). Reduce Settings → Account to one row (\"Signed in as <name> · Open Frame Cloud\" / \"Frame Cloud · Sign in…\") that closes Frame Settings and opens the modal; repoint `cloud.signIn` / `cloud.signOut` and add `cloud.open` in `src/renderer/index.js`; move the account styles from `settings-modal.css` to a new `styles/components/cloud-hub.css` imported in `main.css`.",
       "description": "",
       "source": "spec:frame-cloud-projects:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:19:59.367Z",
+      "completedAt": "2026-09-17T10:19:59.367Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T07",

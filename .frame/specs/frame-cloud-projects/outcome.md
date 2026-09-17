@@ -40,3 +40,11 @@ _Captured: 2026-09-17 · 3 file change(s)_
 
 ---
 
+## T06 — Frame Cloud modal shell
+
+Added `#cloud-btn` (rail foot, above the gear, hidden while `unavailable`) and `#cloud-overlay` (wide `settingsOverlay`), and created `cloudHub.js` with the moved sign-in panes (renamed `cloud-*`), the signed-in header, the tab strip, `open/toggle/signIn/signOut/accountState` and the guarded landing after sign-in. Settings → Account shrank to one row; the palette repointed `cloud.signIn`/`cloud.signOut` and gained `cloud.open`; `onboarding.js` exports `isOpen`; account styles moved to the new `cloud-hub.css`. Deviations: the tooltip text is fixed when attached, so `index.js` swaps in a fresh copy of the button whenever its label changes (this avoids touching `tooltip.js`, which is outside the Files list), and the onboarding/tour guard plus the tab renderer are passed into `cloudHub.init()`.
+
+_Captured: 2026-09-17 · 10 file change(s)_
+
+---
+

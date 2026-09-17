@@ -231,7 +231,7 @@ function setupAllIPC() {
   ipcMain.handle(IPC.GET_USER_SETTING, (event, key) => userSettings.get(key));
   ipcMain.handle(IPC.SET_USER_SETTING, (event, key, value) => userSettings.set(key, value));
 
-  // Frame Cloud sign-in (Settings → Account)
+  // Frame Cloud: sign-in, then the cloud workspace's projects (the Frame Cloud modal)
   cloudSession.setupIPC(ipcMain);
   cloudProjectsService.setupIPC(ipcMain);
 

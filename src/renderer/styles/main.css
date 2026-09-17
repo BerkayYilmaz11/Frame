@@ -48,6 +48,9 @@
 /* 11. Settings Modal */
 @import 'components/settings-modal.css';
 
+/* 11a. Frame Cloud modal (a wide settings overlay) */
+@import 'components/cloud-hub.css';
+
 /* 12. Telemetry Notice (one-time disclosure banner) */
 @import 'components/telemetry-notice.css';
 

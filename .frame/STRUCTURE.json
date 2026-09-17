@@ -6103,6 +6103,145 @@
         }
       }
     },
+    "renderer/cloudHub": {
+      "file": "src/renderer/cloudHub.js",
+      "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
+      "exports": [],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "settingsOverlay"
+      ],
+      "functions": {
+        "init": {
+          "line": 47,
+          "params": [
+            "opts = {}"
+          ],
+          "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
+        },
+        "onOpen": {
+          "line": 86,
+          "purpose": "Opening re-reads both states; a signed-in session asks the server once"
+        },
+        "pullSession": {
+          "line": 95
+        },
+        "pullProjects": {
+          "line": 108
+        },
+        "refreshProjects": {
+          "line": 122,
+          "purpose": "Re-read the list; on On this device, the candidates follow."
+        },
+        "onAction": {
+          "line": 138,
+          "params": [
+            "action",
+            "btn"
+          ]
+        },
+        "invokeSession": {
+          "line": 165,
+          "params": [
+            "channel",
+            "btn"
+          ]
+        },
+        "renderSession": {
+          "line": 178,
+          "params": [
+            "state"
+          ]
+        },
+        "land": {
+          "line": 209
+        },
+        "renderHeader": {
+          "line": 219,
+          "params": [
+            "s"
+          ]
+        },
+        "renderProjects": {
+          "line": 232,
+          "params": [
+            "state"
+          ]
+        },
+        "setTab": {
+          "line": 251,
+          "params": [
+            "tab",
+            "opts = {}"
+          ]
+        },
+        "open": {
+          "line": 277,
+          "params": [
+            "{ tab",
+            "folderPath } = {}"
+          ],
+          "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
+        },
+        "signIn": {
+          "line": 285,
+          "purpose": "Palette \"Frame Cloud: Sign in\" and every Sign in button elsewhere: open here and start."
+        },
+        "signOut": {
+          "line": 292,
+          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
+        },
+        "setNote": {
+          "line": 298,
+          "params": [
+            "name",
+            "visible"
+          ]
+        },
+        "setText": {
+          "line": 304,
+          "params": [
+            "id",
+            "text"
+          ]
+        },
+        "setValue": {
+          "line": 310,
+          "params": [
+            "id",
+            "primary",
+            "secondary"
+          ],
+          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
+        },
+        "isWebUrl": {
+          "line": 322,
+          "params": [
+            "url"
+          ]
+        },
+        "webOrigin": {
+          "line": 326,
+          "params": [
+            "url"
+          ]
+        },
+        "formatRelative": {
+          "line": 335,
+          "params": [
+            "date"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_SESSION_STATE",
+          "CLOUD_PROJECTS_STATE"
+        ],
+        "emits": []
+      }
+    },
     "renderer/commandPalette": {
       "file": "src/renderer/commandPalette.js",
       "description": "Command Palette",
@@ -7368,115 +7507,47 @@
         "init",
         "open",
         "close",
-        "toggle",
-        "signIn",
-        "signOut",
-        "accountState"
+        "toggle"
       ],
       "depends": [
         "electron",
         "shared/ipcChannels",
         "settingsOverlay",
+        "cloudHub",
         "shared/uiZoom",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 64
+          "line": 56
         },
         "initAccountSection": {
-          "line": 129
+          "line": 121
         },
         "pullAccountState": {
-          "line": 153
+          "line": 142
         },
         "refreshAccountOnOpen": {
-          "line": 168,
-          "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
-        },
-        "onAccountAction": {
-          "line": 177,
-          "params": [
-            "action",
-            "btn"
-          ]
-        },
-        "invokeAccount": {
-          "line": 199,
-          "params": [
-            "channel",
-            "btn"
-          ]
+          "line": 153,
+          "purpose": "Opening the modal re-reads the session, so the row never shows a state"
         },
         "renderAccount": {
-          "line": 210,
+          "line": 157,
           "params": [
             "state"
           ]
         },
-        "showSignedInNote": {
-          "line": 239
-        },
-        "renderSignedIn": {
-          "line": 247,
-          "params": [
-            "s"
-          ]
-        },
-        "setNote": {
-          "line": 258,
-          "params": [
-            "name",
-            "visible"
-          ]
-        },
-        "setText": {
-          "line": 263,
-          "params": [
-            "id",
-            "text"
-          ]
-        },
-        "setValue": {
-          "line": 269,
-          "params": [
-            "id",
-            "primary",
-            "secondary"
-          ],
-          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
-        },
-        "isWebUrl": {
-          "line": 281,
-          "params": [
-            "url"
-          ]
-        },
-        "webOrigin": {
-          "line": 285,
-          "params": [
-            "url"
-          ]
-        },
-        "signIn": {
-          "line": 295,
-          "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
-        },
-        "signOut": {
-          "line": 303,
-          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
-        },
         "initAboutSection": {
-          "line": 309
+          "line": 173
         },
         "runCheck": {
-          "line": 394,
+          "line": 258,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 433,
+          "line": 297,
           "params": [
             "{ checked",
             "found",
@@ -7488,32 +7559,32 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 457,
+          "line": 321,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 468
+          "line": 332
         },
         "hideSidebarDot": {
-          "line": 472
+          "line": 336
         },
         "formatRelative": {
-          "line": 478,
+          "line": 342,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 494,
+          "line": 358,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 513
+          "line": 377
         },
         "syncToggleFromSettings": {
-          "line": 523
+          "line": 387
         }
       },
       "ipc": {
@@ -9111,6 +9182,7 @@
         "projectSettingsModal",
         "doneWindow",
         "frameSettingsModal",
+        "cloudHub",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -9129,34 +9201,34 @@
       ],
       "functions": {
         "init": {
-          "line": 64,
+          "line": 65,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 317,
+          "line": 320,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 425,
+          "line": 455,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 535,
+          "line": 565,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 561,
+          "line": 591,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 587,
+          "line": 617,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1007,
+          "line": 1044,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -9511,7 +9583,8 @@
         "init",
         "takeOver",
         "open",
-        "close"
+        "close",
+        "isOpen"
       ],
       "depends": [
         "electron",
@@ -15634,6 +15707,11 @@
         "module": "main/cloud/cloudSession",
         "file": "src/main/cloud/cloudSession.js",
         "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
+      },
+      {
+        "module": "renderer/cloudHub",
+        "file": "src/renderer/cloudHub.js",
+        "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
       }
     ],
     "commands": [
