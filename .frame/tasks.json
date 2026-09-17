@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:01:33.994Z",
+  "lastUpdated": "2026-09-17T10:08:40.282Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8487,13 +8487,13 @@
       "title": "Make `callTrpc` in `src/main/cloud/deviceFlow.js` send query input as `GET /trpc/<name>?input=<url-encoded JSON>` (POST body unchanged), and remove `access` everywhere it is read: `runSignIn` and `sessionFromMe` in `deviceFlow.js`, `pickSession` in `sessionStore.js`, `PUBLIC_KEYS` in `cloudSession.js`, the Plan row in `index.html` (`#settings-account-plan`) and its `setText` in `frameSettingsModal.js`. Extend `test/cloudDeviceFlow.test.js`: GET input encoding, POST unchanged, a session shape without `access`.",
       "description": "",
       "source": "spec:frame-cloud-projects:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:08:40.282Z",
+      "completedAt": "2026-09-17T10:08:40.282Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T02",

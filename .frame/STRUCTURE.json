@@ -494,10 +494,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 61
+          "line": 60
         },
         "fetchJson": {
-          "line": 73,
+          "line": 72,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -508,41 +508,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 114,
+          "line": 113,
           "params": [
             "ms",
             "signal"
           ]
         },
         "openUrl": {
-          "line": 134,
+          "line": 133,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 147
+          "line": 146
         },
         "deviceInfo": {
-          "line": 169
+          "line": 168
         },
         "toPublicState": {
-          "line": 181
+          "line": 180
         },
         "getPublicState": {
-          "line": 189
+          "line": 188
         },
         "publish": {
-          "line": 193
+          "line": 192
         },
         "setState": {
-          "line": 198,
+          "line": 197,
           "params": [
             "next"
           ]
         },
         "signedInState": {
-          "line": 203,
+          "line": 202,
           "params": [
             "serverUrl",
             "session",
@@ -550,46 +550,46 @@
           ]
         },
         "bringToFront": {
-          "line": 218,
+          "line": 216,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 226
+          "line": 224
         },
         "signIn": {
-          "line": 235,
+          "line": 233,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 286
+          "line": 284
         },
         "refresh": {
-          "line": 294,
+          "line": 292,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
         "signOut": {
-          "line": 324,
+          "line": 322,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 349,
+          "line": 347,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 353
+          "line": 351
         },
         "getState": {
-          "line": 374,
+          "line": 372,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 381,
+          "line": 379,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 385,
+          "line": 383,
           "params": [
             "ipcMain"
           ]
@@ -630,7 +630,8 @@
         "fetchMe",
         "signOutDevice",
         "runSignIn",
-        "refreshSession"
+        "refreshSession",
+        "callTrpc"
       ],
       "depends": [],
       "functions": {
@@ -726,7 +727,7 @@
           ]
         },
         "callTrpc": {
-          "line": 185,
+          "line": 190,
           "params": [
             "{ api",
             "name",
@@ -735,10 +736,11 @@
             "input",
             "fetchJson",
             "signal }"
-          ]
+          ],
+          "purpose": "One tRPC procedure, no transformer. A query (GET) carries its input as"
         },
         "registerDevice": {
-          "line": 198,
+          "line": 208,
           "params": [
             "{ api",
             "token",
@@ -748,7 +750,7 @@
           ]
         },
         "fetchMe": {
-          "line": 207,
+          "line": 217,
           "params": [
             "{ api",
             "token",
@@ -757,7 +759,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 211,
+          "line": 221,
           "params": [
             "{ api",
             "token",
@@ -766,7 +768,7 @@
           ]
         },
         "pollForToken": {
-          "line": 221,
+          "line": 231,
           "params": [
             "{ api",
             "code",
@@ -778,13 +780,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 274,
+          "line": 284,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 290,
+          "line": 300,
           "params": [
             "{ api",
             "fetchJson",
@@ -798,19 +800,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 349,
+          "line": 358,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 361,
+          "line": 370,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 375,
+          "line": 383,
           "params": [
             "{ api",
             "token",
@@ -852,21 +854,21 @@
           ]
         },
         "load": {
-          "line": 54,
+          "line": 53,
           "params": [
             "serverUrl"
           ],
           "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
         },
         "save": {
-          "line": 83,
+          "line": 82,
           "params": [
             "session"
           ],
-          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, access, device })."
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device })."
         },
         "clear": {
-          "line": 104,
+          "line": 103,
           "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
         }
       }
@@ -7002,21 +7004,21 @@
           ]
         },
         "setNote": {
-          "line": 260,
+          "line": 258,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 265,
+          "line": 263,
           "params": [
             "id",
             "text"
           ]
         },
         "setValue": {
-          "line": 271,
+          "line": 269,
           "params": [
             "id",
             "primary",
@@ -7025,36 +7027,36 @@
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "isWebUrl": {
-          "line": 283,
+          "line": 281,
           "params": [
             "url"
           ]
         },
         "webOrigin": {
-          "line": 287,
+          "line": 285,
           "params": [
             "url"
           ]
         },
         "signIn": {
-          "line": 297,
+          "line": 295,
           "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
         },
         "signOut": {
-          "line": 305,
+          "line": 303,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "initAboutSection": {
-          "line": 311
+          "line": 309
         },
         "runCheck": {
-          "line": 396,
+          "line": 394,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 435,
+          "line": 433,
           "params": [
             "{ checked",
             "found",
@@ -7066,32 +7068,32 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 459,
+          "line": 457,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 470
+          "line": 468
         },
         "hideSidebarDot": {
-          "line": 474
+          "line": 472
         },
         "formatRelative": {
-          "line": 480,
+          "line": 478,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 496,
+          "line": 494,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 515
+          "line": 513
         },
         "syncToggleFromSettings": {
-          "line": 525
+          "line": 523
         }
       },
       "ipc": {

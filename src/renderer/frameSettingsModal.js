@@ -164,7 +164,7 @@ function pullAccountState() {
 }
 
 // Opening the modal re-reads the session, and a signed-in one asks the server
-// once (device.me) so a plan changed on the web shows up here.
+// once (device.me) so details changed on the web show up here.
 function refreshAccountOnOpen() {
   if (!accountSection) return;
   pullAccountState().then((state) => {
@@ -250,8 +250,6 @@ function renderSignedIn(s) {
   const device = s.device || {};
   setValue('settings-account-user', user.name || user.email || '—', user.name ? user.email : '');
   setValue('settings-account-workspace', workspace.name || workspace.slug || '—', workspace.name ? workspace.slug : '');
-  // Plan is display text from the server; Frame never compares it.
-  setText('settings-account-plan', (s.access && s.access.planLabel) || '—');
   const lastSeen = device.lastSeenAt || device.last_seen_at;
   const seen = lastSeen ? `last seen ${formatRelative(new Date(lastSeen))}` : '';
   setValue('settings-account-device', device.name || '—', seen);

@@ -43,7 +43,6 @@ const PUBLIC_KEYS = [
   'verificationUrl',
   'user',
   'workspace',
-  'access',
   'device',
   'reason',
   'serverUnreachable',
@@ -207,7 +206,6 @@ function signedInState(serverUrl, session, ephemeral) {
     ephemeral: Boolean(ephemeral),
     user: session.user,
     workspace: session.workspace,
-    access: session.access,
     device: session.device,
   };
 }

@@ -55,8 +55,8 @@ function fakeClock() {
 function fakeFetch(routes) {
   const calls = [];
   const fetchJson = async (url, opts = {}) => {
-    const path = url.slice(API.length);
-    calls.push({ url, path, ...opts });
+    const [path, query = ''] = url.slice(API.length).split('?');
+    calls.push({ url, path, query, ...opts });
     const queue = routes[path];
     if (!queue) throw new Error(`unexpected request ${path}`);
     let answer = queue.length > 1 ? queue.shift() : queue[0];
@@ -79,7 +79,6 @@ const REGISTERED = {
   deviceId: 'd1',
   user: { name: 'Ada', email: 'ada@example.com' },
   workspace: { name: 'Lab', slug: 'lab' },
-  access: { cloud: true, planLabel: 'Pro' },
 };
 
 function code(overrides = {}) {
@@ -216,12 +215,34 @@ test('registerDevice posts the device info with the bearer token and unwraps res
 });
 
 test('fetchMe is a GET with the bearer token and no body', async () => {
-  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd1', name: 'Studio' }, access: REGISTERED.access };
+  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd1', name: 'Studio' } };
   const { fetchJson, calls } = fakeFetch({ '/trpc/device.me': [ok(me)] });
   assert.deepEqual(await flow.fetchMe({ api: API, token: 'tk', fetchJson }), me);
   assert.equal(calls[0].method, 'GET');
   assert.equal(calls[0].token, 'tk');
   assert.equal('body' in calls[0], false);
+  assert.equal(calls[0].query, '', 'a query without input sends no ?input');
+});
+
+test('callTrpc sends GET input as ?input=<url-encoded JSON> and no body', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/link.candidates': [ok([])] });
+  const input = { folderName: 'My App & co', remote: 'git@github.com:a/b.git' };
+  await flow.callTrpc({ api: API, token: 'tk', fetchJson, name: 'link.candidates', method: 'GET', input });
+  assert.equal(calls[0].method, 'GET');
+  assert.equal('body' in calls[0], false);
+  assert.equal(calls[0].url, `${API}/trpc/link.candidates?input=${encodeURIComponent(JSON.stringify(input))}`);
+  assert.deepEqual(JSON.parse(decodeURIComponent(calls[0].query.replace(/^input=/, ''))), input);
+});
+
+test('callTrpc posts mutation input as the body, with no query string', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/link.claim': [ok({ projectId: 'p1' })] });
+  const input = { projectId: 'p1', frameProjectId: 'f1' };
+  assert.deepEqual(
+    await flow.callTrpc({ api: API, token: 'tk', fetchJson, name: 'link.claim', method: 'POST', input }),
+    { projectId: 'p1' }
+  );
+  assert.equal(calls[0].url, `${API}/trpc/link.claim`);
+  assert.deepEqual(calls[0].body, input);
 });
 
 test('signOutDevice posts an empty object with the bearer token', async () => {
@@ -420,8 +441,9 @@ test('runSignIn walks requestingCode → awaitingApproval → registering and re
   assert.deepEqual(result, {
     ok: true,
     token: 'secret-token',
-    session: { deviceId: 'd1', user: REGISTERED.user, workspace: REGISTERED.workspace, access: REGISTERED.access },
+    session: { deviceId: 'd1', user: REGISTERED.user, workspace: REGISTERED.workspace },
   });
+  assert.equal('access' in result.session, false);
   const register = h.calls.filter((c) => c.path === '/trpc/device.register');
   assert.equal(register.length, 1);
   assert.equal(register[0].token, 'secret-token');
@@ -506,14 +528,22 @@ test('runSignIn survives an openUrl or onState that throws', async () => {
 });
 
 test('refreshSession returns the me payload as a session', async () => {
-  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd1', name: 'Studio' }, access: REGISTERED.access };
+  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd1', name: 'Studio' } };
   const { fetchJson } = fakeFetch({ '/trpc/device.me': [ok(me)] });
   const result = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
   assert.deepEqual(result, { ok: true, session: { deviceId: 'd1', ...me } });
 });
 
+test('a session never carries access, even when an older server still sends it', async () => {
+  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd1' }, access: { planLabel: 'Pro' } };
+  const { fetchJson } = fakeFetch({ '/trpc/device.me': [ok(me)] });
+  const result = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
+  assert.equal(result.ok, true);
+  assert.equal('access' in result.session, false);
+});
+
 test('refreshSession re-registers once after DEVICE_NOT_REGISTERED and retries me', async () => {
-  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd2', name: 'Studio' }, access: REGISTERED.access };
+  const me = { user: REGISTERED.user, workspace: REGISTERED.workspace, device: { id: 'd2', name: 'Studio' } };
   const { fetchJson, calls } = fakeFetch({
     '/trpc/device.me': [trpcErr(412, 'DEVICE_NOT_REGISTERED'), ok(me)],
     '/trpc/device.register': [ok(REGISTERED)],
