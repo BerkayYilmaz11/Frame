@@ -41,6 +41,7 @@ function pickSession(source, token) {
     user: source.user,
     workspace: source.workspace,
     device: source.device,
+    webOrigin: source.webOrigin || null,
     savedAt: source.savedAt,
   };
 }
@@ -76,7 +77,7 @@ function load(serverUrl) {
 }
 
 /**
- * Persist `session` ({ serverUrl, token, deviceId, user, workspace, device }).
+ * Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin }).
  * Returns `{ ephemeral }` — true when the session only lives in memory.
  */
 function save(session) {

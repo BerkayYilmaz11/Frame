@@ -24,3 +24,11 @@ _Captured: 2026-09-17 · 2 file change(s)_
 
 ---
 
+## T04 — Session hooks and stored web origin
+
+Added `getAuth`, `onChange` (fired from `setState` with `{ state, userStarted }`, true only on `signIn()`'s success), `sessionExpired` (refresh's 401 branch now calls it), `reRegister`, and exported `openUrl` plus `fetchJson` from `cloudSession.js`. `webOrigin` (origin of the verification URL) is a main-only variable: saved at sign-in, carried through `refresh()`, restored on load, cleared on sign-out/expiry, and persisted by `sessionStore.pickSession`. Deviation: `fetchJson` is exported too, so the projects service shares the 15 s `net.fetch` wrapper. Files: cloudSession.js, sessionStore.js.
+
+_Captured: 2026-09-17 · 2 file change(s)_
+
+---
+

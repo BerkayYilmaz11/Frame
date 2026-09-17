@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:12:30.155Z",
+  "lastUpdated": "2026-09-17T10:13:34.681Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8526,13 +8526,13 @@
       "title": "Add session hooks to `src/main/cloud/cloudSession.js`: `getAuth()` → `{ serverUrl, token, cloudWorkspace, webOrigin } | null`, `onChange(listener)` fired from `setState` with `{ state, userStarted }` (true only on `signIn()`'s success branch), `sessionExpired()` extracted from `refresh()`'s 401 branch, `reRegister()`, and an exported `openUrl`. Store the origin of the attempt's `verificationUrl` as `webOrigin` at sign-in, carry it through `refresh()`'s re-save, and persist it in `sessionStore.js`.",
       "description": "",
       "source": "spec:frame-cloud-projects:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:13:34.681Z",
+      "completedAt": "2026-09-17T10:13:34.681Z"
     },
     {
       "id": "task-spec-frame-cloud-projects-T05",

@@ -681,7 +681,13 @@
         "signOut",
         "getState",
         "getPublicState",
-        "toPublicState"
+        "toPublicState",
+        "getAuth",
+        "onChange",
+        "sessionExpired",
+        "reRegister",
+        "openUrl",
+        "fetchJson"
       ],
       "depends": [
         "os",
@@ -695,10 +701,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 60
+          "line": 65
         },
         "fetchJson": {
-          "line": 72,
+          "line": 77,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -709,41 +715,60 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 113,
+          "line": 118,
           "params": [
             "ms",
             "signal"
           ]
         },
+        "originOf": {
+          "line": 138,
+          "params": [
+            "url"
+          ]
+        },
         "openUrl": {
-          "line": 133,
+          "line": 147,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 146
+          "line": 160
         },
         "deviceInfo": {
-          "line": 168
+          "line": 182
         },
         "toPublicState": {
-          "line": 180
+          "line": 194
         },
         "getPublicState": {
-          "line": 188
+          "line": 202
         },
         "publish": {
-          "line": 192
+          "line": 206
         },
         "setState": {
-          "line": 197,
+          "line": 215,
           "params": [
-            "next"
-          ]
+            "next",
+            "{ userStarted = false } = {}"
+          ],
+          "purpose": "Every transition is pushed to the renderer, then told to main-process"
+        },
+        "onChange": {
+          "line": 229,
+          "params": [
+            "listener"
+          ],
+          "purpose": "Subscribe to session changes. Returns the unsubscribe function."
+        },
+        "getAuth": {
+          "line": 238,
+          "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 202,
+          "line": 249,
           "params": [
             "serverUrl",
             "session",
@@ -751,46 +776,54 @@
           ]
         },
         "bringToFront": {
-          "line": 216,
+          "line": 263,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 224
+          "line": 271
         },
         "signIn": {
-          "line": 233,
+          "line": 280,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 284
+          "line": 332
         },
         "refresh": {
-          "line": 292,
+          "line": 340,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
+        "sessionExpired": {
+          "line": 368,
+          "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
+        },
+        "reRegister": {
+          "line": 382,
+          "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
+        },
         "signOut": {
-          "line": 322,
+          "line": 389,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 347,
+          "line": 415,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 351
+          "line": 419
         },
         "getState": {
-          "line": 372,
+          "line": 444,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 379,
+          "line": 451,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 383,
+          "line": 455,
           "params": [
             "ipcMain"
           ]
@@ -1055,21 +1088,21 @@
           ]
         },
         "load": {
-          "line": 53,
+          "line": 54,
           "params": [
             "serverUrl"
           ],
           "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
         },
         "save": {
-          "line": 82,
+          "line": 83,
           "params": [
             "session"
           ],
-          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device })."
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })."
         },
         "clear": {
-          "line": 103,
+          "line": 104,
           "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
         }
       }
