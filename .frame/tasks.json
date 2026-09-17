@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-17T10:28:21.202Z",
+  "lastUpdated": "2026-09-17T10:29:35.075Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8617,13 +8617,13 @@
       "title": "Update `PRIVACY.md`'s Frame Cloud section: opening On this device and connecting send each listed folder's name, git remote and `projectId` to the configured FrameCloud server and nowhere else; the project-list cache lives under app data and is deleted on sign-out; nothing cloud-related is written into a project. Add a `cloud` feature to `scripts/intent-map.json` (modules: the four `main/cloud/*` files, `renderer/cloudHub`, `renderer/cloudHubTabs`, `renderer/cloudProjectMark`; synonyms: account, sign-in, link, connect, frame-cloud).",
       "description": "",
       "source": "spec:frame-cloud-projects:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-projects",
       "createdAt": "2026-09-17T10:01:33.994Z",
-      "updatedAt": "2026-09-17T10:01:33.994Z",
-      "completedAt": null
+      "updatedAt": "2026-09-17T10:29:35.075Z",
+      "completedAt": "2026-09-17T10:29:35.075Z"
     }
   ],
   "metadata": {

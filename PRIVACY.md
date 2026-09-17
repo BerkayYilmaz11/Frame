@@ -74,15 +74,24 @@ On a crash, Frame saves a **minidump on your machine** using Electron's built-in
 - Toggle it off under **Settings → Privacy & Analytics → "Keep local crash dumps"** (takes effect on next launch).
 - If Frame ever gains the ability to *send* crash reports, that will be a separate, **opt-in** setting and will be disclosed here first.
 
-## Frame Cloud sign-in
+## Frame Cloud
 
-Signing in to Frame Cloud is optional, and nothing in Frame requires it. It is reachable only from **Settings → Account** and the command palette. Packaged builds do not ship a server address yet, so the section stays hidden and Frame makes no requests to any cloud server.
+Signing in to Frame Cloud is optional, and nothing in Frame requires it. It lives in the **Frame Cloud** window (the cloud icon at the foot of the sidebar), which **Settings → Account**, **Project Settings** and the command palette also open. Packaged builds do not ship a server address yet, so none of this is shown and Frame makes no requests to any cloud server.
+
+### Sign-in
 
 - **Where requests go:** only to the Frame Cloud server you configured (`FRAME_CLOUD_URL`, or `cloudServerUrl` in Frame's user settings). Nothing about sign-in is sent to Aptabase or anyone else.
-- **What sign-in sends:** a request for a sign-in code, then, once you approve in your browser, this device's **name** (your machine's hostname without `.local`), its **OS** (platform and release) and **Frame's version**, so the device can appear in your account. After that, Frame asks the server who you are when it launches and when you open Account. When you sign out, Frame tells the server to end this device's session.
-- **What Frame receives and shows:** your account name and email, your workspace name and slug, a plan label, and this device's name and last-seen time. These are kept only to display them in Account.
+- **What sign-in sends:** a request for a sign-in code, then, once you approve in your browser, this device's **name** (your machine's hostname without `.local`), its **OS** (platform and release) and **Frame's version**, so the device can appear in your account. After that, Frame asks the server who you are when it launches and when you open Frame Cloud. When you sign out, Frame tells the server to end this device's session.
+- **What Frame receives and shows:** your account name and email, your workspace name and slug, and this device's name and last-seen time. These are kept only to display them in Frame Cloud. Frame also keeps the web address of the sign-in page (its origin only, such as `https://app.example.com`) so it can open a project on the web.
 - **Where the session is kept:** `cloud-session.json` in Frame's app data directory (on macOS `~/Library/Application Support/Frame/`). It never goes in your projects or in `user-settings.json`. The access token is encrypted with your OS's secure storage (Keychain on macOS), and the rest of the file is plain JSON. If your system has no secure storage, the session lives in memory only and you sign in again on the next launch. Signing out deletes the file, including its backup copy, even if the server couldn't be reached. In that case the server-side session expires within 30 days.
 - **What never contains the token:** the log file, which also redacts token shapes as a safety net; the activity record; and telemetry. Only Frame's main process holds the token. The app window receives your account details without it.
+
+### Cloud projects
+
+- **What listing sends:** Frame reads your workspace's project list when it launches with a session, when you open Frame Cloud or press Refresh, and at most once a minute when its window regains focus. It never polls on a timer. When you open **On this device** (and on Refresh), Frame sends each listed folder's **name**, its git **remote** (`origin`), when it has one, and its **`projectId`** from `.frame/config.json`, when it has one, so the server can suggest the matching project. These go only to the Frame Cloud server you configured.
+- **What connecting sends:** when you connect a folder or create a project for it, Frame sends that folder's `projectId`, its git remote and, for a new project, the name and slug you entered. Disconnecting sends the `projectId` so the server can detach it. The cloud project itself is not deleted.
+- **What is written into your projects:** nothing cloud-related. The link lives on the server. The only change Frame may make in a project is a one-time `projectId` in `.frame/config.json`, written when you connect a folder that has none yet. Listing folders never writes anything.
+- **Where the list is kept:** the last project list is cached in `cloud-projects.json` in Frame's app data directory, so Frame Cloud can show it while offline. It is deleted when you sign out. Turning off the prompt that appears after sign-in is stored as `cloudConnectPromptDismissed` in `user-settings.json`.
 
 ## Questions
 

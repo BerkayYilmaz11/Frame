@@ -83,5 +83,9 @@
   "commands": {
     "modules": ["renderer/commandPalette", "renderer/commandRegistry", "renderer/cheatSheet"],
     "synonyms": ["palette", "shortcuts", "keybindings", "command-palette"]
+  },
+  "cloud": {
+    "modules": ["main/cloud/deviceFlow", "main/cloud/cloudSession", "main/cloud/sessionStore", "main/cloud/cloudProjects", "main/cloud/cloudProjectsService", "renderer/cloudHub", "renderer/cloudHubTabs", "renderer/cloudProjectMark"],
+    "synonyms": ["account", "sign-in", "link", "connect", "frame-cloud"]
   }
 }

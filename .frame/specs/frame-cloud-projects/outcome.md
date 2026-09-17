@@ -80,3 +80,11 @@ _Captured: 2026-09-17 · 7 file change(s)_
 
 ---
 
+## T11 — Privacy note and module map
+
+Rewrote PRIVACY.md's Frame Cloud section: where it lives now, no plan label, the stored web origin, and a new Cloud projects part covering what listing and connecting send (folder name, git remote, `projectId`) to the configured server, when the list is read, that only a first-time `projectId` is written into a project, and where `cloud-projects.json` and the prompt flag live. Added a `cloud` feature to `scripts/intent-map.json` and regenerated STRUCTURE.json. Deviation: the feature lists all five `main/cloud/*` files (the task said four; `sessionStore.js` is the fifth).
+
+_Captured: 2026-09-17 · 3 file change(s)_
+
+---
+

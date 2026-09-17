@@ -16013,6 +16013,16 @@
         "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
       },
       {
+        "module": "main/cloud/deviceFlow",
+        "file": "src/main/cloud/deviceFlow.js",
+        "description": "deviceFlow — the pure core of Frame Cloud sign-in."
+      },
+      {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
         "module": "renderer/cloudHub",
         "file": "src/renderer/cloudHub.js",
         "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
@@ -16318,18 +16328,6 @@
         "description": "Prompts Panel Module"
       }
     ],
-    "hub": [
-      {
-        "module": "renderer/cloudHub",
-        "file": "src/renderer/cloudHub.js",
-        "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
-      },
-      {
-        "module": "renderer/cloudHubTabs",
-        "file": "src/renderer/cloudHubTabs.js",
-        "description": "Frame Cloud tabs — Cloud projects and On this device."
-      }
-    ],
     "implement": [
       {
         "module": "renderer/implementModeModal",
@@ -16502,11 +16500,6 @@
         "description": "Project Insights Module"
       },
       {
-        "module": "renderer/cloudProjectMark",
-        "file": "src/renderer/cloudProjectMark.js",
-        "description": "Frame Cloud — the Connected mark beside the project switcher."
-      },
-      {
         "module": "renderer/openProjectModal",
         "file": "src/renderer/openProjectModal.js",
         "description": "Open Project Modal"
@@ -16530,18 +16523,6 @@
         "module": "renderer/projectStatusBadges",
         "file": "src/renderer/projectStatusBadges.js",
         "description": "Project Status Badges"
-      }
-    ],
-    "projects": [
-      {
-        "module": "main/cloud/cloudProjects",
-        "file": "src/main/cloud/cloudProjects.js",
-        "description": "cloudProjects — the pure core of Frame Cloud projects."
-      },
-      {
-        "module": "main/cloud/cloudProjectsService",
-        "file": "src/main/cloud/cloudProjectsService.js",
-        "description": "cloudProjectsService — the Electron shell around Frame Cloud projects."
       }
     ],
     "rail": [
@@ -16608,16 +16589,6 @@
       }
     ],
     "session": [
-      {
-        "module": "main/cloud/cloudSession",
-        "file": "src/main/cloud/cloudSession.js",
-        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
-      },
-      {
-        "module": "main/cloud/sessionStore",
-        "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
-      },
       {
         "module": "renderer/home/sessionRows",
         "file": "src/renderer/home/sessionRows.js",
@@ -16719,18 +16690,6 @@
         "module": "renderer/statusBar",
         "file": "src/renderer/statusBar.js",
         "description": "Status Bar Module"
-      }
-    ],
-    "store": [
-      {
-        "module": "main/cloud/sessionStore",
-        "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
-      },
-      {
-        "module": "main/frameStore",
-        "file": "src/main/frameStore.js",
-        "description": "frameStore — the one module that knows where a project's meta files live."
       }
     ],
     "structure": [
