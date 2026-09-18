@@ -104,12 +104,38 @@ function init(cloudHub) {
   state.onProjectChange(onCloudChange);
 }
 
+// What the open board was loaded against: the folder, its cloud project and
+// the project list it came from. The hub pushes on every projects change —
+// candidate lookups included — so the board reloads only when this moves.
+let loadedKey = null;
+
 function onCloudChange() {
   try {
     require('./projectListUI').updateWorkspaceNav();
   } catch (err) {
     console.error('cloudBriefsPanel: could not refresh the nav', err);
   }
+  if (!visible) return;
+  // The folder stopped being connected — a disconnect, a sign-out, a switch
+  // to an unconnected project: leave. Dropping .visible is what routes the
+  // host back to the terminals view.
+  if (!isAvailable()) {
+    hide();
+    return;
+  }
+  const key = currentKey();
+  if (key === loadedKey) return;
+  // Another folder: its board, not the last one's brief.
+  if (!loadedKey || key.split('\n')[0] !== loadedKey.split('\n')[0]) closeDetail();
+  load();
+  if (detail) loadDetail();
+}
+
+/** `${path}\n${cloud project id}\n${list time}` for the open folder. */
+function currentKey() {
+  const { path, folder, projects } = cloudProjectMark.openFolder();
+  const projectId = folder && folder.project ? folder.project.id : '';
+  return `${path || ''}\n${projectId}\n${(projects && projects.lastUpdated) || ''}`;
 }
 
 /** True while the open folder is connected to a cloud project — the same test as the Connected mark. */
@@ -134,6 +160,7 @@ function hide() {
   panelElement.classList.remove('visible');
   visible = false;
   loadSeq += 1; // an answer still in flight lands nowhere
+  loadedKey = null;
   closeDetail();
 }
 
@@ -149,6 +176,7 @@ async function load() {
   if (!contentElement) return;
   const path = state.getProjectPath();
   const seq = ++loadSeq;
+  loadedKey = currentKey();
   if (!path) {
     board = null;
     renderMessage('No project is open.');

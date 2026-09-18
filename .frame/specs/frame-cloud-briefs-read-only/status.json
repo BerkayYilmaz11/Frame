@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-briefs-read-only",
   "title": "Frame Cloud briefs, read-only",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-frame-cloud-briefs-read-only-T01",
     "task-spec-frame-cloud-briefs-read-only-T02",
@@ -16,7 +16,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-18T15:12:57Z",
-  "updated_at": "2026-09-18T15:52:56.039Z",
-  "last_phase_at": "2026-09-18T15:48:06.000Z",
+  "updated_at": "2026-09-18T16:06:33.444Z",
+  "last_phase_at": "2026-09-18T16:06:33.444Z",
   "implement_mode": "autonomous"
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T16:05:18.166Z",
+  "lastUpdated": "2026-09-18T16:06:33.411Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8747,13 +8747,13 @@
       "title": "Keep the panel live: hide it (returning to terminals) when the open folder stops being connected or the user signs out, and reload it when the cloud projects state changes while it stays connected",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T16:06:33.411Z",
+      "completedAt": "2026-09-18T16:06:33.411Z"
     }
   ],
   "metadata": {

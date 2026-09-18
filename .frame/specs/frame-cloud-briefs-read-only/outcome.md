@@ -69,3 +69,13 @@ A card click slides the Specs-class drawer in with a loading state and loads thr
 _Captured: 2026-09-18 · 3 file change(s)_
 
 ---
+
+## T10 — Keep the panel live
+
+`onCloudChange` (projects push, session push, project switch) still refreshes the nav. While the panel is visible it now calls `hide()` when `isAvailable()` turns false, and the host's MutationObserver returns to terminals. The board reloads, and the open brief with it, only when a key of folder path, cloud project id and the list's `lastUpdated` changes. The key is needed because the hub also pushes on every candidate lookup, which would otherwise re-fetch briefs repeatedly. A change of folder also closes the drawer, since that brief belongs to the previous project. Checked in code, not in a running app: sign-out, disconnect and a switch to an unconnected folder all route through `isAvailable()`.
+
+Followup: exercise the panel against a live FrameCloud `feat/desktop-projects` server (switch, sign-out, disconnect) — no DOM tests cover it.
+
+_Captured: 2026-09-18 · 1 file change(s)_
+
+---
