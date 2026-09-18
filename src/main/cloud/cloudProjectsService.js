@@ -462,6 +462,19 @@ function openOnWeb(projectId) {
   return true;
 }
 
+function openWorkspaceOnWeb() {
+  const auth = cloudSession.getAuth();
+  if (!auth) return false;
+  const url = core.buildWorkspaceWebUrl({
+    apiUrl: auth.serverUrl,
+    webOrigin: auth.webOrigin,
+    workspaceSlug: auth.cloudWorkspace && auth.cloudWorkspace.slug,
+  });
+  if (!url) return false;
+  cloudSession.openUrl(url);
+  return true;
+}
+
 // ─── Session ──────────────────────────────────────────────────
 
 function onSessionChange({ state, userStarted }) {
@@ -526,6 +539,7 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_LINK_CREATE, (event, request) => linkCreate(request));
   ipcMain.handle(IPC.CLOUD_LINK_RELEASE, (event, request) => linkRelease(request));
   ipcMain.handle(IPC.CLOUD_OPEN_ON_WEB, (event, projectId) => openOnWeb(projectId));
+  ipcMain.handle(IPC.CLOUD_OPEN_WORKSPACE_ON_WEB, () => openWorkspaceOnWeb());
 }
 
 module.exports = {

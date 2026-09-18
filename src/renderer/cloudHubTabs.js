@@ -2,14 +2,17 @@
  * Frame Cloud tabs — Cloud projects and On this device.
  *
  * Drawn from CLOUD_PROJECTS_STATE only: main has already matched folders to
- * projects, planned each unconnected row and decided what starts checked, so
- * this module draws and forwards clicks. Every server string goes through
+ * projects and planned each unconnected folder, so this module draws and
+ * forwards clicks. Every server string goes through
  * textContent. No label says a project is connected "elsewhere" or belongs
  * to a device — "On this device" only names where the listed folders are.
  */
 
+const os = require('os');
+const path = require('path');
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const tooltip = require('./tooltip');
 
 const SLUG_CHECK_DELAY_MS = 300;
 
@@ -53,7 +56,8 @@ let lastState = null;
 const rowUi = new Map();
 let candidatesRequested = false;
 let pendingFocus = null; // { folderPath } | { projectId }
-let bulkRunning = false;
+let selectedPath = null; // the folder On this device shows on the right
+let scrollSelected = false;
 
 function init(cloudHub) {
   hub = cloudHub;
@@ -70,15 +74,19 @@ function render(state, activeTab) {
     rowUi.clear();
     candidatesRequested = false;
   }
+  // Both tabs read the candidates: Cloud projects tells a project with a
+  // folder here apart from one without. Look as soon as the list is ready.
+  if (!candidatesRequested && state.status === 'ready') requestCandidates();
   if (projectsEl) renderProjectsTab(state);
   if (activeTab !== 'device') return;
-  // The tab was shown before the list was ready: look now.
-  if (!candidatesRequested && state.status === 'ready') requestCandidates();
   if (deviceEl) renderDeviceTab(state);
 }
 
 function onShow(tab, opts = {}) {
-  if (tab !== 'device') return;
+  if (tab !== 'device') {
+    if (opts.force) requestCandidates();
+    return;
+  }
   if (opts.folderPath) {
     pendingFocus = { folderPath: opts.folderPath };
     if (opts.confirmDisconnect) ui(opts.folderPath).question = 'disconnect';
@@ -88,8 +96,8 @@ function onShow(tab, opts = {}) {
   if (lastState && deviceEl) renderDeviceTab(lastState);
 }
 
-// link.candidates runs when the tab is first shown and on every Refresh;
-// answers arrive as pushes.
+// link.candidates runs once the list is ready and on every Refresh; answers
+// arrive as pushes.
 function requestCandidates() {
   if (!lastState || lastState.status !== 'ready') return;
   candidatesRequested = true;
@@ -107,8 +115,9 @@ function el(tag, className, text) {
   return node;
 }
 
-function button(label, onClick, { primary = false, disabled = false, className = '' } = {}) {
-  const btn = el('button', `settings-about-btn cloud-row-btn${primary ? ' settings-about-btn-primary' : ''}${className ? ` ${className}` : ''}`, label);
+function button(label, onClick, { primary = false, quiet = false, danger = false, disabled = false, className = '' } = {}) {
+  const variant = primary ? ' settings-about-btn-primary' : quiet ? ' cloud-btn-quiet' : danger ? ' cloud-btn-danger' : '';
+  const btn = el('button', `settings-about-btn cloud-row-btn${variant}${className ? ` ${className}` : ''}`, label);
   btn.type = 'button';
   btn.disabled = disabled;
   btn.addEventListener('click', (e) => {
@@ -141,6 +150,8 @@ function workspaceName(state) {
 // ─── Cloud projects ───────────────────────────────────────
 
 function renderProjectsTab(state) {
+  // A redraw removes the hovered info mark before its mouseleave can fire.
+  if (tooltip.current && projectsEl.contains(tooltip.current)) tooltip.hide();
   projectsEl.replaceChildren();
   if (state.status === 'signedOut') return;
 
@@ -161,57 +172,120 @@ function renderProjectsTab(state) {
 
   const table = el('div', 'cloud-rows');
   const head = el('div', 'cloud-row cloud-row-head');
-  for (const label of ['Project', 'Source', 'Status', 'On this device', '']) {
+  for (const label of ['Project', 'Status', 'On this device', '']) {
     head.appendChild(el('div', 'cloud-cell', label));
   }
   table.appendChild(head);
-  for (const project of list) table.appendChild(projectRow(project));
+  for (const project of list) table.appendChild(projectRow(project, state));
   projectsEl.appendChild(table);
 }
 
-function projectRow(project) {
+/**
+ * What a project row is, seen from this device:
+ *   open     — connected, with a folder here
+ *   elsewhere — connected, no folder here carries its id
+ *   ready    — not connected, a folder here suggests it (On this device's match)
+ *   absent   — not connected, nothing here suggests it
+ */
+function projectCase(project, state) {
+  const names = Array.isArray(project.folderNames) ? project.folderNames : [];
+  if (project.connected) return { kind: names.length ? 'open' : 'elsewhere', names };
+  const folders = Array.isArray(state.folders) ? state.folders : [];
+  const matches = folders.filter((f) =>
+    !f.connected && f.plan && f.plan.candidate && f.plan.candidate.id === project.id
+  );
+  if (matches.length) return { kind: 'ready', names: matches.map((f) => f.name), folders: matches };
+  const checking = folders.some((f) => !f.connected && f.candidatesLoading);
+  return { kind: 'absent', names: [], checking };
+}
+
+const NOT_HERE_NOTE =
+  "No folder for this project was found on this computer. To work on it here, " +
+  'add it with "Add a project…" in the project switcher (open its folder or ' +
+  'clone it), then connect it from On this device.';
+
+const INFO_ICON =
+  '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/>' +
+  '<path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+
+const STATUS_CHIPS = {
+  open: { label: 'Connected', className: 'cloud-chip-connected' },
+  elsewhere: { label: 'Connected', className: 'cloud-chip-connected' },
+  ready: { label: 'Ready to connect', className: 'cloud-chip-ready' },
+  absent: { label: 'Not connected', className: '' }
+};
+
+function projectRow(project, state) {
+  const c = projectCase(project, state);
   const row = el('div', 'cloud-row');
   row.dataset.projectId = project.id;
 
   const nameCell = el('div', 'cloud-cell cloud-cell-name');
   nameCell.appendChild(el('span', 'cloud-name', project.name || project.slug));
-  nameCell.appendChild(el('span', 'cloud-slug', project.slug));
   row.appendChild(nameCell);
 
-  const sourceCell = el('div', 'cloud-cell');
-  sourceCell.appendChild(el('span', `cloud-source cloud-source-${project.source}`, project.source === 'github' ? 'GitHub' : 'Scratch'));
-  row.appendChild(sourceCell);
-
+  const chip = STATUS_CHIPS[c.kind];
   const statusCell = el('div', 'cloud-cell');
-  statusCell.appendChild(el(
-    'span',
-    `cloud-chip ${project.connected ? 'cloud-chip-connected' : ''}`,
-    project.connected ? 'Connected' : 'Not connected'
-  ));
+  statusCell.appendChild(el('span', `cloud-chip ${chip.className}`, chip.label));
   row.appendChild(statusCell);
 
-  const names = Array.isArray(project.folderNames) ? project.folderNames : [];
-  const here = names.length === 0 ? '—' : names.length === 1 ? names[0] : `${names.length} folders`;
-  const hereCell = el('div', 'cloud-cell cloud-cell-folder', here);
-  if (names.length > 1) hereCell.title = names.join(', ');
+  let hereCell;
+  if (c.names.length) {
+    hereCell = el('div', 'cloud-cell cloud-cell-folder', c.names.length === 1 ? c.names[0] : `${c.names.length} folders`);
+    if (c.names.length > 1) hereCell.title = c.names.join(', ');
+  } else if (c.checking) {
+    hereCell = el('div', 'cloud-cell cloud-cell-folder cloud-cell-muted', 'Checking…');
+  } else {
+    hereCell = el('div', 'cloud-cell cloud-cell-folder cloud-cell-muted cloud-not-here');
+    hereCell.appendChild(el('span', 'cloud-not-here-text', 'Not on this device'));
+    const info = el('span', 'cloud-info');
+    info.tabIndex = 0;
+    info.innerHTML = INFO_ICON;
+    tooltip.attach(info, NOT_HERE_NOTE, { placement: 'top', variant: 'note' });
+    hereCell.appendChild(info);
+  }
   row.appendChild(hereCell);
 
   const actions = el('div', 'cloud-cell cloud-cell-actions');
-  if (project.connected && project.openPath) {
+  const openWeb = () => {
+    ipcRenderer.invoke(IPC.CLOUD_OPEN_ON_WEB, project.id).catch((err) => {
+      console.error('Frame Cloud: could not open the project on the web', err);
+    });
+  };
+  // Nothing here to open or connect on an absent row: the info mark says how
+  // to bring the project to this computer, and the web stays one click away.
+  if (project.canOpenWeb) actions.appendChild(button('Open in browser', openWeb));
+  if (c.kind === 'open' && project.openPath) {
     actions.appendChild(button('Open', () => openFolder(project.openPath), { primary: true }));
-  }
-  if (!project.connected) {
-    actions.appendChild(button('Connect a folder…', () => hub.setTab('device', { projectId: project.id, force: true })));
-  }
-  if (project.canOpenWeb && !project.openPath) {
-    actions.appendChild(button('Open on the web', () => {
-      ipcRenderer.invoke(IPC.CLOUD_OPEN_ON_WEB, project.id).catch((err) => {
-        console.error('Frame Cloud: could not open the project on the web', err);
-      });
-    }));
+  } else if (c.kind === 'ready') {
+    appendConnect(row, actions, project, c.folders, state.status === 'stale');
+    return row;
   }
   row.appendChild(actions);
   return row;
+}
+
+/**
+ * Connect on a Ready to connect row runs the link right here, on the one
+ * folder that suggests this project. Its questions and errors show under the
+ * row. More than one such folder is a choice, so that goes to On this device.
+ */
+function appendConnect(row, actions, project, folders, stale) {
+  if (folders.length > 1) {
+    actions.appendChild(button('Connect…', () => hub.setTab('device', { projectId: project.id }), { primary: true }));
+    row.appendChild(actions);
+    return;
+  }
+  const folder = folders[0];
+  const u = ui(folder.path);
+  actions.appendChild(button('Connect', () => {
+    u.mode = 'connect';
+    u.targetId = project.id;
+    connectRowNow(folder.path, {});
+  }, { primary: true, disabled: stale || u.busy || Boolean(u.question) }));
+  row.appendChild(actions);
+  appendStatus(row, folder, stale);
 }
 
 function openFolder(folderPath) {
@@ -221,13 +295,23 @@ function openFolder(folderPath) {
 }
 
 // ─── On this device ───────────────────────────────────────
+//
+// A list of this device's Frame folders on the left and the selected one on
+// the right: what it is, what connecting it would do, and the one action that
+// does it. One folder at a time — no ticking, no bulk run.
+
+const MATCH_REASONS = {
+  id: "This folder's Frame identity is already this project's.",
+  remote: "The folder's git remote is this project's repository.",
+  name: 'The names match. Check that it is the same project before connecting.'
+};
 
 function ui(path) {
   if (!rowUi.has(path)) rowUi.set(path, { path });
   return rowUi.get(path);
 }
 
-/** What a row does now: the plan, with whatever the user changed on top. */
+/** What a folder does now: the plan, with whatever the user changed on top. */
 function effective(folder) {
   const plan = folder.plan;
   const u = ui(folder.path);
@@ -238,10 +322,30 @@ function effective(folder) {
     mode: mode === 'connect' && target ? 'connect' : 'create',
     target,
     options,
-    checked: u.checked !== undefined ? u.checked : plan.checked,
     name: u.name !== undefined ? u.name : plan.name,
     slug: u.slug !== undefined ? u.slug : plan.slug,
   };
+}
+
+/** Which list a folder sits in. By the plan, so a choice made in the detail never moves it. */
+function folderKind(folder) {
+  if (folder.connected) return 'connected';
+  if (!folder.plan) return 'pending';
+  return folder.plan.group === 'connect' ? 'suggested' : 'new';
+}
+
+const KIND_ORDER = ['suggested', 'new', 'pending', 'connected'];
+
+function kindTitle(kind, folders) {
+  if (kind === 'suggested') return 'Suggested';
+  if (kind === 'new') return 'Not in Frame Cloud';
+  if (kind === 'connected') return 'Connected';
+  return folders.some((f) => f.candidatesLoading) ? 'Looking for a match' : 'Not connected';
+}
+
+function shortPath(p) {
+  const home = os.homedir();
+  return home && (p === home || p.startsWith(home + path.sep)) ? `~${p.slice(home.length)}` : p;
 }
 
 function renderDeviceTab(state) {
@@ -250,8 +354,8 @@ function renderDeviceTab(state) {
   if (state.status === 'signedOut') return;
 
   const folders = Array.isArray(state.folders) ? state.folders : [];
-  for (const path of rowUi.keys()) {
-    if (!folders.some((f) => f.path === path)) rowUi.delete(path);
+  for (const p of rowUi.keys()) {
+    if (!folders.some((f) => f.path === p)) rowUi.delete(p);
   }
 
   if (state.status === 'loading' && !state.lastUpdated) {
@@ -265,187 +369,245 @@ function renderDeviceTab(state) {
   const stale = state.status !== 'ready';
   if (state.status === 'stale') deviceEl.appendChild(staleNote(state));
 
-  const groups = { connect: [], create: [], pending: [], connected: [] };
-  for (const folder of folders) {
-    if (folder.connected) groups.connected.push(folder);
-    else if (!folder.plan) groups.pending.push(folder);
-    else groups[effective(folder).mode].push(folder);
-  }
-
+  const n = Number(state.uninitialisedCount) || 0;
   if (!folders.length) {
     deviceEl.appendChild(message('No Frame projects on this device yet.'));
+    if (n > 0) deviceEl.appendChild(uninitialisedNote(n));
+    return;
   }
 
-  const selected = [...groups.connect, ...groups.create].filter((f) => effective(f).checked);
-  if (groups.connect.length || groups.create.length) {
-    const bar = el('div', 'cloud-bulk');
-    bar.appendChild(el('span', 'settings-about-status', 'Only ticked folders are connected. Nothing else is changed.'));
-    bar.appendChild(button(
-      `Connect selected (${selected.length})`,
-      () => connectSelected(),
-      { primary: true, disabled: stale || bulkRunning || !selected.length }
-    ));
-    deviceEl.appendChild(bar);
-  }
-
-  appendGroup('Can be connected', groups.connect, (f) => connectRow(f, stale));
-  appendGroup('Not in Frame Cloud', groups.create, (f) => createRow(f, stale));
-  appendGroup(
-    folders.some((f) => f.candidatesLoading) ? 'Looking for matching projects…' : 'Not connected',
-    groups.pending,
-    (f) => pendingRow(f, stale)
-  );
-  appendGroup('Connected', groups.connected, (f) => connectedRow(f, stale));
-
-  const n = Number(state.uninitialisedCount) || 0;
-  if (n > 0) {
-    deviceEl.appendChild(el(
-      'p',
-      'settings-about-status cloud-uninitialised',
-      n === 1
-        ? "1 folder isn't a Frame project yet — initialise it to connect."
-        : `${n} folders aren't Frame projects yet — initialise them to connect.`
-    ));
-  }
+  const groups = { suggested: [], new: [], pending: [], connected: [] };
+  for (const folder of folders) groups[folderKind(folder)].push(folder);
+  const ordered = KIND_ORDER.flatMap((k) => groups[k]);
 
   applyPendingFocus(folders);
+  if (!ordered.some((f) => f.path === selectedPath)) selectedPath = ordered[0].path;
+  const selected = ordered.find((f) => f.path === selectedPath);
+
+  const split = el('div', 'cloud-split');
+  const side = el('nav', 'cloud-side');
+  side.setAttribute('aria-label', 'Folders on this device');
+  for (const kind of KIND_ORDER) {
+    const list = groups[kind];
+    if (!list.length) continue;
+    side.appendChild(el('div', 'cloud-side-label', `${kindTitle(kind, folders)} · ${list.length}`));
+    for (const folder of list) side.appendChild(sideItem(folder, kind));
+  }
+  if (n > 0) side.appendChild(uninitialisedNote(n));
+  split.appendChild(side);
+
+  const detail = el('div', 'cloud-detail');
+  drawDetail(detail, selected, stale, state);
+  split.appendChild(detail);
+  deviceEl.appendChild(split);
+
+  if (scrollSelected) {
+    scrollSelected = false;
+    const item = side.querySelector('.cloud-side-item.selected');
+    if (item) requestAnimationFrame(() => item.scrollIntoView({ block: 'nearest' }));
+  }
   restoreFocus(focus);
 }
 
-function appendGroup(title, folders, drawRow) {
-  if (!folders.length) return;
-  const group = el('div', 'cloud-group');
-  group.appendChild(el('h5', 'cloud-group-title', `${title} (${folders.length})`));
-  for (const folder of folders) group.appendChild(drawRow(folder));
-  deviceEl.appendChild(group);
+function uninitialisedNote(n) {
+  return el(
+    'p',
+    'settings-about-status cloud-uninitialised',
+    n === 1
+      ? "1 more folder isn't a Frame project yet. Initialize Frame there to connect it."
+      : `${n} more folders aren't Frame projects yet. Initialize Frame there to connect them.`
+  );
 }
 
-function deviceRowShell(folder, { checkbox, checked, disabled } = {}) {
-  const row = el('div', 'cloud-device-row');
-  row.dataset.folderPath = folder.path;
-  const main = el('div', 'cloud-device-main');
-  if (checkbox) {
-    const box = document.createElement('input');
-    box.type = 'checkbox';
-    box.className = 'cloud-check';
-    box.checked = Boolean(checked);
-    box.disabled = Boolean(disabled);
-    box.setAttribute('aria-label', `Connect ${folder.name}`);
-    box.addEventListener('change', () => {
-      ui(folder.path).checked = box.checked;
-      rerender();
-    });
-    main.appendChild(box);
-  }
-  const who = el('div', 'cloud-device-folder');
-  who.appendChild(el('span', 'cloud-name', folder.name));
-  who.appendChild(el('span', 'cloud-slug', folder.path));
-  main.appendChild(who);
-  row.appendChild(main);
-  return row;
-}
-
-function connectRow(folder, stale) {
-  const u = ui(folder.path);
-  const e = effective(folder);
-  const row = deviceRowShell(folder, { checkbox: true, checked: e.checked, disabled: stale || u.busy });
-  const main = row.firstChild;
-
-  const target = el('div', 'cloud-device-target');
-  target.appendChild(el('span', 'cloud-arrow', '→'));
-  target.appendChild(el('span', 'cloud-name', e.target.name || e.target.slug));
-  target.appendChild(el('span', 'cloud-slug', e.target.slug));
-  if (e.target.matchLabel) target.appendChild(el('span', 'cloud-chip', e.target.matchLabel));
-  if (e.target.alreadyConnected) target.appendChild(el('span', 'cloud-chip cloud-chip-warn', 'Already connected'));
-  main.appendChild(target);
-
-  const actions = el('div', 'cloud-cell-actions');
-  actions.appendChild(button(u.pickerOpen ? 'Close' : 'Change…', () => {
-    u.pickerOpen = !u.pickerOpen;
+function sideItem(folder, kind) {
+  const item = el('button', `cloud-side-item${folder.path === selectedPath ? ' selected' : ''}`);
+  item.type = 'button';
+  item.dataset.folderPath = folder.path;
+  item.setAttribute('aria-current', folder.path === selectedPath ? 'true' : 'false');
+  item.appendChild(el('span', `cloud-state cloud-state-${kind}`));
+  const text = el('span', 'cloud-side-text');
+  text.appendChild(el('span', 'cloud-side-name', folder.name));
+  text.appendChild(el('span', 'cloud-side-path', shortPath(folder.path)));
+  item.appendChild(text);
+  item.addEventListener('click', () => {
+    if (selectedPath === folder.path) return;
+    selectedPath = folder.path;
     rerender();
-  }, { disabled: u.busy }));
-  main.appendChild(actions);
-
-  if (u.pickerOpen) row.appendChild(picker(folder, e, { allowCreate: true }));
-  appendRowStatus(row, folder, stale);
-  return row;
+  });
+  return item;
 }
 
-function createRow(folder, stale) {
-  const u = ui(folder.path);
+function drawDetail(detail, folder, stale, state) {
+  const head = el('div', 'cloud-detail-head');
+  head.appendChild(el('h4', 'cloud-detail-title', folder.name));
+  head.appendChild(el('div', 'cloud-detail-path', folder.path));
+  detail.appendChild(head);
+
+  if (folder.connected) return drawConnected(detail, folder, stale);
+  if (!folder.plan) {
+    const note = folder.candidatesLoading
+      ? 'Looking for a matching project in Frame Cloud…'
+      : stale
+        ? 'Matching projects show once Frame Cloud can be reached.'
+        : 'Refresh to look for a matching project.';
+    detail.appendChild(el('p', 'cloud-detail-lead', note));
+    return;
+  }
   const e = effective(folder);
-  const row = deviceRowShell(folder, { checkbox: true, checked: e.checked, disabled: stale || u.busy });
-  const main = row.firstChild;
+  if (e.mode === 'connect') drawConnect(detail, folder, e, stale);
+  else drawCreate(detail, folder, e, stale, state);
+}
 
-  const form = el('div', 'cloud-create');
-  form.appendChild(field(folder, 'name', 'Name', e.name, u.busy));
-  form.appendChild(field(folder, 'slug', 'Slug', e.slug, u.busy));
-  main.appendChild(form);
+function facts(rows) {
+  const dl = el('dl', 'cloud-facts');
+  for (const [label, value] of rows) {
+    dl.appendChild(el('dt', '', label));
+    const dd = el('dd');
+    if (typeof value === 'string') dd.textContent = value;
+    else dd.appendChild(value);
+    dl.appendChild(dd);
+  }
+  return dl;
+}
 
-  const actions = el('div', 'cloud-cell-actions');
-  if (e.options.length) {
-    actions.appendChild(button(u.pickerOpen ? 'Close' : 'Choose an existing project…', () => {
+function drawConnect(detail, folder, e, stale) {
+  const u = ui(folder.path);
+  const target = e.target;
+
+  const project = el('span', 'cloud-fact-inline');
+  project.appendChild(el('span', '', target.name || target.slug));
+  project.appendChild(el('span', 'cloud-slug', target.slug));
+  const rows = [['Connect to', project]];
+  if (target.match) {
+    const why = el('span', 'cloud-fact-inline');
+    why.appendChild(el('span', 'cloud-chip cloud-chip-ready', target.matchLabel));
+    why.appendChild(el('span', 'cloud-fact-note', MATCH_REASONS[target.match] || ''));
+    rows.push(['Why', why]);
+  }
+  if (target.alreadyConnected) {
+    const taken = el('span', 'cloud-fact-inline');
+    taken.appendChild(el('span', 'cloud-chip cloud-chip-warn', 'Already connected'));
+    taken.appendChild(el('span', 'cloud-fact-note', 'Another folder with a different identity holds it. Connecting this one takes it over.'));
+    rows.push(['Note', taken]);
+  }
+  detail.appendChild(facts(rows));
+
+  const alt = el('div', 'cloud-alt');
+  const others = e.options.filter((o) => o.id !== target.id);
+  if (others.length) {
+    alt.appendChild(button(u.pickerOpen ? 'Close' : 'Pick a different project…', () => {
       u.pickerOpen = !u.pickerOpen;
       rerender();
-    }, { disabled: u.busy }));
+    }, { quiet: true, disabled: u.busy }));
   }
-  main.appendChild(actions);
+  alt.appendChild(button('Create a new project instead', () => chooseCreate(folder), { quiet: true, disabled: u.busy }));
+  detail.appendChild(alt);
+  if (u.pickerOpen) detail.appendChild(picker(folder, e));
 
-  const slugNote = slugStatus(u);
-  if (slugNote) row.appendChild(slugNote);
-  if (u.pickerOpen) row.appendChild(picker(folder, e, { allowCreate: false }));
-  appendRowStatus(row, folder, stale);
-  return row;
+  appendStatus(detail, folder, stale);
+  const foot = el('div', 'cloud-detail-foot');
+  foot.appendChild(button(`Connect to ${target.name || target.slug}`, () => connectRowNow(folder.path, {}), {
+    primary: true,
+    disabled: stale || u.busy || Boolean(QUESTIONS[u.question])
+  }));
+  detail.appendChild(foot);
 }
 
-function pendingRow(folder, stale) {
-  const row = deviceRowShell(folder);
-  const note = folder.candidatesLoading
-    ? 'Looking for a matching project…'
-    : stale
-      ? 'Matching projects show once Frame Cloud can be reached.'
-      : 'Refresh to look for a matching project.';
-  row.firstChild.appendChild(el('span', 'settings-about-status', note));
-  return row;
-}
-
-function connectedRow(folder, stale) {
+function drawCreate(detail, folder, e, stale, state) {
   const u = ui(folder.path);
-  const row = deviceRowShell(folder);
-  const main = row.firstChild;
-  const project = folder.project || {};
-  const target = el('div', 'cloud-device-target');
-  target.appendChild(el('span', 'cloud-arrow', '→'));
-  target.appendChild(el('span', 'cloud-name', project.name || project.slug || ''));
-  target.appendChild(el('span', 'cloud-slug', project.slug || ''));
-  main.appendChild(target);
+  const ws = state.cloudWorkspace || {};
+  // The availability line shows without waiting for a keystroke.
+  if (u.slugState === undefined && !u.slugTimer && !stale) checkSlugSoon(folder.path, e.slug);
 
-  const actions = el('div', 'cloud-cell-actions');
-  if (u.question !== 'disconnect') {
-    actions.appendChild(button('Disconnect', () => {
-      u.question = 'disconnect';
-      u.message = null;
+  const panel = el('div', 'cloud-panel');
+  panel.appendChild(el('h5', 'cloud-panel-title', 'Add to Frame Cloud'));
+  panel.appendChild(el(
+    'p',
+    'cloud-detail-lead',
+    `No project in ${workspaceName(state)} matches this folder. Create one and this folder becomes its first connection. Nothing is uploaded; the files stay on this device.`
+  ));
+  panel.appendChild(field(folder, 'name', 'Name', e.name, u.busy));
+  const slugField = field(folder, 'slug', 'URL', e.slug, u.busy, ws.slug ? `…/${ws.slug}/` : '');
+  panel.appendChild(slugField);
+  const slugNote = slugStatus(u);
+  if (slugNote) panel.appendChild(slugNote);
+  detail.appendChild(panel);
+
+  if (e.options.length) {
+    const alt = el('div', 'cloud-alt');
+    alt.appendChild(el('span', 'cloud-fact-note', 'Already made it on the web?'));
+    alt.appendChild(button(u.pickerOpen ? 'Close' : 'Connect to an existing project…', () => {
+      u.pickerOpen = !u.pickerOpen;
       rerender();
-    }, { disabled: stale || u.busy }));
+    }, { quiet: true, disabled: u.busy }));
+    detail.appendChild(alt);
+    if (u.pickerOpen) detail.appendChild(picker(folder, e));
   }
-  main.appendChild(actions);
+
+  appendStatus(detail, folder, stale);
+  const blocked = !String(e.name || '').trim() || (u.slugState && (u.slugState.state === 'taken' || u.slugState.state === 'invalid'));
+  const foot = el('div', 'cloud-detail-foot');
+  foot.appendChild(button('Create and connect', () => connectRowNow(folder.path, {}), {
+    primary: true,
+    disabled: stale || u.busy || Boolean(blocked) || Boolean(QUESTIONS[u.question])
+  }));
+  detail.appendChild(foot);
+}
+
+function drawConnected(detail, folder, stale) {
+  const u = ui(folder.path);
+  const project = folder.project || {};
+
+  const status = el('span', 'cloud-fact-inline');
+  status.appendChild(el('span', 'cloud-state cloud-state-connected'));
+  status.appendChild(el('span', '', 'Connected'));
+  const cloud = el('span', 'cloud-fact-inline');
+  cloud.appendChild(el('span', '', project.name || project.slug || ''));
+  cloud.appendChild(el('span', 'cloud-slug', project.slug || ''));
+  if (lastState && lastState.canOpenWeb && project.id) {
+    cloud.appendChild(button('Open in browser', () => {
+      ipcRenderer.invoke(IPC.CLOUD_OPEN_ON_WEB, project.id).catch((err) => {
+        console.error('Frame Cloud: could not open the project on the web', err);
+      });
+    }, { quiet: true }));
+  }
+  detail.appendChild(facts([['Status', status], ['Cloud project', cloud]]));
 
   if (u.question === 'disconnect') {
     const q = el('div', 'cloud-question');
-    q.appendChild(el('span', '', `Disconnect from ${project.name || project.slug || 'this project'}? The cloud project stays.`));
-    q.appendChild(button('Disconnect', () => disconnect(folder), { primary: true, disabled: stale || u.busy }));
-    q.appendChild(button('Cancel', () => {
+    q.appendChild(el('span', '', `Disconnect ${folder.name} from ${project.name || project.slug || 'this project'}? The cloud project and this folder both stay; they stop being linked.`));
+    q.appendChild(button('Keep', () => {
       u.question = null;
       rerender();
     }, { disabled: u.busy }));
-    row.appendChild(q);
+    q.appendChild(button('Disconnect', () => disconnect(folder), { danger: true, disabled: stale || u.busy }));
+    detail.appendChild(q);
   }
-  if (u.busy) row.appendChild(el('p', 'settings-about-status cloud-row-status', 'Disconnecting…'));
-  if (u.message) row.appendChild(el('p', 'settings-about-status cloud-row-error', u.message));
-  return row;
+  if (u.busy) detail.appendChild(el('p', 'settings-about-status', 'Disconnecting…'));
+  if (u.message) detail.appendChild(el('p', 'settings-about-status cloud-row-error', u.message));
+
+  const foot = el('div', 'cloud-detail-foot');
+  if (u.question !== 'disconnect') {
+    foot.appendChild(button('Disconnect…', () => {
+      u.question = 'disconnect';
+      u.message = null;
+      rerender();
+    }, { quiet: true, className: 'cloud-btn-danger-text', disabled: stale || u.busy }));
+  }
+  foot.appendChild(button('Open in Frame', () => openFolder(folder.path), { primary: true }));
+  detail.appendChild(foot);
 }
 
-function picker(folder, e, { allowCreate }) {
+function chooseCreate(folder) {
+  const u = ui(folder.path);
+  u.mode = 'create';
+  u.pickerOpen = false;
+  u.question = null;
+  u.message = null;
+  rerender();
+}
+
+function picker(folder, e) {
   const u = ui(folder.path);
   const list = el('div', 'cloud-picker');
   for (const option of e.options) {
@@ -459,7 +621,6 @@ function picker(folder, e, { allowCreate }) {
     item.addEventListener('click', () => {
       u.mode = 'connect';
       u.targetId = option.id;
-      u.checked = true;
       u.pickerOpen = false;
       u.question = null;
       u.message = null;
@@ -469,29 +630,17 @@ function picker(folder, e, { allowCreate }) {
     });
     list.appendChild(item);
   }
-  if (allowCreate) {
-    const item = el('button', 'cloud-picker-item cloud-picker-create', 'Create a new project instead');
-    item.type = 'button';
-    item.addEventListener('click', () => {
-      u.mode = 'create';
-      u.checked = true;
-      u.pickerOpen = false;
-      u.question = null;
-      u.message = null;
-      rerender();
-      checkSlugSoon(folder.path, effective(folder).slug);
-    });
-    list.appendChild(item);
-  }
   return list;
 }
 
-function field(folder, key, label, value, disabled) {
+function field(folder, key, label, value, disabled, prefix = '') {
   const wrap = el('label', 'cloud-field');
   wrap.appendChild(el('span', 'cloud-field-label', label));
+  const box = el('span', `cloud-input-box${key === 'slug' ? ' cloud-input-mono' : ''}`);
+  if (prefix) box.appendChild(el('span', 'cloud-input-prefix', prefix));
   const input = document.createElement('input');
   input.type = 'text';
-  input.className = `cloud-input${key === 'slug' ? ' cloud-input-mono' : ''}`;
+  input.className = 'cloud-input';
   input.value = value || '';
   input.disabled = Boolean(disabled);
   input.spellcheck = false;
@@ -508,7 +657,8 @@ function field(folder, key, label, value, disabled) {
       }
     }
   });
-  wrap.appendChild(input);
+  box.appendChild(input);
+  wrap.appendChild(box);
   return wrap;
 }
 
@@ -518,16 +668,16 @@ function slugStatus(u) {
   const s = u.slugState;
   if (s) {
     if (s.state === 'checking') box.appendChild(el('span', 'settings-about-status', 'Checking…'));
-    else if (s.state === 'ok') box.appendChild(el('span', 'cloud-ok', 'Available'));
+    else if (s.state === 'ok') box.appendChild(el('span', 'cloud-ok', '✓ Available'));
     else if (s.state === 'invalid') box.appendChild(el('span', 'cloud-row-error', SLUG_ERRORS[s.error] || SLUG_ERRORS.format));
     else if (s.state === 'taken') {
-      box.appendChild(el('span', 'cloud-row-error', 'That slug is taken.'));
+      box.appendChild(el('span', 'cloud-row-error', 'That URL is taken.'));
       if (s.suggestion) {
         box.appendChild(button(`Use ${s.suggestion}`, () => {
           u.slug = s.suggestion;
           rerender();
           checkSlugSoon(u.path, s.suggestion);
-        }));
+        }, { quiet: true }));
       }
     }
   }
@@ -536,8 +686,8 @@ function slugStatus(u) {
 
 // Main validates the slug first and only asks the server about a valid one.
 let slugSeq = 0;
-function checkSlugSoon(path, slug) {
-  const u = ui(path);
+function checkSlugSoon(folderPath, slug) {
+  const u = ui(folderPath);
   clearTimeout(u.slugTimer);
   const seq = ++slugSeq;
   u.slugSeq = seq;
@@ -559,48 +709,31 @@ function checkSlugSoon(path, slug) {
   }, SLUG_CHECK_DELAY_MS);
 }
 
-function appendRowStatus(row, folder, stale) {
+/** Progress, a question that needs an answer, or the last error — above the folder's button. */
+function appendStatus(target, folder, stale) {
   const u = ui(folder.path);
   if (u.busy) {
-    row.appendChild(el('p', 'settings-about-status cloud-row-status', 'Connecting…'));
+    target.appendChild(el('p', 'settings-about-status cloud-row-status', 'Connecting…'));
     return;
   }
   const q = QUESTIONS[u.question];
   if (q) {
     const box = el('div', 'cloud-question');
     box.appendChild(el('span', '', q.text));
-    box.appendChild(button(q.yes, () => connectRowNow(folder.path, {
-      acceptRemoteMismatch: u.question === 'remoteMismatch',
-      takeOver: u.question === 'mismatch'
-    }), { primary: true, disabled: stale }));
     box.appendChild(button(q.no, () => {
       u.question = null;
       rerender();
     }));
-    row.appendChild(box);
+    box.appendChild(button(q.yes, () => connectRowNow(folder.path, {
+      acceptRemoteMismatch: u.question === 'remoteMismatch',
+      takeOver: u.question === 'mismatch'
+    }), { primary: true, disabled: stale }));
+    target.appendChild(box);
   }
-  if (u.message) row.appendChild(el('p', 'settings-about-status cloud-row-error', u.message));
+  if (u.message) target.appendChild(el('p', 'settings-about-status cloud-row-error', u.message));
 }
 
 // ─── Linking ──────────────────────────────────────────────
-
-async function connectSelected() {
-  if (bulkRunning || !lastState) return;
-  const rows = (lastState.folders || [])
-    .filter((f) => !f.connected && f.plan && effective(f).checked)
-    .map((f) => f.path);
-  if (!rows.length) return;
-  bulkRunning = true;
-  rerender();
-  try {
-    // One after another; a refusal stays on its row and the run goes on.
-    // Questions are never answered here — only the row's own buttons do.
-    for (const path of rows) await connectRowNow(path, {});
-  } finally {
-    bulkRunning = false;
-    rerender();
-  }
-}
 
 /**
  * Claim or create one row. `flags` carries a question the user just
@@ -691,9 +824,13 @@ async function disconnect(folder) {
 // ─── Render plumbing ──────────────────────────────────────
 
 function rerender() {
-  if (lastState && deviceEl && hub && hub.activeTab() === 'device') renderDeviceTab(lastState);
+  if (!lastState) return;
+  if (projectsEl) renderProjectsTab(lastState);
+  if (deviceEl && hub && hub.activeTab() === 'device') renderDeviceTab(lastState);
 }
 
+// Selects the folder a caller asked for (a path, or the folder whose
+// suggestion is a project) and scrolls the list to it.
 function applyPendingFocus(folders) {
   if (!pendingFocus) return;
   let target = null;
@@ -704,14 +841,18 @@ function applyPendingFocus(folders) {
     target = folders.find((f) => !f.connected && f.plan && f.plan.candidate && f.plan.candidate.id === id)
       || folders.find((f) => !f.connected && f.plan && (f.plan.options || []).some((o) => o.id === id));
     if (!target && folders.some((f) => f.candidatesLoading)) return; // wait for the answers
+    if (target) {
+      const u = ui(target.path);
+      if (!(target.plan.candidate && target.plan.candidate.id === id)) {
+        u.mode = 'connect';
+        u.targetId = id;
+      }
+    }
   }
   pendingFocus = null;
   if (!target) return;
-  const row = Array.from(deviceEl.querySelectorAll('.cloud-device-row'))
-    .find((r) => r.dataset.folderPath === target.path);
-  if (!row) return;
-  row.classList.add('cloud-row-focus');
-  requestAnimationFrame(() => row.scrollIntoView({ block: 'center' }));
+  selectedPath = target.path;
+  scrollSelected = true;
 }
 
 // A push while the user types must not steal the caret.

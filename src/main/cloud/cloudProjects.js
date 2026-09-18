@@ -317,7 +317,14 @@ function shouldAutoShowDevices({ userStartedSignIn, dismissed, unconnectedCount 
  * web runs on localhost / 127.0.0.1.
  */
 function buildWebUrl({ apiUrl, webOrigin, workspaceSlug, projectSlug } = {}) {
-  if (!slugShapeOk(workspaceSlug) || !slugShapeOk(projectSlug)) return null;
+  if (!slugShapeOk(projectSlug)) return null;
+  const base = buildWorkspaceWebUrl({ apiUrl, webOrigin, workspaceSlug });
+  return base ? `${base}/${encodeURIComponent(projectSlug)}` : null;
+}
+
+/** `{webOrigin}/{workspace}`, under the same guards as buildWebUrl. */
+function buildWorkspaceWebUrl({ apiUrl, webOrigin, workspaceSlug } = {}) {
+  if (!slugShapeOk(workspaceSlug)) return null;
   let web;
   let api;
   try {
@@ -330,7 +337,7 @@ function buildWebUrl({ apiUrl, webOrigin, workspaceSlug, projectSlug } = {}) {
   if (api.protocol === 'https:' && web.protocol !== 'https:' && !LOOPBACK_HOSTS.has(web.hostname)) {
     return null;
   }
-  return `${web.origin}/${encodeURIComponent(workspaceSlug)}/${encodeURIComponent(projectSlug)}`;
+  return `${web.origin}/${encodeURIComponent(workspaceSlug)}`;
 }
 
 module.exports = {
@@ -353,4 +360,5 @@ module.exports = {
   planFolderRow,
   shouldAutoShowDevices,
   buildWebUrl,
+  buildWorkspaceWebUrl,
 };

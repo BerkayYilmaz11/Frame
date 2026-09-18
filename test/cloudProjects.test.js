@@ -417,6 +417,12 @@ test('buildWebUrl joins origin, workspace and project', () => {
   assert.equal(core.buildWebUrl(WEB), 'https://app.frame.test/lab/my-app');
 });
 
+test('buildWorkspaceWebUrl stops at the workspace, under the same guards', () => {
+  assert.equal(core.buildWorkspaceWebUrl(WEB), 'https://app.frame.test/lab');
+  assert.equal(core.buildWorkspaceWebUrl({ ...WEB, workspaceSlug: '../x' }), null);
+  assert.equal(core.buildWorkspaceWebUrl({ ...WEB, webOrigin: 'http://app.frame.test' }), null);
+});
+
 test('buildWebUrl uses only the origin of what it is given', () => {
   assert.equal(
     core.buildWebUrl({ ...WEB, webOrigin: 'https://user:pw@app.frame.test/device?code=X#y' }),

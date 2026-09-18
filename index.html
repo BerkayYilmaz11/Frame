@@ -1694,45 +1694,74 @@
           <p class="settings-about-status">Frame Cloud isn't configured on this machine.</p>
         </div>
 
-        <div data-cloud-state="signedOut" hidden>
-          <div class="settings-about-row">
-            <div class="settings-about-version">Sign in to Frame Cloud</div>
-            <button type="button" class="settings-about-btn settings-about-btn-primary" data-cloud-action="signIn">Sign in</button>
-          </div>
-          <p class="settings-about-status cloud-note" data-cloud-note="signedOutUnreachable" hidden>
-            Signed out on this Mac. The server couldn't be reached, so the session there ends within 30 days.
-          </p>
-        </div>
+        <!-- Signed out and every sign-in step: the case for Frame Cloud on the
+             left (cloudWelcome.js fills it), the sign-in on the right. The
+             right card swaps panes in place, so the page never jumps. -->
+        <div class="cloud-welcome" id="cloud-welcome" hidden>
+          <section class="cloud-pitch" id="cloud-pitch"></section>
+          <aside class="cloud-signin">
+            <div data-cloud-state="signedOut" class="cloud-signin-pane" hidden>
+              <div class="cloud-signin-head">
+                <h4 class="cloud-signin-title">Sign in to Frame Cloud</h4>
+                <p class="cloud-signin-text">Sign-in happens in your browser with your GitHub account. Frame never sees your password.</p>
+              </div>
+              <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Sign in with GitHub</button>
+              <ol class="cloud-steps">
+                <li>Frame opens your browser.</li>
+                <li>Approve Frame on the page that opens.</li>
+                <li>Check that the code matches this screen.</li>
+              </ol>
+              <p class="settings-about-status cloud-note" data-cloud-note="signedOutUnreachable" hidden>
+                Signed out on this Mac. The server couldn't be reached, so the session there ends within 30 days.
+              </p>
+            </div>
 
-        <div data-cloud-state="requestingCode" hidden>
-          <p class="settings-about-status">Starting sign-in…</p>
-        </div>
+            <div data-cloud-state="requestingCode" class="cloud-signin-pane" hidden>
+              <p class="cloud-waiting"><span class="cloud-spin" aria-hidden="true"></span>Starting sign-in…</p>
+            </div>
 
-        <div data-cloud-state="awaitingApproval" hidden>
-          <div id="cloud-code" class="cloud-code"></div>
-          <p class="settings-about-status">Waiting for approval in your browser</p>
-          <div class="cloud-url">
-            <span id="cloud-url" class="cloud-url-text"></span>
-            <button type="button" class="settings-about-btn" data-cloud-action="copyUrl">Copy</button>
-          </div>
-          <div class="cloud-actions">
-            <button type="button" class="settings-about-btn" data-cloud-action="openBrowser">Open browser again</button>
-            <button type="button" class="settings-about-btn" data-cloud-action="cancel">Cancel</button>
-          </div>
-        </div>
+            <div data-cloud-state="awaitingApproval" class="cloud-signin-pane" hidden>
+              <div class="cloud-signin-head">
+                <h4 class="cloud-signin-title">Approve in your browser</h4>
+                <p class="cloud-signin-text">Make sure the browser shows the same code.</p>
+              </div>
+              <div id="cloud-code" class="cloud-code"></div>
+              <p class="cloud-waiting"><span class="cloud-spin" aria-hidden="true"></span>Waiting for approval…</p>
+              <ol class="cloud-steps">
+                <li class="done">Frame opened your browser.</li>
+                <li class="now">Approve Frame on the page that opened.</li>
+                <li>Check that the code matches this screen.</li>
+              </ol>
+              <div class="cloud-url">
+                <span id="cloud-url" class="cloud-url-text"></span>
+                <button type="button" class="settings-about-btn" data-cloud-action="copyUrl">Copy</button>
+              </div>
+              <div class="cloud-actions">
+                <button type="button" class="settings-about-btn" data-cloud-action="openBrowser">Open browser again</button>
+                <button type="button" class="settings-about-btn" data-cloud-action="cancel">Cancel</button>
+              </div>
+            </div>
 
-        <div data-cloud-state="registering" hidden>
-          <p class="settings-about-status">Finishing sign-in…</p>
-        </div>
+            <div data-cloud-state="registering" class="cloud-signin-pane" hidden>
+              <p class="cloud-waiting"><span class="cloud-spin" aria-hidden="true"></span>Finishing sign-in…</p>
+            </div>
 
-        <div data-cloud-state="failed" hidden>
-          <p class="settings-about-status cloud-reason">
-            <span id="cloud-reason"></span>
-            <a href="#" id="cloud-web-link" hidden>Open Frame Cloud</a>
-          </p>
-          <div class="cloud-actions">
-            <button type="button" class="settings-about-btn" data-cloud-action="signIn">Try again</button>
-          </div>
+            <div data-cloud-state="failed" class="cloud-signin-pane" hidden>
+              <div class="cloud-signin-head">
+                <h4 class="cloud-signin-title">Sign-in didn't finish</h4>
+                <p class="cloud-signin-text cloud-reason">
+                  <span id="cloud-reason"></span>
+                  <a href="#" id="cloud-web-link" hidden>Open Frame Cloud</a>
+                </p>
+              </div>
+              <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Try again</button>
+            </div>
+
+            <!-- Where Learn more leads (the guide, or frame.cool) is not settled. -->
+            <div class="cloud-signin-foot">
+              <button type="button" class="settings-about-btn cloud-btn-quiet" disabled title="Not available yet">Learn more</button>
+            </div>
+          </aside>
         </div>
 
         <div data-cloud-state="signedIn" class="cloud-signed-in" hidden>
@@ -1740,19 +1769,35 @@
             Signed in to Frame Cloud
           </p>
           <div class="cloud-header">
-            <div class="cloud-header-item">
-              <div class="cloud-header-label">Account</div>
-              <div class="cloud-value" id="cloud-user"></div>
+            <div class="cloud-identity">
+              <span class="cloud-avatar" aria-hidden="true">
+                <img id="cloud-avatar-img" class="cloud-avatar-img" alt="" referrerpolicy="no-referrer" hidden>
+                <span id="cloud-avatar-initials" class="cloud-avatar-initials"></span>
+              </span>
+              <div class="cloud-identity-text">
+                <div id="cloud-user-name" class="cloud-identity-name"></div>
+                <div id="cloud-user-sub" class="cloud-identity-sub"></div>
+              </div>
+              <button type="button" class="settings-about-btn cloud-sign-out" data-cloud-action="signOut">Sign out</button>
             </div>
-            <div class="cloud-header-item">
-              <div class="cloud-header-label">Workspace</div>
-              <div class="cloud-value" id="cloud-workspace"></div>
-            </div>
-            <div class="cloud-header-item">
-              <div class="cloud-header-label">This device</div>
-              <div class="cloud-value" id="cloud-device"></div>
-            </div>
-            <button type="button" class="settings-about-btn cloud-sign-out" data-cloud-action="signOut">Sign out</button>
+            <dl class="cloud-meta">
+              <div class="cloud-meta-row">
+                <dt class="cloud-meta-label">Workspace</dt>
+                <dd class="cloud-meta-value">
+                  <span id="cloud-workspace" class="cloud-meta-text"></span>
+                  <button type="button" class="cloud-link-btn" data-cloud-action="openWorkspace">
+                    Open in browser
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                  </button>
+                </dd>
+              </div>
+              <div class="cloud-meta-row">
+                <dt class="cloud-meta-label">This device</dt>
+                <dd class="cloud-meta-value">
+                  <span id="cloud-device" class="cloud-meta-text"></span>
+                </dd>
+              </div>
+            </dl>
           </div>
           <p class="settings-about-status cloud-note" data-cloud-note="ephemeral" hidden>
             Your system has no secure storage, so you'll sign in again next launch.

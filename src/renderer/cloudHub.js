@@ -16,10 +16,13 @@
 const { ipcRenderer, shell, clipboard } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
+const cloudWelcome = require('./cloudWelcome');
 
 const SIGNED_IN_NOTE_MS = 4000;
 const TABS = ['projects', 'device'];
 const PROMPT_DISMISSED_KEY = 'cloudConnectPromptDismissed';
+// The states drawn inside the welcome layout (pitch + sign-in card).
+const WELCOME_STATES = ['signedOut', 'requestingCode', 'awaitingApproval', 'registering', 'failed'];
 
 const REASONS = {
   denied: 'Sign-in was denied in the browser.',
@@ -53,6 +56,8 @@ function init(opts = {}) {
     console.error('Frame Cloud: #cloud-overlay not found — the Frame Cloud modal is unavailable');
     return;
   }
+
+  cloudWelcome.render(document.getElementById('cloud-pitch'));
 
   rootEl.querySelectorAll('[data-cloud-action]').forEach((btn) => {
     btn.addEventListener('click', () => onAction(btn.dataset.cloudAction, btn));
@@ -121,13 +126,13 @@ function pullProjects() {
     });
 }
 
-/** Re-read the list; on On this device, the candidates follow. */
+/** Re-read the list; the candidates follow (both tabs read them). */
 function refreshProjects() {
   return ipcRenderer
     .invoke(IPC.CLOUD_PROJECTS_REFRESH)
     .then((state) => {
       renderProjects(state);
-      if (activeTab === 'device' && tabs && tabs.onShow) tabs.onShow('device', { force: true });
+      if (tabs && tabs.onShow) tabs.onShow(activeTab, { force: true });
       return state;
     })
     .catch((err) => {
@@ -153,6 +158,11 @@ async function onAction(action, btn) {
       return;
     case 'openBrowser':
       if (isWebUrl(sessionState.verificationUrl)) shell.openExternal(sessionState.verificationUrl);
+      return;
+    case 'openWorkspace':
+      ipcRenderer.invoke(IPC.CLOUD_OPEN_WORKSPACE_ON_WEB).catch((err) => {
+        console.error('Frame Cloud: could not open the workspace on the web', err);
+      });
       return;
     case 'copyUrl':
       if (!sessionState.verificationUrl) return;
@@ -186,6 +196,8 @@ function renderSession(state) {
     rootEl.querySelectorAll('[data-cloud-state]').forEach((pane) => {
       pane.hidden = pane.dataset.cloudState !== s.state;
     });
+    const welcome = document.getElementById('cloud-welcome');
+    if (welcome) welcome.hidden = !WELCOME_STATES.includes(s.state);
     setNote('signedOutUnreachable', s.state === 'signedOut' && s.serverUnreachable);
     setNote('ephemeral', s.state === 'signedIn' && s.ephemeral);
     setNote('signedInUnreachable', s.state === 'signedIn' && s.serverUnreachable);
@@ -223,11 +235,45 @@ function renderHeader(s) {
   const user = s.user || {};
   const workspace = s.workspace || {};
   const device = s.device || {};
-  setValue('cloud-user', user.name || user.email || '—', user.name ? user.email : '');
-  setValue('cloud-workspace', workspace.name || workspace.slug || '—', workspace.name ? workspace.slug : '');
-  const lastSeen = device.lastSeenAt || device.last_seen_at;
-  const seen = lastSeen ? `last seen ${formatRelative(new Date(lastSeen))}` : '';
-  setValue('cloud-device', device.name || '—', seen);
+  setText('cloud-user-name', user.name || user.email || '—');
+  setText('cloud-user-sub', user.githubLogin ? `@${user.githubLogin}` : user.name ? user.email || '' : '');
+  renderAvatar(user);
+  setText('cloud-workspace', workspace.name || workspace.slug || '—');
+  setText('cloud-device', device.name || '—');
+}
+
+// The account picture when the server has one and it loads; initials
+// otherwise ("Ada Lovelace" → "AL").
+function renderAvatar(user) {
+  const img = document.getElementById('cloud-avatar-img');
+  const initials = document.getElementById('cloud-avatar-initials');
+  if (initials) {
+    initials.textContent = String(user.name || user.email || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word.charAt(0).toUpperCase())
+      .join('');
+  }
+  if (!img) return;
+  const src = isWebUrl(user.image) ? user.image : '';
+  if (!src) {
+    img.hidden = true;
+    img.removeAttribute('src');
+    if (initials) initials.hidden = false;
+    return;
+  }
+  if (img.getAttribute('src') === src) return;
+  img.hidden = true;
+  img.onload = () => {
+    img.hidden = false;
+    if (initials) initials.hidden = true;
+  };
+  img.onerror = () => {
+    img.hidden = true;
+    if (initials) initials.hidden = false;
+  };
+  img.src = src;
 }
 
 // ─── Projects ─────────────────────────────────────────────
@@ -351,18 +397,6 @@ function setText(id, text) {
 }
 
 // "Primary · secondary", built from text nodes — server strings never become HTML.
-function setValue(id, primary, secondary) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = primary;
-  if (secondary) {
-    const sub = document.createElement('span');
-    sub.className = 'cloud-sub';
-    sub.textContent = secondary;
-    el.appendChild(sub);
-  }
-}
-
 function isWebUrl(url) {
   return typeof url === 'string' && /^https?:\/\//i.test(url);
 }

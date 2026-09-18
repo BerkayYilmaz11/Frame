@@ -253,6 +253,7 @@ const IPC = {
   CLOUD_LINK_CREATE: 'cloud-link-create',               // renderer → main (invoke): { path, name, slug } → { ok, reason?, field?, suggestion? }
   CLOUD_LINK_RELEASE: 'cloud-link-release',             // renderer → main (invoke): { path } → { ok, reason? }
   CLOUD_OPEN_ON_WEB: 'cloud-open-on-web',               // renderer → main (invoke): cloud project id → opened?
+  CLOUD_OPEN_WORKSPACE_ON_WEB: 'cloud-open-workspace-on-web', // renderer → main (invoke): () → opened?
   CLOUD_PROJECTS_STATE: 'cloud-projects-state'          // main → renderer: projects state on every change (no token)
 };
 
