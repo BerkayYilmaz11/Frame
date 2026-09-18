@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T16:01:23.864Z",
+  "lastUpdated": "2026-09-18T16:03:17.873Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8721,13 +8721,13 @@
       "title": "Render the board: load via `CLOUD_BRIEFS_LIST`, header with count / Show closed / Refresh / Open on web, Backlog / Active / Done columns and a Closed section, escaped cards, loading / empty / error-with-Retry states, a stale-answer sequence guard, and new `cloud-briefs.css` imported in `main.css`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T16:03:17.873Z",
+      "completedAt": "2026-09-18T16:03:17.873Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T09",

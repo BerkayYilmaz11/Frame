@@ -53,3 +53,11 @@ Created `src/renderer/cloudBriefsPanel.js` with `init(cloudHub)`, `show`, `hide`
 _Captured: 2026-09-18 · 2 file change(s)_
 
 ---
+
+## T08 — Render the board
+
+`cloudBriefsPanel.show()` resets Show closed to off and loads through `CLOUD_BRIEFS_LIST`. Loads are sequence-numbered, so a stale answer from another project, a toggle or a second refresh is dropped, and `hide()` bumps the number too. A refresh of the same folder keeps the board and spins the button, while a different folder starts from the loading state. The board draws Backlog / Active / Done (web copy and hints), a Closed section when toggled, and escaped cards (`#n`, kind badge, work-only priority dot, milestone name, ending line), plus empty-with-Open-on-web and error-with-Retry states, and `unauthorized` renders nothing because the session push hides the view. The header count is the number of briefs shown, and Open on web hides when main reports no web origin. New `styles/components/cloud-briefs.css` is imported in `main.css` after `cloud-hub.css`.
+
+_Captured: 2026-09-18 · 3 file change(s)_
+
+---

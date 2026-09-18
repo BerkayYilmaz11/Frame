@@ -1,0 +1,294 @@
+/* ==================== CLOUD BRIEFS ====================
+   The connected Frame Cloud project's briefs, read-only
+   (frame-cloud-briefs-read-only spec, cloudBriefsPanel.js). The panel's
+   hidden / visible rules live beside Sessions in panels.css; the detail
+   drawer's slide is the Specs grid's .specs-dashboard-detail. This file is
+   the board, the cards, the states and the detail body. Namespaced
+   cloud-briefs-* so the local briefs (.briefs*) can share the tree. */
+
+/* ─── Header controls ─── */
+
+.cloud-briefs-actions [hidden] {
+  display: none !important;
+}
+
+.cloud-briefs-closed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cloud-briefs-closed-toggle input {
+  margin: 0;
+  accent-color: var(--accent-primary);
+}
+
+.cloud-briefs-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.cloud-briefs-icon-btn:hover {
+  color: var(--info);
+  background: rgba(166, 192, 240, 0.15);
+}
+
+.cloud-briefs-icon-btn.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+.cloud-briefs-web-btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.cloud-briefs-web-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+/* ─── Board ─── */
+
+.cloud-briefs-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-lg) 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.cloud-briefs-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .cloud-briefs-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cloud-briefs-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+  padding: var(--space-md);
+  border-radius: var(--radius-xl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.cloud-briefs-column-title,
+.cloud-briefs-closed-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cloud-briefs-closed-title {
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-column-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-column-hint,
+.cloud-briefs-muted {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-closed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.cloud-briefs-closed .cloud-briefs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.cloud-briefs-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ─── Card ─── */
+
+.cloud-briefs-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.cloud-briefs-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+}
+
+.cloud-briefs-card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.cloud-briefs-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-number {
+  font-family: var(--font-mono);
+}
+
+.cloud-briefs-kind {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-kind.work {
+  border-color: transparent;
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
+}
+
+.cloud-briefs-card-title {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-md);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cloud-briefs-priority-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+.cloud-briefs-priority-dot.high {
+  background: var(--error);
+}
+
+.cloud-briefs-priority-dot.medium {
+  background: var(--warning);
+}
+
+.cloud-briefs-milestone {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.cloud-briefs-ending {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  overflow-wrap: anywhere;
+}
+
+/* ─── States: loading, empty, error ─── */
+
+.cloud-briefs-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cloud-briefs-state h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cloud-briefs-state p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cloud-briefs-loading {
+  border-style: solid;
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-error p {
+  color: var(--error);
+}

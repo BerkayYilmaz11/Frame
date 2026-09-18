@@ -6471,33 +6471,103 @@
         "isAvailable"
       ],
       "depends": [
+        "electron",
+        "shared/ipcChannels",
         "state",
         "cloudProjectMark",
+        "htmlUtils",
+        "cloudBriefsCopy",
         "projectListUI"
       ],
       "functions": {
         "init": {
-          "line": 28,
+          "line": 45,
           "params": [
             "cloudHub"
           ]
         },
         "onCloudChange": {
-          "line": 44
+          "line": 76
         },
         "isAvailable": {
-          "line": 53,
+          "line": 85,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 60,
-          "purpose": "Show the panel — the host calls this on mount."
+          "line": 92,
+          "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 66
+          "line": 101
+        },
+        "load": {
+          "line": 110
+        },
+        "setRefreshing": {
+          "line": 149,
+          "params": [
+            "on"
+          ]
+        },
+        "openOnWeb": {
+          "line": 155,
+          "params": [
+            "number"
+          ]
+        },
+        "onContentClick": {
+          "line": 164,
+          "params": [
+            "event"
+          ]
+        },
+        "setHeader": {
+          "line": 174,
+          "params": [
+            "{ count",
+            "canOpenWeb }"
+          ]
+        },
+        "renderBoard": {
+          "line": 181
+        },
+        "renderCards": {
+          "line": 213,
+          "params": [
+            "briefs",
+            "milestoneNames"
+          ]
+        },
+        "renderCard": {
+          "line": 220,
+          "params": [
+            "brief",
+            "milestoneName"
+          ]
+        },
+        "renderEmpty": {
+          "line": 241,
+          "params": [
+            "canOpenWeb"
+          ]
+        },
+        "renderLoading": {
+          "line": 251
+        },
+        "renderMessage": {
+          "line": 256,
+          "params": [
+            "text"
+          ]
+        },
+        "renderError": {
+          "line": 261,
+          "params": [
+            "reason"
+          ]
         },
         "isVisible": {
-          "line": 72
+          "line": 269
         }
       }
     },
