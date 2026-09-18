@@ -840,7 +840,9 @@
         "init",
         "setupIPC",
         "refresh",
-        "publicState"
+        "publicState",
+        "call",
+        "connectedProject"
       ],
       "depends": [
         "fs",
@@ -982,24 +984,31 @@
           ],
           "purpose": "The renderer sends a project id; the URL is built and opened here."
         },
+        "connectedProject": {
+          "line": 470,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The cloud project a known folder is connected to, from this service's own"
+        },
         "openWorkspaceOnWeb": {
-          "line": 465
+          "line": 478
         },
         "onSessionChange": {
-          "line": 480,
+          "line": 493,
           "params": [
             "{ state",
             "userStarted }"
           ]
         },
         "init": {
-          "line": 518,
+          "line": 531,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 527,
+          "line": 540,
           "params": [
             "ipcMain"
           ]

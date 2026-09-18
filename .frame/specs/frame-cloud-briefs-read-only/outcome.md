@@ -5,3 +5,11 @@ Added the pure read core: `listBriefs` (sends `includeClosed` only when true), `
 _Captured: 2026-09-18 · 2 file change(s)_
 
 ---
+
+## T02 — Export `call` and add `connectedProject(path)` in `cloudProjectsService.js`
+
+Exported the existing `call()` wrapper and added `connectedProject(path)`, which matches the folder against the cached `project.list` via `core.matchFolders` and returns `{id, slug, name}` or null. It reads the service's current `folders` without rescanning, so it answers exactly what the renderer's Connected mark was last pushed, and it returns null whenever the service is signed out. File: `src/main/cloud/cloudProjectsService.js`.
+
+_Captured: 2026-09-18 · 1 file change(s)_
+
+---

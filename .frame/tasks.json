@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T15:49:10.000Z",
+  "lastUpdated": "2026-09-18T15:55:18.333Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8643,13 +8643,13 @@
       "title": "Export `call` and add `connectedProject(path)` (connected folder → `{id, slug, name}` or null via `matchFolders`) in `src/main/cloud/cloudProjectsService.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T15:55:18.333Z",
+      "completedAt": "2026-09-18T15:55:18.333Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T03",
