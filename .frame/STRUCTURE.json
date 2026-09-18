@@ -3475,43 +3475,43 @@
           "purpose": "Get menu template based on active AI tool"
         },
         "openSettings": {
-          "line": 247
+          "line": 249
         },
         "buildAICommandsSubmenu": {
-          "line": 258,
+          "line": 260,
           "params": [
             "tool"
           ],
           "purpose": "Build the AI-tool root's submenu: Start first, then the tool's slash"
         },
         "buildToolSwitcherSubmenu": {
-          "line": 307,
+          "line": 309,
           "purpose": "Build tool switcher submenu"
         },
         "buildThemeSubmenu": {
-          "line": 328,
+          "line": 330,
           "purpose": "View › Theme: one radio item per registry entry, the current one checked."
         },
         "sendCommand": {
-          "line": 343,
+          "line": 345,
           "params": [
             "command"
           ],
           "purpose": "Send command to terminal"
         },
         "sendAppCommand": {
-          "line": 353,
+          "line": 355,
           "params": [
             "commandId"
           ],
           "purpose": "Run a renderer command by its command-registry id (the menu's one"
         },
         "openHistoryFile": {
-          "line": 362,
+          "line": 364,
           "purpose": "Open history file in default editor"
         },
         "createMenu": {
-          "line": 376,
+          "line": 378,
           "purpose": "Create and set application menu"
         }
       },
@@ -8672,28 +8672,28 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 664,
+          "line": 615,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 679,
+          "line": 630,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 695,
+          "line": 646,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 705,
+          "line": 656,
           "params": [
             "chapters = CHAPTERS"
           ],
@@ -8765,7 +8765,7 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 637,
+          "line": 636,
           "params": [
             "kind",
             "focus"
@@ -10666,32 +10666,32 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 318
+          "line": 321
         },
         "saveCollapsedGroups": {
-          "line": 327,
+          "line": 330,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 335
+          "line": 338
         },
         "revealNavItem": {
-          "line": 404,
+          "line": 407,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 417
+          "line": 420
         },
         "refreshWorkspaceNav": {
-          "line": 429
+          "line": 432
         },
         "updateWorkspaceNav": {
-          "line": 505,
+          "line": 508,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -13925,7 +13925,7 @@
       "depends": [],
       "functions": {
         "shouldAutoStart": {
-          "line": 111,
+          "line": 102,
           "params": [
             "{ done",
             "readFailed } = {}"
@@ -13933,14 +13933,14 @@
           "purpose": "Does the tour start by itself after boot? Once per user: any stored value"
         },
         "applies": {
-          "line": 116,
+          "line": 107,
           "params": [
             "step",
             "hasProject"
           ]
         },
         "nextStepIndex": {
-          "line": 132,
+          "line": 123,
           "params": [
             "from",
             "{ hasProject",
@@ -13950,14 +13950,14 @@
           "purpose": "The index of the first step after `from` that applies to the current"
         },
         "firstStepIndex": {
-          "line": 143,
+          "line": 134,
           "params": [
             "ctx = {}"
           ],
           "purpose": "Where a tour begins: step 1 with no project open, step 2 with one."
         },
         "isLastStep": {
-          "line": 148,
+          "line": 139,
           "params": [
             "index",
             "{ hasProject",
@@ -13966,7 +13966,7 @@
           "purpose": "The last step that applies with a project open, for the Done button."
         },
         "clamp": {
-          "line": 154,
+          "line": 145,
           "params": [
             "value",
             "min",
@@ -13974,7 +13974,7 @@
           ]
         },
         "placeCard": {
-          "line": 173,
+          "line": 164,
           "params": [
             "target",
             "card",
@@ -13986,13 +13986,13 @@
           "purpose": "Place a card of `card` size beside `target` inside `viewport`."
         },
         "sentenceCount": {
-          "line": 205,
+          "line": 196,
           "params": [
             "text"
           ]
         },
         "validate": {
-          "line": 210,
+          "line": 201,
           "params": [
             "steps = STEPS"
           ],
@@ -16021,13 +16021,13 @@
         "direction": "",
         "description": ""
       },
-      "CLOUD_PROJECTS_STATE": {
-        "name": "cloud-projects-state",
+      "CLOUD_OPEN_WORKSPACE_ON_WEB": {
+        "name": "cloud-open-workspace-on-web",
         "direction": "",
         "description": ""
       },
-      "CLOUD_OPEN_WORKSPACE_ON_WEB": {
-        "name": "cloud-open-workspace-on-web",
+      "CLOUD_PROJECTS_STATE": {
+        "name": "cloud-projects-state",
         "direction": "",
         "description": ""
       }
