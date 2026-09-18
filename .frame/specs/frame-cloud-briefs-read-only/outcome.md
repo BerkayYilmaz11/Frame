@@ -45,3 +45,11 @@ Added the `cloud-briefs` row (◇ Briefs, surface `panel:cloudBriefs`, no count)
 _Captured: 2026-09-18 · 1 file change(s)_
 
 ---
+
+## T07 — `cloudBriefsPanel.js` shell and its wiring
+
+Created `src/renderer/cloudBriefsPanel.js` with `init(cloudHub)`, `show`, `hide`, `isVisible` and `isAvailable`. `isAvailable` is `cloudProjectMark.openFolder()`'s folder being `connected` with a `project`. `init` subscribes to `hub.onProjects`, `hub.onSession` and `state.onProjectChange`, and each change calls `projectListUI.updateWorkspaceNav()` (lazy require, to avoid a cycle with the nav). The hide-when-disconnected and reload-while-visible behaviour the plan puts in `init` is left to T10, as `tasks.md` splits it there. Wired `cloudBriefsPanel.init(cloudHub)` in `src/renderer/index.js` right after the Connected mark.
+
+_Captured: 2026-09-18 · 2 file change(s)_
+
+---

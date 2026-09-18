@@ -6460,6 +6460,47 @@
         }
       }
     },
+    "renderer/cloudBriefsPanel": {
+      "file": "src/renderer/cloudBriefsPanel.js",
+      "description": "Cloud Briefs Panel",
+      "exports": [
+        "init",
+        "show",
+        "hide",
+        "isVisible",
+        "isAvailable"
+      ],
+      "depends": [
+        "state",
+        "cloudProjectMark",
+        "projectListUI"
+      ],
+      "functions": {
+        "init": {
+          "line": 28,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "onCloudChange": {
+          "line": 44
+        },
+        "isAvailable": {
+          "line": 53,
+          "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
+        },
+        "show": {
+          "line": 60,
+          "purpose": "Show the panel — the host calls this on mount."
+        },
+        "hide": {
+          "line": 66
+        },
+        "isVisible": {
+          "line": 72
+        }
+      }
+    },
     "renderer/cloudHub": {
       "file": "src/renderer/cloudHub.js",
       "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
@@ -9913,6 +9954,7 @@
         "cloudHub",
         "cloudHubTabs",
         "cloudProjectMark",
+        "cloudBriefsPanel",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -9931,34 +9973,34 @@
       ],
       "functions": {
         "init": {
-          "line": 67,
+          "line": 68,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 323,
+          "line": 325,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 458,
+          "line": 460,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 568,
+          "line": 570,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 594,
+          "line": 596,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 620,
+          "line": 622,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1069,
+          "line": 1071,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -16470,6 +16512,11 @@
         "module": "renderer/cloudBriefsCopy",
         "file": "src/renderer/cloudBriefsCopy.js",
         "description": "cloudBriefsCopy — the words the cloud Briefs view says."
+      },
+      {
+        "module": "renderer/cloudBriefsPanel",
+        "file": "src/renderer/cloudBriefsPanel.js",
+        "description": "Cloud Briefs Panel"
       }
     ],
     "claude-sessions": [
@@ -16942,6 +16989,11 @@
         "module": "renderer/activityPanel",
         "file": "src/renderer/activityPanel.js",
         "description": "Activity Panel"
+      },
+      {
+        "module": "renderer/cloudBriefsPanel",
+        "file": "src/renderer/cloudBriefsPanel.js",
+        "description": "Cloud Briefs Panel"
       },
       {
         "module": "renderer/feedbackPanel",

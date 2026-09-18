@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T16:00:18.584Z",
+  "lastUpdated": "2026-09-18T16:01:23.864Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8708,13 +8708,13 @@
       "title": "Create `src/renderer/cloudBriefsPanel.js` shell (`init(cloudHub)`, `show`, `hide`, `isVisible`, `isAvailable` via `cloudProjectMark.openFolder`) subscribing to cloud and project changes to refresh the nav, and wire it in `src/renderer/index.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T16:01:23.864Z",
+      "completedAt": "2026-09-18T16:01:23.864Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T08",
