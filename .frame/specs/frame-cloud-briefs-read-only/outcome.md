@@ -21,3 +21,11 @@ Added `src/main/cloud/cloudBriefsService.js`: `list` runs `listBriefs` and `list
 _Captured: 2026-09-18 · 3 file change(s)_
 
 ---
+
+## T04 — Port the web's brief helpers into `cloudBriefsCopy.js`
+
+Ported `groupByColumn`, the column copy from `brief-board.tsx`, `KIND_COPY`, `priorityLabel`, `endingFact`, `actorLabel`, `formatDate` and `eventSentence` from FrameCloud `lib/brief.ts` into pure CommonJS, and added `reasonMessage` for the panel's read failures. Beyond the port, the file adds `statusLabel` and `endingLine` for the detail header and cards, drops the write copy (Transform label, mutation error sentences, search params), and gives an unknown event or status a safe fallback where the web's TS relies on exhaustive types. 13 tests in `test/cloudBriefsCopy.test.js` cover grouping order, ending precedence, every event branch and You vs A workspace member.
+
+_Captured: 2026-09-18 · 2 file change(s)_
+
+---

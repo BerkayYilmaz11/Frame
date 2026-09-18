@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T15:56:28.474Z",
+  "lastUpdated": "2026-09-18T15:58:18.577Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8669,13 +8669,13 @@
       "title": "Port the web's brief helpers (`groupByColumn`, column labels, `KIND_COPY`, `priorityLabel`, `endingFact`, `formatDate`, `actorLabel`, `eventSentence`, `reasonMessage`) into pure `src/renderer/cloudBriefsCopy.js` with `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T15:58:18.577Z",
+      "completedAt": "2026-09-18T15:58:18.577Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T05",
