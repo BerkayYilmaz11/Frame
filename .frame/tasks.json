@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T15:46:40.189Z",
+  "lastUpdated": "2026-09-18T15:49:10.000Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8630,13 +8630,13 @@
       "title": "Add `src/main/cloud/cloudBriefs.js` (`listBriefs`, `listMilestones`, `getBrief`, `briefEvents`, normalizers, `buildBriefWebUrl`) with `test/cloudBriefs.test.js` covering GET input shapes, normalization of partial/unknown values and URL guards",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T15:49:10.000Z",
+      "completedAt": "2026-09-18T15:49:10.000Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T02",

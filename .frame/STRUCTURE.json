@@ -467,6 +467,161 @@
         ]
       }
     },
+    "main/cloud/cloudBriefs": {
+      "file": "src/main/cloud/cloudBriefs.js",
+      "description": "cloudBriefs — the pure core of reading Frame Cloud briefs.",
+      "exports": [
+        "normalizeBrief",
+        "normalizeBriefDetail",
+        "normalizeEvent",
+        "normalizeMilestone",
+        "listBriefs",
+        "listMilestones",
+        "getBrief",
+        "briefEvents",
+        "buildBriefWebUrl"
+      ],
+      "depends": [
+        "deviceFlow",
+        "cloudProjects"
+      ],
+      "functions": {
+        "str": {
+          "line": 26,
+          "params": [
+            "value"
+          ]
+        },
+        "strOrNull": {
+          "line": 31,
+          "params": [
+            "value"
+          ],
+          "purpose": "A string, or null when absent or empty."
+        },
+        "oneOf": {
+          "line": 35,
+          "params": [
+            "set",
+            "value",
+            "fallback"
+          ]
+        },
+        "arr": {
+          "line": 39,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 43,
+          "params": [
+            "value"
+          ]
+        },
+        "normalizeBrief": {
+          "line": 50,
+          "params": [
+            "raw"
+          ],
+          "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
+        },
+        "normalizePart": {
+          "line": 73,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeAttachment": {
+          "line": 85,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeComment": {
+          "line": 90,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeBriefDetail": {
+          "line": 96,
+          "params": [
+            "raw"
+          ],
+          "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
+        },
+        "normalizeEvent": {
+          "line": 106,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeMilestone": {
+          "line": 111,
+          "params": [
+            "raw"
+          ]
+        },
+        "listBriefs": {
+          "line": 119,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug",
+            "includeClosed }"
+          ],
+          "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
+        },
+        "listMilestones": {
+          "line": 127,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug }"
+          ],
+          "purpose": "`milestone.list` → `[{ id, name, status }]`."
+        },
+        "getBrief": {
+          "line": 133,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug",
+            "number }"
+          ],
+          "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
+        },
+        "briefEvents": {
+          "line": 144,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id }"
+          ],
+          "purpose": "`brief.events` → the brief's history, oldest first."
+        },
+        "buildBriefWebUrl": {
+          "line": 155,
+          "params": [
+            "{ apiUrl",
+            "webOrigin",
+            "workspaceSlug",
+            "projectSlug",
+            "number } = {}"
+          ],
+          "purpose": "`{project url}/briefs/{number}` (the web's full brief page), or the project"
+        }
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
