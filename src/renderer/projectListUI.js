@@ -295,7 +295,16 @@ const WORKSPACE_NAV_GROUPS = [
     items: [
       { view: 'specs', icon: '≡', label: 'Specs', count: true, open: ui => ui.showSpecs(), surfaces: ['specs', 'section:spec'] },
       { view: 'tasks', icon: '✓', label: 'Tasks', count: true, open: ui => ui.showTasksBoard(), surfaces: ['tasks', 'section:task'] },
-      { view: 'sessions', icon: '↺', label: 'Sessions', open: ui => ui.showPanel('sessions'), surfaces: ['panel:sessions'] }
+      { view: 'sessions', icon: '↺', label: 'Sessions', open: ui => ui.showPanel('sessions'), surfaces: ['panel:sessions'] },
+      // Frame Cloud briefs, read-only (frame-cloud-briefs-read-only spec).
+      // Rendered only while the open folder is connected to a cloud project:
+      // no count, no teaser, no Connect hint. Its key is `cloud-briefs`, not
+      // `briefs` — local briefs (brief-capture-and-shaping) own that one.
+      {
+        view: 'cloud-briefs', icon: '◇', label: 'Briefs',
+        open: ui => ui.showPanel('cloudBriefs'), surfaces: ['panel:cloudBriefs'],
+        available: () => require('./cloudBriefsPanel').isAvailable()
+      }
     ]
   }
 ];
@@ -455,8 +464,17 @@ function refreshWorkspaceNav() {
   const termItem = workspaceNavEl.querySelector('[data-view="terminals"]');
   termItem.querySelector('.workspace-nav-count').textContent = String(count);
   WORKSPACE_NAV_ITEMS.forEach((item) => {
-    workspaceNavEl.querySelector(`[data-view="${item.view}"]`)
-      .classList.toggle('on', item.surfaces.includes(surface));
+    const row = workspaceNavEl.querySelector(`[data-view="${item.view}"]`);
+    row.classList.toggle('on', item.surfaces.includes(surface));
+    // A row with `available` exists only while it answers true; one whose
+    // module is not ready yet stays hidden. The inline display wins over the
+    // row's own `display: flex`, which a bare [hidden] would not.
+    if (item.available) {
+      let available = false;
+      try { available = Boolean(item.available()); } catch (_) { /* not ready */ }
+      row.hidden = !available;
+      row.style.display = available ? '' : 'none';
+    }
   });
 
   // A collapsed group hides its rows, and with them the active-surface

@@ -10886,6 +10886,7 @@
         "terminal",
         "laneStatus",
         "orchestrator",
+        "cloudBriefsPanel",
         "commandRegistry",
         "projectStatusBadges"
       ],
@@ -11010,32 +11011,32 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 321
+          "line": 330
         },
         "saveCollapsedGroups": {
-          "line": 330,
+          "line": 339,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 338
+          "line": 347
         },
         "revealNavItem": {
-          "line": 407,
+          "line": 416,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 420
+          "line": 429
         },
         "refreshWorkspaceNav": {
-          "line": 432
+          "line": 441
         },
         "updateWorkspaceNav": {
-          "line": 508,
+          "line": 526,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },

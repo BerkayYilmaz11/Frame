@@ -37,3 +37,11 @@ Added `#cloud-briefs-panel` to `index.html` beside Sessions: a shared `.view-hea
 _Captured: 2026-09-18 · 3 file change(s)_
 
 ---
+
+## T06 — Briefs row after Sessions and the `available()` hide pass
+
+Added the `cloud-briefs` row (◇ Briefs, surface `panel:cloudBriefs`, no count) after Sessions in the Context group, with `available: () => require('./cloudBriefsPanel').isAvailable()`. `refreshWorkspaceNav` now hides any row whose `available()` is false or throws. Unlike the plan's bare `row.hidden`, it also sets an inline `display: none`, because `.workspace-nav-item`'s `display: flex` overrides the `[hidden]` attribute and no nav CSS file is in the footprint. The throw guard keeps the row hidden until T07's module exists. File: `src/renderer/projectListUI.js`.
+
+_Captured: 2026-09-18 · 1 file change(s)_
+
+---
