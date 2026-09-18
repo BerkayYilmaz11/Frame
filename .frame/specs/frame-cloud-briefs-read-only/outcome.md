@@ -13,3 +13,11 @@ Exported the existing `call()` wrapper and added `connectedProject(path)`, which
 _Captured: 2026-09-18 · 1 file change(s)_
 
 ---
+
+## T03 — Add `cloudBriefsService.js`, the three IPC channels and its `setupIPC`
+
+Added `src/main/cloud/cloudBriefsService.js`: `list` runs `listBriefs` and `listMilestones` in parallel, `get` runs `getBrief` then `briefEvents`, and `openOnWeb` opens the project URL, or the brief URL when given a number. All calls go through `cloudProjectsService.call`, and a path that `connectedProject` does not resolve returns `{ok:false, reason:'notConnected'}` before any request. "You" comes from `cloudSession.getPublicState().user.id`, as the plan decided, not `auth.me`. `list`/`get` also return `canOpenWeb` so the panel can hide Open on web when no origin is known, which the plan did not name. Files: `cloudBriefsService.js`, `src/shared/ipcChannels.js`, `src/main/index.js`.
+
+_Captured: 2026-09-18 · 3 file change(s)_
+
+---

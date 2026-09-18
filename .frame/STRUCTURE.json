@@ -622,6 +622,73 @@
         }
       }
     },
+    "main/cloud/cloudBriefsService": {
+      "file": "src/main/cloud/cloudBriefsService.js",
+      "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs.",
+      "exports": [
+        "setupIPC",
+        "list",
+        "get",
+        "openOnWeb"
+      ],
+      "depends": [
+        "../shared/ipcChannels",
+        "cloudSession",
+        "cloudProjectsService",
+        "cloudBriefs"
+      ],
+      "functions": {
+        "meId": {
+          "line": 23,
+          "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
+        },
+        "webUrl": {
+          "line": 28,
+          "params": [
+            "project",
+            "number"
+          ]
+        },
+        "list": {
+          "line": 41,
+          "params": [
+            "folderPath",
+            "{ includeClosed } = {}"
+          ],
+          "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
+        },
+        "get": {
+          "line": 62,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
+        },
+        "openOnWeb": {
+          "line": 81,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
+        },
+        "setupIPC": {
+          "line": 90,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEFS_LIST",
+          "CLOUD_BRIEF_GET",
+          "CLOUD_BRIEFS_OPEN_ON_WEB"
+        ],
+        "emits": []
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
@@ -3302,30 +3369,31 @@
         "orchestrationManager",
         "cloud/cloudSession",
         "cloud/cloudProjectsService",
+        "cloud/cloudBriefsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 55,
+          "line": 56,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 73,
+          "line": 74,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 180
+          "line": 181
         },
         "setupAllIPC": {
-          "line": 210,
+          "line": 211,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 292,
+          "line": 295,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 338,
+          "line": 341,
           "params": [
             "window"
           ],
@@ -16194,6 +16262,21 @@
         "name": "cloud-projects-state",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEFS_LIST": {
+        "name": "cloud-briefs-list",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_GET": {
+        "name": "cloud-brief-get",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEFS_OPEN_ON_WEB": {
+        "name": "cloud-briefs-open-on-web",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -16257,6 +16340,18 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      }
+    ],
+    "briefs": [
+      {
+        "module": "main/cloud/cloudBriefs",
+        "file": "src/main/cloud/cloudBriefs.js",
+        "description": "cloudBriefs — the pure core of reading Frame Cloud briefs."
+      },
+      {
+        "module": "main/cloud/cloudBriefsService",
+        "file": "src/main/cloud/cloudBriefsService.js",
+        "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs."
       }
     ],
     "claude-sessions": [

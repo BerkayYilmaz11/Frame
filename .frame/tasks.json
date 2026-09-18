@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T15:55:18.333Z",
+  "lastUpdated": "2026-09-18T15:56:28.474Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8656,13 +8656,13 @@
       "title": "Add `src/main/cloud/cloudBriefsService.js` (`list`, `get`, `openOnWeb`; refuse a path that is not connected before any server call; \"You\" from `session.user.id`), the `CLOUD_BRIEFS_LIST` / `CLOUD_BRIEF_GET` / `CLOUD_BRIEFS_OPEN_ON_WEB` channels in `src/shared/ipcChannels.js`, and its `setupIPC` in `src/main/index.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T15:56:28.474Z",
+      "completedAt": "2026-09-18T15:56:28.474Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T04",
