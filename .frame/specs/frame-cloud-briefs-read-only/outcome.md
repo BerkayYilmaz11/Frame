@@ -61,3 +61,11 @@ _Captured: 2026-09-18 · 2 file change(s)_
 _Captured: 2026-09-18 · 3 file change(s)_
 
 ---
+
+## T09 — Render the detail drawer
+
+A card click slides the Specs-class drawer in with a loading state and loads through `CLOUD_BRIEF_GET`, guarded by its own sequence number. Back, Esc (only while the drawer is open) and `hide()` close it. The drawer shows a header (`#n`, kind, status, title, ending line, Open on web to the brief URL), a meta row (priority for work, milestone name from the board's list, target branch, "Created <date> by You / A workspace member" from the `created` event), and four tabs with counts. Description is the body escaped as `pre-wrap` text plus `http(s)`-only attachment links opened via `shell.openExternal`; Parts, Comments and History use the web's empty-state copy. A failed load shows a notFound-specific message with Retry. Deviation from the plan: the drawer covers the panel header, so `index.html` gains a second Refresh button in the drawer bar that reloads both the board and the brief.
+
+_Captured: 2026-09-18 · 3 file change(s)_
+
+---

@@ -17,7 +17,7 @@
  * MutationObserver watches to route back to the terminals view.
  */
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const cloudProjectMark = require('./cloudProjectMark');
@@ -31,6 +31,8 @@ let countElement = null;
 let showClosedInput = null;
 let refreshButton = null;
 let webButton = null;
+let detailElement = null;
+let detailContentElement = null;
 let visible = false;
 
 // The board's last answer and the folder it belongs to. A refresh of the same
@@ -41,6 +43,18 @@ let showClosed = false;
 // Every load takes a number; an answer whose number is no longer the latest
 // (another project, a toggle, a second refresh) is dropped.
 let loadSeq = 0;
+
+// The brief open in the drawer: { number, tab, result } — result is null
+// while it loads. Its loads are numbered the same way as the board's.
+let detail = null;
+let detailSeq = 0;
+
+const TABS = [
+  { key: 'description', label: 'Description' },
+  { key: 'parts', label: 'Parts' },
+  { key: 'comments', label: 'Comments' },
+  { key: 'history', label: 'History' },
+];
 
 function init(cloudHub) {
   hub = cloudHub;
@@ -55,6 +69,8 @@ function init(cloudHub) {
   showClosedInput = document.getElementById('cloud-briefs-show-closed');
   refreshButton = document.getElementById('cloud-briefs-refresh');
   webButton = document.getElementById('cloud-briefs-open-web');
+  detailElement = document.getElementById('cloud-briefs-detail');
+  detailContentElement = detailElement && detailElement.querySelector('.cloud-briefs-detail-content');
 
   if (showClosedInput) {
     showClosedInput.addEventListener('change', () => {
@@ -62,9 +78,24 @@ function init(cloudHub) {
       load();
     });
   }
-  if (refreshButton) refreshButton.addEventListener('click', () => load());
+  if (refreshButton) refreshButton.addEventListener('click', refresh);
   if (webButton) webButton.addEventListener('click', () => openOnWeb());
   contentElement.addEventListener('click', onContentClick);
+  if (detailElement) {
+    const back = detailElement.querySelector('.specs-dashboard-detail-back');
+    if (back) back.addEventListener('click', closeDetail);
+    // The drawer covers the panel header, so it carries its own Refresh.
+    const detailRefresh = document.getElementById('cloud-briefs-detail-refresh');
+    if (detailRefresh) detailRefresh.addEventListener('click', refresh);
+  }
+  if (detailContentElement) detailContentElement.addEventListener('click', onDetailClick);
+  // Esc closes the drawer, and only the drawer: the board itself has no Esc.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && visible && detail) {
+      e.preventDefault();
+      closeDetail();
+    }
+  });
 
   // The Briefs row follows the connection: sign-in, sign-out, a folder
   // connected or disconnected, a project switch.
@@ -103,6 +134,13 @@ function hide() {
   panelElement.classList.remove('visible');
   visible = false;
   loadSeq += 1; // an answer still in flight lands nowhere
+  closeDetail();
+}
+
+/** Refresh re-reads the board, and the open brief with it. */
+function refresh() {
+  load();
+  if (detail) loadDetail();
 }
 
 // ─── Loading ──────────────────────────────────────────────────
@@ -167,6 +205,10 @@ function onContentClick(event) {
   const action = actionEl.dataset.action;
   if (action === 'retry') load();
   else if (action === 'open-web') openOnWeb();
+  else if (action === 'open-brief') {
+    const number = Number(actionEl.dataset.number);
+    if (Number.isInteger(number) && number > 0) openDetail(number);
+  }
 }
 
 // ─── Rendering: the board ─────────────────────────────────────
@@ -227,7 +269,7 @@ function renderCard(brief, milestoneName) {
         ${milestoneName ? `<span class="cloud-briefs-milestone">${escapeHtml(milestoneName)}</span>` : ''}
       </span>`
     : '';
-  return `<button type="button" class="cloud-briefs-card" data-number="${brief.number}" tabindex="-1">
+  return `<button type="button" class="cloud-briefs-card" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
       <span class="cloud-briefs-card-head">
         <span class="cloud-briefs-number">#${brief.number}</span>
         <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
@@ -268,6 +310,189 @@ function renderError(reason) {
 
 function isVisible() {
   return visible;
+}
+
+
+// ─── Detail drawer ────────────────────────────────────────────
+
+function openDetail(number) {
+  if (!detailElement || !detailContentElement) return;
+  detail = { number, tab: 'description', result: null };
+  detailContentElement.innerHTML = '<div class="cloud-briefs-detail-body"><div class="cloud-briefs-state cloud-briefs-loading">Loading brief…</div></div>';
+  detailContentElement.scrollTop = 0;
+  detailElement.classList.add('has-selection');
+  detailElement.setAttribute('aria-hidden', 'false');
+  loadDetail();
+}
+
+function closeDetail() {
+  detailSeq += 1;
+  detail = null;
+  if (!detailElement) return;
+  detailElement.classList.remove('has-selection');
+  detailElement.setAttribute('aria-hidden', 'true');
+}
+
+async function loadDetail() {
+  if (!detail) return;
+  const path = state.getProjectPath();
+  const number = detail.number;
+  const seq = ++detailSeq;
+  let result;
+  try {
+    result = path
+      ? await ipcRenderer.invoke(IPC.CLOUD_BRIEF_GET, path, number)
+      : { ok: false, reason: 'notConnected' };
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not load the brief', err);
+    result = { ok: false, reason: 'other' };
+  }
+  if (seq !== detailSeq || !detail || detail.number !== number) return;
+  if (result && result.ok) {
+    detail.result = result;
+    renderDetail();
+    return;
+  }
+  detail.result = null;
+  const reason = result && result.reason;
+  if (reason === 'unauthorized') return; // the session push takes the view away
+  const message = reason === 'notFound'
+    ? 'This brief is no longer on Frame Cloud. It may have been removed.'
+    : copy.reasonMessage(reason);
+  detailContentElement.innerHTML = `<div class="cloud-briefs-detail-body">
+      <div class="cloud-briefs-state cloud-briefs-error">
+        <p>${escapeHtml(message)}</p>
+        <button type="button" class="cloud-briefs-web-btn" data-action="retry-detail" tabindex="-1">Retry</button>
+      </div>
+    </div>`;
+}
+
+function onDetailClick(event) {
+  const actionEl = event.target.closest('[data-action]');
+  if (!actionEl || !detailContentElement.contains(actionEl)) return;
+  const action = actionEl.dataset.action;
+  if (action === 'tab') {
+    if (!detail || !detail.result) return;
+    detail.tab = actionEl.dataset.tab;
+    renderDetail();
+  } else if (action === 'retry-detail') {
+    loadDetail();
+  } else if (action === 'open-brief-web') {
+    if (detail) openOnWeb(detail.number);
+  } else if (action === 'link') {
+    event.preventDefault();
+    const url = actionEl.dataset.url || '';
+    if (isWebUrl(url)) shell.openExternal(url);
+  }
+}
+
+/** Only http(s) links leave Frame, and only through the system browser. */
+function isWebUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url);
+}
+
+function renderDetail() {
+  const { brief, events, meId, canOpenWeb } = detail.result;
+  const kind = copy.KIND_COPY[brief.kind] || copy.KIND_COPY.proposal;
+  const ending = copy.endingLine(brief);
+  const tab = TABS.some((t) => t.key === detail.tab) ? detail.tab : 'description';
+
+  detailContentElement.innerHTML = `<div class="cloud-briefs-detail-body">
+      <header class="cloud-briefs-detail-header">
+        <div class="cloud-briefs-detail-heading">
+          <span class="cloud-briefs-card-head">
+            <span class="cloud-briefs-number">#${brief.number}</span>
+            <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
+            <span class="cloud-briefs-status ${escapeHtml(brief.status)}">${escapeHtml(copy.statusLabel(brief.status))}</span>
+          </span>
+          <h2 class="cloud-briefs-detail-title">${escapeHtml(brief.title)}</h2>
+          ${ending ? `<p class="cloud-briefs-ending">${escapeHtml(ending)}</p>` : ''}
+        </div>
+        ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-brief-web" tabindex="-1">Open on web</button>' : ''}
+      </header>
+      ${renderMeta(brief, events, meId)}
+      <div class="cloud-briefs-tabs" role="tablist">
+        ${TABS.map((t) => `<button type="button" role="tab" class="cloud-briefs-tab${t.key === tab ? ' active' : ''}" aria-selected="${t.key === tab}" data-action="tab" data-tab="${t.key}" tabindex="-1">${escapeHtml(t.label)}${tabCount(t.key, brief, events)}</button>`).join('')}
+      </div>
+      <div class="cloud-briefs-tab-body" role="tabpanel">${renderTab(tab, brief, events, meId)}</div>
+    </div>`;
+}
+
+function tabCount(key, brief, events) {
+  const n = key === 'parts' ? brief.parts.length
+    : key === 'comments' ? brief.comments.length
+      : key === 'history' ? events.length
+        : 0;
+  return n > 0 ? ` <span class="cloud-briefs-tab-count">${n}</span>` : '';
+}
+
+function renderMeta(brief, events, meId) {
+  const milestones = board && board.result ? board.result.milestones || [] : [];
+  const milestone = brief.milestoneId ? milestones.find((m) => m.id === brief.milestoneId) : null;
+  const created = events.find((e) => e.event === 'created');
+  const createdDate = copy.formatDate(brief.createdAt);
+  const creator = created ? copy.actorLabel(created.actorId, meId) : '';
+  const rows = [];
+  if (brief.kind === 'work' && brief.priority) {
+    rows.push(['Priority', `<span class="cloud-briefs-priority"><span class="cloud-briefs-priority-dot ${escapeHtml(brief.priority)}" aria-hidden="true"></span>${escapeHtml(copy.priorityLabel(brief.priority))}</span>`]);
+  }
+  rows.push(['Milestone', milestone && milestone.name
+    ? escapeHtml(milestone.name)
+    : '<span class="cloud-briefs-muted">None</span>']);
+  if (brief.targetBranch) rows.push(['Target branch', `<code>${escapeHtml(brief.targetBranch)}</code>`]);
+  if (createdDate) rows.push(['Created', escapeHtml(creator ? `${createdDate} by ${creator}` : createdDate)]);
+  return `<dl class="cloud-briefs-meta">${rows.map(([label, value]) => `
+      <div><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`).join('')}
+    </dl>`;
+}
+
+function renderTab(tab, brief, events, meId) {
+  if (tab === 'parts') {
+    if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
+    return `<ol class="cloud-briefs-parts">${brief.parts.map((part) => `
+        <li>
+          <span class="cloud-briefs-part-head">
+            <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
+            <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
+            <span class="cloud-briefs-chip">${escapeHtml(part.type)}</span>
+          </span>
+          ${part.why ? `<span class="cloud-briefs-muted">${escapeHtml(part.why)}</span>` : ''}
+        </li>`).join('')}
+      </ol>`;
+  }
+  if (tab === 'comments') {
+    if (brief.comments.length === 0) return '<p class="cloud-briefs-muted">No comments yet.</p>';
+    return `<ul class="cloud-briefs-comments">${brief.comments.map((c) => `
+        <li>
+          <span class="cloud-briefs-byline">${escapeHtml(copy.actorLabel(c.authorId, meId))} · ${escapeHtml(copy.formatDate(c.createdAt))}</span>
+          <p class="cloud-briefs-text">${escapeHtml(c.text)}</p>
+        </li>`).join('')}
+      </ul>`;
+  }
+  if (tab === 'history') {
+    if (events.length === 0) return '<p class="cloud-briefs-muted">No history yet.</p>';
+    return `<ol class="cloud-briefs-history">${events.map((e) => {
+      const line = copy.eventSentence(e, meId);
+      return `<li><span>${escapeHtml(line.sentence)}</span> <span class="cloud-briefs-muted">${escapeHtml(line.date)}</span></li>`;
+    }).join('')}
+      </ol>`;
+  }
+  // Description: the body as plain text (never markdown — this is network
+  // content), then the attachments as links.
+  const body = brief.body
+    ? `<p class="cloud-briefs-text">${escapeHtml(brief.body)}</p>`
+    : '<p class="cloud-briefs-muted">No description.</p>';
+  const attachments = brief.attachments.length > 0
+    ? `<section class="cloud-briefs-attachments" aria-label="Attachments">
+        <h3>AI conversations &amp; links</h3>
+        <ul>${brief.attachments.map((a) => `
+          <li>${isWebUrl(a.url)
+            ? `<a href="#" data-action="link" data-url="${escapeHtml(a.url)}" title="${escapeHtml(a.url)}">${escapeHtml(a.title || a.url)}</a>`
+            : `<span title="${escapeHtml(a.url)}">${escapeHtml(a.title || a.url)}</span>`}</li>`).join('')}
+        </ul>
+      </section>`
+    : '';
+  return body + attachments;
 }
 
 module.exports = {

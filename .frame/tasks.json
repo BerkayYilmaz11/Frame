@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T16:03:17.873Z",
+  "lastUpdated": "2026-09-18T16:05:18.166Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8734,13 +8734,13 @@
       "title": "Render the detail drawer: card click loads via `CLOUD_BRIEF_GET`, back button and Esc close it, header and meta (priority, milestone, target branch, creator), Description (plain-text body, `http(s)`-only attachment links) / Parts / Comments / History tabs, Open on web to the brief URL, and an error state with Retry when the brief is gone",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T16:05:18.166Z",
+      "completedAt": "2026-09-18T16:05:18.166Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T10",

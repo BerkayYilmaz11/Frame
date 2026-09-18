@@ -292,3 +292,210 @@
 .cloud-briefs-error p {
   color: var(--error);
 }
+
+/* ─── Detail (inside the Specs drawer shell) ─── */
+
+.cloud-briefs-detail-body {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.cloud-briefs-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.cloud-briefs-detail-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.cloud-briefs-detail-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-detail-header .cloud-briefs-ending {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cloud-briefs-status {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-status.active {
+  color: var(--info);
+}
+
+.cloud-briefs-status.done {
+  color: var(--success);
+}
+
+.cloud-briefs-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-xl);
+  margin: 0;
+  font-size: 13px;
+}
+
+.cloud-briefs-meta > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-meta dt {
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-meta dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.cloud-briefs-meta code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.cloud-briefs-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.cloud-briefs-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: var(--space-sm) var(--space-md);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.cloud-briefs-tab:hover {
+  color: var(--text-primary);
+}
+
+.cloud-briefs-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.cloud-briefs-tab-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* Brief body and comments are plain text, as on the web: line breaks kept,
+   nothing interpreted. */
+.cloud-briefs-text {
+  margin: 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-attachments h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-attachments ul,
+.cloud-briefs-parts,
+.cloud-briefs-comments,
+.cloud-briefs-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-attachments a {
+  color: var(--info);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-attachments a:hover {
+  text-decoration: underline;
+}
+
+.cloud-briefs-parts li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.cloud-briefs-part-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-part-title {
+  font-weight: 500;
+}
+
+.cloud-briefs-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-comments {
+  gap: var(--space-lg);
+}
+
+.cloud-briefs-comments li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.cloud-briefs-byline {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-history li {
+  line-height: 1.5;
+}

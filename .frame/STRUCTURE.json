@@ -6481,93 +6481,150 @@
       ],
       "functions": {
         "init": {
-          "line": 45,
+          "line": 59,
           "params": [
             "cloudHub"
           ]
         },
         "onCloudChange": {
-          "line": 76
+          "line": 107
         },
         "isAvailable": {
-          "line": 85,
+          "line": 116,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 92,
+          "line": 123,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 101
+          "line": 132
+        },
+        "refresh": {
+          "line": 141,
+          "purpose": "Refresh re-reads the board, and the open brief with it."
         },
         "load": {
-          "line": 110
+          "line": 148
         },
         "setRefreshing": {
-          "line": 149,
+          "line": 187,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 155,
+          "line": 193,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 164,
+          "line": 202,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 174,
+          "line": 216,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 181
+          "line": 223
         },
         "renderCards": {
-          "line": 213,
+          "line": 255,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 220,
+          "line": 262,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 241,
+          "line": 283,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 251
+          "line": 293
         },
         "renderMessage": {
-          "line": 256,
+          "line": 298,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 261,
+          "line": 303,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 269
+          "line": 311
+        },
+        "openDetail": {
+          "line": 318,
+          "params": [
+            "number"
+          ]
+        },
+        "closeDetail": {
+          "line": 328
+        },
+        "loadDetail": {
+          "line": 336
+        },
+        "onDetailClick": {
+          "line": 370,
+          "params": [
+            "event"
+          ]
+        },
+        "isWebUrl": {
+          "line": 390,
+          "params": [
+            "url"
+          ],
+          "purpose": "Only http(s) links leave Frame, and only through the system browser."
+        },
+        "renderDetail": {
+          "line": 394
+        },
+        "tabCount": {
+          "line": 421,
+          "params": [
+            "key",
+            "brief",
+            "events"
+          ]
+        },
+        "renderMeta": {
+          "line": 429,
+          "params": [
+            "brief",
+            "events",
+            "meId"
+          ]
+        },
+        "renderTab": {
+          "line": 449,
+          "params": [
+            "tab",
+            "brief",
+            "events",
+            "meId"
+          ]
         }
       }
     },
