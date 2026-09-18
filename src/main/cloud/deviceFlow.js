@@ -182,10 +182,20 @@ async function requestDeviceCode({ api, fetchJson, signal }) {
   return parseCodeResponse(res.body);
 }
 
+/**
+ * One tRPC procedure, no transformer. A query (GET) carries its input as
+ * `?input=<url-encoded JSON>` and omits it when there is none; a mutation
+ * posts the input as the body.
+ */
 async function callTrpc({ api, name, method, token, input, fetchJson, signal }) {
   const opts = { method, token, signal };
-  if (method !== 'GET') opts.body = input || {};
-  const res = await send(fetchJson, `${api}/trpc/${name}`, opts);
+  let url = `${api}/trpc/${name}`;
+  if (method === 'GET') {
+    if (input !== undefined) url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
+  } else {
+    opts.body = input || {};
+  }
+  const res = await send(fetchJson, url, opts);
   if (res.status === 200 && res.body && res.body.result) {
     return res.body.result.data;
   }
@@ -341,7 +351,6 @@ async function runSignIn({ api, fetchJson, sleep, now, signal, openUrl, deviceIn
       deviceId: data.deviceId,
       user: data.user,
       workspace: data.workspace,
-      access: data.access,
     },
   };
 }
@@ -364,7 +373,6 @@ function sessionFromMe(data) {
     user: data.user,
     workspace: data.workspace,
     device: data.device,
-    access: data.access,
   };
 }
 
@@ -406,4 +414,5 @@ module.exports = {
   signOutDevice,
   runSignIn,
   refreshSession,
+  callTrpc,
 };

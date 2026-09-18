@@ -25,6 +25,7 @@ const specDrivenHint = require('./specDrivenHint');
 const projectListUI = require('./projectListUI');
 const settingsOverlay = require('./settingsOverlay');
 const doneWindow = require('./doneWindow');
+const cloudHub = require('./cloudHub');
 
 let overlay = null;
 let specDrivenToggleEl = null;
@@ -44,6 +45,12 @@ let migrationDecisionRowEl = null;
 let migrationDecisionBtnEl = null;
 let doneWindowSelectEls = {};   // { tasks, specs }
 let doneWindowNoteEl = null;
+let cloudSectionEl = null;
+let cloudLabelEl = null;
+let cloudDescEl = null;
+let cloudActionsEl = null;
+let cloudConfirmingDisconnect = false;
+let cloudBusy = false;
 
 function init() {
   specDrivenToggleEl = document.getElementById('settings-spec-driven-toggle');
@@ -66,6 +73,13 @@ function init() {
     specs: document.getElementById('settings-done-window-specs')
   };
   doneWindowNoteEl = document.getElementById('settings-done-window-note');
+  cloudSectionEl = document.getElementById('settings-project-cloud');
+  cloudLabelEl = document.getElementById('settings-project-cloud-label');
+  cloudDescEl = document.getElementById('settings-project-cloud-desc');
+  cloudActionsEl = document.getElementById('settings-project-cloud-actions');
+  if (!cloudSectionEl || !cloudLabelEl || !cloudDescEl || !cloudActionsEl) {
+    console.error('Project settings: the Frame Cloud row is missing — this project cannot be connected from here');
+  }
 
   // Done window: per-project like git sharing. The store owns the value and
   // tells the boards; this row only asks it to change and paints the reply.
@@ -92,6 +106,10 @@ function init() {
 
   overlay = settingsOverlay.create('project-settings-overlay', syncFromProject);
   if (!overlay) return;
+
+  // Keep the Frame Cloud row honest while the modal is open.
+  cloudHub.onProjects(() => { if (overlay.isOpen()) renderCloudRow(); });
+  cloudHub.onSession(() => { if (overlay.isOpen()) renderCloudRow(); });
 
   // The way back into a deferred decision. Nothing else reopens it — before
   // this row, closing the modal made the question unreachable without
@@ -249,6 +267,125 @@ async function syncFromProject() {
   await syncGitSharing();
   renderDoneWindow();
   await syncMigrationDecision();
+  await syncCloudRow();
+}
+
+// ─── Frame Cloud ──────────────────────────────────────────
+
+/**
+ * Re-read both Frame Cloud states on open (the hub re-renders from the
+ * replies), then draw the row. No picker here: Connect… closes this modal
+ * and opens Frame Cloud on this folder's row.
+ */
+async function syncCloudRow() {
+  if (!cloudSectionEl) return;
+  cloudConfirmingDisconnect = false;
+  try {
+    await Promise.all([
+      ipcRenderer.invoke(IPC.CLOUD_GET_STATE),
+      ipcRenderer.invoke(IPC.CLOUD_PROJECTS_GET_STATE)
+    ]);
+  } catch (err) {
+    console.error('Project settings: could not read the Frame Cloud state', err);
+    cloudSectionEl.hidden = false;
+    cloudLabelEl.textContent = 'Frame Cloud';
+    cloudDescEl.textContent = "Couldn't read the Frame Cloud state.";
+    cloudActionsEl.replaceChildren();
+    return;
+  }
+  renderCloudRow();
+}
+
+function cloudButton(label, onClick, { primary = false, disabled = false } = {}) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `settings-about-btn${primary ? ' settings-about-btn-primary' : ''}`;
+  btn.textContent = label;
+  btn.disabled = disabled;
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+function renderCloudRow() {
+  if (!cloudSectionEl) return;
+  const session = cloudHub.session();
+  const projects = cloudHub.projects();
+  const projectPath = state.getProjectPath();
+  const hidden = !session || session.state === 'unavailable' || !projectPath || !state.getIsFrameProject();
+  cloudSectionEl.hidden = hidden;
+  if (hidden) return;
+
+  const actions = [];
+  const openHub = (opts) => {
+    if (overlay) overlay.close();
+    cloudHub.open(opts);
+  };
+
+  if (session.state !== 'signedIn') {
+    cloudLabelEl.textContent = 'Not signed in';
+    cloudDescEl.textContent = 'Sign in to connect this project to Frame Cloud.';
+    actions.push(cloudButton('Sign in', () => {
+      if (overlay) overlay.close();
+      cloudHub.signIn();
+    }, { primary: true }));
+    cloudActionsEl.replaceChildren(...actions);
+    return;
+  }
+
+  const listed = projects && projects.lastUpdated && Array.isArray(projects.folders);
+  const folder = listed ? projects.folders.find((f) => f.path === projectPath) : null;
+  const stale = !projects || projects.status !== 'ready';
+
+  if (!listed) {
+    cloudLabelEl.textContent = 'Frame Cloud';
+    cloudDescEl.textContent = projects && projects.status === 'error'
+      ? "Frame Cloud couldn't be reached."
+      : 'Loading…';
+    actions.push(cloudButton('Open Frame Cloud', () => openHub({ tab: 'projects' })));
+  } else if (folder && folder.connected && folder.project) {
+    const ws = projects.cloudWorkspace || {};
+    cloudLabelEl.textContent = `Connected to ${folder.project.name || folder.project.slug}`;
+    cloudDescEl.textContent = cloudConfirmingDisconnect
+      ? `Disconnect from ${folder.project.name || folder.project.slug}? The cloud project stays.`
+      : `In ${ws.name || ws.slug || 'Frame Cloud'}.`;
+    if (cloudConfirmingDisconnect) {
+      actions.push(cloudButton('Disconnect', () => disconnectFromCloud(projectPath), { primary: true, disabled: stale || cloudBusy }));
+      actions.push(cloudButton('Cancel', () => {
+        cloudConfirmingDisconnect = false;
+        renderCloudRow();
+      }, { disabled: cloudBusy }));
+    } else {
+      actions.push(cloudButton('Open Frame Cloud', () => openHub({ tab: 'device', folderPath: projectPath })));
+      actions.push(cloudButton('Disconnect', () => {
+        cloudConfirmingDisconnect = true;
+        renderCloudRow();
+      }, { disabled: stale }));
+    }
+  } else {
+    cloudLabelEl.textContent = 'Not connected';
+    cloudDescEl.textContent = 'Connect this project to a Frame Cloud project, or create one for it.';
+    actions.push(cloudButton('Connect…', () => openHub({ tab: 'device', folderPath: projectPath }), { primary: true }));
+  }
+  cloudActionsEl.replaceChildren(...actions);
+}
+
+async function disconnectFromCloud(projectPath) {
+  cloudBusy = true;
+  renderCloudRow();
+  let res = null;
+  try {
+    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_RELEASE, { path: projectPath });
+  } catch (err) {
+    console.error('Project settings: disconnect failed', err);
+  }
+  cloudBusy = false;
+  cloudConfirmingDisconnect = false;
+  renderCloudRow();
+  if (!res || (!res.ok && res.reason !== 'unauthorized')) {
+    cloudDescEl.textContent = res && res.reason === 'network'
+      ? "Frame Cloud couldn't be reached."
+      : "Couldn't disconnect this project. Try again.";
+  }
 }
 
 /**

@@ -27,6 +27,7 @@ const {
   formatDeviceInfo,
   runSignIn,
   refreshSession,
+  registerDevice,
   signOutDevice,
 } = require('./deviceFlow');
 
@@ -43,7 +44,6 @@ const PUBLIC_KEYS = [
   'verificationUrl',
   'user',
   'workspace',
-  'access',
   'device',
   'reason',
   'serverUnreachable',
@@ -52,9 +52,13 @@ const PUBLIC_KEYS = [
 let mainWindow = null;
 let state = { state: 'unavailable' };
 let token = null;
+// Origin of the web app, taken from the sign-in's verification URL. Main-only:
+// the projects service builds web links from it; the renderer never sees it.
+let webOrigin = null;
 let attempt = null; // AbortController of the running sign-in
 let refreshing = null;
 let started = false;
+const listeners = new Set();
 
 // ─── Dependencies for the core ────────────────────────────────
 
@@ -131,6 +135,15 @@ function sleep(ms, signal) {
   });
 }
 
+function originOf(url) {
+  if (!/^https?:\/\//i.test(url || '')) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
 function openUrl(url) {
   // The URL comes from the server; only hand web addresses to the OS.
   if (!/^https?:\/\//i.test(url || '')) return;
@@ -195,9 +208,42 @@ function publish() {
   mainWindow.webContents.send(IPC.CLOUD_SESSION_STATE, toPublicState());
 }
 
-function setState(next) {
+/**
+ * Every transition is pushed to the renderer, then told to main-process
+ * listeners. `userStarted` is true only for the sign-in the user just finished.
+ */
+function setState(next, { userStarted = false } = {}) {
   state = next;
   publish();
+  const change = { state: toPublicState(), userStarted };
+  for (const listener of listeners) {
+    try {
+      listener(change);
+    } catch (err) {
+      logger.error('cloudSession', 'session listener failed', err);
+    }
+  }
+}
+
+/** Subscribe to session changes. Returns the unsubscribe function. */
+function onChange(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/**
+ * What a main-process caller needs to make a bearer call, or null while not
+ * signed in. Never sent to the renderer.
+ */
+function getAuth() {
+  if (state.state !== 'signedIn' || !token) return null;
+  const ws = state.workspace || null;
+  return {
+    serverUrl: state.serverUrl,
+    token,
+    cloudWorkspace: ws ? { name: ws.name, slug: ws.slug } : null,
+    webOrigin,
+  };
 }
 
 function signedInState(serverUrl, session, ephemeral) {
@@ -207,7 +253,6 @@ function signedInState(serverUrl, session, ephemeral) {
     ephemeral: Boolean(ephemeral),
     user: session.user,
     workspace: session.workspace,
-    access: session.access,
     device: session.device,
   };
 }
@@ -269,8 +314,9 @@ async function signIn() {
 
   if (result.ok) {
     token = result.token;
-    const { ephemeral } = sessionStore.save({ serverUrl, token, ...result.session });
-    setState(signedInState(serverUrl, result.session, ephemeral));
+    webOrigin = originOf(verificationUrl);
+    const { ephemeral } = sessionStore.save({ serverUrl, token, webOrigin, ...result.session });
+    setState(signedInState(serverUrl, result.session, ephemeral), { userStarted: true });
     bringToFront();
     // register does not describe the device; me does.
     refresh();
@@ -301,13 +347,11 @@ function refresh() {
     const result = await refreshSession({ api: serverUrl, token: current, deviceInfo: deviceInfo(), fetchJson });
     if (token !== current) return; // signed out meanwhile
     if (result.ok) {
-      const { ephemeral } = sessionStore.save({ serverUrl, token: current, ...result.session });
+      // me does not know the web origin; keep the one sign-in stored.
+      const { ephemeral } = sessionStore.save({ serverUrl, token: current, webOrigin, ...result.session });
       setState(signedInState(serverUrl, result.session, ephemeral));
     } else if (result.reason === 'unauthorized') {
-      logger.info('cloudSession', 'session no longer valid — signed out');
-      token = null;
-      sessionStore.clear();
-      setState({ state: 'signedOut', serverUrl });
+      sessionExpired();
     } else if (result.reason === 'network') {
       setState({ ...state, serverUnreachable: true });
     }
@@ -320,12 +364,34 @@ function refresh() {
   return refreshing;
 }
 
+/** A bearer call answered 401: forget the session quietly, no error shown. */
+function sessionExpired() {
+  if (!token) return getPublicState();
+  logger.info('cloudSession', 'session no longer valid — signed out');
+  token = null;
+  webOrigin = null;
+  sessionStore.clear();
+  setState({ state: 'signedOut', serverUrl: state.serverUrl });
+  return getPublicState();
+}
+
+/**
+ * The server forgot this device (412 DEVICE_NOT_REGISTERED): register it
+ * again, once. Throws the CloudError when that fails too.
+ */
+async function reRegister() {
+  const auth = getAuth();
+  if (!auth) throw new Error('Frame Cloud is not signed in');
+  await registerDevice({ api: auth.serverUrl, token: auth.token, info: deviceInfo(), fetchJson });
+}
+
 /** Tell the server, then forget the session locally whatever it said. */
 async function signOut() {
   abortAttempt();
   const current = token;
   const serverUrl = state.serverUrl || resolveUrl();
   token = null;
+  webOrigin = null;
 
   let serverUnreachable = false;
   if (current && serverUrl) {
@@ -356,16 +422,20 @@ function loadSession() {
   const serverUrl = resolveUrl();
   if (!serverUrl) {
     token = null;
+    webOrigin = null;
     setState({ state: 'unavailable' });
     return;
   }
   const stored = sessionStore.load(serverUrl);
   if (!stored) {
     token = null;
+    webOrigin = null;
     setState({ state: 'signedOut', serverUrl });
     return;
   }
   token = stored.token;
+  // Sessions stored before web links existed have none; links stay hidden until the next sign-in.
+  webOrigin = stored.webOrigin || null;
   setState(signedInState(serverUrl, stored, stored.ephemeral));
   refresh();
 }
@@ -405,4 +475,10 @@ module.exports = {
   getState,
   getPublicState,
   toPublicState,
+  getAuth,
+  onChange,
+  sessionExpired,
+  reRegister,
+  openUrl,
+  fetchJson,
 };

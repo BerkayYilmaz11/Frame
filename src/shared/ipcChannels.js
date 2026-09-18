@@ -240,7 +240,21 @@ const IPC = {
   CLOUD_SIGN_OUT: 'cloud-sign-out',                  // renderer → main (invoke): device.signOut + forget locally → state
   CLOUD_GET_STATE: 'cloud-get-state',                // renderer → main (invoke): the public session state
   CLOUD_REFRESH: 'cloud-refresh',                    // renderer → main (invoke): one device.me → state
-  CLOUD_SESSION_STATE: 'cloud-session-state'         // main → renderer: public session state on every transition
+  CLOUD_SESSION_STATE: 'cloud-session-state',        // main → renderer: public session state on every transition
+
+  // Frame Cloud projects (frame-cloud-projects spec). The renderer names a
+  // folder by path and a cloud project by id; main reads identities and
+  // remotes itself and builds every web URL.
+  CLOUD_PROJECTS_GET_STATE: 'cloud-projects-get-state', // renderer → main (invoke): the projects state
+  CLOUD_PROJECTS_REFRESH: 'cloud-projects-refresh',     // renderer → main (invoke): re-read project.list → state
+  CLOUD_FOLDER_CANDIDATES: 'cloud-folder-candidates',   // renderer → main (invoke): load link.candidates for unconnected folders (results arrive as pushes)
+  CLOUD_CHECK_SLUG: 'cloud-check-slug',                 // renderer → main (invoke): slug → { ok, available, suggestion? } | { ok: false, reason }
+  CLOUD_LINK_CLAIM: 'cloud-link-claim',                 // renderer → main (invoke): { path, projectId, acceptRemoteMismatch?, takeOver? } → { ok, reason? }
+  CLOUD_LINK_CREATE: 'cloud-link-create',               // renderer → main (invoke): { path, name, slug } → { ok, reason?, field?, suggestion? }
+  CLOUD_LINK_RELEASE: 'cloud-link-release',             // renderer → main (invoke): { path } → { ok, reason? }
+  CLOUD_OPEN_ON_WEB: 'cloud-open-on-web',               // renderer → main (invoke): cloud project id → opened?
+  CLOUD_OPEN_WORKSPACE_ON_WEB: 'cloud-open-workspace-on-web', // renderer → main (invoke): () → opened?
+  CLOUD_PROJECTS_STATE: 'cloud-projects-state'          // main → renderer: projects state on every change (no token)
 };
 
 module.exports = { IPC };

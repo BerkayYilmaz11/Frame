@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-17",
+  "lastUpdated": "2026-09-18",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -467,6 +467,406 @@
         ]
       }
     },
+    "main/cloud/cloudProjects": {
+      "file": "src/main/cloud/cloudProjects.js",
+      "description": "cloudProjects — the pure core of Frame Cloud projects.",
+      "exports": [
+        "SLUG_MIN",
+        "SLUG_MAX",
+        "RESERVED_SLUGS",
+        "MATCH_LABELS",
+        "normalizeProject",
+        "listProjects",
+        "matchFolders",
+        "checkSlug",
+        "getCandidates",
+        "claim",
+        "create",
+        "release",
+        "classifyLinkError",
+        "suggestSlug",
+        "validateSlug",
+        "nextSlug",
+        "planFolderRow",
+        "shouldAutoShowDevices",
+        "buildWebUrl",
+        "buildWorkspaceWebUrl"
+      ],
+      "depends": [
+        "deviceFlow"
+      ],
+      "functions": {
+        "str": {
+          "line": 33,
+          "params": [
+            "value"
+          ]
+        },
+        "slugShapeOk": {
+          "line": 37,
+          "params": [
+            "slug"
+          ]
+        },
+        "normalizeProject": {
+          "line": 44,
+          "params": [
+            "raw"
+          ],
+          "purpose": "One `project.list` entry, reduced to the fields Frame uses."
+        },
+        "listProjects": {
+          "line": 58,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "`project.list` → normalized projects, server order."
+        },
+        "matchFolders": {
+          "line": 81,
+          "params": [
+            "projects",
+            "folders"
+          ],
+          "purpose": "The workspace's projects and this device's folders, seen from each side."
+        },
+        "compact": {
+          "line": 119,
+          "params": [
+            "input"
+          ],
+          "purpose": "Optional fields are left out rather than sent empty."
+        },
+        "checkSlug": {
+          "line": 128,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "slug }"
+          ],
+          "purpose": "`project.checkSlug` → true when the slug is free in the cloud workspace."
+        },
+        "normalizeCandidate": {
+          "line": 133,
+          "params": [
+            "raw"
+          ]
+        },
+        "getCandidates": {
+          "line": 145,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "folderName",
+            "remote",
+            "frameProjectId }"
+          ],
+          "purpose": "`link.candidates` → projects this folder could connect to, matches first (server order)."
+        },
+        "claim": {
+          "line": 156,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectId",
+            "frameProjectId",
+            "remote",
+            "acceptRemoteMismatch",
+            "takeOver }"
+          ],
+          "purpose": "`link.claim` → `{ projectId, projectSlug, workspaceSlug }`. Throws CloudError."
+        },
+        "create": {
+          "line": 166,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "name",
+            "slug",
+            "frameProjectId",
+            "remote }"
+          ],
+          "purpose": "`link.create` → the same answer as claim; the project is created already linked. Throws CloudError."
+        },
+        "release": {
+          "line": 180,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectId",
+            "frameProjectId }"
+          ],
+          "purpose": "`link.release`. A refusal because this folder is not the one the project"
+        },
+        "classifyLinkError": {
+          "line": 219,
+          "params": [
+            "err"
+          ],
+          "purpose": "A failed link call → what Frame does about it. The server puts its code in"
+        },
+        "suggestSlug": {
+          "line": 239,
+          "params": [
+            "name"
+          ],
+          "purpose": "A project name → a slug suggestion, or '' when none is valid. Mirrors the"
+        },
+        "validateSlug": {
+          "line": 252,
+          "params": [
+            "slug"
+          ],
+          "purpose": "null when `slug` is valid, else 'empty' | 'length' | 'format' | 'reserved'."
+        },
+        "nextSlug": {
+          "line": 261,
+          "params": [
+            "slug"
+          ],
+          "purpose": "The next slug to try after a collision: `app` → `app-2`, `app-2` → `app-3`, kept within 32."
+        },
+        "planFolderRow": {
+          "line": 281,
+          "params": [
+            "folderRow",
+            "candidates",
+            "projectId = null"
+          ],
+          "purpose": "An unconnected folder and its `link.candidates` → how On this device draws"
+        },
+        "shouldAutoShowDevices": {
+          "line": 307,
+          "params": [
+            "{ userStartedSignIn",
+            "dismissed",
+            "unconnectedCount } = {}"
+          ],
+          "purpose": "The one automatic tab switch: after a sign-in the user started, unless turned off."
+        },
+        "buildWebUrl": {
+          "line": 319,
+          "params": [
+            "{ apiUrl",
+            "webOrigin",
+            "workspaceSlug",
+            "projectSlug } = {}"
+          ],
+          "purpose": "`{webOrigin}/{workspace}/{project}`, or null when any guard fails:"
+        },
+        "buildWorkspaceWebUrl": {
+          "line": 326,
+          "params": [
+            "{ apiUrl",
+            "webOrigin",
+            "workspaceSlug } = {}"
+          ],
+          "purpose": "`{webOrigin}/{workspace}`, under the same guards as buildWebUrl."
+        }
+      }
+    },
+    "main/cloud/cloudProjectsService": {
+      "file": "src/main/cloud/cloudProjectsService.js",
+      "description": "cloudProjectsService — the Electron shell around Frame Cloud projects.",
+      "exports": [
+        "init",
+        "setupIPC",
+        "refresh",
+        "publicState"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "electron",
+        "../shared/ipcChannels",
+        "../shared/frameConstants",
+        "workspace",
+        "frameStore",
+        "userSettings",
+        "fsSafe",
+        "logger",
+        "cloudSession",
+        "cloudProjects"
+      ],
+      "functions": {
+        "hasConfig": {
+          "line": 67,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "scanFolders": {
+          "line": 76,
+          "purpose": "Known folders with `.frame/config.json`, most recently opened first. Read-only."
+        },
+        "findFolder": {
+          "line": 110,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "readRemote": {
+          "line": 115,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "`git remote get-url origin`, or undefined when there is none."
+        },
+        "cachePath": {
+          "line": 131
+        },
+        "loadCache": {
+          "line": 135,
+          "params": [
+            "serverUrl",
+            "workspaceSlug"
+          ]
+        },
+        "saveCache": {
+          "line": 147,
+          "params": [
+            "serverUrl",
+            "workspaceSlug"
+          ]
+        },
+        "deleteCache": {
+          "line": 162
+        },
+        "status": {
+          "line": 175
+        },
+        "publicState": {
+          "line": 185,
+          "purpose": "The renderer's view. Built field by field — no token, no identity, no remote."
+        },
+        "push": {
+          "line": 217
+        },
+        "resetList": {
+          "line": 225
+        },
+        "call": {
+          "line": 242,
+          "params": [
+            "fn"
+          ],
+          "purpose": "One bearer call through the shared rules: 401 signs out quietly, a"
+        },
+        "refresh": {
+          "line": 267,
+          "purpose": "Re-read the project list (and the folders). Concurrent callers share one request."
+        },
+        "loadCandidates": {
+          "line": 318,
+          "purpose": "`link.candidates` for every unconnected folder, three at a time, pushing as answers land."
+        },
+        "linkBlocked": {
+          "line": 350
+        },
+        "identityFor": {
+          "line": 357,
+          "params": [
+            "folder"
+          ],
+          "purpose": "Stamp the folder's identity at the moment the user links it (S6)."
+        },
+        "afterLink": {
+          "line": 366,
+          "params": [
+            "folderPath",
+            "result"
+          ]
+        },
+        "linkClaim": {
+          "line": 373,
+          "params": [
+            "{ path",
+            "projectId",
+            "acceptRemoteMismatch",
+            "takeOver } = {}"
+          ]
+        },
+        "linkCreate": {
+          "line": 395,
+          "params": [
+            "{ path",
+            "name",
+            "slug } = {}"
+          ]
+        },
+        "linkRelease": {
+          "line": 416,
+          "params": [
+            "{ path"
+          ]
+        },
+        "checkSlug": {
+          "line": 438,
+          "params": [
+            "slug"
+          ]
+        },
+        "openOnWeb": {
+          "line": 450,
+          "params": [
+            "projectId"
+          ],
+          "purpose": "The renderer sends a project id; the URL is built and opened here."
+        },
+        "openWorkspaceOnWeb": {
+          "line": 465
+        },
+        "onSessionChange": {
+          "line": 480,
+          "params": [
+            "{ state",
+            "userStarted }"
+          ]
+        },
+        "init": {
+          "line": 518,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 527,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_PROJECTS_GET_STATE",
+          "CLOUD_PROJECTS_REFRESH",
+          "CLOUD_FOLDER_CANDIDATES",
+          "CLOUD_CHECK_SLUG",
+          "CLOUD_LINK_CLAIM",
+          "CLOUD_LINK_CREATE",
+          "CLOUD_LINK_RELEASE",
+          "CLOUD_OPEN_ON_WEB",
+          "CLOUD_OPEN_WORKSPACE_ON_WEB"
+        ],
+        "emits": [
+          "CLOUD_PROJECTS_STATE"
+        ]
+      }
+    },
     "main/cloud/cloudSession": {
       "file": "src/main/cloud/cloudSession.js",
       "description": "cloudSession — the Electron shell around the Frame Cloud device flow.",
@@ -480,7 +880,13 @@
         "signOut",
         "getState",
         "getPublicState",
-        "toPublicState"
+        "toPublicState",
+        "getAuth",
+        "onChange",
+        "sessionExpired",
+        "reRegister",
+        "openUrl",
+        "fetchJson"
       ],
       "depends": [
         "os",
@@ -494,10 +900,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 61
+          "line": 65
         },
         "fetchJson": {
-          "line": 73,
+          "line": 77,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -508,41 +914,60 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 114,
+          "line": 118,
           "params": [
             "ms",
             "signal"
           ]
         },
+        "originOf": {
+          "line": 138,
+          "params": [
+            "url"
+          ]
+        },
         "openUrl": {
-          "line": 134,
+          "line": 147,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 147
+          "line": 160
         },
         "deviceInfo": {
-          "line": 169
+          "line": 182
         },
         "toPublicState": {
-          "line": 181
+          "line": 194
         },
         "getPublicState": {
-          "line": 189
+          "line": 202
         },
         "publish": {
-          "line": 193
+          "line": 206
         },
         "setState": {
-          "line": 198,
+          "line": 215,
           "params": [
-            "next"
-          ]
+            "next",
+            "{ userStarted = false } = {}"
+          ],
+          "purpose": "Every transition is pushed to the renderer, then told to main-process"
+        },
+        "onChange": {
+          "line": 229,
+          "params": [
+            "listener"
+          ],
+          "purpose": "Subscribe to session changes. Returns the unsubscribe function."
+        },
+        "getAuth": {
+          "line": 238,
+          "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 203,
+          "line": 249,
           "params": [
             "serverUrl",
             "session",
@@ -550,46 +975,54 @@
           ]
         },
         "bringToFront": {
-          "line": 218,
+          "line": 263,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 226
+          "line": 271
         },
         "signIn": {
-          "line": 235,
+          "line": 280,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 286
+          "line": 332
         },
         "refresh": {
-          "line": 294,
+          "line": 340,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
+        "sessionExpired": {
+          "line": 368,
+          "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
+        },
+        "reRegister": {
+          "line": 382,
+          "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
+        },
         "signOut": {
-          "line": 324,
+          "line": 389,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 349,
+          "line": 415,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 353
+          "line": 419
         },
         "getState": {
-          "line": 374,
+          "line": 444,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 381,
+          "line": 451,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 385,
+          "line": 455,
           "params": [
             "ipcMain"
           ]
@@ -630,7 +1063,8 @@
         "fetchMe",
         "signOutDevice",
         "runSignIn",
-        "refreshSession"
+        "refreshSession",
+        "callTrpc"
       ],
       "depends": [],
       "functions": {
@@ -726,7 +1160,7 @@
           ]
         },
         "callTrpc": {
-          "line": 185,
+          "line": 190,
           "params": [
             "{ api",
             "name",
@@ -735,10 +1169,11 @@
             "input",
             "fetchJson",
             "signal }"
-          ]
+          ],
+          "purpose": "One tRPC procedure, no transformer. A query (GET) carries its input as"
         },
         "registerDevice": {
-          "line": 198,
+          "line": 208,
           "params": [
             "{ api",
             "token",
@@ -748,7 +1183,7 @@
           ]
         },
         "fetchMe": {
-          "line": 207,
+          "line": 217,
           "params": [
             "{ api",
             "token",
@@ -757,7 +1192,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 211,
+          "line": 221,
           "params": [
             "{ api",
             "token",
@@ -766,7 +1201,7 @@
           ]
         },
         "pollForToken": {
-          "line": 221,
+          "line": 231,
           "params": [
             "{ api",
             "code",
@@ -778,13 +1213,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 274,
+          "line": 284,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 290,
+          "line": 300,
           "params": [
             "{ api",
             "fetchJson",
@@ -798,19 +1233,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 349,
+          "line": 358,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 361,
+          "line": 370,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 375,
+          "line": 383,
           "params": [
             "{ api",
             "token",
@@ -863,7 +1298,7 @@
           "params": [
             "session"
           ],
-          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, access, device })."
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })."
         },
         "clear": {
           "line": 104,
@@ -2702,30 +3137,31 @@
         "specManager",
         "orchestrationManager",
         "cloud/cloudSession",
+        "cloud/cloudProjectsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 54,
+          "line": 55,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 72,
+          "line": 73,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 179
+          "line": 180
         },
         "setupAllIPC": {
-          "line": 209,
+          "line": 210,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 290,
+          "line": 292,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 336,
+          "line": 338,
           "params": [
             "window"
           ],
@@ -5681,6 +6117,516 @@
         }
       }
     },
+    "renderer/cloudHub": {
+      "file": "src/renderer/cloudHub.js",
+      "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
+      "exports": [],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "settingsOverlay",
+        "cloudWelcome"
+      ],
+      "functions": {
+        "init": {
+          "line": 51,
+          "params": [
+            "opts = {}"
+          ],
+          "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
+        },
+        "onOpen": {
+          "line": 92,
+          "purpose": "Opening re-reads both states; a signed-in session asks the server once"
+        },
+        "pullSession": {
+          "line": 103
+        },
+        "pullProjects": {
+          "line": 116
+        },
+        "refreshProjects": {
+          "line": 130,
+          "purpose": "Re-read the list; the candidates follow (both tabs read them)."
+        },
+        "onAction": {
+          "line": 146,
+          "params": [
+            "action",
+            "btn"
+          ]
+        },
+        "invokeSession": {
+          "line": 178,
+          "params": [
+            "channel",
+            "btn"
+          ]
+        },
+        "renderSession": {
+          "line": 191,
+          "params": [
+            "state"
+          ]
+        },
+        "land": {
+          "line": 224
+        },
+        "renderHeader": {
+          "line": 234,
+          "params": [
+            "s"
+          ]
+        },
+        "renderAvatar": {
+          "line": 247,
+          "params": [
+            "user"
+          ],
+          "purpose": "The account picture when the server has one and it loads; initials"
+        },
+        "renderProjects": {
+          "line": 281,
+          "params": [
+            "state"
+          ]
+        },
+        "showDevicesPrompt": {
+          "line": 307,
+          "params": [
+            "state"
+          ],
+          "purpose": "After a user-started sign-in with folders left to connect: switch the"
+        },
+        "hideDevicesPrompt": {
+          "line": 334
+        },
+        "setTab": {
+          "line": 339,
+          "params": [
+            "tab",
+            "opts = {}"
+          ]
+        },
+        "open": {
+          "line": 367,
+          "params": [
+            "{ tab",
+            "folderPath",
+            "confirmDisconnect } = {}"
+          ],
+          "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
+        },
+        "signIn": {
+          "line": 375,
+          "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
+        },
+        "signOut": {
+          "line": 382,
+          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
+        },
+        "setNote": {
+          "line": 388,
+          "params": [
+            "name",
+            "visible"
+          ]
+        },
+        "setText": {
+          "line": 394,
+          "params": [
+            "id",
+            "text"
+          ]
+        },
+        "isWebUrl": {
+          "line": 400,
+          "params": [
+            "url"
+          ],
+          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
+        },
+        "webOrigin": {
+          "line": 404,
+          "params": [
+            "url"
+          ]
+        },
+        "formatRelative": {
+          "line": 413,
+          "params": [
+            "date"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_SESSION_STATE",
+          "CLOUD_PROJECTS_STATE"
+        ],
+        "emits": []
+      }
+    },
+    "renderer/cloudHubTabs": {
+      "file": "src/renderer/cloudHubTabs.js",
+      "description": "Frame Cloud tabs — Cloud projects and On this device.",
+      "exports": [
+        "init",
+        "render",
+        "onShow"
+      ],
+      "depends": [
+        "os",
+        "path",
+        "electron",
+        "shared/ipcChannels",
+        "tooltip",
+        "projectListUI"
+      ],
+      "functions": {
+        "init": {
+          "line": 62,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "render": {
+          "line": 71,
+          "params": [
+            "state",
+            "activeTab"
+          ]
+        },
+        "onShow": {
+          "line": 85,
+          "params": [
+            "tab",
+            "opts = {}"
+          ]
+        },
+        "requestCandidates": {
+          "line": 101,
+          "purpose": "link.candidates runs once the list is ready and on every Refresh; answers"
+        },
+        "el": {
+          "line": 111,
+          "params": [
+            "tag",
+            "className",
+            "text"
+          ]
+        },
+        "button": {
+          "line": 118,
+          "params": [
+            "label",
+            "onClick",
+            "{ primary = false",
+            "quiet = false",
+            "danger = false",
+            "disabled = false",
+            "className = '' } = {}"
+          ]
+        },
+        "message": {
+          "line": 130,
+          "params": [
+            "text",
+            "{ retry = false",
+            "className = '' } = {}"
+          ]
+        },
+        "staleNote": {
+          "line": 137,
+          "params": [
+            "state"
+          ]
+        },
+        "workspaceName": {
+          "line": 145,
+          "params": [
+            "state"
+          ]
+        },
+        "renderProjectsTab": {
+          "line": 152,
+          "params": [
+            "state"
+          ]
+        },
+        "projectCase": {
+          "line": 190,
+          "params": [
+            "project",
+            "state"
+          ],
+          "purpose": "What a project row is, seen from this device:"
+        },
+        "projectRow": {
+          "line": 219,
+          "params": [
+            "project",
+            "state"
+          ]
+        },
+        "appendConnect": {
+          "line": 274,
+          "params": [
+            "row",
+            "actions",
+            "project",
+            "folders",
+            "stale"
+          ],
+          "purpose": "Connect on a Ready to connect row runs the link right here, on the one"
+        },
+        "openFolder": {
+          "line": 291,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "ui": {
+          "line": 309,
+          "params": [
+            "path"
+          ]
+        },
+        "effective": {
+          "line": 315,
+          "params": [
+            "folder"
+          ],
+          "purpose": "What a folder does now: the plan, with whatever the user changed on top."
+        },
+        "folderKind": {
+          "line": 331,
+          "params": [
+            "folder"
+          ],
+          "purpose": "Which list a folder sits in. By the plan, so a choice made in the detail never moves it."
+        },
+        "kindTitle": {
+          "line": 339,
+          "params": [
+            "kind",
+            "folders"
+          ]
+        },
+        "shortPath": {
+          "line": 346,
+          "params": [
+            "p"
+          ]
+        },
+        "renderDeviceTab": {
+          "line": 351,
+          "params": [
+            "state"
+          ]
+        },
+        "uninitialisedNote": {
+          "line": 412,
+          "params": [
+            "n"
+          ]
+        },
+        "sideItem": {
+          "line": 422,
+          "params": [
+            "folder",
+            "kind"
+          ]
+        },
+        "drawDetail": {
+          "line": 440,
+          "params": [
+            "detail",
+            "folder",
+            "stale",
+            "state"
+          ]
+        },
+        "facts": {
+          "line": 461,
+          "params": [
+            "rows"
+          ]
+        },
+        "drawConnect": {
+          "line": 473,
+          "params": [
+            "detail",
+            "folder",
+            "e",
+            "stale"
+          ]
+        },
+        "drawCreate": {
+          "line": 516,
+          "params": [
+            "detail",
+            "folder",
+            "e",
+            "stale",
+            "state"
+          ]
+        },
+        "drawConnected": {
+          "line": 557,
+          "params": [
+            "detail",
+            "folder",
+            "stale"
+          ]
+        },
+        "chooseCreate": {
+          "line": 601,
+          "params": [
+            "folder"
+          ]
+        },
+        "picker": {
+          "line": 610,
+          "params": [
+            "folder",
+            "e"
+          ]
+        },
+        "field": {
+          "line": 636,
+          "params": [
+            "folder",
+            "key",
+            "label",
+            "value",
+            "disabled",
+            "prefix = ''"
+          ]
+        },
+        "slugStatus": {
+          "line": 665,
+          "params": [
+            "u"
+          ]
+        },
+        "checkSlugSoon": {
+          "line": 689,
+          "params": [
+            "folderPath",
+            "slug"
+          ]
+        },
+        "appendStatus": {
+          "line": 713,
+          "params": [
+            "target",
+            "folder",
+            "stale"
+          ],
+          "purpose": "Progress, a question that needs an answer, or the last error — above the folder's button."
+        },
+        "connectRowNow": {
+          "line": 743,
+          "params": [
+            "path",
+            "flags"
+          ],
+          "purpose": "Claim or create one row. `flags` carries a question the user just"
+        },
+        "applyRefusal": {
+          "line": 778,
+          "params": [
+            "u",
+            "res"
+          ]
+        },
+        "disconnect": {
+          "line": 801,
+          "params": [
+            "folder"
+          ]
+        },
+        "rerender": {
+          "line": 826
+        },
+        "applyPendingFocus": {
+          "line": 834,
+          "params": [
+            "folders"
+          ],
+          "purpose": "Selects the folder a caller asked for (a path, or the folder whose"
+        },
+        "captureFocus": {
+          "line": 859,
+          "purpose": "A push while the user types must not steal the caret."
+        },
+        "restoreFocus": {
+          "line": 865,
+          "params": [
+            "focus"
+          ]
+        }
+      }
+    },
+    "renderer/cloudProjectMark": {
+      "file": "src/renderer/cloudProjectMark.js",
+      "description": "Frame Cloud — the Connected mark beside the project switcher.",
+      "exports": [
+        "init",
+        "openFolder"
+      ],
+      "depends": [
+        "state"
+      ],
+      "functions": {
+        "init": {
+          "line": 18,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "openFolder": {
+          "line": 41,
+          "purpose": "The open folder as Frame Cloud sees it:"
+        },
+        "update": {
+          "line": 51
+        }
+      }
+    },
+    "renderer/cloudWelcome": {
+      "file": "src/renderer/cloudWelcome.js",
+      "description": "Frame Cloud — the case for it, beside the sign-in.",
+      "exports": [
+        "render"
+      ],
+      "depends": [],
+      "functions": {
+        "icon": {
+          "line": 34,
+          "params": [
+            "name",
+            "size = 16"
+          ]
+        },
+        "el": {
+          "line": 40,
+          "params": [
+            "tag",
+            "className",
+            "text"
+          ]
+        },
+        "render": {
+          "line": 48,
+          "params": [
+            "root"
+          ],
+          "purpose": "Fill the pitch once; it never changes with the session."
+        }
+      }
+    },
     "renderer/commandPalette": {
       "file": "src/renderer/commandPalette.js",
       "description": "Command Palette",
@@ -6946,115 +7892,47 @@
         "init",
         "open",
         "close",
-        "toggle",
-        "signIn",
-        "signOut",
-        "accountState"
+        "toggle"
       ],
       "depends": [
         "electron",
         "shared/ipcChannels",
         "settingsOverlay",
+        "cloudHub",
         "shared/uiZoom",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 64
+          "line": 56
         },
         "initAccountSection": {
-          "line": 129
+          "line": 121
         },
         "pullAccountState": {
-          "line": 153
+          "line": 142
         },
         "refreshAccountOnOpen": {
-          "line": 168,
-          "purpose": "Opening the modal re-reads the session, and a signed-in one asks the server"
-        },
-        "onAccountAction": {
-          "line": 177,
-          "params": [
-            "action",
-            "btn"
-          ]
-        },
-        "invokeAccount": {
-          "line": 199,
-          "params": [
-            "channel",
-            "btn"
-          ]
+          "line": 153,
+          "purpose": "Opening the modal re-reads the session, so the row never shows a state"
         },
         "renderAccount": {
-          "line": 210,
+          "line": 157,
           "params": [
             "state"
           ]
         },
-        "showSignedInNote": {
-          "line": 239
-        },
-        "renderSignedIn": {
-          "line": 247,
-          "params": [
-            "s"
-          ]
-        },
-        "setNote": {
-          "line": 260,
-          "params": [
-            "name",
-            "visible"
-          ]
-        },
-        "setText": {
-          "line": 265,
-          "params": [
-            "id",
-            "text"
-          ]
-        },
-        "setValue": {
-          "line": 271,
-          "params": [
-            "id",
-            "primary",
-            "secondary"
-          ],
-          "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
-        },
-        "isWebUrl": {
-          "line": 283,
-          "params": [
-            "url"
-          ]
-        },
-        "webOrigin": {
-          "line": 287,
-          "params": [
-            "url"
-          ]
-        },
-        "signIn": {
-          "line": 297,
-          "purpose": "Palette \"Frame Cloud: Sign in\": open on Account and start the flow."
-        },
-        "signOut": {
-          "line": 305,
-          "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
-        },
         "initAboutSection": {
-          "line": 311
+          "line": 173
         },
         "runCheck": {
-          "line": 396,
+          "line": 258,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 435,
+          "line": 297,
           "params": [
             "{ checked",
             "found",
@@ -7066,32 +7944,32 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 459,
+          "line": 321,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 470
+          "line": 332
         },
         "hideSidebarDot": {
-          "line": 474
+          "line": 336
         },
         "formatRelative": {
-          "line": 480,
+          "line": 342,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 496,
+          "line": 358,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 515
+          "line": 377
         },
         "syncToggleFromSettings": {
-          "line": 525
+          "line": 387
         }
       },
       "ipc": {
@@ -8689,6 +9567,9 @@
         "projectSettingsModal",
         "doneWindow",
         "frameSettingsModal",
+        "cloudHub",
+        "cloudHubTabs",
+        "cloudProjectMark",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -8707,34 +9588,34 @@
       ],
       "functions": {
         "init": {
-          "line": 64,
+          "line": 67,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 317,
+          "line": 323,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 425,
+          "line": 458,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 535,
+          "line": 568,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 561,
+          "line": 594,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 587,
+          "line": 620,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1007,
+          "line": 1069,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -9089,7 +9970,8 @@
         "init",
         "takeOver",
         "open",
-        "close"
+        "close",
+        "isOpen"
       ],
       "depends": [
         "electron",
@@ -9871,71 +10753,94 @@
         "projectListUI",
         "settingsOverlay",
         "doneWindow",
+        "cloudHub",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 48
+          "line": 55
         },
         "syncFromProject": {
-          "line": 245
+          "line": 263
+        },
+        "syncCloudRow": {
+          "line": 280,
+          "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
+        },
+        "cloudButton": {
+          "line": 299,
+          "params": [
+            "label",
+            "onClick",
+            "{ primary = false",
+            "disabled = false } = {}"
+          ]
+        },
+        "renderCloudRow": {
+          "line": 309
+        },
+        "disconnectFromCloud": {
+          "line": 372,
+          "params": [
+            "projectPath"
+          ]
         },
         "renderDoneWindow": {
-          "line": 258,
+          "line": 395,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 270,
+          "line": 407,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 287,
+          "line": 424,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 306,
+          "line": 443,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 326,
+          "line": 463,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 346,
+          "line": 483,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 372,
+          "line": 509,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 397,
+          "line": 534,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 413
+          "line": 550
         },
         "setRemoveFrameNote": {
-          "line": 427,
+          "line": 564,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 433,
+          "line": 570,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 439,
+          "line": 576,
           "params": [
             "message"
           ]
@@ -12981,22 +13886,24 @@
           "params": [
             "target",
             "text",
-            "placement"
+            "placement",
+            "variant"
           ]
         },
         "hide": {
-          "line": 66
+          "line": 67
         },
         "attach": {
-          "line": 78,
+          "line": 80,
           "params": [
             "el",
             "text",
             "opts = {}"
-          ]
+          ],
+          "purpose": "variant 'note': a sentence or two that wraps, shown above modals too."
         },
         "init": {
-          "line": 96,
+          "line": 99,
           "purpose": "Drop the label whenever the hovered control leaves the page or scrolls away."
         }
       }
@@ -15073,6 +15980,56 @@
         "name": "cloud-session-state",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_PROJECTS_GET_STATE": {
+        "name": "cloud-projects-get-state",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_PROJECTS_REFRESH": {
+        "name": "cloud-projects-refresh",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_FOLDER_CANDIDATES": {
+        "name": "cloud-folder-candidates",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_CHECK_SLUG": {
+        "name": "cloud-check-slug",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_CLAIM": {
+        "name": "cloud-link-claim",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_CREATE": {
+        "name": "cloud-link-create",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_LINK_RELEASE": {
+        "name": "cloud-link-release",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_OPEN_ON_WEB": {
+        "name": "cloud-open-on-web",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_PROJECTS_STATE": {
+        "name": "cloud-projects-state",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_OPEN_WORKSPACE_ON_WEB": {
+        "name": "cloud-open-workspace-on-web",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -15150,6 +16107,48 @@
         "module": "main/claudeUsageManager",
         "file": "src/main/claudeUsageManager.js",
         "description": "Claude Usage Manager Module"
+      }
+    ],
+    "cloud": [
+      {
+        "module": "main/cloud/cloudProjects",
+        "file": "src/main/cloud/cloudProjects.js",
+        "description": "cloudProjects — the pure core of Frame Cloud projects."
+      },
+      {
+        "module": "main/cloud/cloudProjectsService",
+        "file": "src/main/cloud/cloudProjectsService.js",
+        "description": "cloudProjectsService — the Electron shell around Frame Cloud projects."
+      },
+      {
+        "module": "main/cloud/cloudSession",
+        "file": "src/main/cloud/cloudSession.js",
+        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
+      },
+      {
+        "module": "main/cloud/deviceFlow",
+        "file": "src/main/cloud/deviceFlow.js",
+        "description": "deviceFlow — the pure core of Frame Cloud sign-in."
+      },
+      {
+        "module": "main/cloud/sessionStore",
+        "file": "src/main/cloud/sessionStore.js",
+        "description": "sessionStore — where the Frame Cloud session lives between launches."
+      },
+      {
+        "module": "renderer/cloudHub",
+        "file": "src/renderer/cloudHub.js",
+        "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
+      },
+      {
+        "module": "renderer/cloudHubTabs",
+        "file": "src/renderer/cloudHubTabs.js",
+        "description": "Frame Cloud tabs — Cloud projects and On this device."
+      },
+      {
+        "module": "renderer/cloudProjectMark",
+        "file": "src/renderer/cloudProjectMark.js",
+        "description": "Frame Cloud — the Connected mark beside the project switcher."
       }
     ],
     "commands": [
@@ -15704,16 +16703,6 @@
     ],
     "session": [
       {
-        "module": "main/cloud/cloudSession",
-        "file": "src/main/cloud/cloudSession.js",
-        "description": "cloudSession — the Electron shell around the Frame Cloud device flow."
-      },
-      {
-        "module": "main/cloud/sessionStore",
-        "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
-      },
-      {
         "module": "renderer/home/sessionRows",
         "file": "src/renderer/home/sessionRows.js",
         "description": "Which Claude sessions Home offers to resume, and how they are labelled."
@@ -15814,18 +16803,6 @@
         "module": "renderer/statusBar",
         "file": "src/renderer/statusBar.js",
         "description": "Status Bar Module"
-      }
-    ],
-    "store": [
-      {
-        "module": "main/cloud/sessionStore",
-        "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
-      },
-      {
-        "module": "main/frameStore",
-        "file": "src/main/frameStore.js",
-        "description": "frameStore — the one module that knows where a project's meta files live."
       }
     ],
     "structure": [

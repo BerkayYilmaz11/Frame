@@ -47,6 +47,9 @@ const appLoader = require('./appLoader');
 const projectSettingsModal = require('./projectSettingsModal');
 const doneWindow = require('./doneWindow');
 const frameSettingsModal = require('./frameSettingsModal');
+const cloudHub = require('./cloudHub');
+const cloudHubTabs = require('./cloudHubTabs');
+const cloudProjectMark = require('./cloudProjectMark');
 const feedbackPanel = require('./feedbackPanel');
 const telemetryNotice = require('./telemetryNotice');
 const healthNotice = require('./healthNotice');
@@ -285,6 +288,9 @@ function init() {
   guideModal.init();
   projectSettingsModal.init();
   frameSettingsModal.init();
+  // Frame Cloud never lands over the first-run screen or the guided tour.
+  cloudHub.init({ isBlocked: () => onboarding.isOpen() || guidedTour.isOpen(), tabs: cloudHubTabs });
+  cloudProjectMark.init(cloudHub);
   feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.
@@ -363,9 +369,10 @@ function setupButtonHandlers() {
     btn.addEventListener('click', () => revealSidebarTab(btn.dataset.sidebarTab));
   });
 
-  // The foot of the sidebar rail — Plugins, Feedback, then Frame Settings:
-  // each a modal (pluginsPanel, feedbackPanel, frameSettingsModal), not a
-  // view — hence no .sidebar-tab-btn on the buttons. All three toggle.
+  // The foot of the sidebar rail — Plugins, Feedback, Frame Cloud, then
+  // Frame Settings: each a modal (pluginsPanel, feedbackPanel, cloudHub,
+  // frameSettingsModal), not a view — hence no .sidebar-tab-btn on the
+  // buttons. All four toggle.
   const pluginsBtn = document.getElementById('plugins-btn');
   if (pluginsBtn) {
     pluginsBtn.addEventListener('click', () => pluginsPanel.toggle());
@@ -376,6 +383,32 @@ function setupButtonHandlers() {
     feedbackBtn.addEventListener('click', () => feedbackPanel.toggle());
     // Outboard of the rail, like the spec-driven hint anchors.
     tooltip.attach(feedbackBtn, 'Send Feedback', { placement: 'right' });
+  }
+
+  // Frame Cloud, above the gear. Hidden while no server resolves; its label
+  // names the account when signed in. The tooltip fixes its text when
+  // attached, so a changed label rebinds a fresh copy of the button.
+  let cloudBtnLabel = null;
+  const bindCloudBtn = (session) => {
+    const current = document.getElementById('cloud-btn');
+    if (!current) return;
+    const user = session.state === 'signedIn' && session.user ? session.user : null;
+    const who = user ? user.name || user.email : '';
+    const label = who ? `Frame Cloud — ${who}` : 'Frame Cloud';
+    current.hidden = session.state === 'unavailable';
+    if (label === cloudBtnLabel) return;
+    cloudBtnLabel = label;
+    const btn = current.cloneNode(true);
+    btn.setAttribute('aria-label', label);
+    current.replaceWith(btn);
+    btn.addEventListener('click', () => cloudHub.toggle());
+    tooltip.attach(btn, label, { placement: 'right' });
+  };
+  if (document.getElementById('cloud-btn')) {
+    bindCloudBtn(cloudHub.session());
+    cloudHub.onSession(bindCloudBtn);
+  } else {
+    console.error('Frame Cloud: #cloud-btn not found — the rail has no Frame Cloud entry');
   }
 
   // Frame's own settings, from the gear at the foot of the rail (where the
@@ -639,18 +672,47 @@ function registerCommands() {
   // Frame Cloud: offered only where a server resolved (never in packaged
   // builds today), and only the one that applies to the current session.
   r({
+    id: 'cloud.open',
+    title: 'Frame Cloud: Open',
+    category: 'Help',
+    when: () => cloudHub.accountState() !== 'unavailable',
+    run: () => cloudHub.open()
+  });
+  r({
     id: 'cloud.signIn',
     title: 'Frame Cloud: Sign in',
     category: 'Help',
-    when: () => !['unavailable', 'signedIn'].includes(frameSettingsModal.accountState()),
-    run: () => frameSettingsModal.signIn()
+    when: () => !['unavailable', 'signedIn'].includes(cloudHub.accountState()),
+    run: () => cloudHub.signIn()
   });
   r({
     id: 'cloud.signOut',
     title: 'Frame Cloud: Sign out',
     category: 'Help',
-    when: () => frameSettingsModal.accountState() === 'signedIn',
-    run: () => frameSettingsModal.signOut()
+    when: () => cloudHub.accountState() === 'signedIn',
+    run: () => cloudHub.signOut()
+  });
+  // The open project, as Frame Cloud lists it. Both route to the one place
+  // that picks and confirms: Frame Cloud's On this device row.
+  r({
+    id: 'cloud.connectProject',
+    title: 'Frame Cloud: Connect this project',
+    category: 'Help',
+    when: () => {
+      const { signedIn, folder } = cloudProjectMark.openFolder();
+      return signedIn && state.getIsFrameProject() && Boolean(folder) && !folder.connected;
+    },
+    run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath() })
+  });
+  r({
+    id: 'cloud.disconnectProject',
+    title: 'Frame Cloud: Disconnect this project',
+    category: 'Help',
+    when: () => {
+      const { signedIn, folder } = cloudProjectMark.openFolder();
+      return signedIn && Boolean(folder && folder.connected);
+    },
+    run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath(), confirmDisconnect: true })
   });
   r({
     id: 'settings.openProject',
