@@ -29,3 +29,11 @@ Ported `groupByColumn`, the column copy from `brief-board.tsx`, `KIND_COPY`, `pr
 _Captured: 2026-09-18 · 2 file change(s)_
 
 ---
+
+## T05 — `#cloud-briefs-panel` markup, `PANEL_REGISTRY` entry and visibility rules
+
+Added `#cloud-briefs-panel` to `index.html` beside Sessions: a shared `.view-header` (count, Show closed checkbox, Refresh, Open on web), a `#cloud-briefs-content` body, and an `aside` carrying `specs-dashboard-detail` / `-bar` / `-back` / `-content` so the Specs drawer's slide comes for free. The drawer bar has only the back button, not the Specs × close, because this panel's own header has no close. Registered `cloudBriefs` in `PANEL_REGISTRY` (lazy require, so it is inert until T07's module exists) and added the hidden-at-home / `.visible` rules with `position: relative` to anchor the drawer in `panels.css`.
+
+_Captured: 2026-09-18 · 3 file change(s)_
+
+---

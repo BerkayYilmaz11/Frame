@@ -10271,6 +10271,7 @@
         "notify",
         "terminalChipNotice",
         "sessionsPanel",
+        "cloudBriefsPanel",
         "specsDashboard",
         "tasksDashboard",
         "projectListUI"

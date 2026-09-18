@@ -625,6 +625,45 @@
       </div>
     </div>
 
+    <!-- Briefs: the connected Frame Cloud project's briefs, read-only
+         (frame-cloud-briefs-read-only spec). A Context row under Sessions
+         that exists only while the open folder is connected. Hosted in the
+         center by multiTerminalUI (cloudBriefsPanel.js). The detail drawer
+         reuses the Specs grid's .specs-dashboard-detail slide. -->
+    <div id="cloud-briefs-panel">
+      <div class="view-header">
+        <div class="view-header-title">
+          <span class="view-header-mark" aria-hidden="true">&#9671;</span>
+          <h2>Briefs</h2>
+        </div>
+        <div class="view-header-actions cloud-briefs-actions">
+          <span id="cloud-briefs-count" class="view-header-count"></span>
+          <label class="cloud-briefs-closed-toggle" title="Show closed briefs">
+            <input id="cloud-briefs-show-closed" type="checkbox" tabindex="-1" />
+            <span>Show closed</span>
+          </label>
+          <button id="cloud-briefs-refresh" class="cloud-briefs-icon-btn" tabindex="-1" title="Refresh briefs">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+          </button>
+          <button id="cloud-briefs-open-web" class="cloud-briefs-web-btn" tabindex="-1" title="Open this project on Frame Cloud">Open on web</button>
+        </div>
+      </div>
+      <div id="cloud-briefs-content" class="cloud-briefs-content">
+        <!-- Board rendered here -->
+      </div>
+      <aside id="cloud-briefs-detail" class="specs-dashboard-detail cloud-briefs-detail" aria-hidden="true">
+        <div class="specs-dashboard-detail-bar">
+          <button class="specs-dashboard-detail-back" aria-label="Back to all briefs">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Briefs</span>
+          </button>
+        </div>
+        <div class="specs-dashboard-detail-content cloud-briefs-detail-content"></div>
+      </aside>
+    </div>
+
     <!-- Prompts Panel -->
     <div id="prompts-panel">
       <div id="prompts-header" class="dock-view-header">

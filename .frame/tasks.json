@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T15:58:18.577Z",
+  "lastUpdated": "2026-09-18T15:59:22.826Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8682,13 +8682,13 @@
       "title": "Add the `#cloud-briefs-panel` markup (header, body, drawer aside using the `specs-dashboard-detail*` classes) to `index.html`, the `cloudBriefs` entry in `PANEL_REGISTRY`, and the panel visibility rules in `panels.css`",
       "description": "",
       "source": "spec:frame-cloud-briefs-read-only:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-read-only",
       "createdAt": "2026-09-18T15:46:40.189Z",
-      "updatedAt": "2026-09-18T15:46:40.189Z",
-      "completedAt": null
+      "updatedAt": "2026-09-18T15:59:22.826Z",
+      "completedAt": "2026-09-18T15:59:22.826Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-read-only-T06",
