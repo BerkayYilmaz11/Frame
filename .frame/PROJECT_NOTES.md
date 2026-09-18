@@ -3660,3 +3660,123 @@ Still open: the plan's full manual walk (plan change → Pro, deny, expiry,
 revoked token → silent sign-out, offline sign-out), and confirming by hand
 that T09 takes focus while the browser is in front. One of three scripted
 runs read `isFocused()` false right after approval.
+
+### [2026-09-18] Frame Cloud projects: implemented, then a UI/UX pass that reshaped the modal
+
+**Context.** `frame-cloud-projects` was implemented task by task on
+2026-09-17 (T01–T11, `feat/frame-cloud-projects`, cut from the umbrella
+`feat/frame-cloud-adaptor`). `outcome.md` records every departure from the plan,
+entry by entry. On 2026-09-18 the user went through the finished modal screen
+by screen, from screenshots, and asked for changes one at a time. They were
+collected in one commit, `100295b`, "UI/UX düzenlemeleri commitinde", which
+the user named. PR #19 on the fork targets the umbrella.
+
+**Modal size, twice.** The first ask was "Cloud Modal'i how to boyutunda değil
+de diğer modal'lar (plugins etc) boyutlarında olsun", so it moved to the 640px
+standard. After the tables were redone the user reversed it ("modal size
+konusunda fikir değiştirmem gerekti ve How to Modalıyla aynı size'da olsun").
+It now takes the guide's size (`--modal-width-wide`, `min(720px, 86vh)`), and
+the comment in `variables.css` names Frame Cloud as the wide token's second
+user.
+
+**Header.** "Modal'ın tepesi çirkin duruyor, FrameCloud projesinde bir
+UserAvatar'lı görünüm var aynısını oluşturalım." It became one card, modelled
+on FrameCloud's `app-shell.tsx`: the avatar (`user.image`, initials as the
+fallback), the name, `@githubLogin` or the email, and Sign out. Below them are
+the workspace name only, with **Open in browser**, and this device. "Last seen"
+was dropped ("zaten bizim makinemiz"). Opening the workspace needed a new
+channel, `CLOUD_OPEN_WORKSPACE_ON_WEB`, and `buildWorkspaceWebUrl` in the core,
+under the same guards as `buildWebUrl`. The web origin still never reaches the
+renderer.
+
+**Cloud projects.** The Source column went ("source bilgisine gerek yok"),
+then the slug under the name ("Slug'ı direkt gizleyelim"). The header was
+misaligned with the rows because every row was its own grid. The rows now
+share the table's tracks through `subgrid` (Electron 28 / Chromium 120). The
+user then asked whether three cases should look alike: connected; created from
+scratch on the web and absent here; imported from GitHub, present here and not
+connected. The answer was that the dividing line is whether a folder here
+matches, not the source. Rows are now drawn from this device's point of view:
+- **Connected + Open**, for a connected project with a folder here.
+- **Connected**, "Not on this device", for a project connected elsewhere.
+- **Ready to connect**, when a folder here suggests the project. The chip is
+  blue, because the accent is green and would read as Connected. At first
+  Connect only jumped to On this device. The user then asked for it to run the
+  connect flow directly ("direct connect akışını çalıştırsın"), and it now
+  claims in place, with the remote/identity questions under the row.
+- **Not on this device**, when nothing matches.
+
+To support this, candidates now load as soon as the list is ready instead of
+only when On this device is opened. Two options for the absent case were
+discussed: an "Initialize" button, or sending the user to Open Project. Cloning
+a cloud project was proposed and declined ("clone adımı olmasın kafa
+karışmasın"). The row ended with no CTA and an info tooltip instead ("Dosya
+tespit edilemedi… yeni proje açın vs"). The tooltip tells the user to add the
+project with *Add a project…* and connect it from On this device. `tooltip.js`
+gained a `note` variant for it: it wraps and sits above the modal overlays at
+z-index 10002. Existing labels are untouched.
+
+**Why several folders can share one project.** The user asked whether two
+folders on one machine being connected to one cloud project is an
+anti-pattern, and whether each would need its own Frame init. It is not an
+anti-pattern, and no init is needed. `.frame/config.json` is tracked in repo
+mode, so a second clone or a `git worktree` carries the same `projectId`.
+Branch switching in one folder never produces it. Conductor worktrees under
+`.frame/worktrees/` are not in the project list, so they never count. A
+per-folder picker for Open was offered and then withdrawn as too much for a
+rare case.
+
+**On this device became list + detail.** The user found the tab raw ("çok ham
+ve profesyonel production grade gelmedi") and wanted to discuss it first. The
+critique covered several problems:
+- Every unconnected row was a form.
+- A tick-and-bulk ritual stood in front of a list that is usually one to three
+  folders long.
+- Paths were cut from the end, losing the folder name.
+- "→ Frame frame" repeated the name.
+- The S7 line gave no action.
+
+A mockup offered A (one list, one action per row) and B (list + detail).
+https://claude.ai/artifact/FCpnsPRP3z7XD7DYgsz5cs. The user picked B ("List +
+detail çok iyi") and asked for a batch version of it, C. After seeing C:
+"Multiple şimdilik olmasın. Onu ilerde tekrar düşünürüz."
+
+Built: folders are grouped by the plan on the left (Suggested, Not in Frame
+Cloud, Looking for a match, Connected), with a state dot and the path
+shortened with `~`. A choice made in the detail never moves a folder between
+groups. The right side holds the selected folder:
+- **Connect to X**, with the match reason, plus "Pick a different project…"
+  and "Create a new project instead".
+- **Add to Frame Cloud**, with Name, and URL behind a `…/<workspace>/` prefix.
+  The slug check runs on first show.
+- **Open in Frame**, for a connected folder, with Disconnect… confirming in the
+  panel.
+
+**This overturns spec §6.** The ticking, the id/remote default-checked rows and
+**Connect selected (n)** are gone for this phase. The batch design (C) is the
+reference if it returns.
+
+**Signed out.** "Sign in ekranı çok dar kalmış sadece bir buton var… bu bizim
+gelir modelimizin oturacağı yer." The advice was to promise only what exists
+and to show unbuilt features as Coming soon. The user overrode it: "Şu an için
+her özellik varmış gibi gözüksün", "Free ya da Beta koyma". A mockup offered
+two tones. https://claude.ai/artifact/VCkRVcdy6Uv7P2pcLGAAL9. The user chose
+**Product** for the app and said the website will carry the marketing voice
+("notes eklerken web sitesinde daha marketing odaklı yapacağımızın notu da
+eklensin"). The marketing draft in that mockup (Brief Driven Development,
+"Ship with your agents, not after them", a Brief Board preview) is the
+starting point for frame.cool.
+
+Built: the pitch sits on the left and the sign-in card on the right.
+`cloudWelcome.js` holds all the copy in one `COPY` object. The pitch has five
+features (Brief Board, Every machine, Live sessions, Specs on the web, Start
+from GitHub) and a trust line: "Your code stays on your machines". Every
+device-flow step stays inside the card, so the page never jumps.
+
+**Open: Learn more.** It is a disabled button. Where it should lead is
+undecided: How to Use Frame, the frame.cool website, or both ("Learn more ile
+how to use'un bağlanması ve/veya frame.cool web site'a yönlenmesi").
+
+**State.** PR #19 into `feat/frame-cloud-adaptor`. `npm test` passes 913
+tests. The UI pass was built against the mockups and has not been walked end
+to end against a live FrameCloud. The renderer has no DOM harness.

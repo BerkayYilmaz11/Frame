@@ -88,3 +88,29 @@ _Captured: 2026-09-17 · 3 file change(s)_
 
 ---
 
+
+---
+
+## UI/UX pass (after T11)
+
+Reshaped the modal from screenshots with the user, in commit `100295b`:
+- The modal takes the guide's size.
+- The header is an avatar card. The workspace has Open in browser (new
+  `CLOUD_OPEN_WORKSPACE_ON_WEB`, `buildWorkspaceWebUrl`). "Last seen" is gone.
+- Cloud projects drops the Source column and the slug, aligns its rows with
+  `subgrid`, and draws four cases from this device's view: Connected + Open;
+  Connected elsewhere; Ready to connect, which claims in place; and Not on this
+  device, with a `note` tooltip instead of a CTA.
+- On this device becomes list + detail with one decisive action per folder.
+  **Departs from §6: no ticking and no Connect selected (n) in this phase.**
+- The signed-out state becomes a pitch (`cloudWelcome.js`) beside a sign-in
+  card that holds every device-flow step. Learn more is disabled.
+
+Candidates now load as soon as the list is ready, so both tabs can read them.
+The decisions and the user's words are in PROJECT_NOTES, 2026-09-18.
+
+Files: index.html, cloudHub.js, cloudHubTabs.js, cloudWelcome.js,
+cloud-hub.css, tooltip.js, tooltip.css, variables.css, cloudProjects.js,
+cloudProjectsService.js, ipcChannels.js, test/cloudProjects.test.js.
+
+_Captured: 2026-09-18 · 12 file change(s)_
