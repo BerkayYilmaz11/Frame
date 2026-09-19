@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:54:26.496Z",
+  "lastUpdated": "2026-09-19T16:55:16.038Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8854,13 +8854,13 @@
       "title": "Handle a finished create in `src/renderer/cloudBriefsPanel.js`: `onCreated` closes the drawer and reloads the board, and when `attachmentError` is set, draws a dismissible notice above the columns (\"Brief #n was created, but some links were not attached.\" plus the sentence) that clears on dismiss, a change of folder or `hide()`",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:55:16.038Z",
+      "completedAt": "2026-09-19T16:55:16.038Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T08",

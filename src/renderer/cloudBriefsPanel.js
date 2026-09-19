@@ -46,6 +46,9 @@ let visible = false;
 // starts from the loading state.
 let board = null; // { path, result }
 let showClosed = false;
+// A sentence above the columns after a create whose links did not all attach.
+// It stays until dismissed, a change of folder or hide().
+let notice = null;
 // Every load takes a number; an answer whose number is no longer the latest
 // (another project, a toggle, a second refresh) is dropped.
 let loadSeq = 0;
@@ -162,8 +165,11 @@ function onCloudChange() {
     loadedKey = key;
     return;
   }
-  // Another folder: its board, not the last one's brief or form.
-  if (path !== loadedPath) closeDrawer();
+  // Another folder: its board, not the last one's brief, form or notice.
+  if (path !== loadedPath) {
+    closeDrawer();
+    notice = null;
+  }
   load();
   if (detail) loadDetail();
 }
@@ -198,6 +204,7 @@ function hide() {
   visible = false;
   loadSeq += 1; // an answer still in flight lands nowhere
   loadedKey = null;
+  notice = null;
   closeDrawer();
 }
 
@@ -272,6 +279,11 @@ function onContentClick(event) {
   if (action === 'retry') load();
   else if (action === 'open-web') openOnWeb();
   else if (action === 'new-brief') openNewBrief();
+  else if (action === 'dismiss-notice') {
+    notice = null;
+    const el = contentElement.querySelector('.cloud-briefs-notice');
+    if (el) el.remove();
+  }
   else if (action === 'open-brief') {
     const number = Number(actionEl.dataset.number);
     if (Number.isInteger(number) && number > 0) openDetail(number);
@@ -316,7 +328,17 @@ function renderBoard() {
       </section>`
     : '';
 
-  contentElement.innerHTML = open + closed;
+  contentElement.innerHTML = renderNotice() + open + closed;
+}
+
+function renderNotice() {
+  if (!notice) return '';
+  return `<div class="cloud-briefs-notice" role="status">
+      <p>${escapeHtml(notice)}</p>
+      <button type="button" class="cloud-briefs-icon-btn" data-action="dismiss-notice" aria-label="Dismiss" title="Dismiss" tabindex="-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
 }
 
 function renderCards(briefs, milestoneNames) {
@@ -410,7 +432,14 @@ function openNewBrief() {
   detailSeq += 1; // a brief still loading lands nowhere
   detail = null;
   showDrawer('new');
-  cloudBriefsForm.open(detailContentElement);
+  cloudBriefsForm.open(detailContentElement, { onCreated: onBriefCreated });
+}
+
+/** A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice. */
+function onBriefCreated({ number, attachmentError }) {
+  closeDrawer();
+  notice = attachmentError ? copy.attachmentNotice(number, attachmentError) : null;
+  load();
 }
 
 /** Back and Esc: close the drawer, unless a create is still running. */

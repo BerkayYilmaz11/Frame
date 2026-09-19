@@ -6772,151 +6772,162 @@
       ],
       "functions": {
         "init": {
-          "line": 68,
+          "line": 71,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 130
+          "line": 133
         },
         "onCloudChange": {
-          "line": 140
+          "line": 143
         },
         "currentKey": {
-          "line": 172,
+          "line": 178,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 179,
+          "line": 185,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 186,
+          "line": 192,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 195
+          "line": 201
         },
         "refresh": {
-          "line": 205,
+          "line": 212,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 212
+          "line": 219
         },
         "setRefreshing": {
-          "line": 253,
+          "line": 260,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 259,
+          "line": 266,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 268,
+          "line": 275,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 283,
+          "line": 295,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 290
+          "line": 302
+        },
+        "renderNotice": {
+          "line": 334
         },
         "renderCards": {
-          "line": 322,
+          "line": 344,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 329,
+          "line": 351,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 350,
+          "line": 372,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 363
+          "line": 385
         },
         "renderMessage": {
-          "line": 368,
+          "line": 390,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 373,
+          "line": 395,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 381
+          "line": 403
         },
         "showDrawer": {
-          "line": 389,
+          "line": 411,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 397,
+          "line": 419,
           "params": [
             "number"
           ]
         },
         "openNewBrief": {
-          "line": 407,
+          "line": 429,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
+        "onBriefCreated": {
+          "line": 439,
+          "params": [
+            "{ number",
+            "attachmentError }"
+          ],
+          "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
+        },
         "leaveDrawer": {
-          "line": 417,
+          "line": 446,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 423,
+          "line": 452,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 434
+          "line": 463
         },
         "onDetailClick": {
-          "line": 468,
+          "line": 497,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 489,
+          "line": 518,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 493
+          "line": 522
         },
         "tabCount": {
-          "line": 520,
+          "line": 549,
           "params": [
             "key",
             "brief",
@@ -6924,7 +6935,7 @@
           ]
         },
         "renderMeta": {
-          "line": 528,
+          "line": 557,
           "params": [
             "brief",
             "events",
@@ -6932,7 +6943,7 @@
           ]
         },
         "renderTab": {
-          "line": 548,
+          "line": 577,
           "params": [
             "tab",
             "brief",

@@ -48,3 +48,11 @@ _Captured: 2026-09-19 · 2 file change(s)_
 
 ---
 
+## T07 — Finished create
+
+Added `onBriefCreated` to `src/renderer/cloudBriefsPanel.js`: it closes the drawer, sets the notice (`copy.attachmentNotice`) when a link failed, and reloads the board. `renderBoard` draws the notice above the columns with a Dismiss button. The notice clears on dismiss, a change of folder or `hide()`, and a later clean create replaces it. It shows only with a loaded board, not over a load error.
+
+_Captured: 2026-09-19 · 1 file change(s)_
+
+---
+
