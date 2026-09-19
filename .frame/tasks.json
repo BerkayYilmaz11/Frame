@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:49:23.479Z",
+  "lastUpdated": "2026-09-19T16:50:28.848Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8815,13 +8815,13 @@
       "title": "Add the create copy to `src/renderer/cloudBriefsCopy.js`: the form's title and description, `AI_LINKS_TITLE`, `AI_LINKS_HINT`, the invalid-link sentence, \"Give the brief a title.\", \"Each link needs a title.\", `submitLabel(kind, pending)`, `createErrorMessage(reason)` (badRequest → \"Check the title, description and links, then try again.\") and `attachmentNotice(number, reason)`. Drop \"read-only\" from its header, and extend `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:50:28.848Z",
+      "completedAt": "2026-09-19T16:50:28.848Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T05",

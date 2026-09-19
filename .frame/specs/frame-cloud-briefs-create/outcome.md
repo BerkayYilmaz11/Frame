@@ -24,3 +24,11 @@ _Captured: 2026-09-19 · 2 file change(s)_
 
 ---
 
+## T04 — Copy
+
+Added the New brief copy to `src/renderer/cloudBriefsCopy.js`: the form's title and description, the links title, hint and invalid-link sentences, the two validation sentences, `submitLabel`, `createErrorMessage` and `attachmentNotice`. The header now says creating is the one write. `attachmentNotice` reads `notFound` as "This brief does not exist." rather than the project sentence, because an attachment is refused on the brief. The empty-state copy stays in the panel, for T06. Tests are in `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-09-19 · 2 file change(s)_
+
+---
+

@@ -6438,7 +6438,17 @@
         "actorLabel",
         "formatDate",
         "eventSentence",
-        "reasonMessage"
+        "reasonMessage",
+        "NEW_BRIEF_TITLE",
+        "NEW_BRIEF_DESCRIPTION",
+        "AI_LINKS_TITLE",
+        "AI_LINKS_HINT",
+        "INVALID_LINK",
+        "TITLE_REQUIRED",
+        "LINK_TITLE_REQUIRED",
+        "submitLabel",
+        "createErrorMessage",
+        "attachmentNotice"
       ],
       "depends": [],
       "functions": {
@@ -6532,6 +6542,29 @@
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
+        },
+        "submitLabel": {
+          "line": 212,
+          "params": [
+            "kind",
+            "pending"
+          ],
+          "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
+        },
+        "createErrorMessage": {
+          "line": 231,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The form's sentence for a failed create's `reason`."
+        },
+        "attachmentNotice": {
+          "line": 236,
+          "params": [
+            "number",
+            "reason"
+          ],
+          "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       }
     },
