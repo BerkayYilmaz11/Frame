@@ -56,3 +56,11 @@ _Captured: 2026-09-19 · 1 file change(s)_
 
 ---
 
+## T08 — Styles
+
+Styled the form, the kind switch, the link rows, the field and form errors, and the primary submit (disabled and pending) in `src/renderer/styles/components/cloud-briefs.css`. Also styled the board notice, the empty-state actions and focus rings. Only existing theme variables are used; the notice uses `--warning` / `--warning-ink` so it reads in the light scheme too. The kind switch keeps real radio inputs, visually hidden, with focus and checked state drawn through `:has()`. Not checked visually in the running app.
+
+_Captured: 2026-09-19 · 1 file change(s)_
+
+---
+

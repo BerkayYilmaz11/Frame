@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-briefs-create",
   "title": "Frame Cloud briefs, create",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-frame-cloud-briefs-create-T01",
     "task-spec-frame-cloud-briefs-create-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-19T16:07:15Z",
-  "updated_at": "2026-09-19T16:44:49.491Z",
-  "last_phase_at": "2026-09-19T16:44:49.491Z",
+  "updated_at": "2026-09-19T16:56:43.728Z",
+  "last_phase_at": "2026-09-19T16:56:43.728Z",
   "implement_mode": "autonomous"
 }

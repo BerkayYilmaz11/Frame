@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:55:16.038Z",
+  "lastUpdated": "2026-09-19T16:56:43.794Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8867,13 +8867,13 @@
       "title": "Style the form and the notice in `src/renderer/styles/components/cloud-briefs.css` with the existing theme variables, in both themes: fields, the two-way kind switch, link rows, field errors, the primary submit with its disabled and pending state, and the board notice",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:56:43.794Z",
+      "completedAt": "2026-09-19T16:56:43.794Z"
     }
   ],
   "metadata": {
