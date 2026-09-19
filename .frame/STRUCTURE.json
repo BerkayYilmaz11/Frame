@@ -6535,6 +6535,61 @@
         }
       }
     },
+    "renderer/cloudBriefsDraft": {
+      "file": "src/renderer/cloudBriefsDraft.js",
+      "description": "cloudBriefsDraft — the New brief form's state, without the form.",
+      "exports": [
+        "TITLE_MAX",
+        "linkService",
+        "emptyDraft",
+        "addLink",
+        "validateDraft",
+        "toRequest"
+      ],
+      "depends": [],
+      "functions": {
+        "linkService": {
+          "line": 34,
+          "params": [
+            "url"
+          ],
+          "purpose": "The service behind `url` — `{ id, defaultTitle, host }` — or null when it is"
+        },
+        "emptyDraft": {
+          "line": 56,
+          "purpose": "A fresh form: Work, Medium, nothing typed. Every opening starts here."
+        },
+        "addLink": {
+          "line": 74,
+          "params": [
+            "draft",
+            "raw"
+          ],
+          "purpose": "The draft with `raw` added as a link row titled after its service, or null"
+        },
+        "titleOk": {
+          "line": 86,
+          "params": [
+            "value",
+            "max"
+          ]
+        },
+        "validateDraft": {
+          "line": 92,
+          "params": [
+            "draft"
+          ],
+          "purpose": "What stops a submit: `{ ok, titleError, untitledKeys }`."
+        },
+        "toRequest": {
+          "line": 99,
+          "params": [
+            "draft"
+          ],
+          "purpose": "The `CLOUD_BRIEF_CREATE` request: priority only for Work, links in the order shown."
+        }
+      }
+    },
     "renderer/cloudBriefsPanel": {
       "file": "src/renderer/cloudBriefsPanel.js",
       "description": "Cloud Briefs Panel",
@@ -16726,6 +16781,11 @@
         "module": "renderer/cloudBriefsCopy",
         "file": "src/renderer/cloudBriefsCopy.js",
         "description": "cloudBriefsCopy — the words the cloud Briefs view says."
+      },
+      {
+        "module": "renderer/cloudBriefsDraft",
+        "file": "src/renderer/cloudBriefsDraft.js",
+        "description": "cloudBriefsDraft — the New brief form's state, without the form."
       },
       {
         "module": "renderer/cloudBriefsPanel",

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:48:02.264Z",
+  "lastUpdated": "2026-09-19T16:49:23.479Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8802,13 +8802,13 @@
       "title": "Add pure `src/renderer/cloudBriefsDraft.js`: the web's `linkService` port (Claude artifact/chat, ChatGPT, Gemini, Figma, GitHub, otherwise the host; null for non-`http(s)`), `emptyDraft` (Work, Medium, empty), `addLink`, `validateDraft` (whitespace title, untitled link rows) and `toRequest` (priority only for Work, links in order), with `test/cloudBriefsDraft.test.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:49:23.479Z",
+      "completedAt": "2026-09-19T16:49:23.479Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T04",

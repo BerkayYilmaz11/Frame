@@ -16,3 +16,11 @@ _Captured: 2026-09-19 · 2 file change(s)_
 
 ---
 
+## T03 — Pure draft module
+
+Added `src/renderer/cloudBriefsDraft.js`: a rule-for-rule port of the web's `linkService`, plus `emptyDraft`, `addLink` (returns null on a non-`http(s)` text), `validateDraft` (`{ ok, titleError, untitledKeys }`) and `toRequest`. The draft also holds `nextKey` for row keys, which the plan's shape did not list. Tests are in `test/cloudBriefsDraft.test.js`.
+
+_Captured: 2026-09-19 · 2 file change(s)_
+
+---
+
