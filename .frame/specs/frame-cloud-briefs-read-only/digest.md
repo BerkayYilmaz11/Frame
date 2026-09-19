@@ -10,7 +10,7 @@ Rules for later work:
 - Names stay `cloudBriefs*` / `cloud-briefs` — local briefs (brief-capture-and-shaping) own `briefs`.
 - The drawer reuses `.specs-dashboard-detail*`; it covers the header, so it carries its own Refresh.
 - Nav rows may carry `available()`; `refreshWorkspaceNav` hides them with inline display (a bare [hidden] loses to `display:flex`).
-- The board reloads on cloud pushes only when (path, project id, list lastUpdated) changes — the hub pushes on every candidate lookup.
+- The board reloads on cloud pushes only when (path, project id, list lastUpdated) changes — the hub pushes on every candidate lookup — and on window focus; both are throttled to 30 s after the panel's last load unless the folder or project changed (T11).
 - Writes, polling, milestones/inbox views and member names are out of scope; writes are a later decision.
 Tests cover the pure core and copy only (DOM untested, per project convention).
 

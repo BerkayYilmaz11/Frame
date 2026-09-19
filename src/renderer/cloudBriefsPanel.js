@@ -102,12 +102,29 @@ function init(cloudHub) {
   hub.onProjects(onCloudChange);
   hub.onSession(onCloudChange);
   state.onProjectChange(onCloudChange);
+  // Coming back to Frame from elsewhere (the web board, say) re-reads what
+  // is on screen. In-app navigation needs nothing: the host's show() loads.
+  window.addEventListener('focus', onWindowFocus);
 }
 
 // What the open board was loaded against: the folder, its cloud project and
 // the project list it came from. The hub pushes on every projects change —
 // candidate lookups included — so the board reloads only when this moves.
 let loadedKey = null;
+// When the panel last asked for its board. Focus and project-list pushes
+// inside FOCUS_THROTTLE_MS of it do not ask again.
+let lastLoadAt = 0;
+const FOCUS_THROTTLE_MS = 30 * 1000;
+
+function onWindowFocus() {
+  if (!visible) return;
+  if (!isAvailable()) {
+    hide();
+    return;
+  }
+  if (Date.now() - lastLoadAt < FOCUS_THROTTLE_MS) return;
+  refresh();
+}
 
 function onCloudChange() {
   try {
@@ -125,8 +142,17 @@ function onCloudChange() {
   }
   const key = currentKey();
   if (key === loadedKey) return;
+  const [path, projectId] = key.split('\n');
+  const [loadedPath, loadedProjectId] = (loadedKey || '').split('\n');
+  const sameProject = loadedKey !== null && path === loadedPath && projectId === loadedProjectId;
+  // Only the list time moved, and the board is fresh: this is the project
+  // list's own focus refresh landing right after ours — skip the repeat.
+  if (sameProject && Date.now() - lastLoadAt < FOCUS_THROTTLE_MS) {
+    loadedKey = key;
+    return;
+  }
   // Another folder: its board, not the last one's brief.
-  if (!loadedKey || key.split('\n')[0] !== loadedKey.split('\n')[0]) closeDetail();
+  if (path !== loadedPath) closeDetail();
   load();
   if (detail) loadDetail();
 }
@@ -177,6 +203,7 @@ async function load() {
   const path = state.getProjectPath();
   const seq = ++loadSeq;
   loadedKey = currentKey();
+  lastLoadAt = Date.now();
   if (!path) {
     board = null;
     renderMessage('No project is open.');

@@ -12,11 +12,12 @@
     "task-spec-frame-cloud-briefs-read-only-T07",
     "task-spec-frame-cloud-briefs-read-only-T08",
     "task-spec-frame-cloud-briefs-read-only-T09",
-    "task-spec-frame-cloud-briefs-read-only-T10"
+    "task-spec-frame-cloud-briefs-read-only-T10",
+    "task-spec-frame-cloud-briefs-read-only-T11"
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-18T15:12:57Z",
-  "updated_at": "2026-09-18T16:06:33.444Z",
-  "last_phase_at": "2026-09-18T16:06:33.444Z",
+  "updated_at": "2026-09-19T15:24:32.000Z",
+  "last_phase_at": "2026-09-19T15:24:32.000Z",
   "implement_mode": "autonomous"
 }

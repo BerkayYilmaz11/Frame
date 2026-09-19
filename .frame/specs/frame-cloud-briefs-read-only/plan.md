@@ -241,3 +241,7 @@ None. `marked` is deliberately not used for brief bodies.
    panel is open, the panel hides and the view returns to terminals. When
    the cloud projects state changes while it stays connected, the panel
    reloads. Check this across a project switch, sign-out and disconnect.
+8. **Focus reload (added after implementation, T11).** When the Frame
+   window regains focus while the panel is visible and connected, reload
+   the board and the open brief, throttled to once per 30 s. Renderer
+   `window` focus only; no main-process change.

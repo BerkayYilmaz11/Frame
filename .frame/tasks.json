@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-18T16:06:33.411Z",
+  "lastUpdated": "2026-09-19T15:24:32.762Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8754,6 +8754,22 @@
       "createdAt": "2026-09-18T15:46:40.189Z",
       "updatedAt": "2026-09-18T16:06:33.411Z",
       "completedAt": "2026-09-18T16:06:33.411Z"
+    },
+    {
+      "id": "task-spec-frame-cloud-briefs-read-only-T11",
+      "title": "Reload the Briefs panel when the Frame window regains focus: in `src/renderer/cloudBriefsPanel.js`, on window `focus` while visible and connected, reload the board (and the open brief) with a 30 s throttle since the panel's last load",
+      "description": "In src/renderer/cloudBriefsPanel.js, listen to the renderer window's `focus` event. When the Briefs panel is visible and the open folder is still connected, reload the board through load() and, if the detail drawer is open, the brief through loadDetail(). A throttle of 30 s since the panel's last own load keeps rapid focus changes from sending a request each time. This makes the panel's freshness its own rule instead of a side effect of cloudProjectsService's once-a-minute focus refresh of project.list (which today reloads the board only through the lastUpdated key from T10). Read-only: nothing new is written to the cloud, and nothing polls.",
+      "userRequest": "User said: şöyle bir case yakaldım. Eğer kullanıcı başka bir ekrana gidip tekrar Brief ekranına focus olunca reload etmemiz güzel olur ama öyle bir mekanizma electronda var mı bilmiyorum. — then: bu spec'e ek bir task olarak eklenebilir",
+      "acceptanceCriteria": "(1) With the Briefs panel open, leaving Frame for another app and returning reloads the board (and the open brief) once, even within a minute of the last project.list refresh. (2) Returning within 30 s of the panel's last load sends no new request. (3) Focus while the panel is hidden, or while the folder is not connected, sends no request. (4) A focus reload and a projects-push reload arriving together do not render a stale answer (the existing sequence guards hold). (5) npm test passes.",
+      "notes": "In-app navigation back to Briefs already reloads (host calls show() → load()); this task covers the app-window focus case only. Throttle 30 s was chosen as a default; adjust in review if needed. Renderer window focus chosen over a new main→renderer IPC so no main-process change is needed.",
+      "source": "spec:frame-cloud-briefs-read-only:T11",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-cloud-briefs-read-only (added after implementation, 2026-09-18)",
+      "createdAt": "2026-09-18T16:18:27.000Z",
+      "updatedAt": "2026-09-19T15:24:32.762Z",
+      "completedAt": "2026-09-19T15:24:32.762Z"
     }
   ],
   "metadata": {

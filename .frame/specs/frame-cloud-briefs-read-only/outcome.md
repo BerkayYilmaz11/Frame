@@ -79,3 +79,11 @@ Followup: exercise the panel against a live FrameCloud `feat/desktop-projects` s
 _Captured: 2026-09-18 · 1 file change(s)_
 
 ---
+
+## T11 — Reload the Briefs panel when the Frame window regains focus
+
+Added a renderer `window` `focus` listener to `cloudBriefsPanel.js`. While the panel is visible it hides if the folder is no longer connected; otherwise, 30 s or more after the panel's last load, it runs `refresh()` (the board, plus the brief when the drawer is open). No main-process change was needed. Beyond the plan: the same 30 s window now also suppresses T10's reload when only the project list's `lastUpdated` moved. Without it, one return to the app would reload twice, once from this handler and again when `cloudProjectsService`'s own focus refresh lands. A change of folder or project still reloads at once. Added after implementation at the user's request; in-app navigation back to Briefs already reloaded through `show()`.
+
+_Captured: 2026-09-19 · 1 file change(s)_
+
+---

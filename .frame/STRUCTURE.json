@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-18",
+  "lastUpdated": "2026-09-19",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -6486,127 +6486,130 @@
             "cloudHub"
           ]
         },
+        "onWindowFocus": {
+          "line": 119
+        },
         "onCloudChange": {
-          "line": 112
+          "line": 129
         },
         "currentKey": {
-          "line": 135,
+          "line": 161,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 142,
+          "line": 168,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 149,
+          "line": 175,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 158
+          "line": 184
         },
         "refresh": {
-          "line": 168,
+          "line": 194,
           "purpose": "Refresh re-reads the board, and the open brief with it."
         },
         "load": {
-          "line": 175
+          "line": 201
         },
         "setRefreshing": {
-          "line": 215,
+          "line": 242,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 221,
+          "line": 248,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 230,
+          "line": 257,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 244,
+          "line": 271,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 251
+          "line": 278
         },
         "renderCards": {
-          "line": 283,
+          "line": 310,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 290,
+          "line": 317,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 311,
+          "line": 338,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 321
+          "line": 348
         },
         "renderMessage": {
-          "line": 326,
+          "line": 353,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 331,
+          "line": 358,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 339
+          "line": 366
         },
         "openDetail": {
-          "line": 346,
+          "line": 373,
           "params": [
             "number"
           ]
         },
         "closeDetail": {
-          "line": 356
+          "line": 383
         },
         "loadDetail": {
-          "line": 364
+          "line": 391
         },
         "onDetailClick": {
-          "line": 398,
+          "line": 425,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 418,
+          "line": 445,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 422
+          "line": 449
         },
         "tabCount": {
-          "line": 449,
+          "line": 476,
           "params": [
             "key",
             "brief",
@@ -6614,7 +6617,7 @@
           ]
         },
         "renderMeta": {
-          "line": 457,
+          "line": 484,
           "params": [
             "brief",
             "events",
@@ -6622,7 +6625,7 @@
           ]
         },
         "renderTab": {
-          "line": 477,
+          "line": 504,
           "params": [
             "tab",
             "brief",
