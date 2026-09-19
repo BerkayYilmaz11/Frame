@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-18",
+  "lastUpdated": "2026-09-19",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -467,6 +467,228 @@
         ]
       }
     },
+    "main/cloud/cloudBriefs": {
+      "file": "src/main/cloud/cloudBriefs.js",
+      "description": "cloudBriefs — the pure core of reading Frame Cloud briefs.",
+      "exports": [
+        "normalizeBrief",
+        "normalizeBriefDetail",
+        "normalizeEvent",
+        "normalizeMilestone",
+        "listBriefs",
+        "listMilestones",
+        "getBrief",
+        "briefEvents",
+        "buildBriefWebUrl"
+      ],
+      "depends": [
+        "deviceFlow",
+        "cloudProjects"
+      ],
+      "functions": {
+        "str": {
+          "line": 26,
+          "params": [
+            "value"
+          ]
+        },
+        "strOrNull": {
+          "line": 31,
+          "params": [
+            "value"
+          ],
+          "purpose": "A string, or null when absent or empty."
+        },
+        "oneOf": {
+          "line": 35,
+          "params": [
+            "set",
+            "value",
+            "fallback"
+          ]
+        },
+        "arr": {
+          "line": 39,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 43,
+          "params": [
+            "value"
+          ]
+        },
+        "normalizeBrief": {
+          "line": 50,
+          "params": [
+            "raw"
+          ],
+          "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
+        },
+        "normalizePart": {
+          "line": 73,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeAttachment": {
+          "line": 85,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeComment": {
+          "line": 90,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeBriefDetail": {
+          "line": 96,
+          "params": [
+            "raw"
+          ],
+          "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
+        },
+        "normalizeEvent": {
+          "line": 106,
+          "params": [
+            "raw"
+          ]
+        },
+        "normalizeMilestone": {
+          "line": 111,
+          "params": [
+            "raw"
+          ]
+        },
+        "listBriefs": {
+          "line": 119,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug",
+            "includeClosed }"
+          ],
+          "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
+        },
+        "listMilestones": {
+          "line": 127,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug }"
+          ],
+          "purpose": "`milestone.list` → `[{ id, name, status }]`."
+        },
+        "getBrief": {
+          "line": 133,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "projectSlug",
+            "number }"
+          ],
+          "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
+        },
+        "briefEvents": {
+          "line": 144,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id }"
+          ],
+          "purpose": "`brief.events` → the brief's history, oldest first."
+        },
+        "buildBriefWebUrl": {
+          "line": 155,
+          "params": [
+            "{ apiUrl",
+            "webOrigin",
+            "workspaceSlug",
+            "projectSlug",
+            "number } = {}"
+          ],
+          "purpose": "`{project url}/briefs/{number}` (the web's full brief page), or the project"
+        }
+      }
+    },
+    "main/cloud/cloudBriefsService": {
+      "file": "src/main/cloud/cloudBriefsService.js",
+      "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs.",
+      "exports": [
+        "setupIPC",
+        "list",
+        "get",
+        "openOnWeb"
+      ],
+      "depends": [
+        "../shared/ipcChannels",
+        "cloudSession",
+        "cloudProjectsService",
+        "cloudBriefs"
+      ],
+      "functions": {
+        "meId": {
+          "line": 23,
+          "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
+        },
+        "webUrl": {
+          "line": 28,
+          "params": [
+            "project",
+            "number"
+          ]
+        },
+        "list": {
+          "line": 41,
+          "params": [
+            "folderPath",
+            "{ includeClosed } = {}"
+          ],
+          "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
+        },
+        "get": {
+          "line": 62,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
+        },
+        "openOnWeb": {
+          "line": 81,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
+        },
+        "setupIPC": {
+          "line": 90,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEFS_LIST",
+          "CLOUD_BRIEF_GET",
+          "CLOUD_BRIEFS_OPEN_ON_WEB"
+        ],
+        "emits": []
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
@@ -685,7 +907,9 @@
         "init",
         "setupIPC",
         "refresh",
-        "publicState"
+        "publicState",
+        "call",
+        "connectedProject"
       ],
       "depends": [
         "fs",
@@ -827,24 +1051,31 @@
           ],
           "purpose": "The renderer sends a project id; the URL is built and opened here."
         },
+        "connectedProject": {
+          "line": 470,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The cloud project a known folder is connected to, from this service's own"
+        },
         "openWorkspaceOnWeb": {
-          "line": 465
+          "line": 478
         },
         "onSessionChange": {
-          "line": 480,
+          "line": 493,
           "params": [
             "{ state",
             "userStarted }"
           ]
         },
         "init": {
-          "line": 518,
+          "line": 531,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 527,
+          "line": 540,
           "params": [
             "ipcMain"
           ]
@@ -3138,30 +3369,31 @@
         "orchestrationManager",
         "cloud/cloudSession",
         "cloud/cloudProjectsService",
+        "cloud/cloudBriefsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 55,
+          "line": 56,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 73,
+          "line": 74,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 180
+          "line": 181
         },
         "setupAllIPC": {
-          "line": 210,
+          "line": 211,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 292,
+          "line": 295,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 338,
+          "line": 341,
           "params": [
             "window"
           ],
@@ -6113,6 +6345,292 @@
           "line": 98,
           "params": [
             "query"
+          ]
+        }
+      }
+    },
+    "renderer/cloudBriefsCopy": {
+      "file": "src/renderer/cloudBriefsCopy.js",
+      "description": "cloudBriefsCopy — the words the cloud Briefs view says.",
+      "exports": [
+        "COLUMNS",
+        "groupByColumn",
+        "KIND_COPY",
+        "statusLabel",
+        "priorityLabel",
+        "endingFact",
+        "endingLine",
+        "actorLabel",
+        "formatDate",
+        "eventSentence",
+        "reasonMessage"
+      ],
+      "depends": [],
+      "functions": {
+        "groupByColumn": {
+          "line": 23,
+          "params": [
+            "briefs"
+          ],
+          "purpose": "A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog."
+        },
+        "statusLabel": {
+          "line": 49,
+          "params": [
+            "status"
+          ]
+        },
+        "isPriority": {
+          "line": 55,
+          "params": [
+            "value"
+          ]
+        },
+        "priorityLabel": {
+          "line": 60,
+          "params": [
+            "priority"
+          ],
+          "purpose": "'High' / 'Medium' / 'Low', or '' for anything else."
+        },
+        "endingFact": {
+          "line": 65,
+          "params": [
+            "brief"
+          ],
+          "purpose": "How a closed brief ended — `{ label, reason, at }` — or null for an open one. Close wins over drop over decision."
+        },
+        "endingLine": {
+          "line": 74,
+          "params": [
+            "brief"
+          ],
+          "purpose": "The ending as one line: \"Closed: reason\", \"Dropped\", \"Recorded as decision\"; '' for an open brief."
+        },
+        "actorLabel": {
+          "line": 81,
+          "params": [
+            "id",
+            "meId"
+          ],
+          "purpose": "\"You\" for the caller, \"A workspace member\" for anyone else: there is no member list."
+        },
+        "formatDate": {
+          "line": 88,
+          "params": [
+            "iso"
+          ],
+          "purpose": "An ISO timestamp as \"18 Sept 2026\" in the viewer's time zone; '' when missing or unreadable."
+        },
+        "text": {
+          "line": 94,
+          "params": [
+            "value"
+          ]
+        },
+        "joinList": {
+          "line": 99,
+          "params": [
+            "items"
+          ],
+          "purpose": "\"a\", \"a and b\", \"a, b and c\"."
+        },
+        "eventAction": {
+          "line": 105,
+          "params": [
+            "event",
+            "meId"
+          ],
+          "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
+        },
+        "eventSentence": {
+          "line": 177,
+          "params": [
+            "event",
+            "meId"
+          ],
+          "purpose": "One history line: who did what, and the day it happened. → `{ sentence, date }`."
+        },
+        "reasonMessage": {
+          "line": 194,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The panel's sentence for a failed read's `reason`."
+        }
+      }
+    },
+    "renderer/cloudBriefsPanel": {
+      "file": "src/renderer/cloudBriefsPanel.js",
+      "description": "Cloud Briefs Panel",
+      "exports": [
+        "init",
+        "show",
+        "hide",
+        "isVisible",
+        "isAvailable"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "cloudProjectMark",
+        "htmlUtils",
+        "cloudBriefsCopy",
+        "projectListUI"
+      ],
+      "functions": {
+        "init": {
+          "line": 59,
+          "params": [
+            "cloudHub"
+          ]
+        },
+        "onWindowFocus": {
+          "line": 119
+        },
+        "onCloudChange": {
+          "line": 129
+        },
+        "currentKey": {
+          "line": 161,
+          "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
+        },
+        "isAvailable": {
+          "line": 168,
+          "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
+        },
+        "show": {
+          "line": 175,
+          "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
+        },
+        "hide": {
+          "line": 184
+        },
+        "refresh": {
+          "line": 194,
+          "purpose": "Refresh re-reads the board, and the open brief with it."
+        },
+        "load": {
+          "line": 201
+        },
+        "setRefreshing": {
+          "line": 242,
+          "params": [
+            "on"
+          ]
+        },
+        "openOnWeb": {
+          "line": 248,
+          "params": [
+            "number"
+          ]
+        },
+        "onContentClick": {
+          "line": 257,
+          "params": [
+            "event"
+          ]
+        },
+        "setHeader": {
+          "line": 271,
+          "params": [
+            "{ count",
+            "canOpenWeb }"
+          ]
+        },
+        "renderBoard": {
+          "line": 278
+        },
+        "renderCards": {
+          "line": 310,
+          "params": [
+            "briefs",
+            "milestoneNames"
+          ]
+        },
+        "renderCard": {
+          "line": 317,
+          "params": [
+            "brief",
+            "milestoneName"
+          ]
+        },
+        "renderEmpty": {
+          "line": 338,
+          "params": [
+            "canOpenWeb"
+          ]
+        },
+        "renderLoading": {
+          "line": 348
+        },
+        "renderMessage": {
+          "line": 353,
+          "params": [
+            "text"
+          ]
+        },
+        "renderError": {
+          "line": 358,
+          "params": [
+            "reason"
+          ]
+        },
+        "isVisible": {
+          "line": 366
+        },
+        "openDetail": {
+          "line": 373,
+          "params": [
+            "number"
+          ]
+        },
+        "closeDetail": {
+          "line": 383
+        },
+        "loadDetail": {
+          "line": 391
+        },
+        "onDetailClick": {
+          "line": 425,
+          "params": [
+            "event"
+          ]
+        },
+        "isWebUrl": {
+          "line": 445,
+          "params": [
+            "url"
+          ],
+          "purpose": "Only http(s) links leave Frame, and only through the system browser."
+        },
+        "renderDetail": {
+          "line": 449
+        },
+        "tabCount": {
+          "line": 476,
+          "params": [
+            "key",
+            "brief",
+            "events"
+          ]
+        },
+        "renderMeta": {
+          "line": 484,
+          "params": [
+            "brief",
+            "events",
+            "meId"
+          ]
+        },
+        "renderTab": {
+          "line": 504,
+          "params": [
+            "tab",
+            "brief",
+            "events",
+            "meId"
           ]
         }
       }
@@ -9570,6 +10088,7 @@
         "cloudHub",
         "cloudHubTabs",
         "cloudProjectMark",
+        "cloudBriefsPanel",
         "feedbackPanel",
         "telemetryNotice",
         "healthNotice",
@@ -9588,34 +10107,34 @@
       ],
       "functions": {
         "init": {
-          "line": 67,
+          "line": 68,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 323,
+          "line": 325,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 458,
+          "line": 460,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 568,
+          "line": 570,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 594,
+          "line": 596,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 620,
+          "line": 622,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1069,
+          "line": 1071,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         }
       },
@@ -9928,6 +10447,7 @@
         "notify",
         "terminalChipNotice",
         "sessionsPanel",
+        "cloudBriefsPanel",
         "specsDashboard",
         "tasksDashboard",
         "projectListUI"
@@ -10542,6 +11062,7 @@
         "terminal",
         "laneStatus",
         "orchestrator",
+        "cloudBriefsPanel",
         "commandRegistry",
         "projectStatusBadges"
       ],
@@ -10666,32 +11187,32 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 321
+          "line": 330
         },
         "saveCollapsedGroups": {
-          "line": 330,
+          "line": 339,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 338
+          "line": 347
         },
         "revealNavItem": {
-          "line": 407,
+          "line": 416,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 420
+          "line": 429
         },
         "refreshWorkspaceNav": {
-          "line": 432
+          "line": 441
         },
         "updateWorkspaceNav": {
-          "line": 508,
+          "line": 526,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -16030,6 +16551,21 @@
         "name": "cloud-projects-state",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEFS_LIST": {
+        "name": "cloud-briefs-list",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_GET": {
+        "name": "cloud-brief-get",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEFS_OPEN_ON_WEB": {
+        "name": "cloud-briefs-open-on-web",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -16093,6 +16629,28 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      }
+    ],
+    "briefs": [
+      {
+        "module": "main/cloud/cloudBriefs",
+        "file": "src/main/cloud/cloudBriefs.js",
+        "description": "cloudBriefs — the pure core of reading Frame Cloud briefs."
+      },
+      {
+        "module": "main/cloud/cloudBriefsService",
+        "file": "src/main/cloud/cloudBriefsService.js",
+        "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs."
+      },
+      {
+        "module": "renderer/cloudBriefsCopy",
+        "file": "src/renderer/cloudBriefsCopy.js",
+        "description": "cloudBriefsCopy — the words the cloud Briefs view says."
+      },
+      {
+        "module": "renderer/cloudBriefsPanel",
+        "file": "src/renderer/cloudBriefsPanel.js",
+        "description": "Cloud Briefs Panel"
       }
     ],
     "claude-sessions": [
@@ -16565,6 +17123,11 @@
         "module": "renderer/activityPanel",
         "file": "src/renderer/activityPanel.js",
         "description": "Activity Panel"
+      },
+      {
+        "module": "renderer/cloudBriefsPanel",
+        "file": "src/renderer/cloudBriefsPanel.js",
+        "description": "Cloud Briefs Panel"
       },
       {
         "module": "renderer/feedbackPanel",

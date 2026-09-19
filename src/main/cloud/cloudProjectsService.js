@@ -462,6 +462,19 @@ function openOnWeb(projectId) {
   return true;
 }
 
+/**
+ * The cloud project a known folder is connected to, from this service's own
+ * state — the same match the renderer's Connected mark draws from.
+ * → `{ id, slug, name }`, or null when signed out, unknown or not connected.
+ */
+function connectedProject(folderPath) {
+  if (!signedIn || !cloudSession.getAuth() || typeof folderPath !== 'string') return null;
+  const folder = findFolder(folderPath);
+  if (!folder) return null;
+  const row = core.matchFolders(projects, [folder]).folderRows[0];
+  return row && row.connected ? row.project : null;
+}
+
 function openWorkspaceOnWeb() {
   const auth = cloudSession.getAuth();
   if (!auth) return false;
@@ -547,4 +560,6 @@ module.exports = {
   setupIPC,
   refresh,
   publicState,
+  call,
+  connectedProject,
 };

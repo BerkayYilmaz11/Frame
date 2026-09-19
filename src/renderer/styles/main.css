@@ -51,6 +51,9 @@
 /* 11a. Frame Cloud modal (a wide settings overlay) */
 @import 'components/cloud-hub.css';
 
+/* 11b. Frame Cloud briefs, read-only (the Briefs view under Sessions) */
+@import 'components/cloud-briefs.css';
+
 /* 12. Telemetry Notice (one-time disclosure banner) */
 @import 'components/telemetry-notice.css';
 

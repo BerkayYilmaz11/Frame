@@ -43,6 +43,7 @@ const specManager = require('./specManager');
 const orchestrationManager = require('./orchestrationManager');
 const cloudSession = require('./cloud/cloudSession');
 const cloudProjectsService = require('./cloud/cloudProjectsService');
+const cloudBriefsService = require('./cloud/cloudBriefsService');
 
 let mainWindow = null;
 let quitConfirmed = false;
@@ -231,9 +232,11 @@ function setupAllIPC() {
   ipcMain.handle(IPC.GET_USER_SETTING, (event, key) => userSettings.get(key));
   ipcMain.handle(IPC.SET_USER_SETTING, (event, key, value) => userSettings.set(key, value));
 
-  // Frame Cloud: sign-in, then the cloud workspace's projects (the Frame Cloud modal)
+  // Frame Cloud: sign-in, then the cloud workspace's projects (the Frame Cloud modal),
+  // then the connected project's briefs (read-only)
   cloudSession.setupIPC(ipcMain);
   cloudProjectsService.setupIPC(ipcMain);
+  cloudBriefsService.setupIPC(ipcMain);
 
   // Git status (file tree decoration polling)
   gitStatusManager.setupIPC(ipcMain);
