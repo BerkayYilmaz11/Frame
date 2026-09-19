@@ -6623,6 +6623,133 @@
         }
       }
     },
+    "renderer/cloudBriefsForm": {
+      "file": "src/renderer/cloudBriefsForm.js",
+      "description": "Cloud Briefs Form",
+      "exports": [
+        "open",
+        "close",
+        "isPending"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "htmlUtils",
+        "cloudBriefsCopy",
+        "cloudBriefsDraft"
+      ],
+      "functions": {
+        "ref": {
+          "line": 36,
+          "params": [
+            "name"
+          ],
+          "purpose": "The form's elements by `data-ref`."
+        },
+        "open": {
+          "line": 41,
+          "params": [
+            "container",
+            "options = {}"
+          ],
+          "purpose": "Draw a fresh form into `container` and focus the title. `onCreated({ number, attachmentError })` runs after a create."
+        },
+        "close": {
+          "line": 62,
+          "purpose": "Drop the form. A create still in flight is forgotten, not cancelled."
+        },
+        "isPending": {
+          "line": 72,
+          "purpose": "True while a create is running: the drawer keeps the form open."
+        },
+        "renderForm": {
+          "line": 78,
+          "params": [
+            "id"
+          ]
+        },
+        "renderLinkRow": {
+          "line": 137,
+          "params": [
+            "link"
+          ]
+        },
+        "renderLinks": {
+          "line": 148,
+          "purpose": "The link rows, redrawn only when a row is added or removed."
+        },
+        "renderKind": {
+          "line": 156,
+          "purpose": "Kind-dependent parts: the explanation, the priority field, the submit label."
+        },
+        "renderSubmit": {
+          "line": 164
+        },
+        "renderErrors": {
+          "line": 173,
+          "purpose": "Field messages, shown once a submit was tried and kept current as the fields change."
+        },
+        "renderError": {
+          "line": 189
+        },
+        "setLinkInvalid": {
+          "line": 196,
+          "params": [
+            "invalid"
+          ]
+        },
+        "syncAddButton": {
+          "line": 203
+        },
+        "addLink": {
+          "line": 212,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Add `raw` as a row. A non-http(s) text is refused, said so, and left in the field."
+        },
+        "onInput": {
+          "line": 230,
+          "params": [
+            "event"
+          ]
+        },
+        "onChange": {
+          "line": 248,
+          "params": [
+            "event"
+          ]
+        },
+        "onClick": {
+          "line": 258,
+          "params": [
+            "event"
+          ]
+        },
+        "onKeydown": {
+          "line": 275,
+          "params": [
+            "event"
+          ]
+        },
+        "onPaste": {
+          "line": 283,
+          "params": [
+            "event"
+          ]
+        },
+        "onSubmit": {
+          "line": 296,
+          "params": [
+            "event"
+          ]
+        },
+        "submit": {
+          "line": 301
+        }
+      }
+    },
     "renderer/cloudBriefsPanel": {
       "file": "src/renderer/cloudBriefsPanel.js",
       "description": "Cloud Briefs Panel",
@@ -16819,6 +16946,11 @@
         "module": "renderer/cloudBriefsDraft",
         "file": "src/renderer/cloudBriefsDraft.js",
         "description": "cloudBriefsDraft — the New brief form's state, without the form."
+      },
+      {
+        "module": "renderer/cloudBriefsForm",
+        "file": "src/renderer/cloudBriefsForm.js",
+        "description": "Cloud Briefs Form"
       },
       {
         "module": "renderer/cloudBriefsPanel",

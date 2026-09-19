@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:50:28.848Z",
+  "lastUpdated": "2026-09-19T16:53:02.489Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8828,13 +8828,13 @@
       "title": "Add `src/renderer/cloudBriefsForm.js` (`open(container, { onCreated })`, `close`, `isPending`) to render the form: a Work / Proposal switch with the chosen kind's explanation, the title (focused on open, `maxlength` 200), the description (`maxlength` 10 000), and a priority field shown only for Work; a links field that adds a row on paste, Enter or Add, with an editable title and a remove button per row, and refuses and keeps a non-`http(s)` paste; inputs that stay keyboard-reachable; a submit that validates, invokes `CLOUD_BRIEF_CREATE` with the open folder's path, shows Creating…, and blocks a second submit; on failure, the fields stay and the error sentence shows (nothing for `unauthorized`)",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:53:02.489Z",
+      "completedAt": "2026-09-19T16:53:02.489Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T06",

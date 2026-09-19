@@ -32,3 +32,11 @@ _Captured: 2026-09-19 · 2 file change(s)_
 
 ---
 
+## T05 — Form module
+
+Added `src/renderer/cloudBriefsForm.js` (`open`, `close`, `isPending`). It draws the form once per opening, patches it in place, and wires events on the form element so reopening never stacks listeners. The priority field is a native `<select>`, not the web's custom Select; no plain-key global shortcut exists that could steal its keys. A non-`http(s)` paste into an empty links field is taken over, so the text stays and the invalid sentence shows. The create result is dropped when the form was closed while pending (numbered openings).
+
+_Captured: 2026-09-19 · 1 file change(s)_
+
+---
+
