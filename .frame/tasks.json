@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:40:35.185Z",
+  "lastUpdated": "2026-09-19T16:47:00.461Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8776,13 +8776,13 @@
       "title": "Add create to the pure core in `src/main/cloud/cloudBriefs.js`: `LIMITS` (title 200, body 10 000, attachment title 200), `buildCreateInput` (trim, `source: 'desk'`, priority only for Work defaulting to medium, empty body left out, `badRequest` with `field`), `normalizeLinks` (`http(s)` only, trimmed 1–200 titles), `createBrief` (POST `brief.create`), `addAttachment` (POST `brief.addAttachment`), and `createWithLinks(call, { input, links })` (no link after a failed create, links in order, stop at the first failure → `{ ok, number, attachmentError }`). Update the header comment from read-only, and cover all of it in `test/cloudBriefs.test.js`",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:47:00.461Z",
+      "completedAt": "2026-09-19T16:47:00.461Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T02",

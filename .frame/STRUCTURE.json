@@ -469,8 +469,9 @@
     },
     "main/cloud/cloudBriefs": {
       "file": "src/main/cloud/cloudBriefs.js",
-      "description": "cloudBriefs — the pure core of reading Frame Cloud briefs.",
+      "description": "cloudBriefs — the pure core of reading and creating Frame Cloud briefs.",
       "exports": [
+        "LIMITS",
         "normalizeBrief",
         "normalizeBriefDetail",
         "normalizeEvent",
@@ -479,6 +480,11 @@
         "listMilestones",
         "getBrief",
         "briefEvents",
+        "buildCreateInput",
+        "normalizeLinks",
+        "createBrief",
+        "addAttachment",
+        "createWithLinks",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -487,20 +493,20 @@
       ],
       "functions": {
         "str": {
-          "line": 26,
+          "line": 33,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 31,
+          "line": 38,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 35,
+          "line": 42,
           "params": [
             "set",
             "value",
@@ -508,63 +514,63 @@
           ]
         },
         "arr": {
-          "line": 39,
+          "line": 46,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 43,
+          "line": 50,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 50,
+          "line": 57,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 73,
+          "line": 80,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 85,
+          "line": 92,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 90,
+          "line": 97,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 96,
+          "line": 103,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 106,
+          "line": 113,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 111,
+          "line": 118,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 119,
+          "line": 126,
           "params": [
             "{ api",
             "token",
@@ -576,7 +582,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 127,
+          "line": 134,
           "params": [
             "{ api",
             "token",
@@ -587,7 +593,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 133,
+          "line": 140,
           "params": [
             "{ api",
             "token",
@@ -599,7 +605,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 144,
+          "line": 151,
           "params": [
             "{ api",
             "token",
@@ -609,8 +615,67 @@
           ],
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
+        "badRequest": {
+          "line": 158,
+          "params": [
+            "field"
+          ]
+        },
+        "buildCreateInput": {
+          "line": 167,
+          "params": [
+            "request"
+          ],
+          "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
+        },
+        "isHttpUrl": {
+          "line": 184,
+          "params": [
+            "value"
+          ]
+        },
+        "normalizeLinks": {
+          "line": 197,
+          "params": [
+            "links"
+          ],
+          "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
+        },
+        "createBrief": {
+          "line": 212,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "input }"
+          ],
+          "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
+        },
+        "addAttachment": {
+          "line": 218,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "title",
+            "url }"
+          ],
+          "purpose": "`brief.addAttachment` → the attachment, normalized."
+        },
+        "createWithLinks": {
+          "line": 234,
+          "params": [
+            "call",
+            "{ input",
+            "links = [] }"
+          ],
+          "purpose": "Create a brief, then attach its links one by one. `call` is"
+        },
         "buildBriefWebUrl": {
-          "line": 155,
+          "line": 252,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -16635,7 +16700,7 @@
       {
         "module": "main/cloud/cloudBriefs",
         "file": "src/main/cloud/cloudBriefs.js",
-        "description": "cloudBriefs — the pure core of reading Frame Cloud briefs."
+        "description": "cloudBriefs — the pure core of reading and creating Frame Cloud briefs."
       },
       {
         "module": "main/cloud/cloudBriefsService",

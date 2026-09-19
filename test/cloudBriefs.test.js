@@ -179,3 +179,145 @@ test('buildBriefWebUrl keeps the project URL guards', () => {
   assert.equal(core.buildBriefWebUrl({ ...WEB, number: 1, webOrigin: 'javascript:alert(1)' }), null);
   assert.equal(core.buildBriefWebUrl({ ...WEB, number: 1, projectSlug: '../x' }), null);
 });
+
+// ─── Creating ─────────────────────────────────────────────────
+
+test('buildCreateInput shapes work with a trimmed title, desk source and medium priority', () => {
+  const r = core.buildCreateInput({ kind: 'work', title: '  Ship it  ', body: '  Why  ' });
+  assert.deepEqual(r, { ok: true, input: { kind: 'work', title: 'Ship it', source: 'desk', body: 'Why', priority: 'medium' } });
+  assert.equal(core.buildCreateInput({ kind: 'work', title: 'x', priority: 'high' }).input.priority, 'high');
+});
+
+test('buildCreateInput sends no priority for a proposal, even when given one', () => {
+  const r = core.buildCreateInput({ kind: 'proposal', title: 'Idea', priority: 'high' });
+  assert.deepEqual(r.input, { kind: 'proposal', title: 'Idea', source: 'desk' });
+});
+
+test('buildCreateInput leaves out an empty or whitespace body', () => {
+  assert.equal('body' in core.buildCreateInput({ kind: 'work', title: 'x', body: '   ' }).input, false);
+  assert.equal('body' in core.buildCreateInput({ kind: 'work', title: 'x' }).input, false);
+});
+
+test('buildCreateInput keeps HTML in the body as-is', () => {
+  const body = '<script>alert(1)</script>';
+  assert.equal(core.buildCreateInput({ kind: 'work', title: 'x', body }).input.body, body);
+});
+
+test('buildCreateInput refuses bad fields with the field named', () => {
+  const cases = [
+    [{ kind: 'epic', title: 'x' }, 'kind'],
+    [{ kind: 'work', title: '   ' }, 'title'],
+    [{ kind: 'work' }, 'title'],
+    [{ kind: 'work', title: 'x'.repeat(201) }, 'title'],
+    [{ kind: 'work', title: 'x', body: 'y'.repeat(10001) }, 'body'],
+    [{ kind: 'work', title: 'x', priority: 'urgent' }, 'priority'],
+  ];
+  for (const [request, field] of cases) {
+    assert.deepEqual(core.buildCreateInput(request), { ok: false, reason: 'badRequest', field }, field);
+  }
+  assert.equal(core.buildCreateInput(null).ok, false);
+  assert.equal(core.buildCreateInput({ kind: 'work', title: 'x'.repeat(200) }).ok, true);
+  assert.equal(core.buildCreateInput({ kind: 'work', title: 'x', body: 'y'.repeat(10000) }).ok, true);
+});
+
+test('normalizeLinks keeps http(s) links in order with trimmed titles', () => {
+  const r = core.normalizeLinks([
+    { title: ' Chat ', url: 'https://claude.ai/chat/1' },
+    { title: 'Doc', url: 'http://example.com/a', extra: true },
+  ]);
+  assert.deepEqual(r, { ok: true, links: [{ title: 'Chat', url: 'https://claude.ai/chat/1' }, { title: 'Doc', url: 'http://example.com/a' }] });
+  assert.deepEqual(core.normalizeLinks(undefined), { ok: true, links: [] });
+});
+
+test('normalizeLinks refuses the whole list over one bad link', () => {
+  const bad = [
+    [{ title: 'x', url: 'javascript:alert(1)' }],
+    [{ title: 'x', url: 'ftp://example.com' }],
+    [{ title: 'x', url: 'not a url' }],
+    [{ title: '   ', url: 'https://example.com' }],
+    [{ title: 'x'.repeat(201), url: 'https://example.com' }],
+    'https://example.com',
+  ];
+  for (const links of bad) {
+    assert.deepEqual(core.normalizeLinks(links), { ok: false, reason: 'badRequest', field: 'links' });
+  }
+});
+
+test('createBrief POSTs brief.create with the input and normalizes the answer', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.create': ok(BRIEF) });
+  const input = { projectSlug: 'my-app', kind: 'work', title: 'Ship it', source: 'desk', priority: 'medium' };
+  const brief = await core.createBrief({ ...ctx(fetchJson), input });
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, input);
+  assert.equal(brief.number, 3);
+  assert.equal(brief.id, 'b1');
+});
+
+test('addAttachment POSTs brief.addAttachment with id, title and url', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.addAttachment': ok({ id: 'a1', title: 'Chat', url: 'https://x.test' }) });
+  const a = await core.addAttachment({ ...ctx(fetchJson), id: 'b1', title: 'Chat', url: 'https://x.test' });
+  assert.equal(calls[0].method, 'POST');
+  assert.deepEqual(calls[0].body, { id: 'b1', title: 'Chat', url: 'https://x.test' });
+  assert.deepEqual(a, { id: 'a1', title: 'Chat', url: 'https://x.test' });
+});
+
+/** A `call()` stand-in: runs each fn against a fake fetch, failing where told. */
+function fakeCall({ createFails, failAttachmentAt } = {}) {
+  const sent = [];
+  let attachments = 0;
+  const fetchJson = async (url, opts) => {
+    const name = url.slice(`${API}/trpc/`.length);
+    sent.push({ name, body: opts.body });
+    if (name === 'brief.create') {
+      return createFails ? { status: 404, body: { error: { message: 'PROJECT_NOT_FOUND', data: { code: 'NOT_FOUND' } } } } : ok(BRIEF);
+    }
+    attachments += 1;
+    if (attachments === failAttachmentAt) return { status: 400, body: { error: { message: 'bad', data: { code: 'BAD_REQUEST' } } } };
+    return ok({ id: `a${attachments}`, title: opts.body.title, url: opts.body.url });
+  };
+  const call = async (fn) => {
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  return { call, sent };
+}
+
+const INPUT = { projectSlug: 'my-app', kind: 'work', title: 'Ship it', source: 'desk', priority: 'medium' };
+const LINKS = [
+  { title: 'One', url: 'https://one.test' },
+  { title: 'Two', url: 'https://two.test' },
+  { title: 'Three', url: 'https://three.test' },
+];
+
+test('createWithLinks creates, then attaches every link in order', async () => {
+  const { call, sent } = fakeCall();
+  const r = await core.createWithLinks(call, { input: INPUT, links: LINKS });
+  assert.deepEqual(r, { ok: true, number: 3, attachmentError: null });
+  assert.deepEqual(sent.map((s) => s.name), ['brief.create', 'brief.addAttachment', 'brief.addAttachment', 'brief.addAttachment']);
+  assert.deepEqual(sent.slice(1).map((s) => s.body), LINKS.map((l) => ({ id: 'b1', ...l })));
+});
+
+test('createWithLinks sends no link after a failed create', async () => {
+  const { call, sent } = fakeCall({ createFails: true });
+  const r = await core.createWithLinks(call, { input: INPUT, links: LINKS });
+  assert.deepEqual(r, { ok: false, reason: 'notFound' });
+  assert.deepEqual(sent.map((s) => s.name), ['brief.create']);
+});
+
+test('createWithLinks stops at the first failed link and keeps the number', async () => {
+  const { call, sent } = fakeCall({ failAttachmentAt: 2 });
+  const r = await core.createWithLinks(call, { input: INPUT, links: LINKS });
+  assert.deepEqual(r, { ok: true, number: 3, attachmentError: 'badRequest' });
+  assert.equal(sent.length, 3);
+});
+
+test('createWithLinks without links is one request and never returns the id', async () => {
+  const { call, sent } = fakeCall();
+  const r = await core.createWithLinks(call, { input: INPUT });
+  assert.deepEqual(r, { ok: true, number: 3, attachmentError: null });
+  assert.equal(sent.length, 1);
+});
