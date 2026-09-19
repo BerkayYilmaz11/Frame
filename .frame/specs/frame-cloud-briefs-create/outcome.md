@@ -40,3 +40,11 @@ _Captured: 2026-09-19 · 1 file change(s)_
 
 ---
 
+## T06 — Entry points and the drawer's form mode
+
+Added the `#cloud-briefs-new` header button in `index.html`, and New brief in the empty state, whose copy now reads "Nothing in this project is proposed or decided yet." In `src/renderer/cloudBriefsPanel.js`, added `drawerMode`, `openNewBrief()`, `closeDrawer()` (replacing `closeDetail()`), and `leaveDrawer()` for Back and Esc, which ignores them while a create runs. The drawer's Refresh hides in `new` mode, and `onDetailClick` ignores the form's clicks. `leaveDrawer()` was not named in the plan; it keeps the pending guard off the folder-change and `hide()` paths.
+
+_Captured: 2026-09-19 · 2 file change(s)_
+
+---
+

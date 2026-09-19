@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:53:02.489Z",
+  "lastUpdated": "2026-09-19T16:54:26.496Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8841,13 +8841,13 @@
       "title": "Add the New brief entry points and the drawer's form mode: a `#cloud-briefs-new` button in the Briefs header actions in `index.html`, and an updated panel comment; in `src/renderer/cloudBriefsPanel.js`: New brief and the new copy in the empty state; a drawer `mode` (`detail` / `new`), with `openNewBrief()` through `cloudBriefsForm.open`, which hides the drawer's Refresh; `closeDrawer()` replacing `closeDetail()`; Back and Esc ignored while `cloudBriefsForm.isPending()`; refresh, focus and cloud-change reloads leave the form alone, while a change of folder and `hide()` still close it",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:54:26.496Z",
+      "completedAt": "2026-09-19T16:54:26.496Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T07",
