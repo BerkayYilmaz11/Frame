@@ -1,5 +1,6 @@
 /**
- * cloudBriefsService — the Electron shell around reading Frame Cloud briefs.
+ * cloudBriefsService — the Electron shell around reading and creating Frame
+ * Cloud briefs.
  *
  * Holds no request or normalizing logic (that is cloudBriefs.js). The
  * renderer names a folder by path and nothing else: the connected project's
@@ -9,7 +10,8 @@
  *
  * Every request goes through cloudProjectsService's `call()`, so a 401 signs
  * out quietly and a forgotten device is registered again and retried once.
- * Read-only: nothing here calls a brief or milestone mutation.
+ * The one write is `create`: a new brief and its links. No other brief or
+ * milestone mutation is called from here.
  */
 
 const { IPC } = require('../../shared/ipcChannels');
@@ -77,6 +79,25 @@ async function get(folderPath, number) {
   };
 }
 
+/**
+ * Create a brief in the folder's project, then attach its links. The request
+ * is checked here again (the renderer is not trusted) and a bad field or link
+ * refuses it before anything is sent. The brief id never leaves main.
+ * → `{ ok, number, attachmentError }` or `{ ok: false, reason, field? }`.
+ */
+async function create(folderPath, request) {
+  const project = cloudProjectsService.connectedProject(folderPath);
+  if (!project) return NOT_CONNECTED;
+  const built = core.buildCreateInput(request);
+  if (!built.ok) return built;
+  const links = core.normalizeLinks(request && request.links);
+  if (!links.ok) return links;
+  const input = { projectSlug: project.slug, ...built.input };
+  const result = await core.createWithLinks(cloudProjectsService.call, { input, links: links.links });
+  if (!result.ok) return { ok: false, reason: result.reason };
+  return { ok: true, number: result.number, attachmentError: result.attachmentError };
+}
+
 /** The project on the web, or one brief when a number is given. The URL is built and opened here. */
 function openOnWeb(folderPath, number) {
   const project = cloudProjectsService.connectedProject(folderPath);
@@ -91,11 +112,13 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_BRIEFS_LIST, (event, folderPath, options) => list(folderPath, options || {}));
   ipcMain.handle(IPC.CLOUD_BRIEF_GET, (event, folderPath, number) => get(folderPath, number));
   ipcMain.handle(IPC.CLOUD_BRIEFS_OPEN_ON_WEB, (event, folderPath, number) => openOnWeb(folderPath, number));
+  ipcMain.handle(IPC.CLOUD_BRIEF_CREATE, (event, folderPath, request) => create(folderPath, request));
 }
 
 module.exports = {
   setupIPC,
   list,
   get,
+  create,
   openOnWeb,
 };

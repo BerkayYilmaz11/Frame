@@ -689,11 +689,12 @@
     },
     "main/cloud/cloudBriefsService": {
       "file": "src/main/cloud/cloudBriefsService.js",
-      "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs.",
+      "description": "cloudBriefsService — the Electron shell around reading and creating Frame",
       "exports": [
         "setupIPC",
         "list",
         "get",
+        "create",
         "openOnWeb"
       ],
       "depends": [
@@ -704,18 +705,18 @@
       ],
       "functions": {
         "meId": {
-          "line": 23,
+          "line": 25,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "webUrl": {
-          "line": 28,
+          "line": 30,
           "params": [
             "project",
             "number"
           ]
         },
         "list": {
-          "line": 41,
+          "line": 43,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -723,15 +724,23 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 62,
+          "line": 64,
           "params": [
             "folderPath",
             "number"
           ],
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
+        "create": {
+          "line": 88,
+          "params": [
+            "folderPath",
+            "request"
+          ],
+          "purpose": "Create a brief in the folder's project, then attach its links. The request"
+        },
         "openOnWeb": {
-          "line": 81,
+          "line": 102,
           "params": [
             "folderPath",
             "number"
@@ -739,7 +748,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 90,
+          "line": 111,
           "params": [
             "ipcMain"
           ]
@@ -749,7 +758,8 @@
         "listens": [
           "CLOUD_BRIEFS_LIST",
           "CLOUD_BRIEF_GET",
-          "CLOUD_BRIEFS_OPEN_ON_WEB"
+          "CLOUD_BRIEFS_OPEN_ON_WEB",
+          "CLOUD_BRIEF_CREATE"
         ],
         "emits": []
       }
@@ -16631,6 +16641,11 @@
         "name": "cloud-briefs-open-on-web",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_CREATE": {
+        "name": "cloud-brief-create",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -16705,7 +16720,7 @@
       {
         "module": "main/cloud/cloudBriefsService",
         "file": "src/main/cloud/cloudBriefsService.js",
-        "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs."
+        "description": "cloudBriefsService — the Electron shell around reading and creating Frame"
       },
       {
         "module": "renderer/cloudBriefsCopy",

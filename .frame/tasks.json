@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-19T16:47:00.461Z",
+  "lastUpdated": "2026-09-19T16:48:02.264Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8789,13 +8789,13 @@
       "title": "Add `CLOUD_BRIEF_CREATE` to `src/shared/ipcChannels.js`, and `create(folderPath, request)` with its `ipcMain.handle` in `src/main/cloud/cloudBriefsService.js`: return `notConnected` for an unconnected path and `badRequest` for a bad request or link, both before any server call; otherwise run `createWithLinks` with `cloudProjectsService.call` and return `{ ok, number, attachmentError }`, never a brief id. Update the header comment to name the one write",
       "description": "",
       "source": "spec:frame-cloud-briefs-create:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-briefs-create",
       "createdAt": "2026-09-19T16:40:35.184Z",
-      "updatedAt": "2026-09-19T16:40:35.184Z",
-      "completedAt": null
+      "updatedAt": "2026-09-19T16:48:02.264Z",
+      "completedAt": "2026-09-19T16:48:02.264Z"
     },
     {
       "id": "task-spec-frame-cloud-briefs-create-T03",

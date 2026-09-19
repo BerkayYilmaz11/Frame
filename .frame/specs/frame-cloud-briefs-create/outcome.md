@@ -8,3 +8,11 @@ _Captured: 2026-09-19 · 2 file change(s)_
 
 ---
 
+## T02 — Service and channel
+
+Added `CLOUD_BRIEF_CREATE` to `src/shared/ipcChannels.js`, and `create(folderPath, request)` with its handler to `src/main/cloud/cloudBriefsService.js`. An unconnected path returns `notConnected`, and a bad field or link returns `badRequest` with `field`, both before any request. Otherwise the service runs `createWithLinks` through `cloudProjectsService.call` and rebuilds the result without the brief id. The plan lists no service test; this was checked once with stubbed modules, not committed.
+
+_Captured: 2026-09-19 · 2 file change(s)_
+
+---
+
