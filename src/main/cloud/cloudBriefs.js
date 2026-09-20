@@ -1,9 +1,10 @@
 /**
- * cloudBriefs — the pure core of reading Frame Cloud briefs.
+ * cloudBriefs — the pure core of reading and creating Frame Cloud briefs.
  *
  * Reads a cloud project's briefs, one brief with its parts, attachments and
- * comments, its history, and the project's milestones. Read-only: Frame calls
- * no brief mutation, although the server would accept one from a desktop.
+ * comments, its history, and the project's milestones. The one write is
+ * creating a brief (`brief.create`, then `brief.addAttachment` per link);
+ * every other brief or milestone mutation stays on the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -22,6 +23,12 @@ const STATUSES = new Set(['backlog', 'active', 'done', 'closed']);
 const PART_SHAPES = new Set(['spec', 'task']);
 const PART_TYPES = new Set(['feature', 'fix', 'refactor', 'docs', 'test']);
 const MILESTONE_STATUSES = new Set(['planned', 'started', 'closed']);
+
+/** The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`, `BRIEF_ATTACHMENT_TITLE_MAX`). */
+const LIMITS = Object.freeze({ title: 200, body: 10000, attachmentTitle: 200 });
+
+/** Where Frame's New brief form sits among FrameCloud's brief sources: a person at a form. */
+const CREATE_SOURCE = 'desk';
 
 function str(value) {
   return typeof value === 'string' ? value : '';
@@ -146,6 +153,96 @@ async function briefEvents({ api, token, fetchJson, signal, id }) {
   return arr(data).map(normalizeEvent).filter((e) => e.id && e.event);
 }
 
+// ─── Creating ─────────────────────────────────────────────────
+
+function badRequest(field) {
+  return { ok: false, reason: 'badRequest', field };
+}
+
+/**
+ * The renderer's request → the `brief.create` input, minus `projectSlug`.
+ * Trims, sends priority only for work (medium unless given), leaves out an
+ * empty body. → `{ ok: true, input }` or `{ ok: false, reason: 'badRequest', field }`.
+ */
+function buildCreateInput(request) {
+  const r = obj(request);
+  if (!KINDS.has(r.kind)) return badRequest('kind');
+  const title = str(r.title).trim();
+  if (!title || title.length > LIMITS.title) return badRequest('title');
+  const body = str(r.body).trim();
+  if (body.length > LIMITS.body) return badRequest('body');
+  const input = { kind: r.kind, title, source: CREATE_SOURCE };
+  if (body) input.body = body;
+  if (r.kind === 'work') {
+    if (r.priority === undefined || r.priority === null || r.priority === '') input.priority = 'medium';
+    else if (PRIORITIES.has(r.priority)) input.priority = r.priority;
+    else return badRequest('priority');
+  }
+  return { ok: true, input };
+}
+
+function isHttpUrl(value) {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and
+ * trimmed titles of 1–200 characters; one bad link refuses them all.
+ */
+function normalizeLinks(links) {
+  if (links === undefined || links === null) return { ok: true, links: [] };
+  if (!Array.isArray(links)) return badRequest('links');
+  const out = [];
+  for (const raw of links) {
+    const l = obj(raw);
+    const title = str(l.title).trim();
+    const url = str(l.url).trim();
+    if (!title || title.length > LIMITS.attachmentTitle || !isHttpUrl(url)) return badRequest('links');
+    out.push({ title, url });
+  }
+  return { ok: true, links: out };
+}
+
+/** `brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`. */
+async function createBrief({ api, token, fetchJson, signal, input }) {
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.create', method: 'POST', input });
+  return normalizeBrief(data);
+}
+
+/** `brief.addAttachment` → the attachment, normalized. */
+async function addAttachment({ api, token, fetchJson, signal, id, title, url }) {
+  const data = await callTrpc({
+    api, token, fetchJson, signal,
+    name: 'brief.addAttachment',
+    method: 'POST',
+    input: { id, title, url },
+  });
+  return normalizeAttachment(data);
+}
+
+/**
+ * Create a brief, then attach its links one by one. `call` is
+ * cloudProjectsService's wrapper (`fn → { ok, value } | { ok: false, reason }`).
+ * A failed create sends no link; the first failed link stops the rest.
+ * → `{ ok: true, number, attachmentError: reason | null }` or `{ ok: false, reason }`.
+ */
+async function createWithLinks(call, { input, links = [] }) {
+  const created = await call((ctx) => createBrief({ ...ctx, input }));
+  if (!created.ok) return { ok: false, reason: created.reason };
+  const { id, number } = created.value;
+  if (!id || !number) return { ok: false, reason: 'other' };
+  for (const link of links) {
+    const attached = await call((ctx) => addAttachment({ ...ctx, id, title: link.title, url: link.url }));
+    if (!attached.ok) return { ok: true, number, attachmentError: attached.reason };
+  }
+  return { ok: true, number, attachmentError: null };
+}
+
 // ─── Web links ────────────────────────────────────────────────
 
 /**
@@ -160,6 +257,7 @@ function buildBriefWebUrl({ apiUrl, webOrigin, workspaceSlug, projectSlug, numbe
 }
 
 module.exports = {
+  LIMITS,
   normalizeBrief,
   normalizeBriefDetail,
   normalizeEvent,
@@ -168,5 +266,10 @@ module.exports = {
   listMilestones,
   getBrief,
   briefEvents,
+  buildCreateInput,
+  normalizeLinks,
+  createBrief,
+  addAttachment,
+  createWithLinks,
   buildBriefWebUrl,
 };

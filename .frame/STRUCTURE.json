@@ -469,8 +469,9 @@
     },
     "main/cloud/cloudBriefs": {
       "file": "src/main/cloud/cloudBriefs.js",
-      "description": "cloudBriefs — the pure core of reading Frame Cloud briefs.",
+      "description": "cloudBriefs — the pure core of reading and creating Frame Cloud briefs.",
       "exports": [
+        "LIMITS",
         "normalizeBrief",
         "normalizeBriefDetail",
         "normalizeEvent",
@@ -479,6 +480,11 @@
         "listMilestones",
         "getBrief",
         "briefEvents",
+        "buildCreateInput",
+        "normalizeLinks",
+        "createBrief",
+        "addAttachment",
+        "createWithLinks",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -487,20 +493,20 @@
       ],
       "functions": {
         "str": {
-          "line": 26,
+          "line": 33,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 31,
+          "line": 38,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 35,
+          "line": 42,
           "params": [
             "set",
             "value",
@@ -508,63 +514,63 @@
           ]
         },
         "arr": {
-          "line": 39,
+          "line": 46,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 43,
+          "line": 50,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 50,
+          "line": 57,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 73,
+          "line": 80,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 85,
+          "line": 92,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 90,
+          "line": 97,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 96,
+          "line": 103,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 106,
+          "line": 113,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 111,
+          "line": 118,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 119,
+          "line": 126,
           "params": [
             "{ api",
             "token",
@@ -576,7 +582,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 127,
+          "line": 134,
           "params": [
             "{ api",
             "token",
@@ -587,7 +593,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 133,
+          "line": 140,
           "params": [
             "{ api",
             "token",
@@ -599,7 +605,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 144,
+          "line": 151,
           "params": [
             "{ api",
             "token",
@@ -609,8 +615,67 @@
           ],
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
+        "badRequest": {
+          "line": 158,
+          "params": [
+            "field"
+          ]
+        },
+        "buildCreateInput": {
+          "line": 167,
+          "params": [
+            "request"
+          ],
+          "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
+        },
+        "isHttpUrl": {
+          "line": 184,
+          "params": [
+            "value"
+          ]
+        },
+        "normalizeLinks": {
+          "line": 197,
+          "params": [
+            "links"
+          ],
+          "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
+        },
+        "createBrief": {
+          "line": 212,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "input }"
+          ],
+          "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
+        },
+        "addAttachment": {
+          "line": 218,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "title",
+            "url }"
+          ],
+          "purpose": "`brief.addAttachment` → the attachment, normalized."
+        },
+        "createWithLinks": {
+          "line": 234,
+          "params": [
+            "call",
+            "{ input",
+            "links = [] }"
+          ],
+          "purpose": "Create a brief, then attach its links one by one. `call` is"
+        },
         "buildBriefWebUrl": {
-          "line": 155,
+          "line": 252,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -624,11 +689,12 @@
     },
     "main/cloud/cloudBriefsService": {
       "file": "src/main/cloud/cloudBriefsService.js",
-      "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs.",
+      "description": "cloudBriefsService — the Electron shell around reading and creating Frame",
       "exports": [
         "setupIPC",
         "list",
         "get",
+        "create",
         "openOnWeb"
       ],
       "depends": [
@@ -639,18 +705,18 @@
       ],
       "functions": {
         "meId": {
-          "line": 23,
+          "line": 25,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "webUrl": {
-          "line": 28,
+          "line": 30,
           "params": [
             "project",
             "number"
           ]
         },
         "list": {
-          "line": 41,
+          "line": 43,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -658,15 +724,23 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 62,
+          "line": 64,
           "params": [
             "folderPath",
             "number"
           ],
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
+        "create": {
+          "line": 88,
+          "params": [
+            "folderPath",
+            "request"
+          ],
+          "purpose": "Create a brief in the folder's project, then attach its links. The request"
+        },
         "openOnWeb": {
-          "line": 81,
+          "line": 102,
           "params": [
             "folderPath",
             "number"
@@ -674,7 +748,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 90,
+          "line": 111,
           "params": [
             "ipcMain"
           ]
@@ -684,7 +758,8 @@
         "listens": [
           "CLOUD_BRIEFS_LIST",
           "CLOUD_BRIEF_GET",
-          "CLOUD_BRIEFS_OPEN_ON_WEB"
+          "CLOUD_BRIEFS_OPEN_ON_WEB",
+          "CLOUD_BRIEF_CREATE"
         ],
         "emits": []
       }
@@ -6363,7 +6438,17 @@
         "actorLabel",
         "formatDate",
         "eventSentence",
-        "reasonMessage"
+        "reasonMessage",
+        "NEW_BRIEF_TITLE",
+        "NEW_BRIEF_DESCRIPTION",
+        "AI_LINKS_TITLE",
+        "AI_LINKS_HINT",
+        "INVALID_LINK",
+        "TITLE_REQUIRED",
+        "LINK_TITLE_REQUIRED",
+        "submitLabel",
+        "createErrorMessage",
+        "attachmentNotice"
       ],
       "depends": [],
       "functions": {
@@ -6457,6 +6542,211 @@
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
+        },
+        "submitLabel": {
+          "line": 212,
+          "params": [
+            "kind",
+            "pending"
+          ],
+          "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
+        },
+        "createErrorMessage": {
+          "line": 231,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The form's sentence for a failed create's `reason`."
+        },
+        "attachmentNotice": {
+          "line": 236,
+          "params": [
+            "number",
+            "reason"
+          ],
+          "purpose": "The board's notice when a brief was created but a link was not attached."
+        }
+      }
+    },
+    "renderer/cloudBriefsDraft": {
+      "file": "src/renderer/cloudBriefsDraft.js",
+      "description": "cloudBriefsDraft — the New brief form's state, without the form.",
+      "exports": [
+        "TITLE_MAX",
+        "linkService",
+        "emptyDraft",
+        "addLink",
+        "validateDraft",
+        "toRequest"
+      ],
+      "depends": [],
+      "functions": {
+        "linkService": {
+          "line": 34,
+          "params": [
+            "url"
+          ],
+          "purpose": "The service behind `url` — `{ id, defaultTitle, host }` — or null when it is"
+        },
+        "emptyDraft": {
+          "line": 56,
+          "purpose": "A fresh form: Work, Medium, nothing typed. Every opening starts here."
+        },
+        "addLink": {
+          "line": 74,
+          "params": [
+            "draft",
+            "raw"
+          ],
+          "purpose": "The draft with `raw` added as a link row titled after its service, or null"
+        },
+        "titleOk": {
+          "line": 86,
+          "params": [
+            "value",
+            "max"
+          ]
+        },
+        "validateDraft": {
+          "line": 92,
+          "params": [
+            "draft"
+          ],
+          "purpose": "What stops a submit: `{ ok, titleError, untitledKeys }`."
+        },
+        "toRequest": {
+          "line": 99,
+          "params": [
+            "draft"
+          ],
+          "purpose": "The `CLOUD_BRIEF_CREATE` request: priority only for Work, links in the order shown."
+        }
+      }
+    },
+    "renderer/cloudBriefsForm": {
+      "file": "src/renderer/cloudBriefsForm.js",
+      "description": "Cloud Briefs Form",
+      "exports": [
+        "open",
+        "close",
+        "isPending"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "htmlUtils",
+        "cloudBriefsCopy",
+        "cloudBriefsDraft"
+      ],
+      "functions": {
+        "ref": {
+          "line": 36,
+          "params": [
+            "name"
+          ],
+          "purpose": "The form's elements by `data-ref`."
+        },
+        "open": {
+          "line": 41,
+          "params": [
+            "container",
+            "options = {}"
+          ],
+          "purpose": "Draw a fresh form into `container` and focus the title. `onCreated({ number, attachmentError })` runs after a create."
+        },
+        "close": {
+          "line": 62,
+          "purpose": "Drop the form. A create still in flight is forgotten, not cancelled."
+        },
+        "isPending": {
+          "line": 72,
+          "purpose": "True while a create is running: the drawer keeps the form open."
+        },
+        "renderForm": {
+          "line": 78,
+          "params": [
+            "id"
+          ]
+        },
+        "renderLinkRow": {
+          "line": 137,
+          "params": [
+            "link"
+          ]
+        },
+        "renderLinks": {
+          "line": 148,
+          "purpose": "The link rows, redrawn only when a row is added or removed."
+        },
+        "renderKind": {
+          "line": 156,
+          "purpose": "Kind-dependent parts: the explanation, the priority field, the submit label."
+        },
+        "renderSubmit": {
+          "line": 164
+        },
+        "renderErrors": {
+          "line": 173,
+          "purpose": "Field messages, shown once a submit was tried and kept current as the fields change."
+        },
+        "renderError": {
+          "line": 189
+        },
+        "setLinkInvalid": {
+          "line": 196,
+          "params": [
+            "invalid"
+          ]
+        },
+        "syncAddButton": {
+          "line": 203
+        },
+        "addLink": {
+          "line": 212,
+          "params": [
+            "raw"
+          ],
+          "purpose": "Add `raw` as a row. A non-http(s) text is refused, said so, and left in the field."
+        },
+        "onInput": {
+          "line": 230,
+          "params": [
+            "event"
+          ]
+        },
+        "onChange": {
+          "line": 248,
+          "params": [
+            "event"
+          ]
+        },
+        "onClick": {
+          "line": 258,
+          "params": [
+            "event"
+          ]
+        },
+        "onKeydown": {
+          "line": 275,
+          "params": [
+            "event"
+          ]
+        },
+        "onPaste": {
+          "line": 283,
+          "params": [
+            "event"
+          ]
+        },
+        "onSubmit": {
+          "line": 296,
+          "params": [
+            "event"
+          ]
+        },
+        "submit": {
+          "line": 301
         }
       }
     },
@@ -6477,139 +6767,167 @@
         "cloudProjectMark",
         "htmlUtils",
         "cloudBriefsCopy",
+        "cloudBriefsForm",
         "projectListUI"
       ],
       "functions": {
         "init": {
-          "line": 59,
+          "line": 71,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 119
+          "line": 133
         },
         "onCloudChange": {
-          "line": 129
+          "line": 143
         },
         "currentKey": {
-          "line": 161,
+          "line": 178,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 168,
+          "line": 185,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 175,
+          "line": 192,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 184
-        },
-        "refresh": {
-          "line": 194,
-          "purpose": "Refresh re-reads the board, and the open brief with it."
-        },
-        "load": {
           "line": 201
         },
+        "refresh": {
+          "line": 212,
+          "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
+        },
+        "load": {
+          "line": 219
+        },
         "setRefreshing": {
-          "line": 242,
+          "line": 260,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 248,
+          "line": 266,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 257,
+          "line": 275,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 271,
+          "line": 295,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 278
+          "line": 302
+        },
+        "renderNotice": {
+          "line": 334
         },
         "renderCards": {
-          "line": 310,
+          "line": 344,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 317,
+          "line": 351,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 338,
+          "line": 372,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 348
+          "line": 385
         },
         "renderMessage": {
-          "line": 353,
+          "line": 390,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 358,
+          "line": 395,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 366
+          "line": 403
+        },
+        "showDrawer": {
+          "line": 411,
+          "params": [
+            "mode"
+          ],
+          "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 373,
+          "line": 419,
           "params": [
             "number"
           ]
         },
-        "closeDetail": {
-          "line": 383
+        "openNewBrief": {
+          "line": 429,
+          "purpose": "The New brief form in the drawer, empty each time it opens."
+        },
+        "onBriefCreated": {
+          "line": 439,
+          "params": [
+            "{ number",
+            "attachmentError }"
+          ],
+          "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
+        },
+        "leaveDrawer": {
+          "line": 446,
+          "purpose": "Back and Esc: close the drawer, unless a create is still running."
+        },
+        "closeDrawer": {
+          "line": 452,
+          "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 391
+          "line": 463
         },
         "onDetailClick": {
-          "line": 425,
+          "line": 497,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 445,
+          "line": 518,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 449
+          "line": 522
         },
         "tabCount": {
-          "line": 476,
+          "line": 549,
           "params": [
             "key",
             "brief",
@@ -6617,7 +6935,7 @@
           ]
         },
         "renderMeta": {
-          "line": 484,
+          "line": 557,
           "params": [
             "brief",
             "events",
@@ -6625,7 +6943,7 @@
           ]
         },
         "renderTab": {
-          "line": 504,
+          "line": 577,
           "params": [
             "tab",
             "brief",
@@ -16566,6 +16884,11 @@
         "name": "cloud-briefs-open-on-web",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_CREATE": {
+        "name": "cloud-brief-create",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -16635,17 +16958,27 @@
       {
         "module": "main/cloud/cloudBriefs",
         "file": "src/main/cloud/cloudBriefs.js",
-        "description": "cloudBriefs — the pure core of reading Frame Cloud briefs."
+        "description": "cloudBriefs — the pure core of reading and creating Frame Cloud briefs."
       },
       {
         "module": "main/cloud/cloudBriefsService",
         "file": "src/main/cloud/cloudBriefsService.js",
-        "description": "cloudBriefsService — the Electron shell around reading Frame Cloud briefs."
+        "description": "cloudBriefsService — the Electron shell around reading and creating Frame"
       },
       {
         "module": "renderer/cloudBriefsCopy",
         "file": "src/renderer/cloudBriefsCopy.js",
         "description": "cloudBriefsCopy — the words the cloud Briefs view says."
+      },
+      {
+        "module": "renderer/cloudBriefsDraft",
+        "file": "src/renderer/cloudBriefsDraft.js",
+        "description": "cloudBriefsDraft — the New brief form's state, without the form."
+      },
+      {
+        "module": "renderer/cloudBriefsForm",
+        "file": "src/renderer/cloudBriefsForm.js",
+        "description": "Cloud Briefs Form"
       },
       {
         "module": "renderer/cloudBriefsPanel",

@@ -1,13 +1,16 @@
 /**
  * Cloud Briefs Panel
  *
- * The open folder's Frame Cloud briefs, read-only (frame-cloud-briefs-read-only
- * spec). Reached from the sidebar's Context → Briefs row, which exists only
- * while the open folder is connected to a cloud project; hosted in the center
- * by `multiTerminalUI` the way Sessions is (`PANEL_REGISTRY.cloudBriefs`).
+ * The open folder's Frame Cloud briefs (frame-cloud-briefs-read-only spec),
+ * and New brief (frame-cloud-briefs-create spec). Reached from the sidebar's
+ * Context → Briefs row, which exists only while the open folder is connected
+ * to a cloud project; hosted in the center by `multiTerminalUI` the way
+ * Sessions is (`PANEL_REGISTRY.cloudBriefs`).
  *
  * The renderer sends a folder path and nothing else — main resolves the
- * connected project and holds the token. Nothing here writes to the cloud.
+ * connected project and holds the token. Creating a brief is the one write,
+ * and its form lives in cloudBriefsForm.js; the drawer shows either a brief
+ * or that form.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -23,6 +26,7 @@ const state = require('./state');
 const cloudProjectMark = require('./cloudProjectMark');
 const { escapeHtml } = require('./htmlUtils');
 const copy = require('./cloudBriefsCopy');
+const cloudBriefsForm = require('./cloudBriefsForm');
 
 let hub = null;
 let panelElement = null;
@@ -31,8 +35,10 @@ let countElement = null;
 let showClosedInput = null;
 let refreshButton = null;
 let webButton = null;
+let newButton = null;
 let detailElement = null;
 let detailContentElement = null;
+let detailRefreshButton = null;
 let visible = false;
 
 // The board's last answer and the folder it belongs to. A refresh of the same
@@ -40,10 +46,16 @@ let visible = false;
 // starts from the loading state.
 let board = null; // { path, result }
 let showClosed = false;
+// A sentence above the columns after a create whose links did not all attach.
+// It stays until dismissed, a change of folder or hide().
+let notice = null;
 // Every load takes a number; an answer whose number is no longer the latest
 // (another project, a toggle, a second refresh) is dropped.
 let loadSeq = 0;
 
+// What the drawer shows: null (closed), 'detail' (a brief) or 'new' (the
+// New brief form).
+let drawerMode = null;
 // The brief open in the drawer: { number, tab, result } — result is null
 // while it loads. Its loads are numbered the same way as the board's.
 let detail = null;
@@ -69,6 +81,7 @@ function init(cloudHub) {
   showClosedInput = document.getElementById('cloud-briefs-show-closed');
   refreshButton = document.getElementById('cloud-briefs-refresh');
   webButton = document.getElementById('cloud-briefs-open-web');
+  newButton = document.getElementById('cloud-briefs-new');
   detailElement = document.getElementById('cloud-briefs-detail');
   detailContentElement = detailElement && detailElement.querySelector('.cloud-briefs-detail-content');
 
@@ -80,20 +93,21 @@ function init(cloudHub) {
   }
   if (refreshButton) refreshButton.addEventListener('click', refresh);
   if (webButton) webButton.addEventListener('click', () => openOnWeb());
+  if (newButton) newButton.addEventListener('click', openNewBrief);
   contentElement.addEventListener('click', onContentClick);
   if (detailElement) {
     const back = detailElement.querySelector('.specs-dashboard-detail-back');
-    if (back) back.addEventListener('click', closeDetail);
+    if (back) back.addEventListener('click', leaveDrawer);
     // The drawer covers the panel header, so it carries its own Refresh.
-    const detailRefresh = document.getElementById('cloud-briefs-detail-refresh');
-    if (detailRefresh) detailRefresh.addEventListener('click', refresh);
+    detailRefreshButton = document.getElementById('cloud-briefs-detail-refresh');
+    if (detailRefreshButton) detailRefreshButton.addEventListener('click', refresh);
   }
   if (detailContentElement) detailContentElement.addEventListener('click', onDetailClick);
   // Esc closes the drawer, and only the drawer: the board itself has no Esc.
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && visible && detail) {
+    if (e.key === 'Escape' && visible && drawerMode) {
       e.preventDefault();
-      closeDetail();
+      leaveDrawer();
     }
   });
 
@@ -151,8 +165,11 @@ function onCloudChange() {
     loadedKey = key;
     return;
   }
-  // Another folder: its board, not the last one's brief.
-  if (path !== loadedPath) closeDetail();
+  // Another folder: its board, not the last one's brief, form or notice.
+  if (path !== loadedPath) {
+    closeDrawer();
+    notice = null;
+  }
   load();
   if (detail) loadDetail();
 }
@@ -187,10 +204,11 @@ function hide() {
   visible = false;
   loadSeq += 1; // an answer still in flight lands nowhere
   loadedKey = null;
-  closeDetail();
+  notice = null;
+  closeDrawer();
 }
 
-/** Refresh re-reads the board, and the open brief with it. */
+/** Refresh re-reads the board, and the open brief with it. The New brief form is left as it is. */
 function refresh() {
   load();
   if (detail) loadDetail();
@@ -260,6 +278,12 @@ function onContentClick(event) {
   const action = actionEl.dataset.action;
   if (action === 'retry') load();
   else if (action === 'open-web') openOnWeb();
+  else if (action === 'new-brief') openNewBrief();
+  else if (action === 'dismiss-notice') {
+    notice = null;
+    const el = contentElement.querySelector('.cloud-briefs-notice');
+    if (el) el.remove();
+  }
   else if (action === 'open-brief') {
     const number = Number(actionEl.dataset.number);
     if (Number.isInteger(number) && number > 0) openDetail(number);
@@ -304,7 +328,17 @@ function renderBoard() {
       </section>`
     : '';
 
-  contentElement.innerHTML = open + closed;
+  contentElement.innerHTML = renderNotice() + open + closed;
+}
+
+function renderNotice() {
+  if (!notice) return '';
+  return `<div class="cloud-briefs-notice" role="status">
+      <p>${escapeHtml(notice)}</p>
+      <button type="button" class="cloud-briefs-icon-btn" data-action="dismiss-notice" aria-label="Dismiss" title="Dismiss" tabindex="-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
 }
 
 function renderCards(briefs, milestoneNames) {
@@ -338,8 +372,11 @@ function renderCard(brief, milestoneName) {
 function renderEmpty(canOpenWeb) {
   return `<div class="cloud-briefs-state cloud-briefs-empty">
       <h3>No briefs yet</h3>
-      <p>Nothing in this project is proposed or decided on Frame Cloud yet. Briefs are written on the web and show up here.</p>
-      ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-web" tabindex="-1">Open on web</button>' : ''}
+      <p>Nothing in this project is proposed or decided yet.</p>
+      <div class="cloud-briefs-empty-actions">
+        <button type="button" class="cloud-briefs-primary-btn" data-action="new-brief" tabindex="-1">New brief</button>
+        ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-web" tabindex="-1">Open on web</button>' : ''}
+      </div>
     </div>`;
 }
 
@@ -370,20 +407,55 @@ function isVisible() {
 
 // ─── Detail drawer ────────────────────────────────────────────
 
-function openDetail(number) {
-  if (!detailElement || !detailContentElement) return;
-  detail = { number, tab: 'description', result: null };
-  detailContentElement.innerHTML = '<div class="cloud-briefs-detail-body"><div class="cloud-briefs-state cloud-briefs-loading">Loading brief…</div></div>';
+/** Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form. */
+function showDrawer(mode) {
+  drawerMode = mode;
   detailContentElement.scrollTop = 0;
+  if (detailRefreshButton) detailRefreshButton.hidden = mode !== 'detail';
   detailElement.classList.add('has-selection');
   detailElement.setAttribute('aria-hidden', 'false');
+}
+
+function openDetail(number) {
+  if (!detailElement || !detailContentElement) return;
+  cloudBriefsForm.close();
+  detail = { number, tab: 'description', result: null };
+  detailContentElement.innerHTML = '<div class="cloud-briefs-detail-body"><div class="cloud-briefs-state cloud-briefs-loading">Loading brief…</div></div>';
+  showDrawer('detail');
   loadDetail();
 }
 
-function closeDetail() {
+/** The New brief form in the drawer, empty each time it opens. */
+function openNewBrief() {
+  if (!detailElement || !detailContentElement || !visible) return;
+  if (drawerMode === 'new' && cloudBriefsForm.isPending()) return;
+  detailSeq += 1; // a brief still loading lands nowhere
+  detail = null;
+  showDrawer('new');
+  cloudBriefsForm.open(detailContentElement, { onCreated: onBriefCreated });
+}
+
+/** A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice. */
+function onBriefCreated({ number, attachmentError }) {
+  closeDrawer();
+  notice = attachmentError ? copy.attachmentNotice(number, attachmentError) : null;
+  load();
+}
+
+/** Back and Esc: close the drawer, unless a create is still running. */
+function leaveDrawer() {
+  if (drawerMode === 'new' && cloudBriefsForm.isPending()) return;
+  closeDrawer();
+}
+
+/** Close the drawer in either mode. An unsent form is discarded. */
+function closeDrawer() {
   detailSeq += 1;
   detail = null;
+  if (drawerMode === 'new') cloudBriefsForm.close();
+  drawerMode = null;
   if (!detailElement) return;
+  if (detailRefreshButton) detailRefreshButton.hidden = false;
   detailElement.classList.remove('has-selection');
   detailElement.setAttribute('aria-hidden', 'true');
 }
@@ -423,6 +495,7 @@ async function loadDetail() {
 }
 
 function onDetailClick(event) {
+  if (drawerMode !== 'detail') return; // the form wires its own events
   const actionEl = event.target.closest('[data-action]');
   if (!actionEl || !detailContentElement.contains(actionEl)) return;
   const action = actionEl.dataset.action;

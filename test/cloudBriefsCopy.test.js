@@ -177,3 +177,37 @@ test('reasonMessage has a sentence for every read failure and a fallback', () =>
   assert.match(copy.reasonMessage('other'), /Try again/);
   assert.notEqual(copy.reasonMessage('network'), copy.reasonMessage('other'));
 });
+
+// ─── New brief ────────────────────────────────────────────────
+
+test('submitLabel follows the kind, and says Creating… while pending', () => {
+  assert.equal(copy.submitLabel('work', false), 'Create work');
+  assert.equal(copy.submitLabel('proposal', false), 'Create proposal');
+  assert.equal(copy.submitLabel('work', true), 'Creating…');
+  assert.equal(copy.submitLabel('proposal', true), 'Creating…');
+});
+
+test('createErrorMessage turns reasons into the web\'s sentences', () => {
+  assert.equal(copy.createErrorMessage('badRequest'), 'Check the title, description and links, then try again.');
+  assert.equal(copy.createErrorMessage('notFound'), 'This project does not exist.');
+  assert.equal(copy.createErrorMessage('network'), copy.reasonMessage('network'));
+  assert.equal(copy.createErrorMessage('notConnected'), copy.reasonMessage('notConnected'));
+  assert.equal(copy.createErrorMessage('other'), 'Something went wrong. Try again.');
+  assert.equal(copy.createErrorMessage(undefined), 'Something went wrong. Try again.');
+});
+
+test('attachmentNotice names the brief and adds the error sentence', () => {
+  assert.equal(
+    copy.attachmentNotice(12, 'network'),
+    `Brief #12 was created, but some links were not attached. ${copy.reasonMessage('network')}`,
+  );
+  assert.match(copy.attachmentNotice(3, 'notFound'), /^Brief #3 was created, but some links were not attached\. This brief does not exist\.$/);
+  assert.match(copy.attachmentNotice(3, 'other'), /Something went wrong\. Try again\.$/);
+});
+
+test('the form\'s fixed sentences match the web', () => {
+  assert.equal(copy.TITLE_REQUIRED, 'Give the brief a title.');
+  assert.equal(copy.LINK_TITLE_REQUIRED, 'Each link needs a title.');
+  assert.equal(copy.INVALID_LINK, 'That is not a full link. It should start with https://.');
+  assert.equal(copy.AI_LINKS_TITLE, 'AI conversations & links');
+});

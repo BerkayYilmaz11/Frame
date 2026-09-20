@@ -2,14 +2,14 @@
  * cloudBriefsCopy — the words the cloud Briefs view says.
  *
  * A port of Frame Cloud's `apps/web/src/lib/brief.ts` (and the column copy of
- * `brief-board.tsx`), so a brief reads the same in Frame as on the web: the
- * columns a list falls into, the words for kinds, priorities and ending facts,
- * and the history as sentences. Ported rather than shared — Frame takes no
- * dependency on the web app — and pure: no DOM, no Electron, so `node --test`
- * covers it.
+ * `brief-board.tsx`, `new-brief-dialog.tsx` and `ai-links.tsx`), so a brief
+ * reads the same in Frame as on the web: the columns a list falls into, the
+ * words for kinds, priorities and ending facts, the history as sentences, and
+ * the New brief form. Ported rather than shared — Frame takes no dependency on
+ * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Read-only: the web's write copy (Transform to Work, refusal sentences for
- * mutations, search params) is left out.
+ * Creating is the one write: the web's other write copy (Transform to Work,
+ * refusal sentences for other mutations, search params) is left out.
  */
 
 /** The board's open columns, in order. A brief lands in one by its derived status, never by a hand. */
@@ -195,6 +195,50 @@ function reasonMessage(reason) {
   return REASON_MESSAGES[reason] || 'Something went wrong loading briefs. Try again.';
 }
 
+// ─── New brief ────────────────────────────────────────────────
+
+const NEW_BRIEF_TITLE = 'New brief';
+const NEW_BRIEF_DESCRIPTION = 'A proposal to think over, or work you have decided on.';
+
+const AI_LINKS_TITLE = 'AI conversations & links';
+const AI_LINKS_HINT =
+  'Add a Claude artifact, a ChatGPT conversation or any link the agent should read. Use a shared link so the agent can open it.';
+const INVALID_LINK = 'That is not a full link. It should start with https://.';
+
+const TITLE_REQUIRED = 'Give the brief a title.';
+const LINK_TITLE_REQUIRED = 'Each link needs a title.';
+
+/** "Create work" / "Create proposal", or "Creating…" while the request runs. */
+function submitLabel(kind, pending) {
+  if (pending) return 'Creating…';
+  return kind === 'proposal' ? 'Create proposal' : 'Create work';
+}
+
+// The web's refusal sentences (`briefErrorMessage`), keyed by the reason
+// main reduces a failure to. The web's "Check the highlighted field" would
+// point at nothing here: main refuses the request as a whole.
+const CREATE_MESSAGES = {
+  badRequest: 'Check the title, description and links, then try again.',
+  notFound: 'This project does not exist.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+const CREATE_FALLBACK = 'Something went wrong. Try again.';
+
+/** The form's sentence for a failed create's `reason`. */
+function createErrorMessage(reason) {
+  return CREATE_MESSAGES[reason] || CREATE_FALLBACK;
+}
+
+/** The board's notice when a brief was created but a link was not attached. */
+function attachmentNotice(number, reason) {
+  // A link that fails is refused on the brief, not the project.
+  const sentence = reason === 'notFound' ? 'This brief does not exist.' : createErrorMessage(reason);
+  return `Brief #${number} was created, but some links were not attached. ${sentence}`;
+}
+
 module.exports = {
   COLUMNS,
   groupByColumn,
@@ -207,4 +251,14 @@ module.exports = {
   formatDate,
   eventSentence,
   reasonMessage,
+  NEW_BRIEF_TITLE,
+  NEW_BRIEF_DESCRIPTION,
+  AI_LINKS_TITLE,
+  AI_LINKS_HINT,
+  INVALID_LINK,
+  TITLE_REQUIRED,
+  LINK_TITLE_REQUIRED,
+  submitLabel,
+  createErrorMessage,
+  attachmentNotice,
 };

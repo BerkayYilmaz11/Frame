@@ -625,11 +625,13 @@
       </div>
     </div>
 
-    <!-- Briefs: the connected Frame Cloud project's briefs, read-only
-         (frame-cloud-briefs-read-only spec). A Context row under Sessions
+    <!-- Briefs: the connected Frame Cloud project's briefs
+         (frame-cloud-briefs-read-only spec), and New brief to create one
+         (frame-cloud-briefs-create spec). A Context row under Sessions
          that exists only while the open folder is connected. Hosted in the
-         center by multiTerminalUI (cloudBriefsPanel.js). The detail drawer
-         reuses the Specs grid's .specs-dashboard-detail slide. -->
+         center by multiTerminalUI (cloudBriefsPanel.js). The drawer reuses
+         the Specs grid's .specs-dashboard-detail slide and shows either a
+         brief or the New brief form (cloudBriefsForm.js). -->
     <div id="cloud-briefs-panel">
       <div class="view-header">
         <div class="view-header-title">
@@ -648,6 +650,10 @@
             </svg>
           </button>
           <button id="cloud-briefs-open-web" class="cloud-briefs-web-btn" tabindex="-1" title="Open this project on Frame Cloud">Open on web</button>
+          <button id="cloud-briefs-new" class="cloud-briefs-primary-btn cloud-briefs-new-btn" tabindex="-1" title="Create a brief in this project">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>New brief</span>
+          </button>
         </div>
       </div>
       <div id="cloud-briefs-content" class="cloud-briefs-content">
