@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T11:40:18.708Z",
+  "lastUpdated": "2026-09-21T12:13:24.361Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9099,13 +9099,13 @@
       "acceptanceCriteria": "Every state shows its controls and Move to Work lands the brief as work.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T16",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "test",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:05:24.912Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T12:13:24.361Z",
+      "completedAt": "2026-09-21T12:13:24.361Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T17",

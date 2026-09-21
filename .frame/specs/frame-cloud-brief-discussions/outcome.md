@@ -136,3 +136,11 @@ _Captured: 2026-09-21 · 3 file change(s)_
 
 ---
 
+## T16 — Walk the proposal states in Frame
+
+The user walked all four proposal states, Move to Work with a priority, write-up links landing in Links (T17) and the file-staged prompt (T18) in Frame, and reported they pass. An earlier attempt in this walk found the cut-off prompt that T18 fixed.
+
+_Captured: 2026-09-21 · 0 file change(s)_
+
+---
+
