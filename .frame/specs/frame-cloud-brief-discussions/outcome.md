@@ -8,3 +8,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T02 — The pure discussions core
+
+Wrote `src/main/cloud/cloudDiscussions.js` (ids, immutable store with 90-day prune, `validateRecordInput`, `buildDiscussPrompt`, `handleRecordRequest`, `replyMessage`) with 19 cases in `test/cloudDiscussions.test.js`, and exported `isHttpUrl` from `cloudBriefs.js`. Diverged from plan: server refusals are caught inside the function passed to `call()` and returned as values, because `call()` classifies them all as `badRequest`; the command path is single-quoted rather than double-quoted. Followup: the heredoc command assumes a POSIX shell, so a Discuss lane on a Windows PowerShell terminal would need another form.
+
+_Captured: 2026-09-21 · 3 file change(s)_
+
+---
+

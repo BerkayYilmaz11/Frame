@@ -481,6 +481,7 @@
         "getBrief",
         "briefEvents",
         "buildCreateInput",
+        "isHttpUrl",
         "normalizeLinks",
         "createBrief",
         "addAttachment",
@@ -777,6 +778,183 @@
           "CLOUD_BRIEF_CREATE"
         ],
         "emits": []
+      }
+    },
+    "main/cloud/cloudDiscussions": {
+      "file": "src/main/cloud/cloudDiscussions.js",
+      "description": "cloudDiscussions — the pure core of discussing a Frame Cloud proposal.",
+      "exports": [
+        "MAX_AGE_MS",
+        "SUMMARY_DELIMITER",
+        "newDiscussionId",
+        "isDiscussionId",
+        "emptyStore",
+        "addDiscussion",
+        "getDiscussion",
+        "pruneDiscussions",
+        "validateRecordInput",
+        "buildDiscussPrompt",
+        "handleRecordRequest",
+        "replyMessage"
+      ],
+      "depends": [
+        "crypto",
+        "cloudBriefs"
+      ],
+      "functions": {
+        "str": {
+          "line": 34,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 38,
+          "params": [
+            "value"
+          ]
+        },
+        "hasOwn": {
+          "line": 42,
+          "params": [
+            "o",
+            "key"
+          ]
+        },
+        "newDiscussionId": {
+          "line": 49,
+          "params": [
+            "randomBytes = crypto.randomBytes"
+          ],
+          "purpose": "A fresh discussion id: 24 hex characters, safe to show in a shell command."
+        },
+        "isDiscussionId": {
+          "line": 53,
+          "params": [
+            "value"
+          ]
+        },
+        "emptyStore": {
+          "line": 57
+        },
+        "normalizeEntry": {
+          "line": 62,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A stored entry, or null when any field is missing or malformed."
+        },
+        "addDiscussion": {
+          "line": 71,
+          "params": [
+            "store",
+            "{ id",
+            "...rest }"
+          ],
+          "purpose": "The store with one more entry. `entry` is `{ id, folderPath, number, toolId, provider, createdAt }`."
+        },
+        "getDiscussion": {
+          "line": 79,
+          "params": [
+            "store",
+            "id"
+          ],
+          "purpose": "The entry for an id, or null."
+        },
+        "pruneDiscussions": {
+          "line": 86,
+          "params": [
+            "store",
+            "now = Date.now("
+          ],
+          "purpose": "The store without entries older than 90 days, malformed ones or bad ids. Any shape in → a valid store out."
+        },
+        "badRequest": {
+          "line": 98,
+          "params": [
+            "field"
+          ]
+        },
+        "validateRecordInput": {
+          "line": 107,
+          "params": [
+            "request"
+          ],
+          "purpose": "`{ summary, url? }` → `{ ok: true, input: { summary, url? } }` or a"
+        },
+        "fence": {
+          "line": 123,
+          "params": [
+            "text",
+            "label"
+          ],
+          "purpose": "A code fence longer than any backtick run in `text`, so network content cannot close it."
+        },
+        "shellQuote": {
+          "line": 130,
+          "params": [
+            "value"
+          ],
+          "purpose": "A POSIX single-quoted word."
+        },
+        "earlierRecords": {
+          "line": 135,
+          "params": [
+            "events"
+          ],
+          "purpose": "The brief's `discussion-recorded` events, newest first, reduced to what the prompt shows."
+        },
+        "briefData": {
+          "line": 143,
+          "params": [
+            "brief",
+            "events"
+          ],
+          "purpose": "The brief as data: number, title, description, links and earlier records."
+        },
+        "recordCommand": {
+          "line": 163,
+          "params": [
+            "commandPath",
+            "discussionId",
+            "withUrl"
+          ],
+          "purpose": "The exact command the agent runs to record, with the summary on stdin."
+        },
+        "buildDiscussPrompt": {
+          "line": 178,
+          "params": [
+            "{ brief",
+            "events",
+            "toolId",
+            "commandPath",
+            "discussionId }"
+          ],
+          "purpose": "The prompt a Discuss lane starts with. Every brief field is fenced and"
+        },
+        "recordThrough": {
+          "line": 228,
+          "params": [
+            "call",
+            "input"
+          ],
+          "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
+        },
+        "handleRecordRequest": {
+          "line": 248,
+          "params": [
+            "request",
+            "deps"
+          ],
+          "purpose": "A bus request → what happened. `deps` is"
+        },
+        "replyMessage": {
+          "line": 283,
+          "params": [
+            "result"
+          ],
+          "purpose": "A handled request → the sentence the command prints."
+        }
       }
     },
     "main/cloud/cloudProjects": {

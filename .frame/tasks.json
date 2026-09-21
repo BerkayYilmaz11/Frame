@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:19:36.426Z",
+  "lastUpdated": "2026-09-21T08:22:25.678Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8893,13 +8893,13 @@
       "title": "Write the pure `src/main/cloud/cloudDiscussions.js` — `newDiscussionId`, `addDiscussion` / `getDiscussion` / `pruneDiscussions` (90 days), `validateRecordInput` (summary 1–10,000 trimmed, `http(s)` url), `buildDiscussPrompt` (brief fields and earlier records fenced as data, newest first; the artifact-link offer for `claude` only; the heredoc command line), `handleRecordRequest(request, deps)` for every branch and `replyMessage` — with `test/cloudDiscussions.test.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:22:25.678Z",
+      "completedAt": "2026-09-21T08:22:25.678Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T03",

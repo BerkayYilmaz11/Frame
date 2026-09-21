@@ -287,6 +287,7 @@ module.exports = {
   getBrief,
   briefEvents,
   buildCreateInput,
+  isHttpUrl,
   normalizeLinks,
   createBrief,
   addAttachment,
