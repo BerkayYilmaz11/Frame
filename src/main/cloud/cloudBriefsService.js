@@ -10,8 +10,10 @@
  *
  * Every request goes through cloudProjectsService's `call()`, so a 401 signs
  * out quietly and a forgotten device is registered again and retried once.
- * The one write is `create`: a new brief and its links. No other brief or
- * milestone mutation is called from here.
+ * The writes are `create` (a new brief and its links) and `decide` (a
+ * proposal moved to work); discussions are recorded by
+ * cloudDiscussionsService. No other brief or milestone mutation is called
+ * from here.
  */
 
 const { IPC } = require('../../shared/ipcChannels');
@@ -50,10 +52,12 @@ async function list(folderPath, { includeClosed } = {}) {
   ]);
   if (!briefs.ok) return { ok: false, reason: briefs.reason };
   if (!milestones.ok) return { ok: false, reason: milestones.reason };
+  // Open proposals' discussion counts and new comments, one `brief.events` each (frame-cloud-brief-discussions T11, T13).
+  const counted = await core.addDiscussionCounts(call, briefs.value, meId());
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },
-    briefs: briefs.value,
+    briefs: counted,
     milestones: milestones.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project)),
@@ -98,6 +102,20 @@ async function create(folderPath, request) {
   return { ok: true, number: result.number, attachmentError: result.attachmentError };
 }
 
+/**
+ * Move an open proposal to work with a priority. The brief is resolved here by
+ * number; its id never leaves main. → `{ ok: true }` or `{ ok: false, reason }`.
+ */
+async function decide(folderPath, number, priority) {
+  const project = cloudProjectsService.connectedProject(folderPath);
+  if (!project) return NOT_CONNECTED;
+  if (!Number.isInteger(number) || number < 1) return { ok: false, reason: 'other' };
+  const call = cloudProjectsService.call;
+  const brief = await call((ctx) => core.getBrief({ ...ctx, projectSlug: project.slug, number }));
+  if (!brief.ok) return { ok: false, reason: brief.reason };
+  return core.decideThrough(call, { id: brief.value.id, priority });
+}
+
 /** The project on the web, or one brief when a number is given. The URL is built and opened here. */
 function openOnWeb(folderPath, number) {
   const project = cloudProjectsService.connectedProject(folderPath);
@@ -113,6 +131,7 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_BRIEF_GET, (event, folderPath, number) => get(folderPath, number));
   ipcMain.handle(IPC.CLOUD_BRIEFS_OPEN_ON_WEB, (event, folderPath, number) => openOnWeb(folderPath, number));
   ipcMain.handle(IPC.CLOUD_BRIEF_CREATE, (event, folderPath, request) => create(folderPath, request));
+  ipcMain.handle(IPC.CLOUD_BRIEF_DECIDE, (event, folderPath, number, priority) => decide(folderPath, number, priority));
 }
 
 module.exports = {
@@ -120,5 +139,6 @@ module.exports = {
   list,
   get,
   create,
+  decide,
   openOnWeb,
 };

@@ -8,9 +8,10 @@
  * Sessions is (`PANEL_REGISTRY.cloudBriefs`).
  *
  * The renderer sends a folder path and nothing else — main resolves the
- * connected project and holds the token. Creating a brief is the one write,
- * and its form lives in cloudBriefsForm.js; the drawer shows either a brief
- * or that form.
+ * connected project and holds the token. Creating a brief is one write, and
+ * its form lives in cloudBriefsForm.js; the drawer shows either a brief or
+ * that form. Discuss (frame-cloud-brief-discussions spec) opens a lane on an
+ * open proposal; its agent records through main, never through this panel.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -27,6 +28,9 @@ const cloudProjectMark = require('./cloudProjectMark');
 const { escapeHtml } = require('./htmlUtils');
 const copy = require('./cloudBriefsCopy');
 const cloudBriefsForm = require('./cloudBriefsForm');
+const agentDispatch = require('./agentDispatch');
+const aiToolSelector = require('./aiToolSelector');
+const notify = require('./notify');
 
 let hub = null;
 let panelElement = null;
@@ -60,6 +64,10 @@ let drawerMode = null;
 // while it loads. Its loads are numbered the same way as the board's.
 let detail = null;
 let detailSeq = 0;
+// The brief number whose Discuss is starting, so a second click waits.
+let discussing = null;
+// A brief to open once the panel mounts (a Discuss lane's chip was clicked).
+let pendingOpen = null;
 
 const TABS = [
   { key: 'description', label: 'Description' },
@@ -119,6 +127,11 @@ function init(cloudHub) {
   // Coming back to Frame from elsewhere (the web board, say) re-reads what
   // is on screen. In-app navigation needs nothing: the host's show() loads.
   window.addEventListener('focus', onWindowFocus);
+
+  // A Discuss lane's activity moves the dots and the header button; a record
+  // that landed reloads the brief it belongs to.
+  agentDispatch.onBriefLaneActivity(renderLaneSlots);
+  ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onDiscussionRecorded(payload));
 }
 
 // What the open board was loaded against: the folder, its cloud project and
@@ -196,6 +209,33 @@ function show() {
   showClosed = false;
   if (showClosedInput) showClosedInput.checked = false;
   load();
+  if (pendingOpen !== null) {
+    const number = pendingOpen;
+    pendingOpen = null;
+    openDetail(number);
+  }
+}
+
+/**
+ * Open the Briefs panel on one brief — the route a Discuss lane's chip
+ * takes. The host mounts the panel (show() then opens the drawer); when it
+ * is already on screen, the drawer opens directly.
+ */
+function openBrief(number) {
+  if (!Number.isInteger(number) || number < 1) return;
+  if (!isAvailable()) {
+    notify.error(copy.reasonMessage('notConnected'));
+    return;
+  }
+  const ui = require('./terminal').getMultiTerminalUI();
+  if (visible) {
+    if (ui) ui.showPanel('cloudBriefs');
+    openDetail(number);
+    return;
+  }
+  pendingOpen = number;
+  if (ui) ui.showPanel('cloudBriefs');
+  if (pendingOpen !== null && !visible) pendingOpen = null; // the host did not mount it
 }
 
 function hide() {
@@ -288,6 +328,21 @@ function onContentClick(event) {
     const number = Number(actionEl.dataset.number);
     if (Number.isInteger(number) && number > 0) openDetail(number);
   }
+  else if (action === 'discuss-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) discuss(brief);
+  }
+  else if (action === 'move-to-work-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) openMoveToWork(brief);
+  }
+  else if (action === 'open-comments') {
+    const number = Number(actionEl.dataset.number);
+    if (Number.isInteger(number) && number > 0) openDetail(number, 'comments');
+  }
+  else if (action === 'go-to-lane') {
+    agentDispatch.enterBriefLane(Number(actionEl.dataset.number));
+  }
 }
 
 // ─── Rendering: the board ─────────────────────────────────────
@@ -358,15 +413,63 @@ function renderCard(brief, milestoneName) {
         ${milestoneName ? `<span class="cloud-briefs-milestone">${escapeHtml(milestoneName)}</span>` : ''}
       </span>`
     : '';
-  return `<button type="button" class="cloud-briefs-card" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
-      <span class="cloud-briefs-card-head">
-        <span class="cloud-briefs-number">#${brief.number}</span>
-        <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
-      </span>
-      <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
-      ${meta}
-      ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
-    </button>`;
+  const records = copy.discussionCountLabel(brief.discussionCount);
+  // The card is a container, not a button: its controls (Discuss, the live
+  // lane) sit beside the open-brief button rather than inside it.
+  return `<div class="cloud-briefs-card">
+      <button type="button" class="cloud-briefs-card-open" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
+        <span class="cloud-briefs-card-head">
+          <span class="cloud-briefs-number">#${brief.number}</span>
+          <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
+        </span>
+        <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
+        ${meta}
+        ${records ? `<span class="cloud-briefs-card-records">${escapeHtml(records)}</span>` : ''}
+        ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
+      </button>
+      <div class="cloud-briefs-card-actions" data-card-actions="${brief.number}">${renderCardActions(brief)}</div>
+    </div>`;
+}
+
+/**
+ * A card's controls, by the proposal's stage:
+ *   discuss    → primary Discuss (nothing recorded yet)
+ *   discussing → "Discussing in <lane>", which enters it
+ *   decide     → primary Move to Work, secondary Discuss — and, when someone
+ *                commented after the latest record, "N new comments" first,
+ *                which opens the Comments tab
+ *   none       → nothing (work, or ended)
+ */
+function renderCardActions(brief) {
+  const lane = agentDispatch.getBriefLaneInfo(brief.number);
+  const stage = copy.proposalStage({ brief, laneOpen: Boolean(lane), discussionCount: brief.discussionCount });
+  const n = brief.number;
+  if (stage === 'discussing') {
+    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(copy.GO_TO_DISCUSSION_LABEL)}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.discussingIn(lane.name))}</span></button>`;
+  }
+  if (stage === 'discuss') return discussButton(n, 'primary', 'discuss-card');
+  if (stage !== 'decide') return '';
+  const fresh = copy.newCommentsLabel(brief.newCommentCount);
+  return `${fresh ? `<button type="button" class="cloud-briefs-new-comments" data-action="open-comments" data-number="${n}" tabindex="-1">${escapeHtml(fresh)}</button>` : ''}
+    ${moveToWorkButton(n, 'move-to-work-card')}
+    ${discussButton(n, 'secondary', 'discuss-card')}`;
+}
+
+/** Discuss as the stage's primary or secondary button; "Discuss…" while it starts. */
+function discussButton(number, weight, action, label = copy.DISCUSS_LABEL, hint = copy.DISCUSS_HINT) {
+  const pending = discussing === number;
+  const cls = weight === 'primary' ? 'cloud-briefs-primary-btn' : 'cloud-briefs-web-btn';
+  return `<button type="button" class="${cls} cloud-briefs-discuss-btn" data-action="${action}" data-number="${number}" title="${escapeHtml(hint)}" tabindex="-1"${pending ? ' disabled' : ''}>${escapeHtml(pending ? `${label}…` : label)}</button>`;
+}
+
+function moveToWorkButton(number, action) {
+  return `<button type="button" class="cloud-briefs-primary-btn" data-action="${action}" data-number="${number}" tabindex="-1">${escapeHtml(copy.MOVE_TO_WORK_LABEL)}</button>`;
+}
+
+/** The board's brief with this number, or null. */
+function boardBrief(number) {
+  const briefs = board && board.result ? board.result.briefs : [];
+  return briefs.find((b) => b.number === number) || null;
 }
 
 function renderEmpty(canOpenWeb) {
@@ -416,10 +519,10 @@ function showDrawer(mode) {
   detailElement.setAttribute('aria-hidden', 'false');
 }
 
-function openDetail(number) {
+function openDetail(number, tab = 'description') {
   if (!detailElement || !detailContentElement) return;
   cloudBriefsForm.close();
-  detail = { number, tab: 'description', result: null };
+  detail = { number, tab, result: null };
   detailContentElement.innerHTML = '<div class="cloud-briefs-detail-body"><div class="cloud-briefs-state cloud-briefs-loading">Loading brief…</div></div>';
   showDrawer('detail');
   loadDetail();
@@ -507,6 +610,12 @@ function onDetailClick(event) {
     loadDetail();
   } else if (action === 'open-brief-web') {
     if (detail) openOnWeb(detail.number);
+  } else if (action === 'discuss') {
+    if (detail && detail.result) discuss(detail.result.brief);
+  } else if (action === 'move-to-work') {
+    if (detail && detail.result) openMoveToWork(detail.result.brief);
+  } else if (action === 'go-to-discussion') {
+    if (detail) agentDispatch.enterBriefLane(detail.number);
   } else if (action === 'link') {
     event.preventDefault();
     const url = actionEl.dataset.url || '';
@@ -536,7 +645,10 @@ function renderDetail() {
           <h2 class="cloud-briefs-detail-title">${escapeHtml(brief.title)}</h2>
           ${ending ? `<p class="cloud-briefs-ending">${escapeHtml(ending)}</p>` : ''}
         </div>
-        ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-brief-web" tabindex="-1">Open on web</button>' : ''}
+        <div class="cloud-briefs-detail-actions">
+          <span class="cloud-briefs-discuss-slot">${renderDiscussAction(brief, events)}</span>
+          ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-brief-web" tabindex="-1">Open on web</button>' : ''}
+        </div>
       </header>
       ${renderMeta(brief, events, meId)}
       <div class="cloud-briefs-tabs" role="tablist">
@@ -590,9 +702,11 @@ function renderTab(tab, brief, events, meId) {
   }
   if (tab === 'comments') {
     if (brief.comments.length === 0) return '<p class="cloud-briefs-muted">No comments yet.</p>';
-    return `<ul class="cloud-briefs-comments">${brief.comments.map((c) => `
-        <li>
-          <span class="cloud-briefs-byline">${escapeHtml(copy.actorLabel(c.authorId, meId))} · ${escapeHtml(copy.formatDate(c.createdAt))}</span>
+    const fresh = copy.newCommentIds(brief.comments, events, meId);
+    return `<div class="cloud-briefs-rediscuss-slot">${renderRediscuss(brief, events, meId)}</div>
+      <ul class="cloud-briefs-comments">${brief.comments.map((c) => `
+        <li${fresh.has(c.id) ? ' class="new"' : ''}>
+          <span class="cloud-briefs-byline">${escapeHtml(copy.actorLabel(c.authorId, meId))} · ${escapeHtml(copy.formatDate(c.createdAt))}${fresh.has(c.id) ? ' <span class="cloud-briefs-new-tag">New</span>' : ''}</span>
           <p class="cloud-briefs-text">${escapeHtml(c.text)}</p>
         </li>`).join('')}
       </ul>`;
@@ -606,7 +720,7 @@ function renderTab(tab, brief, events, meId) {
       </ol>`;
   }
   // Description: the body as plain text (never markdown — this is network
-  // content), then the attachments as links.
+  // content), the discussions held on it, then the attachments as links.
   const body = brief.body
     ? `<p class="cloud-briefs-text">${escapeHtml(brief.body)}</p>`
     : '<p class="cloud-briefs-muted">No description.</p>';
@@ -620,7 +734,206 @@ function renderTab(tab, brief, events, meId) {
         </ul>
       </section>`
     : '';
-  return body + attachments;
+  return body + renderDiscussions(events, meId, brief.attachments) + attachments;
+}
+
+/** The discussion records, newest first; absent rather than empty when none was recorded, as on the web. */
+function renderDiscussions(events, meId, attachments) {
+  const records = copy.discussionRecords(events, meId, attachments);
+  if (records.length === 0) return '';
+  return `<section class="cloud-briefs-discussions" aria-label="${escapeHtml(copy.DISCUSSIONS_TITLE)}">
+      <h3>${escapeHtml(copy.DISCUSSIONS_TITLE)}</h3>
+      <ul>${records.map((r) => `
+        <li>
+          <span class="cloud-briefs-byline">
+            ${escapeHtml(r.date ? `${r.date} · ${r.actor}` : r.actor)}
+            ${r.provider ? `<span class="cloud-briefs-chip">${escapeHtml(r.provider)}</span>` : ''}
+          </span>
+          <p class="cloud-briefs-text">${escapeHtml(r.summary)}</p>
+          ${r.inLinks
+            ? `<span class="cloud-briefs-muted">${escapeHtml(copy.WRITE_UP_IN_LINKS)}</span>`
+            : r.url ? `<a href="#" data-action="link" data-url="${escapeHtml(r.url)}" title="${escapeHtml(r.url)}">${escapeHtml(copy.WRITE_UP_LABEL)}</a>` : ''}
+        </li>`).join('')}
+      </ul>
+    </section>`;
+}
+
+// ─── Discuss ──────────────────────────────────────────────────
+
+/**
+ * The detail header's controls, by the same stages as the card: Go to
+ * discussion while the lane is open (whatever the brief has become since),
+ * Discuss before any record, Move to Work + Discuss after one, nothing for
+ * work or an ended brief.
+ */
+function renderDiscussAction(brief, events) {
+  const lane = agentDispatch.getBriefLaneInfo(brief.number);
+  const discussionCount = copy.discussionRecords(events).length;
+  const stage = copy.proposalStage({ brief, laneOpen: Boolean(lane), discussionCount });
+  if (stage === 'discussing') {
+    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-discussion" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(copy.GO_TO_DISCUSSION_LABEL)}</button>`;
+  }
+  if (stage === 'discuss') return discussButton(brief.number, 'primary', 'discuss');
+  if (stage === 'decide') return `${moveToWorkButton(brief.number, 'move-to-work')}${discussButton(brief.number, 'secondary', 'discuss')}`;
+  return '';
+}
+
+/**
+ * Above the comments, when someone commented after the latest record and no
+ * lane is open: how many are new, and Re-discuss — a Discuss whose prompt
+ * opens on them.
+ */
+function renderRediscuss(brief, events, meId) {
+  const lane = agentDispatch.getBriefLaneInfo(brief.number);
+  const stage = copy.proposalStage({ brief, laneOpen: Boolean(lane), discussionCount: copy.discussionRecords(events).length });
+  const count = copy.newCommentIds(brief.comments, events, meId).size;
+  if (stage !== 'decide' || count === 0) return '';
+  return `<div class="cloud-briefs-rediscuss">
+      <span>${escapeHtml(copy.newCommentsLabel(count))} since the last discussion.</span>
+      ${discussButton(brief.number, 'primary', 'discuss', copy.REDISCUSS_LABEL, copy.REDISCUSS_HINT)}
+    </div>`;
+}
+
+// ─── Move to Work ─────────────────────────────────────────────
+
+let decideDialog = null; // { el, number, pending }
+
+/** A confirm with a priority (Medium by default), as the web's Transform to Work. */
+function openMoveToWork(brief) {
+  if (decideDialog) return;
+  const el = document.createElement('div');
+  el.className = 'cloud-briefs-dialog-backdrop';
+  const id = `cloud-briefs-decide-${brief.number}`;
+  el.innerHTML = `<div class="cloud-briefs-dialog" role="dialog" aria-modal="true" aria-labelledby="${id}-title">
+      <h3 id="${id}-title">${escapeHtml(`${copy.MOVE_TO_WORK_LABEL} · #${brief.number}`)}</h3>
+      <p class="cloud-briefs-muted">${escapeHtml(copy.MOVE_TO_WORK_DESCRIPTION)}</p>
+      <div class="cloud-briefs-field">
+        <label class="cloud-briefs-label" for="${id}-priority">Priority</label>
+        <select id="${id}-priority" class="cloud-briefs-input cloud-briefs-select" data-ref="priority">
+          ${['high', 'medium', 'low'].map((p) => `<option value="${p}"${p === 'medium' ? ' selected' : ''}>${escapeHtml(copy.priorityLabel(p))}</option>`).join('')}
+        </select>
+      </div>
+      <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
+      <div class="cloud-briefs-form-actions">
+        <button type="button" class="cloud-briefs-web-btn" data-ref="cancel">Cancel</button>
+        <button type="button" class="cloud-briefs-primary-btn" data-ref="confirm">${escapeHtml(copy.MOVE_TO_WORK_LABEL)}</button>
+      </div>
+    </div>`;
+  decideDialog = { el, number: brief.number, pending: false };
+  const ref = (name) => el.querySelector(`[data-ref="${name}"]`);
+  el.addEventListener('click', (e) => {
+    if (e.target === el || e.target === ref('cancel')) closeMoveToWork();
+    else if (e.target === ref('confirm')) confirmMoveToWork(ref('priority').value);
+  });
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeMoveToWork();
+    }
+  });
+  document.body.appendChild(el);
+  ref('priority').focus();
+}
+
+function closeMoveToWork() {
+  if (!decideDialog || decideDialog.pending) return;
+  decideDialog.el.remove();
+  decideDialog = null;
+}
+
+async function confirmMoveToWork(priority) {
+  const dialog = decideDialog;
+  if (!dialog || dialog.pending) return;
+  const path = state.getProjectPath();
+  const confirmBtn = dialog.el.querySelector('[data-ref="confirm"]');
+  const errorEl = dialog.el.querySelector('[data-ref="error"]');
+  dialog.pending = true;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = `${copy.MOVE_TO_WORK_LABEL}…`;
+  errorEl.hidden = true;
+  let result;
+  try {
+    result = path
+      ? await ipcRenderer.invoke(IPC.CLOUD_BRIEF_DECIDE, path, dialog.number, priority)
+      : { ok: false, reason: 'notConnected' };
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not move the proposal to work', err);
+    result = { ok: false, reason: 'other' };
+  }
+  dialog.pending = false;
+  if (result && result.ok) {
+    closeMoveToWork();
+    load();
+    if (detail && detail.number === dialog.number) loadDetail();
+    return;
+  }
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = copy.MOVE_TO_WORK_LABEL;
+  errorEl.textContent = copy.decideErrorMessage(result && result.reason);
+  errorEl.hidden = false;
+}
+
+/**
+ * Open a lane with the current AI tool and hand it main's discuss prompt.
+ * One lane per brief: an open one is entered instead.
+ */
+async function discuss(brief) {
+  const number = brief.number;
+  if (discussing !== null) return;
+  if (agentDispatch.enterBriefLane(number)) return;
+  const path = state.getProjectPath();
+  const tool = aiToolSelector.getCurrentTool();
+  const toolId = tool ? tool.id : null;
+  if (!path) return;
+  discussing = number;
+  renderLaneSlots(number);
+  try {
+    let result;
+    try {
+      result = await ipcRenderer.invoke(IPC.CLOUD_BRIEF_DISCUSS, path, number, toolId);
+    } catch (err) {
+      console.error('cloudBriefsPanel: could not start the discussion', err);
+      result = { ok: false, reason: 'other' };
+    }
+    if (!result || !result.ok) {
+      if (!result || result.reason !== 'unauthorized') notify.error(copy.discussErrorMessage(result && result.reason));
+      return;
+    }
+    // Another click may have opened the lane while main answered.
+    if (agentDispatch.enterBriefLane(number)) return;
+    await agentDispatch.dispatch({
+      createNew: true,
+      toolId,
+      prompt: result.prompt,
+      assignment: { kind: 'brief', label: `brief #${number}: ${brief.title}`, ref: number },
+    });
+  } finally {
+    discussing = null;
+    renderLaneSlots(number);
+  }
+}
+
+/** Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief. */
+function renderLaneSlots(number) {
+  if (!visible) return;
+  for (const el of contentElement.querySelectorAll('[data-card-actions]')) {
+    const brief = boardBrief(Number(el.dataset.cardActions));
+    if (brief && (number == null || brief.number === number)) el.innerHTML = renderCardActions(brief);
+  }
+  if (drawerMode !== 'detail' || !detail || !detail.result) return;
+  if (number != null && detail.number !== number) return;
+  const slot = detailContentElement.querySelector('.cloud-briefs-discuss-slot');
+  if (slot) slot.innerHTML = renderDiscussAction(detail.result.brief, detail.result.events);
+  const rediscuss = detailContentElement.querySelector('.cloud-briefs-rediscuss-slot');
+  if (rediscuss) rediscuss.innerHTML = renderRediscuss(detail.result.brief, detail.result.events, detail.result.meId);
+}
+
+/** A record landed: reload the board (its counts) and the brief when it is the one on screen. */
+function onDiscussionRecorded(payload) {
+  const { folderPath, number } = payload || {};
+  if (!visible || folderPath !== state.getProjectPath()) return;
+  load();
+  if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
 }
 
 module.exports = {
@@ -629,4 +942,5 @@ module.exports = {
   hide,
   isVisible,
   isAvailable,
+  openBrief,
 };

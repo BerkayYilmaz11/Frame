@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-19",
+  "lastUpdated": "2026-09-21",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -481,10 +481,16 @@
         "getBrief",
         "briefEvents",
         "buildCreateInput",
+        "isHttpUrl",
         "normalizeLinks",
         "createBrief",
         "addAttachment",
         "createWithLinks",
+        "recordDiscussion",
+        "discussionFacts",
+        "addDiscussionCounts",
+        "decideBrief",
+        "decideThrough",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -493,20 +499,20 @@
       ],
       "functions": {
         "str": {
-          "line": 33,
+          "line": 38,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 38,
+          "line": 43,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 42,
+          "line": 47,
           "params": [
             "set",
             "value",
@@ -514,63 +520,63 @@
           ]
         },
         "arr": {
-          "line": 46,
+          "line": 51,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 50,
+          "line": 55,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 57,
+          "line": 62,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 80,
+          "line": 85,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 92,
-          "params": [
-            "raw"
-          ]
-        },
-        "normalizeComment": {
           "line": 97,
           "params": [
             "raw"
           ]
         },
+        "normalizeComment": {
+          "line": 102,
+          "params": [
+            "raw"
+          ]
+        },
         "normalizeBriefDetail": {
-          "line": 103,
+          "line": 108,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 113,
-          "params": [
-            "raw"
-          ]
-        },
-        "normalizeMilestone": {
           "line": 118,
           "params": [
             "raw"
           ]
         },
+        "normalizeMilestone": {
+          "line": 123,
+          "params": [
+            "raw"
+          ]
+        },
         "listBriefs": {
-          "line": 126,
+          "line": 131,
           "params": [
             "{ api",
             "token",
@@ -582,7 +588,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 134,
+          "line": 139,
           "params": [
             "{ api",
             "token",
@@ -593,7 +599,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 140,
+          "line": 145,
           "params": [
             "{ api",
             "token",
@@ -605,7 +611,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 151,
+          "line": 156,
           "params": [
             "{ api",
             "token",
@@ -616,33 +622,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 158,
+          "line": 163,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 167,
+          "line": 172,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 184,
+          "line": 189,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 197,
+          "line": 202,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 212,
+          "line": 217,
           "params": [
             "{ api",
             "token",
@@ -653,7 +659,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 218,
+          "line": 223,
           "params": [
             "{ api",
             "token",
@@ -666,7 +672,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 234,
+          "line": 239,
           "params": [
             "call",
             "{ input",
@@ -674,8 +680,60 @@
           ],
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
+        "recordDiscussion": {
+          "line": 259,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "summary",
+            "url",
+            "provider }"
+          ],
+          "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
+        },
+        "decideBrief": {
+          "line": 278,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "priority }"
+          ],
+          "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
+        },
+        "decideThrough": {
+          "line": 288,
+          "params": [
+            "call",
+            "{ id",
+            "priority }"
+          ],
+          "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
+        },
+        "discussionFacts": {
+          "line": 310,
+          "params": [
+            "events",
+            "meId"
+          ],
+          "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
+        },
+        "addDiscussionCounts": {
+          "line": 331,
+          "params": [
+            "call",
+            "briefs",
+            "meId = ''"
+          ],
+          "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
+        },
         "buildBriefWebUrl": {
-          "line": 252,
+          "line": 346,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -695,6 +753,7 @@
         "list",
         "get",
         "create",
+        "decide",
         "openOnWeb"
       ],
       "depends": [
@@ -705,18 +764,18 @@
       ],
       "functions": {
         "meId": {
-          "line": 25,
+          "line": 27,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "webUrl": {
-          "line": 30,
+          "line": 32,
           "params": [
             "project",
             "number"
           ]
         },
         "list": {
-          "line": 43,
+          "line": 45,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -724,7 +783,7 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 64,
+          "line": 68,
           "params": [
             "folderPath",
             "number"
@@ -732,15 +791,24 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 88,
+          "line": 92,
           "params": [
             "folderPath",
             "request"
           ],
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
+        "decide": {
+          "line": 109,
+          "params": [
+            "folderPath",
+            "number",
+            "priority"
+          ],
+          "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
+        },
         "openOnWeb": {
-          "line": 102,
+          "line": 120,
           "params": [
             "folderPath",
             "number"
@@ -748,7 +816,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 111,
+          "line": 129,
           "params": [
             "ipcMain"
           ]
@@ -759,9 +827,353 @@
           "CLOUD_BRIEFS_LIST",
           "CLOUD_BRIEF_GET",
           "CLOUD_BRIEFS_OPEN_ON_WEB",
-          "CLOUD_BRIEF_CREATE"
+          "CLOUD_BRIEF_CREATE",
+          "CLOUD_BRIEF_DECIDE"
         ],
         "emits": []
+      }
+    },
+    "main/cloud/cloudDiscussions": {
+      "file": "src/main/cloud/cloudDiscussions.js",
+      "description": "cloudDiscussions — the pure core of discussing a Frame Cloud proposal.",
+      "exports": [
+        "MAX_AGE_MS",
+        "SUMMARY_DELIMITER",
+        "newDiscussionId",
+        "isDiscussionId",
+        "emptyStore",
+        "addDiscussion",
+        "getDiscussion",
+        "pruneDiscussions",
+        "promptFileName",
+        "promptInstruction",
+        "stalePromptFiles",
+        "validateRecordInput",
+        "buildDiscussPrompt",
+        "handleRecordRequest",
+        "replyMessage"
+      ],
+      "depends": [
+        "crypto",
+        "cloudBriefs"
+      ],
+      "functions": {
+        "str": {
+          "line": 34,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 38,
+          "params": [
+            "value"
+          ]
+        },
+        "hasOwn": {
+          "line": 42,
+          "params": [
+            "o",
+            "key"
+          ]
+        },
+        "newDiscussionId": {
+          "line": 49,
+          "params": [
+            "randomBytes = crypto.randomBytes"
+          ],
+          "purpose": "A fresh discussion id: 24 hex characters, safe to show in a shell command."
+        },
+        "isDiscussionId": {
+          "line": 53,
+          "params": [
+            "value"
+          ]
+        },
+        "emptyStore": {
+          "line": 57
+        },
+        "normalizeEntry": {
+          "line": 62,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A stored entry, or null when any field is missing or malformed."
+        },
+        "addDiscussion": {
+          "line": 71,
+          "params": [
+            "store",
+            "{ id",
+            "...rest }"
+          ],
+          "purpose": "The store with one more entry. `entry` is `{ id, folderPath, number, toolId, provider, createdAt }`."
+        },
+        "getDiscussion": {
+          "line": 79,
+          "params": [
+            "store",
+            "id"
+          ],
+          "purpose": "The entry for an id, or null."
+        },
+        "pruneDiscussions": {
+          "line": 86,
+          "params": [
+            "store",
+            "now = Date.now("
+          ],
+          "purpose": "The store without entries older than 90 days, malformed ones or bad ids. Any shape in → a valid store out."
+        },
+        "promptFileName": {
+          "line": 106,
+          "params": [
+            "discussionId"
+          ],
+          "purpose": "The prompt file's name for a discussion id."
+        },
+        "promptInstruction": {
+          "line": 111,
+          "params": [
+            "promptPath",
+            "number"
+          ],
+          "purpose": "The one line a Discuss lane receives: read the staged prompt."
+        },
+        "stalePromptFiles": {
+          "line": 116,
+          "params": [
+            "names",
+            "store"
+          ],
+          "purpose": "Prompt files whose discussion is no longer in the store (pruned or unknown). Other names are left alone."
+        },
+        "badRequest": {
+          "line": 125,
+          "params": [
+            "field"
+          ]
+        },
+        "validateRecordInput": {
+          "line": 134,
+          "params": [
+            "request"
+          ],
+          "purpose": "`{ summary, url? }` → `{ ok: true, input: { summary, url? } }` or a"
+        },
+        "fence": {
+          "line": 150,
+          "params": [
+            "text",
+            "label"
+          ],
+          "purpose": "A code fence longer than any backtick run in `text`, so network content cannot close it."
+        },
+        "shellQuote": {
+          "line": 157,
+          "params": [
+            "value"
+          ],
+          "purpose": "A POSIX single-quoted word."
+        },
+        "earlierRecords": {
+          "line": 162,
+          "params": [
+            "events"
+          ],
+          "purpose": "The brief's `discussion-recorded` events, newest first, reduced to what the prompt shows."
+        },
+        "commentLines": {
+          "line": 173,
+          "params": [
+            "brief",
+            "events",
+            "meId"
+          ],
+          "purpose": "The brief's comments, oldest first, each with who and when; `isNew` for"
+        },
+        "briefData": {
+          "line": 189,
+          "params": [
+            "brief",
+            "events",
+            "comments"
+          ],
+          "purpose": "The brief as data: number, title, description, links, earlier records and comments."
+        },
+        "recordCommand": {
+          "line": 215,
+          "params": [
+            "commandPath",
+            "discussionId",
+            "withUrl"
+          ],
+          "purpose": "The exact command the agent runs to record, with the summary on stdin."
+        },
+        "buildDiscussPrompt": {
+          "line": 230,
+          "params": [
+            "{ brief",
+            "events",
+            "toolId",
+            "commandPath",
+            "discussionId",
+            "meId = '' }"
+          ],
+          "purpose": "The prompt a Discuss lane starts with. Every brief field is fenced and"
+        },
+        "recordThrough": {
+          "line": 291,
+          "params": [
+            "call",
+            "input"
+          ],
+          "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
+        },
+        "writeUpTitle": {
+          "line": 305,
+          "params": [
+            "now"
+          ],
+          "purpose": "The Links title a recorded write-up gets: \"Discussion write-up (2026-09-21)\"."
+        },
+        "handleRecordRequest": {
+          "line": 317,
+          "params": [
+            "request",
+            "deps"
+          ],
+          "purpose": "A bus request → what happened. `deps` is"
+        },
+        "replyMessage": {
+          "line": 358,
+          "params": [
+            "result"
+          ],
+          "purpose": "A handled request → the sentence the command prints."
+        }
+      }
+    },
+    "main/cloud/cloudDiscussionsService": {
+      "file": "src/main/cloud/cloudDiscussionsService.js",
+      "description": "cloudDiscussionsService — the Electron shell around discussing a Frame",
+      "exports": [
+        "init",
+        "setupIPC",
+        "discuss"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "electron",
+        "../shared/ipcChannels",
+        "fsSafe",
+        "logger",
+        "aiToolManager",
+        "cloudProjectsService",
+        "cloudBriefsService",
+        "cloudDiscussions",
+        "cloudBriefs",
+        "../templates/bin/record-discussion"
+      ],
+      "functions": {
+        "baseDir": {
+          "line": 52
+        },
+        "busDir": {
+          "line": 56
+        },
+        "repliesDir": {
+          "line": 60
+        },
+        "commandPath": {
+          "line": 64
+        },
+        "promptsDir": {
+          "line": 68
+        },
+        "loadStore": {
+          "line": 74
+        },
+        "removeStalePrompts": {
+          "line": 85,
+          "purpose": "Delete the prompt files of discussions the store no longer holds."
+        },
+        "writePrompt": {
+          "line": 94,
+          "params": [
+            "discussionId",
+            "prompt"
+          ],
+          "purpose": "Write a discussion's prompt atomically. → its path, or null."
+        },
+        "saveStore": {
+          "line": 107
+        },
+        "stageCommand": {
+          "line": 120,
+          "purpose": "Copy the command next to the bus, only when it changed. → staged?"
+        },
+        "discuss": {
+          "line": 140,
+          "params": [
+            "folderPath",
+            "number",
+            "toolId"
+          ],
+          "purpose": "Start a discussion of an open proposal with `toolId`. The full prompt is"
+        },
+        "writeReply": {
+          "line": 175,
+          "params": [
+            "name",
+            "reply"
+          ]
+        },
+        "pushRecorded": {
+          "line": 186,
+          "params": [
+            "folderPath",
+            "number"
+          ]
+        },
+        "handleFile": {
+          "line": 193,
+          "params": [
+            "name"
+          ],
+          "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
+        },
+        "drain": {
+          "line": 231
+        },
+        "sweep": {
+          "line": 244,
+          "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
+        },
+        "startWatcher": {
+          "line": 260
+        },
+        "init": {
+          "line": 280,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 294,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_DISCUSS"
+        ],
+        "emits": [
+          "CLOUD_BRIEF_DISCUSSION_RECORDED"
+        ]
       }
     },
     "main/cloud/cloudProjects": {
@@ -3445,30 +3857,31 @@
         "cloud/cloudSession",
         "cloud/cloudProjectsService",
         "cloud/cloudBriefsService",
+        "cloud/cloudDiscussionsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 56,
+          "line": 57,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 74,
+          "line": 75,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 181
+          "line": 182
         },
         "setupAllIPC": {
-          "line": 211,
+          "line": 212,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 295,
+          "line": 297,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 341,
+          "line": 343,
           "params": [
             "window"
           ],
@@ -5963,10 +6376,14 @@
         "dispatchSpecNew",
         "getSpecLaneInfo",
         "getTaskLaneInfo",
+        "getBriefLaneInfo",
+        "enterBriefLane",
         "onSpecLaneActivity",
         "onTaskLaneActivity",
+        "onBriefLaneActivity",
         "specStatusDotHtml",
-        "taskStatusDotHtml"
+        "taskStatusDotHtml",
+        "briefStatusDotHtml"
       ],
       "depends": [
         "electron",
@@ -5988,7 +6405,7 @@
           "purpose": "Initialize with the MultiTerminalUI instance."
         },
         "dispatch": {
-          "line": 94,
+          "line": 96,
           "params": [
             "{ terminalId = null",
             "createNew = false",
@@ -6002,11 +6419,11 @@
           "purpose": "Deliver a prompt to an agent in a lane."
         },
         "startDefaultAgent": {
-          "line": 243,
+          "line": 245,
           "purpose": "Start the default agent (the active AI tool) from the sidebar shortcut —"
         },
         "_startAgentIn": {
-          "line": 278,
+          "line": 280,
           "params": [
             "terminalId",
             "{ fresh = false } = {}"
@@ -6014,7 +6431,7 @@
           "purpose": "Start the active tool's CLI in an existing lane. `fresh` allows a newly"
         },
         "_trackAgentRunWhenReady": {
-          "line": 303,
+          "line": 305,
           "params": [
             "terminalId",
             "toolId"
@@ -6022,17 +6439,17 @@
           "purpose": "`agent_run_started` means the CLI came up — the bar dispatch() already"
         },
         "_startAgentInNewFrame": {
-          "line": 312
+          "line": 314
         },
         "resumeClaudeSession": {
-          "line": 338,
+          "line": 340,
           "params": [
             "sessionId"
           ],
           "purpose": "Resume a Claude Code session from the sessions list."
         },
         "_askNewOrRestart": {
-          "line": 381,
+          "line": 383,
           "params": [
             "frameName",
             "hasAgent"
@@ -6040,7 +6457,7 @@
           "purpose": "\"Open a new Frame / Kill & restart here\" — asked when the focused Frame is"
         },
         "dispatchSpecCommand": {
-          "line": 438,
+          "line": 440,
           "params": [
             "{ slug",
             "title = null",
@@ -6049,7 +6466,7 @@
           "purpose": "Run a spec command in the spec's assigned lane — or a new Frame."
         },
         "_dispatchImplement": {
-          "line": 513,
+          "line": 515,
           "params": [
             "{ slug",
             "title",
@@ -6059,107 +6476,140 @@
           "purpose": "The spec.implement path: modal → record implement_mode → stage → dispatch."
         },
         "_isSpecCreatorLane": {
-          "line": 615,
+          "line": 617,
           "params": [
             "terminalId"
           ],
           "purpose": "Still open, and still carrying the transient name we gave it."
         },
         "_onSpecData": {
-          "line": 631,
+          "line": 633,
           "params": [
             "specs"
           ],
           "purpose": "A new slug appeared — attach it to the lane that produced it."
         },
         "_bindSpecCreatorLane": {
-          "line": 651,
+          "line": 653,
           "params": [
             "terminalId",
             "slug"
           ]
         },
         "dispatchSpecNew": {
-          "line": 687,
+          "line": 689,
           "params": [
             "description"
           ],
           "purpose": "Hand the user's free-form text to the standard `spec.new` flow."
         },
         "getSpecLaneInfo": {
-          "line": 775,
+          "line": 777,
           "params": [
             "slug"
           ],
           "purpose": "Live info about the lane a spec is assigned to, or null when unassigned"
         },
         "getTaskLaneInfo": {
-          "line": 799,
+          "line": 801,
           "params": [
             "taskId"
           ],
           "purpose": "Live info about the lane working on a task, or null. Unlike specs there"
         },
+        "getBriefLaneInfo": {
+          "line": 821,
+          "params": [
+            "number"
+          ],
+          "purpose": "Live info about the lane discussing a Frame Cloud brief, or null. Brief"
+        },
+        "enterBriefLane": {
+          "line": 837,
+          "params": [
+            "number"
+          ],
+          "purpose": "Enter the lane discussing a brief. → entered?"
+        },
         "specStatusDotHtml": {
-          "line": 820,
+          "line": 850,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 824,
+          "line": 854,
           "params": [
             "taskId"
           ]
         },
+        "briefStatusDotHtml": {
+          "line": 858,
+          "params": [
+            "number"
+          ]
+        },
         "_activityDotHtml": {
-          "line": 828,
+          "line": 862,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 845,
+          "line": 879,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 853,
+          "line": 887,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 876,
+          "line": 910,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 884,
+          "line": 918,
           "params": [
             "taskId"
           ]
         },
+        "onBriefLaneActivity": {
+          "line": 939,
+          "params": [
+            "callback"
+          ],
+          "purpose": "Subscribe to brief-lane activity. Callback: (number|null) — null means"
+        },
+        "_notifyBriefLane": {
+          "line": 947,
+          "params": [
+            "number"
+          ]
+        },
         "_assignedLane": {
-          "line": 902,
+          "line": 967,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 912,
+          "line": 977,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 921,
+          "line": 986,
           "params": [
             "frameName",
             "specName"
@@ -6167,14 +6617,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 962,
+          "line": 1027,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 991,
+          "line": 1056,
           "params": [
             "terminalId",
             "message"
@@ -6439,6 +6889,24 @@
         "formatDate",
         "eventSentence",
         "reasonMessage",
+        "DISCUSSIONS_TITLE",
+        "discussionCountLabel",
+        "discussingIn",
+        "proposalStage",
+        "newCommentsLabel",
+        "newCommentIds",
+        "MOVE_TO_WORK_LABEL",
+        "MOVE_TO_WORK_DESCRIPTION",
+        "REDISCUSS_LABEL",
+        "REDISCUSS_HINT",
+        "decideErrorMessage",
+        "DISCUSS_LABEL",
+        "GO_TO_DISCUSSION_LABEL",
+        "DISCUSS_HINT",
+        "WRITE_UP_LABEL",
+        "WRITE_UP_IN_LINKS",
+        "discussionRecords",
+        "discussErrorMessage",
         "NEW_BRIEF_TITLE",
         "NEW_BRIEF_DESCRIPTION",
         "AI_LINKS_TITLE",
@@ -6453,47 +6921,47 @@
       "depends": [],
       "functions": {
         "groupByColumn": {
-          "line": 23,
+          "line": 24,
           "params": [
             "briefs"
           ],
           "purpose": "A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog."
         },
         "statusLabel": {
-          "line": 49,
+          "line": 50,
           "params": [
             "status"
           ]
         },
         "isPriority": {
-          "line": 55,
+          "line": 56,
           "params": [
             "value"
           ]
         },
         "priorityLabel": {
-          "line": 60,
+          "line": 61,
           "params": [
             "priority"
           ],
           "purpose": "'High' / 'Medium' / 'Low', or '' for anything else."
         },
         "endingFact": {
-          "line": 65,
+          "line": 66,
           "params": [
             "brief"
           ],
           "purpose": "How a closed brief ended — `{ label, reason, at }` — or null for an open one. Close wins over drop over decision."
         },
         "endingLine": {
-          "line": 74,
+          "line": 75,
           "params": [
             "brief"
           ],
           "purpose": "The ending as one line: \"Closed: reason\", \"Dropped\", \"Recorded as decision\"; '' for an open brief."
         },
         "actorLabel": {
-          "line": 81,
+          "line": 82,
           "params": [
             "id",
             "meId"
@@ -6501,27 +6969,27 @@
           "purpose": "\"You\" for the caller, \"A workspace member\" for anyone else: there is no member list."
         },
         "formatDate": {
-          "line": 88,
+          "line": 89,
           "params": [
             "iso"
           ],
           "purpose": "An ISO timestamp as \"18 Sept 2026\" in the viewer's time zone; '' when missing or unreadable."
         },
         "text": {
-          "line": 94,
+          "line": 95,
           "params": [
             "value"
           ]
         },
         "joinList": {
-          "line": 99,
+          "line": 100,
           "params": [
             "items"
           ],
           "purpose": "\"a\", \"a and b\", \"a, b and c\"."
         },
         "eventAction": {
-          "line": 105,
+          "line": 106,
           "params": [
             "event",
             "meId"
@@ -6529,7 +6997,7 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "eventSentence": {
-          "line": 177,
+          "line": 183,
           "params": [
             "event",
             "meId"
@@ -6537,14 +7005,89 @@
           "purpose": "One history line: who did what, and the day it happened. → `{ sentence, date }`."
         },
         "reasonMessage": {
-          "line": 194,
+          "line": 200,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
+        "discussionCountLabel": {
+          "line": 209,
+          "params": [
+            "count"
+          ],
+          "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
+        },
+        "proposalStage": {
+          "line": 220,
+          "params": [
+            "{ brief",
+            "laneOpen",
+            "discussionCount }"
+          ],
+          "purpose": "Where an open proposal stands, which decides its controls:"
+        },
+        "newCommentsLabel": {
+          "line": 228,
+          "params": [
+            "count"
+          ],
+          "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
+        },
+        "newCommentIds": {
+          "line": 237,
+          "params": [
+            "comments",
+            "events",
+            "meId"
+          ],
+          "purpose": "The ids of the comments that are new: added by someone other than `meId`"
+        },
+        "decideErrorMessage": {
+          "line": 265,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The sentence for a Move to Work that failed."
+        },
+        "discussingIn": {
+          "line": 270,
+          "params": [
+            "laneName"
+          ],
+          "purpose": "A card's live lane: \"Discussing in <lane>\"."
+        },
+        "eventText": {
+          "line": 280,
+          "params": [
+            "value"
+          ],
+          "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
+        },
+        "httpUrl": {
+          "line": 284,
+          "params": [
+            "value"
+          ]
+        },
+        "discussionRecords": {
+          "line": 296,
+          "params": [
+            "events",
+            "meId",
+            "attachments = []"
+          ],
+          "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
+        },
+        "discussErrorMessage": {
+          "line": 327,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The sentence for a Discuss that could not start."
+        },
         "submitLabel": {
-          "line": 212,
+          "line": 345,
           "params": [
             "kind",
             "pending"
@@ -6552,14 +7095,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 231,
+          "line": 364,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 236,
+          "line": 369,
           "params": [
             "number",
             "reason"
@@ -6758,7 +7301,8 @@
         "show",
         "hide",
         "isVisible",
-        "isAvailable"
+        "isAvailable",
+        "openBrief"
       ],
       "depends": [
         "electron",
@@ -6768,131 +7312,175 @@
         "htmlUtils",
         "cloudBriefsCopy",
         "cloudBriefsForm",
-        "projectListUI"
+        "agentDispatch",
+        "aiToolSelector",
+        "notify",
+        "projectListUI",
+        "terminal"
       ],
       "functions": {
         "init": {
-          "line": 71,
+          "line": 79,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 133
+          "line": 146
         },
         "onCloudChange": {
-          "line": 143
+          "line": 156
         },
         "currentKey": {
-          "line": 178,
+          "line": 191,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 185,
+          "line": 198,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 192,
+          "line": 205,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
+        "openBrief": {
+          "line": 224,
+          "params": [
+            "number"
+          ],
+          "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
+        },
         "hide": {
-          "line": 201
+          "line": 241
         },
         "refresh": {
-          "line": 212,
+          "line": 252,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 219
+          "line": 259
         },
         "setRefreshing": {
-          "line": 260,
+          "line": 300,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 266,
+          "line": 306,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 275,
+          "line": 315,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 295,
+          "line": 350,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 302
+          "line": 357
         },
         "renderNotice": {
-          "line": 334
+          "line": 389
         },
         "renderCards": {
-          "line": 344,
+          "line": 399,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 351,
+          "line": 406,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
+        "renderCardActions": {
+          "line": 443,
+          "params": [
+            "brief"
+          ],
+          "purpose": "A card's controls, by the proposal's stage:"
+        },
+        "discussButton": {
+          "line": 459,
+          "params": [
+            "number",
+            "weight",
+            "action",
+            "label = copy.DISCUSS_LABEL",
+            "hint = copy.DISCUSS_HINT"
+          ],
+          "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
+        },
+        "moveToWorkButton": {
+          "line": 465,
+          "params": [
+            "number",
+            "action"
+          ]
+        },
+        "boardBrief": {
+          "line": 470,
+          "params": [
+            "number"
+          ],
+          "purpose": "The board's brief with this number, or null."
+        },
         "renderEmpty": {
-          "line": 372,
+          "line": 475,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 385
+          "line": 488
         },
         "renderMessage": {
-          "line": 390,
+          "line": 493,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 395,
+          "line": 498,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 403
+          "line": 506
         },
         "showDrawer": {
-          "line": 411,
+          "line": 514,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 419,
+          "line": 522,
           "params": [
-            "number"
+            "number",
+            "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 429,
+          "line": 532,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 439,
+          "line": 542,
           "params": [
             "{ number",
             "attachmentError }"
@@ -6900,34 +7488,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 446,
+          "line": 549,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 452,
+          "line": 555,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 463
+          "line": 566
         },
         "onDetailClick": {
-          "line": 497,
+          "line": 600,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 518,
+          "line": 627,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 522
+          "line": 631
         },
         "tabCount": {
-          "line": 549,
+          "line": 661,
           "params": [
             "key",
             "brief",
@@ -6935,7 +7523,7 @@
           ]
         },
         "renderMeta": {
-          "line": 557,
+          "line": 669,
           "params": [
             "brief",
             "events",
@@ -6943,14 +7531,83 @@
           ]
         },
         "renderTab": {
-          "line": 577,
+          "line": 689,
           "params": [
             "tab",
             "brief",
             "events",
             "meId"
           ]
+        },
+        "renderDiscussions": {
+          "line": 741,
+          "params": [
+            "events",
+            "meId",
+            "attachments"
+          ],
+          "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
+        },
+        "renderDiscussAction": {
+          "line": 769,
+          "params": [
+            "brief",
+            "events"
+          ],
+          "purpose": "The detail header's controls, by the same stages as the card: Go to"
+        },
+        "renderRediscuss": {
+          "line": 786,
+          "params": [
+            "brief",
+            "events",
+            "meId"
+          ],
+          "purpose": "Above the comments, when someone commented after the latest record and no"
+        },
+        "openMoveToWork": {
+          "line": 802,
+          "params": [
+            "brief"
+          ],
+          "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
+        },
+        "closeMoveToWork": {
+          "line": 838
+        },
+        "confirmMoveToWork": {
+          "line": 844,
+          "params": [
+            "priority"
+          ]
+        },
+        "discuss": {
+          "line": 880,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
+        },
+        "renderLaneSlots": {
+          "line": 917,
+          "params": [
+            "number"
+          ],
+          "purpose": "Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief."
+        },
+        "onDiscussionRecorded": {
+          "line": 932,
+          "params": [
+            "payload"
+          ],
+          "purpose": "A record landed: reload the board (its counts) and the brief when it is the one on screen."
         }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_DISCUSSION_RECORDED"
+        ],
+        "emits": []
       }
     },
     "renderer/cloudHub": {
@@ -10668,7 +11325,7 @@
           "purpose": "Assignment chip (what the terminal works on): the icon already says spec vs"
         },
         "assignmentText": {
-          "line": 412,
+          "line": 414,
           "params": [
             "assignment"
           ]
@@ -14641,6 +15298,7 @@
         "htmlUtils",
         "lucide",
         "specSection",
+        "cloudBriefsPanel",
         "taskSection"
       ],
       "functions": {
@@ -15592,6 +16250,70 @@
           "params": [
             "argv"
           ]
+        }
+      }
+    },
+    "templates/bin/record-discussion": {
+      "file": "src/templates/bin/record-discussion.js",
+      "description": "",
+      "exports": [
+        "WAIT_MS",
+        "parseArgs",
+        "requestFor",
+        "run"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto"
+      ],
+      "functions": {
+        "parseArgs": {
+          "line": 44,
+          "params": [
+            "argv"
+          ],
+          "purpose": "argv (after the script) → `{ ok, discussionId, url }` or `{ ok: false, message }`."
+        },
+        "isHttpUrl": {
+          "line": 60,
+          "params": [
+            "value"
+          ]
+        },
+        "requestFor": {
+          "line": 74,
+          "params": [
+            "{ discussionId",
+            "url",
+            "summary",
+            "ts }"
+          ],
+          "purpose": "Parsed args + the stdin text → the bus request, or why not. The same shape"
+        },
+        "readAll": {
+          "line": 92,
+          "params": [
+            "stream"
+          ]
+        },
+        "readReply": {
+          "line": 101,
+          "params": [
+            "file"
+          ]
+        },
+        "run": {
+          "line": 114,
+          "params": [
+            "{ argv",
+            "summary",
+            "busDir",
+            "now = Date.now",
+            "waitMs = WAIT_MS",
+            "pollMs = POLL_MS }"
+          ],
+          "purpose": "Publish the request, wait for the reply. `summary` is the stdin text."
         }
       }
     },
@@ -16889,6 +17611,21 @@
         "name": "cloud-brief-create",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_DISCUSS": {
+        "name": "cloud-brief-discuss",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_DISCUSSION_RECORDED": {
+        "name": "cloud-brief-discussion-recorded",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_DECIDE": {
+        "name": "cloud-brief-decide",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -17079,6 +17816,18 @@
         "module": "renderer/statusBar/noticeTrayModel",
         "file": "src/renderer/statusBar/noticeTrayModel.js",
         "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
+      }
+    ],
+    "discussions": [
+      {
+        "module": "main/cloud/cloudDiscussions",
+        "file": "src/main/cloud/cloudDiscussions.js",
+        "description": "cloudDiscussions — the pure core of discussing a Frame Cloud proposal."
+      },
+      {
+        "module": "main/cloud/cloudDiscussionsService",
+        "file": "src/main/cloud/cloudDiscussionsService.js",
+        "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       }
     ],
     "dock": [
@@ -17595,6 +18344,18 @@
         "module": "renderer/sectionRail",
         "file": "src/renderer/sectionRail.js",
         "description": "Section Rail Module"
+      }
+    ],
+    "service": [
+      {
+        "module": "main/cloud/cloudBriefsService",
+        "file": "src/main/cloud/cloudBriefsService.js",
+        "description": "cloudBriefsService — the Electron shell around reading and creating Frame"
+      },
+      {
+        "module": "main/cloud/cloudDiscussionsService",
+        "file": "src/main/cloud/cloudDiscussionsService.js",
+        "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       }
     ],
     "session": [

@@ -8,8 +8,9 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating is the one write: the web's other write copy (Transform to Work,
- * refusal sentences for other mutations, search params) is left out.
+ * Creating and discussing are the writes: the web's other write copy
+ * (Transform to Work, refusal sentences for other mutations, search params)
+ * is left out.
  */
 
 /** The board's open columns, in order. A brief lands in one by its derived status, never by a hand. */
@@ -120,6 +121,11 @@ function eventAction(event, meId) {
     }
     case 'decision-recorded':
       return 'recorded this proposal as a decision';
+    case 'discussion-recorded': {
+      // `provider` is free text the caller sent, so it reads as it was written.
+      const provider = text(data.provider);
+      return provider ? `recorded a discussion held with ${provider}` : 'recorded a discussion';
+    }
     case 'updated': {
       const changes = [];
       if ('title' in data) changes.push('the title');
@@ -195,6 +201,133 @@ function reasonMessage(reason) {
   return REASON_MESSAGES[reason] || 'Something went wrong loading briefs. Try again.';
 }
 
+// ─── Discussions ──────────────────────────────────────────────
+
+const DISCUSSIONS_TITLE = 'Discussions';
+
+/** A card's record count: "1 discussion recorded", "2 discussions recorded"; '' for none or unknown. */
+function discussionCountLabel(count) {
+  if (!Number.isInteger(count) || count < 1) return '';
+  return `${count} discussion${count === 1 ? '' : 's'} recorded`;
+}
+
+/**
+ * Where an open proposal stands, which decides its controls:
+ * 'discussing' (a Discuss lane is open) · 'discuss' (nothing recorded yet) ·
+ * 'decide' (at least one record: Move to Work, then Discuss) · 'none' (work,
+ * or ended). New comments are a separate fact layered on 'decide'.
+ */
+function proposalStage({ brief, laneOpen, discussionCount }) {
+  if (laneOpen) return 'discussing';
+  const b = brief || {};
+  if (b.kind !== 'proposal' || b.status === 'closed') return 'none';
+  return Number.isInteger(discussionCount) && discussionCount > 0 ? 'decide' : 'discuss';
+}
+
+/** "1 new comment", "3 new comments"; '' for none or unknown. */
+function newCommentsLabel(count) {
+  if (!Number.isInteger(count) || count < 1) return '';
+  return `${count} new comment${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * The ids of the comments that are new: added by someone other than `meId`
+ * after the latest discussion record. Empty while nothing was recorded.
+ */
+function newCommentIds(comments, events, meId) {
+  const records = (Array.isArray(events) ? events : []).filter((e) => e && e.event === 'discussion-recorded');
+  if (records.length === 0) return new Set();
+  const lastAt = Date.parse(records[records.length - 1].at);
+  if (Number.isNaN(lastAt)) return new Set();
+  return new Set((Array.isArray(comments) ? comments : [])
+    .filter((c) => c && c.authorId !== meId && Date.parse(c.createdAt) > lastAt)
+    .map((c) => c.id));
+}
+
+const MOVE_TO_WORK_LABEL = 'Move to Work';
+const MOVE_TO_WORK_DESCRIPTION = 'This proposal becomes work you have decided on. It keeps its number and stays in Backlog.';
+const REDISCUSS_LABEL = 'Re-discuss';
+const REDISCUSS_HINT = 'Start a new discussion that opens on these comments.';
+
+const DECIDE_MESSAGES = {
+  notAProposal: 'This brief is no longer a proposal.',
+  alreadyWork: 'This proposal has already moved to work.',
+  alreadyClosed: 'This proposal has ended.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  badRequest: 'Pick a priority and try again.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a Move to Work that failed. */
+function decideErrorMessage(reason) {
+  return DECIDE_MESSAGES[reason] || 'Something went wrong. Try again.';
+}
+
+/** A card's live lane: "Discussing in <lane>". */
+function discussingIn(laneName) {
+  return laneName ? `Discussing in ${laneName}` : 'Discussing';
+}
+const DISCUSS_LABEL = 'Discuss';
+const GO_TO_DISCUSSION_LABEL = 'Go to discussion';
+const DISCUSS_HINT = 'Talk this proposal over with an AI agent in a new lane. It can record what you settle here.';
+const WRITE_UP_LABEL = 'Read the write-up';
+const WRITE_UP_IN_LINKS = 'Write-up added to Links';
+
+/** A trimmed string, or '' — a `brief_event.data` field is unknown on the wire. */
+function eventText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function httpUrl(value) {
+  const url = eventText(value);
+  return /^https?:\/\//i.test(url) ? url : '';
+}
+
+/**
+ * The brief's discussion records, newest first (`brief.events` is oldest
+ * first). → `[{ id, date, actor, provider, summary, url, inLinks }]`; `url` is
+ * '' unless it is an http(s) link, and `inLinks` says the brief's
+ * `attachments` hold that url (its write-up went to Links). Records without a
+ * summary are left out.
+ */
+function discussionRecords(events, meId, attachments = []) {
+  const linked = new Set((Array.isArray(attachments) ? attachments : []).map((a) => a && a.url));
+  return (Array.isArray(events) ? events : [])
+    .filter((e) => e && e.event === 'discussion-recorded')
+    .map((e) => {
+      const data = e.data && typeof e.data === 'object' ? e.data : {};
+      return {
+        id: e.id,
+        date: formatDate(e.at),
+        actor: actorLabel(e.actorId, meId),
+        provider: eventText(data.provider),
+        summary: eventText(data.summary),
+        url: httpUrl(data.url),
+      };
+    })
+    .map((r) => ({ ...r, inLinks: Boolean(r.url) && linked.has(r.url) }))
+    .filter((r) => r.summary)
+    .reverse();
+}
+
+const DISCUSS_MESSAGES = {
+  notAnOpenProposal: 'Only an open proposal can be discussed.',
+  unknownTool: 'Frame does not know the selected AI tool. Pick one in the AI tool menu and try again.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a Discuss that could not start. */
+function discussErrorMessage(reason) {
+  return DISCUSS_MESSAGES[reason] || 'The discussion could not start. Try again.';
+}
+
 // ─── New brief ────────────────────────────────────────────────
 
 const NEW_BRIEF_TITLE = 'New brief';
@@ -251,6 +384,24 @@ module.exports = {
   formatDate,
   eventSentence,
   reasonMessage,
+  DISCUSSIONS_TITLE,
+  discussionCountLabel,
+  discussingIn,
+  proposalStage,
+  newCommentsLabel,
+  newCommentIds,
+  MOVE_TO_WORK_LABEL,
+  MOVE_TO_WORK_DESCRIPTION,
+  REDISCUSS_LABEL,
+  REDISCUSS_HINT,
+  decideErrorMessage,
+  DISCUSS_LABEL,
+  GO_TO_DISCUSSION_LABEL,
+  DISCUSS_HINT,
+  WRITE_UP_LABEL,
+  WRITE_UP_IN_LINKS,
+  discussionRecords,
+  discussErrorMessage,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

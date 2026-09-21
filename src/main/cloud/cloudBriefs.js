@@ -4,7 +4,9 @@
  * Reads a cloud project's briefs, one brief with its parts, attachments and
  * comments, its history, and the project's milestones. The one write is
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
- * every other brief or milestone mutation stays on the web.
+ * recording a discussion on a proposal (`brief.recordDiscussion`); and moving
+ * a proposal to work (`brief.decide`); every other brief or milestone
+ * mutation stays on the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -24,8 +26,11 @@ const PART_SHAPES = new Set(['spec', 'task']);
 const PART_TYPES = new Set(['feature', 'fix', 'refactor', 'docs', 'test']);
 const MILESTONE_STATUSES = new Set(['planned', 'started', 'closed']);
 
-/** The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`, `BRIEF_ATTACHMENT_TITLE_MAX`). */
-const LIMITS = Object.freeze({ title: 200, body: 10000, attachmentTitle: 200 });
+/**
+ * The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`,
+ * `BRIEF_ATTACHMENT_TITLE_MAX`, `BRIEF_PROVIDER_MAX`).
+ */
+const LIMITS = Object.freeze({ title: 200, body: 10000, attachmentTitle: 200, provider: 40 });
 
 /** Where Frame's New brief form sits among FrameCloud's brief sources: a person at a form. */
 const CREATE_SOURCE = 'desk';
@@ -243,6 +248,95 @@ async function createWithLinks(call, { input, links = [] }) {
   return { ok: true, number, attachmentError: null };
 }
 
+// ─── Discussions ──────────────────────────────────────────────
+
+/**
+ * `brief.recordDiscussion` → the brief, normalized. Appends one
+ * `discussion-recorded` event to an open proposal and writes no column; `url`
+ * and `provider` are left out when absent. Throws CloudError
+ * (`NOT_A_PROPOSAL`, `ALREADY_CLOSED`, `BRIEF_NOT_FOUND`).
+ */
+async function recordDiscussion({ api, token, fetchJson, signal, id, summary, url, provider }) {
+  const input = { id, summary };
+  if (url) input.url = url;
+  if (provider) input.provider = provider;
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.recordDiscussion', method: 'POST', input });
+  return normalizeBrief(data);
+}
+
+// ─── Deciding ─────────────────────────────────────────────────
+
+/** The server's refusals of `brief.decide` → the reason Frame reports. */
+const DECIDE_REFUSALS = {
+  NOT_A_PROPOSAL: 'notAProposal',
+  ALREADY_WORK: 'alreadyWork',
+  ALREADY_CLOSED: 'alreadyClosed',
+  BRIEF_NOT_FOUND: 'notFound',
+};
+
+/** `brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal. */
+async function decideBrief({ api, token, fetchJson, signal, id, priority }) {
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.decide', method: 'POST', input: { id, priority } });
+  return normalizeBrief(data);
+}
+
+/**
+ * Move a proposal to work with a priority through `call`. The refusals come
+ * back as values, since `call` folds them all into one reason.
+ * → `{ ok: true }` or `{ ok: false, reason }`.
+ */
+async function decideThrough(call, { id, priority }) {
+  if (!PRIORITIES.has(priority)) return { ok: false, reason: 'badRequest' };
+  const result = await call(async (ctx) => {
+    try {
+      await decideBrief({ ...ctx, id, priority });
+      return { refused: null };
+    } catch (err) {
+      const refused = err && DECIDE_REFUSALS[err.message];
+      if (refused) return { refused };
+      throw err;
+    }
+  });
+  if (!result.ok) return { ok: false, reason: result.reason };
+  if (result.value.refused) return { ok: false, reason: result.value.refused };
+  return { ok: true };
+}
+
+/**
+ * From a brief's events (oldest first): how many discussions were recorded,
+ * and how many comments someone other than `meId` added after the latest
+ * record — none count as new while nothing was recorded.
+ */
+function discussionFacts(events, meId) {
+  let discussionCount = 0;
+  let newCommentCount = 0;
+  for (const e of events) {
+    if (e.event === 'discussion-recorded') {
+      discussionCount += 1;
+      newCommentCount = 0;
+    } else if (e.event === 'comment-added' && discussionCount > 0 && e.actorId !== meId) {
+      newCommentCount += 1;
+    }
+  }
+  return { discussionCount, newCommentCount };
+}
+
+/**
+ * The briefs with `discussionCount` and `newCommentCount` on each open
+ * proposal, from its `brief.events` (the list does not carry them). `call` is
+ * cloudProjectsService's wrapper; a proposal whose events fail to load gets
+ * `null`s, never a failed board. Work and ended briefs get `null`s without a
+ * request.
+ */
+async function addDiscussionCounts(call, briefs, meId = '') {
+  const unknown = { discussionCount: null, newCommentCount: null };
+  return Promise.all(briefs.map(async (brief) => {
+    if (brief.kind !== 'proposal' || brief.status === 'closed') return { ...brief, ...unknown };
+    const events = await call((ctx) => briefEvents({ ...ctx, id: brief.id }));
+    return { ...brief, ...(events.ok ? discussionFacts(events.value, meId) : unknown) };
+  }));
+}
+
 // ─── Web links ────────────────────────────────────────────────
 
 /**
@@ -267,9 +361,15 @@ module.exports = {
   getBrief,
   briefEvents,
   buildCreateInput,
+  isHttpUrl,
   normalizeLinks,
   createBrief,
   addAttachment,
   createWithLinks,
+  recordDiscussion,
+  discussionFacts,
+  addDiscussionCounts,
+  decideBrief,
+  decideThrough,
   buildBriefWebUrl,
 };

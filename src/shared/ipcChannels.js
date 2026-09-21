@@ -262,7 +262,14 @@ const IPC = {
   CLOUD_BRIEFS_LIST: 'cloud-briefs-list',               // renderer → main (invoke): (path, { includeClosed }) → { ok, project, briefs, milestones, meId, canOpenWeb } | { ok: false, reason }
   CLOUD_BRIEF_GET: 'cloud-brief-get',                   // renderer → main (invoke): (path, number) → { ok, brief, events, meId, canOpenWeb } | { ok: false, reason }
   CLOUD_BRIEFS_OPEN_ON_WEB: 'cloud-briefs-open-on-web', // renderer → main (invoke): (path, number?) → opened?
-  CLOUD_BRIEF_CREATE: 'cloud-brief-create'              // renderer → main (invoke): (path, { kind, title, body, priority, links }) → { ok, number, attachmentError } | { ok: false, reason, field? }
+  CLOUD_BRIEF_CREATE: 'cloud-brief-create',             // renderer → main (invoke): (path, { kind, title, body, priority, links }) → { ok, number, attachmentError } | { ok: false, reason, field? }
+
+  // Frame Cloud brief discussions (frame-cloud-brief-discussions spec). Discuss
+  // returns the lane's prompt; the agent records through a staged command and
+  // a userData bus, and main pushes each record that landed.
+  CLOUD_BRIEF_DISCUSS: 'cloud-brief-discuss',           // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
+  CLOUD_BRIEF_DISCUSSION_RECORDED: 'cloud-brief-discussion-recorded', // main → renderer: { folderPath, number }
+  CLOUD_BRIEF_DECIDE: 'cloud-brief-decide'              // renderer → main (invoke): (path, number, priority) → { ok } | { ok: false, reason } — Move to Work
 };
 
 module.exports = { IPC };

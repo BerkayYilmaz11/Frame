@@ -211,3 +211,107 @@ test('the form\'s fixed sentences match the web', () => {
   assert.equal(copy.INVALID_LINK, 'That is not a full link. It should start with https://.');
   assert.equal(copy.AI_LINKS_TITLE, 'AI conversations & links');
 });
+
+// ─── Discussions ──────────────────────────────────────────────
+
+test('discussion-recorded reads as the web says it, with and without a provider', () => {
+  const e = (data) => ({ event: 'discussion-recorded', actorId: 'u1', at: '2026-09-21T10:00:00.000Z', data });
+  assert.equal(copy.eventSentence(e({ summary: 'S', provider: 'Claude Code' }), 'u1').sentence, 'You recorded a discussion held with Claude Code.');
+  assert.equal(copy.eventSentence(e({ summary: 'S' }), 'u2').sentence, 'A workspace member recorded a discussion.');
+});
+
+test('discussionRecords keeps the records only, newest first, with who, when and what', () => {
+  const events = [
+    { id: 'e1', event: 'created', actorId: 'u1', at: '2026-09-01T10:00:00.000Z', data: { kind: 'proposal' } },
+    { id: 'e2', event: 'discussion-recorded', actorId: 'u1', at: '2026-09-02T10:00:00.000Z', data: { summary: ' First ', provider: 'Codex CLI' } },
+    { id: 'e3', event: 'discussion-recorded', actorId: 'u2', at: '2026-09-05T10:00:00.000Z', data: { summary: 'Second', url: 'https://claude.ai/artifact/y' } },
+  ];
+  const records = copy.discussionRecords(events, 'u1');
+  assert.deepEqual(records.map((r) => r.id), ['e3', 'e2']);
+  assert.deepEqual(records[1], { id: 'e2', date: copy.formatDate('2026-09-02T10:00:00.000Z'), actor: 'You', provider: 'Codex CLI', summary: 'First', url: '', inLinks: false });
+  assert.equal(records[0].actor, 'A workspace member');
+  assert.equal(records[0].url, 'https://claude.ai/artifact/y');
+  assert.equal(events[0].id, 'e1'); // the caller's array is not reordered
+});
+
+test('discussionRecords drops a non-http(s) url and a record without a summary, and survives no list', () => {
+  const records = copy.discussionRecords([
+    { id: 'a', event: 'discussion-recorded', data: { summary: '<script>x</script>', url: 'javascript:alert(1)' } },
+    { id: 'b', event: 'discussion-recorded', data: { summary: '   ' } },
+    { id: 'c', event: 'discussion-recorded', data: null },
+  ]);
+  assert.deepEqual(records.map((r) => [r.id, r.url, r.summary]), [['a', '', '<script>x</script>']]);
+  assert.deepEqual(copy.discussionRecords(undefined), []);
+});
+
+test('the Discuss labels', () => {
+  assert.equal(copy.DISCUSS_LABEL, 'Discuss');
+  assert.equal(copy.GO_TO_DISCUSSION_LABEL, 'Go to discussion');
+  assert.equal(copy.DISCUSSIONS_TITLE, 'Discussions');
+});
+
+test('discussErrorMessage has a sentence for each reason and a fallback', () => {
+  for (const reason of ['notAnOpenProposal', 'unknownTool', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    assert.notEqual(copy.discussErrorMessage(reason), copy.discussErrorMessage('other'), reason);
+  }
+  assert.match(copy.discussErrorMessage('notAnOpenProposal'), /open proposal/);
+  assert.match(copy.discussErrorMessage('whatever'), /could not start/);
+});
+
+test('discussionCountLabel counts records and is empty for none or unknown', () => {
+  assert.equal(copy.discussionCountLabel(1), '1 discussion recorded');
+  assert.equal(copy.discussionCountLabel(2), '2 discussions recorded');
+  for (const none of [0, null, undefined, 1.5]) assert.equal(copy.discussionCountLabel(none), '', String(none));
+});
+
+test('discussingIn names the lane', () => {
+  assert.equal(copy.discussingIn('Frame 3'), 'Discussing in Frame 3');
+  assert.equal(copy.discussingIn(''), 'Discussing');
+});
+
+test('proposalStage follows the four states', () => {
+  const proposal = { kind: 'proposal', status: 'backlog' };
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: 0 }), 'discuss');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: null }), 'discuss');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: true, discussionCount: 2 }), 'discussing');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: 1 }), 'decide');
+  assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'backlog' }, laneOpen: false, discussionCount: 1 }), 'none');
+  assert.equal(copy.proposalStage({ brief: { kind: 'proposal', status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'active' }, laneOpen: true }), 'discussing');
+});
+
+test('newCommentsLabel and the Move to Work words', () => {
+  assert.equal(copy.newCommentsLabel(1), '1 new comment');
+  assert.equal(copy.newCommentsLabel(3), '3 new comments');
+  assert.equal(copy.newCommentsLabel(0), '');
+  assert.equal(copy.MOVE_TO_WORK_LABEL, 'Move to Work');
+  assert.equal(copy.REDISCUSS_LABEL, 'Re-discuss');
+  assert.match(copy.decideErrorMessage('alreadyWork'), /already moved/);
+  assert.match(copy.decideErrorMessage('whatever'), /went wrong/);
+});
+
+test('newCommentIds marks others\' comments after the latest record', () => {
+  const events = [
+    { event: 'discussion-recorded', at: '2026-09-02T10:00:00.000Z' },
+    { event: 'discussion-recorded', at: '2026-09-05T10:00:00.000Z' },
+  ];
+  const comments = [
+    { id: 'c1', authorId: 'u2', createdAt: '2026-09-03T10:00:00.000Z' },
+    { id: 'c2', authorId: 'u2', createdAt: '2026-09-06T10:00:00.000Z' },
+    { id: 'c3', authorId: 'u1', createdAt: '2026-09-07T10:00:00.000Z' },
+  ];
+  assert.deepEqual([...copy.newCommentIds(comments, events, 'u1')], ['c2']);
+  assert.equal(copy.newCommentIds(comments, [], 'u1').size, 0);
+});
+
+test('discussionRecords says a write-up went to Links when the brief holds that url', () => {
+  const events = [
+    { id: 'e1', event: 'discussion-recorded', data: { summary: 'Old', url: 'https://claude.ai/artifact/old' } },
+    { id: 'e2', event: 'discussion-recorded', data: { summary: 'New', url: 'https://claude.ai/artifact/new' } },
+  ];
+  const attachments = [{ id: 'a1', title: 'Discussion write-up (2026-09-21)', url: 'https://claude.ai/artifact/new' }];
+  const records = copy.discussionRecords(events, 'u1', attachments);
+  assert.deepEqual(records.map((r) => [r.id, r.inLinks]), [['e2', true], ['e1', false]]);
+  assert.equal(records[1].url, 'https://claude.ai/artifact/old');
+  assert.equal(copy.WRITE_UP_IN_LINKS, 'Write-up added to Links');
+});

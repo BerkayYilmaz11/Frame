@@ -321,3 +321,123 @@ test('createWithLinks without links is one request and never returns the id', as
   assert.deepEqual(r, { ok: true, number: 3, attachmentError: null });
   assert.equal(sent.length, 1);
 });
+
+// ─── Discussions ──────────────────────────────────────────────
+
+test('recordDiscussion POSTs brief.recordDiscussion with id, summary, url and provider', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.recordDiscussion': ok({ ...BRIEF, kind: 'proposal' }) });
+  const brief = await core.recordDiscussion({
+    ...ctx(fetchJson), id: 'b1', summary: 'Chose Postgres', url: 'https://claude.ai/artifact/x', provider: 'Claude Code',
+  });
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', summary: 'Chose Postgres', url: 'https://claude.ai/artifact/x', provider: 'Claude Code' });
+  assert.equal(brief.kind, 'proposal');
+});
+
+test('recordDiscussion leaves out an absent url and provider', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.recordDiscussion': ok(BRIEF) });
+  await core.recordDiscussion({ ...ctx(fetchJson), id: 'b1', summary: 'Second round' });
+  assert.deepEqual(calls[0].body, { id: 'b1', summary: 'Second round' });
+});
+
+test('recordDiscussion surfaces a server refusal as a CloudError', async () => {
+  const { fetchJson } = fakeFetch({
+    '/trpc/brief.recordDiscussion': { status: 400, body: { error: { message: 'ALREADY_CLOSED', data: { code: 'BAD_REQUEST' } } } },
+  });
+  await assert.rejects(core.recordDiscussion({ ...ctx(fetchJson), id: 'b1', summary: 'x' }), (err) => err.name === 'CloudError' && err.message === 'ALREADY_CLOSED');
+});
+
+test('LIMITS carries the server\'s provider limit', () => {
+  assert.equal(core.LIMITS.provider, 40);
+});
+
+test('addDiscussionCounts counts records on open proposals only, and survives a failed events call', async () => {
+  const briefs = [
+    { id: 'p1', number: 1, kind: 'proposal', status: 'backlog' },
+    { id: 'p2', number: 2, kind: 'proposal', status: 'backlog' },
+    { id: 'p3', number: 3, kind: 'proposal', status: 'closed' },
+    { id: 'w4', number: 4, kind: 'work', status: 'active' },
+  ];
+  const asked = [];
+  const events = {
+    p1: [
+      { id: 'e1', event: 'created' },
+      { id: 'e2', event: 'discussion-recorded', data: { summary: 'a' } },
+      { id: 'e3', event: 'discussion-recorded', data: { summary: 'b' } },
+    ],
+  };
+  const call = async (fn) => {
+    const fetchJson = async (url) => {
+      const id = JSON.parse(decodeURIComponent(url.split('?input=')[1])).id;
+      asked.push(id);
+      if (!events[id]) return { status: 500, body: {} };
+      return ok(events[id]);
+    };
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  const counted = await core.addDiscussionCounts(call, briefs);
+  assert.deepEqual(counted.map((b) => b.discussionCount), [2, null, null, null]);
+  assert.deepEqual(counted.map((b) => b.newCommentCount), [0, null, null, null]);
+  assert.deepEqual(asked.sort(), ['p1', 'p2']);
+  assert.equal(briefs[0].discussionCount, undefined);
+});
+
+// ─── Deciding ─────────────────────────────────────────────────
+
+/** A `call()` over a fake fetch that answers brief.decide with `answer`. */
+function decideCall(answer) {
+  const sent = [];
+  const fetchJson = async (url, opts) => {
+    sent.push({ name: url.slice(`${API}/trpc/`.length), body: opts.body });
+    return answer;
+  };
+  const call = async (fn) => {
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  return { call, sent };
+}
+
+test('decideThrough POSTs brief.decide once with the id and priority', async () => {
+  const { call, sent } = decideCall(ok({ ...BRIEF, kind: 'work' }));
+  assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'high' }), { ok: true });
+  assert.deepEqual(sent, [{ name: 'brief.decide', body: { id: 'b1', priority: 'high' } }]);
+});
+
+test('decideThrough sends nothing for a priority the server does not know', async () => {
+  const { call, sent } = decideCall(ok(BRIEF));
+  for (const priority of [undefined, 'urgent', '']) {
+    assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority }), { ok: false, reason: 'badRequest' });
+  }
+  assert.equal(sent.length, 0);
+});
+
+test('decideThrough keeps the server\'s refusal reason', async () => {
+  const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+  const cases = [['NOT_A_PROPOSAL', 'notAProposal'], ['ALREADY_WORK', 'alreadyWork'], ['ALREADY_CLOSED', 'alreadyClosed']];
+  for (const [code, reason] of cases) {
+    const { call } = decideCall(refusal(code));
+    assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason }, code);
+  }
+  const { call } = decideCall({ status: 401, body: {} });
+  assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason: 'unauthorized' });
+});
+
+test('discussionFacts counts records, and others\' comments after the latest one as new', () => {
+  const e = (event, actorId = 'u2') => ({ id: event, event, actorId, data: {} });
+  assert.deepEqual(core.discussionFacts([e('created'), e('comment-added')], 'u1'), { discussionCount: 0, newCommentCount: 0 });
+  assert.deepEqual(core.discussionFacts([
+    e('discussion-recorded', 'u1'), e('comment-added'), e('comment-added', 'u1'), e('comment-added'),
+  ], 'u1'), { discussionCount: 1, newCommentCount: 2 });
+  assert.deepEqual(core.discussionFacts([
+    e('discussion-recorded', 'u1'), e('comment-added'), e('discussion-recorded', 'u1'),
+  ], 'u1'), { discussionCount: 2, newCommentCount: 0 });
+});
