@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T10:17:57.237Z",
+  "lastUpdated": "2026-09-21T10:19:15.987Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9003,13 +9003,13 @@
       "acceptanceCriteria": "Clicking a brief lane chip opens Briefs with that brief open; task and spec chips are unchanged.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "fix",
       "context": "From spec: frame-cloud-brief-discussions — findings from the T08 walk, 2026-09-21",
       "createdAt": "2026-09-21T10:16:51.943Z",
-      "updatedAt": "2026-09-21T10:17:24.380Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T10:19:15.987Z",
+      "completedAt": "2026-09-21T10:19:15.987Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T11",

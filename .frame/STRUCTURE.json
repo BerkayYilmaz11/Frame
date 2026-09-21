@@ -7131,7 +7131,8 @@
         "show",
         "hide",
         "isVisible",
-        "isAvailable"
+        "isAvailable",
+        "openBrief"
       ],
       "depends": [
         "electron",
@@ -7144,131 +7145,139 @@
         "agentDispatch",
         "aiToolSelector",
         "notify",
-        "projectListUI"
+        "projectListUI",
+        "terminal"
       ],
       "functions": {
         "init": {
-          "line": 77,
+          "line": 79,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 144
+          "line": 146
         },
         "onCloudChange": {
-          "line": 154
+          "line": 156
         },
         "currentKey": {
-          "line": 189,
+          "line": 191,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 196,
+          "line": 198,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 203,
+          "line": 205,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
+        "openBrief": {
+          "line": 224,
+          "params": [
+            "number"
+          ],
+          "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
+        },
         "hide": {
-          "line": 212
+          "line": 241
         },
         "refresh": {
-          "line": 223,
+          "line": 252,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 230
+          "line": 259
         },
         "setRefreshing": {
-          "line": 271,
+          "line": 300,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 277,
+          "line": 306,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 286,
+          "line": 315,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 306,
+          "line": 335,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 313
+          "line": 342
         },
         "renderNotice": {
-          "line": 345
+          "line": 374
         },
         "renderCards": {
-          "line": 355,
+          "line": 384,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 362,
+          "line": 391,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 384,
+          "line": 413,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 397
+          "line": 426
         },
         "renderMessage": {
-          "line": 402,
+          "line": 431,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 407,
+          "line": 436,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 415
+          "line": 444
         },
         "showDrawer": {
-          "line": 423,
+          "line": 452,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 431,
+          "line": 460,
           "params": [
             "number"
           ]
         },
         "openNewBrief": {
-          "line": 441,
+          "line": 470,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 451,
+          "line": 480,
           "params": [
             "{ number",
             "attachmentError }"
@@ -7276,34 +7285,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 458,
+          "line": 487,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 464,
+          "line": 493,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 475
+          "line": 504
         },
         "onDetailClick": {
-          "line": 509,
+          "line": 538,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 534,
+          "line": 563,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 538
+          "line": 567
         },
         "tabCount": {
-          "line": 568,
+          "line": 597,
           "params": [
             "key",
             "brief",
@@ -7311,7 +7320,7 @@
           ]
         },
         "renderMeta": {
-          "line": 576,
+          "line": 605,
           "params": [
             "brief",
             "events",
@@ -7319,7 +7328,7 @@
           ]
         },
         "renderTab": {
-          "line": 596,
+          "line": 625,
           "params": [
             "tab",
             "brief",
@@ -7328,7 +7337,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 646,
+          "line": 675,
           "params": [
             "events",
             "meId"
@@ -7336,34 +7345,34 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "isOpenProposal": {
-          "line": 666,
+          "line": 695,
           "params": [
             "brief"
           ]
         },
         "renderDiscussAction": {
-          "line": 674,
+          "line": 703,
           "params": [
             "brief"
           ],
           "purpose": "Go to discussion while the brief's lane is open (whatever the brief has"
         },
         "discuss": {
-          "line": 688,
+          "line": 717,
           "params": [
             "brief"
           ],
           "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
         },
         "renderLaneSlots": {
-          "line": 725,
+          "line": 754,
           "params": [
             "number"
           ],
           "purpose": "Redraw the lane dots and the detail's Discuss / Go to discussion. `number` null means any brief."
         },
         "onDiscussionRecorded": {
-          "line": 738,
+          "line": 767,
           "params": [
             "payload"
           ],
@@ -11092,7 +11101,7 @@
           "purpose": "Assignment chip (what the terminal works on): the icon already says spec vs"
         },
         "assignmentText": {
-          "line": 412,
+          "line": 414,
           "params": [
             "assignment"
           ]
@@ -15065,6 +15074,7 @@
         "htmlUtils",
         "lucide",
         "specSection",
+        "cloudBriefsPanel",
         "taskSection"
       ],
       "functions": {

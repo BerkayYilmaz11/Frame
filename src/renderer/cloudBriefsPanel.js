@@ -66,6 +66,8 @@ let detail = null;
 let detailSeq = 0;
 // The brief number whose Discuss is starting, so a second click waits.
 let discussing = null;
+// A brief to open once the panel mounts (a Discuss lane's chip was clicked).
+let pendingOpen = null;
 
 const TABS = [
   { key: 'description', label: 'Description' },
@@ -207,6 +209,33 @@ function show() {
   showClosed = false;
   if (showClosedInput) showClosedInput.checked = false;
   load();
+  if (pendingOpen !== null) {
+    const number = pendingOpen;
+    pendingOpen = null;
+    openDetail(number);
+  }
+}
+
+/**
+ * Open the Briefs panel on one brief — the route a Discuss lane's chip
+ * takes. The host mounts the panel (show() then opens the drawer); when it
+ * is already on screen, the drawer opens directly.
+ */
+function openBrief(number) {
+  if (!Number.isInteger(number) || number < 1) return;
+  if (!isAvailable()) {
+    notify.error(copy.reasonMessage('notConnected'));
+    return;
+  }
+  const ui = require('./terminal').getMultiTerminalUI();
+  if (visible) {
+    if (ui) ui.showPanel('cloudBriefs');
+    openDetail(number);
+    return;
+  }
+  pendingOpen = number;
+  if (ui) ui.showPanel('cloudBriefs');
+  if (pendingOpen !== null && !visible) pendingOpen = null; // the host did not mount it
 }
 
 function hide() {
@@ -748,4 +777,5 @@ module.exports = {
   hide,
   isVisible,
   isAvailable,
+  openBrief,
 };

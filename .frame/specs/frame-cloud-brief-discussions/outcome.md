@@ -64,3 +64,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T10 — Brief lane chip opens the brief
+
+A `brief` lane chip now shows a discussion icon (`laneStatus.js`) and opens the Briefs panel on that brief (`terminalsView.js` → new `cloudBriefsPanel.openBrief`) instead of routing as a task. `openBrief` relies on `showPanel` mounting synchronously and consumes a pending number in `show()`. `terminalsView.js` and `laneStatus.js` were added to scope by the plan amendment.
+
+_Captured: 2026-09-21 · 3 file change(s)_
+
+---
+
