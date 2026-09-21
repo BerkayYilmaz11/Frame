@@ -40,3 +40,11 @@ _Captured: 2026-09-21 · 1 file change(s)_
 
 ---
 
+## T06 — Discussion copy
+
+Added the `discussion-recorded` sentence, `discussionRecords` (newest first, http(s)-only url, blank summaries dropped), the Discuss / Go to discussion / Discussions / Read the write-up labels and `discussErrorMessage` to `src/renderer/cloudBriefsCopy.js`, with five cases in `test/cloudBriefsCopy.test.js`. Diverged from plan: `discussionRecords(events, meId)` also takes `meId` so each record says who recorded it, as the spec and the web's section do.
+
+_Captured: 2026-09-21 · 2 file change(s)_
+
+---
+

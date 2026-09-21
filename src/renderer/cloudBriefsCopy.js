@@ -8,8 +8,9 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating is the one write: the web's other write copy (Transform to Work,
- * refusal sentences for other mutations, search params) is left out.
+ * Creating and discussing are the writes: the web's other write copy
+ * (Transform to Work, refusal sentences for other mutations, search params)
+ * is left out.
  */
 
 /** The board's open columns, in order. A brief lands in one by its derived status, never by a hand. */
@@ -120,6 +121,11 @@ function eventAction(event, meId) {
     }
     case 'decision-recorded':
       return 'recorded this proposal as a decision';
+    case 'discussion-recorded': {
+      // `provider` is free text the caller sent, so it reads as it was written.
+      const provider = text(data.provider);
+      return provider ? `recorded a discussion held with ${provider}` : 'recorded a discussion';
+    }
     case 'updated': {
       const changes = [];
       if ('title' in data) changes.push('the title');
@@ -195,6 +201,62 @@ function reasonMessage(reason) {
   return REASON_MESSAGES[reason] || 'Something went wrong loading briefs. Try again.';
 }
 
+// ─── Discussions ──────────────────────────────────────────────
+
+const DISCUSSIONS_TITLE = 'Discussions';
+const DISCUSS_LABEL = 'Discuss';
+const GO_TO_DISCUSSION_LABEL = 'Go to discussion';
+const DISCUSS_HINT = 'Talk this proposal over with an AI agent in a new lane. It can record what you settle here.';
+const WRITE_UP_LABEL = 'Read the write-up';
+
+/** A trimmed string, or '' — a `brief_event.data` field is unknown on the wire. */
+function eventText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function httpUrl(value) {
+  const url = eventText(value);
+  return /^https?:\/\//i.test(url) ? url : '';
+}
+
+/**
+ * The brief's discussion records, newest first (`brief.events` is oldest
+ * first). → `[{ id, date, actor, provider, summary, url }]`; `url` is '' unless
+ * it is an http(s) link. Records without a summary are left out.
+ */
+function discussionRecords(events, meId) {
+  return (Array.isArray(events) ? events : [])
+    .filter((e) => e && e.event === 'discussion-recorded')
+    .map((e) => {
+      const data = e.data && typeof e.data === 'object' ? e.data : {};
+      return {
+        id: e.id,
+        date: formatDate(e.at),
+        actor: actorLabel(e.actorId, meId),
+        provider: eventText(data.provider),
+        summary: eventText(data.summary),
+        url: httpUrl(data.url),
+      };
+    })
+    .filter((r) => r.summary)
+    .reverse();
+}
+
+const DISCUSS_MESSAGES = {
+  notAnOpenProposal: 'Only an open proposal can be discussed.',
+  unknownTool: 'Frame does not know the selected AI tool. Pick one in the AI tool menu and try again.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a Discuss that could not start. */
+function discussErrorMessage(reason) {
+  return DISCUSS_MESSAGES[reason] || 'The discussion could not start. Try again.';
+}
+
 // ─── New brief ────────────────────────────────────────────────
 
 const NEW_BRIEF_TITLE = 'New brief';
@@ -251,6 +313,13 @@ module.exports = {
   formatDate,
   eventSentence,
   reasonMessage,
+  DISCUSSIONS_TITLE,
+  DISCUSS_LABEL,
+  GO_TO_DISCUSSION_LABEL,
+  DISCUSS_HINT,
+  WRITE_UP_LABEL,
+  discussionRecords,
+  discussErrorMessage,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

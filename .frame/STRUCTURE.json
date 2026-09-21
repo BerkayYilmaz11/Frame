@@ -6777,6 +6777,13 @@
         "formatDate",
         "eventSentence",
         "reasonMessage",
+        "DISCUSSIONS_TITLE",
+        "DISCUSS_LABEL",
+        "GO_TO_DISCUSSION_LABEL",
+        "DISCUSS_HINT",
+        "WRITE_UP_LABEL",
+        "discussionRecords",
+        "discussErrorMessage",
         "NEW_BRIEF_TITLE",
         "NEW_BRIEF_DESCRIPTION",
         "AI_LINKS_TITLE",
@@ -6791,47 +6798,47 @@
       "depends": [],
       "functions": {
         "groupByColumn": {
-          "line": 23,
+          "line": 24,
           "params": [
             "briefs"
           ],
           "purpose": "A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog."
         },
         "statusLabel": {
-          "line": 49,
+          "line": 50,
           "params": [
             "status"
           ]
         },
         "isPriority": {
-          "line": 55,
+          "line": 56,
           "params": [
             "value"
           ]
         },
         "priorityLabel": {
-          "line": 60,
+          "line": 61,
           "params": [
             "priority"
           ],
           "purpose": "'High' / 'Medium' / 'Low', or '' for anything else."
         },
         "endingFact": {
-          "line": 65,
+          "line": 66,
           "params": [
             "brief"
           ],
           "purpose": "How a closed brief ended — `{ label, reason, at }` — or null for an open one. Close wins over drop over decision."
         },
         "endingLine": {
-          "line": 74,
+          "line": 75,
           "params": [
             "brief"
           ],
           "purpose": "The ending as one line: \"Closed: reason\", \"Dropped\", \"Recorded as decision\"; '' for an open brief."
         },
         "actorLabel": {
-          "line": 81,
+          "line": 82,
           "params": [
             "id",
             "meId"
@@ -6839,27 +6846,27 @@
           "purpose": "\"You\" for the caller, \"A workspace member\" for anyone else: there is no member list."
         },
         "formatDate": {
-          "line": 88,
+          "line": 89,
           "params": [
             "iso"
           ],
           "purpose": "An ISO timestamp as \"18 Sept 2026\" in the viewer's time zone; '' when missing or unreadable."
         },
         "text": {
-          "line": 94,
+          "line": 95,
           "params": [
             "value"
           ]
         },
         "joinList": {
-          "line": 99,
+          "line": 100,
           "params": [
             "items"
           ],
           "purpose": "\"a\", \"a and b\", \"a, b and c\"."
         },
         "eventAction": {
-          "line": 105,
+          "line": 106,
           "params": [
             "event",
             "meId"
@@ -6867,7 +6874,7 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "eventSentence": {
-          "line": 177,
+          "line": 183,
           "params": [
             "event",
             "meId"
@@ -6875,14 +6882,42 @@
           "purpose": "One history line: who did what, and the day it happened. → `{ sentence, date }`."
         },
         "reasonMessage": {
-          "line": 194,
+          "line": 200,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
+        "eventText": {
+          "line": 213,
+          "params": [
+            "value"
+          ],
+          "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
+        },
+        "httpUrl": {
+          "line": 217,
+          "params": [
+            "value"
+          ]
+        },
+        "discussionRecords": {
+          "line": 227,
+          "params": [
+            "events",
+            "meId"
+          ],
+          "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
+        },
+        "discussErrorMessage": {
+          "line": 256,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The sentence for a Discuss that could not start."
+        },
         "submitLabel": {
-          "line": 212,
+          "line": 274,
           "params": [
             "kind",
             "pending"
@@ -6890,14 +6925,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 231,
+          "line": 293,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 236,
+          "line": 298,
           "params": [
             "number",
             "reason"

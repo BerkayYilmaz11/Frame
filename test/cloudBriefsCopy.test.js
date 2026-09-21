@@ -211,3 +211,49 @@ test('the form\'s fixed sentences match the web', () => {
   assert.equal(copy.INVALID_LINK, 'That is not a full link. It should start with https://.');
   assert.equal(copy.AI_LINKS_TITLE, 'AI conversations & links');
 });
+
+// ─── Discussions ──────────────────────────────────────────────
+
+test('discussion-recorded reads as the web says it, with and without a provider', () => {
+  const e = (data) => ({ event: 'discussion-recorded', actorId: 'u1', at: '2026-09-21T10:00:00.000Z', data });
+  assert.equal(copy.eventSentence(e({ summary: 'S', provider: 'Claude Code' }), 'u1').sentence, 'You recorded a discussion held with Claude Code.');
+  assert.equal(copy.eventSentence(e({ summary: 'S' }), 'u2').sentence, 'A workspace member recorded a discussion.');
+});
+
+test('discussionRecords keeps the records only, newest first, with who, when and what', () => {
+  const events = [
+    { id: 'e1', event: 'created', actorId: 'u1', at: '2026-09-01T10:00:00.000Z', data: { kind: 'proposal' } },
+    { id: 'e2', event: 'discussion-recorded', actorId: 'u1', at: '2026-09-02T10:00:00.000Z', data: { summary: ' First ', provider: 'Codex CLI' } },
+    { id: 'e3', event: 'discussion-recorded', actorId: 'u2', at: '2026-09-05T10:00:00.000Z', data: { summary: 'Second', url: 'https://claude.ai/artifact/y' } },
+  ];
+  const records = copy.discussionRecords(events, 'u1');
+  assert.deepEqual(records.map((r) => r.id), ['e3', 'e2']);
+  assert.deepEqual(records[1], { id: 'e2', date: copy.formatDate('2026-09-02T10:00:00.000Z'), actor: 'You', provider: 'Codex CLI', summary: 'First', url: '' });
+  assert.equal(records[0].actor, 'A workspace member');
+  assert.equal(records[0].url, 'https://claude.ai/artifact/y');
+  assert.equal(events[0].id, 'e1'); // the caller's array is not reordered
+});
+
+test('discussionRecords drops a non-http(s) url and a record without a summary, and survives no list', () => {
+  const records = copy.discussionRecords([
+    { id: 'a', event: 'discussion-recorded', data: { summary: '<script>x</script>', url: 'javascript:alert(1)' } },
+    { id: 'b', event: 'discussion-recorded', data: { summary: '   ' } },
+    { id: 'c', event: 'discussion-recorded', data: null },
+  ]);
+  assert.deepEqual(records.map((r) => [r.id, r.url, r.summary]), [['a', '', '<script>x</script>']]);
+  assert.deepEqual(copy.discussionRecords(undefined), []);
+});
+
+test('the Discuss labels', () => {
+  assert.equal(copy.DISCUSS_LABEL, 'Discuss');
+  assert.equal(copy.GO_TO_DISCUSSION_LABEL, 'Go to discussion');
+  assert.equal(copy.DISCUSSIONS_TITLE, 'Discussions');
+});
+
+test('discussErrorMessage has a sentence for each reason and a fallback', () => {
+  for (const reason of ['notAnOpenProposal', 'unknownTool', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    assert.notEqual(copy.discussErrorMessage(reason), copy.discussErrorMessage('other'), reason);
+  }
+  assert.match(copy.discussErrorMessage('notAnOpenProposal'), /open proposal/);
+  assert.match(copy.discussErrorMessage('whatever'), /could not start/);
+});

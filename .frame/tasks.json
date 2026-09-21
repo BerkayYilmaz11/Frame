@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:26:44.659Z",
+  "lastUpdated": "2026-09-21T08:27:44.837Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8945,13 +8945,13 @@
       "title": "Add the `discussion-recorded` case to `eventAction`, `discussionRecords(events)` (newest first), the Discuss / Go to discussion labels and `discussErrorMessage(reason)` to `src/renderer/cloudBriefsCopy.js`, with their cases in `test/cloudBriefsCopy.test.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:27:44.837Z",
+      "completedAt": "2026-09-21T08:27:44.837Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T07",
