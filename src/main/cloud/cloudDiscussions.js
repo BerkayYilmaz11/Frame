@@ -193,19 +193,24 @@ function buildDiscussPrompt({ brief, events, toolId, commandPath, discussionId }
     '2. Discuss it with the user: questions, trade-offs, risks, alternatives. Keep it a conversation, not a report.',
     '3. Never rewrite or edit the brief\'s description — it is the user\'s. If you think a better wording would help, ' +
       'offer it as a suggestion here in the conversation.',
-    '4. When something has settled — a decision, a narrowed scope, a clear open question — ask the user whether to record ' +
+    '4. This is a proposal, not work yet: the question is whether and in what shape it is worth doing. ' +
+      'Treat as open questions only what would change that — the problem, the value, the scope, a real risk or an alternative. ' +
+      'Implementation details (how to build it, which library, edge cases) can stay open: note them briefly as ' +
+      '"can wait, we can talk more later" rather than pressing on them or listing them as blockers.',
+    '5. When something has settled — a decision on direction, a narrowed scope, a question that decides its fate — ask the user whether to record ' +
       'what has been settled so far. Record only on their yes, and more than once if the conversation moves on.',
-    '5. Do not write the summary to a local file.',
+    '6. Do not write the summary to a local file.',
   ];
   if (canPublish) {
     parts.push(
-      '6. When the discussion is worth a longer write-up, you may offer to publish one as a claude.ai artifact. ' +
-        'Publish it only if the user says yes, then pass its link with `--url`. Never offer a local HTML or Markdown file instead.'
+      '7. When the discussion is wrapping up — the user is concluding, or the main questions are settled — ask whether they would like ' +
+        'a write-up of the discussion published as a claude.ai artifact. Publish it only on their yes, then record with its link as `--url`. ' +
+        'Never offer a local HTML or Markdown file instead.'
     );
   }
   parts.push(
     '',
-    'To record, run exactly this, replacing <summary> with a plain-text summary of what was settled and what remains open' +
+    'To record, run exactly this, replacing <summary> with a plain-text summary of what was settled, the questions that still decide the proposal, and the details left for later' +
       `${canPublish ? ' (and <https link> with the published link, or drop `--url` when there is none)' : ''}:`,
     '',
     fence(recordCommand(commandPath, discussionId, canPublish), 'sh'),

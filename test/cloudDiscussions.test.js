@@ -127,6 +127,22 @@ test('buildDiscussPrompt offers a published artifact to Claude Code only, and ne
   for (const p of [claude, codex]) assert.ok(p.includes('Do not write the summary to a local file.'));
 });
 
+test('buildDiscussPrompt asks Claude Code about a write-up at wrap-up, and Codex never', () => {
+  const claude = core.buildDiscussPrompt({ ...PROMPT, toolId: 'claude' });
+  const codex = core.buildDiscussPrompt({ ...PROMPT, toolId: 'codex' });
+  assert.ok(claude.includes('When the discussion is wrapping up'));
+  assert.ok(claude.includes('Publish it only on their yes'));
+  assert.equal(codex.includes('wrapping up'), false);
+});
+
+test('buildDiscussPrompt keeps only fate-deciding questions open and lets details wait', () => {
+  for (const toolId of ['claude', 'codex']) {
+    const p = core.buildDiscussPrompt({ ...PROMPT, toolId });
+    assert.ok(p.includes('Treat as open questions only what would change that'));
+    assert.ok(p.includes('can wait, we can talk more later'));
+  }
+});
+
 test('buildDiscussPrompt says the description is never rewritten and to ask before recording', () => {
   const p = core.buildDiscussPrompt({ ...PROMPT, toolId: 'claude' });
   assert.ok(p.includes('Never rewrite or edit the brief\'s description'));

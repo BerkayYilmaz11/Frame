@@ -933,7 +933,7 @@
           "purpose": "The prompt a Discuss lane starts with. Every brief field is fenced and"
         },
         "recordThrough": {
-          "line": 228,
+          "line": 233,
           "params": [
             "call",
             "input"
@@ -941,7 +941,7 @@
           "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
         },
         "handleRecordRequest": {
-          "line": 248,
+          "line": 253,
           "params": [
             "request",
             "deps"
@@ -949,7 +949,7 @@
           "purpose": "A bus request → what happened. `deps` is"
         },
         "replyMessage": {
-          "line": 283,
+          "line": 288,
           "params": [
             "result"
           ],

@@ -56,3 +56,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T09 — Discuss prompt: fate-deciding questions, write-up at wrap-up
+
+Reworked `buildDiscussPrompt` in `src/main/cloud/cloudDiscussions.js` after the T08 walk. Only questions that decide the proposal's fate stay open, and details are left as "can wait". The Claude Code prompt now asks at wrap-up whether to publish a claude.ai artifact write-up, where before it said "you may offer", which the agent never acted on. Codex still gets no document offer (the user chose this). Two cases were added in `test/cloudDiscussions.test.js`.
+
+_Captured: 2026-09-21 · 2 file change(s)_
+
+---
+
