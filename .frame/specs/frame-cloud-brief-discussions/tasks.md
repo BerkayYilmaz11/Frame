@@ -8,3 +8,9 @@
 - T06 · Add the `discussion-recorded` case to `eventAction`, `discussionRecords(events)` (newest first), the Discuss / Go to discussion labels and `discussErrorMessage(reason)` to `src/renderer/cloudBriefsCopy.js`, with their cases in `test/cloudBriefsCopy.test.js`.
 - T07 · In `src/renderer/cloudBriefsPanel.js`, show Discuss on an open proposal (invoke `CLOUD_BRIEF_DISCUSS` with the current tool, then `dispatch` with `createNew` and the brief assignment) or Go to discussion while its lane is open, put the activity dot on cards, render the Discussions section under the description, and reload the open detail on `CLOUD_BRIEF_DISCUSSION_RECORDED`; style the button and list in `src/renderer/styles/components/cloud-briefs.css`.
 - T08 · Walk it in Frame on a connected folder: Discuss a proposal, record twice through the agent (once with an artifact link), see the dot and Go to discussion, see both records under Description and in History, and check the command's messages for an ended proposal and with Frame closed.
+
+## Added after the T08 walk (2026-09-21)
+
+- T09 · In `buildDiscussPrompt`, keep as open questions only what decides the proposal's fate (details that can wait stay open as "we can talk more"), and for `claude` ask at wrap-up whether to publish a claude.ai artifact write-up; Codex gets no document offer. Cases in `test/cloudDiscussions.test.js`.
+- T10 · A `brief` lane chip shows a brief icon and opens the Briefs panel on that brief's detail (`laneStatus.js` icon, `terminalsView.js` routing, `cloudBriefsPanel.openBrief(number)`), not a task.
+- T11 · Brief cards: a direct Discuss on open proposals, "N discussions recorded" from `brief.events` fetched per open proposal in `cloudBriefsService.list`, and a clickable "Discussing in <lane>" line with the dot while a lane is open; the card is restructured so no control nests inside the card button.

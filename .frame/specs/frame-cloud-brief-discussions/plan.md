@@ -211,3 +211,27 @@ None.
    to discussion, see both records under Description and in History, and
    confirm the command's messages for an ended proposal and with Frame
    closed.
+
+## Amendment — after the T08 walk (2026-09-21)
+
+The first walk in Frame found four gaps; the user asked for them in the same
+spec (T09–T11), with T08 walked again afterwards.
+
+- **Prompt (T09).** The agent left many execution-level open questions; the
+  prompt now asks it to keep open only what decides the proposal's fate and
+  to leave details as "can stay open, we can talk more". The Claude Code
+  prompt asks at wrap-up whether to publish a claude.ai artifact write-up.
+  Codex gets no document offer (asked: no Codex document; local files stay
+  out, as decided earlier today).
+- **Chip (T10).** A `brief` assignment chip routed as a task; it now opens
+  the Briefs panel on that brief.
+- **Cards (T11).** Overturns "Go to discussion lives in the detail header;
+  the card shows the dot only": the user wants Discuss, the record count and
+  the live lane on the card. The nesting concern stands, so the card becomes
+  a container with the open-brief button and the controls as siblings.
+  The count comes from `brief.events` per open proposal (asked; rejected: a
+  `discussionCount` on FrameCloud's `brief.list`, and a local counter that
+  would miss other machines).
+
+Files added to scope: `src/renderer/terminalsView.js`,
+`src/renderer/laneStatus.js`, `src/main/cloud/cloudBriefsService.js`.
