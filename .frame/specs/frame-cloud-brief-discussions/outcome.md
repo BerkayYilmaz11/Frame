@@ -112,3 +112,11 @@ _Captured: 2026-09-21 · 3 file change(s)_
 
 ---
 
+## T15 — Card and detail follow the proposal states
+
+The card and the detail header now follow `proposalStage`: Discuss → Discussing → Move to Work + Discuss, with an accent "N new comments" chip that opens Comments. There, new comments are marked under a count strip with Re-discuss. Move to Work opens a priority dialog (Medium default) that calls `CLOUD_BRIEF_DECIDE` and reloads board and detail. Everything is in `cloudBriefsPanel.js` and `cloud-briefs.css`. Re-discuss is a plain Discuss with its own label, since T14's prompt already opens on the new comments. The dialog reuses the New brief form's styles rather than the task delete modal.
+
+_Captured: 2026-09-21 · 2 file change(s)_
+
+---
+

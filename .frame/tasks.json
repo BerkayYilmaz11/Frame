@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T11:04:20.275Z",
+  "lastUpdated": "2026-09-21T11:06:35.570Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9029,7 +9029,7 @@
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T12",
-      "title": "Move to Work: brief.decide through main",
+      "title": "`decideBrief` (POST `brief.decide` with `id`, `priority`) in `cloudBriefs.js`, `decide(folderPath, number, priority)` in `cloudBriefsService.js` keeping the server's refusals, and `CLOUD_BRIEF_DECIDE`; tests.",
       "description": "Add decideBrief (POST brief.decide with id and priority) to src/main/cloud/cloudBriefs.js, a decide(folderPath, number, priority) in cloudBriefsService.js that resolves the brief in main and keeps the server refusals (NOT_A_PROPOSAL, ALREADY_WORK, ALREADY_CLOSED), and the CLOUD_BRIEF_DECIDE channel. Tests in test/cloudBriefs.test.js.",
       "userRequest": "User said: \"State 1: Hiç discussion yok ve discussion yapılmamış => Primary button => Discuss State 2: Discussing => Olduğu gibi kalsın. State 3: Discussing state değil en az 1 discussion record var => 2 buton Primary => Move to Work Secondary Discuss. State 4: discussion üzerine bir tarihte bir yorum gelmiş kartta bu öne çıkıyor 1 yeni yorum gibi tıklayınca yoruma gidip oradan re-discuss action.\" — new comment = after the last record; Move to Work asks for a priority; added to this spec.",
       "acceptanceCriteria": "decide sends { id, priority } once for an open proposal; a bad priority or a disconnected folder sends nothing; refusals come back as reasons.",
@@ -9040,12 +9040,12 @@
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:01:41.535Z",
+      "updatedAt": "2026-09-21T11:05:24.912Z",
       "completedAt": "2026-09-21T11:01:41.535Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T13",
-      "title": "Discussion facts and the proposal stage",
+      "title": "`addDiscussionCounts` also counts `newCommentCount` (others' comments after the latest record); pure `proposalStage` and the Move to Work / Re-discuss / new-comment labels in `cloudBriefsCopy.js`; tests.",
       "description": "Extend addDiscussionCounts to also count newCommentCount: comment-added events by someone else after the latest discussion-recorded (0 when there is no record). Add a pure proposalStage({ brief, laneOpen, discussionCount }) → discuss | discussing | decide | none and the new labels (Move to Work, Re-discuss, \"N new comments\") to cloudBriefsCopy.js. Tests.",
       "userRequest": "User said: \"State 1: Hiç discussion yok ve discussion yapılmamış => Primary button => Discuss State 2: Discussing => Olduğu gibi kalsın. State 3: Discussing state değil en az 1 discussion record var => 2 buton Primary => Move to Work Secondary Discuss. State 4: discussion üzerine bir tarihte bir yorum gelmiş kartta bu öne çıkıyor 1 yeni yorum gibi tıklayınca yoruma gidip oradan re-discuss action.\" — new comment = after the last record; Move to Work asks for a priority; added to this spec.",
       "acceptanceCriteria": "Counts and stages follow the four states; own comments and comments before the last record are not new.",
@@ -9056,12 +9056,12 @@
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:02:55.403Z",
+      "updatedAt": "2026-09-21T11:05:24.912Z",
       "completedAt": "2026-09-21T11:02:55.403Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T14",
-      "title": "Discuss prompt carries comments, re-discuss opens on the new ones",
+      "title": "`buildDiscussPrompt` carries the comments as data with the new ones marked, and opens on them when present; tests.",
       "description": "buildDiscussPrompt includes the brief's comments in the data block, oldest first, with the ones after the last record marked new, and tells the agent to start from the new comments when there are any. Tests in test/cloudDiscussions.test.js.",
       "userRequest": "User said: \"State 1: Hiç discussion yok ve discussion yapılmamış => Primary button => Discuss State 2: Discussing => Olduğu gibi kalsın. State 3: Discussing state değil en az 1 discussion record var => 2 buton Primary => Move to Work Secondary Discuss. State 4: discussion üzerine bir tarihte bir yorum gelmiş kartta bu öne çıkıyor 1 yeni yorum gibi tıklayınca yoruma gidip oradan re-discuss action.\" — new comment = after the last record; Move to Work asks for a priority; added to this spec.",
       "acceptanceCriteria": "The prompt shows comments as data; new ones are marked; the opener points at them only when present.",
@@ -9072,28 +9072,28 @@
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:04:20.275Z",
+      "updatedAt": "2026-09-21T11:05:24.912Z",
       "completedAt": "2026-09-21T11:04:20.275Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T15",
-      "title": "Card and detail follow the proposal states",
+      "title": "Card and detail follow the four states: Discuss · Discussing · Move to Work + Discuss · a highlighted new-comment chip that opens Comments with Re-discuss; Move to Work confirms with a priority.",
       "description": "In cloudBriefsPanel.js: state 1 primary Discuss; state 2 Discussing in <lane> as now; state 3 primary Move to Work + secondary Discuss; state 4 a highlighted \"N new comments\" on the card that opens the Comments tab, where the new comments are marked and a Re-discuss action starts a discussion. Move to Work opens a confirm with a priority select (Medium default) and reloads board and detail. Styles in cloud-briefs.css.",
       "userRequest": "User said: \"State 1: Hiç discussion yok ve discussion yapılmamış => Primary button => Discuss State 2: Discussing => Olduğu gibi kalsın. State 3: Discussing state değil en az 1 discussion record var => 2 buton Primary => Move to Work Secondary Discuss. State 4: discussion üzerine bir tarihte bir yorum gelmiş kartta bu öne çıkıyor 1 yeni yorum gibi tıklayınca yoruma gidip oradan re-discuss action.\" — new comment = after the last record; Move to Work asks for a priority; added to this spec.",
       "acceptanceCriteria": "Card and detail header show the right controls in each state; Move to Work asks for a priority and refuses cleanly; the new-comment chip lands on Comments with Re-discuss.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T15",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:00:50.253Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T11:06:35.570Z",
+      "completedAt": "2026-09-21T11:06:35.570Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T16",
-      "title": "Walk the proposal states in Frame",
+      "title": "Walk the four states and Move to Work in Frame.",
       "description": "On a connected folder, walk a proposal through all four states: no record, a live lane, after a record, and after someone else comments; then Move to Work with a priority.",
       "userRequest": "User said: \"State 1: Hiç discussion yok ve discussion yapılmamış => Primary button => Discuss State 2: Discussing => Olduğu gibi kalsın. State 3: Discussing state değil en az 1 discussion record var => 2 buton Primary => Move to Work Secondary Discuss. State 4: discussion üzerine bir tarihte bir yorum gelmiş kartta bu öne çıkıyor 1 yeni yorum gibi tıklayınca yoruma gidip oradan re-discuss action.\" — new comment = after the last record; Move to Work asks for a priority; added to this spec.",
       "acceptanceCriteria": "Every state shows its controls and Move to Work lands the brief as work.",
@@ -9104,7 +9104,7 @@
       "category": "test",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:00:50.253Z",
+      "updatedAt": "2026-09-21T11:05:24.912Z",
       "completedAt": null
     }
   ],
