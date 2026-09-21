@@ -300,3 +300,21 @@ test('a failed attachment keeps the record and says the link did not reach Links
   assert.match(core.replyMessage(r), /^Recorded on brief #7, but the write-up link could not be added to its Links/);
   assert.equal(core.replyMessage({ ok: true, number: 7, attachmentError: null }), 'Recorded on brief #7.');
 });
+
+// ─── The prompt file ──────────────────────────────────────────
+
+test('promptInstruction is one short line naming the quoted file and the proposal', () => {
+  const line = core.promptInstruction('/Users/me/Library/Application Support/Frame/cloud-discussions/prompts/x.md', 6);
+  assert.equal(line.includes('\n'), false);
+  assert.ok(line.startsWith("Read '/Users/me/Library/Application Support/Frame/cloud-discussions/prompts/x.md' and follow it exactly."));
+  assert.ok(line.includes('proposal #6'));
+  assert.ok(line.length < 300);
+  assert.equal(core.promptFileName(ID), `${ID}.md`);
+});
+
+test('stalePromptFiles picks prompt files without a discussion, and leaves other names', () => {
+  const store = core.addDiscussion(core.emptyStore(), { id: ID, ...ENTRY });
+  const other = 'b'.repeat(24);
+  assert.deepEqual(core.stalePromptFiles([`${ID}.md`, `${other}.md`, `${other}.md.tmp`, 'notes.txt'], store), [`${other}.md`]);
+  assert.deepEqual(core.stalePromptFiles(undefined, store), []);
+});

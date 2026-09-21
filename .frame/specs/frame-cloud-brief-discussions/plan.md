@@ -274,3 +274,15 @@ attachments (recorded before this change) still shows its link. A failed
 attachment does not undo the record: the command reports it as recorded,
 with the link not added. Writes now: `recordDiscussion`, `decide`, and
 `addAttachment` for a write-up only.
+
+## Amendment — the prompt travels as a file (2026-09-21)
+
+In the T16 walk a Discuss lane received a cut-off prompt: the record command
+at its end was missing, so the agent could not record. Discuss had typed the
+whole prompt into the terminal, and Claude Code collapses large pastes — the
+reason `specManager` and `orchestrationManager` already stage prompts to a
+file and send one line. The prompt had grown past the safe size with T09/T14.
+Now main writes it to `<userData>/cloud-discussions/prompts/<discussionId>.md`
+(beside the bus, still nothing in the user's repo) and returns
+`Read '<path>' and follow it exactly.` for dispatch. Files of discussions
+pruned at 90 days are removed on load.

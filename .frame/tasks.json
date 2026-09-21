@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T11:10:47.042Z",
+  "lastUpdated": "2026-09-21T11:40:18.708Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9122,6 +9122,22 @@
       "createdAt": "2026-09-21T11:09:32.129Z",
       "updatedAt": "2026-09-21T11:10:47.042Z",
       "completedAt": "2026-09-21T11:10:47.042Z"
+    },
+    {
+      "id": "task-spec-frame-cloud-brief-discussions-T18",
+      "title": "The discuss prompt is written to `<userData>/cloud-discussions/prompts/<id>.md` and the lane gets one line to read it, as spec commands and orchestration workers already do; prompt files of pruned discussions are removed; tests.",
+      "description": "Main writes the discuss prompt to <userData>/cloud-discussions/prompts/<discussionId>.md and returns a one-line instruction (\"Read '<path>' and follow it exactly.\") that the panel dispatches, instead of typing the whole prompt into the terminal. Prompt files of pruned discussions are removed on load. Pure instruction/prune helpers in cloudDiscussions.js with tests; wiring in cloudDiscussionsService.js.",
+      "userRequest": "User said: \"evet, T18 olarak ekle ve düzelt\" — after a Discuss lane received a cut-off prompt (the record command was missing).",
+      "acceptanceCriteria": "The lane receives a single short line; the full prompt is in the file; the record command is always present for the agent; old prompt files are pruned; tests pass.",
+      "notes": "Same fix specManager (line ~604) and orchestrationManager already apply: Claude Code collapses large pastes.",
+      "source": "spec:frame-cloud-brief-discussions:T18",
+      "status": "completed",
+      "priority": "high",
+      "category": "fix",
+      "context": "From spec: frame-cloud-brief-discussions — cut-off prompt in the T16 walk, 2026-09-21",
+      "createdAt": "2026-09-21T11:39:04.168Z",
+      "updatedAt": "2026-09-21T11:40:18.708Z",
+      "completedAt": "2026-09-21T11:40:18.708Z"
     }
   ],
   "metadata": {

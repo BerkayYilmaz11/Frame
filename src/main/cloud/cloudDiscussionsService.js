@@ -11,6 +11,8 @@
  *   record-discussion.js    — the command the agent runs, staged from
  *                             src/templates/bin/ at start
  *   bus/                    — the command's requests; replies/ holds answers
+ *   prompts/<id>.md         — each discussion's prompt; the lane is sent one
+ *                             line that reads it (a long paste gets cut)
  *
  * Nothing is written into the user's repo. Discuss (`CLOUD_BRIEF_DISCUSS`)
  * checks the folder is connected and the brief is an open proposal, issues an
@@ -63,6 +65,10 @@ function commandPath() {
   return path.join(baseDir(), COMMAND_FILE);
 }
 
+function promptsDir() {
+  return path.join(baseDir(), 'prompts');
+}
+
 // ─── The store ────────────────────────────────────────────────
 
 function loadStore() {
@@ -72,6 +78,30 @@ function loadStore() {
   store = core.pruneDiscussions(data || core.emptyStore());
   const before = data && data.discussions ? Object.keys(data.discussions).length : 0;
   if (before !== Object.keys(store.discussions).length) saveStore();
+  removeStalePrompts();
+}
+
+/** Delete the prompt files of discussions the store no longer holds. */
+function removeStalePrompts() {
+  let names = [];
+  try { names = fs.readdirSync(promptsDir()); } catch { return; }
+  for (const name of core.stalePromptFiles(names, store)) {
+    try { fs.unlinkSync(path.join(promptsDir(), name)); } catch { /* raced */ }
+  }
+}
+
+/** Write a discussion's prompt atomically. → its path, or null. */
+function writePrompt(discussionId, prompt) {
+  try {
+    fs.mkdirSync(promptsDir(), { recursive: true });
+    const target = path.join(promptsDir(), core.promptFileName(discussionId));
+    fs.writeFileSync(`${target}.tmp`, prompt);
+    fs.renameSync(`${target}.tmp`, target);
+    return target;
+  } catch (err) {
+    logger.warn('cloudDiscussions', `could not write the discuss prompt: ${err.message}`);
+    return null;
+  }
 }
 
 function saveStore() {
@@ -103,7 +133,8 @@ function stageCommand() {
 // ─── Discuss ──────────────────────────────────────────────────
 
 /**
- * Start a discussion of an open proposal with `toolId`.
+ * Start a discussion of an open proposal with `toolId`. The full prompt is
+ * written to a file; what comes back is the one line the lane is sent.
  * → `{ ok: true, prompt }` or `{ ok: false, reason }`.
  */
 async function discuss(folderPath, number, toolId) {
@@ -134,7 +165,9 @@ async function discuss(folderPath, number, toolId) {
     discussionId,
     meId: detail.meId,
   });
-  return { ok: true, prompt };
+  const promptPath = writePrompt(discussionId, prompt);
+  if (!promptPath) return { ok: false, reason: 'other' };
+  return { ok: true, prompt: core.promptInstruction(promptPath, number) };
 }
 
 // ─── The bus ──────────────────────────────────────────────────

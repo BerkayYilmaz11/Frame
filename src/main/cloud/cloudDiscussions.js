@@ -93,6 +93,33 @@ function pruneDiscussions(store, now = Date.now(), maxAgeMs = MAX_AGE_MS) {
   return out;
 }
 
+// ─── The prompt file ──────────────────────────────────────────
+//
+// The prompt reaches the lane as a file, never typed into the terminal:
+// Claude Code collapses a large paste, and a Discuss prompt cut short loses
+// the record command at its end (the reason specManager and
+// orchestrationManager stage their prompts the same way).
+
+const PROMPT_FILE_PATTERN = /^([0-9a-f]{24})\.md$/;
+
+/** The prompt file's name for a discussion id. */
+function promptFileName(discussionId) {
+  return `${discussionId}.md`;
+}
+
+/** The one line a Discuss lane receives: read the staged prompt. */
+function promptInstruction(promptPath, number) {
+  return `Read '${promptPath}' and follow it exactly. It is your brief for discussing Frame Cloud proposal #${number} with me.`;
+}
+
+/** Prompt files whose discussion is no longer in the store (pruned or unknown). Other names are left alone. */
+function stalePromptFiles(names, store) {
+  return (Array.isArray(names) ? names : []).filter((name) => {
+    const match = PROMPT_FILE_PATTERN.exec(name);
+    return Boolean(match) && !getDiscussion(store, match[1]);
+  });
+}
+
 // ─── Validating a record ──────────────────────────────────────
 
 function badRequest(field) {
@@ -350,6 +377,9 @@ module.exports = {
   addDiscussion,
   getDiscussion,
   pruneDiscussions,
+  promptFileName,
+  promptInstruction,
+  stalePromptFiles,
   validateRecordInput,
   buildDiscussPrompt,
   handleRecordRequest,

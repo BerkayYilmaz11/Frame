@@ -128,3 +128,11 @@ _Captured: 2026-09-21 · 5 file change(s)_
 
 ---
 
+## T18 — The discuss prompt reaches the lane through a file
+
+Discuss now stages its prompt at `<userData>/cloud-discussions/prompts/<id>.md` and sends the lane a single "Read '<path>' and follow it exactly" line. It had been typing the whole prompt, which Claude Code's paste handling cut off, record command included. Prompt files of pruned discussions are removed on load. Pure helpers in `cloudDiscussions.js` have tests, and a smoke run confirmed an 8.6 KB prompt arrives intact. Rule for future work: never type a long prompt into a lane; stage it and send one line, as `specManager` and `orchestrationManager` do.
+
+_Captured: 2026-09-21 · 3 file change(s)_
+
+---
+

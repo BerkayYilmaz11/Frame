@@ -845,6 +845,9 @@
         "addDiscussion",
         "getDiscussion",
         "pruneDiscussions",
+        "promptFileName",
+        "promptInstruction",
+        "stalePromptFiles",
         "validateRecordInput",
         "buildDiscussPrompt",
         "handleRecordRequest",
@@ -922,21 +925,44 @@
           ],
           "purpose": "The store without entries older than 90 days, malformed ones or bad ids. Any shape in → a valid store out."
         },
+        "promptFileName": {
+          "line": 106,
+          "params": [
+            "discussionId"
+          ],
+          "purpose": "The prompt file's name for a discussion id."
+        },
+        "promptInstruction": {
+          "line": 111,
+          "params": [
+            "promptPath",
+            "number"
+          ],
+          "purpose": "The one line a Discuss lane receives: read the staged prompt."
+        },
+        "stalePromptFiles": {
+          "line": 116,
+          "params": [
+            "names",
+            "store"
+          ],
+          "purpose": "Prompt files whose discussion is no longer in the store (pruned or unknown). Other names are left alone."
+        },
         "badRequest": {
-          "line": 98,
+          "line": 125,
           "params": [
             "field"
           ]
         },
         "validateRecordInput": {
-          "line": 107,
+          "line": 134,
           "params": [
             "request"
           ],
           "purpose": "`{ summary, url? }` → `{ ok: true, input: { summary, url? } }` or a"
         },
         "fence": {
-          "line": 123,
+          "line": 150,
           "params": [
             "text",
             "label"
@@ -944,21 +970,21 @@
           "purpose": "A code fence longer than any backtick run in `text`, so network content cannot close it."
         },
         "shellQuote": {
-          "line": 130,
+          "line": 157,
           "params": [
             "value"
           ],
           "purpose": "A POSIX single-quoted word."
         },
         "earlierRecords": {
-          "line": 135,
+          "line": 162,
           "params": [
             "events"
           ],
           "purpose": "The brief's `discussion-recorded` events, newest first, reduced to what the prompt shows."
         },
         "commentLines": {
-          "line": 146,
+          "line": 173,
           "params": [
             "brief",
             "events",
@@ -967,7 +993,7 @@
           "purpose": "The brief's comments, oldest first, each with who and when; `isNew` for"
         },
         "briefData": {
-          "line": 162,
+          "line": 189,
           "params": [
             "brief",
             "events",
@@ -976,7 +1002,7 @@
           "purpose": "The brief as data: number, title, description, links, earlier records and comments."
         },
         "recordCommand": {
-          "line": 188,
+          "line": 215,
           "params": [
             "commandPath",
             "discussionId",
@@ -985,7 +1011,7 @@
           "purpose": "The exact command the agent runs to record, with the summary on stdin."
         },
         "buildDiscussPrompt": {
-          "line": 203,
+          "line": 230,
           "params": [
             "{ brief",
             "events",
@@ -997,7 +1023,7 @@
           "purpose": "The prompt a Discuss lane starts with. Every brief field is fenced and"
         },
         "recordThrough": {
-          "line": 264,
+          "line": 291,
           "params": [
             "call",
             "input"
@@ -1005,14 +1031,14 @@
           "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
         },
         "writeUpTitle": {
-          "line": 278,
+          "line": 305,
           "params": [
             "now"
           ],
           "purpose": "The Links title a recorded write-up gets: \"Discussion write-up (2026-09-21)\"."
         },
         "handleRecordRequest": {
-          "line": 290,
+          "line": 317,
           "params": [
             "request",
             "deps"
@@ -1020,7 +1046,7 @@
           "purpose": "A bus request → what happened. `deps` is"
         },
         "replyMessage": {
-          "line": 331,
+          "line": 358,
           "params": [
             "result"
           ],
@@ -1052,75 +1078,90 @@
       ],
       "functions": {
         "baseDir": {
-          "line": 50
+          "line": 52
         },
         "busDir": {
-          "line": 54
+          "line": 56
         },
         "repliesDir": {
-          "line": 58
+          "line": 60
         },
         "commandPath": {
-          "line": 62
+          "line": 64
         },
-        "loadStore": {
+        "promptsDir": {
           "line": 68
         },
+        "loadStore": {
+          "line": 74
+        },
+        "removeStalePrompts": {
+          "line": 85,
+          "purpose": "Delete the prompt files of discussions the store no longer holds."
+        },
+        "writePrompt": {
+          "line": 94,
+          "params": [
+            "discussionId",
+            "prompt"
+          ],
+          "purpose": "Write a discussion's prompt atomically. → its path, or null."
+        },
         "saveStore": {
-          "line": 77
+          "line": 107
         },
         "stageCommand": {
-          "line": 90,
+          "line": 120,
           "purpose": "Copy the command next to the bus, only when it changed. → staged?"
         },
         "discuss": {
-          "line": 109,
+          "line": 140,
           "params": [
             "folderPath",
             "number",
             "toolId"
           ],
-          "purpose": "Start a discussion of an open proposal with `toolId`."
+          "purpose": "Start a discussion of an open proposal with `toolId`. The full prompt is"
         },
         "writeReply": {
-          "line": 142,
+          "line": 175,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushRecorded": {
-          "line": 153,
+          "line": 186,
           "params": [
             "folderPath",
             "number"
           ]
         },
         "handleFile": {
-          "line": 160,
+          "line": 193,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 198
+          "line": 231
         },
         "sweep": {
-          "line": 211,
+          "line": 244,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 227
+          "line": 260
         },
         "init": {
-          "line": 247,
+          "line": 280,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 261,
+          "line": 294,
           "params": [
             "ipcMain"
           ]

@@ -23,3 +23,4 @@
 - T15 · Card and detail follow the four states: Discuss · Discussing · Move to Work + Discuss · a highlighted new-comment chip that opens Comments with Re-discuss; Move to Work confirms with a priority.
 - T16 · Walk the four states and Move to Work in Frame.
 - T17 · A recorded write-up link is also added to the brief's Links (`addAttachment`, titled "Discussion write-up (<date>)"); the Discussions list says "Write-up added to Links" for it, and older records without the attachment keep their link; tests.
+- T18 · The discuss prompt is written to `<userData>/cloud-discussions/prompts/<id>.md` and the lane gets one line to read it, as spec commands and orchestration workers already do; prompt files of pruned discussions are removed; tests.
