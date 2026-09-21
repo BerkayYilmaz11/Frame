@@ -3780,3 +3780,78 @@ how to use'un bağlanması ve/veya frame.cool web site'a yönlenmesi").
 **State.** PR #19 into `feat/frame-cloud-adaptor`. `npm test` passes 913
 tests. The UI pass was built against the mockups and has not been walked end
 to end against a live FrameCloud. The renderer has no DOM harness.
+
+### [2026-09-21] Frame Cloud brief discussions: Discuss, record, and decide a proposal from Frame
+
+**Context.** `frame-cloud-brief-discussions` was implemented on
+`feat/frame-cloud-brief-discussions`, cut from the umbrella
+`feat/frame-cloud-adaptor`, as T01–T18 (autonomous mode for T01–T07, then
+task by task from the user's walks). FrameCloud already stores discussions
+(`brief.recordDiscussion`, one `discussion-recorded` event, no column
+written); the web lists them and deliberately cannot write one. Frame is the
+writer. `outcome.md` has every departure, `digest.md` the distilled rules.
+
+**How a record reaches the server.** The agent in a Discuss lane runs a
+command Frame staged in its own userData (`cloud-discussions/record-discussion.js`),
+not in the user's repo, since a connected folder need not be a Frame project.
+It carries only a discussion id main issued at Discuss, the summary on stdin
+(a quoted heredoc: 10,000 characters of free text do not survive shell
+quoting) and an optional http(s) url. It drops a request on a file bus beside
+itself; main claims it by rename, calls the server and writes a reply the
+command prints. The token, brief id and slug never reach the terminal. On a
+30 s timeout the command withdraws its request, so "Frame did not answer" is
+true, and when main already took it the command says the record may still
+land. `call()` folds server codes into `badRequest`, so the record and decide
+paths catch `NOT_A_PROPOSAL`/`ALREADY_CLOSED`/`ALREADY_WORK` inside the called
+function and return them as values.
+
+**First walk (T08) → T09–T11.** The user's findings: the agent left too many
+"iş odaklı" open questions that do not decide a proposal; it never offered a
+document ("bir noktada eğer tartışmayı sonlandıracaksak bir artifact doküman
+oluşturmamı ister misin diye sorabilir"); the lane chip "bir task formatında
+olmuş … o brief'in açık haline navigate etmeliyiz"; and the card should carry
+Discuss, the record count and the live lane. Codex: no document (asked). The
+prompt now keeps only fate-deciding questions open and asks at wrap-up to
+publish a claude.ai artifact; the chip opens the brief; the card became a
+container with sibling controls, which overturned the plan's "card shows the
+dot only" while keeping its reason (no controls nested in the card button).
+The count comes from `brief.events` per open proposal — the user asked
+"Discussion içerisinde record kayıtları var oradan çekemez miyiz?" and chose
+it once it was clear the list does not carry records ("brief.events ile devam
+et"); rejected: a FrameCloud `discussionCount` field, a local counter.
+
+**Artifact not under Links.** After the second walk the user asked why a
+published artifact was missing from Links. By design it was the record's
+`url`, shown under Discussions; the spec allowed no `addAttachment`. The user
+then asked for it under Links with the record only noting it ("Daha düzenli
+durur bu"), so a write-up url is now also attached as "Discussion write-up
+(<date>)" and Discussions says "Write-up added to Links" (T17).
+
+**Comparing with the web card.** The user pointed at the FrameCloud board
+(`?brief=5`) and asked to assess the differences. Every web-only control is a
+write the earlier specs left on the web; the one that mattered after a
+discussion was the decision. The user set the proposal's controls by state
+(T12–T15): no record → **Discuss**; lane open → "Discussing in <lane>"; at
+least one record → primary **Move to Work**, secondary Discuss; a comment
+after the latest record → the card highlights "N new comments", which opens
+Comments with **Re-discuss**. Asked: "new" means after the latest record (not
+a local seen mark); Move to Work confirms with a priority (Medium default);
+the work stays in this spec rather than a new one. The viewer's own comments
+never count as new. Writes in this spec are now `recordDiscussion`,
+`decide`, and `addAttachment` for a write-up only — never `brief.update`; the
+agent never edits the description (decided by the user).
+
+**Cut-off prompt (T18).** In the last walk the agent said the part of the
+prompt explaining how to record "was cut off" and offered to insert the
+record with SQL. Discuss had typed the whole prompt into the terminal;
+Claude Code collapses large pastes, which `specManager` already documents and
+avoids by staging prompts to a file. The prompt had grown to 4–9 KB with the
+comments. It is now written to `<userData>/cloud-discussions/prompts/<id>.md`
+and the lane gets one "Read '<path>' and follow it exactly" line. Rule: never
+type a long prompt into a lane.
+
+**State.** 18 tasks done, spec `done`; the user walked the final build and it
+passes. `npm test` passes 1026 tests. Open: the heredoc assumes a POSIX shell
+(Windows PowerShell lanes); one `brief.events` request per open proposal on
+the board; the web still shows the write-up link inside its own Discussions
+section.
