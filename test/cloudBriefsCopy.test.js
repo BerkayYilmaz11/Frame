@@ -257,3 +257,14 @@ test('discussErrorMessage has a sentence for each reason and a fallback', () => 
   assert.match(copy.discussErrorMessage('notAnOpenProposal'), /open proposal/);
   assert.match(copy.discussErrorMessage('whatever'), /could not start/);
 });
+
+test('discussionCountLabel counts records and is empty for none or unknown', () => {
+  assert.equal(copy.discussionCountLabel(1), '1 discussion recorded');
+  assert.equal(copy.discussionCountLabel(2), '2 discussions recorded');
+  for (const none of [0, null, undefined, 1.5]) assert.equal(copy.discussionCountLabel(none), '', String(none));
+});
+
+test('discussingIn names the lane', () => {
+  assert.equal(copy.discussingIn('Frame 3'), 'Discussing in Frame 3');
+  assert.equal(copy.discussingIn(''), 'Discussing');
+});

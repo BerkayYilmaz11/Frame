@@ -328,6 +328,13 @@ function onContentClick(event) {
     const number = Number(actionEl.dataset.number);
     if (Number.isInteger(number) && number > 0) openDetail(number);
   }
+  else if (action === 'discuss-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) discuss(brief);
+  }
+  else if (action === 'go-to-lane') {
+    agentDispatch.enterBriefLane(Number(actionEl.dataset.number));
+  }
 }
 
 // ─── Rendering: the board ─────────────────────────────────────
@@ -398,16 +405,43 @@ function renderCard(brief, milestoneName) {
         ${milestoneName ? `<span class="cloud-briefs-milestone">${escapeHtml(milestoneName)}</span>` : ''}
       </span>`
     : '';
-  return `<button type="button" class="cloud-briefs-card" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
-      <span class="cloud-briefs-card-head">
-        <span class="cloud-briefs-number">#${brief.number}</span>
-        <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
-        <span class="cloud-briefs-lane-dot" data-lane-dot="${brief.number}">${agentDispatch.briefStatusDotHtml(brief.number)}</span>
-      </span>
-      <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
-      ${meta}
-      ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
-    </button>`;
+  const records = copy.discussionCountLabel(brief.discussionCount);
+  // The card is a container, not a button: its controls (Discuss, the live
+  // lane) sit beside the open-brief button rather than inside it.
+  return `<div class="cloud-briefs-card">
+      <button type="button" class="cloud-briefs-card-open" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
+        <span class="cloud-briefs-card-head">
+          <span class="cloud-briefs-number">#${brief.number}</span>
+          <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
+        </span>
+        <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
+        ${meta}
+        ${records ? `<span class="cloud-briefs-card-records">${escapeHtml(records)}</span>` : ''}
+        ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
+      </button>
+      <div class="cloud-briefs-card-actions" data-card-actions="${brief.number}">${renderCardActions(brief)}</div>
+    </div>`;
+}
+
+/**
+ * A card's controls: the live Discuss lane ("Discussing in <lane>", which
+ * enters it) while one is open, Discuss on an open proposal without one,
+ * nothing otherwise.
+ */
+function renderCardActions(brief) {
+  const lane = agentDispatch.getBriefLaneInfo(brief.number);
+  if (lane) {
+    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${brief.number}" title="${escapeHtml(copy.GO_TO_DISCUSSION_LABEL)}" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}<span>${escapeHtml(copy.discussingIn(lane.name))}</span></button>`;
+  }
+  if (!isOpenProposal(brief)) return '';
+  const pending = discussing === brief.number;
+  return `<button type="button" class="cloud-briefs-web-btn" data-action="discuss-card" data-number="${brief.number}" title="${escapeHtml(copy.DISCUSS_HINT)}" tabindex="-1"${pending ? ' disabled' : ''}>${escapeHtml(pending ? `${copy.DISCUSS_LABEL}…` : copy.DISCUSS_LABEL)}</button>`;
+}
+
+/** The board's brief with this number, or null. */
+function boardBrief(number) {
+  const briefs = board && board.result ? board.result.briefs : [];
+  return briefs.find((b) => b.number === number) || null;
 }
 
 function renderEmpty(canOpenWeb) {
@@ -750,12 +784,12 @@ async function discuss(brief) {
   }
 }
 
-/** Redraw the lane dots and the detail's Discuss / Go to discussion. `number` null means any brief. */
+/** Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief. */
 function renderLaneSlots(number) {
   if (!visible) return;
-  for (const el of contentElement.querySelectorAll('[data-lane-dot]')) {
-    const n = Number(el.dataset.laneDot);
-    if (number == null || n === number) el.innerHTML = agentDispatch.briefStatusDotHtml(n);
+  for (const el of contentElement.querySelectorAll('[data-card-actions]')) {
+    const brief = boardBrief(Number(el.dataset.cardActions));
+    if (brief && (number == null || brief.number === number)) el.innerHTML = renderCardActions(brief);
   }
   if (drawerMode !== 'detail' || !detail || !detail.result) return;
   if (number != null && detail.number !== number) return;
@@ -763,12 +797,12 @@ function renderLaneSlots(number) {
   if (slot) slot.innerHTML = renderDiscussAction(detail.result.brief);
 }
 
-/** A record landed: reload the brief when it is the one on screen. */
+/** A record landed: reload the board (its counts) and the brief when it is the one on screen. */
 function onDiscussionRecorded(payload) {
   const { folderPath, number } = payload || {};
-  if (!visible || drawerMode !== 'detail' || !detail) return;
-  if (folderPath !== state.getProjectPath() || detail.number !== number) return;
-  loadDetail();
+  if (!visible || folderPath !== state.getProjectPath()) return;
+  load();
+  if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
 }
 
 module.exports = {

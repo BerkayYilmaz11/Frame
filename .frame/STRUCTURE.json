@@ -487,6 +487,7 @@
         "addAttachment",
         "createWithLinks",
         "recordDiscussion",
+        "addDiscussionCounts",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -690,8 +691,16 @@
           ],
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
-        "buildBriefWebUrl": {
+        "addDiscussionCounts": {
           "line": 272,
+          "params": [
+            "call",
+            "briefs"
+          ],
+          "purpose": "The briefs with `discussionCount` on each open proposal, counted from its"
+        },
+        "buildBriefWebUrl": {
+          "line": 287,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -740,7 +749,7 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 64,
+          "line": 66,
           "params": [
             "folderPath",
             "number"
@@ -748,7 +757,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 88,
+          "line": 90,
           "params": [
             "folderPath",
             "request"
@@ -756,7 +765,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "openOnWeb": {
-          "line": 102,
+          "line": 104,
           "params": [
             "folderPath",
             "number"
@@ -764,7 +773,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 111,
+          "line": 113,
           "params": [
             "ipcMain"
           ]
@@ -6778,6 +6787,8 @@
         "eventSentence",
         "reasonMessage",
         "DISCUSSIONS_TITLE",
+        "discussionCountLabel",
+        "discussingIn",
         "DISCUSS_LABEL",
         "GO_TO_DISCUSSION_LABEL",
         "DISCUSS_HINT",
@@ -6888,21 +6899,35 @@
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
+        "discussionCountLabel": {
+          "line": 209,
+          "params": [
+            "count"
+          ],
+          "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
+        },
+        "discussingIn": {
+          "line": 215,
+          "params": [
+            "laneName"
+          ],
+          "purpose": "A card's live lane: \"Discussing in <lane>\"."
+        },
         "eventText": {
-          "line": 213,
+          "line": 224,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 217,
+          "line": 228,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 227,
+          "line": 238,
           "params": [
             "events",
             "meId"
@@ -6910,14 +6935,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 256,
+          "line": 267,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "submitLabel": {
-          "line": 274,
+          "line": 285,
           "params": [
             "kind",
             "pending"
@@ -6925,14 +6950,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 293,
+          "line": 304,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 298,
+          "line": 309,
           "params": [
             "number",
             "reason"
@@ -7209,75 +7234,89 @@
           ]
         },
         "setHeader": {
-          "line": 335,
+          "line": 342,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 342
+          "line": 349
         },
         "renderNotice": {
-          "line": 374
+          "line": 381
         },
         "renderCards": {
-          "line": 384,
+          "line": 391,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 391,
+          "line": 398,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
+        "renderCardActions": {
+          "line": 431,
+          "params": [
+            "brief"
+          ],
+          "purpose": "A card's controls: the live Discuss lane (\"Discussing in <lane>\", which"
+        },
+        "boardBrief": {
+          "line": 442,
+          "params": [
+            "number"
+          ],
+          "purpose": "The board's brief with this number, or null."
+        },
         "renderEmpty": {
-          "line": 413,
+          "line": 447,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 426
+          "line": 460
         },
         "renderMessage": {
-          "line": 431,
+          "line": 465,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 436,
+          "line": 470,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 444
+          "line": 478
         },
         "showDrawer": {
-          "line": 452,
+          "line": 486,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 460,
+          "line": 494,
           "params": [
             "number"
           ]
         },
         "openNewBrief": {
-          "line": 470,
+          "line": 504,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 480,
+          "line": 514,
           "params": [
             "{ number",
             "attachmentError }"
@@ -7285,34 +7324,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 487,
+          "line": 521,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 493,
+          "line": 527,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 504
+          "line": 538
         },
         "onDetailClick": {
-          "line": 538,
+          "line": 572,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 563,
+          "line": 597,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 567
+          "line": 601
         },
         "tabCount": {
-          "line": 597,
+          "line": 631,
           "params": [
             "key",
             "brief",
@@ -7320,7 +7359,7 @@
           ]
         },
         "renderMeta": {
-          "line": 605,
+          "line": 639,
           "params": [
             "brief",
             "events",
@@ -7328,7 +7367,7 @@
           ]
         },
         "renderTab": {
-          "line": 625,
+          "line": 659,
           "params": [
             "tab",
             "brief",
@@ -7337,7 +7376,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 675,
+          "line": 709,
           "params": [
             "events",
             "meId"
@@ -7345,38 +7384,38 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "isOpenProposal": {
-          "line": 695,
+          "line": 729,
           "params": [
             "brief"
           ]
         },
         "renderDiscussAction": {
-          "line": 703,
+          "line": 737,
           "params": [
             "brief"
           ],
           "purpose": "Go to discussion while the brief's lane is open (whatever the brief has"
         },
         "discuss": {
-          "line": 717,
+          "line": 751,
           "params": [
             "brief"
           ],
           "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
         },
         "renderLaneSlots": {
-          "line": 754,
+          "line": 788,
           "params": [
             "number"
           ],
-          "purpose": "Redraw the lane dots and the detail's Discuss / Go to discussion. `number` null means any brief."
+          "purpose": "Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief."
         },
         "onDiscussionRecorded": {
-          "line": 767,
+          "line": 801,
           "params": [
             "payload"
           ],
-          "purpose": "A record landed: reload the brief when it is the one on screen."
+          "purpose": "A record landed: reload the board (its counts) and the brief when it is the one on screen."
         }
       },
       "ipc": {

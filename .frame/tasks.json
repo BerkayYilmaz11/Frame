@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T10:19:15.987Z",
+  "lastUpdated": "2026-09-21T10:21:02.966Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9019,13 +9019,13 @@
       "acceptanceCriteria": "Open proposal cards show Discuss (or the live lane line while one is open) and the record count when above zero; clicks on these controls do not open the drawer; tests pass.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — findings from the T08 walk, 2026-09-21",
       "createdAt": "2026-09-21T10:16:51.943Z",
-      "updatedAt": "2026-09-21T10:17:24.380Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T10:21:02.966Z",
+      "completedAt": "2026-09-21T10:21:02.966Z"
     }
   ],
   "metadata": {

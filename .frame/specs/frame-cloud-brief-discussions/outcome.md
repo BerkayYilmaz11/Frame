@@ -72,3 +72,11 @@ _Captured: 2026-09-21 · 3 file change(s)_
 
 ---
 
+## T11 — Brief cards: Discuss, record count, live lane
+
+Cards now show a direct Discuss, "N discussions recorded" and a clickable "Discussing in <lane>" with the dot. The count comes from `addDiscussionCounts` in `cloudBriefs.js`, one `brief.events` per open proposal, attached in `cloudBriefsService.list`; the labels are in `cloudBriefsCopy.js`. The card was split into a container with sibling controls (`cloudBriefsPanel.js`, `cloud-briefs.css`), overturning the plan's "dot only" card decision while keeping its no-nesting reason. A recorded push now reloads the board as well as the open brief. Followup: a board with many open proposals makes one events request each; a `discussionCount` on FrameCloud's `brief.list` would make it one.
+
+_Captured: 2026-09-21 · 7 file change(s)_
+
+---
+

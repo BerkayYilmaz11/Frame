@@ -263,6 +263,21 @@ async function recordDiscussion({ api, token, fetchJson, signal, id, summary, ur
   return normalizeBrief(data);
 }
 
+/**
+ * The briefs with `discussionCount` on each open proposal, counted from its
+ * `brief.events` (the list does not carry it). `call` is cloudProjectsService's
+ * wrapper; a proposal whose events fail to load gets `null`, never a failed
+ * board. Work and ended briefs get `null` without a request.
+ */
+async function addDiscussionCounts(call, briefs) {
+  return Promise.all(briefs.map(async (brief) => {
+    if (brief.kind !== 'proposal' || brief.status === 'closed') return { ...brief, discussionCount: null };
+    const events = await call((ctx) => briefEvents({ ...ctx, id: brief.id }));
+    const discussionCount = events.ok ? events.value.filter((e) => e.event === 'discussion-recorded').length : null;
+    return { ...brief, discussionCount };
+  }));
+}
+
 // ─── Web links ────────────────────────────────────────────────
 
 /**
@@ -293,5 +308,6 @@ module.exports = {
   addAttachment,
   createWithLinks,
   recordDiscussion,
+  addDiscussionCounts,
   buildBriefWebUrl,
 };

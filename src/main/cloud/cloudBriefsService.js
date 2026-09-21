@@ -50,10 +50,12 @@ async function list(folderPath, { includeClosed } = {}) {
   ]);
   if (!briefs.ok) return { ok: false, reason: briefs.reason };
   if (!milestones.ok) return { ok: false, reason: milestones.reason };
+  // Open proposals' discussion counts, one `brief.events` each (frame-cloud-brief-discussions T11).
+  const counted = await core.addDiscussionCounts(call, briefs.value);
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },
-    briefs: briefs.value,
+    briefs: counted,
     milestones: milestones.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project)),

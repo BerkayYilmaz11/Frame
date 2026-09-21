@@ -351,3 +351,37 @@ test('recordDiscussion surfaces a server refusal as a CloudError', async () => {
 test('LIMITS carries the server\'s provider limit', () => {
   assert.equal(core.LIMITS.provider, 40);
 });
+
+test('addDiscussionCounts counts records on open proposals only, and survives a failed events call', async () => {
+  const briefs = [
+    { id: 'p1', number: 1, kind: 'proposal', status: 'backlog' },
+    { id: 'p2', number: 2, kind: 'proposal', status: 'backlog' },
+    { id: 'p3', number: 3, kind: 'proposal', status: 'closed' },
+    { id: 'w4', number: 4, kind: 'work', status: 'active' },
+  ];
+  const asked = [];
+  const events = {
+    p1: [
+      { id: 'e1', event: 'created' },
+      { id: 'e2', event: 'discussion-recorded', data: { summary: 'a' } },
+      { id: 'e3', event: 'discussion-recorded', data: { summary: 'b' } },
+    ],
+  };
+  const call = async (fn) => {
+    const fetchJson = async (url) => {
+      const id = JSON.parse(decodeURIComponent(url.split('?input=')[1])).id;
+      asked.push(id);
+      if (!events[id]) return { status: 500, body: {} };
+      return ok(events[id]);
+    };
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  const counted = await core.addDiscussionCounts(call, briefs);
+  assert.deepEqual(counted.map((b) => b.discussionCount), [2, null, null, null]);
+  assert.deepEqual(asked.sort(), ['p1', 'p2']);
+  assert.equal(briefs[0].discussionCount, undefined);
+});

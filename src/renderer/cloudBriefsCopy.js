@@ -204,6 +204,17 @@ function reasonMessage(reason) {
 // ─── Discussions ──────────────────────────────────────────────
 
 const DISCUSSIONS_TITLE = 'Discussions';
+
+/** A card's record count: "1 discussion recorded", "2 discussions recorded"; '' for none or unknown. */
+function discussionCountLabel(count) {
+  if (!Number.isInteger(count) || count < 1) return '';
+  return `${count} discussion${count === 1 ? '' : 's'} recorded`;
+}
+
+/** A card's live lane: "Discussing in <lane>". */
+function discussingIn(laneName) {
+  return laneName ? `Discussing in ${laneName}` : 'Discussing';
+}
 const DISCUSS_LABEL = 'Discuss';
 const GO_TO_DISCUSSION_LABEL = 'Go to discussion';
 const DISCUSS_HINT = 'Talk this proposal over with an AI agent in a new lane. It can record what you settle here.';
@@ -314,6 +325,8 @@ module.exports = {
   eventSentence,
   reasonMessage,
   DISCUSSIONS_TITLE,
+  discussionCountLabel,
+  discussingIn,
   DISCUSS_LABEL,
   GO_TO_DISCUSSION_LABEL,
   DISCUSS_HINT,
