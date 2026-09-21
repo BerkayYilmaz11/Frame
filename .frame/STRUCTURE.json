@@ -7141,131 +7141,134 @@
         "htmlUtils",
         "cloudBriefsCopy",
         "cloudBriefsForm",
+        "agentDispatch",
+        "aiToolSelector",
+        "notify",
         "projectListUI"
       ],
       "functions": {
         "init": {
-          "line": 71,
+          "line": 77,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 133
+          "line": 144
         },
         "onCloudChange": {
-          "line": 143
+          "line": 154
         },
         "currentKey": {
-          "line": 178,
+          "line": 189,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 185,
+          "line": 196,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 192,
+          "line": 203,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "hide": {
-          "line": 201
+          "line": 212
         },
         "refresh": {
-          "line": 212,
+          "line": 223,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 219
+          "line": 230
         },
         "setRefreshing": {
-          "line": 260,
+          "line": 271,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 266,
+          "line": 277,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 275,
+          "line": 286,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 295,
+          "line": 306,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 302
+          "line": 313
         },
         "renderNotice": {
-          "line": 334
+          "line": 345
         },
         "renderCards": {
-          "line": 344,
+          "line": 355,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 351,
+          "line": 362,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderEmpty": {
-          "line": 372,
+          "line": 384,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 385
+          "line": 397
         },
         "renderMessage": {
-          "line": 390,
+          "line": 402,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 395,
+          "line": 407,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 403
+          "line": 415
         },
         "showDrawer": {
-          "line": 411,
+          "line": 423,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 419,
+          "line": 431,
           "params": [
             "number"
           ]
         },
         "openNewBrief": {
-          "line": 429,
+          "line": 441,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 439,
+          "line": 451,
           "params": [
             "{ number",
             "attachmentError }"
@@ -7273,34 +7276,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 446,
+          "line": 458,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 452,
+          "line": 464,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 463
+          "line": 475
         },
         "onDetailClick": {
-          "line": 497,
+          "line": 509,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 518,
+          "line": 534,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 522
+          "line": 538
         },
         "tabCount": {
-          "line": 549,
+          "line": 568,
           "params": [
             "key",
             "brief",
@@ -7308,7 +7311,7 @@
           ]
         },
         "renderMeta": {
-          "line": 557,
+          "line": 576,
           "params": [
             "brief",
             "events",
@@ -7316,14 +7319,62 @@
           ]
         },
         "renderTab": {
-          "line": 577,
+          "line": 596,
           "params": [
             "tab",
             "brief",
             "events",
             "meId"
           ]
+        },
+        "renderDiscussions": {
+          "line": 646,
+          "params": [
+            "events",
+            "meId"
+          ],
+          "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
+        },
+        "isOpenProposal": {
+          "line": 666,
+          "params": [
+            "brief"
+          ]
+        },
+        "renderDiscussAction": {
+          "line": 674,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Go to discussion while the brief's lane is open (whatever the brief has"
+        },
+        "discuss": {
+          "line": 688,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
+        },
+        "renderLaneSlots": {
+          "line": 725,
+          "params": [
+            "number"
+          ],
+          "purpose": "Redraw the lane dots and the detail's Discuss / Go to discussion. `number` null means any brief."
+        },
+        "onDiscussionRecorded": {
+          "line": 738,
+          "params": [
+            "payload"
+          ],
+          "purpose": "A record landed: reload the brief when it is the one on screen."
         }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_DISCUSSION_RECORDED"
+        ],
+        "emits": []
       }
     },
     "renderer/cloudHub": {

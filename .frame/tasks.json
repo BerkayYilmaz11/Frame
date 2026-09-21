@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:27:44.837Z",
+  "lastUpdated": "2026-09-21T08:29:49.954Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8958,13 +8958,13 @@
       "title": "In `src/renderer/cloudBriefsPanel.js`, show Discuss on an open proposal (invoke `CLOUD_BRIEF_DISCUSS` with the current tool, then `dispatch` with `createNew` and the brief assignment) or Go to discussion while its lane is open, put the activity dot on cards, render the Discussions section under the description, and reload the open detail on `CLOUD_BRIEF_DISCUSSION_RECORDED`; style the button and list in `src/renderer/styles/components/cloud-briefs.css`.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:29:49.954Z",
+      "completedAt": "2026-09-21T08:29:49.954Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T08",

@@ -48,3 +48,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T07 — Discuss in the Briefs panel
+
+Wired Discuss / Go to discussion into the detail header, lane dots onto cards, the Discussions list under the description, and a reload on `CLOUD_BRIEF_DISCUSSION_RECORDED` in `src/renderer/cloudBriefsPanel.js`, with styles in `cloud-briefs.css`. Lane activity patches the dot and button slots in place instead of re-rendering the drawer. Go to discussion also shows on a brief that is no longer an open proposal while its lane is open, a small widening of the spec's rule.
+
+_Captured: 2026-09-21 · 2 file change(s)_
+
+---
+
