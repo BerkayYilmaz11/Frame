@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:22:25.678Z",
+  "lastUpdated": "2026-09-21T08:24:04.395Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8906,13 +8906,13 @@
       "title": "Write the self-contained `src/templates/bin/record-discussion.js` — pure `parseArgs` / `requestFor`, then read the summary from stdin, publish `bus/<ts>-<rand>.json` beside its own `__dirname` by tmp + rename, wait up to 30 s for `bus/replies/<same>.json`, print its message and exit 0/1, or print \"Frame did not answer\" — with `test/recordDiscussion.test.js` against a temp bus, including the timeout.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:24:04.395Z",
+      "completedAt": "2026-09-21T08:24:04.395Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T04",

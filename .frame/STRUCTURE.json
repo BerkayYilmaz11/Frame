@@ -15788,6 +15788,70 @@
         }
       }
     },
+    "templates/bin/record-discussion": {
+      "file": "src/templates/bin/record-discussion.js",
+      "description": "",
+      "exports": [
+        "WAIT_MS",
+        "parseArgs",
+        "requestFor",
+        "run"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto"
+      ],
+      "functions": {
+        "parseArgs": {
+          "line": 44,
+          "params": [
+            "argv"
+          ],
+          "purpose": "argv (after the script) → `{ ok, discussionId, url }` or `{ ok: false, message }`."
+        },
+        "isHttpUrl": {
+          "line": 60,
+          "params": [
+            "value"
+          ]
+        },
+        "requestFor": {
+          "line": 74,
+          "params": [
+            "{ discussionId",
+            "url",
+            "summary",
+            "ts }"
+          ],
+          "purpose": "Parsed args + the stdin text → the bus request, or why not. The same shape"
+        },
+        "readAll": {
+          "line": 92,
+          "params": [
+            "stream"
+          ]
+        },
+        "readReply": {
+          "line": 101,
+          "params": [
+            "file"
+          ]
+        },
+        "run": {
+          "line": 114,
+          "params": [
+            "{ argv",
+            "summary",
+            "busDir",
+            "now = Date.now",
+            "waitMs = WAIT_MS",
+            "pollMs = POLL_MS }"
+          ],
+          "purpose": "Publish the request, wait for the reply. `summary` is the stdin text."
+        }
+      }
+    },
     "templates/commands/claude-code/build-implement-report": {
       "file": "src/templates/commands/claude-code/build-implement-report.mjs",
       "description": "",

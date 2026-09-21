@@ -16,3 +16,11 @@ _Captured: 2026-09-21 · 3 file change(s)_
 
 ---
 
+## T03 — The record-discussion command
+
+Wrote `src/templates/bin/record-discussion.js` (pure `parseArgs`/`requestFor`, then `run()`: atomic request in `bus/` beside `__dirname`, a 30 s poll for `bus/replies/<same>.json`, the printed reply, exit 0/1) with 10 cases in `test/recordDiscussion.test.js`, including the timeout and a spawned copy reading stdin. Added beyond the plan: on timeout the command withdraws its request. It reports "Frame did not answer" only when that withdrawal succeeds, and otherwise says the record may still land. That relies on T04's watcher claiming each request by renaming it.
+
+_Captured: 2026-09-21 · 2 file change(s)_
+
+---
+
