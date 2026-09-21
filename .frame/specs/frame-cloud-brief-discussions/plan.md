@@ -262,3 +262,15 @@ brief's comments, fenced as data like every other field.
 
 Files added to scope: none beyond the first amendment
 (`src/main/cloud/cloudBriefsService.js` gains `decide`).
+
+## Amendment — write-up links in Links (2026-09-21)
+
+The user wants a discussion's write-up under Links, with the record only
+noting it: "tidier". After `brief.recordDiscussion`, main also calls
+`brief.addAttachment` (the create spec's call) with the record's url, titled
+"Discussion write-up (<YYYY-MM-DD>)". The record keeps its `url`, which is how
+Discussions knows the link went to Links; a record whose url is not among the
+attachments (recorded before this change) still shows its link. A failed
+attachment does not undo the record: the command reports it as recorded,
+with the link not added. Writes now: `recordDiscussion`, `decide`, and
+`addAttachment` for a write-up only.
