@@ -4,7 +4,8 @@
  * Reads a cloud project's briefs, one brief with its parts, attachments and
  * comments, its history, and the project's milestones. The one write is
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
- * every other brief or milestone mutation stays on the web.
+ * and recording a discussion on a proposal (`brief.recordDiscussion`); every
+ * other brief or milestone mutation stays on the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -24,8 +25,11 @@ const PART_SHAPES = new Set(['spec', 'task']);
 const PART_TYPES = new Set(['feature', 'fix', 'refactor', 'docs', 'test']);
 const MILESTONE_STATUSES = new Set(['planned', 'started', 'closed']);
 
-/** The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`, `BRIEF_ATTACHMENT_TITLE_MAX`). */
-const LIMITS = Object.freeze({ title: 200, body: 10000, attachmentTitle: 200 });
+/**
+ * The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`,
+ * `BRIEF_ATTACHMENT_TITLE_MAX`, `BRIEF_PROVIDER_MAX`).
+ */
+const LIMITS = Object.freeze({ title: 200, body: 10000, attachmentTitle: 200, provider: 40 });
 
 /** Where Frame's New brief form sits among FrameCloud's brief sources: a person at a form. */
 const CREATE_SOURCE = 'desk';
@@ -243,6 +247,22 @@ async function createWithLinks(call, { input, links = [] }) {
   return { ok: true, number, attachmentError: null };
 }
 
+// ─── Discussions ──────────────────────────────────────────────
+
+/**
+ * `brief.recordDiscussion` → the brief, normalized. Appends one
+ * `discussion-recorded` event to an open proposal and writes no column; `url`
+ * and `provider` are left out when absent. Throws CloudError
+ * (`NOT_A_PROPOSAL`, `ALREADY_CLOSED`, `BRIEF_NOT_FOUND`).
+ */
+async function recordDiscussion({ api, token, fetchJson, signal, id, summary, url, provider }) {
+  const input = { id, summary };
+  if (url) input.url = url;
+  if (provider) input.provider = provider;
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.recordDiscussion', method: 'POST', input });
+  return normalizeBrief(data);
+}
+
 // ─── Web links ────────────────────────────────────────────────
 
 /**
@@ -271,5 +291,6 @@ module.exports = {
   createBrief,
   addAttachment,
   createWithLinks,
+  recordDiscussion,
   buildBriefWebUrl,
 };

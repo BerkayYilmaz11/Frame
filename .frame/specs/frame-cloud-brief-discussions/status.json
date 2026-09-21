@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-brief-discussions",
   "title": "Frame Cloud brief discussions",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-frame-cloud-brief-discussions-T01",
     "task-spec-frame-cloud-brief-discussions-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-21T00:00:00Z",
-  "updated_at": "2026-09-21T08:15:51.661Z",
-  "last_phase_at": "2026-09-21T12:30:00Z",
+  "updated_at": "2026-09-21T08:18:02.242Z",
+  "last_phase_at": "2026-09-21T08:18:02.242Z",
   "implement_mode": "autonomous"
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:15:09.873Z",
+  "lastUpdated": "2026-09-21T08:19:36.426Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8880,13 +8880,13 @@
       "title": "Add `recordDiscussion` (POST `brief.recordDiscussion` with `id`, `summary`, optional `url` and `provider`) and `LIMITS.provider = 40` to `src/main/cloud/cloudBriefs.js`, with its procedure-and-input case in `test/cloudBriefs.test.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:19:36.426Z",
+      "completedAt": "2026-09-21T08:19:36.426Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T02",

@@ -321,3 +321,33 @@ test('createWithLinks without links is one request and never returns the id', as
   assert.deepEqual(r, { ok: true, number: 3, attachmentError: null });
   assert.equal(sent.length, 1);
 });
+
+// ─── Discussions ──────────────────────────────────────────────
+
+test('recordDiscussion POSTs brief.recordDiscussion with id, summary, url and provider', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.recordDiscussion': ok({ ...BRIEF, kind: 'proposal' }) });
+  const brief = await core.recordDiscussion({
+    ...ctx(fetchJson), id: 'b1', summary: 'Chose Postgres', url: 'https://claude.ai/artifact/x', provider: 'Claude Code',
+  });
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', summary: 'Chose Postgres', url: 'https://claude.ai/artifact/x', provider: 'Claude Code' });
+  assert.equal(brief.kind, 'proposal');
+});
+
+test('recordDiscussion leaves out an absent url and provider', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.recordDiscussion': ok(BRIEF) });
+  await core.recordDiscussion({ ...ctx(fetchJson), id: 'b1', summary: 'Second round' });
+  assert.deepEqual(calls[0].body, { id: 'b1', summary: 'Second round' });
+});
+
+test('recordDiscussion surfaces a server refusal as a CloudError', async () => {
+  const { fetchJson } = fakeFetch({
+    '/trpc/brief.recordDiscussion': { status: 400, body: { error: { message: 'ALREADY_CLOSED', data: { code: 'BAD_REQUEST' } } } },
+  });
+  await assert.rejects(core.recordDiscussion({ ...ctx(fetchJson), id: 'b1', summary: 'x' }), (err) => err.name === 'CloudError' && err.message === 'ALREADY_CLOSED');
+});
+
+test('LIMITS carries the server\'s provider limit', () => {
+  assert.equal(core.LIMITS.provider, 40);
+});
