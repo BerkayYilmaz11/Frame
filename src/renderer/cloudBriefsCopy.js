@@ -211,6 +211,61 @@ function discussionCountLabel(count) {
   return `${count} discussion${count === 1 ? '' : 's'} recorded`;
 }
 
+/**
+ * Where an open proposal stands, which decides its controls:
+ * 'discussing' (a Discuss lane is open) · 'discuss' (nothing recorded yet) ·
+ * 'decide' (at least one record: Move to Work, then Discuss) · 'none' (work,
+ * or ended). New comments are a separate fact layered on 'decide'.
+ */
+function proposalStage({ brief, laneOpen, discussionCount }) {
+  if (laneOpen) return 'discussing';
+  const b = brief || {};
+  if (b.kind !== 'proposal' || b.status === 'closed') return 'none';
+  return Number.isInteger(discussionCount) && discussionCount > 0 ? 'decide' : 'discuss';
+}
+
+/** "1 new comment", "3 new comments"; '' for none or unknown. */
+function newCommentsLabel(count) {
+  if (!Number.isInteger(count) || count < 1) return '';
+  return `${count} new comment${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * The ids of the comments that are new: added by someone other than `meId`
+ * after the latest discussion record. Empty while nothing was recorded.
+ */
+function newCommentIds(comments, events, meId) {
+  const records = (Array.isArray(events) ? events : []).filter((e) => e && e.event === 'discussion-recorded');
+  if (records.length === 0) return new Set();
+  const lastAt = Date.parse(records[records.length - 1].at);
+  if (Number.isNaN(lastAt)) return new Set();
+  return new Set((Array.isArray(comments) ? comments : [])
+    .filter((c) => c && c.authorId !== meId && Date.parse(c.createdAt) > lastAt)
+    .map((c) => c.id));
+}
+
+const MOVE_TO_WORK_LABEL = 'Move to Work';
+const MOVE_TO_WORK_DESCRIPTION = 'This proposal becomes work you have decided on. It keeps its number and stays in Backlog.';
+const REDISCUSS_LABEL = 'Re-discuss';
+const REDISCUSS_HINT = 'Start a new discussion that opens on these comments.';
+
+const DECIDE_MESSAGES = {
+  notAProposal: 'This brief is no longer a proposal.',
+  alreadyWork: 'This proposal has already moved to work.',
+  alreadyClosed: 'This proposal has ended.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  badRequest: 'Pick a priority and try again.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a Move to Work that failed. */
+function decideErrorMessage(reason) {
+  return DECIDE_MESSAGES[reason] || 'Something went wrong. Try again.';
+}
+
 /** A card's live lane: "Discussing in <lane>". */
 function discussingIn(laneName) {
   return laneName ? `Discussing in ${laneName}` : 'Discussing';
@@ -327,6 +382,14 @@ module.exports = {
   DISCUSSIONS_TITLE,
   discussionCountLabel,
   discussingIn,
+  proposalStage,
+  newCommentsLabel,
+  newCommentIds,
+  MOVE_TO_WORK_LABEL,
+  MOVE_TO_WORK_DESCRIPTION,
+  REDISCUSS_LABEL,
+  REDISCUSS_HINT,
+  decideErrorMessage,
   DISCUSS_LABEL,
   GO_TO_DISCUSSION_LABEL,
   DISCUSS_HINT,

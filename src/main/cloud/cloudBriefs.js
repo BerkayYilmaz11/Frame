@@ -303,17 +303,37 @@ async function decideThrough(call, { id, priority }) {
 }
 
 /**
- * The briefs with `discussionCount` on each open proposal, counted from its
- * `brief.events` (the list does not carry it). `call` is cloudProjectsService's
- * wrapper; a proposal whose events fail to load gets `null`, never a failed
- * board. Work and ended briefs get `null` without a request.
+ * From a brief's events (oldest first): how many discussions were recorded,
+ * and how many comments someone other than `meId` added after the latest
+ * record — none count as new while nothing was recorded.
  */
-async function addDiscussionCounts(call, briefs) {
+function discussionFacts(events, meId) {
+  let discussionCount = 0;
+  let newCommentCount = 0;
+  for (const e of events) {
+    if (e.event === 'discussion-recorded') {
+      discussionCount += 1;
+      newCommentCount = 0;
+    } else if (e.event === 'comment-added' && discussionCount > 0 && e.actorId !== meId) {
+      newCommentCount += 1;
+    }
+  }
+  return { discussionCount, newCommentCount };
+}
+
+/**
+ * The briefs with `discussionCount` and `newCommentCount` on each open
+ * proposal, from its `brief.events` (the list does not carry them). `call` is
+ * cloudProjectsService's wrapper; a proposal whose events fail to load gets
+ * `null`s, never a failed board. Work and ended briefs get `null`s without a
+ * request.
+ */
+async function addDiscussionCounts(call, briefs, meId = '') {
+  const unknown = { discussionCount: null, newCommentCount: null };
   return Promise.all(briefs.map(async (brief) => {
-    if (brief.kind !== 'proposal' || brief.status === 'closed') return { ...brief, discussionCount: null };
+    if (brief.kind !== 'proposal' || brief.status === 'closed') return { ...brief, ...unknown };
     const events = await call((ctx) => briefEvents({ ...ctx, id: brief.id }));
-    const discussionCount = events.ok ? events.value.filter((e) => e.event === 'discussion-recorded').length : null;
-    return { ...brief, discussionCount };
+    return { ...brief, ...(events.ok ? discussionFacts(events.value, meId) : unknown) };
   }));
 }
 
@@ -347,6 +367,7 @@ module.exports = {
   addAttachment,
   createWithLinks,
   recordDiscussion,
+  discussionFacts,
   addDiscussionCounts,
   decideBrief,
   decideThrough,

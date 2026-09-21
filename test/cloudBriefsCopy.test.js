@@ -268,3 +268,38 @@ test('discussingIn names the lane', () => {
   assert.equal(copy.discussingIn('Frame 3'), 'Discussing in Frame 3');
   assert.equal(copy.discussingIn(''), 'Discussing');
 });
+
+test('proposalStage follows the four states', () => {
+  const proposal = { kind: 'proposal', status: 'backlog' };
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: 0 }), 'discuss');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: null }), 'discuss');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: true, discussionCount: 2 }), 'discussing');
+  assert.equal(copy.proposalStage({ brief: proposal, laneOpen: false, discussionCount: 1 }), 'decide');
+  assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'backlog' }, laneOpen: false, discussionCount: 1 }), 'none');
+  assert.equal(copy.proposalStage({ brief: { kind: 'proposal', status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'active' }, laneOpen: true }), 'discussing');
+});
+
+test('newCommentsLabel and the Move to Work words', () => {
+  assert.equal(copy.newCommentsLabel(1), '1 new comment');
+  assert.equal(copy.newCommentsLabel(3), '3 new comments');
+  assert.equal(copy.newCommentsLabel(0), '');
+  assert.equal(copy.MOVE_TO_WORK_LABEL, 'Move to Work');
+  assert.equal(copy.REDISCUSS_LABEL, 'Re-discuss');
+  assert.match(copy.decideErrorMessage('alreadyWork'), /already moved/);
+  assert.match(copy.decideErrorMessage('whatever'), /went wrong/);
+});
+
+test('newCommentIds marks others\' comments after the latest record', () => {
+  const events = [
+    { event: 'discussion-recorded', at: '2026-09-02T10:00:00.000Z' },
+    { event: 'discussion-recorded', at: '2026-09-05T10:00:00.000Z' },
+  ];
+  const comments = [
+    { id: 'c1', authorId: 'u2', createdAt: '2026-09-03T10:00:00.000Z' },
+    { id: 'c2', authorId: 'u2', createdAt: '2026-09-06T10:00:00.000Z' },
+    { id: 'c3', authorId: 'u1', createdAt: '2026-09-07T10:00:00.000Z' },
+  ];
+  assert.deepEqual([...copy.newCommentIds(comments, events, 'u1')], ['c2']);
+  assert.equal(copy.newCommentIds(comments, [], 'u1').size, 0);
+});

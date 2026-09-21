@@ -96,3 +96,11 @@ _Captured: 2026-09-21 · 4 file change(s)_
 
 ---
 
+## T13 — Discussion facts and the proposal stage
+
+Added `discussionFacts` (records, plus others' comments after the latest one) to `cloudBriefs.js`. `addDiscussionCounts` now also sets `newCommentCount`, with the service passing `meId`. `cloudBriefsCopy.js` gained `proposalStage`, `newCommentsLabel`, `newCommentIds`, the Move to Work / Re-discuss words and `decideErrorMessage`, with tests. The viewer's own comments never count as new. New comments are a fact layered on the `decide` stage, not a stage of their own.
+
+_Captured: 2026-09-21 · 5 file change(s)_
+
+---
+

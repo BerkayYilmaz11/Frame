@@ -382,6 +382,7 @@ test('addDiscussionCounts counts records on open proposals only, and survives a 
   };
   const counted = await core.addDiscussionCounts(call, briefs);
   assert.deepEqual(counted.map((b) => b.discussionCount), [2, null, null, null]);
+  assert.deepEqual(counted.map((b) => b.newCommentCount), [0, null, null, null]);
   assert.deepEqual(asked.sort(), ['p1', 'p2']);
   assert.equal(briefs[0].discussionCount, undefined);
 });
@@ -428,4 +429,15 @@ test('decideThrough keeps the server\'s refusal reason', async () => {
   }
   const { call } = decideCall({ status: 401, body: {} });
   assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason: 'unauthorized' });
+});
+
+test('discussionFacts counts records, and others\' comments after the latest one as new', () => {
+  const e = (event, actorId = 'u2') => ({ id: event, event, actorId, data: {} });
+  assert.deepEqual(core.discussionFacts([e('created'), e('comment-added')], 'u1'), { discussionCount: 0, newCommentCount: 0 });
+  assert.deepEqual(core.discussionFacts([
+    e('discussion-recorded', 'u1'), e('comment-added'), e('comment-added', 'u1'), e('comment-added'),
+  ], 'u1'), { discussionCount: 1, newCommentCount: 2 });
+  assert.deepEqual(core.discussionFacts([
+    e('discussion-recorded', 'u1'), e('comment-added'), e('discussion-recorded', 'u1'),
+  ], 'u1'), { discussionCount: 2, newCommentCount: 0 });
 });

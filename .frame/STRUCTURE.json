@@ -487,6 +487,7 @@
         "addAttachment",
         "createWithLinks",
         "recordDiscussion",
+        "discussionFacts",
         "addDiscussionCounts",
         "decideBrief",
         "decideThrough",
@@ -714,16 +715,25 @@
           ],
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
+        "discussionFacts": {
+          "line": 310,
+          "params": [
+            "events",
+            "meId"
+          ],
+          "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
+        },
         "addDiscussionCounts": {
-          "line": 311,
+          "line": 331,
           "params": [
             "call",
-            "briefs"
+            "briefs",
+            "meId = ''"
           ],
-          "purpose": "The briefs with `discussionCount` on each open proposal, counted from its"
+          "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "buildBriefWebUrl": {
-          "line": 326,
+          "line": 346,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -6823,6 +6833,14 @@
         "DISCUSSIONS_TITLE",
         "discussionCountLabel",
         "discussingIn",
+        "proposalStage",
+        "newCommentsLabel",
+        "newCommentIds",
+        "MOVE_TO_WORK_LABEL",
+        "MOVE_TO_WORK_DESCRIPTION",
+        "REDISCUSS_LABEL",
+        "REDISCUSS_HINT",
+        "decideErrorMessage",
         "DISCUSS_LABEL",
         "GO_TO_DISCUSSION_LABEL",
         "DISCUSS_HINT",
@@ -6940,28 +6958,60 @@
           ],
           "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
         },
+        "proposalStage": {
+          "line": 220,
+          "params": [
+            "{ brief",
+            "laneOpen",
+            "discussionCount }"
+          ],
+          "purpose": "Where an open proposal stands, which decides its controls:"
+        },
+        "newCommentsLabel": {
+          "line": 228,
+          "params": [
+            "count"
+          ],
+          "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
+        },
+        "newCommentIds": {
+          "line": 237,
+          "params": [
+            "comments",
+            "events",
+            "meId"
+          ],
+          "purpose": "The ids of the comments that are new: added by someone other than `meId`"
+        },
+        "decideErrorMessage": {
+          "line": 265,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The sentence for a Move to Work that failed."
+        },
         "discussingIn": {
-          "line": 215,
+          "line": 270,
           "params": [
             "laneName"
           ],
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 224,
+          "line": 279,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 228,
+          "line": 283,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 238,
+          "line": 293,
           "params": [
             "events",
             "meId"
@@ -6969,14 +7019,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 267,
+          "line": 322,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "submitLabel": {
-          "line": 285,
+          "line": 340,
           "params": [
             "kind",
             "pending"
@@ -6984,14 +7034,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 304,
+          "line": 359,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 309,
+          "line": 364,
           "params": [
             "number",
             "reason"
