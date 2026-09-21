@@ -957,16 +957,26 @@
           ],
           "purpose": "The brief's `discussion-recorded` events, newest first, reduced to what the prompt shows."
         },
-        "briefData": {
-          "line": 143,
+        "commentLines": {
+          "line": 146,
           "params": [
             "brief",
-            "events"
+            "events",
+            "meId"
           ],
-          "purpose": "The brief as data: number, title, description, links and earlier records."
+          "purpose": "The brief's comments, oldest first, each with who and when; `isNew` for"
+        },
+        "briefData": {
+          "line": 162,
+          "params": [
+            "brief",
+            "events",
+            "comments"
+          ],
+          "purpose": "The brief as data: number, title, description, links, earlier records and comments."
         },
         "recordCommand": {
-          "line": 163,
+          "line": 188,
           "params": [
             "commandPath",
             "discussionId",
@@ -975,18 +985,19 @@
           "purpose": "The exact command the agent runs to record, with the summary on stdin."
         },
         "buildDiscussPrompt": {
-          "line": 178,
+          "line": 203,
           "params": [
             "{ brief",
             "events",
             "toolId",
             "commandPath",
-            "discussionId }"
+            "discussionId",
+            "meId = '' }"
           ],
           "purpose": "The prompt a Discuss lane starts with. Every brief field is fenced and"
         },
         "recordThrough": {
-          "line": 233,
+          "line": 264,
           "params": [
             "call",
             "input"
@@ -994,7 +1005,7 @@
           "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
         },
         "handleRecordRequest": {
-          "line": 253,
+          "line": 284,
           "params": [
             "request",
             "deps"
@@ -1002,7 +1013,7 @@
           "purpose": "A bus request → what happened. `deps` is"
         },
         "replyMessage": {
-          "line": 288,
+          "line": 319,
           "params": [
             "result"
           ],
@@ -1065,44 +1076,44 @@
           "purpose": "Start a discussion of an open proposal with `toolId`."
         },
         "writeReply": {
-          "line": 141,
+          "line": 142,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushRecorded": {
-          "line": 152,
+          "line": 153,
           "params": [
             "folderPath",
             "number"
           ]
         },
         "handleFile": {
-          "line": 159,
+          "line": 160,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 197
+          "line": 198
         },
         "sweep": {
-          "line": 210,
+          "line": 211,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 226
+          "line": 227
         },
         "init": {
-          "line": 246,
+          "line": 247,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 260,
+          "line": 261,
           "params": [
             "ipcMain"
           ]

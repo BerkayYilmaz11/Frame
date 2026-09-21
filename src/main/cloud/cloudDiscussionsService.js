@@ -132,6 +132,7 @@ async function discuss(folderPath, number, toolId) {
     toolId,
     commandPath: commandPath(),
     discussionId,
+    meId: detail.meId,
   });
   return { ok: true, prompt };
 }

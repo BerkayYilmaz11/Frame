@@ -252,3 +252,34 @@ test('replyMessage turns every outcome into a sentence', () => {
   assert.match(core.replyMessage({ ok: false, reason: 'badRequest', field: 'summary' }), /summary/);
   assert.match(core.replyMessage({ ok: false, reason: 'badRequest', field: 'url' }), /--url/);
 });
+
+// ─── Comments in the prompt ───────────────────────────────────
+
+const WITH_COMMENTS = {
+  ...BRIEF,
+  comments: [
+    { id: 'c1', authorId: 'u2', text: 'Before the round', createdAt: '2026-09-04T10:00:00.000Z' },
+    { id: 'c2', authorId: 'u2', text: 'What about sync conflicts?', createdAt: '2026-09-06T10:00:00.000Z' },
+    { id: 'c3', authorId: 'u1', text: 'My own note', createdAt: '2026-09-07T10:00:00.000Z' },
+  ],
+};
+
+test('buildDiscussPrompt carries the comments as data, marking others\' comments after the last record', () => {
+  const p = core.buildDiscussPrompt({ ...PROMPT, brief: WITH_COMMENTS, toolId: 'claude', meId: 'u1' });
+  assert.ok(p.includes('Comments (oldest first):'));
+  assert.ok(p.includes('[2026-09-04 · a workspace member]\nBefore the round'));
+  assert.ok(p.includes('[2026-09-06 · a workspace member · NEW since the last discussion]\nWhat about sync conflicts?'));
+  assert.ok(p.includes('[2026-09-07 · the user]\nMy own note'));
+  assert.ok(p.indexOf('Before the round') < p.indexOf('What about sync conflicts?'));
+  assert.ok(p.indexOf('What about sync conflicts?') < p.indexOf('How to run this conversation'));
+});
+
+test('buildDiscussPrompt opens on the new comments only when there are any', () => {
+  const rediscuss = core.buildDiscussPrompt({ ...PROMPT, brief: WITH_COMMENTS, toolId: 'claude', meId: 'u1' });
+  assert.ok(rediscuss.includes('1. A comment was added after the last recorded discussion'));
+  assert.equal(rediscuss.includes('restate it briefly'), false);
+  const first = core.buildDiscussPrompt({ ...PROMPT, toolId: 'claude', meId: 'u1' });
+  assert.ok(first.includes('restate it briefly'));
+  const noRecords = core.buildDiscussPrompt({ ...PROMPT, brief: WITH_COMMENTS, events: [], toolId: 'claude', meId: 'u1' });
+  assert.equal(noRecords.includes('NEW since'), false);
+});

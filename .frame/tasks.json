@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T11:02:55.403Z",
+  "lastUpdated": "2026-09-21T11:04:20.275Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9067,13 +9067,13 @@
       "acceptanceCriteria": "The prompt shows comments as data; new ones are marked; the opener points at them only when present.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T14",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — proposal card states, 2026-09-21",
       "createdAt": "2026-09-21T11:00:50.253Z",
-      "updatedAt": "2026-09-21T11:00:50.253Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T11:04:20.275Z",
+      "completedAt": "2026-09-21T11:04:20.275Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T15",

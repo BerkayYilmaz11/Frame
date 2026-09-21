@@ -104,3 +104,11 @@ _Captured: 2026-09-21 · 5 file change(s)_
 
 ---
 
+## T14 — Prompt carries comments; re-discuss opens on the new ones
+
+`buildDiscussPrompt` now carries the brief's comments inside the data fence, oldest first, marking others' comments after the latest record as NEW. When any exist it opens on them instead of the restate opener, and `cloudDiscussionsService` passes `meId`; two test cases were added. "New" follows the same rule as the card's chip, so Re-discuss is simply a Discuss that finds new comments.
+
+_Captured: 2026-09-21 · 3 file change(s)_
+
+---
+
