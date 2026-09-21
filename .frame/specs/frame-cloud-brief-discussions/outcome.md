@@ -24,3 +24,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T04 — The discussions service, channels and wiring
+
+Wrote `src/main/cloud/cloudDiscussionsService.js` (userData folder, pruned `discussions.json`, the staged command, a `safeWatch` bus with rename-to-claim, the `CLOUD_BRIEF_DISCUSS` handler, the recorded push), added both channels to `src/shared/ipcChannels.js` and wired `init`/`setupIPC` in `src/main/index.js`. Diverged from plan: at start, requests older than the command's 30 s wait (+5 s) are dropped unrecorded rather than drained, because the command already told the agent they failed. Only requests still inside that window are handled. The service reads `WAIT_MS` from the command template. A stubbed-electron smoke run covered discuss → record → refusal → unknown id → push end to end.
+
+_Captured: 2026-09-21 · 3 file change(s)_
+
+---
+

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:24:04.395Z",
+  "lastUpdated": "2026-09-21T08:25:51.033Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8919,13 +8919,13 @@
       "title": "Write `src/main/cloud/cloudDiscussionsService.js` — the `<userData>/cloud-discussions/` folder, the persisted `discussions.json` (pruned on load), staging the command script at start, a `safeWatch` bus watcher that also drains requests left from a closed Frame, the `CLOUD_BRIEF_DISCUSS` handler (connected folder, open proposal, known tool → store entry and prompt) and the `CLOUD_BRIEF_DISCUSSION_RECORDED` push — adding both channels to `src/shared/ipcChannels.js` and wiring `init(window)` and `setupIPC` in `src/main/index.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:25:51.033Z",
+      "completedAt": "2026-09-21T08:25:51.033Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T05",

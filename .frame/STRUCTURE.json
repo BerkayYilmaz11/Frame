@@ -957,6 +957,113 @@
         }
       }
     },
+    "main/cloud/cloudDiscussionsService": {
+      "file": "src/main/cloud/cloudDiscussionsService.js",
+      "description": "cloudDiscussionsService — the Electron shell around discussing a Frame",
+      "exports": [
+        "init",
+        "setupIPC",
+        "discuss"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "electron",
+        "../shared/ipcChannels",
+        "fsSafe",
+        "logger",
+        "aiToolManager",
+        "cloudProjectsService",
+        "cloudBriefsService",
+        "cloudDiscussions",
+        "cloudBriefs",
+        "../templates/bin/record-discussion"
+      ],
+      "functions": {
+        "baseDir": {
+          "line": 50
+        },
+        "busDir": {
+          "line": 54
+        },
+        "repliesDir": {
+          "line": 58
+        },
+        "commandPath": {
+          "line": 62
+        },
+        "loadStore": {
+          "line": 68
+        },
+        "saveStore": {
+          "line": 77
+        },
+        "stageCommand": {
+          "line": 90,
+          "purpose": "Copy the command next to the bus, only when it changed. → staged?"
+        },
+        "discuss": {
+          "line": 109,
+          "params": [
+            "folderPath",
+            "number",
+            "toolId"
+          ],
+          "purpose": "Start a discussion of an open proposal with `toolId`."
+        },
+        "writeReply": {
+          "line": 141,
+          "params": [
+            "name",
+            "reply"
+          ]
+        },
+        "pushRecorded": {
+          "line": 152,
+          "params": [
+            "folderPath",
+            "number"
+          ]
+        },
+        "handleFile": {
+          "line": 159,
+          "params": [
+            "name"
+          ],
+          "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
+        },
+        "drain": {
+          "line": 197
+        },
+        "sweep": {
+          "line": 210,
+          "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
+        },
+        "startWatcher": {
+          "line": 226
+        },
+        "init": {
+          "line": 246,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 260,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_DISCUSS"
+        ],
+        "emits": [
+          "CLOUD_BRIEF_DISCUSSION_RECORDED"
+        ]
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
@@ -3638,30 +3745,31 @@
         "cloud/cloudSession",
         "cloud/cloudProjectsService",
         "cloud/cloudBriefsService",
+        "cloud/cloudDiscussionsService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 56,
+          "line": 57,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 74,
+          "line": 75,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 181
+          "line": 182
         },
         "setupAllIPC": {
-          "line": 211,
+          "line": 212,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 295,
+          "line": 297,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 341,
+          "line": 343,
           "params": [
             "window"
           ],
@@ -17146,6 +17254,16 @@
         "name": "cloud-brief-create",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_DISCUSS": {
+        "name": "cloud-brief-discuss",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_DISCUSSION_RECORDED": {
+        "name": "cloud-brief-discussion-recorded",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -17336,6 +17454,18 @@
         "module": "renderer/statusBar/noticeTrayModel",
         "file": "src/renderer/statusBar/noticeTrayModel.js",
         "description": "Notice tray model — pure (status-bar-notice-tray spec, D6)."
+      }
+    ],
+    "discussions": [
+      {
+        "module": "main/cloud/cloudDiscussions",
+        "file": "src/main/cloud/cloudDiscussions.js",
+        "description": "cloudDiscussions — the pure core of discussing a Frame Cloud proposal."
+      },
+      {
+        "module": "main/cloud/cloudDiscussionsService",
+        "file": "src/main/cloud/cloudDiscussionsService.js",
+        "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       }
     ],
     "dock": [
@@ -17852,6 +17982,18 @@
         "module": "renderer/sectionRail",
         "file": "src/renderer/sectionRail.js",
         "description": "Section Rail Module"
+      }
+    ],
+    "service": [
+      {
+        "module": "main/cloud/cloudBriefsService",
+        "file": "src/main/cloud/cloudBriefsService.js",
+        "description": "cloudBriefsService — the Electron shell around reading and creating Frame"
+      },
+      {
+        "module": "main/cloud/cloudDiscussionsService",
+        "file": "src/main/cloud/cloudDiscussionsService.js",
+        "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       }
     ],
     "session": [
