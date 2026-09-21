@@ -1004,8 +1004,15 @@
           ],
           "purpose": "Record a discussion through `call`, keeping the server's refusal: `call`"
         },
+        "writeUpTitle": {
+          "line": 278,
+          "params": [
+            "now"
+          ],
+          "purpose": "The Links title a recorded write-up gets: \"Discussion write-up (2026-09-21)\"."
+        },
         "handleRecordRequest": {
-          "line": 284,
+          "line": 290,
           "params": [
             "request",
             "deps"
@@ -1013,7 +1020,7 @@
           "purpose": "A bus request → what happened. `deps` is"
         },
         "replyMessage": {
-          "line": 319,
+          "line": 331,
           "params": [
             "result"
           ],
@@ -6856,6 +6863,7 @@
         "GO_TO_DISCUSSION_LABEL",
         "DISCUSS_HINT",
         "WRITE_UP_LABEL",
+        "WRITE_UP_IN_LINKS",
         "discussionRecords",
         "discussErrorMessage",
         "NEW_BRIEF_TITLE",
@@ -7009,35 +7017,36 @@
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 279,
+          "line": 280,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 283,
+          "line": 284,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 293,
+          "line": 296,
           "params": [
             "events",
-            "meId"
+            "meId",
+            "attachments = []"
           ],
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 322,
+          "line": 327,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "submitLabel": {
-          "line": 340,
+          "line": 345,
           "params": [
             "kind",
             "pending"
@@ -7045,14 +7054,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 359,
+          "line": 364,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 364,
+          "line": 369,
           "params": [
             "number",
             "reason"
@@ -7493,12 +7502,13 @@
           "line": 741,
           "params": [
             "events",
-            "meId"
+            "meId",
+            "attachments"
           ],
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 767,
+          "line": 769,
           "params": [
             "brief",
             "events"
@@ -7506,7 +7516,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 784,
+          "line": 786,
           "params": [
             "brief",
             "events",
@@ -7515,37 +7525,37 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 800,
+          "line": 802,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 836
+          "line": 838
         },
         "confirmMoveToWork": {
-          "line": 842,
+          "line": 844,
           "params": [
             "priority"
           ]
         },
         "discuss": {
-          "line": 878,
+          "line": 880,
           "params": [
             "brief"
           ],
           "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
         },
         "renderLaneSlots": {
-          "line": 915,
+          "line": 917,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief."
         },
         "onDiscussionRecorded": {
-          "line": 930,
+          "line": 932,
           "params": [
             "payload"
           ],

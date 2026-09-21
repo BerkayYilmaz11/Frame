@@ -228,7 +228,7 @@ test('discussionRecords keeps the records only, newest first, with who, when and
   ];
   const records = copy.discussionRecords(events, 'u1');
   assert.deepEqual(records.map((r) => r.id), ['e3', 'e2']);
-  assert.deepEqual(records[1], { id: 'e2', date: copy.formatDate('2026-09-02T10:00:00.000Z'), actor: 'You', provider: 'Codex CLI', summary: 'First', url: '' });
+  assert.deepEqual(records[1], { id: 'e2', date: copy.formatDate('2026-09-02T10:00:00.000Z'), actor: 'You', provider: 'Codex CLI', summary: 'First', url: '', inLinks: false });
   assert.equal(records[0].actor, 'A workspace member');
   assert.equal(records[0].url, 'https://claude.ai/artifact/y');
   assert.equal(events[0].id, 'e1'); // the caller's array is not reordered
@@ -302,4 +302,16 @@ test('newCommentIds marks others\' comments after the latest record', () => {
   ];
   assert.deepEqual([...copy.newCommentIds(comments, events, 'u1')], ['c2']);
   assert.equal(copy.newCommentIds(comments, [], 'u1').size, 0);
+});
+
+test('discussionRecords says a write-up went to Links when the brief holds that url', () => {
+  const events = [
+    { id: 'e1', event: 'discussion-recorded', data: { summary: 'Old', url: 'https://claude.ai/artifact/old' } },
+    { id: 'e2', event: 'discussion-recorded', data: { summary: 'New', url: 'https://claude.ai/artifact/new' } },
+  ];
+  const attachments = [{ id: 'a1', title: 'Discussion write-up (2026-09-21)', url: 'https://claude.ai/artifact/new' }];
+  const records = copy.discussionRecords(events, 'u1', attachments);
+  assert.deepEqual(records.map((r) => [r.id, r.inLinks]), [['e2', true], ['e1', false]]);
+  assert.equal(records[1].url, 'https://claude.ai/artifact/old');
+  assert.equal(copy.WRITE_UP_IN_LINKS, 'Write-up added to Links');
 });

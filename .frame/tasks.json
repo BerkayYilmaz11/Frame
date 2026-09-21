@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T11:09:32.165Z",
+  "lastUpdated": "2026-09-21T11:10:47.042Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9109,19 +9109,19 @@
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T17",
-      "title": "A write-up link lands in Links; Discussions notes it",
+      "title": "A recorded write-up link is also added to the brief's Links (`addAttachment`, titled \"Discussion write-up (<date>)\"); the Discussions list says \"Write-up added to Links\" for it, and older records without the attachment keep their link; tests.",
       "description": "When a recorded discussion carries a url, main also adds it to the brief as an attachment titled \"Discussion write-up (<date>)\" after brief.recordDiscussion (handleRecordRequest in src/main/cloud/cloudDiscussions.js, via addAttachment). A failed attachment keeps the record and says so in the reply. In the Description tab, a record whose url is among the brief's attachments shows \"Write-up added to Links\" instead of the link (discussionRecords in cloudBriefsCopy.js, the panel). Tests.",
       "userRequest": "User said: \"Son olarak, ben discussion kısmında link 'i görmektense Links kısmında görmek istiyorum Discussion 'da sadece link eklendi gibi bir şey olabilir record olarak. Daha düzenli durur bu\"",
       "acceptanceCriteria": "Recording with --url sends recordDiscussion then one addAttachment; the link shows under Links and the record reads \"Write-up added to Links\"; an attachment failure still reports the record; older records without the attachment keep their link.",
       "notes": "",
       "source": "spec:frame-cloud-brief-discussions:T17",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions — write-up links in Links, 2026-09-21",
       "createdAt": "2026-09-21T11:09:32.129Z",
-      "updatedAt": "2026-09-21T11:09:32.165Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T11:10:47.042Z",
+      "completedAt": "2026-09-21T11:10:47.042Z"
     }
   ],
   "metadata": {

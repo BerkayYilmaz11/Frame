@@ -167,12 +167,13 @@ const ok = (data) => ({ status: 200, body: { result: { data } } });
 const refusal = (code, status = 400) => ({ status, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
 
 /** deps with a fake server: `record` answers brief.recordDiscussion, `get` answers brief.getByNumber. */
-function fakeDeps({ get = ok({ id: 'b7', number: 7, kind: 'proposal', title: 'Offline mode', status: 'backlog' }), record = ok({ id: 'b7', number: 7 }), connected = true } = {}) {
+function fakeDeps({ get = ok({ id: 'b7', number: 7, kind: 'proposal', title: 'Offline mode', status: 'backlog' }), record = ok({ id: 'b7', number: 7 }), attach = ok({ id: 'a1', title: 'x', url: 'https://x.test' }), connected = true } = {}) {
   const sent = [];
   const fetchJson = async (url, opts) => {
     const [path, query = ''] = url.slice(`${API}/trpc/`.length).split('?');
     const input = opts.body || JSON.parse(decodeURIComponent(query.slice('input='.length)));
     sent.push({ name: path, input });
+    if (path === 'brief.addAttachment') return attach;
     return path === 'brief.getByNumber' ? get : record;
   };
   const call = async (fn) => {
@@ -184,16 +185,17 @@ function fakeDeps({ get = ok({ id: 'b7', number: 7, kind: 'proposal', title: 'Of
   };
   const store = core.addDiscussion(core.emptyStore(), { id: ID, ...ENTRY });
   const connectedProject = (folderPath) => (connected && folderPath === ENTRY.folderPath ? { slug: 'my-app' } : null);
-  return { deps: { store, connectedProject, call }, sent };
+  return { deps: { store, connectedProject, call, now: () => Date.parse('2026-09-21T12:00:00.000Z') }, sent };
 }
 
 test('handleRecordRequest records once with the summary, url and the lane\'s provider', async () => {
   const { deps, sent } = fakeDeps();
   const r = await core.handleRecordRequest({ discussionId: ID, summary: ' Chose Postgres ', url: 'https://claude.ai/artifact/x' }, deps);
-  assert.deepEqual(r, { ok: true, folderPath: '/work/app', number: 7 });
+  assert.deepEqual(r, { ok: true, folderPath: '/work/app', number: 7, attachmentError: null });
   assert.deepEqual(sent, [
     { name: 'brief.getByNumber', input: { projectSlug: 'my-app', number: 7 } },
     { name: 'brief.recordDiscussion', input: { id: 'b7', summary: 'Chose Postgres', url: 'https://claude.ai/artifact/x', provider: 'Claude Code' } },
+    { name: 'brief.addAttachment', input: { id: 'b7', title: 'Discussion write-up (2026-09-21)', url: 'https://claude.ai/artifact/x' } },
   ]);
 });
 
@@ -282,4 +284,19 @@ test('buildDiscussPrompt opens on the new comments only when there are any', () 
   assert.ok(first.includes('restate it briefly'));
   const noRecords = core.buildDiscussPrompt({ ...PROMPT, brief: WITH_COMMENTS, events: [], toolId: 'claude', meId: 'u1' });
   assert.equal(noRecords.includes('NEW since'), false);
+});
+
+test('handleRecordRequest adds no attachment without a url', async () => {
+  const { deps, sent } = fakeDeps();
+  const r = await core.handleRecordRequest({ discussionId: ID, summary: 'No write-up' }, deps);
+  assert.deepEqual(r, { ok: true, folderPath: '/work/app', number: 7, attachmentError: null });
+  assert.deepEqual(sent.map((s) => s.name), ['brief.getByNumber', 'brief.recordDiscussion']);
+});
+
+test('a failed attachment keeps the record and says the link did not reach Links', async () => {
+  const { deps } = fakeDeps({ attach: { status: 400, body: { error: { message: 'bad', data: { code: 'BAD_REQUEST' } } } } });
+  const r = await core.handleRecordRequest({ discussionId: ID, summary: 'S', url: 'https://claude.ai/artifact/x' }, deps);
+  assert.deepEqual(r, { ok: true, folderPath: '/work/app', number: 7, attachmentError: 'badRequest' });
+  assert.match(core.replyMessage(r), /^Recorded on brief #7, but the write-up link could not be added to its Links/);
+  assert.equal(core.replyMessage({ ok: true, number: 7, attachmentError: null }), 'Recorded on brief #7.');
 });

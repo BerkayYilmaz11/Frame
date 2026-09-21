@@ -274,6 +274,7 @@ const DISCUSS_LABEL = 'Discuss';
 const GO_TO_DISCUSSION_LABEL = 'Go to discussion';
 const DISCUSS_HINT = 'Talk this proposal over with an AI agent in a new lane. It can record what you settle here.';
 const WRITE_UP_LABEL = 'Read the write-up';
+const WRITE_UP_IN_LINKS = 'Write-up added to Links';
 
 /** A trimmed string, or '' — a `brief_event.data` field is unknown on the wire. */
 function eventText(value) {
@@ -287,10 +288,13 @@ function httpUrl(value) {
 
 /**
  * The brief's discussion records, newest first (`brief.events` is oldest
- * first). → `[{ id, date, actor, provider, summary, url }]`; `url` is '' unless
- * it is an http(s) link. Records without a summary are left out.
+ * first). → `[{ id, date, actor, provider, summary, url, inLinks }]`; `url` is
+ * '' unless it is an http(s) link, and `inLinks` says the brief's
+ * `attachments` hold that url (its write-up went to Links). Records without a
+ * summary are left out.
  */
-function discussionRecords(events, meId) {
+function discussionRecords(events, meId, attachments = []) {
+  const linked = new Set((Array.isArray(attachments) ? attachments : []).map((a) => a && a.url));
   return (Array.isArray(events) ? events : [])
     .filter((e) => e && e.event === 'discussion-recorded')
     .map((e) => {
@@ -304,6 +308,7 @@ function discussionRecords(events, meId) {
         url: httpUrl(data.url),
       };
     })
+    .map((r) => ({ ...r, inLinks: Boolean(r.url) && linked.has(r.url) }))
     .filter((r) => r.summary)
     .reverse();
 }
@@ -394,6 +399,7 @@ module.exports = {
   GO_TO_DISCUSSION_LABEL,
   DISCUSS_HINT,
   WRITE_UP_LABEL,
+  WRITE_UP_IN_LINKS,
   discussionRecords,
   discussErrorMessage,
   NEW_BRIEF_TITLE,

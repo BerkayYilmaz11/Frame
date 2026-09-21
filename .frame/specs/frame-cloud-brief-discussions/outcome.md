@@ -120,3 +120,11 @@ _Captured: 2026-09-21 · 2 file change(s)_
 
 ---
 
+## T17 — Write-up links land in Links
+
+A recorded write-up url is now also added to the brief's Links (`addAttachment`, titled "Discussion write-up (<date>)") after `recordDiscussion`. A failed attachment keeps the record, and the command says the link did not reach Links. Discussions shows "Write-up added to Links" when the brief's attachments hold the record's url, and older records keep their link. This is the third write the amendment allows, reusing the create spec's `addAttachment`.
+
+_Captured: 2026-09-21 · 5 file change(s)_
+
+---
+

@@ -734,12 +734,12 @@ function renderTab(tab, brief, events, meId) {
         </ul>
       </section>`
     : '';
-  return body + renderDiscussions(events, meId) + attachments;
+  return body + renderDiscussions(events, meId, brief.attachments) + attachments;
 }
 
 /** The discussion records, newest first; absent rather than empty when none was recorded, as on the web. */
-function renderDiscussions(events, meId) {
-  const records = copy.discussionRecords(events, meId);
+function renderDiscussions(events, meId, attachments) {
+  const records = copy.discussionRecords(events, meId, attachments);
   if (records.length === 0) return '';
   return `<section class="cloud-briefs-discussions" aria-label="${escapeHtml(copy.DISCUSSIONS_TITLE)}">
       <h3>${escapeHtml(copy.DISCUSSIONS_TITLE)}</h3>
@@ -750,7 +750,9 @@ function renderDiscussions(events, meId) {
             ${r.provider ? `<span class="cloud-briefs-chip">${escapeHtml(r.provider)}</span>` : ''}
           </span>
           <p class="cloud-briefs-text">${escapeHtml(r.summary)}</p>
-          ${r.url ? `<a href="#" data-action="link" data-url="${escapeHtml(r.url)}" title="${escapeHtml(r.url)}">${escapeHtml(copy.WRITE_UP_LABEL)}</a>` : ''}
+          ${r.inLinks
+            ? `<span class="cloud-briefs-muted">${escapeHtml(copy.WRITE_UP_IN_LINKS)}</span>`
+            : r.url ? `<a href="#" data-action="link" data-url="${escapeHtml(r.url)}" title="${escapeHtml(r.url)}">${escapeHtml(copy.WRITE_UP_LABEL)}</a>` : ''}
         </li>`).join('')}
       </ul>
     </section>`;

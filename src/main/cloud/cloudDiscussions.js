@@ -14,7 +14,7 @@
  */
 
 const crypto = require('crypto');
-const { LIMITS, getBrief, recordDiscussion, isHttpUrl } = require('./cloudBriefs');
+const { LIMITS, getBrief, recordDiscussion, addAttachment, isHttpUrl } = require('./cloudBriefs');
 
 /** How long an issued discussion id keeps working (a resumed session may record weeks later). */
 const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
@@ -274,12 +274,18 @@ function recordThrough(call, input) {
   });
 }
 
+/** The Links title a recorded write-up gets: "Discussion write-up (2026-09-21)". */
+function writeUpTitle(now) {
+  return `Discussion write-up (${new Date(now).toISOString().slice(0, 10)})`;
+}
+
 /**
  * A bus request → what happened. `deps` is
- * `{ store, connectedProject(folderPath), call }`, where `call` is
+ * `{ store, connectedProject(folderPath), call, now? }`, where `call` is
  * cloudProjectsService's wrapper. Nothing is sent for an unknown id, a bad
- * summary or url, or a folder no longer connected.
- * → `{ ok: true, folderPath, number }` or `{ ok: false, reason, field? }`.
+ * summary or url, or a folder no longer connected. A record with a url also
+ * puts the url in the brief's Links; a failed attachment keeps the record.
+ * → `{ ok: true, folderPath, number, attachmentError }` or `{ ok: false, reason, field? }`.
  */
 async function handleRecordRequest(request, deps) {
   const r = obj(request);
@@ -295,7 +301,13 @@ async function handleRecordRequest(request, deps) {
   const recorded = await recordThrough(deps.call, { id: brief.value.id, ...valid.input, provider });
   if (!recorded.ok) return { ok: false, reason: recorded.reason };
   if (recorded.value.refused) return { ok: false, reason: recorded.value.refused };
-  return { ok: true, folderPath: entry.folderPath, number: entry.number };
+  let attachmentError = null;
+  if (valid.input.url) {
+    const title = writeUpTitle(deps.now ? deps.now() : Date.now());
+    const attached = await deps.call((ctx) => addAttachment({ ...ctx, id: brief.value.id, title, url: valid.input.url }));
+    if (!attached.ok) attachmentError = attached.reason;
+  }
+  return { ok: true, folderPath: entry.folderPath, number: entry.number, attachmentError };
 }
 
 const REASON_MESSAGES = {
@@ -318,6 +330,10 @@ const FIELD_MESSAGES = {
 /** A handled request → the sentence the command prints. */
 function replyMessage(result) {
   const r = obj(result);
+  if (r.ok && r.attachmentError) {
+    return `Recorded on brief #${r.number}, but the write-up link could not be added to its Links. ` +
+      'The record still carries the link.';
+  }
   if (r.ok) return `Recorded on brief #${r.number}.`;
   if (r.reason === 'badRequest') {
     return FIELD_MESSAGES[r.field] || 'Not recorded: the request was malformed.';
