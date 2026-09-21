@@ -235,3 +235,30 @@ spec (T09–T11), with T08 walked again afterwards.
 
 Files added to scope: `src/renderer/terminalsView.js`,
 `src/renderer/laneStatus.js`, `src/main/cloud/cloudBriefsService.js`.
+
+## Amendment — proposal states (2026-09-21)
+
+After the second walk passed, the user set the proposal's controls by state,
+in this spec (asked: here, not a new spec):
+
+1. **No record, no lane** → primary **Discuss**.
+2. **A Discuss lane is open** → "Discussing in <lane>", unchanged.
+3. **No lane, at least one record** → primary **Move to Work**, secondary
+   **Discuss**.
+4. **Someone commented after the latest record** → the card highlights
+   "N new comments"; it opens the Comments tab, where **Re-discuss** starts a
+   discussion that opens on those comments.
+
+Decisions: "new" means a `comment-added` event by someone other than the
+viewer after the latest `discussion-recorded` (asked; rejected: a local
+"seen" mark per device) — read from the `brief.events` the board already
+fetches, so no new request. Move to Work confirms with a priority, Medium by
+default, as the web's Transform to Work does (asked; rejected: one click).
+
+This widens the spec's "one new write": **`brief.decide`** joins
+`brief.recordDiscussion`. `brief.update` and every other mutation stay out;
+the description is still never edited. The prompt now also carries the
+brief's comments, fenced as data like every other field.
+
+Files added to scope: none beyond the first amendment
+(`src/main/cloud/cloudBriefsService.js` gains `decide`).

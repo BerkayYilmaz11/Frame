@@ -14,3 +14,11 @@
 - T09 · In `buildDiscussPrompt`, keep as open questions only what decides the proposal's fate (details that can wait stay open as "we can talk more"), and for `claude` ask at wrap-up whether to publish a claude.ai artifact write-up; Codex gets no document offer. Cases in `test/cloudDiscussions.test.js`.
 - T10 · A `brief` lane chip shows a brief icon and opens the Briefs panel on that brief's detail (`laneStatus.js` icon, `terminalsView.js` routing, `cloudBriefsPanel.openBrief(number)`), not a task.
 - T11 · Brief cards: a direct Discuss on open proposals, "N discussions recorded" from `brief.events` fetched per open proposal in `cloudBriefsService.list`, and a clickable "Discussing in <lane>" line with the dot while a lane is open; the card is restructured so no control nests inside the card button.
+
+## Added for the proposal states (2026-09-21)
+
+- T12 · `decideBrief` (POST `brief.decide` with `id`, `priority`) in `cloudBriefs.js`, `decide(folderPath, number, priority)` in `cloudBriefsService.js` keeping the server's refusals, and `CLOUD_BRIEF_DECIDE`; tests.
+- T13 · `addDiscussionCounts` also counts `newCommentCount` (others' comments after the latest record); pure `proposalStage` and the Move to Work / Re-discuss / new-comment labels in `cloudBriefsCopy.js`; tests.
+- T14 · `buildDiscussPrompt` carries the comments as data with the new ones marked, and opens on them when present; tests.
+- T15 · Card and detail follow the four states: Discuss · Discussing · Move to Work + Discuss · a highlighted new-comment chip that opens Comments with Re-discuss; Move to Work confirms with a priority.
+- T16 · Walk the four states and Move to Work in Frame.
