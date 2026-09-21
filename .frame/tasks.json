@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T10:21:02.966Z",
+  "lastUpdated": "2026-09-21T10:48:00.801Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8971,13 +8971,13 @@
       "title": "Walk it in Frame on a connected folder: Discuss a proposal, record twice through the agent (once with an artifact link), see the dot and Go to discussion, see both records under Description and in History, and check the command's messages for an ended proposal and with Frame closed.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T10:48:00.801Z",
+      "completedAt": "2026-09-21T10:48:00.801Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T09",

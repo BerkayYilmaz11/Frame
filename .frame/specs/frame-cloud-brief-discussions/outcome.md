@@ -80,3 +80,11 @@ _Captured: 2026-09-21 · 7 file change(s)_
 
 ---
 
+## T08 — Walk it in Frame
+
+The user walked the feature in Frame on a connected folder. The first walk found four gaps, which became T09–T11. The second walk passed. Afterwards the user asked why a published artifact is missing from Links. It is stored as the record's `url` and shown under Discussions as "Read the write-up", because the spec allows no `brief.addAttachment` write. Transforming the brief to Work does not copy it either. Followup: decide whether a write-up link should also become a brief attachment. That would take a second write, which this spec ruled out.
+
+_Captured: 2026-09-21 · 0 file change(s)_
+
+---
+
