@@ -32,3 +32,11 @@ _Captured: 2026-09-21 · 3 file change(s)_
 
 ---
 
+## T05 — Brief lanes in agentDispatch
+
+Added `getBriefLaneInfo` (current project's lanes only, since brief numbers are per project), `briefStatusDotHtml`, `onBriefLaneActivity` and `enterBriefLane` to `src/renderer/agentDispatch.js`, fed by the existing `laneStatus.onChange` and `TERMINAL_DESTROYED` hooks. `enterBriefLane` goes beyond the plan's list and gives the panel its route to `multiTerminalUI.enterLane`. The brief change gate is cleared when a terminal is destroyed, unlike the task gate. No unit test (DOM/lane code has no harness); T08 walks it.
+
+_Captured: 2026-09-21 · 1 file change(s)_
+
+---
+

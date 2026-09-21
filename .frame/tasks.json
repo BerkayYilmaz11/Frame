@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T08:25:51.033Z",
+  "lastUpdated": "2026-09-21T08:26:44.659Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8932,13 +8932,13 @@
       "title": "Add `getBriefLaneInfo(number)` (current project's lanes with `assignment.kind === 'brief'`), `briefStatusDotHtml(number)` and `onBriefLaneActivity(cb)` to `src/renderer/agentDispatch.js`, fed by the existing `laneStatus.onChange` and terminal-destroyed hooks.",
       "description": "",
       "source": "spec:frame-cloud-brief-discussions:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-discussions",
       "createdAt": "2026-09-21T08:15:09.873Z",
-      "updatedAt": "2026-09-21T08:15:09.873Z",
-      "completedAt": null
+      "updatedAt": "2026-09-21T08:26:44.659Z",
+      "completedAt": "2026-09-21T08:26:44.659Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-discussions-T06",
