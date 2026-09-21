@@ -385,3 +385,47 @@ test('addDiscussionCounts counts records on open proposals only, and survives a 
   assert.deepEqual(asked.sort(), ['p1', 'p2']);
   assert.equal(briefs[0].discussionCount, undefined);
 });
+
+// ─── Deciding ─────────────────────────────────────────────────
+
+/** A `call()` over a fake fetch that answers brief.decide with `answer`. */
+function decideCall(answer) {
+  const sent = [];
+  const fetchJson = async (url, opts) => {
+    sent.push({ name: url.slice(`${API}/trpc/`.length), body: opts.body });
+    return answer;
+  };
+  const call = async (fn) => {
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  return { call, sent };
+}
+
+test('decideThrough POSTs brief.decide once with the id and priority', async () => {
+  const { call, sent } = decideCall(ok({ ...BRIEF, kind: 'work' }));
+  assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'high' }), { ok: true });
+  assert.deepEqual(sent, [{ name: 'brief.decide', body: { id: 'b1', priority: 'high' } }]);
+});
+
+test('decideThrough sends nothing for a priority the server does not know', async () => {
+  const { call, sent } = decideCall(ok(BRIEF));
+  for (const priority of [undefined, 'urgent', '']) {
+    assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority }), { ok: false, reason: 'badRequest' });
+  }
+  assert.equal(sent.length, 0);
+});
+
+test('decideThrough keeps the server\'s refusal reason', async () => {
+  const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+  const cases = [['NOT_A_PROPOSAL', 'notAProposal'], ['ALREADY_WORK', 'alreadyWork'], ['ALREADY_CLOSED', 'alreadyClosed']];
+  for (const [code, reason] of cases) {
+    const { call } = decideCall(refusal(code));
+    assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason }, code);
+  }
+  const { call } = decideCall({ status: 401, body: {} });
+  assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason: 'unauthorized' });
+});

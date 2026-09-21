@@ -488,6 +488,8 @@
         "createWithLinks",
         "recordDiscussion",
         "addDiscussionCounts",
+        "decideBrief",
+        "decideThrough",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -496,20 +498,20 @@
       ],
       "functions": {
         "str": {
-          "line": 37,
+          "line": 38,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 42,
+          "line": 43,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 46,
+          "line": 47,
           "params": [
             "set",
             "value",
@@ -517,63 +519,63 @@
           ]
         },
         "arr": {
-          "line": 50,
+          "line": 51,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 54,
+          "line": 55,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 61,
+          "line": 62,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 84,
+          "line": 85,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 96,
+          "line": 97,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 101,
+          "line": 102,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 107,
+          "line": 108,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 117,
+          "line": 118,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 122,
+          "line": 123,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 130,
+          "line": 131,
           "params": [
             "{ api",
             "token",
@@ -585,7 +587,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 138,
+          "line": 139,
           "params": [
             "{ api",
             "token",
@@ -596,7 +598,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 144,
+          "line": 145,
           "params": [
             "{ api",
             "token",
@@ -608,7 +610,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 155,
+          "line": 156,
           "params": [
             "{ api",
             "token",
@@ -619,33 +621,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 162,
+          "line": 163,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 171,
+          "line": 172,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 188,
+          "line": 189,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 201,
+          "line": 202,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 216,
+          "line": 217,
           "params": [
             "{ api",
             "token",
@@ -656,7 +658,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 222,
+          "line": 223,
           "params": [
             "{ api",
             "token",
@@ -669,7 +671,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 238,
+          "line": 239,
           "params": [
             "call",
             "{ input",
@@ -678,7 +680,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 258,
+          "line": 259,
           "params": [
             "{ api",
             "token",
@@ -691,8 +693,29 @@
           ],
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
+        "decideBrief": {
+          "line": 278,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "priority }"
+          ],
+          "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
+        },
+        "decideThrough": {
+          "line": 288,
+          "params": [
+            "call",
+            "{ id",
+            "priority }"
+          ],
+          "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
+        },
         "addDiscussionCounts": {
-          "line": 272,
+          "line": 311,
           "params": [
             "call",
             "briefs"
@@ -700,7 +723,7 @@
           "purpose": "The briefs with `discussionCount` on each open proposal, counted from its"
         },
         "buildBriefWebUrl": {
-          "line": 287,
+          "line": 326,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -720,6 +743,7 @@
         "list",
         "get",
         "create",
+        "decide",
         "openOnWeb"
       ],
       "depends": [
@@ -730,18 +754,18 @@
       ],
       "functions": {
         "meId": {
-          "line": 25,
+          "line": 27,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "webUrl": {
-          "line": 30,
+          "line": 32,
           "params": [
             "project",
             "number"
           ]
         },
         "list": {
-          "line": 43,
+          "line": 45,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -749,7 +773,7 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 66,
+          "line": 68,
           "params": [
             "folderPath",
             "number"
@@ -757,15 +781,24 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 90,
+          "line": 92,
           "params": [
             "folderPath",
             "request"
           ],
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
+        "decide": {
+          "line": 109,
+          "params": [
+            "folderPath",
+            "number",
+            "priority"
+          ],
+          "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
+        },
         "openOnWeb": {
-          "line": 104,
+          "line": 120,
           "params": [
             "folderPath",
             "number"
@@ -773,7 +806,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 113,
+          "line": 129,
           "params": [
             "ipcMain"
           ]
@@ -784,7 +817,8 @@
           "CLOUD_BRIEFS_LIST",
           "CLOUD_BRIEF_GET",
           "CLOUD_BRIEFS_OPEN_ON_WEB",
-          "CLOUD_BRIEF_CREATE"
+          "CLOUD_BRIEF_CREATE",
+          "CLOUD_BRIEF_DECIDE"
         ],
         "emits": []
       }
@@ -17434,6 +17468,11 @@
       },
       "CLOUD_BRIEF_DISCUSSION_RECORDED": {
         "name": "cloud-brief-discussion-recorded",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_DECIDE": {
+        "name": "cloud-brief-decide",
         "direction": "",
         "description": ""
       }

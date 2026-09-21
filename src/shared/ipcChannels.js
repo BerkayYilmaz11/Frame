@@ -268,7 +268,8 @@ const IPC = {
   // returns the lane's prompt; the agent records through a staged command and
   // a userData bus, and main pushes each record that landed.
   CLOUD_BRIEF_DISCUSS: 'cloud-brief-discuss',           // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
-  CLOUD_BRIEF_DISCUSSION_RECORDED: 'cloud-brief-discussion-recorded' // main → renderer: { folderPath, number }
+  CLOUD_BRIEF_DISCUSSION_RECORDED: 'cloud-brief-discussion-recorded', // main → renderer: { folderPath, number }
+  CLOUD_BRIEF_DECIDE: 'cloud-brief-decide'              // renderer → main (invoke): (path, number, priority) → { ok } | { ok: false, reason } — Move to Work
 };
 
 module.exports = { IPC };

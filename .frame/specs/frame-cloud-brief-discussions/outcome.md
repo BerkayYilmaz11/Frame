@@ -88,3 +88,11 @@ _Captured: 2026-09-21 · 0 file change(s)_
 
 ---
 
+## T12 — Move to Work through brief.decide
+
+Added `decideBrief` and `decideThrough` (refusals returned as reasons, unknown priority refused before sending) to `src/main/cloud/cloudBriefs.js`, `decide(folderPath, number, priority)` to `cloudBriefsService.js`, and `CLOUD_BRIEF_DECIDE` to `ipcChannels.js`, with three test cases. This is the spec's second write, allowed by the proposal-states amendment. The brief id is still resolved in main by number.
+
+_Captured: 2026-09-21 · 4 file change(s)_
+
+---
+
