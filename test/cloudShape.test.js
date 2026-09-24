@@ -141,16 +141,34 @@ test('buildShapePrompt carries the brief, its links, its discussion records and 
   }
 });
 
-test('buildShapePrompt steers the four steps: read, ask, propose, write on approval', () => {
+test('buildShapePrompt steers the steps: read, one part by default, propose without questioning, write on approval', () => {
   const prompt = core.buildShapePrompt(PROMPT);
   assert.match(prompt, /\.frame\/specs\//);
   assert.match(prompt, /digest\.md/);
-  assert.match(prompt, /ask the user what the split depends on/);
-  assert.match(prompt, /one spec, several specs, tasks, or a mix/);
+  assert.match(prompt, /Most briefs are one part: small, discrete work is one task, and anything bigger is one spec/);
+  assert.match(prompt, /Split into several parts only when the work is too broad for one spec/);
+  assert.match(prompt, /Propose it straight away; do not question the user first/);
+  assert.doesNotMatch(prompt, /ask the user what the split depends on/);
   assert.match(prompt, /only after the user approves the whole set/);
-  for (const heading of ['Why', 'What', 'Decisions made', 'Done when', 'Out of scope', 'Open questions']) {
-    assert.ok(prompt.includes(`## ${heading}`), heading);
-  }
+});
+
+test('buildShapePrompt has a spec part written as spec.md sections, in order', () => {
+  const prompt = core.buildShapePrompt(PROMPT);
+  assert.ok(prompt.includes('## Problem, ## Goal, ## Constraints, ## Success Criteria, ## Out of Scope, then ## Open Questions only when'));
+  assert.match(prompt, /Problem, Goal and Success Criteria \(each "When X, then Y"\) always have content/);
+});
+
+test('buildShapePrompt has a task part written as task fields, with a task-sized title', () => {
+  const prompt = core.buildShapePrompt(PROMPT);
+  assert.ok(prompt.includes('## Description, ## Acceptance Criteria, then ## Notes only when'));
+  assert.match(prompt, /Keep a task's title within 60 characters/);
+});
+
+test('buildShapePrompt sends detail gaps to Open Questions or Notes instead of asking', () => {
+  const prompt = core.buildShapePrompt(PROMPT);
+  assert.match(prompt, /Do not ask the user to fill gaps in the details/);
+  assert.match(prompt, /under ## Open Questions \(a spec\) or ## Notes \(a task\)/);
+  assert.doesNotMatch(prompt, /## Why|## Done when/);
 });
 
 test('buildShapePrompt gives the exact command with a quoted path, the id and a quoted heredoc', () => {

@@ -27,8 +27,18 @@ const ID_PATTERN = /^[0-9a-f]{24}$/;
 const PART_SHAPES = ['spec', 'task'];
 const PART_TYPES = ['feature', 'fix', 'refactor', 'docs', 'test'];
 
-/** The headings a definition is written under, in order. Suggested, not enforced. */
-const DEFINITION_HEADINGS = ['Why', 'What', 'Decisions made', 'Done when', 'Out of scope', 'Open questions'];
+/**
+ * The headings a definition is written under, in order, by the part's shape:
+ * a spec part in the sections of a Frame `spec.md` (spec.new's template), a
+ * task part in the fields of a Frame task (`tasks.json`), so the part can be
+ * brought into `.frame/` as it is. Suggested, not enforced: the server keeps
+ * the definition as free text.
+ */
+const SPEC_HEADINGS = ['Problem', 'Goal', 'Constraints', 'Success Criteria', 'Out of Scope', 'Open Questions'];
+const TASK_HEADINGS = ['Description', 'Acceptance Criteria', 'Notes'];
+
+/** Frame's task title limit (`tasks.json` schema), tighter than the server's part title. */
+const TASK_TITLE_MAX = 60;
 
 /** The server's refusals of `brief.shape` → the reason the command reports. */
 const SERVER_REFUSALS = {
@@ -177,7 +187,7 @@ function shapeCommand(commandPath, shapeId) {
 function buildShapePrompt({ brief, events, commandPath, shapeId, meId = '' }) {
   const b = obj(brief);
   const comments = commentLines(b, events, meId);
-  const headings = DEFINITION_HEADINGS.map((h) => `## ${h}`).join(', ');
+  const h = (names) => names.map((name) => `## ${name}`).join(', ');
   return [
     `You are helping the user shape Frame Cloud work brief #${b.number} — work they have decided to do. ` +
       'Your job is to split it into parts that can each be started on their own, agree the split with the user, ' +
@@ -192,15 +202,23 @@ function buildShapePrompt({ brief, events, commandPath, shapeId, meId = '' }) {
     '1. Read the brief, then read the code it touches. If this repository has a `.frame/specs/` folder, also read each ' +
       'spec there — its title and its `digest.md` (or `spec.md` when there is no digest) — so no part repeats or collides ' +
       'with an existing spec.',
-    '2. Before proposing anything, ask the user what the split depends on: what must land first, what can wait, ' +
-      'what they want to review separately. Keep it short.',
-    '3. Propose a split: one spec, several specs, tasks, or a mix. A spec is sizable or multi-file work that wants a plan; ' +
-      'a task is small, discrete work. For each part give:',
+    '2. Decide the shape. Most briefs are one part: small, discrete work is one task, and anything bigger is one spec. ' +
+      'Split into several parts only when the work is too broad for one spec — pieces that can land and be reviewed on ' +
+      'their own, or separate areas that need their own plan. When you do split, a small piece may be a task.',
+    '3. Propose it straight away; do not question the user first. Ask only when something would change the shape itself ' +
+      '(one part or several, spec or task) and neither the brief nor the code answers it. For each part give:',
     `   - a title (at most ${LIMITS.title} characters);`,
     `   - its shape: ${PART_SHAPES.join(' or ')};`,
     `   - its type: one of ${PART_TYPES.join(', ')};`,
-    '   - a definition deep enough that a spec could be started from it without asking about the goal again. ' +
-      `Write it as plain text under these headings: ${headings}. Leave a heading out only when it truly has nothing.`,
+    '   - a definition, as plain text in the format the part will take in Frame, so whoever opens it does not have to ' +
+      'ask about the goal:',
+    `     - a spec part is written as the sections of a Frame spec.md, in this order: ${h(SPEC_HEADINGS.slice(0, 5))}, ` +
+      'then ## Open Questions only when something is left open. Problem, Goal and Success Criteria (each "When X, then Y") ' +
+      'always have content; Constraints and Out of Scope only when there is something to say.',
+    `     - a task part is written as the fields of a Frame task: ${h(TASK_HEADINGS.slice(0, 2))}, ` +
+      `then ## Notes only when there is something to say. Keep a task's title within ${TASK_TITLE_MAX} characters.`,
+    '     Do not ask the user to fill gaps in the details — how to build it, edge cases, choices that can wait. ' +
+      'List them under ## Open Questions (a spec) or ## Notes (a task): they are settled when the part itself is opened.',
     '4. Show the whole set and let the user change it. Never rewrite the brief\'s description — it is the user\'s.',
     '5. Write only after the user approves the whole set, and write once: shaping cannot be undone or repeated from Frame. ' +
       'Do not write the parts to a file in the repository.',
@@ -300,7 +318,8 @@ module.exports = {
   PARTS_DELIMITER,
   PART_SHAPES,
   PART_TYPES,
-  DEFINITION_HEADINGS,
+  SPEC_HEADINGS,
+  TASK_HEADINGS,
   newShapeId,
   isShapeId,
   emptyStore,
