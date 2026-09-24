@@ -1963,6 +1963,134 @@
         }
       }
     },
+    "main/cloud/cloudShapeService": {
+      "file": "src/main/cloud/cloudShapeService.js",
+      "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work",
+      "exports": [
+        "init",
+        "setupIPC",
+        "shape"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "electron",
+        "../shared/ipcChannels",
+        "fsSafe",
+        "logger",
+        "aiToolManager",
+        "cloudProjectsService",
+        "cloudBriefsService",
+        "cloudShape",
+        "../templates/bin/shape-brief"
+      ],
+      "functions": {
+        "baseDir": {
+          "line": 52
+        },
+        "busDir": {
+          "line": 56
+        },
+        "repliesDir": {
+          "line": 60
+        },
+        "commandPath": {
+          "line": 64
+        },
+        "promptsDir": {
+          "line": 68
+        },
+        "loadStore": {
+          "line": 74
+        },
+        "removeStalePrompts": {
+          "line": 85,
+          "purpose": "Delete the prompt files of shapes the store no longer holds."
+        },
+        "writePrompt": {
+          "line": 94,
+          "params": [
+            "shapeId",
+            "prompt"
+          ],
+          "purpose": "Write a shaping session's prompt atomically. → its path, or null."
+        },
+        "saveStore": {
+          "line": 107
+        },
+        "stageCommand": {
+          "line": 120,
+          "purpose": "Copy the command next to the bus, only when it changed. → staged?"
+        },
+        "isShapeable": {
+          "line": 136,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open work whose parts were never written: the one brief Shape starts on."
+        },
+        "shape": {
+          "line": 146,
+          "params": [
+            "folderPath",
+            "number",
+            "toolId"
+          ],
+          "purpose": "Start shaping an open, unshaped work brief with `toolId`. The full prompt"
+        },
+        "writeReply": {
+          "line": 173,
+          "params": [
+            "name",
+            "reply"
+          ]
+        },
+        "pushShaped": {
+          "line": 184,
+          "params": [
+            "folderPath",
+            "number"
+          ]
+        },
+        "handleFile": {
+          "line": 191,
+          "params": [
+            "name"
+          ],
+          "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
+        },
+        "drain": {
+          "line": 229
+        },
+        "sweep": {
+          "line": 242,
+          "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
+        },
+        "startWatcher": {
+          "line": 258
+        },
+        "init": {
+          "line": 278,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 292,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_SHAPE"
+        ],
+        "emits": [
+          "CLOUD_BRIEF_SHAPED"
+        ]
+      }
+    },
     "main/cloud/deviceFlow": {
       "file": "src/main/cloud/deviceFlow.js",
       "description": "deviceFlow — the pure core of Frame Cloud sign-in.",
@@ -4062,30 +4190,31 @@
         "cloud/cloudProjectsService",
         "cloud/cloudBriefsService",
         "cloud/cloudDiscussionsService",
+        "cloud/cloudShapeService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 57,
+          "line": 58,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 75,
+          "line": 76,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 182
+          "line": 183
         },
         "setupAllIPC": {
-          "line": 212,
+          "line": 213,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 297,
+          "line": 299,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 343,
+          "line": 345,
           "params": [
             "window"
           ],
@@ -17910,6 +18039,16 @@
         "name": "cloud-brief-decide",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_SHAPE": {
+        "name": "cloud-brief-shape",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_SHAPED": {
+        "name": "cloud-brief-shaped",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -18640,6 +18779,11 @@
         "module": "main/cloud/cloudDiscussionsService",
         "file": "src/main/cloud/cloudDiscussionsService.js",
         "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
+      },
+      {
+        "module": "main/cloud/cloudShapeService",
+        "file": "src/main/cloud/cloudShapeService.js",
+        "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work"
       }
     ],
     "session": [
@@ -18678,6 +18822,11 @@
         "module": "main/cloud/cloudShape",
         "file": "src/main/cloud/cloudShape.js",
         "description": "cloudShape — the pure core of shaping a Frame Cloud work brief."
+      },
+      {
+        "module": "main/cloud/cloudShapeService",
+        "file": "src/main/cloud/cloudShapeService.js",
+        "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work"
       },
       {
         "module": "templates/bin/shape-brief",

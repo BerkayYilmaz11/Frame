@@ -32,3 +32,11 @@ _Captured: 2026-09-24 · 2 file change(s)_
 
 ---
 
+## T05 — The Shape service and its wiring
+
+Wrote `src/main/cloud/cloudShapeService.js` as a sibling of `cloudDiscussionsService.js`: the `cloud-shapes/` store, the staged command, the prompt files, `shape()` with `notShapeable` for anything but open unshaped work, and the bus watcher that pushes `CLOUD_BRIEF_SHAPED`. Added `CLOUD_BRIEF_SHAPE` and `CLOUD_BRIEF_SHAPED` to `src/shared/ipcChannels.js` in their own commented block, and wired `setupIPC` and `init` in `src/main/index.js`. As the plan's test posture says, the Electron shell has no unit tests.
+
+_Captured: 2026-09-24 · 3 file change(s)_
+
+---
+

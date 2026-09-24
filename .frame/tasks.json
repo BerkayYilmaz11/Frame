@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:53:52.117Z",
+  "lastUpdated": "2026-09-24T13:55:25.687Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9196,13 +9196,13 @@
       "title": "Write `src/main/cloud/cloudShapeService.js`, which owns `<userData>/cloud-shapes/`:",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:55:25.687Z",
+      "completedAt": "2026-09-24T13:55:25.687Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T06",
