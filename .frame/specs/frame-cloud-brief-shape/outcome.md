@@ -80,3 +80,11 @@ _Captured: 2026-09-24 · 6 file change(s)_
 
 ---
 
+## T09 — Walk it in Frame
+
+The user walked the plan's cases in the dev build against FrameCloud's `feat/brief-shape` (`FRAME_CLOUD_URL=http://localhost:3777 npm start`), and they pass. The walk changed the prompt twice, in `f5e7dc0` and `ab1fa6d`. First, Shape now defaults to one part (a small job is one task, anything bigger is one spec, and it splits only when the work is too broad for one spec) and proposes without questioning the user first. Each definition is written in Frame's own format: `spec.md` sections for a spec part, `tasks.json` fields for a task part. Detail gaps go under Open Questions or Notes instead of being asked about. This overturns spec.md's "ask what the split depends on" step and its why/what/… headings. Second, a shaped session ends on "ready to run" instead of offering to open a spec. The walk also added T10 (the shaped toast) and T11 (part counts on the card).
+
+_Captured: 2026-09-24 · 0 file change(s)_
+
+---
+

@@ -3855,3 +3855,64 @@ passes. `npm test` passes 1026 tests. Open: the heredoc assumes a POSIX shell
 (Windows PowerShell lanes); one `brief.events` request per open proposal on
 the board; the web still shows the write-up link inside its own Discussions
 section.
+
+### [2026-09-24] Frame Cloud brief shape: Shape a work brief into parts from Frame
+
+Spec `frame-cloud-brief-shape`, branch `feat/frame-cloud-brief-shape` (off the
+`feat/frame-cloud-adaptor` umbrella). FrameCloud's `feat/brief-shape` added
+`brief.shape({ id, parts })`: every part and `shaped_at` are written in one
+transaction, `definition` replaces `why`, and `addPart` is gone. The web shows
+parts read-only; Frame is where a brief is shaped. T01–T08 ran autonomously,
+then the user walked the build and the walk reshaped the prompt and the
+notice.
+
+**Plan-time choices (asked).** Shape stays its own click; it is not chained
+onto Move to Work. It gets its own staged command (`shape-brief.js`), store
+and bus under `<userData>/cloud-shapes/`, because issued Discuss prompts name
+`record-discussion.js` by absolute path and must keep working. Lanes carry
+`purpose: 'discuss' | 'shape'` on their assignment (a lane with none reads as
+Discuss), rather than the purpose being inferred from the brief's kind. Only
+the pure core is tested.
+
+**Too many questions.** After the first walk the user said: "burada çok
+fazla soru soruluyor, içeriklerin boşlukları o unit'lerde dolabilir diye
+düşünüyorum". Then: "Bazen split gerekmeyebilir, işleri genelde tek spec'te
+çözüyoruz… Çok geniş kapsamlı işler için bölme gerekebilir" and "Küçük işler
+için de task". The prompt now defaults to one part: a small job is one task,
+anything bigger is one spec, and it splits only when the work is too broad
+for one spec. It proposes straight away and asks only what would change the
+shape itself. This overturns spec.md's "ask what the split depends on" step.
+
+**Shape vs Run.** The user asked whether Shape should produce a spec/task
+directly or leave that to a second step, Run. Recommended and agreed: two
+steps. A shaped brief lives in the cloud, while a spec lives on one machine
+in one worktree. An implementation plan written at Shape time goes stale
+before work starts, and FrameCloud's part lifecycle (started / merged /
+dropped) is already Run's. The user added: "spec ya da task formatında tutup
+kullanıcı run dediği zaman onu direct .frame üzerine getirip specify
+aşamasını o noktada run etmek". So a definition is now written in Frame's
+own format: `spec.md` sections (Problem, Goal, Constraints, Success Criteria,
+Out of Scope, Open Questions) for a spec part, and `tasks.json` fields
+(Description, Acceptance Criteria, Notes; title ≤ 60) for a task part. Detail
+gaps go under Open Questions / Notes, and Run later runs specify seeded with
+the definition. Run has other duties too ("Run'ın burada farklı görevleri
+olacak ama ona sonra geleceğiz"); it is its own spec. A shaped session now
+ends on "ready to run", because Claude Code had been suggesting "open the
+spec for it".
+
+**Notice → toast.** The user asked for a one-click notice when a brief is
+shaped, and a part count on the card. A no-op Run button was left to the Run
+spec. T10 was first built as a Briefs-board banner and then as a
+status-bar-tray candidate, but the user meant: "kullanıcı terminal
+ekranındayken brief'inin çalışmaya hazır ve shaped olduğunu görsün". It is
+now a `notify.success` toast with an Open brief action. `notify` gained an
+optional `{ action: { label, onClick } }`, and a toast with an action stays
+on screen for 6 s. The tray was offered and declined ("sadece toast kalsın").
+T11 shows "1 spec" / "2 specs · 1 task" on a shaped card, from one
+`brief.getByNumber` per open shaped work brief. This overturns the plan's
+"no new card line" decision.
+
+**State.** 11 tasks done, spec `done`, walked by the user. `npm test` passes
+1078. Open: `layoutMigration.test.js` took ~50 s once while a dev Frame was
+running; each shaped card costs one detail request per board load, and a
+part count on `brief.list` would remove it.
