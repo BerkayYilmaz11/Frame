@@ -374,6 +374,13 @@ const SHAPE_MESSAGES = {
   noWorkspace: REASON_MESSAGES.noWorkspace,
 };
 
+/** A shaped card's parts: "1 spec", "2 specs · 1 task"; '' for none or unknown. */
+function partCountLabel(counts) {
+  const c = counts && typeof counts === 'object' ? counts : {};
+  const piece = (n, word) => (Number.isInteger(n) && n > 0 ? `${n} ${word}${n === 1 ? '' : 's'}` : '');
+  return [piece(c.spec, 'spec'), piece(c.task, 'task')].filter(Boolean).join(' · ');
+}
+
 /** The board's notice when a Shape landed: "Brief #5 was shaped into 2 parts."; the count is left out when unknown. */
 function shapedNotice(number, count) {
   if (!Number.isInteger(count) || count < 1) return `Brief #${number} was shaped.`;
@@ -471,6 +478,7 @@ module.exports = {
   shapeErrorMessage,
   shapedNotice,
   OPEN_BRIEF_LABEL,
+  partCountLabel,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

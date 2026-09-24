@@ -352,6 +352,32 @@ async function addDiscussionCounts(call, briefs, meId = '') {
   }));
 }
 
+// ─── Part counts ──────────────────────────────────────────────
+
+/** A brief's parts counted by shape: `{ spec, task }`. */
+function partSummary(parts) {
+  const out = { spec: 0, task: 0 };
+  for (const p of arr(parts)) {
+    if (p && (p.shape === 'spec' || p.shape === 'task')) out[p.shape] += 1;
+  }
+  return out;
+}
+
+/**
+ * The briefs with `partCounts` (`{ spec, task }`) on each open shaped work
+ * brief, from its `brief.getByNumber` (the list does not carry parts). `call`
+ * is cloudProjectsService's wrapper; a brief whose detail fails to load gets
+ * `null`, never a failed board. Every other brief gets `null` without a
+ * request.
+ */
+async function addPartCounts(call, briefs, projectSlug) {
+  return Promise.all(briefs.map(async (brief) => {
+    if (brief.kind !== 'work' || brief.status === 'closed' || !brief.shapedAt) return { ...brief, partCounts: null };
+    const detail = await call((ctx) => getBrief({ ...ctx, projectSlug, number: brief.number }));
+    return { ...brief, partCounts: detail.ok ? partSummary(detail.value.parts) : null };
+  }));
+}
+
 // ─── Web links ────────────────────────────────────────────────
 
 /**
@@ -384,6 +410,8 @@ module.exports = {
   recordDiscussion,
   discussionFacts,
   addDiscussionCounts,
+  partSummary,
+  addPartCounts,
   decideBrief,
   decideThrough,
   shapeBrief,

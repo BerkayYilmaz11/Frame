@@ -436,6 +436,44 @@ test('shapeBrief surfaces a server refusal as a CloudError', async () => {
   await assert.rejects(core.shapeBrief({ ...ctx(fetchJson), id: 'b1', parts: [] }), (err) => err.name === 'CloudError' && err.message === 'ALREADY_SHAPED');
 });
 
+test('partSummary counts parts by shape and ignores anything else', () => {
+  assert.deepEqual(core.partSummary([{ shape: 'spec' }, { shape: 'task' }, { shape: 'spec' }, { shape: 'epic' }, null]), { spec: 2, task: 1 });
+  assert.deepEqual(core.partSummary(undefined), { spec: 0, task: 0 });
+});
+
+test('addPartCounts reads open shaped work only, and survives a failed read', async () => {
+  const SHAPED = '2026-09-20T10:00:00.000Z';
+  const briefs = [
+    { id: 'w1', number: 1, kind: 'work', status: 'backlog', shapedAt: SHAPED },
+    { id: 'w2', number: 2, kind: 'work', status: 'active', shapedAt: SHAPED },
+    { id: 'w3', number: 3, kind: 'work', status: 'backlog', shapedAt: null },
+    { id: 'w4', number: 4, kind: 'work', status: 'closed', shapedAt: SHAPED },
+    { id: 'p5', number: 5, kind: 'proposal', status: 'backlog', shapedAt: null },
+  ];
+  const details = {
+    1: { ...BRIEF, number: 1, parts: [{ id: 'a', position: 0, shape: 'spec' }, { id: 'b', position: 1, shape: 'task' }, { id: 'c', position: 2, shape: 'spec' }] },
+  };
+  const asked = [];
+  const call = async (fn) => {
+    const fetchJson = async (url) => {
+      const input = JSON.parse(decodeURIComponent(url.split('?input=')[1]));
+      asked.push(input);
+      if (!details[input.number]) return { status: 500, body: {} };
+      return ok(details[input.number]);
+    };
+    try {
+      return { ok: true, value: await fn(ctx(fetchJson)) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  const counted = await core.addPartCounts(call, briefs, 'my-app');
+  assert.deepEqual(counted.map((b) => b.partCounts), [{ spec: 2, task: 1 }, null, null, null, null]);
+  assert.deepEqual(asked.map((i) => i.number).sort(), [1, 2]);
+  assert.deepEqual(asked[0].projectSlug, 'my-app');
+  assert.equal(briefs[0].partCounts, undefined);
+});
+
 // ─── Deciding ─────────────────────────────────────────────────
 
 /** A `call()` over a fake fetch that answers brief.decide with `answer`. */

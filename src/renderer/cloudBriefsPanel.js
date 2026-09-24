@@ -438,6 +438,7 @@ function renderCard(brief, milestoneName) {
       </span>`
     : '';
   const records = copy.discussionCountLabel(brief.discussionCount);
+  const parts = copy.partCountLabel(brief.partCounts);
   // The card is a container, not a button: its controls (Discuss, Shape, the
   // live lane) sit beside the open-brief button rather than inside it.
   return `<div class="cloud-briefs-card">
@@ -449,6 +450,7 @@ function renderCard(brief, milestoneName) {
         <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
         ${meta}
         ${records ? `<span class="cloud-briefs-card-records">${escapeHtml(records)}</span>` : ''}
+        ${parts ? `<span class="cloud-briefs-card-records">${escapeHtml(parts)}</span>` : ''}
         ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
       </button>
       <div class="cloud-briefs-card-actions" data-card-actions="${brief.number}">${renderCardActions(brief)}</div>

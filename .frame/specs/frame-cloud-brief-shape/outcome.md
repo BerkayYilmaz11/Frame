@@ -72,3 +72,11 @@ _Captured: 2026-09-24 · 6 file change(s)_
 
 ---
 
+## T11 — Card shows what a shaped brief was shaped into
+
+Added `partSummary` and `addPartCounts` to `cloudBriefs.js`. `addPartCounts` reads `brief.getByNumber` only for open, shaped work and gives `null` for a failed read or any other brief, the way `addDiscussionCounts` reads events. `cloudBriefsService.list` now applies it after the discussion counts. `cloudBriefsCopy.partCountLabel` reads "1 spec" / "2 specs · 1 task", and the card draws it in the existing records line style. This overturns the plan's silent decision "a shaped brief gets no new card line": once the Shape button goes, the card otherwise gives no sign that the brief was shaped.
+
+_Captured: 2026-09-24 · 6 file change(s)_
+
+---
+

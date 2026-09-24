@@ -324,6 +324,14 @@ test('shapedNotice names the brief and its part count, and leaves an unknown cou
   assert.equal(copy.OPEN_BRIEF_LABEL, 'Open brief');
 });
 
+test('partCountLabel counts a shaped card\'s parts by shape, and is empty for none or unknown', () => {
+  assert.equal(copy.partCountLabel({ spec: 1, task: 0 }), '1 spec');
+  assert.equal(copy.partCountLabel({ spec: 0, task: 1 }), '1 task');
+  assert.equal(copy.partCountLabel({ spec: 2, task: 1 }), '2 specs · 1 task');
+  assert.equal(copy.partCountLabel({ spec: 0, task: 3 }), '3 tasks');
+  for (const none of [null, undefined, { spec: 0, task: 0 }]) assert.equal(copy.partCountLabel(none), '', String(none));
+});
+
 test('the Shape words', () => {
   assert.equal(copy.SHAPE_LABEL, 'Shape');
   assert.equal(copy.GO_TO_SHAPING_LABEL, 'Go to shaping');
