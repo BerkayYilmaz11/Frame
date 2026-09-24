@@ -655,6 +655,30 @@
   min-width: 0;
 }
 
+/* With an action: the message takes the free space and the button sits at
+   the end, as the sticky variant's × does. */
+.app-toast-has-action .toast-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-toast .toast-action {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.app-toast .toast-action:hover {
+  background: var(--bg-hover);
+}
+
 .app-toast .toast-close {
   flex-shrink: 0;
   background: none;

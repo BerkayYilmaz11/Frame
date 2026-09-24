@@ -155,6 +155,18 @@ test('eventSentence covers every event the web knows', () => {
   }
 });
 
+test('shaped reads as the web says it, for one part and for several', () => {
+  assert.equal(sentence('shaped', { count: 3 }, ME), 'You shaped this brief into 3 parts.');
+  assert.equal(sentence('shaped', { count: 1 }, OTHER), 'A workspace member shaped this brief into 1 part.');
+  assert.equal(sentence('shaped', {}, ME), 'You shaped this brief into 0 parts.');
+});
+
+test('shapedLine dates a shaped brief and is empty for an unshaped one', () => {
+  assert.equal(copy.shapedLine(AT), `Shaped ${copy.formatDate(AT)}`);
+  assert.equal(copy.shapedLine(null), '');
+  assert.equal(copy.shapedLine('nope'), '');
+});
+
 test('assignee-set from someone else says who it went to', () => {
   assert.equal(sentence('assignee-set', { assigneeId: ME }, OTHER), 'A workspace member assigned this brief to you.');
   assert.equal(
@@ -278,6 +290,61 @@ test('proposalStage follows the four states', () => {
   assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'backlog' }, laneOpen: false, discussionCount: 1 }), 'none');
   assert.equal(copy.proposalStage({ brief: { kind: 'proposal', status: 'closed' }, laneOpen: false }), 'none');
   assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'active' }, laneOpen: true }), 'discussing');
+});
+
+// ─── Shape ────────────────────────────────────────────────────
+
+test('workStage offers Shape only on open, unshaped work', () => {
+  const work = { kind: 'work', status: 'backlog', shapedAt: null };
+  assert.equal(copy.workStage({ brief: work, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...work, status: 'active' }, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...work, status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog', shapedAt: null }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: null, laneOpen: false }), 'none');
+});
+
+test('workStage gives way to an open lane of either purpose', () => {
+  assert.equal(copy.workStage({ brief: { kind: 'work', status: 'backlog', shapedAt: null }, laneOpen: true }), 'lane');
+  assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog' }, laneOpen: true }), 'lane');
+});
+
+test('laneLabel names the lane by its purpose, and a lane without one is a Discuss lane', () => {
+  assert.equal(copy.laneLabel('shape', 'Frame 3'), 'Shaping in Frame 3');
+  assert.equal(copy.laneLabel('shape', ''), 'Shaping');
+  assert.equal(copy.laneLabel('discuss', 'Frame 3'), 'Discussing in Frame 3');
+  assert.equal(copy.laneLabel(undefined, 'Frame 3'), 'Discussing in Frame 3');
+});
+
+test('shapedNotice names the brief and its part count, and leaves an unknown count out', () => {
+  assert.equal(copy.shapedNotice(5, 1), 'Brief #5 was shaped into 1 part and is ready to run.');
+  assert.equal(copy.shapedNotice(5, 3), 'Brief #5 was shaped into 3 parts and is ready to run.');
+  assert.equal(copy.shapedNotice(5, undefined), 'Brief #5 was shaped and is ready to run.');
+  assert.equal(copy.shapedNotice(5, 0), 'Brief #5 was shaped and is ready to run.');
+  assert.equal(copy.OPEN_BRIEF_LABEL, 'Open brief');
+});
+
+test('partCountLabel counts a shaped card\'s parts by shape, and is empty for none or unknown', () => {
+  assert.equal(copy.partCountLabel({ spec: 1, task: 0 }), '1 spec');
+  assert.equal(copy.partCountLabel({ spec: 0, task: 1 }), '1 task');
+  assert.equal(copy.partCountLabel({ spec: 2, task: 1 }), '2 specs · 1 task');
+  assert.equal(copy.partCountLabel({ spec: 0, task: 3 }), '3 tasks');
+  for (const none of [null, undefined, { spec: 0, task: 0 }]) assert.equal(copy.partCountLabel(none), '', String(none));
+});
+
+test('the Shape words', () => {
+  assert.equal(copy.SHAPE_LABEL, 'Shape');
+  assert.equal(copy.GO_TO_SHAPING_LABEL, 'Go to shaping');
+  assert.match(copy.SHAPE_HINT, /approve/);
+});
+
+test('shapeErrorMessage has a sentence for each reason and a fallback', () => {
+  for (const reason of ['notShapeable', 'unknownTool', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    assert.notEqual(copy.shapeErrorMessage(reason), copy.shapeErrorMessage('other'), reason);
+  }
+  assert.match(copy.shapeErrorMessage('notShapeable'), /not been shaped/);
+  assert.match(copy.shapeErrorMessage('unauthorized'), /signed out/);
+  assert.match(copy.shapeErrorMessage('whatever'), /could not start/);
 });
 
 test('newCommentsLabel and the Move to Work words', () => {

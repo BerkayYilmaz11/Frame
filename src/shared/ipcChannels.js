@@ -269,7 +269,13 @@ const IPC = {
   // a userData bus, and main pushes each record that landed.
   CLOUD_BRIEF_DISCUSS: 'cloud-brief-discuss',           // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
   CLOUD_BRIEF_DISCUSSION_RECORDED: 'cloud-brief-discussion-recorded', // main → renderer: { folderPath, number }
-  CLOUD_BRIEF_DECIDE: 'cloud-brief-decide'              // renderer → main (invoke): (path, number, priority) → { ok } | { ok: false, reason } — Move to Work
+  CLOUD_BRIEF_DECIDE: 'cloud-brief-decide',            // renderer → main (invoke): (path, number, priority) → { ok } | { ok: false, reason } — Move to Work
+
+  // Frame Cloud brief shape (frame-cloud-brief-shape spec). Shape returns the
+  // lane's prompt; the agent writes every part at once through a staged
+  // command and its own userData bus, and main pushes each shape that landed.
+  CLOUD_BRIEF_SHAPE: 'cloud-brief-shape',               // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
+  CLOUD_BRIEF_SHAPED: 'cloud-brief-shaped'              // main → renderer: { folderPath, number, count }
 };
 
 module.exports = { IPC };

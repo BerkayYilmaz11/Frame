@@ -53,7 +53,9 @@ async function list(folderPath, { includeClosed } = {}) {
   if (!briefs.ok) return { ok: false, reason: briefs.reason };
   if (!milestones.ok) return { ok: false, reason: milestones.reason };
   // Open proposals' discussion counts and new comments, one `brief.events` each (frame-cloud-brief-discussions T11, T13).
-  const counted = await core.addDiscussionCounts(call, briefs.value, meId());
+  const discussed = await core.addDiscussionCounts(call, briefs.value, meId());
+  // Open shaped work's parts by shape, one `brief.getByNumber` each (frame-cloud-brief-shape T11).
+  const counted = await core.addPartCounts(call, discussed, project.slug);
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },

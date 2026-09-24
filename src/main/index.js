@@ -45,6 +45,7 @@ const cloudSession = require('./cloud/cloudSession');
 const cloudProjectsService = require('./cloud/cloudProjectsService');
 const cloudBriefsService = require('./cloud/cloudBriefsService');
 const cloudDiscussionsService = require('./cloud/cloudDiscussionsService');
+const cloudShapeService = require('./cloud/cloudShapeService');
 
 let mainWindow = null;
 let quitConfirmed = false;
@@ -239,6 +240,7 @@ function setupAllIPC() {
   cloudProjectsService.setupIPC(ipcMain);
   cloudBriefsService.setupIPC(ipcMain);
   cloudDiscussionsService.setupIPC(ipcMain);
+  cloudShapeService.setupIPC(ipcMain);
 
   // Git status (file tree decoration polling)
   gitStatusManager.setupIPC(ipcMain);
@@ -357,6 +359,7 @@ function initModulesWithWindow(window) {
   cloudSession.init(window);
   cloudProjectsService.init(window);
   cloudDiscussionsService.init(window);
+  cloudShapeService.init(window);
   activityLog.attachWindow(window);
 }
 
