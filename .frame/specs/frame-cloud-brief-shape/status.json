@@ -11,11 +11,13 @@
     "task-spec-frame-cloud-brief-shape-T06",
     "task-spec-frame-cloud-brief-shape-T07",
     "task-spec-frame-cloud-brief-shape-T08",
-    "task-spec-frame-cloud-brief-shape-T09"
+    "task-spec-frame-cloud-brief-shape-T09",
+    "task-spec-frame-cloud-brief-shape-T10",
+    "task-spec-frame-cloud-brief-shape-T11"
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-24T00:00:00Z",
-  "updated_at": "2026-09-24T13:59:50.626Z",
+  "updated_at": "2026-09-24T15:29:59.400Z",
   "last_phase_at": "2026-09-24T13:12:14.000Z",
   "implement_mode": "autonomous"
 }
