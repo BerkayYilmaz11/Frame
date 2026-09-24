@@ -24,3 +24,11 @@ _Captured: 2026-09-24 · 3 file change(s)_
 
 ---
 
+## T04 — The shape-brief command
+
+Wrote the self-contained `src/templates/bin/shape-brief.js` (`parseArgs`, `requestFor`, `run`, `WAIT_MS`). It reads the parts as a JSON array on stdin and uses `record-discussion.js`'s bus protocol and both timeout messages, reworded for shaping. `test/shapeBrief.test.js` covers the argument errors, malformed JSON, an empty array, each bad field, a reply, a refusal, both timeouts and a spawned run over stdin.
+
+_Captured: 2026-09-24 · 2 file change(s)_
+
+---
+

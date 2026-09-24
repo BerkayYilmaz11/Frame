@@ -16530,6 +16530,77 @@
         }
       }
     },
+    "templates/bin/shape-brief": {
+      "file": "src/templates/bin/shape-brief.js",
+      "description": "",
+      "exports": [
+        "WAIT_MS",
+        "parseArgs",
+        "requestFor",
+        "run"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto"
+      ],
+      "functions": {
+        "parseArgs": {
+          "line": 50,
+          "params": [
+            "argv"
+          ],
+          "purpose": "argv (after the script) → `{ ok, shapeId }` or `{ ok: false, message }`."
+        },
+        "str": {
+          "line": 66,
+          "params": [
+            "value"
+          ]
+        },
+        "partProblem": {
+          "line": 71,
+          "params": [
+            "part",
+            "n"
+          ],
+          "purpose": "The first bad part's sentence, or '' when the part is fine. `n` is its 1-based place."
+        },
+        "requestFor": {
+          "line": 87,
+          "params": [
+            "{ shapeId",
+            "partsText",
+            "ts }"
+          ],
+          "purpose": "The shape id + the stdin text → the bus request, or why not. The same"
+        },
+        "readAll": {
+          "line": 110,
+          "params": [
+            "stream"
+          ]
+        },
+        "readReply": {
+          "line": 119,
+          "params": [
+            "file"
+          ]
+        },
+        "run": {
+          "line": 132,
+          "params": [
+            "{ argv",
+            "partsText",
+            "busDir",
+            "now = Date.now",
+            "waitMs = WAIT_MS",
+            "pollMs = POLL_MS }"
+          ],
+          "purpose": "Publish the request, wait for the reply. `partsText` is the stdin text."
+        }
+      }
+    },
     "templates/commands/claude-code/build-implement-report": {
       "file": "src/templates/commands/claude-code/build-implement-report.mjs",
       "description": "",
@@ -18600,6 +18671,18 @@
         "module": "main/userSettings",
         "file": "src/main/userSettings.js",
         "description": "User Settings"
+      }
+    ],
+    "shape": [
+      {
+        "module": "main/cloud/cloudShape",
+        "file": "src/main/cloud/cloudShape.js",
+        "description": "cloudShape — the pure core of shaping a Frame Cloud work brief."
+      },
+      {
+        "module": "templates/bin/shape-brief",
+        "file": "src/templates/bin/shape-brief.js",
+        "description": ""
       }
     ],
     "sidebar": [

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:52:18.015Z",
+  "lastUpdated": "2026-09-24T13:53:52.117Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9183,13 +9183,13 @@
       "title": "Write the self-contained `src/templates/bin/shape-brief.js`:",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:53:52.117Z",
+      "completedAt": "2026-09-24T13:53:52.117Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T05",
