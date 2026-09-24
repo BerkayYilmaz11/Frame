@@ -16,3 +16,11 @@ _Captured: 2026-09-24 · 4 file change(s)_
 
 ---
 
+## T03 — The pure core of Shape (cloudShape.js)
+
+Exported `briefData`, `commentLines`, `fence` and `shellQuote` from `cloudDiscussions.js` and wrote the pure `src/main/cloud/cloudShape.js`: the store, the prompt-file helpers, `validateShapeInput` (which names the field and the part's index), `buildShapePrompt`, `shapeThrough`, `handleShapeRequest` and `replyMessage`. The request handler leaves the kind and `shapedAt` checks to the server, whose refusals come back as `notWork` / `alreadyClosed` / `alreadyShaped` / `notFound`. `test/cloudShape.test.js` covers each branch, including exactly one `brief.shape` with the parts in order.
+
+_Captured: 2026-09-24 · 3 file change(s)_
+
+---
+

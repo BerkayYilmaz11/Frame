@@ -864,7 +864,11 @@
         "validateRecordInput",
         "buildDiscussPrompt",
         "handleRecordRequest",
-        "replyMessage"
+        "replyMessage",
+        "shared with Shape's prompt (cloudShape.js).\n  briefData",
+        "commentLines",
+        "fence",
+        "shellQuote"
       ],
       "depends": [
         "crypto",
@@ -1770,6 +1774,193 @@
         "emits": [
           "CLOUD_SESSION_STATE"
         ]
+      }
+    },
+    "main/cloud/cloudShape": {
+      "file": "src/main/cloud/cloudShape.js",
+      "description": "cloudShape — the pure core of shaping a Frame Cloud work brief.",
+      "exports": [
+        "MAX_AGE_MS",
+        "PARTS_DELIMITER",
+        "PART_SHAPES",
+        "PART_TYPES",
+        "DEFINITION_HEADINGS",
+        "newShapeId",
+        "isShapeId",
+        "emptyStore",
+        "addShape",
+        "getShape",
+        "pruneShapes",
+        "promptFileName",
+        "promptInstruction",
+        "stalePromptFiles",
+        "validateShapeInput",
+        "buildShapePrompt",
+        "shapeThrough",
+        "handleShapeRequest",
+        "replyMessage"
+      ],
+      "depends": [
+        "crypto",
+        "cloudBriefs",
+        "cloudDiscussions"
+      ],
+      "functions": {
+        "str": {
+          "line": 44,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 48,
+          "params": [
+            "value"
+          ]
+        },
+        "hasOwn": {
+          "line": 52,
+          "params": [
+            "o",
+            "key"
+          ]
+        },
+        "newShapeId": {
+          "line": 59,
+          "params": [
+            "randomBytes = crypto.randomBytes"
+          ],
+          "purpose": "A fresh shape id: 24 hex characters, safe to show in a shell command."
+        },
+        "isShapeId": {
+          "line": 63,
+          "params": [
+            "value"
+          ]
+        },
+        "emptyStore": {
+          "line": 67
+        },
+        "normalizeEntry": {
+          "line": 72,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A stored entry, or null when any field is missing or malformed."
+        },
+        "addShape": {
+          "line": 81,
+          "params": [
+            "store",
+            "{ id",
+            "...rest }"
+          ],
+          "purpose": "The store with one more entry. `entry` is `{ id, folderPath, number, toolId, createdAt }`."
+        },
+        "getShape": {
+          "line": 89,
+          "params": [
+            "store",
+            "id"
+          ],
+          "purpose": "The entry for an id, or null."
+        },
+        "pruneShapes": {
+          "line": 96,
+          "params": [
+            "store",
+            "now = Date.now("
+          ],
+          "purpose": "The store without entries older than 90 days, malformed ones or bad ids. Any shape in → a valid store out."
+        },
+        "promptFileName": {
+          "line": 114,
+          "params": [
+            "shapeId"
+          ],
+          "purpose": "The prompt file's name for a shape id."
+        },
+        "promptInstruction": {
+          "line": 119,
+          "params": [
+            "promptPath",
+            "number"
+          ],
+          "purpose": "The one line a Shape lane receives: read the staged prompt."
+        },
+        "stalePromptFiles": {
+          "line": 124,
+          "params": [
+            "names",
+            "store"
+          ],
+          "purpose": "Prompt files whose shape is no longer in the store (pruned or unknown). Other names are left alone."
+        },
+        "badRequest": {
+          "line": 133,
+          "params": [
+            "field",
+            "index"
+          ]
+        },
+        "validateShapeInput": {
+          "line": 144,
+          "params": [
+            "parts"
+          ],
+          "purpose": "The parts as FrameCloud's `shapeBriefInputSchema` takes them: at least one;"
+        },
+        "shapeCommand": {
+          "line": 163,
+          "params": [
+            "commandPath",
+            "shapeId"
+          ],
+          "purpose": "The exact command the agent runs to shape, with the parts as JSON on stdin."
+        },
+        "buildShapePrompt": {
+          "line": 177,
+          "params": [
+            "{ brief",
+            "events",
+            "commandPath",
+            "shapeId",
+            "meId = '' }"
+          ],
+          "purpose": "The prompt a Shape lane starts with. Every brief field is fenced and"
+        },
+        "shapeThrough": {
+          "line": 227,
+          "params": [
+            "call",
+            "{ id",
+            "parts }"
+          ],
+          "purpose": "Shape a brief through `call`, keeping the server's refusal: `call` reduces"
+        },
+        "handleShapeRequest": {
+          "line": 248,
+          "params": [
+            "request",
+            "deps"
+          ],
+          "purpose": "A bus request (`{ shapeId, parts }`) → what happened. `deps` is"
+        },
+        "fieldMessage": {
+          "line": 278,
+          "params": [
+            "field",
+            "index"
+          ],
+          "purpose": "The sentence for a refused part, naming it by its 1-based place in the list."
+        },
+        "replyMessage": {
+          "line": 291,
+          "params": [
+            "result"
+          ],
+          "purpose": "A handled request → the sentence the command prints."
+        }
       }
     },
     "main/cloud/deviceFlow": {

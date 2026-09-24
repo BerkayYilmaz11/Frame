@@ -384,4 +384,9 @@ module.exports = {
   buildDiscussPrompt,
   handleRecordRequest,
   replyMessage,
+  // The brief block, shared with Shape's prompt (cloudShape.js).
+  briefData,
+  commentLines,
+  fence,
+  shellQuote,
 };
