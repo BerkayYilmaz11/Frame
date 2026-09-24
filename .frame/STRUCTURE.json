@@ -1931,7 +1931,7 @@
           "purpose": "The prompt a Shape lane starts with. Every brief field is fenced and"
         },
         "shapeThrough": {
-          "line": 245,
+          "line": 249,
           "params": [
             "call",
             "{ id",
@@ -1940,7 +1940,7 @@
           "purpose": "Shape a brief through `call`, keeping the server's refusal: `call` reduces"
         },
         "handleShapeRequest": {
-          "line": 266,
+          "line": 270,
           "params": [
             "request",
             "deps"
@@ -1948,7 +1948,7 @@
           "purpose": "A bus request (`{ shapeId, parts }`) → what happened. `deps` is"
         },
         "fieldMessage": {
-          "line": 296,
+          "line": 300,
           "params": [
             "field",
             "index"
@@ -1956,7 +1956,7 @@
           "purpose": "The sentence for a refused part, naming it by its 1-based place in the list."
         },
         "replyMessage": {
-          "line": 309,
+          "line": 313,
           "params": [
             "result"
           ],

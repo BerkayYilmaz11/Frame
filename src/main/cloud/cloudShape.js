@@ -231,6 +231,10 @@ function buildShapePrompt({ brief, events, commandPath, shapeId, meId = '' }) {
     `Each definition is at most ${LIMITS.body} characters. ` +
       'The command prints whether the brief was shaped, or why not. Tell the user exactly what it printed; ' +
       'if it says the brief was not shaped, do not claim it was.',
+    '',
+    'When it says the brief was shaped, this session is done. Tell the user the brief is shaped and its parts are ' +
+      'ready to run, and stop there. Do not offer to open, create or start a spec or a task for a part, and do not ' +
+      'write one: a part becomes a spec or a task when it is run, not here.',
   ].join('\n');
 }
 

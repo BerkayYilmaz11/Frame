@@ -177,6 +177,13 @@ test('buildShapePrompt gives the exact command with a quoted path, the id and a 
   assert.match(prompt, /Tell the user exactly what it printed/);
 });
 
+test('buildShapePrompt ends a shaped session on "ready to run", never on opening a spec or task', () => {
+  const prompt = core.buildShapePrompt(PROMPT);
+  assert.match(prompt, /When it says the brief was shaped, this session is done/);
+  assert.match(prompt, /its parts are ready to run, and stop there/);
+  assert.match(prompt, /Do not offer to open, create or start a spec or a task for a part/);
+});
+
 test('buildShapePrompt offers no local file and no published write-up', () => {
   const prompt = core.buildShapePrompt(PROMPT);
   assert.match(prompt, /Do not write the parts to a file in the repository/);
