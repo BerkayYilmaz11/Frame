@@ -84,7 +84,7 @@ function init(ui) {
  * @param {string|null} [opts.toolId]      - AI CLI to start if none is
  *                                           running (default: current tool)
  * @param {string}      opts.prompt        - text to inject when ready
- * @param {object|null} [opts.assignment]  - { kind: 'task'|'spec'|'brief', label, ref }
+ * @param {object|null} [opts.assignment]  - { kind: 'task'|'spec'|'brief', label, ref, purpose? } (purpose: a brief lane's 'discuss' | 'shape')
  * @param {string[]}    [opts.launchFlags] - flags appended to the CLI launch
  *                                           line; only apply when this
  *                                           dispatch starts the agent itself
@@ -827,13 +827,15 @@ function getBriefLaneInfo(number) {
   return {
     terminalId: lane.id,
     name: lane.customName || lane.name,
+    // A lane opened before Shape existed carries no purpose: it was a Discuss lane.
+    purpose: lane.assignment.purpose || 'discuss',
     status: s.status,
     agentName: s.agentName,
     busy: !!s.agentName && (s.status === 'agent-working' || s.status === 'agent-approval')
   };
 }
 
-/** Enter the lane discussing a brief. → entered? */
+/** Enter the lane discussing or shaping a brief. → entered? */
 function enterBriefLane(number) {
   const info = getBriefLaneInfo(number);
   if (!info) return false;

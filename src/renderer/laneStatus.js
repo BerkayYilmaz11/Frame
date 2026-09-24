@@ -28,7 +28,7 @@
 
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
-const { FileText, CheckSquare, MessagesSquare } = require('lucide');
+const { FileText, CheckSquare, MessagesSquare, Shapes } = require('lucide');
 
 // How long output must be quiet before we classify the buffer
 const QUIET_MS = 1800;
@@ -407,7 +407,10 @@ function formatRelativeTime(ts) {
 // task, so spec labels drop the baked-in "spec: " prefix and show the slug.
 function assignmentIcon(assignment) {
   if (assignment.kind === 'spec') return FileText;
-  if (assignment.kind === 'brief') return MessagesSquare; // a Discuss lane (frame-cloud-brief-discussions)
+  if (assignment.kind === 'brief') {
+    // A Shape lane (frame-cloud-brief-shape); anything else is a Discuss lane (frame-cloud-brief-discussions).
+    return assignment.purpose === 'shape' ? Shapes : MessagesSquare;
+  }
   return CheckSquare;
 }
 

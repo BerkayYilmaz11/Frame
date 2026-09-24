@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:55:25.687Z",
+  "lastUpdated": "2026-09-24T13:57:03.254Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9209,13 +9209,13 @@
       "title": "Give brief lanes a purpose:",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:57:03.254Z",
+      "completedAt": "2026-09-24T13:57:03.254Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T07",

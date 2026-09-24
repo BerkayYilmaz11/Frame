@@ -911,7 +911,7 @@ async function discuss(brief) {
       createNew: true,
       toolId,
       prompt: result.prompt,
-      assignment: { kind: 'brief', label: `brief #${number}: ${brief.title}`, ref: number },
+      assignment: { kind: 'brief', purpose: 'discuss', label: `brief #${number}: ${brief.title}`, ref: number },
     });
   } finally {
     discussing = null;

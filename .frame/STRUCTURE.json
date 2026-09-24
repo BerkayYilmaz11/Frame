@@ -6858,91 +6858,91 @@
           "purpose": "Live info about the lane discussing a Frame Cloud brief, or null. Brief"
         },
         "enterBriefLane": {
-          "line": 837,
+          "line": 839,
           "params": [
             "number"
           ],
-          "purpose": "Enter the lane discussing a brief. → entered?"
+          "purpose": "Enter the lane discussing or shaping a brief. → entered?"
         },
         "specStatusDotHtml": {
-          "line": 850,
+          "line": 852,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 854,
+          "line": 856,
           "params": [
             "taskId"
           ]
         },
         "briefStatusDotHtml": {
-          "line": 858,
+          "line": 860,
           "params": [
             "number"
           ]
         },
         "_activityDotHtml": {
-          "line": 862,
+          "line": 864,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 879,
+          "line": 881,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 887,
+          "line": 889,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 910,
+          "line": 912,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 918,
+          "line": 920,
           "params": [
             "taskId"
           ]
         },
         "onBriefLaneActivity": {
-          "line": 939,
+          "line": 941,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to brief-lane activity. Callback: (number|null) — null means"
         },
         "_notifyBriefLane": {
-          "line": 947,
+          "line": 949,
           "params": [
             "number"
           ]
         },
         "_assignedLane": {
-          "line": 967,
+          "line": 969,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 977,
+          "line": 979,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 986,
+          "line": 988,
           "params": [
             "frameName",
             "specName"
@@ -6950,14 +6950,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 1027,
+          "line": 1029,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 1056,
+          "line": 1058,
           "params": [
             "terminalId",
             "message"
@@ -11667,7 +11667,7 @@
           "purpose": "Assignment chip (what the terminal works on): the icon already says spec vs"
         },
         "assignmentText": {
-          "line": 414,
+          "line": 417,
           "params": [
             "assignment"
           ]

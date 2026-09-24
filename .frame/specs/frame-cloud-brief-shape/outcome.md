@@ -40,3 +40,11 @@ _Captured: 2026-09-24 · 3 file change(s)_
 
 ---
 
+## T06 — Give brief lanes a purpose
+
+`getBriefLaneInfo` (`src/renderer/agentDispatch.js`) now returns `purpose`, defaulting to `'discuss'`. `assignmentIcon` (`src/renderer/laneStatus.js`) shows lucide `Shapes` for a shape lane, and `discuss()` in `src/renderer/cloudBriefsPanel.js` dispatches with `purpose: 'discuss'`. `setAssignment` stores the assignment object whole, so no other code path needed a change.
+
+_Captured: 2026-09-24 · 3 file change(s)_
+
+---
+
