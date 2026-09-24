@@ -292,6 +292,45 @@ test('proposalStage follows the four states', () => {
   assert.equal(copy.proposalStage({ brief: { kind: 'work', status: 'active' }, laneOpen: true }), 'discussing');
 });
 
+// ─── Shape ────────────────────────────────────────────────────
+
+test('workStage offers Shape only on open, unshaped work', () => {
+  const work = { kind: 'work', status: 'backlog', shapedAt: null };
+  assert.equal(copy.workStage({ brief: work, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...work, status: 'active' }, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...work, status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog', shapedAt: null }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: null, laneOpen: false }), 'none');
+});
+
+test('workStage gives way to an open lane of either purpose', () => {
+  assert.equal(copy.workStage({ brief: { kind: 'work', status: 'backlog', shapedAt: null }, laneOpen: true }), 'lane');
+  assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog' }, laneOpen: true }), 'lane');
+});
+
+test('laneLabel names the lane by its purpose, and a lane without one is a Discuss lane', () => {
+  assert.equal(copy.laneLabel('shape', 'Frame 3'), 'Shaping in Frame 3');
+  assert.equal(copy.laneLabel('shape', ''), 'Shaping');
+  assert.equal(copy.laneLabel('discuss', 'Frame 3'), 'Discussing in Frame 3');
+  assert.equal(copy.laneLabel(undefined, 'Frame 3'), 'Discussing in Frame 3');
+});
+
+test('the Shape words', () => {
+  assert.equal(copy.SHAPE_LABEL, 'Shape');
+  assert.equal(copy.GO_TO_SHAPING_LABEL, 'Go to shaping');
+  assert.match(copy.SHAPE_HINT, /approve/);
+});
+
+test('shapeErrorMessage has a sentence for each reason and a fallback', () => {
+  for (const reason of ['notShapeable', 'unknownTool', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    assert.notEqual(copy.shapeErrorMessage(reason), copy.shapeErrorMessage('other'), reason);
+  }
+  assert.match(copy.shapeErrorMessage('notShapeable'), /not been shaped/);
+  assert.match(copy.shapeErrorMessage('unauthorized'), /signed out/);
+  assert.match(copy.shapeErrorMessage('whatever'), /could not start/);
+});
+
 test('newCommentsLabel and the Move to Work words', () => {
   assert.equal(copy.newCommentsLabel(1), '1 new comment');
   assert.equal(copy.newCommentsLabel(3), '3 new comments');

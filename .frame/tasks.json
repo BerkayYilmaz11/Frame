@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:57:03.254Z",
+  "lastUpdated": "2026-09-24T13:58:09.049Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9222,13 +9222,13 @@
       "title": "Add the following to `src/renderer/cloudBriefsCopy.js`:",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:58:09.049Z",
+      "completedAt": "2026-09-24T13:58:09.049Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T08",

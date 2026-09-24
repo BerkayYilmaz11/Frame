@@ -48,3 +48,11 @@ _Captured: 2026-09-24 · 3 file change(s)_
 
 ---
 
+## T07 — The Shape words in cloudBriefsCopy
+
+Added `workStage`, `laneLabel`, `SHAPE_LABEL`, `SHAPE_HINT`, `GO_TO_SHAPING_LABEL` and `shapeErrorMessage` to `src/renderer/cloudBriefsCopy.js`, and named shaping as a write in its header. `laneLabel` builds on `discussingIn`, which stays exported. `test/cloudBriefsCopy.test.js` covers each stage, a lane with no purpose, and every error sentence.
+
+_Captured: 2026-09-24 · 2 file change(s)_
+
+---
+

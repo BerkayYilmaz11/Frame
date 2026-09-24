@@ -7242,6 +7242,12 @@
         "WRITE_UP_IN_LINKS",
         "discussionRecords",
         "discussErrorMessage",
+        "workStage",
+        "laneLabel",
+        "SHAPE_LABEL",
+        "SHAPE_HINT",
+        "GO_TO_SHAPING_LABEL",
+        "shapeErrorMessage",
         "NEW_BRIEF_TITLE",
         "NEW_BRIEF_DESCRIPTION",
         "AI_LINKS_TITLE",
@@ -7428,8 +7434,31 @@
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
+        "workStage": {
+          "line": 351,
+          "params": [
+            "{ brief",
+            "laneOpen }"
+          ],
+          "purpose": "Where a brief stands for Shape, which decides its work control:"
+        },
+        "laneLabel": {
+          "line": 358,
+          "params": [
+            "purpose",
+            "laneName"
+          ],
+          "purpose": "A brief lane's link: \"Discussing in <lane>\" or \"Shaping in <lane>\". A lane without a purpose is a Discuss lane."
+        },
+        "shapeErrorMessage": {
+          "line": 378,
+          "params": [
+            "reason"
+          ],
+          "purpose": "The sentence for a Shape that could not start."
+        },
         "submitLabel": {
-          "line": 357,
+          "line": 396,
           "params": [
             "kind",
             "pending"
@@ -7437,14 +7466,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 376,
+          "line": 415,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 381,
+          "line": 420,
           "params": [
             "number",
             "reason"

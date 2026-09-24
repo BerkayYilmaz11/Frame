@@ -8,7 +8,7 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating and discussing are the writes: the web's other write copy
+ * Creating, discussing and shaping are the writes: the web's other write copy
  * (Transform to Work, refusal sentences for other mutations, search params)
  * is left out.
  */
@@ -340,6 +340,45 @@ function discussErrorMessage(reason) {
   return DISCUSS_MESSAGES[reason] || 'The discussion could not start. Try again.';
 }
 
+// ─── Shape ────────────────────────────────────────────────────
+
+/**
+ * Where a brief stands for Shape, which decides its work control:
+ * 'lane' (a brief lane of either purpose is open — one lane per brief) ·
+ * 'shape' (open work whose parts were never written) · 'none' (a proposal,
+ * an ended brief, or one already shaped: Shape never comes back).
+ */
+function workStage({ brief, laneOpen }) {
+  if (laneOpen) return 'lane';
+  const b = brief || {};
+  return b.kind === 'work' && b.status !== 'closed' && !b.shapedAt ? 'shape' : 'none';
+}
+
+/** A brief lane's link: "Discussing in <lane>" or "Shaping in <lane>". A lane without a purpose is a Discuss lane. */
+function laneLabel(purpose, laneName) {
+  if (purpose !== 'shape') return discussingIn(laneName);
+  return laneName ? `Shaping in ${laneName}` : 'Shaping';
+}
+
+const SHAPE_LABEL = 'Shape';
+const SHAPE_HINT = 'Split this work into specs and tasks with an AI agent in a new lane. It writes the parts once you approve them.';
+const GO_TO_SHAPING_LABEL = 'Go to shaping';
+
+const SHAPE_MESSAGES = {
+  notShapeable: 'Only open work that has not been shaped yet can be shaped.',
+  unknownTool: DISCUSS_MESSAGES.unknownTool,
+  notFound: DISCUSS_MESSAGES.notFound,
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a Shape that could not start. */
+function shapeErrorMessage(reason) {
+  return SHAPE_MESSAGES[reason] || 'Shaping could not start. Try again.';
+}
+
 // ─── New brief ────────────────────────────────────────────────
 
 const NEW_BRIEF_TITLE = 'New brief';
@@ -416,6 +455,12 @@ module.exports = {
   WRITE_UP_IN_LINKS,
   discussionRecords,
   discussErrorMessage,
+  workStage,
+  laneLabel,
+  SHAPE_LABEL,
+  SHAPE_HINT,
+  GO_TO_SHAPING_LABEL,
+  shapeErrorMessage,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,
