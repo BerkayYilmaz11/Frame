@@ -56,3 +56,11 @@ _Captured: 2026-09-24 · 2 file change(s)_
 
 ---
 
+## T08 — Shape in the Briefs view
+
+Added Shape to `src/renderer/cloudBriefsPanel.js`. An open lane of either purpose renders first (a `laneLabel` link on the card, Go to discussion or Go to shaping in the detail). Open unshaped work gets a primary Shape button, and `discuss()` and `shape()` share one `startLane()` behind the renamed `starting` guard. `CLOUD_BRIEF_SHAPED` reloads the board and the open detail through the shared `onBriefWritten`. The detail's lane action was renamed from `go-to-discussion` to `go-to-brief-lane`.
+
+_Captured: 2026-09-24 · 1 file change(s)_
+
+---
+

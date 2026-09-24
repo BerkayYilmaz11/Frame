@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:58:09.049Z",
+  "lastUpdated": "2026-09-24T13:59:50.626Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9235,13 +9235,13 @@
       "title": "Add Shape to `src/renderer/cloudBriefsPanel.js`:",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:59:50.626Z",
+      "completedAt": "2026-09-24T13:59:50.626Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T09",

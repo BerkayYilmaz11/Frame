@@ -7691,100 +7691,107 @@
       ],
       "functions": {
         "init": {
-          "line": 79,
+          "line": 80,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 146
+          "line": 148
         },
         "onCloudChange": {
-          "line": 156
+          "line": 158
         },
         "currentKey": {
-          "line": 191,
+          "line": 193,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 198,
+          "line": 200,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 205,
+          "line": 207,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "openBrief": {
-          "line": 224,
+          "line": 226,
           "params": [
             "number"
           ],
           "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
         },
         "hide": {
-          "line": 241
+          "line": 243
         },
         "refresh": {
-          "line": 252,
+          "line": 254,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 259
+          "line": 261
         },
         "setRefreshing": {
-          "line": 300,
+          "line": 302,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 306,
+          "line": 308,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 315,
+          "line": 317,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 350,
+          "line": 356,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 357
+          "line": 363
         },
         "renderNotice": {
-          "line": 389
+          "line": 395
         },
         "renderCards": {
-          "line": 399,
+          "line": 405,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 406,
+          "line": 412,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderCardActions": {
-          "line": 443,
+          "line": 451,
           "params": [
             "brief"
           ],
-          "purpose": "A card's controls, by the proposal's stage:"
+          "purpose": "A card's controls. An open brief lane of either purpose comes first — one"
+        },
+        "goToLaneLabel": {
+          "line": 468,
+          "params": [
+            "lane"
+          ],
+          "purpose": "\"Go to discussion\" or \"Go to shaping\", by the open lane's purpose."
         },
         "discussButton": {
-          "line": 459,
+          "line": 473,
           "params": [
             "number",
             "weight",
@@ -7794,64 +7801,72 @@
           ],
           "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
         },
+        "shapeButton": {
+          "line": 480,
+          "params": [
+            "number",
+            "action"
+          ],
+          "purpose": "Shape as a primary button; \"Shape…\" while its lane starts."
+        },
         "moveToWorkButton": {
-          "line": 465,
+          "line": 486,
           "params": [
             "number",
             "action"
           ]
         },
         "boardBrief": {
-          "line": 470,
+          "line": 491,
           "params": [
             "number"
           ],
           "purpose": "The board's brief with this number, or null."
         },
         "renderEmpty": {
-          "line": 475,
+          "line": 496,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 488
+          "line": 509
         },
         "renderMessage": {
-          "line": 493,
+          "line": 514,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 498,
+          "line": 519,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 506
+          "line": 527
         },
         "showDrawer": {
-          "line": 514,
+          "line": 535,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 522,
+          "line": 543,
           "params": [
             "number",
             "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 532,
+          "line": 553,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 542,
+          "line": 563,
           "params": [
             "{ number",
             "attachmentError }"
@@ -7859,34 +7874,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 549,
+          "line": 570,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 555,
+          "line": 576,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 566
+          "line": 587
         },
         "onDetailClick": {
-          "line": 600,
+          "line": 621,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 627,
+          "line": 650,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 631
+          "line": 654
         },
         "tabCount": {
-          "line": 661,
+          "line": 684,
           "params": [
             "key",
             "brief",
@@ -7894,7 +7909,7 @@
           ]
         },
         "renderMeta": {
-          "line": 669,
+          "line": 692,
           "params": [
             "brief",
             "events",
@@ -7902,7 +7917,7 @@
           ]
         },
         "renderTab": {
-          "line": 689,
+          "line": 712,
           "params": [
             "tab",
             "brief",
@@ -7911,7 +7926,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 747,
+          "line": 770,
           "params": [
             "events",
             "meId",
@@ -7920,7 +7935,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 775,
+          "line": 798,
           "params": [
             "brief",
             "events"
@@ -7928,7 +7943,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 792,
+          "line": 816,
           "params": [
             "brief",
             "events",
@@ -7937,46 +7952,64 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 808,
+          "line": 832,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 844
+          "line": 868
         },
         "confirmMoveToWork": {
-          "line": 850,
+          "line": 874,
           "params": [
             "priority"
           ]
         },
+        "startLane": {
+          "line": 911,
+          "params": [
+            "brief",
+            "{ purpose",
+            "channel",
+            "errorMessage }"
+          ],
+          "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
+        },
         "discuss": {
-          "line": 886,
+          "line": 948,
           "params": [
             "brief"
           ],
-          "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
+          "purpose": "Discuss an open proposal in a new lane."
+        },
+        "shape": {
+          "line": 953,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 923,
+          "line": 958,
           "params": [
             "number"
           ],
-          "purpose": "Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief."
+          "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
-        "onDiscussionRecorded": {
-          "line": 938,
+        "onBriefWritten": {
+          "line": 973,
           "params": [
             "payload"
           ],
-          "purpose": "A record landed: reload the board (its counts) and the brief when it is the one on screen."
+          "purpose": "A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen."
         }
       },
       "ipc": {
         "listens": [
-          "CLOUD_BRIEF_DISCUSSION_RECORDED"
+          "CLOUD_BRIEF_DISCUSSION_RECORDED",
+          "CLOUD_BRIEF_SHAPED"
         ],
         "emits": []
       }

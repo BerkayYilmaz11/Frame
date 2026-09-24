@@ -11,7 +11,8 @@
  * connected project and holds the token. Creating a brief is one write, and
  * its form lives in cloudBriefsForm.js; the drawer shows either a brief or
  * that form. Discuss (frame-cloud-brief-discussions spec) opens a lane on an
- * open proposal; its agent records through main, never through this panel.
+ * open proposal, and Shape (frame-cloud-brief-shape spec) one on open,
+ * unshaped work; their agents write through main, never through this panel.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -64,9 +65,9 @@ let drawerMode = null;
 // while it loads. Its loads are numbered the same way as the board's.
 let detail = null;
 let detailSeq = 0;
-// The brief number whose Discuss is starting, so a second click waits.
-let discussing = null;
-// A brief to open once the panel mounts (a Discuss lane's chip was clicked).
+// The brief number whose Discuss or Shape lane is starting, so a second click waits.
+let starting = null;
+// A brief to open once the panel mounts (a brief lane's chip was clicked).
 let pendingOpen = null;
 
 const TABS = [
@@ -128,10 +129,11 @@ function init(cloudHub) {
   // is on screen. In-app navigation needs nothing: the host's show() loads.
   window.addEventListener('focus', onWindowFocus);
 
-  // A Discuss lane's activity moves the dots and the header button; a record
-  // that landed reloads the brief it belongs to.
+  // A brief lane's activity moves the dots and the header button; a record
+  // or a shape that landed reloads the brief it belongs to.
   agentDispatch.onBriefLaneActivity(renderLaneSlots);
-  ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onDiscussionRecorded(payload));
+  ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onBriefWritten(payload));
+  ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefWritten(payload));
 }
 
 // What the open board was loaded against: the folder, its cloud project and
@@ -332,6 +334,10 @@ function onContentClick(event) {
     const brief = boardBrief(Number(actionEl.dataset.number));
     if (brief) discuss(brief);
   }
+  else if (action === 'shape-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) shape(brief);
+  }
   else if (action === 'move-to-work-card') {
     const brief = boardBrief(Number(actionEl.dataset.number));
     if (brief) openMoveToWork(brief);
@@ -414,8 +420,8 @@ function renderCard(brief, milestoneName) {
       </span>`
     : '';
   const records = copy.discussionCountLabel(brief.discussionCount);
-  // The card is a container, not a button: its controls (Discuss, the live
-  // lane) sit beside the open-brief button rather than inside it.
+  // The card is a container, not a button: its controls (Discuss, Shape, the
+  // live lane) sit beside the open-brief button rather than inside it.
   return `<div class="cloud-briefs-card">
       <button type="button" class="cloud-briefs-card-open" data-action="open-brief" data-number="${brief.number}" tabindex="-1">
         <span class="cloud-briefs-card-head">
@@ -432,21 +438,24 @@ function renderCard(brief, milestoneName) {
 }
 
 /**
- * A card's controls, by the proposal's stage:
+ * A card's controls. An open brief lane of either purpose comes first — one
+ * lane per brief — as "Discussing in <lane>" or "Shaping in <lane>", which
+ * enters it. Otherwise, by the proposal's stage:
  *   discuss    → primary Discuss (nothing recorded yet)
- *   discussing → "Discussing in <lane>", which enters it
  *   decide     → primary Move to Work, secondary Discuss — and, when someone
  *                commented after the latest record, "N new comments" first,
  *                which opens the Comments tab
- *   none       → nothing (work, or ended)
+ * and for work, primary Shape while it is open and unshaped; nothing for a
+ * shaped or an ended brief.
  */
 function renderCardActions(brief) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
-  const stage = copy.proposalStage({ brief, laneOpen: Boolean(lane), discussionCount: brief.discussionCount });
   const n = brief.number;
-  if (stage === 'discussing') {
-    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(copy.GO_TO_DISCUSSION_LABEL)}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.discussingIn(lane.name))}</span></button>`;
+  if (lane) {
+    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(goToLaneLabel(lane))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}</span></button>`;
   }
+  if (copy.workStage({ brief, laneOpen: false }) === 'shape') return shapeButton(n, 'shape-card');
+  const stage = copy.proposalStage({ brief, laneOpen: false, discussionCount: brief.discussionCount });
   if (stage === 'discuss') return discussButton(n, 'primary', 'discuss-card');
   if (stage !== 'decide') return '';
   const fresh = copy.newCommentsLabel(brief.newCommentCount);
@@ -455,11 +464,23 @@ function renderCardActions(brief) {
     ${discussButton(n, 'secondary', 'discuss-card')}`;
 }
 
+/** "Go to discussion" or "Go to shaping", by the open lane's purpose. */
+function goToLaneLabel(lane) {
+  return lane.purpose === 'shape' ? copy.GO_TO_SHAPING_LABEL : copy.GO_TO_DISCUSSION_LABEL;
+}
+
 /** Discuss as the stage's primary or secondary button; "Discuss…" while it starts. */
 function discussButton(number, weight, action, label = copy.DISCUSS_LABEL, hint = copy.DISCUSS_HINT) {
-  const pending = discussing === number;
+  const pending = starting === number;
   const cls = weight === 'primary' ? 'cloud-briefs-primary-btn' : 'cloud-briefs-web-btn';
   return `<button type="button" class="${cls} cloud-briefs-discuss-btn" data-action="${action}" data-number="${number}" title="${escapeHtml(hint)}" tabindex="-1"${pending ? ' disabled' : ''}>${escapeHtml(pending ? `${label}…` : label)}</button>`;
+}
+
+/** Shape as a primary button; "Shape…" while its lane starts. */
+function shapeButton(number, action) {
+  const pending = starting === number;
+  const label = copy.SHAPE_LABEL;
+  return `<button type="button" class="cloud-briefs-primary-btn cloud-briefs-discuss-btn" data-action="${action}" data-number="${number}" title="${escapeHtml(copy.SHAPE_HINT)}" tabindex="-1"${pending ? ' disabled' : ''}>${escapeHtml(pending ? `${label}…` : label)}</button>`;
 }
 
 function moveToWorkButton(number, action) {
@@ -612,9 +633,11 @@ function onDetailClick(event) {
     if (detail) openOnWeb(detail.number);
   } else if (action === 'discuss') {
     if (detail && detail.result) discuss(detail.result.brief);
+  } else if (action === 'shape') {
+    if (detail && detail.result) shape(detail.result.brief);
   } else if (action === 'move-to-work') {
     if (detail && detail.result) openMoveToWork(detail.result.brief);
-  } else if (action === 'go-to-discussion') {
+  } else if (action === 'go-to-brief-lane') {
     if (detail) agentDispatch.enterBriefLane(detail.number);
   } else if (action === 'link') {
     event.preventDefault();
@@ -768,17 +791,18 @@ function renderDiscussions(events, meId, attachments) {
 
 /**
  * The detail header's controls, by the same stages as the card: Go to
- * discussion while the lane is open (whatever the brief has become since),
- * Discuss before any record, Move to Work + Discuss after one, nothing for
- * work or an ended brief.
+ * discussion or Go to shaping while a lane is open (whatever the brief has
+ * become since), Discuss before any record, Move to Work + Discuss after one,
+ * Shape on open unshaped work, nothing for a shaped or an ended brief.
  */
 function renderDiscussAction(brief, events) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
-  const discussionCount = copy.discussionRecords(events).length;
-  const stage = copy.proposalStage({ brief, laneOpen: Boolean(lane), discussionCount });
-  if (stage === 'discussing') {
-    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-discussion" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(copy.GO_TO_DISCUSSION_LABEL)}</button>`;
+  if (lane) {
+    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-brief-lane" title="${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(goToLaneLabel(lane))}</button>`;
   }
+  if (copy.workStage({ brief, laneOpen: false }) === 'shape') return shapeButton(brief.number, 'shape');
+  const discussionCount = copy.discussionRecords(events).length;
+  const stage = copy.proposalStage({ brief, laneOpen: false, discussionCount });
   if (stage === 'discuss') return discussButton(brief.number, 'primary', 'discuss');
   if (stage === 'decide') return `${moveToWorkButton(brief.number, 'move-to-work')}${discussButton(brief.number, 'secondary', 'discuss')}`;
   return '';
@@ -880,29 +904,30 @@ async function confirmMoveToWork(priority) {
 }
 
 /**
- * Open a lane with the current AI tool and hand it main's discuss prompt.
- * One lane per brief: an open one is entered instead.
+ * Open a lane with the current AI tool and hand it main's prompt for
+ * `purpose` ('discuss' or 'shape'). One lane per brief: an open one, of
+ * either purpose, is entered instead.
  */
-async function discuss(brief) {
+async function startLane(brief, { purpose, channel, errorMessage }) {
   const number = brief.number;
-  if (discussing !== null) return;
+  if (starting !== null) return;
   if (agentDispatch.enterBriefLane(number)) return;
   const path = state.getProjectPath();
   const tool = aiToolSelector.getCurrentTool();
   const toolId = tool ? tool.id : null;
   if (!path) return;
-  discussing = number;
+  starting = number;
   renderLaneSlots(number);
   try {
     let result;
     try {
-      result = await ipcRenderer.invoke(IPC.CLOUD_BRIEF_DISCUSS, path, number, toolId);
+      result = await ipcRenderer.invoke(channel, path, number, toolId);
     } catch (err) {
-      console.error('cloudBriefsPanel: could not start the discussion', err);
+      console.error(`cloudBriefsPanel: could not start the ${purpose} lane`, err);
       result = { ok: false, reason: 'other' };
     }
     if (!result || !result.ok) {
-      if (!result || result.reason !== 'unauthorized') notify.error(copy.discussErrorMessage(result && result.reason));
+      if (!result || result.reason !== 'unauthorized') notify.error(errorMessage(result && result.reason));
       return;
     }
     // Another click may have opened the lane while main answered.
@@ -911,15 +936,25 @@ async function discuss(brief) {
       createNew: true,
       toolId,
       prompt: result.prompt,
-      assignment: { kind: 'brief', purpose: 'discuss', label: `brief #${number}: ${brief.title}`, ref: number },
+      assignment: { kind: 'brief', purpose, label: `brief #${number}: ${brief.title}`, ref: number },
     });
   } finally {
-    discussing = null;
+    starting = null;
     renderLaneSlots(number);
   }
 }
 
-/** Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief. */
+/** Discuss an open proposal in a new lane. */
+function discuss(brief) {
+  return startLane(brief, { purpose: 'discuss', channel: IPC.CLOUD_BRIEF_DISCUSS, errorMessage: copy.discussErrorMessage });
+}
+
+/** Shape open, unshaped work in a new lane. */
+function shape(brief) {
+  return startLane(brief, { purpose: 'shape', channel: IPC.CLOUD_BRIEF_SHAPE, errorMessage: copy.shapeErrorMessage });
+}
+
+/** Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief. */
 function renderLaneSlots(number) {
   if (!visible) return;
   for (const el of contentElement.querySelectorAll('[data-card-actions]')) {
@@ -934,8 +969,8 @@ function renderLaneSlots(number) {
   if (rediscuss) rediscuss.innerHTML = renderRediscuss(detail.result.brief, detail.result.events, detail.result.meId);
 }
 
-/** A record landed: reload the board (its counts) and the brief when it is the one on screen. */
-function onDiscussionRecorded(payload) {
+/** A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen. */
+function onBriefWritten(payload) {
   const { folderPath, number } = payload || {};
   if (!visible || folderPath !== state.getProjectPath()) return;
   load();
