@@ -5,8 +5,9 @@
  * comments, its history, and the project's milestones. The one write is
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
  * recording a discussion on a proposal (`brief.recordDiscussion`); and moving
- * a proposal to work (`brief.decide`); every other brief or milestone
- * mutation stays on the web.
+ * a proposal to work (`brief.decide`); and shaping an open work brief into
+ * its parts (`brief.shape`); every other brief or milestone mutation stays on
+ * the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -77,6 +78,7 @@ function normalizeBrief(raw) {
     droppedAt: strOrNull(b.droppedAt),
     dropReason: strOrNull(b.dropReason),
     recordedDecisionAt: strOrNull(b.recordedDecisionAt),
+    shapedAt: strOrNull(b.shapedAt),
     createdAt: str(b.createdAt),
     updatedAt: str(b.updatedAt),
   };
@@ -90,7 +92,7 @@ function normalizePart(raw) {
     title: str(p.title),
     shape: oneOf(PART_SHAPES, p.shape, 'task'),
     type: oneOf(PART_TYPES, p.type, 'feature'),
-    why: strOrNull(p.why),
+    definition: str(p.definition),
   };
 }
 
@@ -302,6 +304,19 @@ async function decideThrough(call, { id, priority }) {
   return { ok: true };
 }
 
+// ─── Shaping ──────────────────────────────────────────────────
+
+/**
+ * `brief.shape` → the brief with its new parts, normalized. Writes every part
+ * and `shapedAt` in one transaction on an open, unshaped work brief; `parts`
+ * is `[{ title, shape, type, definition }]`, in order. Throws CloudError
+ * (`NOT_WORK`, `ALREADY_CLOSED`, `ALREADY_SHAPED`, `BRIEF_NOT_FOUND`).
+ */
+async function shapeBrief({ api, token, fetchJson, signal, id, parts }) {
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.shape', method: 'POST', input: { id, parts } });
+  return normalizeBriefDetail(data);
+}
+
 /**
  * From a brief's events (oldest first): how many discussions were recorded,
  * and how many comments someone other than `meId` added after the latest
@@ -371,5 +386,6 @@ module.exports = {
   addDiscussionCounts,
   decideBrief,
   decideThrough,
+  shapeBrief,
   buildBriefWebUrl,
 };

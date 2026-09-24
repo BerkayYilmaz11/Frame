@@ -36,7 +36,7 @@ const BRIEF = {
   id: 'b1', number: 3, projectId: 'p1', kind: 'work', title: 'Ship it', body: 'Line one\nLine two',
   source: 'desk', priority: 'high', milestoneId: 'm1', targetBranch: 'main', assigneeId: null,
   status: 'backlog', decidedAt: '2026-09-10T10:00:00.000Z', closedAt: null, closeReason: null,
-  droppedAt: null, dropReason: null, recordedDecisionAt: null,
+  droppedAt: null, dropReason: null, recordedDecisionAt: null, shapedAt: null,
   createdAt: '2026-09-09T10:00:00.000Z', updatedAt: '2026-09-10T10:00:00.000Z', version: 2,
 };
 
@@ -81,8 +81,8 @@ test('getBrief asks by project slug and number, and orders parts by position', a
     '/trpc/brief.getByNumber': ok({
       ...BRIEF,
       parts: [
-        { id: 'p2', position: 1, title: 'Second', shape: 'task', type: 'fix', why: null },
-        { id: 'p1', position: 0, title: 'First', shape: 'spec', type: 'feature', why: 'Because' },
+        { id: 'p2', position: 1, title: 'Second', shape: 'task', type: 'fix', definition: '## Why\nIt breaks' },
+        { id: 'p1', position: 0, title: 'First', shape: 'spec', type: 'feature', definition: '## What\nA spec' },
       ],
       attachments: [{ id: 'a1', kind: 'url', title: 'Chat', url: 'https://claude.ai/chat/1' }],
       comments: [{ id: 'c1', authorId: 'u1', text: 'Looks right', createdAt: '2026-09-11T10:00:00.000Z' }],
@@ -155,6 +155,25 @@ test('normalizeBriefDetail folds unknown part shapes and types', () => {
   const d = core.normalizeBriefDetail({ ...BRIEF, parts: [{ id: 'p', position: 0, shape: 'epic', type: 'chore' }] });
   assert.equal(d.parts[0].shape, 'task');
   assert.equal(d.parts[0].type, 'feature');
+});
+
+test('normalizeBrief carries shapedAt, null when unshaped', () => {
+  assert.equal(core.normalizeBrief(BRIEF).shapedAt, null);
+  assert.equal(core.normalizeBrief({ ...BRIEF, shapedAt: '2026-09-20T10:00:00.000Z' }).shapedAt, '2026-09-20T10:00:00.000Z');
+  assert.equal(core.normalizeBrief({ ...BRIEF, shapedAt: 7 }).shapedAt, null);
+});
+
+test('normalizeBriefDetail reads a part\'s definition and no longer its why', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF,
+    parts: [
+      { id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', definition: '## Why\nBecause', why: 'old' },
+      { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix' },
+    ],
+  });
+  assert.equal(d.parts[0].definition, '## Why\nBecause');
+  assert.equal('why' in d.parts[0], false);
+  assert.equal(d.parts[1].definition, '');
 });
 
 // ─── Web links ────────────────────────────────────────────────
@@ -385,6 +404,36 @@ test('addDiscussionCounts counts records on open proposals only, and survives a 
   assert.deepEqual(counted.map((b) => b.newCommentCount), [0, null, null, null]);
   assert.deepEqual(asked.sort(), ['p1', 'p2']);
   assert.equal(briefs[0].discussionCount, undefined);
+});
+
+// ─── Shaping ──────────────────────────────────────────────────
+
+test('shapeBrief POSTs brief.shape with the id and the parts in order, and returns the detail', async () => {
+  const parts = [
+    { title: 'First', shape: 'spec', type: 'feature', definition: 'One' },
+    { title: 'Second', shape: 'task', type: 'fix', definition: 'Two' },
+  ];
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/brief.shape': ok({
+      ...BRIEF,
+      shapedAt: '2026-09-20T10:00:00.000Z',
+      parts: parts.map((p, i) => ({ ...p, id: `p${i}`, position: i })),
+    }),
+  });
+  const detail = await core.shapeBrief({ ...ctx(fetchJson), id: 'b1', parts });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', parts });
+  assert.equal(detail.shapedAt, '2026-09-20T10:00:00.000Z');
+  assert.deepEqual(detail.parts.map((p) => p.definition), ['One', 'Two']);
+});
+
+test('shapeBrief surfaces a server refusal as a CloudError', async () => {
+  const { fetchJson } = fakeFetch({
+    '/trpc/brief.shape': { status: 400, body: { error: { message: 'ALREADY_SHAPED', data: { code: 'BAD_REQUEST' } } } },
+  });
+  await assert.rejects(core.shapeBrief({ ...ctx(fetchJson), id: 'b1', parts: [] }), (err) => err.name === 'CloudError' && err.message === 'ALREADY_SHAPED');
 });
 
 // ─── Deciding ─────────────────────────────────────────────────

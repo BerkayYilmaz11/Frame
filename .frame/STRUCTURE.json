@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-21",
+  "lastUpdated": "2026-09-24",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -491,6 +491,7 @@
         "addDiscussionCounts",
         "decideBrief",
         "decideThrough",
+        "shapeBrief",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -499,20 +500,20 @@
       ],
       "functions": {
         "str": {
-          "line": 38,
+          "line": 39,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 43,
+          "line": 44,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 47,
+          "line": 48,
           "params": [
             "set",
             "value",
@@ -520,63 +521,63 @@
           ]
         },
         "arr": {
-          "line": 51,
+          "line": 52,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 55,
+          "line": 56,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 62,
+          "line": 63,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 85,
+          "line": 87,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 97,
+          "line": 99,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 102,
+          "line": 104,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 108,
+          "line": 110,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 118,
+          "line": 120,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 123,
+          "line": 125,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 131,
+          "line": 133,
           "params": [
             "{ api",
             "token",
@@ -588,7 +589,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 139,
+          "line": 141,
           "params": [
             "{ api",
             "token",
@@ -599,7 +600,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 145,
+          "line": 147,
           "params": [
             "{ api",
             "token",
@@ -611,7 +612,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 156,
+          "line": 158,
           "params": [
             "{ api",
             "token",
@@ -622,33 +623,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 163,
+          "line": 165,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 172,
+          "line": 174,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 189,
+          "line": 191,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 202,
+          "line": 204,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 217,
+          "line": 219,
           "params": [
             "{ api",
             "token",
@@ -659,7 +660,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 223,
+          "line": 225,
           "params": [
             "{ api",
             "token",
@@ -672,7 +673,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 239,
+          "line": 241,
           "params": [
             "call",
             "{ input",
@@ -681,7 +682,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 259,
+          "line": 261,
           "params": [
             "{ api",
             "token",
@@ -695,7 +696,7 @@
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
         "decideBrief": {
-          "line": 278,
+          "line": 280,
           "params": [
             "{ api",
             "token",
@@ -707,7 +708,7 @@
           "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
         },
         "decideThrough": {
-          "line": 288,
+          "line": 290,
           "params": [
             "call",
             "{ id",
@@ -715,8 +716,20 @@
           ],
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
+        "shapeBrief": {
+          "line": 315,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "parts }"
+          ],
+          "purpose": "`brief.shape` → the brief with its new parts, normalized. Writes every part"
+        },
         "discussionFacts": {
-          "line": 310,
+          "line": 325,
           "params": [
             "events",
             "meId"
@@ -724,7 +737,7 @@
           "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
         },
         "addDiscussionCounts": {
-          "line": 331,
+          "line": 346,
           "params": [
             "call",
             "briefs",
@@ -733,7 +746,7 @@
           "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "buildBriefWebUrl": {
-          "line": 346,
+          "line": 361,
           "params": [
             "{ apiUrl",
             "webOrigin",
