@@ -64,3 +64,11 @@ _Captured: 2026-09-24 · 1 file change(s)_
 
 ---
 
+## T10 — Notice with one-click open when a Shape lands
+
+`CLOUD_BRIEF_SHAPED` now carries `count` (`cloudShapeService.js`, `ipcChannels.js`). For the open folder, the new `onBriefShaped` in `cloudBriefsPanel.js` leaves a board notice ("Brief #N was shaped into K parts.", from `cloudBriefsCopy.shapedNotice`) with an Open brief button, even while the panel is hidden. The board notice changed from a string to `{ text, folderPath?, openNumber?, tone? }`: one tied to a folder shows only on that folder's board, and the shape notice uses a neutral `info` tone instead of the warning border (`cloud-briefs.css`). A notice set while the panel is visible is still cleared by `hide()`, as before.
+
+_Captured: 2026-09-24 · 6 file change(s)_
+
+---
+

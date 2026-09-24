@@ -51,8 +51,10 @@ let visible = false;
 // starts from the loading state.
 let board = null; // { path, result }
 let showClosed = false;
-// A sentence above the columns after a create whose links did not all attach.
-// It stays until dismissed, a change of folder or hide().
+// A sentence above the columns — `{ text, folderPath?, openNumber?, tone? }` —
+// after a create whose links did not all attach, or when a Shape landed (with
+// Open brief). It stays until dismissed, a change of folder or hide(); one
+// tied to a folder shows only on that folder's board.
 let notice = null;
 // Every load takes a number; an answer whose number is no longer the latest
 // (another project, a toggle, a second refresh) is dropped.
@@ -133,7 +135,7 @@ function init(cloudHub) {
   // or a shape that landed reloads the brief it belongs to.
   agentDispatch.onBriefLaneActivity(renderLaneSlots);
   ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onBriefWritten(payload));
-  ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefWritten(payload));
+  ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefShaped(payload));
 }
 
 // What the open board was loaded against: the folder, its cloud project and
@@ -322,9 +324,12 @@ function onContentClick(event) {
   else if (action === 'open-web') openOnWeb();
   else if (action === 'new-brief') openNewBrief();
   else if (action === 'dismiss-notice') {
-    notice = null;
-    const el = contentElement.querySelector('.cloud-briefs-notice');
-    if (el) el.remove();
+    clearNotice();
+  }
+  else if (action === 'open-notice') {
+    const number = notice && notice.openNumber;
+    clearNotice();
+    if (Number.isInteger(number) && number > 0) openDetail(number);
   }
   else if (action === 'open-brief') {
     const number = Number(actionEl.dataset.number);
@@ -392,14 +397,27 @@ function renderBoard() {
   contentElement.innerHTML = renderNotice() + open + closed;
 }
 
+/** The board's notice, when it belongs to the open folder: its sentence, an Open brief button when it names one, and Dismiss. */
 function renderNotice() {
-  if (!notice) return '';
-  return `<div class="cloud-briefs-notice" role="status">
-      <p>${escapeHtml(notice)}</p>
-      <button type="button" class="cloud-briefs-icon-btn" data-action="dismiss-notice" aria-label="Dismiss" title="Dismiss" tabindex="-1">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
+  if (!notice || (notice.folderPath && notice.folderPath !== state.getProjectPath())) return '';
+  const open = notice.openNumber
+    ? `<button type="button" class="cloud-briefs-web-btn" data-action="open-notice" tabindex="-1">${escapeHtml(copy.OPEN_BRIEF_LABEL)}</button>`
+    : '';
+  return `<div class="cloud-briefs-notice${notice.tone === 'info' ? ' info' : ''}" role="status">
+      <p>${escapeHtml(notice.text)}</p>
+      <span class="cloud-briefs-notice-actions">
+        ${open}
+        <button type="button" class="cloud-briefs-icon-btn" data-action="dismiss-notice" aria-label="Dismiss" title="Dismiss" tabindex="-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </span>
     </div>`;
+}
+
+function clearNotice() {
+  notice = null;
+  const el = contentElement && contentElement.querySelector('.cloud-briefs-notice');
+  if (el) el.remove();
 }
 
 function renderCards(briefs, milestoneNames) {
@@ -562,7 +580,7 @@ function openNewBrief() {
 /** A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice. */
 function onBriefCreated({ number, attachmentError }) {
   closeDrawer();
-  notice = attachmentError ? copy.attachmentNotice(number, attachmentError) : null;
+  notice = attachmentError ? { text: copy.attachmentNotice(number, attachmentError) } : null;
   load();
 }
 
@@ -967,6 +985,18 @@ function renderLaneSlots(number) {
   if (slot) slot.innerHTML = renderDiscussAction(detail.result.brief, detail.result.events);
   const rediscuss = detailContentElement.querySelector('.cloud-briefs-rediscuss-slot');
   if (rediscuss) rediscuss.innerHTML = renderRediscuss(detail.result.brief, detail.result.events, detail.result.meId);
+}
+
+/**
+ * A Shape landed. For the open folder it leaves a notice that opens the
+ * brief — set even while the panel is hidden, since the user is usually in
+ * the Shape lane, so it waits on the board until opened or dismissed.
+ */
+function onBriefShaped(payload) {
+  const { folderPath, number, count } = payload || {};
+  if (!folderPath || folderPath !== state.getProjectPath() || !Number.isInteger(number)) return;
+  notice = { text: copy.shapedNotice(number, count), folderPath, openNumber: number, tone: 'info' };
+  onBriefWritten(payload);
 }
 
 /** A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen. */

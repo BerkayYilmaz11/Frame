@@ -19,7 +19,7 @@
  * the folder is connected and the brief is open, unshaped work, issues an id
  * and returns the lane's prompt; the renderer opens the lane. A request is
  * claimed by renaming it, handled, answered in replies/, and a shape that
- * landed is pushed as `CLOUD_BRIEF_SHAPED`.
+ * landed is pushed as `CLOUD_BRIEF_SHAPED` with its part count.
  */
 
 const fs = require('fs');
@@ -181,9 +181,9 @@ function writeReply(name, reply) {
   }
 }
 
-function pushShaped(folderPath, number) {
+function pushShaped(folderPath, number, count) {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(IPC.CLOUD_BRIEF_SHAPED, { folderPath, number });
+    mainWindow.webContents.send(IPC.CLOUD_BRIEF_SHAPED, { folderPath, number, count });
   }
 }
 
@@ -223,7 +223,7 @@ async function handleFile(name) {
     : { ok: false, reason: result.reason, message: core.replyMessage(result) };
   writeReply(name, reply);
   try { fs.unlinkSync(claimed); } catch { /* gone */ }
-  if (result.ok) pushShaped(result.folderPath, result.number);
+  if (result.ok) pushShaped(result.folderPath, result.number, result.count);
 }
 
 function drain() {

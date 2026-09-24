@@ -275,7 +275,7 @@ const IPC = {
   // lane's prompt; the agent writes every part at once through a staged
   // command and its own userData bus, and main pushes each shape that landed.
   CLOUD_BRIEF_SHAPE: 'cloud-brief-shape',               // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
-  CLOUD_BRIEF_SHAPED: 'cloud-brief-shaped'              // main → renderer: { folderPath, number }
+  CLOUD_BRIEF_SHAPED: 'cloud-brief-shaped'              // main → renderer: { folderPath, number, count }
 };
 
 module.exports = { IPC };

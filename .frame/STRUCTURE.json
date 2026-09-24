@@ -2050,7 +2050,8 @@
           "line": 184,
           "params": [
             "folderPath",
-            "number"
+            "number",
+            "count"
           ]
         },
         "handleFile": {
@@ -7249,6 +7250,8 @@
         "SHAPE_HINT",
         "GO_TO_SHAPING_LABEL",
         "shapeErrorMessage",
+        "shapedNotice",
+        "OPEN_BRIEF_LABEL",
         "NEW_BRIEF_TITLE",
         "NEW_BRIEF_DESCRIPTION",
         "AI_LINKS_TITLE",
@@ -7451,15 +7454,23 @@
           ],
           "purpose": "A brief lane's link: \"Discussing in <lane>\" or \"Shaping in <lane>\". A lane without a purpose is a Discuss lane."
         },
-        "shapeErrorMessage": {
+        "shapedNotice": {
           "line": 378,
+          "params": [
+            "number",
+            "count"
+          ],
+          "purpose": "The board's notice when a Shape landed: \"Brief #5 was shaped into 2 parts.\"; the count is left out when unknown."
+        },
+        "shapeErrorMessage": {
+          "line": 386,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Shape that could not start."
         },
         "submitLabel": {
-          "line": 396,
+          "line": 404,
           "params": [
             "kind",
             "pending"
@@ -7467,14 +7478,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 415,
+          "line": 423,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 420,
+          "line": 428,
           "params": [
             "number",
             "reason"
@@ -7692,107 +7703,111 @@
       ],
       "functions": {
         "init": {
-          "line": 80,
+          "line": 82,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 148
+          "line": 150
         },
         "onCloudChange": {
-          "line": 158
+          "line": 160
         },
         "currentKey": {
-          "line": 193,
+          "line": 195,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 200,
+          "line": 202,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 207,
+          "line": 209,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "openBrief": {
-          "line": 226,
+          "line": 228,
           "params": [
             "number"
           ],
           "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
         },
         "hide": {
-          "line": 243
+          "line": 245
         },
         "refresh": {
-          "line": 254,
+          "line": 256,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 261
+          "line": 263
         },
         "setRefreshing": {
-          "line": 302,
+          "line": 304,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 308,
+          "line": 310,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 317,
+          "line": 319,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 356,
+          "line": 361,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 363
+          "line": 368
         },
         "renderNotice": {
-          "line": 395
+          "line": 401,
+          "purpose": "The board's notice, when it belongs to the open folder: its sentence, an Open brief button when it names one, and Dismiss."
+        },
+        "clearNotice": {
+          "line": 417
         },
         "renderCards": {
-          "line": 405,
+          "line": 423,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 412,
+          "line": 430,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderCardActions": {
-          "line": 451,
+          "line": 469,
           "params": [
             "brief"
           ],
           "purpose": "A card's controls. An open brief lane of either purpose comes first — one"
         },
         "goToLaneLabel": {
-          "line": 468,
+          "line": 486,
           "params": [
             "lane"
           ],
           "purpose": "\"Go to discussion\" or \"Go to shaping\", by the open lane's purpose."
         },
         "discussButton": {
-          "line": 473,
+          "line": 491,
           "params": [
             "number",
             "weight",
@@ -7803,7 +7818,7 @@
           "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
         },
         "shapeButton": {
-          "line": 480,
+          "line": 498,
           "params": [
             "number",
             "action"
@@ -7811,63 +7826,63 @@
           "purpose": "Shape as a primary button; \"Shape…\" while its lane starts."
         },
         "moveToWorkButton": {
-          "line": 486,
+          "line": 504,
           "params": [
             "number",
             "action"
           ]
         },
         "boardBrief": {
-          "line": 491,
+          "line": 509,
           "params": [
             "number"
           ],
           "purpose": "The board's brief with this number, or null."
         },
         "renderEmpty": {
-          "line": 496,
+          "line": 514,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 509
+          "line": 527
         },
         "renderMessage": {
-          "line": 514,
+          "line": 532,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 519,
+          "line": 537,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 527
+          "line": 545
         },
         "showDrawer": {
-          "line": 535,
+          "line": 553,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 543,
+          "line": 561,
           "params": [
             "number",
             "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 553,
+          "line": 571,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 563,
+          "line": 581,
           "params": [
             "{ number",
             "attachmentError }"
@@ -7875,34 +7890,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 570,
+          "line": 588,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 576,
+          "line": 594,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 587
+          "line": 605
         },
         "onDetailClick": {
-          "line": 621,
+          "line": 639,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 650,
+          "line": 668,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 654
+          "line": 672
         },
         "tabCount": {
-          "line": 684,
+          "line": 702,
           "params": [
             "key",
             "brief",
@@ -7910,7 +7925,7 @@
           ]
         },
         "renderMeta": {
-          "line": 692,
+          "line": 710,
           "params": [
             "brief",
             "events",
@@ -7918,7 +7933,7 @@
           ]
         },
         "renderTab": {
-          "line": 712,
+          "line": 730,
           "params": [
             "tab",
             "brief",
@@ -7927,7 +7942,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 770,
+          "line": 788,
           "params": [
             "events",
             "meId",
@@ -7936,7 +7951,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 798,
+          "line": 816,
           "params": [
             "brief",
             "events"
@@ -7944,7 +7959,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 816,
+          "line": 834,
           "params": [
             "brief",
             "events",
@@ -7953,23 +7968,23 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 832,
+          "line": 850,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 868
+          "line": 886
         },
         "confirmMoveToWork": {
-          "line": 874,
+          "line": 892,
           "params": [
             "priority"
           ]
         },
         "startLane": {
-          "line": 911,
+          "line": 929,
           "params": [
             "brief",
             "{ purpose",
@@ -7979,28 +7994,35 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 948,
+          "line": 966,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 953,
+          "line": 971,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 958,
+          "line": 976,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
+        "onBriefShaped": {
+          "line": 995,
+          "params": [
+            "payload"
+          ],
+          "purpose": "A Shape landed. For the open folder it leaves a notice that opens the"
+        },
         "onBriefWritten": {
-          "line": 973,
+          "line": 1003,
           "params": [
             "payload"
           ],

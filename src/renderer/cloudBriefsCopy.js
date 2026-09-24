@@ -374,6 +374,14 @@ const SHAPE_MESSAGES = {
   noWorkspace: REASON_MESSAGES.noWorkspace,
 };
 
+/** The board's notice when a Shape landed: "Brief #5 was shaped into 2 parts."; the count is left out when unknown. */
+function shapedNotice(number, count) {
+  if (!Number.isInteger(count) || count < 1) return `Brief #${number} was shaped.`;
+  return `Brief #${number} was shaped into ${count} ${count === 1 ? 'part' : 'parts'}.`;
+}
+
+const OPEN_BRIEF_LABEL = 'Open brief';
+
 /** The sentence for a Shape that could not start. */
 function shapeErrorMessage(reason) {
   return SHAPE_MESSAGES[reason] || 'Shaping could not start. Try again.';
@@ -461,6 +469,8 @@ module.exports = {
   SHAPE_HINT,
   GO_TO_SHAPING_LABEL,
   shapeErrorMessage,
+  shapedNotice,
+  OPEN_BRIEF_LABEL,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,
