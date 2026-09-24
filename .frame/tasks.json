@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T13:48:21.649Z",
+  "lastUpdated": "2026-09-24T13:49:43.815Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9157,13 +9157,13 @@
       "title": "Show shaped briefs in the Parts tab. In `src/renderer/cloudBriefsCopy.js`, add the `shaped` case to `eventAction` (\"shaped this brief into N parts\", \"1 part\" for one) and `shapedLine(date)`. In `src/renderer/cloudBriefsPanel.js`, show \"Shaped <date>\" above the list when `shapedAt` is set, drop `why`, and put each definition in a collapsed, escaped, pre-wrapped `<details>`. Style both in `src/renderer/styles/components/cloud-briefs.css`, and cover the sentence in `test/cloudBriefsCopy.test.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-shape:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape",
       "createdAt": "2026-09-24T13:31:02.989Z",
-      "updatedAt": "2026-09-24T13:31:02.989Z",
-      "completedAt": null
+      "updatedAt": "2026-09-24T13:49:43.815Z",
+      "completedAt": "2026-09-24T13:49:43.815Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T03",

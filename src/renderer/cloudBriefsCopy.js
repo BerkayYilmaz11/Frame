@@ -115,6 +115,10 @@ function eventAction(event, meId) {
       return isPriority(data.priority)
         ? `transformed this proposal to work with ${priorityLabel(data.priority).toLowerCase()} priority`
         : 'transformed this proposal to work';
+    case 'shaped': {
+      const count = Number.isInteger(data.count) && data.count >= 0 ? data.count : 0;
+      return `shaped this brief into ${count} ${count === 1 ? 'part' : 'parts'}`;
+    }
     case 'dropped': {
       const reason = text(data.reason);
       return reason ? `dropped this proposal: ${reason}` : 'dropped this proposal';
@@ -187,6 +191,14 @@ function eventSentence(event, meId) {
     date: formatDate(e.at),
   };
 }
+
+/** The Parts tab's line for a shaped brief: "Shaped 18 Sept 2026"; '' when unshaped or unreadable. */
+function shapedLine(iso) {
+  const date = formatDate(iso);
+  return date ? `Shaped ${date}` : '';
+}
+
+const PART_DEFINITION_LABEL = 'Definition';
 
 const REASON_MESSAGES = {
   network: 'Frame Cloud could not be reached. Check your connection and try again.',
@@ -383,6 +395,8 @@ module.exports = {
   actorLabel,
   formatDate,
   eventSentence,
+  shapedLine,
+  PART_DEFINITION_LABEL,
   reasonMessage,
   DISCUSSIONS_TITLE,
   discussionCountLabel,

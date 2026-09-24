@@ -741,6 +741,25 @@
   font-weight: 500;
 }
 
+.cloud-briefs-shaped {
+  margin: 0 0 var(--space-sm);
+  font-size: 12px;
+}
+
+.cloud-briefs-part-definition summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-part-definition summary:hover {
+  color: var(--text-primary);
+}
+
+.cloud-briefs-part-definition .cloud-briefs-text {
+  margin-top: var(--space-xs);
+}
+
 .cloud-briefs-chip {
   font-family: var(--font-mono);
   font-size: 10px;

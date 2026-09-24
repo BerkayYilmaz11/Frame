@@ -689,14 +689,20 @@ function renderMeta(brief, events, meId) {
 function renderTab(tab, brief, events, meId) {
   if (tab === 'parts') {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
-    return `<ol class="cloud-briefs-parts">${brief.parts.map((part) => `
+    // A definition is network content: escaped plain text, pre-wrapped, never markdown.
+    const shaped = copy.shapedLine(brief.shapedAt);
+    return `${shaped ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(shaped)}</p>` : ''}
+      <ol class="cloud-briefs-parts">${brief.parts.map((part) => `
         <li>
           <span class="cloud-briefs-part-head">
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.type)}</span>
           </span>
-          ${part.why ? `<span class="cloud-briefs-muted">${escapeHtml(part.why)}</span>` : ''}
+          ${part.definition ? `<details class="cloud-briefs-part-definition">
+            <summary>${escapeHtml(copy.PART_DEFINITION_LABEL)}</summary>
+            <p class="cloud-briefs-text">${escapeHtml(part.definition)}</p>
+          </details>` : ''}
         </li>`).join('')}
       </ol>`;
   }

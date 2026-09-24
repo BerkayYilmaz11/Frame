@@ -6901,6 +6901,8 @@
         "actorLabel",
         "formatDate",
         "eventSentence",
+        "shapedLine",
+        "PART_DEFINITION_LABEL",
         "reasonMessage",
         "DISCUSSIONS_TITLE",
         "discussionCountLabel",
@@ -7010,29 +7012,36 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "eventSentence": {
-          "line": 183,
+          "line": 187,
           "params": [
             "event",
             "meId"
           ],
           "purpose": "One history line: who did what, and the day it happened. → `{ sentence, date }`."
         },
+        "shapedLine": {
+          "line": 196,
+          "params": [
+            "iso"
+          ],
+          "purpose": "The Parts tab's line for a shaped brief: \"Shaped 18 Sept 2026\"; '' when unshaped or unreadable."
+        },
         "reasonMessage": {
-          "line": 200,
+          "line": 212,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
         "discussionCountLabel": {
-          "line": 209,
+          "line": 221,
           "params": [
             "count"
           ],
           "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
         },
         "proposalStage": {
-          "line": 220,
+          "line": 232,
           "params": [
             "{ brief",
             "laneOpen",
@@ -7041,14 +7050,14 @@
           "purpose": "Where an open proposal stands, which decides its controls:"
         },
         "newCommentsLabel": {
-          "line": 228,
+          "line": 240,
           "params": [
             "count"
           ],
           "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
         },
         "newCommentIds": {
-          "line": 237,
+          "line": 249,
           "params": [
             "comments",
             "events",
@@ -7057,34 +7066,34 @@
           "purpose": "The ids of the comments that are new: added by someone other than `meId`"
         },
         "decideErrorMessage": {
-          "line": 265,
+          "line": 277,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Move to Work that failed."
         },
         "discussingIn": {
-          "line": 270,
+          "line": 282,
           "params": [
             "laneName"
           ],
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 280,
+          "line": 292,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 284,
+          "line": 296,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 296,
+          "line": 308,
           "params": [
             "events",
             "meId",
@@ -7093,14 +7102,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 327,
+          "line": 339,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "submitLabel": {
-          "line": 345,
+          "line": 357,
           "params": [
             "kind",
             "pending"
@@ -7108,14 +7117,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 364,
+          "line": 376,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 369,
+          "line": 381,
           "params": [
             "number",
             "reason"
@@ -7553,7 +7562,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 741,
+          "line": 747,
           "params": [
             "events",
             "meId",
@@ -7562,7 +7571,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 769,
+          "line": 775,
           "params": [
             "brief",
             "events"
@@ -7570,7 +7579,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 786,
+          "line": 792,
           "params": [
             "brief",
             "events",
@@ -7579,37 +7588,37 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 802,
+          "line": 808,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 838
+          "line": 844
         },
         "confirmMoveToWork": {
-          "line": 844,
+          "line": 850,
           "params": [
             "priority"
           ]
         },
         "discuss": {
-          "line": 880,
+          "line": 886,
           "params": [
             "brief"
           ],
           "purpose": "Open a lane with the current AI tool and hand it main's discuss prompt."
         },
         "renderLaneSlots": {
-          "line": 917,
+          "line": 923,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Go to discussion. `number` null means any brief."
         },
         "onDiscussionRecorded": {
-          "line": 932,
+          "line": 938,
           "params": [
             "payload"
           ],

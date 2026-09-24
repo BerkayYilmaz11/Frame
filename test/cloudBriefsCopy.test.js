@@ -155,6 +155,18 @@ test('eventSentence covers every event the web knows', () => {
   }
 });
 
+test('shaped reads as the web says it, for one part and for several', () => {
+  assert.equal(sentence('shaped', { count: 3 }, ME), 'You shaped this brief into 3 parts.');
+  assert.equal(sentence('shaped', { count: 1 }, OTHER), 'A workspace member shaped this brief into 1 part.');
+  assert.equal(sentence('shaped', {}, ME), 'You shaped this brief into 0 parts.');
+});
+
+test('shapedLine dates a shaped brief and is empty for an unshaped one', () => {
+  assert.equal(copy.shapedLine(AT), `Shaped ${copy.formatDate(AT)}`);
+  assert.equal(copy.shapedLine(null), '');
+  assert.equal(copy.shapedLine('nope'), '');
+});
+
 test('assignee-set from someone else says who it went to', () => {
   assert.equal(sentence('assignee-set', { assigneeId: ME }, OTHER), 'A workspace member assigned this brief to you.');
   assert.equal(
