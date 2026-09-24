@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-24T15:34:37.955Z",
+  "lastUpdated": "2026-09-24T15:48:50.617Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9258,19 +9258,19 @@
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T10",
-      "title": "Tell the user a Shape landed, one click from the brief. `CLOUD_BRIEF_SHAPED` carries `count` as well (`cloudShapeService.js`). When it is for the open folder, the panel sets the board's notice to \"Brief #N was shaped into K parts.\" with an Open button that opens that brief, even while the panel is hidden (the user is in the lane), so it waits on the board until opened or dismissed. `cloudBriefsCopy.js` gets `shapedNotice(number, count)`; the notice gains an optional action. Cover the sentence in `test/cloudBriefsCopy.test.js`.",
-      "description": "When a Shape lands for the open folder, leave a board notice \"Brief #N was shaped into K parts.\" with an Open button that opens that brief. CLOUD_BRIEF_SHAPED gains `count` (cloudShapeService.js pushes result.count). The panel sets the notice even while hidden, since the user is usually in the Shape lane, so it waits on the board until opened or dismissed. cloudBriefsCopy.js gets shapedNotice(number, count); the board notice gains an optional action button. Files: src/main/cloud/cloudShapeService.js, src/renderer/cloudBriefsPanel.js, src/renderer/cloudBriefsCopy.js, test/cloudBriefsCopy.test.js.",
+      "title": "Tell the user a Shape landed, from wherever they are, one click from the brief. `CLOUD_BRIEF_SHAPED` carries `count` as well (`cloudShapeService.js`). When it is for the open folder, the panel shows a `notify.success` toast, \"Brief #N was shaped into K parts and is ready to run.\", with an Open brief action that opens that brief. `notify.js` gains an optional action button (and a longer stay for a toast that has one); `cloudBriefsCopy.js` gets `shapedNotice(number, count)`. Cover the sentence in `test/cloudBriefsCopy.test.js`.",
+      "description": "When a Shape lands for the open folder, show a notify.success toast \"Brief #N was shaped into K parts and is ready to run.\" with an Open brief action that opens that brief (cloudBriefsPanel.openBrief). CLOUD_BRIEF_SHAPED gains `count` (cloudShapeService.js pushes result.count). notify.js gains an optional { action: { label, onClick } } button, and a toast with an action stays 6 s. cloudBriefsCopy.js gets shapedNotice(number, count). Files: src/main/cloud/cloudShapeService.js, src/shared/ipcChannels.js, src/renderer/notify.js, src/renderer/styles/components/panels.css, src/renderer/cloudBriefsPanel.js, src/renderer/cloudBriefsCopy.js, test/cloudBriefsCopy.test.js.",
       "source": "spec:frame-cloud-brief-shape:T10",
       "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-shape (follow-up after the Shape walk, 2026-09-24)",
       "createdAt": "2026-09-24T15:29:59.000Z",
-      "updatedAt": "2026-09-24T15:32:29.621Z",
-      "completedAt": "2026-09-24T15:32:29.621Z",
-      "userRequest": "User said: \"Tamam şu an için gayet iyi ama acaba brief'e yeni bir şey ekleyince notices'e bir şey mi eklesek Hani Şu Work Shaped oldu gibi kullanıcının tek tık ile gidebileceği ? Sonra gidince de artık Run butonu aktif olabilir no-op bir şekilde Kart'ta da 1 spec decidded vs gibi bir şey belki olabilir bilemiyorum\" — then: \"commit et, 1 ve 3'ü bu spec'e task olarak ekle\"",
-      "acceptanceCriteria": "- A Shape for the open folder leaves \"Brief #N was shaped into K parts.\" (\"1 part\" for one) on the board, also when it landed while the panel was hidden.\n- Open opens that brief in the drawer and clears the notice; Dismiss clears it.\n- A Shape for another folder leaves no notice.\n- shapedNotice is covered in test/cloudBriefsCopy.test.js.",
-      "notes": "notify toasts have no click action, so the in-panel board notice (already used for attachment failures) carries the Open action. A no-op Run button was discussed and deferred to the Run spec."
+      "updatedAt": "2026-09-24T15:48:50.617Z",
+      "completedAt": "2026-09-24T15:48:50.617Z",
+      "userRequest": "User said: \"Tamam şu an için gayet iyi ama acaba brief'e yeni bir şey ekleyince notices'e bir şey mi eklesek Hani Şu Work Shaped oldu gibi kullanıcının tek tık ile gidebileceği ? Sonra gidince de artık Run butonu aktif olabilir no-op bir şekilde Kart'ta da 1 spec decidded vs gibi bir şey belki olabilir bilemiyorum\" — then: \"commit et, 1 ve 3'ü bu spec'e task olarak ekle\" — then: \"Buradaki amacım kullanıcı terminal ekranındayken brief'inin çalışmaya hazır ve shaped olduğunu görsün vs diye notify çıkarmaktı aslında\" and \"b ile devam et\"",
+      "acceptanceCriteria": "- A Shape for the open folder shows the toast wherever the user is, including the terminal view.\n- Open brief opens that brief in the Briefs drawer and dismisses the toast.\n- A Shape for another folder shows no toast.\n- Toasts without an action behave as before.\n- shapedNotice is covered in test/cloudBriefsCopy.test.js.",
+      "notes": "First built as a Briefs-board banner (76318dc); the user meant a notification visible from the terminal, so it became a toast and the board notice went back to a plain string. A no-op Run button was discussed and deferred to the Run spec."
     },
     {
       "id": "task-spec-frame-cloud-brief-shape-T11",

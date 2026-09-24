@@ -381,10 +381,10 @@ function partCountLabel(counts) {
   return [piece(c.spec, 'spec'), piece(c.task, 'task')].filter(Boolean).join(' · ');
 }
 
-/** The board's notice when a Shape landed: "Brief #5 was shaped into 2 parts."; the count is left out when unknown. */
+/** The toast when a Shape landed: "Brief #5 was shaped into 2 parts and is ready to run."; the count is left out when unknown. */
 function shapedNotice(number, count) {
-  if (!Number.isInteger(count) || count < 1) return `Brief #${number} was shaped.`;
-  return `Brief #${number} was shaped into ${count} ${count === 1 ? 'part' : 'parts'}.`;
+  if (!Number.isInteger(count) || count < 1) return `Brief #${number} was shaped and is ready to run.`;
+  return `Brief #${number} was shaped into ${count} ${count === 1 ? 'part' : 'parts'} and is ready to run.`;
 }
 
 const OPEN_BRIEF_LABEL = 'Open brief';

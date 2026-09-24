@@ -317,10 +317,10 @@ test('laneLabel names the lane by its purpose, and a lane without one is a Discu
 });
 
 test('shapedNotice names the brief and its part count, and leaves an unknown count out', () => {
-  assert.equal(copy.shapedNotice(5, 1), 'Brief #5 was shaped into 1 part.');
-  assert.equal(copy.shapedNotice(5, 3), 'Brief #5 was shaped into 3 parts.');
-  assert.equal(copy.shapedNotice(5, undefined), 'Brief #5 was shaped.');
-  assert.equal(copy.shapedNotice(5, 0), 'Brief #5 was shaped.');
+  assert.equal(copy.shapedNotice(5, 1), 'Brief #5 was shaped into 1 part and is ready to run.');
+  assert.equal(copy.shapedNotice(5, 3), 'Brief #5 was shaped into 3 parts and is ready to run.');
+  assert.equal(copy.shapedNotice(5, undefined), 'Brief #5 was shaped and is ready to run.');
+  assert.equal(copy.shapedNotice(5, 0), 'Brief #5 was shaped and is ready to run.');
   assert.equal(copy.OPEN_BRIEF_LABEL, 'Open brief');
 });
 

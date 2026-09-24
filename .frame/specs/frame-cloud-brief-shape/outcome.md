@@ -66,9 +66,9 @@ _Captured: 2026-09-24 · 1 file change(s)_
 
 ## T10 — Notice with one-click open when a Shape lands
 
-`CLOUD_BRIEF_SHAPED` now carries `count` (`cloudShapeService.js`, `ipcChannels.js`). For the open folder, the new `onBriefShaped` in `cloudBriefsPanel.js` leaves a board notice ("Brief #N was shaped into K parts.", from `cloudBriefsCopy.shapedNotice`) with an Open brief button, even while the panel is hidden. The board notice changed from a string to `{ text, folderPath?, openNumber?, tone? }`: one tied to a folder shows only on that folder's board, and the shape notice uses a neutral `info` tone instead of the warning border (`cloud-briefs.css`). A notice set while the panel is visible is still cleared by `hide()`, as before.
+`CLOUD_BRIEF_SHAPED` now carries `count` (`cloudShapeService.js`, `ipcChannels.js`). For the open folder, the new `onBriefShaped` in `cloudBriefsPanel.js` shows a `notify.success` toast ("Brief #N was shaped into K parts and is ready to run.", from `cloudBriefsCopy.shapedNotice`) wherever the user is, and its Open brief button runs `openBrief(number)`. `notify.js` gained an optional `{ action: { label, onClick } }`: one button after the message, which dismisses the toast and runs `onClick`, and it keeps the toast on screen for 6 s (styles in `panels.css`). This diverges from the task as first written, which put the notice on the Briefs board: the user wanted to see it from the terminal, so the board-banner version (76318dc) was replaced and the board notice is a plain string again.
 
-_Captured: 2026-09-24 · 6 file change(s)_
+_Captured: 2026-09-24 · 7 file change(s)_
 
 ---
 

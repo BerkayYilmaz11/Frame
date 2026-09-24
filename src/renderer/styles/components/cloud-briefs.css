@@ -513,18 +513,6 @@
   line-height: 1.5;
 }
 
-.cloud-briefs-notice.info {
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-}
-
-.cloud-briefs-notice-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-shrink: 0;
-}
-
 .cloud-briefs-notice .cloud-briefs-icon-btn {
   flex-shrink: 0;
 }
