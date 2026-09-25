@@ -1252,6 +1252,7 @@
         "create",
         "release",
         "classifyLinkError",
+        "TRANSLITERATE",
         "suggestSlug",
         "validateSlug",
         "nextSlug",
@@ -2133,6 +2134,148 @@
         "emits": [
           "CLOUD_BRIEF_SHAPED"
         ]
+      }
+    },
+    "main/cloud/cloudStart": {
+      "file": "src/main/cloud/cloudStart.js",
+      "description": "cloudStart — the pure core of starting a shaped Frame Cloud work brief.",
+      "exports": [
+        "SLUG_MAX",
+        "TASK_TITLE_MAX",
+        "BRANCH_PREFIXES",
+        "slugify",
+        "suggestBranchName",
+        "parseSpecDefinition",
+        "parseTaskDefinition",
+        "allocateRefs",
+        "specFiles",
+        "taskTitle",
+        "taskRow",
+        "startable"
+      ],
+      "depends": [
+        "cloudProjects"
+      ],
+      "functions": {
+        "str": {
+          "line": 27,
+          "params": [
+            "value"
+          ]
+        },
+        "arr": {
+          "line": 31,
+          "params": [
+            "value"
+          ]
+        },
+        "slugify": {
+          "line": 43,
+          "params": [
+            "title",
+            "fallback = ''"
+          ],
+          "purpose": "A title → spec.new's slug: lowercase, `[a-z0-9-]` only, runs of `-`"
+        },
+        "suggestBranchName": {
+          "line": 57,
+          "params": [
+            "type",
+            "title",
+            "fallback = 'work'"
+          ],
+          "purpose": "The branch Start Work suggests: the type's prefix, then the title's slug (`fallback` when the title has none)."
+        },
+        "splitSections": {
+          "line": 67,
+          "params": [
+            "text"
+          ],
+          "purpose": "A definition split on its `## ` headings, outside code fences."
+        },
+        "sameHeading": {
+          "line": 92,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "sectionBody": {
+          "line": 97,
+          "params": [
+            "sections",
+            "name"
+          ],
+          "purpose": "The body under `name` (every section of that name, joined); '' when absent."
+        },
+        "parseSpecDefinition": {
+          "line": 107,
+          "params": [
+            "text"
+          ],
+          "purpose": "A spec part's definition, checked: it needs `## Problem` and `## Goal`,"
+        },
+        "parseTaskDefinition": {
+          "line": 124,
+          "params": [
+            "text"
+          ],
+          "purpose": "A task part's definition → the task's fields. `## Description` is required;"
+        },
+        "freeName": {
+          "line": 145,
+          "params": [
+            "base",
+            "taken",
+            "max = Infinity"
+          ],
+          "purpose": "`base`, else `base-2`, `base-3`… — the first not in `taken`. A spec slug stays within 48 characters."
+        },
+        "allocateRefs": {
+          "line": 162,
+          "params": [
+            "parts",
+            "{ specSlugs = []",
+            "taskIds = [] } = {}",
+            "number = 0"
+          ],
+          "purpose": "Each part's `recordRef`, in part order: a spec part's slug is checked"
+        },
+        "specFiles": {
+          "line": 182,
+          "params": [
+            "{ slug",
+            "title",
+            "definition",
+            "now }"
+          ],
+          "purpose": "A spec part's folder: `spec.md` is the part's title as a heading over the"
+        },
+        "taskTitle": {
+          "line": 199,
+          "params": [
+            "title"
+          ],
+          "purpose": "A title within 60 characters: cut at the last space inside the limit, or hard at 60."
+        },
+        "taskRow": {
+          "line": 211,
+          "params": [
+            "{ part",
+            "fields",
+            "id",
+            "brief",
+            "now }"
+          ],
+          "purpose": "A task part's `tasks.json` row, pending. `fields` is parseTaskDefinition's;"
+        },
+        "startable": {
+          "line": 228,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
+        }
       }
     },
     "main/cloud/deviceFlow": {
@@ -19011,6 +19154,18 @@
         "module": "renderer/specSection",
         "file": "src/renderer/specSection.js",
         "description": "Spec Section Module"
+      }
+    ],
+    "start": [
+      {
+        "module": "main/cloud/cloudStart",
+        "file": "src/main/cloud/cloudStart.js",
+        "description": "cloudStart — the pure core of starting a shaped Frame Cloud work brief."
+      },
+      {
+        "module": "renderer/projectStart",
+        "file": "src/renderer/projectStart.js",
+        "description": "Project Start — the three ways into a project, as one block"
       }
     ],
     "state": [

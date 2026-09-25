@@ -8,3 +8,11 @@ _Captured: 2026-09-25 · 5 file change(s)_
 
 ---
 
+## T02 — The pure builders
+
+Wrote `cloudStart.js` with the pure builders and exported `TRANSLITERATE` from `cloudProjects.js`, tested in the new `test/cloudStart.test.js`. Deviations from plan.md: `specFiles` takes `slug`, which the required status.json needs; `-2`/`-3` spec slugs are shortened to stay within 48 characters; the definition splitter skips `## ` lines inside code fences; the fallback part number counts from 1. Also exported `taskTitle` (the 60-character cut) so it is tested on its own.
+
+_Captured: 2026-09-25 · 3 file change(s)_
+
+---
+

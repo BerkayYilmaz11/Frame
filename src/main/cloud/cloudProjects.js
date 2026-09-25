@@ -354,6 +354,7 @@ module.exports = {
   create,
   release,
   classifyLinkError,
+  TRANSLITERATE,
   suggestSlug,
   validateSlug,
   nextSlug,
