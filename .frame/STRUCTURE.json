@@ -8197,6 +8197,7 @@
         "htmlUtils",
         "cloudBriefsCopy",
         "cloudBriefsForm",
+        "cloudStartDialog",
         "agentDispatch",
         "aiToolSelector",
         "notify",
@@ -8205,107 +8206,107 @@
       ],
       "functions": {
         "init": {
-          "line": 80,
+          "line": 83,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 148
+          "line": 151
         },
         "onCloudChange": {
-          "line": 158
+          "line": 161
         },
         "currentKey": {
-          "line": 193,
+          "line": 196,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 200,
+          "line": 203,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 207,
+          "line": 210,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "openBrief": {
-          "line": 226,
+          "line": 229,
           "params": [
             "number"
           ],
           "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
         },
         "hide": {
-          "line": 243
+          "line": 246
         },
         "refresh": {
-          "line": 254,
+          "line": 257,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 261
+          "line": 264
         },
         "setRefreshing": {
-          "line": 302,
+          "line": 305,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 308,
+          "line": 311,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 317,
+          "line": 320,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 356,
+          "line": 363,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 363
+          "line": 370
         },
         "renderNotice": {
-          "line": 395
+          "line": 402
         },
         "renderCards": {
-          "line": 405,
+          "line": 412,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 412,
+          "line": 419,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderCardActions": {
-          "line": 453,
+          "line": 460,
           "params": [
             "brief"
           ],
           "purpose": "A card's controls. An open brief lane of either purpose comes first — one"
         },
         "goToLaneLabel": {
-          "line": 471,
+          "line": 478,
           "params": [
             "lane"
           ],
           "purpose": "\"Go to discussion\" or \"Go to shaping\", by the open lane's purpose."
         },
         "discussButton": {
-          "line": 476,
+          "line": 483,
           "params": [
             "number",
             "weight",
@@ -8316,7 +8317,7 @@
           "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
         },
         "shapeButton": {
-          "line": 483,
+          "line": 490,
           "params": [
             "number",
             "action"
@@ -8324,7 +8325,7 @@
           "purpose": "Shape as a primary button; \"Shape…\" while its lane starts."
         },
         "startWorkButton": {
-          "line": 490,
+          "line": 497,
           "params": [
             "number",
             "action"
@@ -8332,63 +8333,63 @@
           "purpose": "Start Work as a primary button, where Shape was."
         },
         "moveToWorkButton": {
-          "line": 494,
+          "line": 501,
           "params": [
             "number",
             "action"
           ]
         },
         "boardBrief": {
-          "line": 499,
+          "line": 506,
           "params": [
             "number"
           ],
           "purpose": "The board's brief with this number, or null."
         },
         "renderEmpty": {
-          "line": 504,
+          "line": 511,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 517
+          "line": 524
         },
         "renderMessage": {
-          "line": 522,
+          "line": 529,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 527,
+          "line": 534,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 535
+          "line": 542
         },
         "showDrawer": {
-          "line": 543,
+          "line": 550,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 551,
+          "line": 558,
           "params": [
             "number",
             "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 561,
+          "line": 568,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 571,
+          "line": 578,
           "params": [
             "{ number",
             "attachmentError }"
@@ -8396,34 +8397,34 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 578,
+          "line": 585,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 584,
+          "line": 591,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 595
+          "line": 602
         },
         "onDetailClick": {
-          "line": 629,
+          "line": 636,
           "params": [
             "event"
           ]
         },
         "isWebUrl": {
-          "line": 658,
+          "line": 667,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 662
+          "line": 671
         },
         "tabCount": {
-          "line": 692,
+          "line": 701,
           "params": [
             "key",
             "brief",
@@ -8431,7 +8432,7 @@
           ]
         },
         "renderMeta": {
-          "line": 700,
+          "line": 709,
           "params": [
             "brief",
             "events",
@@ -8439,7 +8440,7 @@
           ]
         },
         "renderTab": {
-          "line": 720,
+          "line": 729,
           "params": [
             "tab",
             "brief",
@@ -8448,7 +8449,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 779,
+          "line": 788,
           "params": [
             "events",
             "meId",
@@ -8457,7 +8458,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 808,
+          "line": 817,
           "params": [
             "brief",
             "events"
@@ -8465,7 +8466,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 827,
+          "line": 836,
           "params": [
             "brief",
             "events",
@@ -8474,23 +8475,37 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 843,
+          "line": 852,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 879
+          "line": 888
         },
         "confirmMoveToWork": {
-          "line": 885,
+          "line": 894,
           "params": [
             "priority"
           ]
         },
+        "startWork": {
+          "line": 929,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
+        },
+        "reloadAfterStart": {
+          "line": 942,
+          "params": [
+            "number"
+          ],
+          "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
+        },
         "startLane": {
-          "line": 922,
+          "line": 953,
           "params": [
             "brief",
             "{ purpose",
@@ -8500,35 +8515,35 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 959,
+          "line": 990,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 964,
+          "line": 995,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 969,
+          "line": 1000,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 988,
+          "line": 1019,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 998,
+          "line": 1029,
           "params": [
             "payload"
           ],
@@ -9018,6 +9033,107 @@
         },
         "update": {
           "line": 51
+        }
+      }
+    },
+    "renderer/cloudStartDialog": {
+      "file": "src/renderer/cloudStartDialog.js",
+      "description": "Cloud Start Work dialog (frame-cloud-brief-start spec)",
+      "exports": [
+        "open"
+      ],
+      "depends": [
+        "electron",
+        "shared/ipcChannels",
+        "state",
+        "htmlUtils",
+        "cloudBriefsCopy"
+      ],
+      "functions": {
+        "ref": {
+          "line": 26,
+          "params": [
+            "name"
+          ]
+        },
+        "open": {
+          "line": 36,
+          "params": [
+            "{ number",
+            "onStarted",
+            "onPartial }"
+          ],
+          "purpose": "Open the dialog for brief `number`. `onStarted(result)` runs after a start"
+        },
+        "close": {
+          "line": 59
+        },
+        "prepare": {
+          "line": 65
+        },
+        "renderFailure": {
+          "line": 89,
+          "params": [
+            "message"
+          ]
+        },
+        "suggestion": {
+          "line": 98,
+          "purpose": "The suggestion for the current choice: the part's for Begin, the brief's for Create only."
+        },
+        "choiceRow": {
+          "line": 104,
+          "params": [
+            "value",
+            "label",
+            "hint",
+            "{ disabled = false",
+            "tag = '' } = {}"
+          ]
+        },
+        "renderReady": {
+          "line": 115
+        },
+        "showDirty": {
+          "line": 155,
+          "params": [
+            "branch",
+            "count"
+          ],
+          "purpose": "Ask before stashing: the folder's branch and change count, Stash and continue or Cancel."
+        },
+        "showError": {
+          "line": 167,
+          "params": [
+            "message"
+          ]
+        },
+        "setPending": {
+          "line": 173,
+          "params": [
+            "on"
+          ]
+        },
+        "onClick": {
+          "line": 187,
+          "params": [
+            "e"
+          ]
+        },
+        "onChange": {
+          "line": 204,
+          "params": [
+            "e"
+          ]
+        },
+        "onInput": {
+          "line": 211,
+          "params": [
+            "e"
+          ]
+        },
+        "confirm": {
+          "line": 215
         }
       }
     },
@@ -19490,6 +19606,11 @@
         "module": "main/cloud/cloudStartService",
         "file": "src/main/cloud/cloudStartService.js",
         "description": "cloudStartService — the Electron shell around starting a shaped Frame"
+      },
+      {
+        "module": "renderer/cloudStartDialog",
+        "file": "src/renderer/cloudStartDialog.js",
+        "description": "Cloud Start Work dialog (frame-cloud-brief-start spec)"
       },
       {
         "module": "renderer/projectStart",

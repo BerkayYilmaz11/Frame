@@ -48,3 +48,11 @@ _Captured: 2026-09-25 · 3 file change(s)_
 
 ---
 
+## T07 — The Start Work dialog
+
+Wrote `cloudStartDialog.js` (prepare, choices, a branch field that follows the choice until edited, base line, problems, the dirty warning, and refusal/partial sentences), wired Start Work's clicks in `cloudBriefsPanel.js` with the `startedNotice` toast and a reload, and added the dialog's styles to `cloud-briefs.css`. Begin with the first part is the default choice. A `dirty` answer from start reopens the warning instead of stashing. After `partial` the confirm is removed and the board reloads.
+
+_Captured: 2026-09-25 · 3 file change(s)_
+
+---
+

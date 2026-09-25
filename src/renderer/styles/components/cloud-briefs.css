@@ -1001,3 +1001,132 @@
   padding: 6px 14px;
   font-size: 13px;
 }
+
+/* ─── Start Work dialog ─── */
+
+.cloud-briefs-start-dialog {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 2 * var(--space-xl));
+  overflow-y: auto;
+}
+
+.cloud-briefs-start-dialog [hidden] {
+  display: none !important;
+}
+
+.cloud-briefs-start-dialog [data-ref="body"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.cloud-briefs-start-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.cloud-briefs-start-parts li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 13px;
+}
+
+.cloud-briefs-start-parts li + li {
+  border-top: 1px solid var(--border-default);
+}
+
+.cloud-briefs-start-parts .cloud-briefs-part-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-briefs-start-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.cloud-briefs-start-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.cloud-briefs-start-choice:has(input:checked) {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.cloud-briefs-start-choice.disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.cloud-briefs-start-choice input {
+  margin: 3px 0 0;
+  accent-color: var(--accent-primary);
+}
+
+.cloud-briefs-start-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cloud-briefs-start-choice-label {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.cloud-briefs-start-soon {
+  margin-left: var(--space-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cloud-briefs-start-problems {
+  margin: 0;
+  padding-left: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* A dirty folder: asked before anything is written. */
+.cloud-briefs-start-dirty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  color: var(--warning-ink);
+  font-size: 13px;
+}
+
+.cloud-briefs-start-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}

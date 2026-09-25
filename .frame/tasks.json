@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:26:28.051Z",
+  "lastUpdated": "2026-09-25T07:28:36.377Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9371,13 +9371,13 @@
       "title": "Build the Start Work dialog in the new `src/renderer/cloudStartDialog.js`: prepare on open, the parts list with Begin with each part, Create only, and a disabled Orchestrate reading \"Coming soon\", a branch field that follows the choice until edited, a \"Cut from <base>\" line, part problems and a missing base shown with confirm disabled, the dirty warning with Stash and continue or Cancel, refusal and partial sentences in place, and on success the `startedNotice` toast and a reload of the board and detail; add its styles to `cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:28:36.377Z",
+      "completedAt": "2026-09-25T07:28:36.377Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T08",

@@ -13,6 +13,8 @@
  * that form. Discuss (frame-cloud-brief-discussions spec) opens a lane on an
  * open proposal, and Shape (frame-cloud-brief-shape spec) one on open,
  * unshaped work; their agents write through main, never through this panel.
+ * Start Work (frame-cloud-brief-start spec) opens cloudStartDialog.js on
+ * open, shaped work, and main writes its parts into the folder.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -29,6 +31,7 @@ const cloudProjectMark = require('./cloudProjectMark');
 const { escapeHtml } = require('./htmlUtils');
 const copy = require('./cloudBriefsCopy');
 const cloudBriefsForm = require('./cloudBriefsForm');
+const cloudStartDialog = require('./cloudStartDialog');
 const agentDispatch = require('./agentDispatch');
 const aiToolSelector = require('./aiToolSelector');
 const notify = require('./notify');
@@ -338,6 +341,10 @@ function onContentClick(event) {
     const brief = boardBrief(Number(actionEl.dataset.number));
     if (brief) shape(brief);
   }
+  else if (action === 'start-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) startWork(brief);
+  }
   else if (action === 'move-to-work-card') {
     const brief = boardBrief(Number(actionEl.dataset.number));
     if (brief) openMoveToWork(brief);
@@ -643,6 +650,8 @@ function onDetailClick(event) {
     if (detail && detail.result) discuss(detail.result.brief);
   } else if (action === 'shape') {
     if (detail && detail.result) shape(detail.result.brief);
+  } else if (action === 'start-work') {
+    if (detail && detail.result) startWork(detail.result.brief);
   } else if (action === 'move-to-work') {
     if (detail && detail.result) openMoveToWork(detail.result.brief);
   } else if (action === 'go-to-brief-lane') {
@@ -912,6 +921,28 @@ async function confirmMoveToWork(priority) {
   confirmBtn.textContent = copy.MOVE_TO_WORK_LABEL;
   errorEl.textContent = copy.decideErrorMessage(result && result.reason);
   errorEl.hidden = false;
+}
+
+// ─── Start Work ───────────────────────────────────────────────
+
+/** Open the Start Work dialog on open, shaped, unstarted work. */
+function startWork(brief) {
+  const number = brief.number;
+  cloudStartDialog.open({
+    number,
+    onStarted: (result) => {
+      notify.success(copy.startedNotice(result));
+      reloadAfterStart(number);
+    },
+    onPartial: () => reloadAfterStart(number),
+  });
+}
+
+/** The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen. */
+function reloadAfterStart(number) {
+  if (!visible) return;
+  load();
+  if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
 }
 
 /**
