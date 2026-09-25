@@ -32,3 +32,11 @@ _Captured: 2026-09-25 · 1 file change(s)_
 
 ---
 
+## T05 — The service and its wiring
+
+Wrote `cloudStartService.js` (`prepare`, `start`, `init`, `setupIPC`), added the two IPC channels, and wired the service in `index.js`. Deviations: `index.js` also calls `cloudStartService.init(window)` so the service can push `TASKS_DATA` after writing rows (tasksManager hides its own writes from the watcher). The spec and task writes refuse to overwrite a folder or id that the new branch already holds, which surfaces as `partial`. Followup: allocation reads the current branch's `.frame/`, not the base's; checking the base tree too (`git ls-tree`) would avoid that partial.
+
+_Captured: 2026-09-25 · 3 file change(s)_
+
+---
+

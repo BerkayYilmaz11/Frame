@@ -2335,6 +2335,114 @@
         }
       }
     },
+    "main/cloud/cloudStartService": {
+      "file": "src/main/cloud/cloudStartService.js",
+      "description": "cloudStartService — the Electron shell around starting a shaped Frame",
+      "exports": [
+        "init",
+        "setupIPC",
+        "prepare",
+        "start"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "../shared/ipcChannels",
+        "../shared/gitRefNames",
+        "fsSafe",
+        "frameStore",
+        "logger",
+        "tasksManager",
+        "gitBranchesManager",
+        "cloudProjectsService",
+        "cloudBriefs",
+        "cloudStart"
+      ],
+      "functions": {
+        "specSlugs": {
+          "line": 30,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The spec folder names in `.frame/specs/`."
+        },
+        "taskIds": {
+          "line": 41,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "Every task id in `tasks.json`."
+        },
+        "changeCount": {
+          "line": 47,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
+        },
+        "writeSpec": {
+          "line": 54,
+          "params": [
+            "folderPath",
+            "slug",
+            "files"
+          ],
+          "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
+        },
+        "writeTasks": {
+          "line": 64,
+          "params": [
+            "folderPath",
+            "rows"
+          ],
+          "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
+        },
+        "orThrow": {
+          "line": 80,
+          "params": [
+            "result"
+          ],
+          "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
+        },
+        "prepare": {
+          "line": 88,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
+        },
+        "start": {
+          "line": 115,
+          "params": [
+            "folderPath",
+            "request"
+          ],
+          "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
+        },
+        "init": {
+          "line": 148,
+          "params": [
+            "window"
+          ]
+        },
+        "setupIPC": {
+          "line": 152,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "CLOUD_BRIEF_START_PREPARE",
+          "CLOUD_BRIEF_START"
+        ],
+        "emits": [
+          "TASKS_DATA"
+        ]
+      }
+    },
     "main/cloud/deviceFlow": {
       "file": "src/main/cloud/deviceFlow.js",
       "description": "deviceFlow — the pure core of Frame Cloud sign-in.",
@@ -4463,30 +4571,31 @@
         "cloud/cloudBriefsService",
         "cloud/cloudDiscussionsService",
         "cloud/cloudShapeService",
+        "cloud/cloudStartService",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 58,
+          "line": 59,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 76,
+          "line": 77,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 183
+          "line": 184
         },
         "setupAllIPC": {
-          "line": 213,
+          "line": 214,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 299,
+          "line": 301,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 345,
+          "line": 347,
           "params": [
             "window"
           ],
@@ -18417,6 +18526,16 @@
         "name": "cloud-brief-shaped",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_START_PREPARE": {
+        "name": "cloud-brief-start-prepare",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_START": {
+        "name": "cloud-brief-start",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -19152,6 +19271,11 @@
         "module": "main/cloud/cloudShapeService",
         "file": "src/main/cloud/cloudShapeService.js",
         "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work"
+      },
+      {
+        "module": "main/cloud/cloudStartService",
+        "file": "src/main/cloud/cloudStartService.js",
+        "description": "cloudStartService — the Electron shell around starting a shaped Frame"
       }
     ],
     "session": [
@@ -19246,6 +19370,11 @@
         "module": "main/cloud/cloudStart",
         "file": "src/main/cloud/cloudStart.js",
         "description": "cloudStart — the pure core of starting a shaped Frame Cloud work brief."
+      },
+      {
+        "module": "main/cloud/cloudStartService",
+        "file": "src/main/cloud/cloudStartService.js",
+        "description": "cloudStartService — the Electron shell around starting a shaped Frame"
       },
       {
         "module": "renderer/projectStart",

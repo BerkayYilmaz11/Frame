@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:22:29.732Z",
+  "lastUpdated": "2026-09-25T07:24:22.694Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9345,13 +9345,13 @@
       "title": "Write `src/main/cloud/cloudStartService.js` (`prepare` and `start`: resolve the connected project, read the brief through `cloudProjectsService.call`, list `.frame/specs/` slugs and `tasks.json` ids, write spec files with `fsSafe.writeFileAtomic` under `frameStore.resolveSpecDir` and task rows through `tasksManager.loadTasks`/`saveTasks`, and wire the git deps); add `CLOUD_BRIEF_START_PREPARE` and `CLOUD_BRIEF_START` to `src/shared/ipcChannels.js`, and `setupIPC` in `src/main/index.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:24:22.694Z",
+      "completedAt": "2026-09-25T07:24:22.694Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T06",
