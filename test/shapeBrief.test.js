@@ -71,6 +71,22 @@ test('requestFor parses the parts, trims titles and definitions, and keeps the o
   });
 });
 
+test('requestFor carries a trimmed key and leaves out an empty one', () => {
+  const text = JSON.stringify([{ ...PART, key: ' llm-judge ' }, { ...PART, key: '' }]);
+  const r = cmd.requestFor({ shapeId: ID, partsText: text, ts: 1 });
+  assert.equal(r.ok, true);
+  assert.equal(r.request.parts[0].key, 'llm-judge');
+  assert.equal('key' in r.request.parts[1], false);
+});
+
+test('requestFor refuses a key that is not kebab-case or is too long', () => {
+  for (const key of ['LLM-judge', 'llm_judge', 'llm--judge', '-llm', 'x'.repeat(41)]) {
+    const r = cmd.requestFor({ shapeId: ID, partsText: JSON.stringify([{ ...PART, key }]), ts: 1 });
+    assert.equal(r.ok, false, key);
+    assert.match(r.message, /part 1 needs a key in kebab-case/, key);
+  }
+});
+
 test('requestFor refuses a malformed id, malformed JSON and an empty or non-array payload', () => {
   const cases = [
     [{ shapeId: 'nope', partsText: PARTS }, /shape id is malformed/],

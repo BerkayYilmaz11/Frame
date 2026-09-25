@@ -5,9 +5,10 @@
  * comments, its history, and the project's milestones. The one write is
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
  * recording a discussion on a proposal (`brief.recordDiscussion`); and moving
- * a proposal to work (`brief.decide`); and shaping an open work brief into
- * its parts (`brief.shape`); every other brief or milestone mutation stays on
- * the web.
+ * a proposal to work (`brief.decide`); shaping an open work brief into its
+ * parts (`brief.shape`); and marking a shaped brief started with each part's
+ * local spec slug or task id (`brief.start`); every other brief or milestone
+ * mutation stays on the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -79,6 +80,7 @@ function normalizeBrief(raw) {
     dropReason: strOrNull(b.dropReason),
     recordedDecisionAt: strOrNull(b.recordedDecisionAt),
     shapedAt: strOrNull(b.shapedAt),
+    startedAt: strOrNull(b.startedAt),
     createdAt: str(b.createdAt),
     updatedAt: str(b.updatedAt),
   };
@@ -93,6 +95,8 @@ function normalizePart(raw) {
     shape: oneOf(PART_SHAPES, p.shape, 'task'),
     type: oneOf(PART_TYPES, p.type, 'feature'),
     definition: str(p.definition),
+    key: strOrNull(p.key),
+    recordRef: strOrNull(p.recordRef),
   };
 }
 
@@ -317,6 +321,50 @@ async function shapeBrief({ api, token, fetchJson, signal, id, parts }) {
   return normalizeBriefDetail(data);
 }
 
+// ─── Starting ─────────────────────────────────────────────────
+
+/** The server's refusals of `brief.start` → the reason Frame reports. */
+const START_REFUSALS = {
+  NOT_WORK: 'notWork',
+  ALREADY_CLOSED: 'alreadyClosed',
+  NOT_SHAPED: 'notShaped',
+  ALREADY_STARTED: 'alreadyStarted',
+  PARTS_MISMATCH: 'partsMismatch',
+  RECORD_REF_TAKEN: 'recordRefTaken',
+  BRIEF_NOT_FOUND: 'notFound',
+};
+
+/**
+ * `brief.start` → the brief detail, now started, normalized. Sets
+ * `startedAt` once and links every part to its `recordRef`; `parts` is
+ * `[{ partId, recordRef }]` and must name every part. Throws CloudError on a
+ * refusal (see START_REFUSALS).
+ */
+async function startBrief({ api, token, fetchJson, signal, id, parts }) {
+  const data = await callTrpc({ api, token, fetchJson, signal, name: 'brief.start', method: 'POST', input: { id, parts } });
+  return normalizeBriefDetail(data);
+}
+
+/**
+ * Start a brief through `call`. The refusals come back as values, since
+ * `call` folds them all into one reason.
+ * → `{ ok: true, detail }` or `{ ok: false, reason }`.
+ */
+async function startThrough(call, { id, parts }) {
+  const result = await call(async (ctx) => {
+    try {
+      return { refused: null, detail: await startBrief({ ...ctx, id, parts }) };
+    } catch (err) {
+      const refused = err && START_REFUSALS[err.message];
+      if (refused) return { refused };
+      throw err;
+    }
+  });
+  if (!result.ok) return { ok: false, reason: result.reason };
+  if (result.value.refused) return { ok: false, reason: result.value.refused };
+  return { ok: true, detail: result.value.detail };
+}
+
 /**
  * From a brief's events (oldest first): how many discussions were recorded,
  * and how many comments someone other than `meId` added after the latest
@@ -363,18 +411,26 @@ function partSummary(parts) {
   return out;
 }
 
+/** A part as a card draws it: no definition, which only the detail shows. */
+function partRow(part) {
+  return { id: part.id, title: part.title, shape: part.shape, type: part.type, key: part.key, recordRef: part.recordRef };
+}
+
 /**
- * The briefs with `partCounts` (`{ spec, task }`) on each open shaped work
+ * The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's
+ * id, title, shape, type and `recordRef`, in order) on each open shaped work
  * brief, from its `brief.getByNumber` (the list does not carry parts). `call`
  * is cloudProjectsService's wrapper; a brief whose detail fails to load gets
- * `null`, never a failed board. Every other brief gets `null` without a
+ * `null`s, never a failed board. Every other brief gets `null`s without a
  * request.
  */
 async function addPartCounts(call, briefs, projectSlug) {
+  const none = { partCounts: null, parts: null };
   return Promise.all(briefs.map(async (brief) => {
-    if (brief.kind !== 'work' || brief.status === 'closed' || !brief.shapedAt) return { ...brief, partCounts: null };
+    if (brief.kind !== 'work' || brief.status === 'closed' || !brief.shapedAt) return { ...brief, ...none };
     const detail = await call((ctx) => getBrief({ ...ctx, projectSlug, number: brief.number }));
-    return { ...brief, partCounts: detail.ok ? partSummary(detail.value.parts) : null };
+    if (!detail.ok) return { ...brief, ...none };
+    return { ...brief, partCounts: partSummary(detail.value.parts), parts: detail.value.parts.map(partRow) };
   }));
 }
 
@@ -415,5 +471,8 @@ module.exports = {
   decideBrief,
   decideThrough,
   shapeBrief,
+  START_REFUSALS,
+  startBrief,
+  startThrough,
   buildBriefWebUrl,
 };

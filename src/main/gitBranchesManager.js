@@ -96,6 +96,40 @@ async function localBranchExists(name, projectPath) {
   }
 }
 
+/** Does `refs/remotes/origin/<name>` exist in this repo? Nothing is fetched: it is what this machine has. */
+async function remoteBranchExists(name, projectPath) {
+  try {
+    await execGitArgs(['rev-parse', '--verify', '--quiet', `refs/remotes/origin/${name}`], projectPath);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** The checked-out branch's name, or '' when HEAD is detached or git fails. */
+async function currentBranch(projectPath) {
+  try {
+    const { stdout } = await execGitArgs(['rev-parse', '--abbrev-ref', 'HEAD'], projectPath);
+    return stdout === 'HEAD' ? '' : stdout;
+  } catch (_) {
+    return '';
+  }
+}
+
+/**
+ * Stash every change, untracked files included (`git stash push -u -m`), so
+ * what `git status --porcelain` listed is what gets stashed. Ignored files
+ * stay. → `{ error: null }` or `{ error }`.
+ */
+async function stashAll(projectPath, message) {
+  try {
+    await execGitArgs(['stash', 'push', '-u', '-m', message], projectPath);
+    return { error: null };
+  } catch (err) {
+    return { error: err.error || err.message };
+  }
+}
+
 /**
  * Check if working tree is clean
  */
@@ -218,9 +252,10 @@ async function switchBranch(projectPath, branchName) {
 }
 
 /**
- * Create a new branch
+ * Create a new branch. `{ track: false }` cuts it with `--no-track`, so a
+ * branch made from a remote base does not track that base.
  */
-async function createBranch(projectPath, branchName, checkout = true, baseBranch = null) {
+async function createBranch(projectPath, branchName, checkout = true, baseBranch = null, { track } = {}) {
   if (!projectPath || !branchName) {
     return { error: 'Missing parameters' };
   }
@@ -231,7 +266,10 @@ async function createBranch(projectPath, branchName, checkout = true, baseBranch
   }
 
   try {
-    const args = checkout ? ['checkout', '-b', branchName] : ['branch', branchName];
+    const args = checkout ? ['checkout'] : ['branch'];
+    if (track === false) args.push('--no-track');
+    if (checkout) args.push('-b');
+    args.push(branchName);
     if (baseBranch) args.push(baseBranch);
     await execGitArgs(args, projectPath);
     return { error: null, branch: branchName };
@@ -532,6 +570,10 @@ module.exports = {
   addWorktree,
   removeWorktree,
   isWorkingTreeClean,
+  localBranchExists,
+  remoteBranchExists,
+  currentBranch,
+  stashAll,
   setupIPC,
   // Orchestration helpers
   orchWorktreePath,

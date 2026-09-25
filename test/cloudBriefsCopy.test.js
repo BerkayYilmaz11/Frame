@@ -167,6 +167,18 @@ test('shapedLine dates a shaped brief and is empty for an unshaped one', () => {
   assert.equal(copy.shapedLine('nope'), '');
 });
 
+test('started reads as the web says it, for one part and for several', () => {
+  assert.equal(sentence('started', { count: 3 }, ME), 'You started work on this brief\'s 3 parts.');
+  assert.equal(sentence('started', { count: 1 }, OTHER), 'A workspace member started work on this brief\'s 1 part.');
+  assert.equal(sentence('started', {}, ME), 'You started work on this brief\'s 0 parts.');
+});
+
+test('startedLine dates a started brief and is empty for an unstarted one', () => {
+  assert.equal(copy.startedLine(AT), `Started ${copy.formatDate(AT)}`);
+  assert.equal(copy.startedLine(null), '');
+  assert.equal(copy.startedLine('nope'), '');
+});
+
 test('assignee-set from someone else says who it went to', () => {
   assert.equal(sentence('assignee-set', { assigneeId: ME }, OTHER), 'A workspace member assigned this brief to you.');
   assert.equal(
@@ -298,10 +310,24 @@ test('workStage offers Shape only on open, unshaped work', () => {
   const work = { kind: 'work', status: 'backlog', shapedAt: null };
   assert.equal(copy.workStage({ brief: work, laneOpen: false }), 'shape');
   assert.equal(copy.workStage({ brief: { ...work, status: 'active' }, laneOpen: false }), 'shape');
-  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z', startedAt: '2026-09-25T10:00:00.000Z' }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: { ...work, status: 'closed' }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog', shapedAt: null }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: null, laneOpen: false }), 'none');
+});
+
+test('workStage offers Start Work on open, shaped, unstarted work, even with a lane open', () => {
+  const shaped = { kind: 'work', status: 'backlog', shapedAt: '2026-09-20T10:00:00.000Z', startedAt: null };
+  assert.equal(copy.workStage({ brief: shaped, laneOpen: false }), 'start');
+  assert.equal(copy.workStage({ brief: shaped, laneOpen: true }), 'start');
+});
+
+test('workStage does not offer Start Work on a started, closed, unshaped or proposal brief', () => {
+  const shaped = { kind: 'work', status: 'backlog', shapedAt: '2026-09-20T10:00:00.000Z', startedAt: null };
+  assert.equal(copy.workStage({ brief: { ...shaped, status: 'active', startedAt: '2026-09-25T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...shaped, status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...shaped, shapedAt: null }, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...shaped, kind: 'proposal' }, laneOpen: false }), 'none');
 });
 
 test('workStage gives way to an open lane of either purpose', () => {
@@ -381,4 +407,133 @@ test('discussionRecords says a write-up went to Links when the brief holds that 
   assert.deepEqual(records.map((r) => [r.id, r.inLinks]), [['e2', true], ['e1', false]]);
   assert.equal(records[1].url, 'https://claude.ai/artifact/old');
   assert.equal(copy.WRITE_UP_IN_LINKS, 'Write-up added to Links');
+});
+
+// ─── Start Work ───────────────────────────────────────────────
+
+test('startErrorMessage has a sentence for every refusal, naming what it can', () => {
+  assert.equal(copy.startErrorMessage({ reason: 'recordRefTaken' }),
+    'Another brief already uses one of these spec or task names. Pull the latest changes and start again.');
+  assert.equal(copy.startErrorMessage({ reason: 'branchTaken', detail: 'feat/login' }), 'A branch named feat/login already exists. Pick another name.');
+  assert.equal(copy.startErrorMessage({ reason: 'badBranch', detail: 'a b' }), '“a b” is not a branch name git accepts.');
+  assert.equal(copy.startErrorMessage({ reason: 'baseMissing', detail: 'origin/dev' }),
+    'The branch origin/dev is not on this machine. Fetch it, or pick another base.');
+  assert.equal(copy.startErrorMessage({ reason: 'alreadyBegun', detail: 'feat/login' }), 'This part was already begun on feat/login.');
+  assert.equal(copy.startErrorMessage({ reason: 'badDefinition', part: 'Fix typo', detail: 'noDescription' }),
+    '“Fix typo” has no Description section. Edit it on the web, then start again.');
+  for (const reason of ['notStartable', 'notWork', 'alreadyClosed', 'notShaped', 'alreadyStarted', 'partsMismatch', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    const sentence = copy.startErrorMessage({ reason });
+    assert.notEqual(sentence, 'Start Work could not run. Try again.', reason);
+    assert.match(sentence, /\.$/, reason);
+  }
+  assert.equal(copy.startErrorMessage({ reason: 'mystery' }), 'Start Work could not run. Try again.');
+  assert.equal(copy.startErrorMessage(null), 'Start Work could not run. Try again.');
+});
+
+test('partialMessage names the failed step, what was written and what is missing with its ref', () => {
+  assert.equal(copy.partialMessage({
+    step: 'files',
+    error: 'disk full',
+    written: ['login-flow'],
+    missing: [{ title: 'Fix typo', shape: 'task', ref: 'task-fix-typo' }],
+  }), 'The brief is started in Frame Cloud, but writing the parts failed: disk full. Written: login-flow. '
+    + 'Not written — create these by hand under the same names: “Fix typo” (task task-fix-typo).');
+  assert.equal(copy.partialMessage({ step: 'branch', written: [], missing: [{ title: 'A', shape: 'spec', ref: 'a' }] }),
+    'The brief is started in Frame Cloud, but creating the branch failed. Not written — create these by hand under the same names: “A” (spec a).');
+  assert.match(copy.partialMessage({ step: 'stash', written: [], missing: [] }), /stashing your changes failed\.$/);
+});
+
+test('startedNotice names the part and its branch, the brief on its first part, and the stash when there was one', () => {
+  assert.equal(copy.startedNotice({ mode: 'start', number: 5, part: { title: 'Login flow' }, branch: 'feat/login', stashMessage: null }),
+    'Brief #5 started: “Login flow” on feat/login.');
+  assert.equal(copy.startedNotice({ mode: 'begin', number: 5, part: { title: 'Fix typo' }, branch: 'fix/typo', stashMessage: 'Start Work #5' }),
+    'Began “Fix typo” on fix/typo. Your changes were stashed as “Start Work #5”.');
+});
+
+test('the Start Work dialog words', () => {
+  assert.equal(copy.START_WORK_LABEL, 'Start Work');
+  assert.equal(copy.startDialogTitle(5), 'Start work on brief #5');
+  assert.equal(copy.beginWithLabel('Login flow'), 'Begin with “Login flow”');
+  assert.equal(copy.ORCHESTRATE_LABEL, 'Orchestrate');
+  assert.equal(copy.COMING_SOON, 'Coming soon');
+  assert.equal(copy.beginDialogTitle('Fix typo'), 'Begin “Fix typo”');
+  assert.equal(copy.FROM_LABEL, 'from');
+  assert.equal(copy.dirtyWarning('feat/x', 1), 'feat/x has 1 uncommitted change. Stash them so the new branch starts clean, or cancel and commit them first.');
+  assert.match(copy.dirtyWarning('', 3), /^This folder has 3 uncommitted changes\./);
+  assert.equal(copy.startSubmitLabel(true), 'Starting…');
+  assert.match(copy.baseMissingLine(''), /no target branch/);
+  assert.match(copy.baseMissingLine('main'), /^The target branch main is not on this machine\./);
+});
+
+test('the part link words', () => {
+  assert.equal(copy.OPEN_SPEC_LABEL, 'Open spec');
+  assert.equal(copy.OPEN_TASK_LABEL, 'Open task');
+  assert.equal(copy.partNotHereMessage('task-fix-typo'), 'task-fix-typo is not in this folder\'s tasks. It may be on another branch or machine.');
+});
+
+// ─── A started brief's progress ───────────────────────────────
+
+const specPart = { id: 'p1', shape: 'spec', recordRef: 'login-flow' };
+const taskPart = { id: 'p2', shape: 'task', recordRef: 'task-fix-typo' };
+
+test('partStatus reads a spec part by its phase, with the next command to run', () => {
+  const at = (phase, extra = {}) => copy.partStatus({ part: specPart, spec: { phase, ...extra } });
+  assert.deepEqual(at('specified'), { label: 'Not started', tone: 'idle', run: 'spec.plan', laneName: null });
+  assert.deepEqual(at('planned'), { label: 'Planned', tone: 'idle', run: 'spec.tasks', laneName: null });
+  assert.deepEqual(at('tasks_generated'), { label: 'Tasks ready', tone: 'idle', run: 'spec.implement', laneName: null });
+  assert.deepEqual(at('implementing', { task_count: 7, completed_count: 3 }),
+    { label: 'Implementing · 3/7', tone: 'active', run: 'spec.implement', laneName: null });
+  assert.equal(at('implementing').label, 'Implementing');
+  assert.deepEqual(at('done'), { label: 'Done', tone: 'done', run: null, laneName: null });
+});
+
+test('partStatus reads a task part by its status', () => {
+  const at = (status) => copy.partStatus({ part: taskPart, task: { status } });
+  assert.deepEqual(at('pending'), { label: 'Not started', tone: 'idle', run: 'task', laneName: null });
+  assert.deepEqual(at('in_progress'), { label: 'In progress', tone: 'active', run: 'task', laneName: null });
+  assert.deepEqual(at('completed'), { label: 'Done', tone: 'done', run: null, laneName: null });
+});
+
+test('partStatus for a part the folder does not hold: On <branch> when this machine began it, else Not started with Begin', () => {
+  assert.deepEqual(copy.partStatus({ part: { ...specPart, begunBranch: 'feat/login' }, task: { status: 'pending' } }),
+    { label: 'On feat/login', tone: 'elsewhere', laneName: null, run: null });
+  assert.deepEqual(copy.partStatus({ part: taskPart }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
+  assert.deepEqual(copy.partStatus({ part: { ...taskPart, begunBranch: null } }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
+});
+
+test('partStatus reads the folder\'s record first, even for a part begun on another branch', () => {
+  assert.equal(copy.partStatus({ part: { ...taskPart, begunBranch: 'fix/typo' }, task: { status: 'in_progress' } }).label, 'In progress');
+});
+
+test('partStatus lets a live lane win, and offers no Run then', () => {
+  const lane = (status, agentName = 'claude') => ({ name: 'Frame 3', status, agentName });
+  assert.deepEqual(copy.partStatus({ part: specPart, spec: { phase: 'specified' }, lane: lane('agent-working') }),
+    { label: 'Working', tone: 'active', laneName: 'Frame 3', run: null });
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'in_progress' }, lane: lane('agent-approval') }).label, 'Needs approval');
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'in_progress' }, lane: lane('agent-idle') }).label, 'Awaiting input');
+  // A lane without a live agent, and a finished part, keep their own state.
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'pending' }, lane: lane('agent-working', null) }).run, 'task');
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'completed' }, lane: lane('agent-working') }).label, 'Done');
+});
+
+test('partStatus of a part without a ref is empty', () => {
+  assert.deepEqual(copy.partStatus({ part: { shape: 'spec' } }), { label: '', tone: 'idle', laneName: null, run: null });
+  assert.deepEqual(copy.partStatus(), { label: '', tone: 'idle', laneName: null, run: null });
+});
+
+test('partsSummary counts done, in progress and missing, only with more than one part', () => {
+  const s = (tone) => ({ tone });
+  assert.equal(copy.partsSummary([s('active')]), '');
+  assert.equal(copy.partsSummary([]), '');
+  assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 done');
+  assert.equal(copy.partsSummary([s('active'), s('attention'), s('elsewhere'), s('done')]), '1 of 4 done · 2 in progress · 1 on another branch');
+  assert.equal(copy.partsSummary([s('elsewhere'), s('elsewhere'), s('idle')]), '0 of 3 done · 2 on other branches');
+});
+
+test('Run, its hints and the lane line', () => {
+  assert.equal(copy.runLabel('task'), 'Run');
+  assert.equal(copy.runLabel('begin'), 'Begin');
+  for (const run of ['spec.plan', 'spec.tasks', 'spec.implement', 'task', 'begin']) assert.match(copy.runHint(run), /\.$/, run);
+  assert.equal(copy.runHint(null), '');
+  assert.equal(copy.laneLine('Frame 3'), 'in Frame 3');
 });

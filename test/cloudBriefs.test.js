@@ -163,6 +163,36 @@ test('normalizeBrief carries shapedAt, null when unshaped', () => {
   assert.equal(core.normalizeBrief({ ...BRIEF, shapedAt: 7 }).shapedAt, null);
 });
 
+test('normalizeBrief carries startedAt, null when unstarted', () => {
+  assert.equal(core.normalizeBrief(BRIEF).startedAt, null);
+  assert.equal(core.normalizeBrief({ ...BRIEF, startedAt: '2026-09-25T10:00:00.000Z' }).startedAt, '2026-09-25T10:00:00.000Z');
+  assert.equal(core.normalizeBrief({ ...BRIEF, startedAt: 7 }).startedAt, null);
+});
+
+test('normalizeBriefDetail reads a part\'s key, null for a part without one', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF,
+    parts: [
+      { id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', key: 'llm-judge' },
+      { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix', key: '' },
+      { id: 'p3', position: 2, title: 'C', shape: 'task', type: 'fix' },
+    ],
+  });
+  assert.deepEqual(d.parts.map((p) => p.key), ['llm-judge', null, null]);
+});
+
+test('normalizeBriefDetail reads a part\'s recordRef, null for a part without one', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF,
+    parts: [
+      { id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', recordRef: 'login-flow' },
+      { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix', recordRef: '' },
+      { id: 'p3', position: 2, title: 'C', shape: 'task', type: 'fix' },
+    ],
+  });
+  assert.deepEqual(d.parts.map((p) => p.recordRef), ['login-flow', null, null]);
+});
+
 test('normalizeBriefDetail reads a part\'s definition and no longer its why', () => {
   const d = core.normalizeBriefDetail({
     ...BRIEF,
@@ -441,7 +471,7 @@ test('partSummary counts parts by shape and ignores anything else', () => {
   assert.deepEqual(core.partSummary(undefined), { spec: 0, task: 0 });
 });
 
-test('addPartCounts reads open shaped work only, and survives a failed read', async () => {
+test('addPartCounts reads open shaped work only, keeps its part rows, and survives a failed read', async () => {
   const SHAPED = '2026-09-20T10:00:00.000Z';
   const briefs = [
     { id: 'w1', number: 1, kind: 'work', status: 'backlog', shapedAt: SHAPED },
@@ -451,7 +481,7 @@ test('addPartCounts reads open shaped work only, and survives a failed read', as
     { id: 'p5', number: 5, kind: 'proposal', status: 'backlog', shapedAt: null },
   ];
   const details = {
-    1: { ...BRIEF, number: 1, parts: [{ id: 'a', position: 0, shape: 'spec' }, { id: 'b', position: 1, shape: 'task' }, { id: 'c', position: 2, shape: 'spec' }] },
+    1: { ...BRIEF, number: 1, parts: [{ id: 'a', position: 0, shape: 'spec', definition: 'secret' }, { id: 'b', position: 1, shape: 'task', recordRef: 'task-b' }, { id: 'c', position: 2, shape: 'spec' }] },
   };
   const asked = [];
   const call = async (fn) => {
@@ -469,6 +499,12 @@ test('addPartCounts reads open shaped work only, and survives a failed read', as
   };
   const counted = await core.addPartCounts(call, briefs, 'my-app');
   assert.deepEqual(counted.map((b) => b.partCounts), [{ spec: 2, task: 1 }, null, null, null, null]);
+  assert.deepEqual(counted[0].parts, [
+    { id: 'a', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
+    { id: 'b', title: '', shape: 'task', type: 'feature', key: null, recordRef: 'task-b' },
+    { id: 'c', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
+  ]);
+  assert.deepEqual(counted.slice(1).map((b) => b.parts), [null, null, null, null]);
   assert.deepEqual(asked.map((i) => i.number).sort(), [1, 2]);
   assert.deepEqual(asked[0].projectSlug, 'my-app');
   assert.equal(briefs[0].partCounts, undefined);
@@ -516,6 +552,55 @@ test('decideThrough keeps the server\'s refusal reason', async () => {
   }
   const { call } = decideCall({ status: 401, body: {} });
   assert.deepEqual(await core.decideThrough(call, { id: 'b1', priority: 'medium' }), { ok: false, reason: 'unauthorized' });
+});
+
+// ─── Starting ─────────────────────────────────────────────────
+
+const START_PARTS = [{ partId: 'p1', recordRef: 'login-flow' }, { partId: 'p2', recordRef: 'task-fix-typo' }];
+
+test('startBrief POSTs brief.start with the id and every part\'s ref, and returns the detail', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/brief.start': ok({
+      ...BRIEF,
+      status: 'active',
+      shapedAt: '2026-09-20T10:00:00.000Z',
+      startedAt: '2026-09-25T10:00:00.000Z',
+      parts: [
+        { id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', recordRef: 'login-flow' },
+        { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix', recordRef: 'task-fix-typo' },
+      ],
+    }),
+  });
+  const detail = await core.startBrief({ ...ctx(fetchJson), id: 'b1', parts: START_PARTS });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${API}/trpc/brief.start`);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', parts: START_PARTS });
+  assert.equal(detail.startedAt, '2026-09-25T10:00:00.000Z');
+  assert.equal(detail.status, 'active');
+  assert.deepEqual(detail.parts.map((p) => p.recordRef), ['login-flow', 'task-fix-typo']);
+});
+
+test('startThrough POSTs brief.start once and returns the detail', async () => {
+  const { call, sent } = decideCall(ok({ ...BRIEF, startedAt: '2026-09-25T10:00:00.000Z' }));
+  const result = await core.startThrough(call, { id: 'b1', parts: START_PARTS });
+  assert.equal(result.ok, true);
+  assert.equal(result.detail.startedAt, '2026-09-25T10:00:00.000Z');
+  assert.deepEqual(sent, [{ name: 'brief.start', body: { id: 'b1', parts: START_PARTS } }]);
+});
+
+test('startThrough keeps every server refusal as a reason', async () => {
+  const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+  for (const [code, reason] of Object.entries(core.START_REFUSALS)) {
+    const { call } = decideCall(refusal(code));
+    assert.deepEqual(await core.startThrough(call, { id: 'b1', parts: START_PARTS }), { ok: false, reason }, code);
+  }
+  assert.deepEqual(Object.keys(core.START_REFUSALS).sort(), [
+    'ALREADY_CLOSED', 'ALREADY_STARTED', 'BRIEF_NOT_FOUND', 'NOT_SHAPED', 'NOT_WORK', 'PARTS_MISMATCH', 'RECORD_REF_TAKEN',
+  ]);
+  const { call } = decideCall({ status: 401, body: {} });
+  assert.deepEqual(await core.startThrough(call, { id: 'b1', parts: START_PARTS }), { ok: false, reason: 'unauthorized' });
 });
 
 test('discussionFacts counts records, and others\' comments after the latest one as new', () => {

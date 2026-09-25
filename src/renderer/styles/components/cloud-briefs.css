@@ -1001,3 +1001,414 @@
   padding: 6px 14px;
   font-size: 13px;
 }
+
+/* ─── Start Work dialog ─── */
+
+/* No scroll on the dialog itself: the base menu hangs below the branch row. Long part lists scroll instead. */
+.cloud-briefs-start-dialog {
+  width: min(560px, 100%);
+}
+
+.cloud-briefs-start-dialog [hidden] {
+  display: none !important;
+}
+
+.cloud-briefs-start-dialog [data-ref="body"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.cloud-briefs-start-part {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.cloud-briefs-start-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.cloud-briefs-start-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.cloud-briefs-start-choice:has(input:checked) {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.cloud-briefs-start-choice.disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.cloud-briefs-start-choice input {
+  margin: 3px 0 0;
+  accent-color: var(--accent-primary);
+}
+
+.cloud-briefs-start-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cloud-briefs-start-choice-label {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.cloud-briefs-start-soon {
+  margin-left: var(--space-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cloud-briefs-start-problems {
+  margin: 0;
+  padding-left: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* The branch row: icon, the name as an editable chip, "from <base> ⌄". */
+.cloud-briefs-branchrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-branchrow-icon {
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-branchrow-name {
+  flex: 1 1 auto;
+  min-width: 80px;
+  height: 26px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: 13px;
+  background: var(--bg-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.cloud-briefs-branchrow-name:focus {
+  border-color: var(--accent-primary);
+}
+
+.cloud-briefs-branchrow-from {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-branchrow-base-wrap {
+  position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.cloud-briefs-branchrow-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 180px;
+  padding: 2px var(--space-xs);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.cloud-briefs-branchrow-base span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-briefs-branchrow-base:hover,
+.cloud-briefs-branchrow-base[aria-expanded="true"] {
+  background: var(--bg-tertiary);
+}
+
+.cloud-briefs-basemenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 2;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.cloud-briefs-basemenu-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cloud-briefs-basemenu-title {
+  padding: var(--space-xs) var(--space-sm) 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-basemenu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 4px var(--space-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cloud-briefs-basemenu-item span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-briefs-basemenu-item:hover,
+.cloud-briefs-basemenu-item.current {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.cloud-briefs-basemenu-empty {
+  padding: var(--space-sm);
+}
+
+/* A dirty folder: asked before anything is written. */
+.cloud-briefs-start-dirty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  color: var(--warning-ink);
+  font-size: 13px;
+}
+
+.cloud-briefs-start-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+/* ─── A started brief's parts: a row each, on the card and in the Parts tab ─── */
+
+.cloud-briefs-card-parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.cloud-briefs-prows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.cloud-briefs-prows li + li {
+  border-top: 1px solid var(--border-default);
+}
+
+.cloud-briefs-prow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "chip title title"
+    ". status action";
+  align-items: center;
+  column-gap: var(--space-sm);
+  row-gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 12px;
+}
+
+.cloud-briefs-prow > .cloud-briefs-chip {
+  grid-area: chip;
+}
+
+.cloud-briefs-prow-title {
+  grid-area: title;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.cloud-briefs-prow-title {
+  cursor: pointer;
+}
+
+button.cloud-briefs-prow-title:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+.cloud-briefs-prow-status {
+  grid-area: status;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-prow-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-tertiary);
+  box-sizing: border-box;
+}
+
+.tone-active .cloud-briefs-prow-dot {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+}
+
+.tone-attention .cloud-briefs-prow-dot {
+  border-color: var(--warning);
+  background: var(--warning);
+}
+
+.tone-attention .cloud-briefs-prow-status {
+  color: var(--warning-ink);
+}
+
+.tone-done .cloud-briefs-prow-dot {
+  border-color: var(--text-tertiary);
+  background: var(--text-tertiary);
+}
+
+.tone-done .cloud-briefs-prow-title {
+  color: var(--text-secondary);
+}
+
+.tone-elsewhere .cloud-briefs-prow-dot {
+  border-style: dashed;
+}
+
+.tone-elsewhere .cloud-briefs-prow-status,
+.tone-elsewhere .cloud-briefs-prow-title {
+  color: var(--text-tertiary);
+}
+
+.tone-elsewhere .cloud-briefs-prow-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.cloud-briefs-prow-action {
+  grid-area: action;
+  justify-self: end;
+}
+
+.cloud-briefs-prow-run,
+.cloud-briefs-prow-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 2px var(--space-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cloud-briefs-prow-run:hover,
+.cloud-briefs-prow-lane:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.cloud-briefs-prow-lane {
+  border-color: transparent;
+}
+
+/* Begin: the one step a waiting part has, so it reads as the primary one. */
+.cloud-briefs-prow-run.begin {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.cloud-briefs-prow-run.begin:hover {
+  background: var(--accent-subtle);
+}
+
+.cloud-briefs-prows-summary {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* In the Parts tab the row heads each part, over its definition. */
+.cloud-briefs-prow-slot .cloud-briefs-prow {
+  padding: 0;
+}

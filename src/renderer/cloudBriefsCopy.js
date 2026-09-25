@@ -8,7 +8,7 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating, discussing and shaping are the writes: the web's other write copy
+ * Creating, discussing, shaping and starting are the writes: the web's other write copy
  * (Transform to Work, refusal sentences for other mutations, search params)
  * is left out.
  */
@@ -119,6 +119,10 @@ function eventAction(event, meId) {
       const count = Number.isInteger(data.count) && data.count >= 0 ? data.count : 0;
       return `shaped this brief into ${count} ${count === 1 ? 'part' : 'parts'}`;
     }
+    case 'started': {
+      const count = Number.isInteger(data.count) && data.count >= 0 ? data.count : 0;
+      return `started work on this brief's ${count} ${count === 1 ? 'part' : 'parts'}`;
+    }
     case 'dropped': {
       const reason = text(data.reason);
       return reason ? `dropped this proposal: ${reason}` : 'dropped this proposal';
@@ -196,6 +200,12 @@ function eventSentence(event, meId) {
 function shapedLine(iso) {
   const date = formatDate(iso);
   return date ? `Shaped ${date}` : '';
+}
+
+/** The Parts tab's line for a started brief: "Started 18 Sept 2026"; '' when unstarted or unreadable. */
+function startedLine(iso) {
+  const date = formatDate(iso);
+  return date ? `Started ${date}` : '';
 }
 
 const PART_DEFINITION_LABEL = 'Definition';
@@ -343,15 +353,19 @@ function discussErrorMessage(reason) {
 // ─── Shape ────────────────────────────────────────────────────
 
 /**
- * Where a brief stands for Shape, which decides its work control:
- * 'lane' (a brief lane of either purpose is open — one lane per brief) ·
- * 'shape' (open work whose parts were never written) · 'none' (a proposal,
- * an ended brief, or one already shaped: Shape never comes back).
+ * Where a work brief stands, which decides its work control:
+ * 'start' (open, shaped, unstarted work — ahead of an open lane, since
+ * shaping is finished once the parts are written) · 'lane' (a brief lane of
+ * either purpose is open — one lane per brief) · 'shape' (open work whose
+ * parts were never written) · 'none' (a proposal, an ended brief, or one
+ * already started: neither Shape nor Start Work comes back).
  */
 function workStage({ brief, laneOpen }) {
-  if (laneOpen) return 'lane';
   const b = brief || {};
-  return b.kind === 'work' && b.status !== 'closed' && !b.shapedAt ? 'shape' : 'none';
+  const openWork = b.kind === 'work' && b.status !== 'closed';
+  if (openWork && b.shapedAt && !b.startedAt) return 'start';
+  if (laneOpen) return 'lane';
+  return openWork && !b.shapedAt ? 'shape' : 'none';
 }
 
 /** A brief lane's link: "Discussing in <lane>" or "Shaping in <lane>". A lane without a purpose is a Discuss lane. */
@@ -392,6 +406,252 @@ const OPEN_BRIEF_LABEL = 'Open brief';
 /** The sentence for a Shape that could not start. */
 function shapeErrorMessage(reason) {
   return SHAPE_MESSAGES[reason] || 'Shaping could not start. Try again.';
+}
+
+// ─── Start Work ───────────────────────────────────────────────
+
+const START_WORK_LABEL = 'Start Work';
+const START_WORK_HINT = 'Turn every part into a spec or a task on a new branch, and begin with the one you choose.';
+
+/** The dialog's heading: "Start work on brief #5". */
+function startDialogTitle(number) {
+  return `Start work on brief #${number}`;
+}
+
+/** The Begin dialog's heading, for one part of a started brief: "Begin “Fix typo”". */
+function beginDialogTitle(title) {
+  return `Begin “${title}”`;
+}
+
+const START_DIALOG_DESCRIPTION = 'The part you begin gets its own branch and opens in a lane. The other parts wait on the brief until you begin them.';
+const BEGIN_DIALOG_DESCRIPTION = 'This part gets its own branch and opens in a lane.';
+const START_CHOICE_TITLE = 'Begin with';
+
+/** A Begin choice: "Begin with “Login flow”". */
+function beginWithLabel(title) {
+  return `Begin with “${title}”`;
+}
+
+/** What Begin opens, by the part's shape. */
+function beginHint(shape) {
+  return shape === 'spec'
+    ? 'Writes this spec on its own branch, then opens a lane that plans it.'
+    : 'Writes this task on its own branch, then opens a lane that runs it.';
+}
+
+const ORCHESTRATE_LABEL = 'Orchestrate';
+const ORCHESTRATE_HINT = 'Run every part side by side, each on its own branch.';
+const COMING_SOON = 'Coming soon';
+const BRANCH_LABEL = 'Branch';
+const FROM_LABEL = 'from';
+const BASE_FILTER_PLACEHOLDER = 'Find a branch…';
+const BASE_LOCAL_TITLE = 'Local';
+const BASE_REMOTE_TITLE = 'origin';
+const NO_BASE_MATCH = 'No branch matches.';
+const PICK_BASE_LABEL = 'Pick a base';
+
+/** The line under the branch row when the brief's target branch is on neither this machine nor origin. */
+function baseMissingLine(targetBranch) {
+  return targetBranch
+    ? `The target branch ${targetBranch} is not on this machine. Fetch it, or pick another base.`
+    : 'This brief has no target branch. Pick a base to cut from.';
+}
+
+/** The dirty folder's warning: "feat/x has 3 uncommitted changes. …". */
+function dirtyWarning(branch, count) {
+  const changes = `${count} uncommitted ${count === 1 ? 'change' : 'changes'}`;
+  const where = branch ? `${branch} has ${changes}` : `This folder has ${changes}`;
+  return `${where}. Stash them so the new branch starts clean, or cancel and commit them first.`;
+}
+
+const STASH_AND_CONTINUE_LABEL = 'Stash and continue';
+const CANCEL_LABEL = 'Cancel';
+
+/** The confirm button: "Start", or "Starting…" while it runs. */
+function startSubmitLabel(pending) {
+  return pending ? 'Starting…' : 'Start';
+}
+
+const PART_PROBLEMS = {
+  empty: 'has no definition',
+  noProblem: 'has no Problem section',
+  noGoal: 'has no Goal section',
+  noDescription: 'has no Description section',
+  textBeforeHeading: 'has text before its first heading',
+};
+
+/** A part whose definition does not parse: "“Fix typo” has no Description section. Edit it on the web." */
+function partProblemMessage(title, reason) {
+  return `“${title}” ${PART_PROBLEMS[reason] || 'cannot be read'}. Edit it on the web, then start again.`;
+}
+
+const START_MESSAGES = {
+  notStartable: 'Only open work that is shaped and not started yet can be started.',
+  notWork: 'This brief is a proposal. Only work can be started.',
+  alreadyClosed: 'This brief has ended.',
+  notShaped: 'This brief is not shaped yet. Shape it first.',
+  alreadyStarted: 'This brief has already been started, maybe on another machine.',
+  partsMismatch: 'The brief\'s parts changed on the web. Close this and start again.',
+  recordRefTaken: 'Another brief already uses one of these spec or task names. Pull the latest changes and start again.',
+  baseMissing: baseMissingLine(''),
+  badRequest: 'Pick the part to begin and try again.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`. */
+function startErrorMessage(result) {
+  const r = result || {};
+  if (r.reason === 'badBranch') return `${r.detail ? `“${r.detail}”` : 'That'} is not a branch name git accepts.`;
+  if (r.reason === 'branchTaken') return `A branch named ${r.detail || 'that'} already exists. Pick another name.`;
+  if (r.reason === 'baseMissing' && r.detail) return `The branch ${r.detail} is not on this machine. Fetch it, or pick another base.`;
+  if (r.reason === 'alreadyBegun') return `This part was already begun${r.detail ? ` on ${r.detail}` : ''}.`;
+  if (r.reason === 'badDefinition') return partProblemMessage(r.part || 'A part', r.detail);
+  return START_MESSAGES[r.reason] || 'Start Work could not run. Try again.';
+}
+
+const PARTIAL_STEPS = {
+  stash: 'stashing your changes failed',
+  branch: 'creating the branch failed',
+  files: 'writing the parts failed',
+};
+
+/**
+ * A start that went through in the cloud and then failed locally: which step
+ * failed, what was written, and each missing part with the name to create it
+ * under.
+ */
+function partialMessage(result) {
+  const r = result || {};
+  const step = PARTIAL_STEPS[r.step] || 'a step failed';
+  const lines = [`The brief is started in Frame Cloud, but ${step}${r.error ? `: ${r.error}` : ''}.`];
+  const written = Array.isArray(r.written) ? r.written : [];
+  const missing = Array.isArray(r.missing) ? r.missing : [];
+  if (written.length > 0) lines.push(`Written: ${written.join(', ')}.`);
+  if (missing.length > 0) {
+    lines.push(`Not written — create these by hand under the same names: ${missing
+      .map((m) => `“${m.title}” (${m.shape} ${m.ref})`).join(', ')}.`);
+  }
+  return lines.join(' ');
+}
+
+/**
+ * The toast when a part was begun: "Brief #5 started: “Login flow” on
+ * feat/login." for the brief's first part, "Began “Fix typo” on fix/typo."
+ * for a later one, plus the stash when there was one.
+ */
+function startedNotice({ mode, number, part, branch, stashMessage } = {}) {
+  const title = part && part.title ? `“${part.title}”` : 'the part';
+  const main = mode === 'begin'
+    ? `Began ${title} on ${branch}.`
+    : `Brief #${number} started: ${title} on ${branch}.`;
+  return stashMessage ? `${main} Your changes were stashed as “${stashMessage}”.` : main;
+}
+
+const OPEN_SPEC_LABEL = 'Open spec';
+const OPEN_TASK_LABEL = 'Open task';
+
+// ─── A started brief's progress ───────────────────────────────
+
+/** A live lane's state, which wins over the record's own. */
+const LANE_STATES = {
+  'agent-working': { label: 'Working', tone: 'active' },
+  'agent-approval': { label: 'Needs approval', tone: 'attention' },
+};
+const LANE_WAITING = { label: 'Awaiting input', tone: 'attention' };
+
+function specState(spec) {
+  const done = Number.isInteger(spec.completed_count) ? spec.completed_count : 0;
+  const total = Number.isInteger(spec.task_count) ? spec.task_count : 0;
+  switch (spec.phase) {
+    case 'done': return { label: 'Done', tone: 'done', run: null };
+    case 'implementing':
+      return { label: total > 0 ? `Implementing · ${done}/${total}` : 'Implementing', tone: 'active', run: 'spec.implement' };
+    case 'tasks_generated': return { label: 'Tasks ready', tone: 'idle', run: 'spec.implement' };
+    case 'planned': return { label: 'Planned', tone: 'idle', run: 'spec.tasks' };
+    default: return { label: 'Not started', tone: 'idle', run: 'spec.plan' };
+  }
+}
+
+function taskState(task) {
+  if (task.status === 'completed') return { label: 'Done', tone: 'done', run: null };
+  if (task.status === 'in_progress') return { label: 'In progress', tone: 'active', run: 'task' };
+  return { label: 'Not started', tone: 'idle', run: 'task' };
+}
+
+/**
+ * Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry
+ * and `task` its `tasks.json` row (either absent when this folder does not
+ * hold it), `lane` its lane info, and `part.begunBranch` the branch this
+ * machine began it on. In order: the folder holds its record → the record's
+ * state, where a live agent's wins (and then there is no Run: the lane is the
+ * way in); else this machine began it → "On <branch>"; else it waits on the
+ * brief → Not started, with Begin.
+ * → `{ label, tone: 'idle' | 'active' | 'attention' | 'done' | 'elsewhere',
+ * laneName, run: 'spec.plan' | 'spec.tasks' | 'spec.implement' | 'task' | 'begin' | null }`.
+ */
+function partStatus({ part, spec, task, lane } = {}) {
+  const p = part || {};
+  if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
+  const record = p.shape === 'spec' ? spec : task;
+  if (!record) {
+    return p.begunBranch
+      ? { label: `On ${p.begunBranch}`, tone: 'elsewhere', laneName: null, run: null }
+      : { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
+  }
+  const own = p.shape === 'spec' ? specState(record) : taskState(record);
+  if (own.tone === 'done' || !lane || !lane.agentName) return { ...own, laneName: null };
+  return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
+}
+
+const RUN_LABEL = 'Run';
+const BEGIN_LABEL = 'Begin';
+const RUN_HINTS = {
+  begin: 'Give this part its own branch and open it in a lane.',
+  'spec.plan': 'Plan this spec in a new lane.',
+  'spec.tasks': 'Break this spec\'s plan into tasks in a new lane.',
+  'spec.implement': 'Implement this spec\'s tasks.',
+  task: 'Run this task in a new lane.',
+};
+
+/** A part row's button: Begin for a part still on the brief, Run for its next step. */
+function runLabel(run) {
+  return run === 'begin' ? BEGIN_LABEL : RUN_LABEL;
+}
+
+/** What Run does for a part, as its tooltip. */
+function runHint(run) {
+  return RUN_HINTS[run] || '';
+}
+
+/** A part's lane link: "in Frame 3". */
+function laneLine(laneName) {
+  return laneName ? `in ${laneName}` : 'in a lane';
+}
+
+/**
+ * A started brief's line under its parts, only with more than one:
+ * "1 of 3 done · 1 in progress · 1 on another branch". `statuses` are
+ * partStatus results.
+ */
+function partsSummary(statuses) {
+  const list = Array.isArray(statuses) ? statuses : [];
+  if (list.length < 2) return '';
+  const count = (...tones) => list.filter((s) => s && tones.includes(s.tone)).length;
+  const pieces = [`${count('done')} of ${list.length} done`];
+  const active = count('active', 'attention');
+  if (active > 0) pieces.push(`${active} in progress`);
+  const elsewhere = count('elsewhere');
+  if (elsewhere > 0) pieces.push(`${elsewhere} on ${elsewhere === 1 ? 'another branch' : 'other branches'}`);
+  return pieces.join(' · ');
+}
+
+/** A part link whose task this folder does not hold. */
+function partNotHereMessage(ref) {
+  return `${ref} is not in this folder's tasks. It may be on another branch or machine.`;
 }
 
 // ─── New brief ────────────────────────────────────────────────
@@ -450,6 +710,7 @@ module.exports = {
   formatDate,
   eventSentence,
   shapedLine,
+  startedLine,
   PART_DEFINITION_LABEL,
   reasonMessage,
   DISCUSSIONS_TITLE,
@@ -479,6 +740,44 @@ module.exports = {
   shapedNotice,
   OPEN_BRIEF_LABEL,
   partCountLabel,
+  START_WORK_LABEL,
+  START_WORK_HINT,
+  startDialogTitle,
+  beginDialogTitle,
+  START_DIALOG_DESCRIPTION,
+  BEGIN_DIALOG_DESCRIPTION,
+  START_CHOICE_TITLE,
+  beginWithLabel,
+  beginHint,
+  ORCHESTRATE_LABEL,
+  ORCHESTRATE_HINT,
+  COMING_SOON,
+  BRANCH_LABEL,
+  FROM_LABEL,
+  BASE_FILTER_PLACEHOLDER,
+  BASE_LOCAL_TITLE,
+  BASE_REMOTE_TITLE,
+  NO_BASE_MATCH,
+  PICK_BASE_LABEL,
+  baseMissingLine,
+  dirtyWarning,
+  STASH_AND_CONTINUE_LABEL,
+  CANCEL_LABEL,
+  startSubmitLabel,
+  partProblemMessage,
+  startErrorMessage,
+  partialMessage,
+  startedNotice,
+  OPEN_SPEC_LABEL,
+  OPEN_TASK_LABEL,
+  partNotHereMessage,
+  partStatus,
+  RUN_LABEL,
+  BEGIN_LABEL,
+  runLabel,
+  runHint,
+  laneLine,
+  partsSummary,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

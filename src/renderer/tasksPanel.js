@@ -658,6 +658,7 @@ module.exports = {
   toggle,
   loadTasks,
   openRunFlow,
+  runTaskWithOptions,
   isVisible: () => isVisible,
   setClaudeRunning,
   isClaudeRunning

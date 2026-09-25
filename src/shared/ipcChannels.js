@@ -275,7 +275,13 @@ const IPC = {
   // lane's prompt; the agent writes every part at once through a staged
   // command and its own userData bus, and main pushes each shape that landed.
   CLOUD_BRIEF_SHAPE: 'cloud-brief-shape',               // renderer → main (invoke): (path, number, toolId) → { ok, prompt } | { ok: false, reason }
-  CLOUD_BRIEF_SHAPED: 'cloud-brief-shaped'              // main → renderer: { folderPath, number, count }
+  CLOUD_BRIEF_SHAPED: 'cloud-brief-shaped',             // main → renderer: { folderPath, number, count }
+
+  // Frame Cloud brief start (frame-cloud-brief-start spec). Prepare fills the
+  // Start Work dialog; start re-checks everything in main, calls brief.start,
+  // then stashes, branches and writes every part into the folder.
+  CLOUD_BRIEF_START_PREPARE: 'cloud-brief-start-prepare', // renderer → main (invoke): (path, number) → { ok, parts, suggestions, … } | { ok: false, reason }
+  CLOUD_BRIEF_START: 'cloud-brief-start'                  // renderer → main (invoke): (path, { number, beginPartId, branch, stash }) → { ok, … } | { ok: false, reason, … }
 };
 
 module.exports = { IPC };
