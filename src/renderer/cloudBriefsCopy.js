@@ -542,6 +542,87 @@ function startedNotice({ number, specs, tasks, branch, stashMessage } = {}) {
 const OPEN_SPEC_LABEL = 'Open spec';
 const OPEN_TASK_LABEL = 'Open task';
 
+// ─── A started brief's progress ───────────────────────────────
+
+/** A live lane's state, which wins over the record's own. */
+const LANE_STATES = {
+  'agent-working': { label: 'Working', tone: 'active' },
+  'agent-approval': { label: 'Needs approval', tone: 'attention' },
+};
+const LANE_WAITING = { label: 'Awaiting input', tone: 'attention' };
+
+function specState(spec) {
+  const done = Number.isInteger(spec.completed_count) ? spec.completed_count : 0;
+  const total = Number.isInteger(spec.task_count) ? spec.task_count : 0;
+  switch (spec.phase) {
+    case 'done': return { label: 'Done', tone: 'done', run: null };
+    case 'implementing':
+      return { label: total > 0 ? `Implementing · ${done}/${total}` : 'Implementing', tone: 'active', run: 'spec.implement' };
+    case 'tasks_generated': return { label: 'Tasks ready', tone: 'idle', run: 'spec.implement' };
+    case 'planned': return { label: 'Planned', tone: 'idle', run: 'spec.tasks' };
+    default: return { label: 'Not started', tone: 'idle', run: 'spec.plan' };
+  }
+}
+
+function taskState(task) {
+  if (task.status === 'completed') return { label: 'Done', tone: 'done', run: null };
+  if (task.status === 'in_progress') return { label: 'In progress', tone: 'active', run: 'task' };
+  return { label: 'Not started', tone: 'idle', run: 'task' };
+}
+
+/**
+ * Where one part of a started brief stands in this folder. `spec` is its
+ * `SPEC_DATA` entry and `task` its `tasks.json` row (either absent when the
+ * folder does not hold it), `lane` its lane info. A live agent's state wins
+ * over the record's, and then the part has no Run: its lane is the way in.
+ * → `{ label, tone: 'idle' | 'active' | 'attention' | 'done' | 'missing',
+ * laneName, run: 'spec.plan' | 'spec.tasks' | 'spec.implement' | 'task' | null }`.
+ */
+function partStatus({ part, spec, task, lane } = {}) {
+  const p = part || {};
+  if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
+  const record = p.shape === 'spec' ? spec : task;
+  if (!record) return { label: 'Not on this branch', tone: 'missing', laneName: null, run: null };
+  const own = p.shape === 'spec' ? specState(record) : taskState(record);
+  if (own.tone === 'done' || !lane || !lane.agentName) return { ...own, laneName: null };
+  return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
+}
+
+const RUN_LABEL = 'Run';
+const RUN_HINTS = {
+  'spec.plan': 'Plan this spec in a new lane.',
+  'spec.tasks': 'Break this spec\'s plan into tasks in a new lane.',
+  'spec.implement': 'Implement this spec\'s tasks.',
+  task: 'Run this task in a new lane.',
+};
+
+/** What Run does for a part, as its tooltip. */
+function runHint(run) {
+  return RUN_HINTS[run] || '';
+}
+
+/** A part's lane link: "in Frame 3". */
+function laneLine(laneName) {
+  return laneName ? `in ${laneName}` : 'in a lane';
+}
+
+/**
+ * A started brief's line under its parts, only with more than one:
+ * "1 of 3 done · 1 in progress · 1 not on this branch". `statuses` are
+ * partStatus results.
+ */
+function partsSummary(statuses) {
+  const list = Array.isArray(statuses) ? statuses : [];
+  if (list.length < 2) return '';
+  const count = (...tones) => list.filter((s) => s && tones.includes(s.tone)).length;
+  const pieces = [`${count('done')} of ${list.length} done`];
+  const active = count('active', 'attention');
+  if (active > 0) pieces.push(`${active} in progress`);
+  const missing = count('missing');
+  if (missing > 0) pieces.push(`${missing} not on this branch`);
+  return pieces.join(' · ');
+}
+
 /** A part link whose task this folder does not hold. */
 function partNotHereMessage(ref) {
   return `${ref} is not in this folder's tasks. It may be on another branch or machine.`;
@@ -658,6 +739,11 @@ module.exports = {
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
   partNotHereMessage,
+  partStatus,
+  RUN_LABEL,
+  runHint,
+  laneLine,
+  partsSummary,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

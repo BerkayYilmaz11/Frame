@@ -410,18 +410,26 @@ function partSummary(parts) {
   return out;
 }
 
+/** A part as a card draws it: no definition, which only the detail shows. */
+function partRow(part) {
+  return { id: part.id, title: part.title, shape: part.shape, type: part.type, recordRef: part.recordRef };
+}
+
 /**
- * The briefs with `partCounts` (`{ spec, task }`) on each open shaped work
+ * The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's
+ * id, title, shape, type and `recordRef`, in order) on each open shaped work
  * brief, from its `brief.getByNumber` (the list does not carry parts). `call`
  * is cloudProjectsService's wrapper; a brief whose detail fails to load gets
- * `null`, never a failed board. Every other brief gets `null` without a
+ * `null`s, never a failed board. Every other brief gets `null`s without a
  * request.
  */
 async function addPartCounts(call, briefs, projectSlug) {
+  const none = { partCounts: null, parts: null };
   return Promise.all(briefs.map(async (brief) => {
-    if (brief.kind !== 'work' || brief.status === 'closed' || !brief.shapedAt) return { ...brief, partCounts: null };
+    if (brief.kind !== 'work' || brief.status === 'closed' || !brief.shapedAt) return { ...brief, ...none };
     const detail = await call((ctx) => getBrief({ ...ctx, projectSlug, number: brief.number }));
-    return { ...brief, partCounts: detail.ok ? partSummary(detail.value.parts) : null };
+    if (!detail.ok) return { ...brief, ...none };
+    return { ...brief, partCounts: partSummary(detail.value.parts), parts: detail.value.parts.map(partRow) };
   }));
 }
 

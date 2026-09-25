@@ -1131,17 +1131,156 @@
   gap: var(--space-sm);
 }
 
-/* A started part's spec slug or task id: opens it in Specs or Tasks. */
-.cloud-briefs-part-link {
+/* ─── A started brief's parts: a row each, on the card and in the Parts tab ─── */
+
+.cloud-briefs-card-parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.cloud-briefs-prows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.cloud-briefs-prows li + li {
+  border-top: 1px solid var(--border-default);
+}
+
+.cloud-briefs-prow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "chip title title"
+    ". status action";
+  align-items: center;
+  column-gap: var(--space-sm);
+  row-gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 12px;
+}
+
+.cloud-briefs-prow > .cloud-briefs-chip {
+  grid-area: chip;
+}
+
+.cloud-briefs-prow-title {
+  grid-area: title;
+  min-width: 0;
   padding: 0;
   border: none;
   background: none;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--accent-primary);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.cloud-briefs-prow-title {
   cursor: pointer;
 }
 
-.cloud-briefs-part-link:hover {
+button.cloud-briefs-prow-title:hover {
+  color: var(--accent-primary);
   text-decoration: underline;
+}
+
+.cloud-briefs-prow-status {
+  grid-area: status;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-prow-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-tertiary);
+  box-sizing: border-box;
+}
+
+.tone-active .cloud-briefs-prow-dot {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+}
+
+.tone-attention .cloud-briefs-prow-dot {
+  border-color: var(--warning);
+  background: var(--warning);
+}
+
+.tone-attention .cloud-briefs-prow-status {
+  color: var(--warning-ink);
+}
+
+.tone-done .cloud-briefs-prow-dot {
+  border-color: var(--text-tertiary);
+  background: var(--text-tertiary);
+}
+
+.tone-done .cloud-briefs-prow-title {
+  color: var(--text-secondary);
+}
+
+.tone-missing .cloud-briefs-prow-dot {
+  border-style: dashed;
+}
+
+.tone-missing .cloud-briefs-prow-status,
+.tone-missing .cloud-briefs-prow-title {
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-prow-action {
+  grid-area: action;
+  justify-self: end;
+}
+
+.cloud-briefs-prow-run,
+.cloud-briefs-prow-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 2px var(--space-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cloud-briefs-prow-run:hover,
+.cloud-briefs-prow-lane:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.cloud-briefs-prow-lane {
+  border-color: transparent;
+}
+
+.cloud-briefs-prows-summary {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* In the Parts tab the row heads each part, over its definition. */
+.cloud-briefs-prow-slot .cloud-briefs-prow {
+  padding: 0;
 }

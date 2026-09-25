@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:31:06.630Z",
+  "lastUpdated": "2026-09-25T07:52:41.900Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9417,10 +9417,23 @@
       "createdAt": "2026-09-25T07:11:41.961Z",
       "updatedAt": "2026-09-25T07:11:41.961Z",
       "completedAt": null
+    },
+    {
+      "id": "task-spec-frame-cloud-brief-start-T11",
+      "title": "Show a started brief's progress: each part as a row on the Active card and in the Parts tab — shape, title, local status (phase or task status, Not on this branch when absent), its lane with the activity dot or a Run button, and a summary line when there is more than one part",
+      "description": "",
+      "source": "spec:frame-cloud-brief-start:T11",
+      "status": "completed",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-cloud-brief-start",
+      "createdAt": "2026-09-25T07:44:47.000Z",
+      "updatedAt": "2026-09-25T07:52:41.900Z",
+      "completedAt": "2026-09-25T07:52:41.900Z"
     }
   ],
   "metadata": {
-    "totalCreated": 675,
+    "totalCreated": 676,
     "totalCompleted": 29
   },
   "categories": {

@@ -778,17 +778,24 @@
           ],
           "purpose": "A brief's parts counted by shape: `{ spec, task }`."
         },
+        "partRow": {
+          "line": 414,
+          "params": [
+            "part"
+          ],
+          "purpose": "A part as a card draws it: no definition, which only the detail shows."
+        },
         "addPartCounts": {
-          "line": 420,
+          "line": 426,
           "params": [
             "call",
             "briefs",
             "projectSlug"
           ],
-          "purpose": "The briefs with `partCounts` (`{ spec, task }`) on each open shaped work"
+          "purpose": "The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's"
         },
         "buildBriefWebUrl": {
-          "line": 434,
+          "line": 442,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -7092,6 +7099,7 @@
         "getTaskLaneInfo",
         "getBriefLaneInfo",
         "enterBriefLane",
+        "enterLane",
         "showSpec",
         "showTask",
         "onSpecLaneActivity",
@@ -7249,99 +7257,106 @@
           ],
           "purpose": "Enter the lane discussing or shaping a brief. → entered?"
         },
+        "enterLane": {
+          "line": 847,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "Enter a lane by its terminal id (a part row's lane link). → false when there is none."
+        },
         "showSpec": {
-          "line": 851,
+          "line": 858,
           "params": [
             "slug"
           ],
           "purpose": "Open a spec in the Specs grid's drawer, the way the top bar's spec chip"
         },
         "showTask": {
-          "line": 863,
+          "line": 870,
           "params": [
             "id"
           ],
           "purpose": "Open a task in the Tasks board's drawer, the way the top bar's task chip"
         },
         "specStatusDotHtml": {
-          "line": 875,
+          "line": 882,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 879,
+          "line": 886,
           "params": [
             "taskId"
           ]
         },
         "briefStatusDotHtml": {
-          "line": 883,
+          "line": 890,
           "params": [
             "number"
           ]
         },
         "_activityDotHtml": {
-          "line": 887,
+          "line": 894,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 904,
+          "line": 911,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 912,
+          "line": 919,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 935,
+          "line": 942,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 943,
+          "line": 950,
           "params": [
             "taskId"
           ]
         },
         "onBriefLaneActivity": {
-          "line": 964,
+          "line": 971,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to brief-lane activity. Callback: (number|null) — null means"
         },
         "_notifyBriefLane": {
-          "line": 972,
+          "line": 979,
           "params": [
             "number"
           ]
         },
         "_assignedLane": {
-          "line": 992,
+          "line": 999,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 1002,
+          "line": 1009,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 1011,
+          "line": 1018,
           "params": [
             "frameName",
             "specName"
@@ -7349,14 +7364,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 1052,
+          "line": 1059,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 1081,
+          "line": 1088,
           "params": [
             "terminalId",
             "message"
@@ -7676,6 +7691,11 @@
         "OPEN_SPEC_LABEL",
         "OPEN_TASK_LABEL",
         "partNotHereMessage",
+        "partStatus",
+        "RUN_LABEL",
+        "runHint",
+        "laneLine",
+        "partsSummary",
         "NEW_BRIEF_TITLE",
         "NEW_BRIEF_DESCRIPTION",
         "AI_LINKS_TITLE",
@@ -7990,15 +8010,58 @@
           ],
           "purpose": "The toast when a start landed: \"Brief #5 started: 2 specs, 1 task on feat/login.\" plus the stash when there was one."
         },
+        "specState": {
+          "line": 554,
+          "params": [
+            "spec"
+          ]
+        },
+        "taskState": {
+          "line": 567,
+          "params": [
+            "task"
+          ]
+        },
+        "partStatus": {
+          "line": 581,
+          "params": [
+            "{ part",
+            "spec",
+            "task",
+            "lane } = {}"
+          ],
+          "purpose": "Where one part of a started brief stands in this folder. `spec` is its"
+        },
+        "runHint": {
+          "line": 600,
+          "params": [
+            "run"
+          ],
+          "purpose": "What Run does for a part, as its tooltip."
+        },
+        "laneLine": {
+          "line": 605,
+          "params": [
+            "laneName"
+          ],
+          "purpose": "A part's lane link: \"in Frame 3\"."
+        },
+        "partsSummary": {
+          "line": 614,
+          "params": [
+            "statuses"
+          ],
+          "purpose": "A started brief's line under its parts, only with more than one:"
+        },
         "partNotHereMessage": {
-          "line": 546,
+          "line": 627,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "submitLabel": {
-          "line": 564,
+          "line": 645,
           "params": [
             "kind",
             "pending"
@@ -8006,14 +8069,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 583,
+          "line": 664,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 588,
+          "line": 669,
           "params": [
             "number",
             "reason"
@@ -8233,107 +8296,107 @@
       ],
       "functions": {
         "init": {
-          "line": 83,
+          "line": 86,
           "params": [
             "cloudHub"
           ]
         },
         "onWindowFocus": {
-          "line": 151
+          "line": 160
         },
         "onCloudChange": {
-          "line": 161
+          "line": 170
         },
         "currentKey": {
-          "line": 196,
+          "line": 205,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 203,
+          "line": 212,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 210,
+          "line": 219,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "openBrief": {
-          "line": 229,
+          "line": 239,
           "params": [
             "number"
           ],
           "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
         },
         "hide": {
-          "line": 246
+          "line": 256
         },
         "refresh": {
-          "line": 257,
+          "line": 267,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 264
+          "line": 274
         },
         "setRefreshing": {
-          "line": 305,
+          "line": 315,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 311,
+          "line": 321,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 320,
+          "line": 330,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 363,
+          "line": 374,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 370
+          "line": 381
         },
         "renderNotice": {
-          "line": 402
+          "line": 413
         },
         "renderCards": {
-          "line": 412,
+          "line": 423,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 419,
+          "line": 430,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderCardActions": {
-          "line": 460,
+          "line": 474,
           "params": [
             "brief"
           ],
           "purpose": "A card's controls. An open brief lane of either purpose comes first — one"
         },
         "goToLaneLabel": {
-          "line": 478,
+          "line": 492,
           "params": [
             "lane"
           ],
           "purpose": "\"Go to discussion\" or \"Go to shaping\", by the open lane's purpose."
         },
         "discussButton": {
-          "line": 483,
+          "line": 497,
           "params": [
             "number",
             "weight",
@@ -8344,7 +8407,7 @@
           "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
         },
         "shapeButton": {
-          "line": 490,
+          "line": 504,
           "params": [
             "number",
             "action"
@@ -8352,7 +8415,7 @@
           "purpose": "Shape as a primary button; \"Shape…\" while its lane starts."
         },
         "startWorkButton": {
-          "line": 497,
+          "line": 511,
           "params": [
             "number",
             "action"
@@ -8360,63 +8423,63 @@
           "purpose": "Start Work as a primary button, where Shape was."
         },
         "moveToWorkButton": {
-          "line": 501,
+          "line": 515,
           "params": [
             "number",
             "action"
           ]
         },
         "boardBrief": {
-          "line": 506,
+          "line": 520,
           "params": [
             "number"
           ],
           "purpose": "The board's brief with this number, or null."
         },
         "renderEmpty": {
-          "line": 511,
+          "line": 525,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 524
+          "line": 538
         },
         "renderMessage": {
-          "line": 529,
+          "line": 543,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 534,
+          "line": 548,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 542
+          "line": 556
         },
         "showDrawer": {
-          "line": 550,
+          "line": 564,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 558,
+          "line": 572,
           "params": [
             "number",
             "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 568,
+          "line": 582,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 578,
+          "line": 592,
           "params": [
             "{ number",
             "attachmentError }"
@@ -8424,24 +8487,24 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 585,
+          "line": 599,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 591,
+          "line": 605,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 602
+          "line": 616
         },
         "onDetailClick": {
-          "line": 636,
+          "line": 650,
           "params": [
             "event"
           ]
         },
         "openPart": {
-          "line": 669,
+          "line": 683,
           "params": [
             "shape",
             "ref"
@@ -8449,17 +8512,17 @@
           "purpose": "Open a started part's spec or task; a task this folder does not hold (another branch, another machine) says so."
         },
         "isWebUrl": {
-          "line": 679,
+          "line": 693,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 683
+          "line": 697
         },
         "tabCount": {
-          "line": 713,
+          "line": 727,
           "params": [
             "key",
             "brief",
@@ -8467,22 +8530,76 @@
           ]
         },
         "renderMeta": {
-          "line": 721,
+          "line": 735,
           "params": [
             "brief",
             "events",
             "meId"
           ]
         },
-        "partLink": {
-          "line": 742,
+        "partFacts": {
+          "line": 758,
           "params": [
             "part"
           ],
-          "purpose": "A started part's spec slug or task id, as a link that opens it in the Specs or Tasks view."
+          "purpose": "Where one started part stands: its local record, its lane, and partStatus's reading of both."
+        },
+        "renderPartRow": {
+          "line": 776,
+          "params": [
+            "part"
+          ],
+          "purpose": "One part of a started brief: its shape, its title (which opens its spec or"
+        },
+        "renderCardParts": {
+          "line": 799,
+          "params": [
+            "brief"
+          ],
+          "purpose": "A started brief's card body: a row per part, and a summary line when there is more than one."
+        },
+        "renderPartSlots": {
+          "line": 807,
+          "purpose": "Redraw every part row on screen: the cards' and the open detail's."
+        },
+        "loadLocal": {
+          "line": 821,
+          "purpose": "Read the open folder's specs and tasks; the answers arrive as SPEC_DATA-shaped lists and a TASKS_DATA push."
+        },
+        "onLocalData": {
+          "line": 835,
+          "params": [
+            "projectPath",
+            "{ specs",
+            "tasks }"
+          ],
+          "purpose": "A specs list or a tasks.json for `projectPath`: keep it when it is the open folder's, and redraw the rows."
+        },
+        "runPart": {
+          "line": 850,
+          "params": [
+            "shape",
+            "ref"
+          ],
+          "purpose": "Run a part's next step through the path a spec or a task runs by today."
+        },
+        "enterPartLane": {
+          "line": 863,
+          "params": [
+            "shape",
+            "ref"
+          ],
+          "purpose": "Enter a part's live lane."
+        },
+        "onPartAction": {
+          "line": 869,
+          "params": [
+            "actionEl"
+          ],
+          "purpose": "A part row's click, on a card or in the detail. → handled?"
         },
         "renderTab": {
-          "line": 747,
+          "line": 879,
           "params": [
             "tab",
             "brief",
@@ -8491,7 +8608,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 806,
+          "line": 941,
           "params": [
             "events",
             "meId",
@@ -8500,7 +8617,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 835,
+          "line": 970,
           "params": [
             "brief",
             "events"
@@ -8508,7 +8625,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 854,
+          "line": 989,
           "params": [
             "brief",
             "events",
@@ -8517,44 +8634,44 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 870,
+          "line": 1005,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 906
+          "line": 1041
         },
         "confirmMoveToWork": {
-          "line": 912,
+          "line": 1047,
           "params": [
             "priority"
           ]
         },
         "startWork": {
-          "line": 947,
+          "line": 1082,
           "params": [
             "brief"
           ],
           "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
         },
         "openBeginLane": {
-          "line": 966,
+          "line": 1101,
           "params": [
             "begin"
           ],
           "purpose": "Begin: a lane on the chosen part, through the paths a spec or a task runs"
         },
         "reloadAfterStart": {
-          "line": 981,
+          "line": 1116,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 992,
+          "line": 1127,
           "params": [
             "brief",
             "{ purpose",
@@ -8564,35 +8681,35 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 1029,
+          "line": 1164,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 1034,
+          "line": 1169,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1039,
+          "line": 1174,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1058,
+          "line": 1193,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1068,
+          "line": 1203,
           "params": [
             "payload"
           ],
@@ -8601,10 +8718,13 @@
       },
       "ipc": {
         "listens": [
+          "SPEC_DATA",
+          "TASKS_DATA",
           "CLOUD_BRIEF_DISCUSSION_RECORDED",
           "CLOUD_BRIEF_SHAPED"
         ],
         "emits": [
+          "LOAD_TASKS",
           "UPDATE_TASK"
         ]
       }

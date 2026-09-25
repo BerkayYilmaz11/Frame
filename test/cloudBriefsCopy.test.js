@@ -468,3 +468,63 @@ test('the part link words', () => {
   assert.equal(copy.OPEN_TASK_LABEL, 'Open task');
   assert.equal(copy.partNotHereMessage('task-fix-typo'), 'task-fix-typo is not in this folder\'s tasks. It may be on another branch or machine.');
 });
+
+// ─── A started brief's progress ───────────────────────────────
+
+const specPart = { id: 'p1', shape: 'spec', recordRef: 'login-flow' };
+const taskPart = { id: 'p2', shape: 'task', recordRef: 'task-fix-typo' };
+
+test('partStatus reads a spec part by its phase, with the next command to run', () => {
+  const at = (phase, extra = {}) => copy.partStatus({ part: specPart, spec: { phase, ...extra } });
+  assert.deepEqual(at('specified'), { label: 'Not started', tone: 'idle', run: 'spec.plan', laneName: null });
+  assert.deepEqual(at('planned'), { label: 'Planned', tone: 'idle', run: 'spec.tasks', laneName: null });
+  assert.deepEqual(at('tasks_generated'), { label: 'Tasks ready', tone: 'idle', run: 'spec.implement', laneName: null });
+  assert.deepEqual(at('implementing', { task_count: 7, completed_count: 3 }),
+    { label: 'Implementing · 3/7', tone: 'active', run: 'spec.implement', laneName: null });
+  assert.equal(at('implementing').label, 'Implementing');
+  assert.deepEqual(at('done'), { label: 'Done', tone: 'done', run: null, laneName: null });
+});
+
+test('partStatus reads a task part by its status', () => {
+  const at = (status) => copy.partStatus({ part: taskPart, task: { status } });
+  assert.deepEqual(at('pending'), { label: 'Not started', tone: 'idle', run: 'task', laneName: null });
+  assert.deepEqual(at('in_progress'), { label: 'In progress', tone: 'active', run: 'task', laneName: null });
+  assert.deepEqual(at('completed'), { label: 'Done', tone: 'done', run: null, laneName: null });
+});
+
+test('partStatus says Not on this branch for a record the folder does not hold', () => {
+  assert.deepEqual(copy.partStatus({ part: specPart, spec: undefined, task: { status: 'pending' } }),
+    { label: 'Not on this branch', tone: 'missing', laneName: null, run: null });
+  assert.equal(copy.partStatus({ part: taskPart }).tone, 'missing');
+});
+
+test('partStatus lets a live lane win, and offers no Run then', () => {
+  const lane = (status, agentName = 'claude') => ({ name: 'Frame 3', status, agentName });
+  assert.deepEqual(copy.partStatus({ part: specPart, spec: { phase: 'specified' }, lane: lane('agent-working') }),
+    { label: 'Working', tone: 'active', laneName: 'Frame 3', run: null });
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'in_progress' }, lane: lane('agent-approval') }).label, 'Needs approval');
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'in_progress' }, lane: lane('agent-idle') }).label, 'Awaiting input');
+  // A lane without a live agent, and a finished part, keep their own state.
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'pending' }, lane: lane('agent-working', null) }).run, 'task');
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'completed' }, lane: lane('agent-working') }).label, 'Done');
+});
+
+test('partStatus of a part without a ref is empty', () => {
+  assert.deepEqual(copy.partStatus({ part: { shape: 'spec' } }), { label: '', tone: 'idle', laneName: null, run: null });
+  assert.deepEqual(copy.partStatus(), { label: '', tone: 'idle', laneName: null, run: null });
+});
+
+test('partsSummary counts done, in progress and missing, only with more than one part', () => {
+  const s = (tone) => ({ tone });
+  assert.equal(copy.partsSummary([s('active')]), '');
+  assert.equal(copy.partsSummary([]), '');
+  assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 done');
+  assert.equal(copy.partsSummary([s('active'), s('attention'), s('missing'), s('done')]), '1 of 4 done · 2 in progress · 1 not on this branch');
+});
+
+test('Run, its hints and the lane line', () => {
+  assert.equal(copy.RUN_LABEL, 'Run');
+  for (const run of ['spec.plan', 'spec.tasks', 'spec.implement', 'task']) assert.match(copy.runHint(run), /\.$/, run);
+  assert.equal(copy.runHint(null), '');
+  assert.equal(copy.laneLine('Frame 3'), 'in Frame 3');
+});

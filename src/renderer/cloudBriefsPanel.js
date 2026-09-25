@@ -72,6 +72,9 @@ let detailSeq = 0;
 let starting = null;
 // A brief to open once the panel mounts (a brief lane's chip was clicked).
 let pendingOpen = null;
+// The open folder's specs (by slug) and tasks (by id), for a started brief's
+// part rows. Filled on show() and kept live by SPEC_DATA / TASKS_DATA.
+let local = { path: null, specs: new Map(), tasks: new Map() };
 
 const TABS = [
   { key: 'description', label: 'Description' },
@@ -135,6 +138,12 @@ function init(cloudHub) {
   // A brief lane's activity moves the dots and the header button; a record
   // or a shape that landed reloads the brief it belongs to.
   agentDispatch.onBriefLaneActivity(renderLaneSlots);
+  // A started brief's part rows follow the folder's specs and tasks and
+  // their lanes.
+  ipcRenderer.on(IPC.SPEC_DATA, (event, { projectPath, specs }) => onLocalData(projectPath, { specs }));
+  ipcRenderer.on(IPC.TASKS_DATA, (event, { projectPath, tasks }) => onLocalData(projectPath, { tasks }));
+  agentDispatch.onSpecLaneActivity(() => renderPartSlots());
+  agentDispatch.onTaskLaneActivity(() => renderPartSlots());
   ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onBriefWritten(payload));
   ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefShaped(payload));
 }
@@ -214,6 +223,7 @@ function show() {
   showClosed = false;
   if (showClosedInput) showClosedInput.checked = false;
   load();
+  loadLocal();
   if (pendingOpen !== null) {
     const number = pendingOpen;
     pendingOpen = null;
@@ -356,6 +366,7 @@ function onContentClick(event) {
   else if (action === 'go-to-lane') {
     agentDispatch.enterBriefLane(Number(actionEl.dataset.number));
   }
+  else onPartAction(actionEl);
 }
 
 // ─── Rendering: the board ─────────────────────────────────────
@@ -428,6 +439,8 @@ function renderCard(brief, milestoneName) {
     : '';
   const records = copy.discussionCountLabel(brief.discussionCount);
   const parts = copy.partCountLabel(brief.partCounts);
+  // A started brief lists its parts where they run instead of counting them.
+  const started = Boolean(brief.startedAt) && Array.isArray(brief.parts) && brief.parts.length > 0;
   // The card is a container, not a button: its controls (Discuss, Shape, the
   // live lane) sit beside the open-brief button rather than inside it.
   return `<div class="cloud-briefs-card">
@@ -439,9 +452,10 @@ function renderCard(brief, milestoneName) {
         <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
         ${meta}
         ${records ? `<span class="cloud-briefs-card-records">${escapeHtml(records)}</span>` : ''}
-        ${parts ? `<span class="cloud-briefs-card-records">${escapeHtml(parts)}</span>` : ''}
+        ${parts && !started ? `<span class="cloud-briefs-card-records">${escapeHtml(parts)}</span>` : ''}
         ${ending ? `<span class="cloud-briefs-ending">${escapeHtml(ending)}</span>` : ''}
       </button>
+      ${started ? `<div class="cloud-briefs-card-parts" data-card-parts="${brief.number}">${renderCardParts(brief)}</div>` : ''}
       <div class="cloud-briefs-card-actions" data-card-actions="${brief.number}">${renderCardActions(brief)}</div>
     </div>`;
 }
@@ -654,8 +668,8 @@ function onDetailClick(event) {
     if (detail && detail.result) startWork(detail.result.brief);
   } else if (action === 'move-to-work') {
     if (detail && detail.result) openMoveToWork(detail.result.brief);
-  } else if (action === 'open-part') {
-    openPart(actionEl.dataset.shape, actionEl.dataset.ref);
+  } else if (onPartAction(actionEl)) {
+    // a part row: open, run or enter its lane
   } else if (action === 'go-to-brief-lane') {
     if (detail) agentDispatch.enterBriefLane(detail.number);
   } else if (action === 'link') {
@@ -738,26 +752,147 @@ function renderMeta(brief, events, meId) {
     </dl>`;
 }
 
-/** A started part's spec slug or task id, as a link that opens it in the Specs or Tasks view. */
-function partLink(part) {
-  const label = part.shape === 'spec' ? copy.OPEN_SPEC_LABEL : copy.OPEN_TASK_LABEL;
-  return `<button type="button" class="cloud-briefs-part-link" data-action="open-part" data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}" title="${escapeHtml(label)}" tabindex="-1">${escapeHtml(part.recordRef)}</button>`;
+// ─── A started brief's parts ──────────────────────────────────
+
+/** Where one started part stands: its local record, its lane, and partStatus's reading of both. */
+function partFacts(part) {
+  const ref = part.recordRef;
+  const isSpec = part.shape === 'spec';
+  const record = ref ? (isSpec ? local.specs.get(ref) : local.tasks.get(ref)) : null;
+  const lane = ref ? (isSpec ? agentDispatch.getSpecLaneInfo(ref) : agentDispatch.getTaskLaneInfo(ref)) : null;
+  const status = copy.partStatus({
+    part,
+    spec: isSpec ? record || undefined : undefined,
+    task: isSpec ? undefined : record || undefined,
+    lane,
+  });
+  return { record, lane, status };
+}
+
+/**
+ * One part of a started brief: its shape, its title (which opens its spec or
+ * task), where it stands, and either its live lane or Run.
+ */
+function renderPartRow(part) {
+  const { status } = partFacts(part);
+  const attrs = `data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}"`;
+  const openLabel = part.shape === 'spec' ? copy.OPEN_SPEC_LABEL : copy.OPEN_TASK_LABEL;
+  const title = status.tone === 'missing'
+    ? `<span class="cloud-briefs-prow-title" title="${escapeHtml(part.recordRef)}">${escapeHtml(part.title)}</span>`
+    : `<button type="button" class="cloud-briefs-prow-title" data-action="open-part" ${attrs} title="${escapeHtml(`${openLabel} · ${part.recordRef}`)}" tabindex="-1">${escapeHtml(part.title)}</button>`;
+  const dot = part.shape === 'spec' ? agentDispatch.specStatusDotHtml(part.recordRef) : agentDispatch.taskStatusDotHtml(part.recordRef);
+  let action = '';
+  if (status.laneName !== null) {
+    action = `<button type="button" class="cloud-briefs-prow-lane" data-action="enter-part-lane" ${attrs} tabindex="-1">${dot}<span>${escapeHtml(copy.laneLine(status.laneName))}</span></button>`;
+  } else if (status.run) {
+    action = `<button type="button" class="cloud-briefs-prow-run" data-action="run-part" ${attrs} title="${escapeHtml(copy.runHint(status.run))}" tabindex="-1">${escapeHtml(copy.RUN_LABEL)}</button>`;
+  }
+  return `<div class="cloud-briefs-prow tone-${escapeHtml(status.tone)}">
+      <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
+      ${title}
+      <span class="cloud-briefs-prow-status"><span class="cloud-briefs-prow-dot" aria-hidden="true"></span>${escapeHtml(status.label)}</span>
+      <span class="cloud-briefs-prow-action">${action}</span>
+    </div>`;
+}
+
+/** A started brief's card body: a row per part, and a summary line when there is more than one. */
+function renderCardParts(brief) {
+  const parts = brief.parts.filter((p) => p.recordRef);
+  const summary = copy.partsSummary(parts.map((p) => partFacts(p).status));
+  return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p)}</li>`).join('')}</ul>
+    ${summary ? `<p class="cloud-briefs-prows-summary">${escapeHtml(summary)}</p>` : ''}`;
+}
+
+/** Redraw every part row on screen: the cards' and the open detail's. */
+function renderPartSlots() {
+  if (!visible) return;
+  for (const el of contentElement.querySelectorAll('[data-card-parts]')) {
+    const brief = boardBrief(Number(el.dataset.cardParts));
+    if (brief && brief.parts) el.innerHTML = renderCardParts(brief);
+  }
+  if (drawerMode !== 'detail' || !detail || !detail.result) return;
+  for (const el of detailContentElement.querySelectorAll('[data-part-row]')) {
+    const part = detail.result.brief.parts.find((p) => p.id === el.dataset.partRow);
+    if (part) el.innerHTML = renderPartRow(part);
+  }
+}
+
+/** Read the open folder's specs and tasks; the answers arrive as SPEC_DATA-shaped lists and a TASKS_DATA push. */
+async function loadLocal() {
+  const path = state.getProjectPath();
+  if (!path) return;
+  if (local.path !== path) local = { path, specs: new Map(), tasks: new Map() };
+  ipcRenderer.send(IPC.LOAD_TASKS, path);
+  try {
+    const specs = await ipcRenderer.invoke(IPC.LIST_SPECS, path);
+    onLocalData(path, { specs });
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not list the folder\'s specs', err);
+  }
+}
+
+/** A specs list or a tasks.json for `projectPath`: keep it when it is the open folder's, and redraw the rows. */
+function onLocalData(projectPath, { specs, tasks }) {
+  const path = state.getProjectPath();
+  if (!path || projectPath !== path) return;
+  if (local.path !== path) local = { path, specs: new Map(), tasks: new Map() };
+  if (specs !== undefined) {
+    local.specs = new Map((Array.isArray(specs) ? specs : []).filter((sp) => sp && sp.slug).map((sp) => [sp.slug, sp]));
+  }
+  if (tasks !== undefined) {
+    const rows = tasks && Array.isArray(tasks.tasks) ? tasks.tasks : [];
+    local.tasks = new Map(rows.filter((t) => t && t.id).map((t) => [t.id, t]));
+  }
+  renderPartSlots();
+}
+
+/** Run a part's next step through the path a spec or a task runs by today. */
+function runPart(shape, ref) {
+  if (shape === 'spec') {
+    const spec = local.specs.get(ref);
+    const { status } = partFacts({ shape, recordRef: ref });
+    if (!spec || !status.run) return;
+    agentDispatch.dispatchSpecCommand({ slug: ref, title: spec.title, command: status.run });
+    return;
+  }
+  const task = local.tasks.get(ref);
+  if (task) require('./tasksPanel').openRunFlow(task);
+}
+
+/** Enter a part's live lane. */
+function enterPartLane(shape, ref) {
+  const lane = shape === 'spec' ? agentDispatch.getSpecLaneInfo(ref) : agentDispatch.getTaskLaneInfo(ref);
+  if (lane) agentDispatch.enterLane(lane.terminalId);
+}
+
+/** A part row's click, on a card or in the detail. → handled? */
+function onPartAction(actionEl) {
+  const { action, shape, ref } = actionEl.dataset;
+  if (!ref) return false;
+  if (action === 'open-part') openPart(shape, ref);
+  else if (action === 'run-part') runPart(shape, ref);
+  else if (action === 'enter-part-lane') enterPartLane(shape, ref);
+  else return false;
+  return true;
 }
 
 function renderTab(tab, brief, events, meId) {
   if (tab === 'parts') {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
     // A definition is network content: escaped plain text, pre-wrapped, never markdown.
-    const since = [copy.shapedLine(brief.shapedAt), copy.startedLine(brief.startedAt)].filter(Boolean).join(' · ');
+    const summary = brief.startedAt
+      ? copy.partsSummary(brief.parts.filter((p) => p.recordRef).map((p) => partFacts(p).status))
+      : '';
+    const since = [copy.shapedLine(brief.shapedAt), copy.startedLine(brief.startedAt), summary].filter(Boolean).join(' · ');
     return `${since ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(since)}</p>` : ''}
       <ol class="cloud-briefs-parts">${brief.parts.map((part) => `
         <li>
+          ${brief.startedAt && part.recordRef ? `<div class="cloud-briefs-prow-slot" data-part-row="${escapeHtml(part.id)}">${renderPartRow(part)}</div>` : `
           <span class="cloud-briefs-part-head">
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.type)}</span>
-            ${part.recordRef ? partLink(part) : ''}
-          </span>
+          </span>`}
           ${part.definition ? `<details class="cloud-briefs-part-definition">
             <summary>${escapeHtml(copy.PART_DEFINITION_LABEL)}</summary>
             <p class="cloud-briefs-text">${escapeHtml(part.definition)}</p>

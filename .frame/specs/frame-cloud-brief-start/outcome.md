@@ -72,3 +72,11 @@ _Captured: 2026-09-25 · 5 file change(s)_
 
 ---
 
+## T11 — A started brief's progress on the card and in the Parts tab
+
+Added T11 after the first walk (the Active card only counted parts): the decisions are appended to plan.md as an addendum. `addPartCounts` now also returns part rows, and `partStatus`/`partsSummary` in `cloudBriefsCopy.js` hold the rules. `cloudBriefsPanel.js` draws a row per part on started cards and in the Parts tab, kept live by `SPEC_DATA`, `TASKS_DATA` and lane activity. `agentDispatch.enterLane` was added for the row's lane link. Run dispatches the spec's next command by phase or opens the task's Run modal.
+
+_Captured: 2026-09-25 · 7 file change(s)_
+
+---
+

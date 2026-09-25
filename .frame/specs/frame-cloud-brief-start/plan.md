@@ -358,3 +358,33 @@ depends on it.
    - Orchestrate is disabled and reads "Coming soon".
 
    Record the walk in the outcome.
+
+## Addendum — T11: a started brief's progress (2026-09-25)
+
+Added after the first walk: an Active card read only "1 spec · 1 task" and
+said nothing about which part runs where. Decided with the user:
+
+- **The card grows.** Few briefs are active at once, so a started brief's
+  card lists every part as a row: shape chip, title, a status badge, and
+  either its lane (name and activity dot, entering it on click) or **Run**.
+- **Status comes from the folder.** A spec part reads its phase from
+  `SPEC_DATA` (Not started · Planned · Tasks ready · Implementing c/n ·
+  Done); a task part its `tasks.json` status (Not started · In progress ·
+  Done). A live lane's state wins (Working · Needs approval · Awaiting
+  input). A ref this folder does not hold reads **Not on this branch**, with
+  no action — no branch switching from the card.
+- **Run** is the part's next step through today's paths: the spec's next
+  command by phase (`spec.plan`, `spec.tasks`, `spec.implement`) through
+  `dispatchSpecCommand`, or the task's Run flow (`tasksPanel.openRunFlow`).
+- **No branch name** on the card (it is not stored anywhere yet).
+- **A summary line** ("1 of 2 done · 1 in progress") only with more than one
+  part.
+- The board's part read (`addPartCounts`) keeps each part's id, title,
+  shape, type and `recordRef` beside the counts, so the card needs no extra
+  request. The detail's Parts tab uses the same row above each definition.
+
+Files: `src/main/cloud/cloudBriefs.js`, `test/cloudBriefs.test.js`,
+`src/renderer/cloudBriefsCopy.js` (`partStatus`, `partsSummary`),
+`test/cloudBriefsCopy.test.js`, `src/renderer/cloudBriefsPanel.js`,
+`src/renderer/agentDispatch.js` (`enterLane`),
+`src/renderer/styles/components/cloud-briefs.css`.

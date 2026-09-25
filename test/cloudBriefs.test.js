@@ -459,7 +459,7 @@ test('partSummary counts parts by shape and ignores anything else', () => {
   assert.deepEqual(core.partSummary(undefined), { spec: 0, task: 0 });
 });
 
-test('addPartCounts reads open shaped work only, and survives a failed read', async () => {
+test('addPartCounts reads open shaped work only, keeps its part rows, and survives a failed read', async () => {
   const SHAPED = '2026-09-20T10:00:00.000Z';
   const briefs = [
     { id: 'w1', number: 1, kind: 'work', status: 'backlog', shapedAt: SHAPED },
@@ -469,7 +469,7 @@ test('addPartCounts reads open shaped work only, and survives a failed read', as
     { id: 'p5', number: 5, kind: 'proposal', status: 'backlog', shapedAt: null },
   ];
   const details = {
-    1: { ...BRIEF, number: 1, parts: [{ id: 'a', position: 0, shape: 'spec' }, { id: 'b', position: 1, shape: 'task' }, { id: 'c', position: 2, shape: 'spec' }] },
+    1: { ...BRIEF, number: 1, parts: [{ id: 'a', position: 0, shape: 'spec', definition: 'secret' }, { id: 'b', position: 1, shape: 'task', recordRef: 'task-b' }, { id: 'c', position: 2, shape: 'spec' }] },
   };
   const asked = [];
   const call = async (fn) => {
@@ -487,6 +487,12 @@ test('addPartCounts reads open shaped work only, and survives a failed read', as
   };
   const counted = await core.addPartCounts(call, briefs, 'my-app');
   assert.deepEqual(counted.map((b) => b.partCounts), [{ spec: 2, task: 1 }, null, null, null, null]);
+  assert.deepEqual(counted[0].parts, [
+    { id: 'a', title: '', shape: 'spec', type: 'feature', recordRef: null },
+    { id: 'b', title: '', shape: 'task', type: 'feature', recordRef: 'task-b' },
+    { id: 'c', title: '', shape: 'spec', type: 'feature', recordRef: null },
+  ]);
+  assert.deepEqual(counted.slice(1).map((b) => b.parts), [null, null, null, null]);
   assert.deepEqual(asked.map((i) => i.number).sort(), [1, 2]);
   assert.deepEqual(asked[0].projectSlug, 'my-app');
   assert.equal(briefs[0].partCounts, undefined);

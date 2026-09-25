@@ -843,6 +843,13 @@ function enterBriefLane(number) {
   return true;
 }
 
+/** Enter a lane by its terminal id (a part row's lane link). → false when there is none. */
+function enterLane(terminalId) {
+  if (!multiTerminalUI || !terminalId) return false;
+  multiTerminalUI.enterLane(terminalId);
+  return true;
+}
+
 /**
  * Open a spec in the Specs grid's drawer, the way the top bar's spec chip
  * does (multiTerminalUI.enterSpecDrawer). → false when the terminal system
@@ -1094,6 +1101,7 @@ module.exports = {
   getTaskLaneInfo,
   getBriefLaneInfo,
   enterBriefLane,
+  enterLane,
   showSpec,
   showTask,
   onSpecLaneActivity,
