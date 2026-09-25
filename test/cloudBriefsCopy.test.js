@@ -416,8 +416,9 @@ test('startErrorMessage has a sentence for every refusal, naming what it can', (
     'Another brief already uses one of these spec or task names. Pull the latest changes and start again.');
   assert.equal(copy.startErrorMessage({ reason: 'branchTaken', detail: 'feat/login' }), 'A branch named feat/login already exists. Pick another name.');
   assert.equal(copy.startErrorMessage({ reason: 'badBranch', detail: 'a b' }), '“a b” is not a branch name git accepts.');
-  assert.equal(copy.startErrorMessage({ reason: 'baseMissing', detail: 'main' }),
-    'The target branch main is not on this machine. Fetch or create it, then start again.');
+  assert.equal(copy.startErrorMessage({ reason: 'baseMissing', detail: 'origin/dev' }),
+    'The branch origin/dev is not on this machine. Fetch it, or pick another base.');
+  assert.equal(copy.startErrorMessage({ reason: 'alreadyBegun', detail: 'feat/login' }), 'This part was already begun on feat/login.');
   assert.equal(copy.startErrorMessage({ reason: 'badDefinition', part: 'Fix typo', detail: 'noDescription' }),
     '“Fix typo” has no Description section. Edit it on the web, then start again.');
   for (const reason of ['notStartable', 'notWork', 'alreadyClosed', 'notShaped', 'alreadyStarted', 'partsMismatch', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
@@ -442,12 +443,11 @@ test('partialMessage names the failed step, what was written and what is missing
   assert.match(copy.partialMessage({ step: 'stash', written: [], missing: [] }), /stashing your changes failed\.$/);
 });
 
-test('startedNotice names the counts and the branch, and the stash when there was one', () => {
-  assert.equal(copy.startedNotice({ number: 5, specs: 2, tasks: 1, branch: 'feat/login', stashMessage: null }),
-    'Brief #5 started: 2 specs, 1 task on feat/login.');
-  assert.equal(copy.startedNotice({ number: 5, specs: 1, tasks: 0, branch: 'feat/login', stashMessage: 'Start Work #5' }),
-    'Brief #5 started: 1 spec on feat/login. Your changes were stashed as “Start Work #5”.');
-  assert.equal(copy.startedNotice({ number: 5, specs: 0, tasks: 3, branch: 'fix/x' }), 'Brief #5 started: 3 tasks on fix/x.');
+test('startedNotice names the part and its branch, the brief on its first part, and the stash when there was one', () => {
+  assert.equal(copy.startedNotice({ mode: 'start', number: 5, part: { title: 'Login flow' }, branch: 'feat/login', stashMessage: null }),
+    'Brief #5 started: “Login flow” on feat/login.');
+  assert.equal(copy.startedNotice({ mode: 'begin', number: 5, part: { title: 'Fix typo' }, branch: 'fix/typo', stashMessage: 'Start Work #5' }),
+    'Began “Fix typo” on fix/typo. Your changes were stashed as “Start Work #5”.');
 });
 
 test('the Start Work dialog words', () => {
@@ -456,11 +456,13 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.beginWithLabel('Login flow'), 'Begin with “Login flow”');
   assert.equal(copy.ORCHESTRATE_LABEL, 'Orchestrate');
   assert.equal(copy.COMING_SOON, 'Coming soon');
-  assert.equal(copy.cutFromLine('origin/main'), 'Cut from origin/main');
+  assert.equal(copy.beginDialogTitle('Fix typo'), 'Begin “Fix typo”');
+  assert.equal(copy.FROM_LABEL, 'from');
   assert.equal(copy.dirtyWarning('feat/x', 1), 'feat/x has 1 uncommitted change. Stash them so the new branch starts clean, or cancel and commit them first.');
   assert.match(copy.dirtyWarning('', 3), /^This folder has 3 uncommitted changes\./);
   assert.equal(copy.startSubmitLabel(true), 'Starting…');
   assert.match(copy.baseMissingLine(''), /no target branch/);
+  assert.match(copy.baseMissingLine('main'), /^The target branch main is not on this machine\./);
 });
 
 test('the part link words', () => {

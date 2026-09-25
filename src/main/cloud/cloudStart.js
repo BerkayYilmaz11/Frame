@@ -309,6 +309,29 @@ function pickBase(targetBranch, { local, remote }) {
   return null;
 }
 
+/**
+ * The branches the dialog's "from" menu offers, from gitBranchesManager's
+ * list: local branches newest first, then origin's (its HEAD pointer left
+ * out). → `[{ name, remote }]`.
+ */
+function baseOptions(branches) {
+  const rows = arr(branches).filter((b) => b && typeof b.name === 'string' && b.name);
+  const byTime = (a, b) => (b.time || 0) - (a.time || 0);
+  const local = rows.filter((b) => !b.isRemote).sort(byTime).map((b) => ({ name: b.name, remote: false }));
+  const remote = rows
+    .filter((b) => b.isRemote && b.name.startsWith('origin/') && b.name !== 'origin/HEAD')
+    .sort(byTime)
+    .map((b) => ({ name: b.name, remote: true }));
+  return [...local, ...remote];
+}
+
+/** Does `base` name a branch this folder has: a local one, or `origin/<name>`? */
+async function baseExists(base, deps) {
+  if (!base) return false;
+  if (await deps.localBranchExists(base)) return true;
+  return base.startsWith('origin/') && deps.remoteBranchExists(base.slice('origin/'.length));
+}
+
 /** Why a part's definition does not parse, or null when it does. */
 function definitionProblem(part) {
   const parsed = part.shape === 'spec' ? parseSpecDefinition(part.definition) : parseTaskDefinition(part.definition);
@@ -345,9 +368,11 @@ function startMode(brief) {
  * `problem` and cannot be begun.
  * → `{ ok: true, mode, number, title, targetBranch, parts: [{ partId, title,
  * shape, type, ref, begunBranch, problem, canBegin }], suggestions,
- * currentBranch, changeCount, base }` or `{ ok: false, reason: 'notStartable' }`.
+ * currentBranch, changeCount, base, bases }` or `{ ok: false, reason: 'notStartable' }`.
+ * `base` is the default (the target, local or origin's) and `bases` what the
+ * "from" menu offers.
  */
-function prepareView({ brief, currentBranch, changeCount, base, begun = {} }) {
+function prepareView({ brief, currentBranch, changeCount, base, begun = {}, branches = [] }) {
   const b = obj(brief);
   const mode = startMode(b);
   if (!mode) return { ok: false, reason: 'notStartable' };
@@ -376,6 +401,7 @@ function prepareView({ brief, currentBranch, changeCount, base, begun = {} }) {
     currentBranch: currentBranch || '',
     changeCount: Number.isInteger(changeCount) ? changeCount : 0,
     base: base || null,
+    bases: baseOptions(branches),
   };
 }
 
@@ -384,7 +410,7 @@ function errorText(err) {
 }
 
 /**
- * A Start Work or Begin request (`{ number, beginPartId, branch, stash }`) →
+ * A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →
  * what happened. One part is begun each time: its branch is cut from the
  * brief's target and only that part is written. On a brief not started yet
  * ('start'), every part's ref is picked against the folder and exactly one
@@ -393,7 +419,8 @@ function errorText(err) {
  * sent.
  *
  * Every local check runs first — the part exists and can be begun, its
- * definition parses, the branch name is valid and free, the base exists, a
+ * definition parses, the branch name is valid and free, the base (the
+ * user's pick, else the brief's target) exists, a
  * dirty folder has consent — so a refusal writes nothing, locally or in the
  * cloud. A failure after that is `partial`: the brief is started either way,
  * and the answer names the step and the part that was not written. Only a
@@ -435,11 +462,19 @@ async function handleStartRequest(request, deps) {
   if (!deps.isValidBranchName(branch)) return { ok: false, reason: 'badBranch', detail: branch };
   if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
 
-  const base = pickBase(brief.targetBranch, {
-    local: await deps.localBranchExists(brief.targetBranch),
-    remote: await deps.remoteBranchExists(brief.targetBranch),
-  });
-  if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
+  // The base the user picked, else the brief's target (local, else origin's).
+  const chosenBase = str(r.base).trim();
+  let base;
+  if (chosenBase) {
+    if (!await baseExists(chosenBase, deps)) return { ok: false, reason: 'baseMissing', detail: chosenBase };
+    base = chosenBase;
+  } else {
+    base = pickBase(brief.targetBranch, {
+      local: await deps.localBranchExists(brief.targetBranch),
+      remote: await deps.remoteBranchExists(brief.targetBranch),
+    });
+    if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
+  }
 
   const changeCount = await deps.changeCount();
   if (changeCount > 0 && r.stash !== true) {
@@ -474,7 +509,8 @@ async function handleStartRequest(request, deps) {
   }
 
   try {
-    await deps.createBranch(branch, base, { track: base === brief.targetBranch });
+    // A remote base is cut without tracking, so the work branch does not track it.
+    await deps.createBranch(branch, base, { track: !base.startsWith('origin/') });
   } catch (err) {
     return partial('branch', err);
   }
@@ -529,6 +565,7 @@ module.exports = {
   getBegun,
   withBegunBranches,
   pickBase,
+  baseOptions,
   prepareView,
   handleStartRequest,
 };

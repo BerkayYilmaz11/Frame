@@ -96,3 +96,11 @@ _Captured: 2026-09-25 · 3 file change(s)_
 
 ---
 
+## T14 — The dialog for one part, with a branch row and base picker
+
+Rewrote the Start Work dialog for one part: a Begin-with choice per part with Orchestrate (Coming soon) disabled, a single-part and Begin mode, and a branch row with an editable name chip and a "from <base> ⌄" menu (filterable, local then origin, defaulting to the target). Added `baseOptions` and chosen-`base` handling to `cloudStart.js`, `loadBranches` in prepare, and the new copy; `startedNotice` now names the part and its branch. Nothing opens Begin yet: T15 wires it to the part rows.
+
+_Captured: 2026-09-25 · 7 file change(s)_
+
+---
+

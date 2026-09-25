@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T08:33:19.658Z",
+  "lastUpdated": "2026-09-25T08:53:56.466Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9462,13 +9462,13 @@
       "title": "The dialog for one part: drop Create only, no choice with a single part, Orchestrate (Coming soon) only with more than one, a Begin mode titled for the part alone; the branch row as one line — a branch icon, the name as an editable chip prefilled with the suggestion, and \"from <base> ⌄\" whose menu lists this folder's local and origin branches, defaulting to the brief's target — with the chosen base sent in the request and checked in main; the copy in `cloudBriefsCopy.js`, with tests",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T14",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start (revision: one part at a time)",
       "createdAt": "2026-09-25T08:02:37.000Z",
-      "updatedAt": "2026-09-25T08:30:33.000Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T08:53:56.466Z",
+      "completedAt": "2026-09-25T08:53:56.466Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T15",

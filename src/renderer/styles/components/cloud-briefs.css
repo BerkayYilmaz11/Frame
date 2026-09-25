@@ -1004,10 +1004,9 @@
 
 /* ─── Start Work dialog ─── */
 
+/* No scroll on the dialog itself: the base menu hangs below the branch row. Long part lists scroll instead. */
 .cloud-briefs-start-dialog {
-  width: min(520px, 100%);
-  max-height: calc(100vh - 2 * var(--space-xl));
-  overflow-y: auto;
+  width: min(560px, 100%);
 }
 
 .cloud-briefs-start-dialog [hidden] {
@@ -1020,41 +1019,21 @@
   gap: var(--space-lg);
 }
 
-.cloud-briefs-start-parts {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.cloud-briefs-start-part {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-}
-
-.cloud-briefs-start-parts li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  font-size: 13px;
-}
-
-.cloud-briefs-start-parts li + li {
-  border-top: 1px solid var(--border-default);
-}
-
-.cloud-briefs-start-parts .cloud-briefs-part-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .cloud-briefs-start-choices {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .cloud-briefs-start-choice {
@@ -1111,6 +1090,140 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+}
+
+/* The branch row: icon, the name as an editable chip, "from <base> ⌄". */
+.cloud-briefs-branchrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cloud-briefs-branchrow-icon {
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-branchrow-name {
+  flex: 1 1 auto;
+  min-width: 80px;
+  height: 26px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: 13px;
+  background: var(--bg-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.cloud-briefs-branchrow-name:focus {
+  border-color: var(--accent-primary);
+}
+
+.cloud-briefs-branchrow-from {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-branchrow-base-wrap {
+  position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.cloud-briefs-branchrow-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 180px;
+  padding: 2px var(--space-xs);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.cloud-briefs-branchrow-base span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-briefs-branchrow-base:hover,
+.cloud-briefs-branchrow-base[aria-expanded="true"] {
+  background: var(--bg-tertiary);
+}
+
+.cloud-briefs-basemenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 2;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.cloud-briefs-basemenu-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cloud-briefs-basemenu-title {
+  padding: var(--space-xs) var(--space-sm) 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-basemenu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 4px var(--space-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cloud-briefs-basemenu-item span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-briefs-basemenu-item:hover,
+.cloud-briefs-basemenu-item.current {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.cloud-briefs-basemenu-empty {
+  padding: var(--space-sm);
 }
 
 /* A dirty folder: asked before anything is written. */

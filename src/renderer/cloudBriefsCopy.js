@@ -418,8 +418,14 @@ function startDialogTitle(number) {
   return `Start work on brief #${number}`;
 }
 
-const START_DIALOG_DESCRIPTION = 'Every part becomes a spec or a task in this folder, on a new branch.';
-const START_CHOICE_TITLE = 'Where to begin';
+/** The Begin dialog's heading, for one part of a started brief: "Begin “Fix typo”". */
+function beginDialogTitle(title) {
+  return `Begin “${title}”`;
+}
+
+const START_DIALOG_DESCRIPTION = 'The part you begin gets its own branch and opens in a lane. The other parts wait on the brief until you begin them.';
+const BEGIN_DIALOG_DESCRIPTION = 'This part gets its own branch and opens in a lane.';
+const START_CHOICE_TITLE = 'Begin with';
 
 /** A Begin choice: "Begin with “Login flow”". */
 function beginWithLabel(title) {
@@ -429,26 +435,26 @@ function beginWithLabel(title) {
 /** What Begin opens, by the part's shape. */
 function beginHint(shape) {
   return shape === 'spec'
-    ? 'Creates every part, then opens a lane that plans this spec.'
-    : 'Creates every part, then opens a lane that runs this task.';
+    ? 'Writes this spec on its own branch, then opens a lane that plans it.'
+    : 'Writes this task on its own branch, then opens a lane that runs it.';
 }
 
-const CREATE_ONLY_LABEL = 'Create only';
-const CREATE_ONLY_HINT = 'Creates every part and opens no lane.';
 const ORCHESTRATE_LABEL = 'Orchestrate';
+const ORCHESTRATE_HINT = 'Run every part side by side, each on its own branch.';
 const COMING_SOON = 'Coming soon';
 const BRANCH_LABEL = 'Branch';
+const FROM_LABEL = 'from';
+const BASE_FILTER_PLACEHOLDER = 'Find a branch…';
+const BASE_LOCAL_TITLE = 'Local';
+const BASE_REMOTE_TITLE = 'origin';
+const NO_BASE_MATCH = 'No branch matches.';
+const PICK_BASE_LABEL = 'Pick a base';
 
-/** The line under the branch field: "Cut from main". */
-function cutFromLine(base) {
-  return `Cut from ${base}`;
-}
-
-/** The dialog's line when the brief's target branch is on neither this machine nor origin. */
+/** The line under the branch row when the brief's target branch is on neither this machine nor origin. */
 function baseMissingLine(targetBranch) {
   return targetBranch
-    ? `The target branch ${targetBranch} is not on this machine. Fetch or create it, then start again.`
-    : 'This brief has no target branch. Set one on the web, then start again.';
+    ? `The target branch ${targetBranch} is not on this machine. Fetch it, or pick another base.`
+    : 'This brief has no target branch. Pick a base to cut from.';
 }
 
 /** The dirty folder's warning: "feat/x has 3 uncommitted changes. …". */
@@ -488,7 +494,7 @@ const START_MESSAGES = {
   partsMismatch: 'The brief\'s parts changed on the web. Close this and start again.',
   recordRefTaken: 'Another brief already uses one of these spec or task names. Pull the latest changes and start again.',
   baseMissing: baseMissingLine(''),
-  badRequest: 'Pick where to begin and try again.',
+  badRequest: 'Pick the part to begin and try again.',
   notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
   network: REASON_MESSAGES.network,
   notConnected: REASON_MESSAGES.notConnected,
@@ -501,7 +507,8 @@ function startErrorMessage(result) {
   const r = result || {};
   if (r.reason === 'badBranch') return `${r.detail ? `“${r.detail}”` : 'That'} is not a branch name git accepts.`;
   if (r.reason === 'branchTaken') return `A branch named ${r.detail || 'that'} already exists. Pick another name.`;
-  if (r.reason === 'baseMissing' && r.detail) return baseMissingLine(r.detail);
+  if (r.reason === 'baseMissing' && r.detail) return `The branch ${r.detail} is not on this machine. Fetch it, or pick another base.`;
+  if (r.reason === 'alreadyBegun') return `This part was already begun${r.detail ? ` on ${r.detail}` : ''}.`;
   if (r.reason === 'badDefinition') return partProblemMessage(r.part || 'A part', r.detail);
   return START_MESSAGES[r.reason] || 'Start Work could not run. Try again.';
 }
@@ -531,11 +538,16 @@ function partialMessage(result) {
   return lines.join(' ');
 }
 
-/** The toast when a start landed: "Brief #5 started: 2 specs, 1 task on feat/login." plus the stash when there was one. */
-function startedNotice({ number, specs, tasks, branch, stashMessage } = {}) {
-  const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
-  const counts = [specs > 0 ? count(specs, 'spec') : '', tasks > 0 ? count(tasks, 'task') : ''].filter(Boolean).join(', ');
-  const main = `Brief #${number} started: ${counts || 'no parts'} on ${branch}.`;
+/**
+ * The toast when a part was begun: "Brief #5 started: “Login flow” on
+ * feat/login." for the brief's first part, "Began “Fix typo” on fix/typo."
+ * for a later one, plus the stash when there was one.
+ */
+function startedNotice({ mode, number, part, branch, stashMessage } = {}) {
+  const title = part && part.title ? `“${part.title}”` : 'the part';
+  const main = mode === 'begin'
+    ? `Began ${title} on ${branch}.`
+    : `Brief #${number} started: ${title} on ${branch}.`;
   return stashMessage ? `${main} Your changes were stashed as “${stashMessage}”.` : main;
 }
 
@@ -717,16 +729,22 @@ module.exports = {
   START_WORK_LABEL,
   START_WORK_HINT,
   startDialogTitle,
+  beginDialogTitle,
   START_DIALOG_DESCRIPTION,
+  BEGIN_DIALOG_DESCRIPTION,
   START_CHOICE_TITLE,
   beginWithLabel,
   beginHint,
-  CREATE_ONLY_LABEL,
-  CREATE_ONLY_HINT,
   ORCHESTRATE_LABEL,
+  ORCHESTRATE_HINT,
   COMING_SOON,
   BRANCH_LABEL,
-  cutFromLine,
+  FROM_LABEL,
+  BASE_FILTER_PLACEHOLDER,
+  BASE_LOCAL_TITLE,
+  BASE_REMOTE_TITLE,
+  NO_BASE_MATCH,
+  PICK_BASE_LABEL,
   baseMissingLine,
   dirtyWarning,
   STASH_AND_CONTINUE_LABEL,

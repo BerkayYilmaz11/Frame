@@ -129,9 +129,10 @@ async function prepare(folderPath, number) {
   if (!read.ok) return { ok: false, reason: read.reason };
   const brief = read.value;
   try {
-    const [currentBranch, count, local, remote] = await Promise.all([
+    const [currentBranch, count, list, local, remote] = await Promise.all([
       git.currentBranch(folderPath),
       changeCount(folderPath),
+      git.loadBranches(folderPath),
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
     ]);
@@ -146,6 +147,7 @@ async function prepare(folderPath, number) {
       changeCount: count,
       base: core.pickBase(brief.targetBranch, { local, remote }),
       begun: begunBranches,
+      branches: list && Array.isArray(list.branches) ? list.branches : [],
     });
   } catch (err) {
     logger.warn('cloudStart', `could not read the folder: ${err.message}`);
@@ -164,6 +166,7 @@ async function start(folderPath, request) {
       number: r.number,
       beginPartId: typeof r.beginPartId === 'string' ? r.beginPartId : null,
       branch: typeof r.branch === 'string' ? r.branch : '',
+      base: typeof r.base === 'string' ? r.base : '',
       stash: r.stash === true,
     }, {
       call: cloudProjectsService.call,

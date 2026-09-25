@@ -304,6 +304,7 @@ test('prepareView in start mode: every part can be begun unless its definition d
     currentBranch: 'feat/other',
     changeCount: 2,
     base: 'origin/main',
+    bases: [],
   });
 });
 
@@ -397,6 +398,43 @@ test('a remote base is cut without tracking', async () => {
   const result = await start.handleStartRequest(REQUEST, deps);
   assert.equal(result.ok, true);
   assert.deepEqual(log[0], ['branch', 'feat/login-flow', 'origin/main', { track: false }]);
+});
+
+test('baseOptions lists local branches newest first, then origin\'s, without its HEAD', () => {
+  const branches = [
+    { name: 'main', isRemote: false, time: 1 },
+    { name: 'feat/x', isRemote: false, time: 5 },
+    { name: 'origin/main', isRemote: true, time: 1 },
+    { name: 'origin/HEAD', isRemote: true, time: 9 },
+    { name: 'upstream/main', isRemote: true, time: 9 },
+    { name: 'origin/dev', isRemote: true, time: 3 },
+    null,
+  ];
+  assert.deepEqual(start.baseOptions(branches), [
+    { name: 'feat/x', remote: false },
+    { name: 'main', remote: false },
+    { name: 'origin/dev', remote: true },
+    { name: 'origin/main', remote: true },
+  ]);
+  assert.deepEqual(start.baseOptions(undefined), []);
+});
+
+test('a chosen base is used when it exists: a local one tracks by default, origin\'s is cut without tracking', async () => {
+  const localBase = fakes({ local: ['main', 'dev'] });
+  assert.equal((await start.handleStartRequest({ ...REQUEST, base: 'dev' }, localBase.deps)).ok, true);
+  assert.deepEqual(localBase.log[0], ['branch', 'feat/login-flow', 'dev', { track: true }]);
+  const remoteBase = fakes({ remote: ['release'] });
+  assert.equal((await start.handleStartRequest({ ...REQUEST, base: 'origin/release' }, remoteBase.deps)).ok, true);
+  assert.deepEqual(remoteBase.log[0], ['branch', 'feat/login-flow', 'origin/release', { track: false }]);
+});
+
+test('a chosen base that does not exist is refused, naming it', async () => {
+  for (const base of ['nope', 'origin/nope']) {
+    const { deps, log, starts } = fakes();
+    assert.deepEqual(await start.handleStartRequest({ ...REQUEST, base }, deps), { ok: false, reason: 'baseMissing', detail: base });
+    assert.equal(starts().length, 0);
+    assert.deepEqual(log, []);
+  }
 });
 
 test('each local refusal writes nothing and sends no brief.start', async () => {

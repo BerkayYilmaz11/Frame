@@ -2168,6 +2168,7 @@
         "getBegun",
         "withBegunBranches",
         "pickBase",
+        "baseOptions",
         "prepareView",
         "handleStartRequest"
       ],
@@ -2372,58 +2373,74 @@
           ],
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
+        "baseOptions": {
+          "line": 317,
+          "params": [
+            "branches"
+          ],
+          "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
+        },
+        "baseExists": {
+          "line": 329,
+          "params": [
+            "base",
+            "deps"
+          ],
+          "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
+        },
         "definitionProblem": {
-          "line": 313,
+          "line": 336,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 319,
+          "line": 342,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 328,
+          "line": 351,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 334,
+          "line": 357,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 350,
+          "line": 375,
           "params": [
             "{ brief",
             "currentBranch",
             "changeCount",
             "base",
-            "begun = {} }"
+            "begun = {}",
+            "branches = [] }"
           ],
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 382,
+          "line": 408,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 409,
+          "line": 436,
           "params": [
             "request",
             "deps"
           ],
-          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, stash }`) →"
+          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →"
         }
       }
     },
@@ -2530,7 +2547,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 157,
+          "line": 159,
           "params": [
             "folderPath",
             "request"
@@ -2538,13 +2555,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 192,
+          "line": 195,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 196,
+          "line": 199,
           "params": [
             "ipcMain"
           ]
@@ -7779,16 +7796,22 @@
         "START_WORK_LABEL",
         "START_WORK_HINT",
         "startDialogTitle",
+        "beginDialogTitle",
         "START_DIALOG_DESCRIPTION",
+        "BEGIN_DIALOG_DESCRIPTION",
         "START_CHOICE_TITLE",
         "beginWithLabel",
         "beginHint",
-        "CREATE_ONLY_LABEL",
-        "CREATE_ONLY_HINT",
         "ORCHESTRATE_LABEL",
+        "ORCHESTRATE_HINT",
         "COMING_SOON",
         "BRANCH_LABEL",
-        "cutFromLine",
+        "FROM_LABEL",
+        "BASE_FILTER_PLACEHOLDER",
+        "BASE_LOCAL_TITLE",
+        "BASE_REMOTE_TITLE",
+        "NO_BASE_MATCH",
+        "PICK_BASE_LABEL",
         "baseMissingLine",
         "dirtyWarning",
         "STASH_AND_CONTINUE_LABEL",
@@ -8044,36 +8067,36 @@
           ],
           "purpose": "The dialog's heading: \"Start work on brief #5\"."
         },
+        "beginDialogTitle": {
+          "line": 422,
+          "params": [
+            "title"
+          ],
+          "purpose": "The Begin dialog's heading, for one part of a started brief: \"Begin “Fix typo”\"."
+        },
         "beginWithLabel": {
-          "line": 425,
+          "line": 431,
           "params": [
             "title"
           ],
           "purpose": "A Begin choice: \"Begin with “Login flow”\"."
         },
         "beginHint": {
-          "line": 430,
+          "line": 436,
           "params": [
             "shape"
           ],
           "purpose": "What Begin opens, by the part's shape."
         },
-        "cutFromLine": {
-          "line": 443,
-          "params": [
-            "base"
-          ],
-          "purpose": "The line under the branch field: \"Cut from main\"."
-        },
         "baseMissingLine": {
-          "line": 448,
+          "line": 454,
           "params": [
             "targetBranch"
           ],
-          "purpose": "The dialog's line when the brief's target branch is on neither this machine nor origin."
+          "purpose": "The line under the branch row when the brief's target branch is on neither this machine nor origin."
         },
         "dirtyWarning": {
-          "line": 455,
+          "line": 461,
           "params": [
             "branch",
             "count"
@@ -8081,14 +8104,14 @@
           "purpose": "The dirty folder's warning: \"feat/x has 3 uncommitted changes. …\"."
         },
         "startSubmitLabel": {
-          "line": 465,
+          "line": 471,
           "params": [
             "pending"
           ],
           "purpose": "The confirm button: \"Start\", or \"Starting…\" while it runs."
         },
         "partProblemMessage": {
-          "line": 478,
+          "line": 484,
           "params": [
             "title",
             "reason"
@@ -8096,44 +8119,44 @@
           "purpose": "A part whose definition does not parse: \"“Fix typo” has no Description section. Edit it on the web.\""
         },
         "startErrorMessage": {
-          "line": 500,
+          "line": 506,
           "params": [
             "result"
           ],
           "purpose": "The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`."
         },
         "partialMessage": {
-          "line": 520,
+          "line": 527,
           "params": [
             "result"
           ],
           "purpose": "A start that went through in the cloud and then failed locally: which step"
         },
         "startedNotice": {
-          "line": 535,
+          "line": 546,
           "params": [
-            "{ number",
-            "specs",
-            "tasks",
+            "{ mode",
+            "number",
+            "part",
             "branch",
             "stashMessage } = {}"
           ],
-          "purpose": "The toast when a start landed: \"Brief #5 started: 2 specs, 1 task on feat/login.\" plus the stash when there was one."
+          "purpose": "The toast when a part was begun: \"Brief #5 started: “Login flow” on"
         },
         "specState": {
-          "line": 554,
+          "line": 566,
           "params": [
             "spec"
           ]
         },
         "taskState": {
-          "line": 567,
+          "line": 579,
           "params": [
             "task"
           ]
         },
         "partStatus": {
-          "line": 581,
+          "line": 593,
           "params": [
             "{ part",
             "spec",
@@ -8143,35 +8166,35 @@
           "purpose": "Where one part of a started brief stands in this folder. `spec` is its"
         },
         "runHint": {
-          "line": 600,
+          "line": 612,
           "params": [
             "run"
           ],
           "purpose": "What Run does for a part, as its tooltip."
         },
         "laneLine": {
-          "line": 605,
+          "line": 617,
           "params": [
             "laneName"
           ],
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 614,
+          "line": 626,
           "params": [
             "statuses"
           ],
           "purpose": "A started brief's line under its parts, only with more than one:"
         },
         "partNotHereMessage": {
-          "line": 627,
+          "line": 639,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "submitLabel": {
-          "line": 645,
+          "line": 657,
           "params": [
             "kind",
             "pending"
@@ -8179,14 +8202,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 664,
+          "line": 676,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 669,
+          "line": 681,
           "params": [
             "number",
             "reason"
@@ -9325,58 +9348,90 @@
       ],
       "depends": [
         "electron",
+        "lucide",
         "shared/ipcChannels",
         "state",
+        "dock",
         "htmlUtils",
         "cloudBriefsCopy"
       ],
       "functions": {
         "ref": {
-          "line": 26,
+          "line": 39,
           "params": [
             "name"
           ]
         },
         "open": {
-          "line": 36,
+          "line": 49,
           "params": [
             "{ number",
+            "partId = null",
             "onStarted",
             "onPartial }"
           ],
-          "purpose": "Open the dialog for brief `number`. `onStarted(result)` runs after a start"
+          "purpose": "Open the dialog for brief `number`; `partId` names the part to begin on a"
         },
         "close": {
-          "line": 59
+          "line": 70
         },
         "prepare": {
-          "line": 65
+          "line": 76
         },
         "renderFailure": {
-          "line": 89,
+          "line": 109,
           "params": [
             "message"
           ]
         },
-        "suggestion": {
-          "line": 98,
-          "purpose": "The suggestion for the current choice: the part's for Begin, the brief's for Create only."
+        "chosenPart": {
+          "line": 117
         },
-        "choiceRow": {
-          "line": 104,
+        "partChips": {
+          "line": 121,
           "params": [
-            "value",
-            "label",
-            "hint",
-            "{ disabled = false",
-            "tag = '' } = {}"
+            "part"
           ]
         },
+        "problemLine": {
+          "line": 126,
+          "params": [
+            "part"
+          ]
+        },
+        "renderChoices": {
+          "line": 133,
+          "purpose": "Several parts on a brief not started yet: a choice each, and Orchestrate (not yet)."
+        },
+        "renderSinglePart": {
+          "line": 161,
+          "purpose": "One part (a single-part brief, or Begin): the part itself, no choice."
+        },
+        "renderBranchRow": {
+          "line": 170,
+          "purpose": "The branch row: icon, the name as an editable chip, and \"from <base> ⌄\" with its menu."
+        },
         "renderReady": {
-          "line": 115
+          "line": 191
+        },
+        "renderBase": {
+          "line": 211,
+          "purpose": "The base button, the missing-base line and whether confirm can go."
+        },
+        "syncConfirm": {
+          "line": 219
+        },
+        "renderBaseList": {
+          "line": 225
+        },
+        "setMenu": {
+          "line": 237,
+          "params": [
+            "openIt"
+          ]
         },
         "showDirty": {
-          "line": 155,
+          "line": 249,
           "params": [
             "branch",
             "count"
@@ -9384,37 +9439,43 @@
           "purpose": "Ask before stashing: the folder's branch and change count, Stash and continue or Cancel."
         },
         "showError": {
-          "line": 167,
+          "line": 261,
           "params": [
             "message"
           ]
         },
         "setPending": {
-          "line": 173,
+          "line": 267,
           "params": [
             "on"
           ]
         },
         "onClick": {
-          "line": 187,
+          "line": 280,
           "params": [
             "e"
           ]
         },
         "onChange": {
-          "line": 204,
+          "line": 305,
           "params": [
             "e"
           ]
         },
         "onInput": {
-          "line": 211,
+          "line": 313,
+          "params": [
+            "e"
+          ]
+        },
+        "onKeydown": {
+          "line": 319,
           "params": [
             "e"
           ]
         },
         "confirm": {
-          "line": 215
+          "line": 331
         }
       }
     },
