@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:28:36.377Z",
+  "lastUpdated": "2026-09-25T07:29:36.822Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9384,13 +9384,13 @@
       "title": "Open the Begin lane after a successful start: `agentDispatch.dispatchSpecCommand` with `spec.plan` for a spec part, or `runTaskWithOptions` (now exported from `src/renderer/tasksPanel.js`) with `branchMode: 'current'` followed by `UPDATE_TASK` `in_progress` for a task part; no lane for Create only",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:29:36.822Z",
+      "completedAt": "2026-09-25T07:29:36.822Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T09",

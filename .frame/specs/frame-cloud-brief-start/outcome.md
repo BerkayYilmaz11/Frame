@@ -56,3 +56,11 @@ _Captured: 2026-09-25 · 3 file change(s)_
 
 ---
 
+## T08 — Open the Begin lane
+
+Exported `runTaskWithOptions` from `tasksPanel.js` and added `openBeginLane` to `cloudBriefsPanel.js`: `/spec.plan` through `dispatchSpecCommand` for a spec part, and the task run with `branchMode: 'current'` then `UPDATE_TASK` `in_progress` for a task part. Create only opens nothing. The lane uses the current AI tool (the dispatch default), as planned.
+
+_Captured: 2026-09-25 · 2 file change(s)_
+
+---
+

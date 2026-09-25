@@ -8202,7 +8202,8 @@
         "aiToolSelector",
         "notify",
         "projectListUI",
-        "terminal"
+        "terminal",
+        "tasksPanel"
       ],
       "functions": {
         "init": {
@@ -8497,15 +8498,22 @@
           ],
           "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
         },
+        "openBeginLane": {
+          "line": 948,
+          "params": [
+            "begin"
+          ],
+          "purpose": "Begin: a lane on the chosen part, through the paths a spec or a task runs"
+        },
         "reloadAfterStart": {
-          "line": 942,
+          "line": 963,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 953,
+          "line": 974,
           "params": [
             "brief",
             "{ purpose",
@@ -8515,35 +8523,35 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 990,
+          "line": 1011,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 995,
+          "line": 1016,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1000,
+          "line": 1021,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1019,
+          "line": 1040,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1029,
+          "line": 1050,
           "params": [
             "payload"
           ],
@@ -8555,7 +8563,9 @@
           "CLOUD_BRIEF_DISCUSSION_RECORDED",
           "CLOUD_BRIEF_SHAPED"
         ],
-        "emits": []
+        "emits": [
+          "UPDATE_TASK"
+        ]
       }
     },
     "renderer/cloudHub": {
@@ -15892,6 +15902,7 @@
         "toggle",
         "loadTasks",
         "openRunFlow",
+        "runTaskWithOptions",
         "isVisible",
         "setClaudeRunning",
         "isClaudeRunning"

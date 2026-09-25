@@ -933,9 +933,30 @@ function startWork(brief) {
     onStarted: (result) => {
       notify.success(copy.startedNotice(result));
       reloadAfterStart(number);
+      openBeginLane(result.begin);
     },
     onPartial: () => reloadAfterStart(number),
   });
+}
+
+/**
+ * Begin: a lane on the chosen part, through the paths a spec or a task runs
+ * by today — `/spec.plan` for a spec, the task run for a task, which then
+ * goes in progress. Frame cut the branch already, so the task stays on it.
+ * Create only (`begin` null) opens nothing.
+ */
+async function openBeginLane(begin) {
+  if (!begin) return;
+  if (begin.shape === 'spec') {
+    await agentDispatch.dispatchSpecCommand({ slug: begin.slug, title: begin.title, command: 'spec.plan' });
+    return;
+  }
+  const path = state.getProjectPath();
+  if (!path || !begin.task) return;
+  // Lazy-required: tasksPanel reaches agentDispatch lazily too, and neither needs the other at load.
+  const ok = await require('./tasksPanel').runTaskWithOptions(begin.task, { branchMode: 'current' });
+  if (!ok) return;
+  ipcRenderer.send(IPC.UPDATE_TASK, { projectPath: path, taskId: begin.task.id, updates: { status: 'in_progress' } });
 }
 
 /** The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen. */
