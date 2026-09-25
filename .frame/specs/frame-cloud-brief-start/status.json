@@ -1,0 +1,22 @@
+{
+  "slug": "frame-cloud-brief-start",
+  "title": "Frame Cloud brief start",
+  "phase": "tasks_generated",
+  "generated_task_ids": [
+    "task-spec-frame-cloud-brief-start-T01",
+    "task-spec-frame-cloud-brief-start-T02",
+    "task-spec-frame-cloud-brief-start-T03",
+    "task-spec-frame-cloud-brief-start-T04",
+    "task-spec-frame-cloud-brief-start-T05",
+    "task-spec-frame-cloud-brief-start-T06",
+    "task-spec-frame-cloud-brief-start-T07",
+    "task-spec-frame-cloud-brief-start-T08",
+    "task-spec-frame-cloud-brief-start-T09",
+    "task-spec-frame-cloud-brief-start-T10"
+  ],
+  "ai_tool": "claude-code",
+  "created_at": "2026-09-24T00:00:00Z",
+  "updated_at": "2026-09-25T07:11:59.558Z",
+  "last_phase_at": "2026-09-25T07:11:41.654Z",
+  "implement_mode": "autonomous"
+}
