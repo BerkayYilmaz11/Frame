@@ -309,44 +309,73 @@ function pickBase(targetBranch, { local, remote }) {
   return null;
 }
 
-/** Every part whose definition does not parse. → `[{ partId, title, reason }]`. */
-function definitionProblems(parts) {
-  return arr(parts).map((part) => {
-    const parsed = part.shape === 'spec' ? parseSpecDefinition(part.definition) : parseTaskDefinition(part.definition);
-    return parsed.ok ? null : { partId: part.id, title: part.title, reason: parsed.reason };
-  }).filter(Boolean);
+/** Why a part's definition does not parse, or null when it does. */
+function definitionProblem(part) {
+  const parsed = part.shape === 'spec' ? parseSpecDefinition(part.definition) : parseTaskDefinition(part.definition);
+  return parsed.ok ? null : parsed.reason;
 }
 
-/** The branch each choice suggests: Create only from the brief's title and the first part's type, Begin from the part's. */
+/** The branch each part suggests: its type's prefix and its title's slug. */
 function branchSuggestions(brief) {
-  const parts = arr(brief.parts);
   const byPart = {};
-  parts.forEach((part, index) => {
+  arr(brief.parts).forEach((part, index) => {
     byPart[part.id] = suggestBranchName(part.type, part.title, `brief-${brief.number}-part-${index + 1}`);
   });
-  const first = parts[0] || {};
-  return { createOnly: suggestBranchName(first.type, brief.title, `brief-${brief.number}`), parts: byPart };
+  return byPart;
+}
+
+/** Open, shaped work that was started: its parts not begun yet are begun one by one. */
+function beginnable(brief) {
+  const b = brief || {};
+  return b.kind === 'work' && b.status !== 'closed' && Boolean(b.shapedAt) && Boolean(b.startedAt);
+}
+
+/** 'start' for a brief not started yet, 'begin' for a started one, or null for neither. */
+function startMode(brief) {
+  if (!brief || arr(brief.parts).length === 0) return null;
+  if (startable(brief)) return 'start';
+  return beginnable(brief) ? 'begin' : null;
 }
 
 /**
  * What the Start Work dialog shows for a brief detail and the folder's state.
- * → `{ ok: true, number, title, targetBranch, parts, suggestions,
- * currentBranch, changeCount, base, problems }` or `{ ok: false, reason: 'notStartable' }`.
+ * `begun` maps a part id to the branch this machine began it on. In 'start'
+ * mode every part can be begun; in 'begin' mode only one with a reserved ref
+ * that was not begun yet. A part whose definition does not parse carries its
+ * `problem` and cannot be begun.
+ * → `{ ok: true, mode, number, title, targetBranch, parts: [{ partId, title,
+ * shape, type, ref, begunBranch, problem, canBegin }], suggestions,
+ * currentBranch, changeCount, base }` or `{ ok: false, reason: 'notStartable' }`.
  */
-function prepareView({ brief, currentBranch, changeCount, base }) {
+function prepareView({ brief, currentBranch, changeCount, base, begun = {} }) {
   const b = obj(brief);
-  if (!startable(b) || arr(b.parts).length === 0) return { ok: false, reason: 'notStartable' };
+  const mode = startMode(b);
+  if (!mode) return { ok: false, reason: 'notStartable' };
   return {
     ok: true,
+    mode,
     number: b.number,
     title: b.title,
     targetBranch: b.targetBranch,
-    parts: b.parts.map((p) => ({ partId: p.id, title: p.title, shape: p.shape, type: p.type })),
+    parts: b.parts.map((p) => {
+      const problem = definitionProblem(p);
+      const begunBranch = obj(begun)[p.id] || null;
+      const open = mode === 'start' || (Boolean(p.recordRef) && !begunBranch);
+      return {
+        partId: p.id,
+        title: p.title,
+        shape: p.shape,
+        type: p.type,
+        ref: p.recordRef || null,
+        begunBranch,
+        problem,
+        canBegin: open && !problem,
+      };
+    }),
     suggestions: branchSuggestions(b),
     currentBranch: currentBranch || '',
     changeCount: Number.isInteger(changeCount) ? changeCount : 0,
     base: base || null,
-    problems: definitionProblems(b.parts),
   };
 }
 
@@ -355,40 +384,54 @@ function errorText(err) {
 }
 
 /**
- * A Start Work request (`{ number, beginPartId | null, branch, stash }`) →
- * what happened. Every local check runs first — the brief is startable, every
- * definition parses, the refs are picked, the branch name is valid and free,
- * the base exists, a dirty folder has consent — so a refusal writes nothing,
- * locally or in the cloud. Then exactly one `brief.start` carries every
- * part's ref, and only after it: the stash, the branch, the specs, the tasks.
- * A failure after the cloud call is `partial`, naming what was and was not
- * written, since the brief is started either way.
+ * A Start Work or Begin request (`{ number, beginPartId, branch, stash }`) →
+ * what happened. One part is begun each time: its branch is cut from the
+ * brief's target and only that part is written. On a brief not started yet
+ * ('start'), every part's ref is picked against the folder and exactly one
+ * `brief.start` reserves them all; the other parts stay in the cloud. On a
+ * started brief ('begin'), the part's reserved ref is used and nothing is
+ * sent.
+ *
+ * Every local check runs first — the part exists and can be begun, its
+ * definition parses, the branch name is valid and free, the base exists, a
+ * dirty folder has consent — so a refusal writes nothing, locally or in the
+ * cloud. A failure after that is `partial`: the brief is started either way,
+ * and the answer names the step and the part that was not written. Only a
+ * part fully written is recorded as begun.
  *
  * `deps`: `{ call, projectSlug, specSlugs(), taskIds(), currentBranch(),
  * changeCount(), isValidBranchName(name), localBranchExists(name),
- * remoteBranchExists(name), stash(message), createBranch(name, base,
- * { track }), writeSpec(slug, files), writeTasks(rows), now() }`; each may be
- * async, and the effects throw on failure.
+ * remoteBranchExists(name), begun(partId) → { branch } | null,
+ * stash(message), createBranch(name, base, { track }), writeSpec(slug,
+ * files), writeTasks(rows), recordBegun({ partId, ref, branch }), now() }`;
+ * each may be async, and the effects throw on failure.
  */
 async function handleStartRequest(request, deps) {
   const r = obj(request);
-  const number = r.number;
-  const read = await deps.call((ctx) => getBrief({ ...ctx, projectSlug: deps.projectSlug, number }));
+  const read = await deps.call((ctx) => getBrief({ ...ctx, projectSlug: deps.projectSlug, number: r.number }));
   if (!read.ok) return { ok: false, reason: read.reason };
   const brief = read.value;
-  if (!startable(brief) || brief.parts.length === 0) return { ok: false, reason: 'notStartable' };
+  const mode = startMode(brief);
+  if (!mode) return { ok: false, reason: 'notStartable' };
 
-  const [problem] = definitionProblems(brief.parts);
-  if (problem) return { ok: false, reason: 'badDefinition', part: problem.title, detail: problem.reason };
+  const part = brief.parts.find((p) => p.id === r.beginPartId);
+  if (!part) return { ok: false, reason: 'badRequest' };
+  if (mode === 'begin') {
+    if (!part.recordRef) return { ok: false, reason: 'notStartable' };
+    const begun = await deps.begun(part.id);
+    // A record whose branch is gone (deleted since) no longer stands in the way.
+    if (begun && await deps.localBranchExists(begun.branch)) return { ok: false, reason: 'alreadyBegun', detail: begun.branch };
+  }
 
-  const beginPartId = r.beginPartId || null;
-  const beginPart = beginPartId ? brief.parts.find((p) => p.id === beginPartId) : null;
-  if (beginPartId && !beginPart) return { ok: false, reason: 'badRequest' };
+  const problem = definitionProblem(part);
+  if (problem) return { ok: false, reason: 'badDefinition', part: part.title, detail: problem };
 
-  const refs = allocateRefs(brief.parts, { specSlugs: await deps.specSlugs(), taskIds: await deps.taskIds() }, brief.number);
+  const refs = mode === 'start'
+    ? allocateRefs(brief.parts, { specSlugs: await deps.specSlugs(), taskIds: await deps.taskIds() }, brief.number)
+    : null;
+  const ref = refs ? refs[brief.parts.indexOf(part)].ref : part.recordRef;
 
-  const suggestions = branchSuggestions(brief);
-  const branch = str(r.branch).trim() || (beginPart ? suggestions.parts[beginPart.id] : suggestions.createOnly);
+  const branch = str(r.branch).trim() || branchSuggestions(brief)[part.id];
   if (!deps.isValidBranchName(branch)) return { ok: false, reason: 'badBranch', detail: branch };
   if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
 
@@ -403,18 +446,23 @@ async function handleStartRequest(request, deps) {
     return { ok: false, reason: 'dirty', changeCount, currentBranch: await deps.currentBranch() };
   }
 
-  const started = await startThrough(deps.call, {
-    id: brief.id,
-    parts: refs.map(({ partId, ref }) => ({ partId, recordRef: ref })),
-  });
-  if (!started.ok) return { ok: false, reason: started.reason };
+  if (refs) {
+    const started = await startThrough(deps.call, {
+      id: brief.id,
+      parts: refs.map((x) => ({ partId: x.partId, recordRef: x.ref })),
+    });
+    if (!started.ok) return { ok: false, reason: started.reason };
+  }
 
   // The brief is started in the cloud from here: a failure is reported, never undone.
-  const written = [];
-  const missing = () => brief.parts
-    .map((p, i) => ({ title: p.title, shape: refs[i].shape, ref: refs[i].ref }))
-    .filter((p) => !written.includes(p.ref));
-  const partial = (step, err) => ({ ok: false, reason: 'partial', step, written: [...written], missing: missing(), error: errorText(err) });
+  const partial = (step, err) => ({
+    ok: false,
+    reason: 'partial',
+    step,
+    written: [],
+    missing: [{ title: part.title, shape: part.shape, ref }],
+    error: errorText(err),
+  });
 
   const stashMessage = changeCount > 0 ? `Start Work #${brief.number}` : null;
   if (stashMessage) {
@@ -432,44 +480,29 @@ async function handleStartRequest(request, deps) {
   }
 
   const now = deps.now();
-  const rows = [];
-  let beginTask = null;
+  let begin;
   try {
-    for (const [i, part] of brief.parts.entries()) {
-      const { ref } = refs[i];
-      if (part.shape === 'spec') {
-        await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }));
-        written.push(ref);
-      } else {
-        const row = taskRow({ part, fields: parseTaskDefinition(part.definition).fields, id: ref, brief, now });
-        rows.push(row);
-        if (part === beginPart) beginTask = row;
-      }
-    }
-    if (rows.length > 0) {
-      await deps.writeTasks(rows);
-      written.push(...rows.map((row) => row.id));
+    if (part.shape === 'spec') {
+      await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }));
+      begin = { shape: 'spec', slug: ref, title: part.title };
+    } else {
+      const row = taskRow({ part, fields: parseTaskDefinition(part.definition).fields, id: ref, brief, now });
+      await deps.writeTasks([row]);
+      begin = { shape: 'task', task: { id: row.id, title: row.title, description: row.description, priority: row.priority } };
     }
   } catch (err) {
     return partial('files', err);
   }
-
-  let begin = null;
-  if (beginPart && beginPart.shape === 'spec') {
-    begin = { shape: 'spec', slug: refs[brief.parts.indexOf(beginPart)].ref, title: beginPart.title };
-  } else if (beginTask) {
-    begin = {
-      shape: 'task',
-      task: { id: beginTask.id, title: beginTask.title, description: beginTask.description, priority: beginTask.priority },
-    };
-  }
+  await deps.recordBegun({ partId: part.id, ref, branch });
 
   return {
     ok: true,
+    mode,
     number: brief.number,
     branch,
-    specs: refs.filter((x) => x.shape === 'spec').length,
-    tasks: rows.length,
+    part: { title: part.title, shape: part.shape, ref },
+    specs: part.shape === 'spec' ? 1 : 0,
+    tasks: part.shape === 'task' ? 1 : 0,
     stashMessage,
     begin,
   };
@@ -488,6 +521,8 @@ module.exports = {
   taskTitle,
   taskRow,
   startable,
+  beginnable,
+  startMode,
   emptyBegun,
   normalizeBegun,
   addBegun,

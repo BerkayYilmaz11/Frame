@@ -2160,6 +2160,8 @@
         "taskTitle",
         "taskRow",
         "startable",
+        "beginnable",
+        "startMode",
         "emptyBegun",
         "normalizeBegun",
         "addBegun",
@@ -2370,43 +2372,58 @@
           ],
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
-        "definitionProblems": {
+        "definitionProblem": {
           "line": 313,
           "params": [
-            "parts"
+            "part"
           ],
-          "purpose": "Every part whose definition does not parse. → `[{ partId, title, reason }]`."
+          "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 321,
+          "line": 319,
           "params": [
             "brief"
           ],
-          "purpose": "The branch each choice suggests: Create only from the brief's title and the first part's type, Begin from the part's."
+          "purpose": "The branch each part suggests: its type's prefix and its title's slug."
+        },
+        "beginnable": {
+          "line": 328,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
+        },
+        "startMode": {
+          "line": 334,
+          "params": [
+            "brief"
+          ],
+          "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 336,
+          "line": 350,
           "params": [
             "{ brief",
             "currentBranch",
             "changeCount",
-            "base }"
+            "base",
+            "begun = {} }"
           ],
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 353,
+          "line": 382,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 373,
+          "line": 409,
           "params": [
             "request",
             "deps"
           ],
-          "purpose": "A Start Work request (`{ number, beginPartId | null, branch, stash }`) →"
+          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, stash }`) →"
         }
       }
     },
@@ -2513,7 +2530,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 151,
+          "line": 157,
           "params": [
             "folderPath",
             "request"
@@ -2521,13 +2538,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 184,
+          "line": 192,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 188,
+          "line": 196,
           "params": [
             "ipcMain"
           ]

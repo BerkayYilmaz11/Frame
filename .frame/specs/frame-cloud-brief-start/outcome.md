@@ -88,3 +88,11 @@ _Captured: 2026-09-25 · 4 file change(s)_
 
 ---
 
+## T13 — Begin one part
+
+Rewrote `handleStartRequest`/`prepareView` in `cloudStart.js` for one part at a time: 'start' mode reserves every ref in one `brief.start` and writes only the chosen part, and 'begin' mode writes a started brief's part under its reserved ref with no cloud call. Both record the part through `recordBegun`, and `alreadyBegun` refuses a part whose recorded branch still exists. The result gains `mode` and `part`, and `specs`/`tasks` are 0 or 1. The dialog still expects the old view shape until T14.
+
+_Captured: 2026-09-25 · 3 file change(s)_
+
+---
+

@@ -135,11 +135,17 @@ async function prepare(folderPath, number) {
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
     ]);
+    const begunBranches = {};
+    for (const part of brief.parts) {
+      const entry = core.getBegun(begun(), project.id, brief.number, part.id);
+      if (entry) begunBranches[part.id] = entry.branch;
+    }
     return core.prepareView({
       brief,
       currentBranch,
       changeCount: count,
       base: core.pickBase(brief.targetBranch, { local, remote }),
+      begun: begunBranches,
     });
   } catch (err) {
     logger.warn('cloudStart', `could not read the folder: ${err.message}`);
@@ -169,6 +175,8 @@ async function start(folderPath, request) {
       isValidBranchName,
       localBranchExists: (name) => git.localBranchExists(name, folderPath),
       remoteBranchExists: (name) => git.remoteBranchExists(name, folderPath),
+      begun: (partId) => core.getBegun(begun(), project.id, r.number, partId),
+      recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
       stash: async (message) => orThrow(await git.stashAll(folderPath, message)),
       createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, true, base, { track })),
       writeSpec: (slug, files) => writeSpec(folderPath, slug, files),
