@@ -3696,6 +3696,10 @@
         "addWorktree",
         "removeWorktree",
         "isWorkingTreeClean",
+        "localBranchExists",
+        "remoteBranchExists",
+        "currentBranch",
+        "stashAll",
         "setupIPC",
         "getHeadSha",
         "branchExists",
@@ -3748,22 +3752,45 @@
           ],
           "purpose": "Does `refs/heads/<name>` exist in this repo?"
         },
+        "remoteBranchExists": {
+          "line": 100,
+          "params": [
+            "name",
+            "projectPath"
+          ],
+          "purpose": "Does `refs/remotes/origin/<name>` exist in this repo? Nothing is fetched: it is what this machine has."
+        },
+        "currentBranch": {
+          "line": 110,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The checked-out branch's name, or '' when HEAD is detached or git fails."
+        },
+        "stashAll": {
+          "line": 124,
+          "params": [
+            "projectPath",
+            "message"
+          ],
+          "purpose": "Stash every change, untracked files included (`git stash push -u -m`), so"
+        },
         "isWorkingTreeClean": {
-          "line": 102,
+          "line": 136,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if working tree is clean"
         },
         "loadBranches": {
-          "line": 114,
+          "line": 148,
           "params": [
             "projectPath"
           ],
           "purpose": "Load all branches"
         },
         "switchBranch": {
-          "line": 172,
+          "line": 206,
           "params": [
             "projectPath",
             "branchName"
@@ -3771,17 +3798,18 @@
           "purpose": "Switch to a branch"
         },
         "createBranch": {
-          "line": 223,
+          "line": 258,
           "params": [
             "projectPath",
             "branchName",
             "checkout = true",
-            "baseBranch = null"
+            "baseBranch = null",
+            "{ track } = {}"
           ],
-          "purpose": "Create a new branch"
+          "purpose": "Create a new branch. `{ track: false }` cuts it with `--no-track`, so a"
         },
         "deleteBranch": {
-          "line": 246,
+          "line": 284,
           "params": [
             "projectPath",
             "branchName",
@@ -3790,14 +3818,14 @@
           "purpose": "Delete a branch"
         },
         "loadWorktrees": {
-          "line": 263,
+          "line": 301,
           "params": [
             "projectPath"
           ],
           "purpose": "Load worktrees"
         },
         "addWorktree": {
-          "line": 305,
+          "line": 343,
           "params": [
             "projectPath",
             "worktreePath",
@@ -3807,7 +3835,7 @@
           "purpose": "Add a worktree"
         },
         "removeWorktree": {
-          "line": 324,
+          "line": 362,
           "params": [
             "projectPath",
             "worktreePath",
@@ -3816,27 +3844,27 @@
           "purpose": "Remove a worktree"
         },
         "orchWorktreePath": {
-          "line": 346,
+          "line": 384,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getHeadSha": {
-          "line": 350,
+          "line": 388,
           "params": [
             "projectPath"
           ]
         },
         "branchExists": {
-          "line": 359,
+          "line": 397,
           "params": [
             "projectPath",
             "branchName"
           ]
         },
         "createOrchWorktree": {
-          "line": 373,
+          "line": 411,
           "params": [
             "projectPath",
             "slug"
@@ -3844,7 +3872,7 @@
           "purpose": "Create a fresh worker worktree for a spec, branched from current HEAD."
         },
         "removeOrchWorktree": {
-          "line": 394,
+          "line": 432,
           "params": [
             "projectPath",
             "slug",
@@ -3853,7 +3881,7 @@
           "purpose": "Remove a spec's worker worktree (force). Optionally delete its work branch."
         },
         "worktreeChangedFiles": {
-          "line": 409,
+          "line": 447,
           "params": [
             "projectPath",
             "slug",
@@ -3862,7 +3890,7 @@
           "purpose": "Files actually changed on a spec's work branch relative to a base ref."
         },
         "mergeWorkToIntegration": {
-          "line": 426,
+          "line": 464,
           "params": [
             "projectPath",
             "slug"
@@ -3870,7 +3898,7 @@
           "purpose": "Merge a spec's work branch into its per-spec integration branch. Because the"
         },
         "isWorkMerged": {
-          "line": 445,
+          "line": 483,
           "params": [
             "projectPath",
             "slug"
@@ -3878,14 +3906,14 @@
           "purpose": "Whether a spec's work branch has been merged (its integration branch exists"
         },
         "listOrchBranches": {
-          "line": 461,
+          "line": 499,
           "params": [
             "projectPath"
           ],
           "purpose": "List orchestration branches present in the repo, grouped by slug. Used for"
         },
         "setupIPC": {
-          "line": 481,
+          "line": 519,
           "params": [
             "ipcMain"
           ],

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:21:23.788Z",
+  "lastUpdated": "2026-09-25T07:22:29.732Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9332,13 +9332,13 @@
       "title": "Add `currentBranch`, `remoteBranchExists` and `stashAll` (`git stash push -u -m`) to `src/main/gitBranchesManager.js`, export `localBranchExists`, and give `createBranch` a `{ track }` option that adds `--no-track`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:22:29.732Z",
+      "completedAt": "2026-09-25T07:22:29.732Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T05",

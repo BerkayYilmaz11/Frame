@@ -24,3 +24,11 @@ _Captured: 2026-09-25 · 2 file change(s)_
 
 ---
 
+## T04 — Git helpers
+
+Added `currentBranch`, `remoteBranchExists` and `stashAll` to `gitBranchesManager.js`, exported `localBranchExists`, and gave `createBranch` a trailing `{ track }` option that adds `--no-track`. Checked by hand against a scratch repo: `stash -u` took an untracked file, and a branch cut from `origin/dev` with `track: false` has no upstream. `currentBranch` returns '' on a detached HEAD.
+
+_Captured: 2026-09-25 · 1 file change(s)_
+
+---
+
