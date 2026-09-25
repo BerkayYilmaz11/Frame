@@ -119,6 +119,10 @@ function eventAction(event, meId) {
       const count = Number.isInteger(data.count) && data.count >= 0 ? data.count : 0;
       return `shaped this brief into ${count} ${count === 1 ? 'part' : 'parts'}`;
     }
+    case 'started': {
+      const count = Number.isInteger(data.count) && data.count >= 0 ? data.count : 0;
+      return `started work on this brief's ${count} ${count === 1 ? 'part' : 'parts'}`;
+    }
     case 'dropped': {
       const reason = text(data.reason);
       return reason ? `dropped this proposal: ${reason}` : 'dropped this proposal';
@@ -196,6 +200,12 @@ function eventSentence(event, meId) {
 function shapedLine(iso) {
   const date = formatDate(iso);
   return date ? `Shaped ${date}` : '';
+}
+
+/** The Parts tab's line for a started brief: "Started 18 Sept 2026"; '' when unstarted or unreadable. */
+function startedLine(iso) {
+  const date = formatDate(iso);
+  return date ? `Started ${date}` : '';
 }
 
 const PART_DEFINITION_LABEL = 'Definition';
@@ -450,6 +460,7 @@ module.exports = {
   formatDate,
   eventSentence,
   shapedLine,
+  startedLine,
   PART_DEFINITION_LABEL,
   reasonMessage,
   DISCUSSIONS_TITLE,

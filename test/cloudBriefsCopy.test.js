@@ -167,6 +167,18 @@ test('shapedLine dates a shaped brief and is empty for an unshaped one', () => {
   assert.equal(copy.shapedLine('nope'), '');
 });
 
+test('started reads as the web says it, for one part and for several', () => {
+  assert.equal(sentence('started', { count: 3 }, ME), 'You started work on this brief\'s 3 parts.');
+  assert.equal(sentence('started', { count: 1 }, OTHER), 'A workspace member started work on this brief\'s 1 part.');
+  assert.equal(sentence('started', {}, ME), 'You started work on this brief\'s 0 parts.');
+});
+
+test('startedLine dates a started brief and is empty for an unstarted one', () => {
+  assert.equal(copy.startedLine(AT), `Started ${copy.formatDate(AT)}`);
+  assert.equal(copy.startedLine(null), '');
+  assert.equal(copy.startedLine('nope'), '');
+});
+
 test('assignee-set from someone else says who it went to', () => {
   assert.equal(sentence('assignee-set', { assigneeId: ME }, OTHER), 'A workspace member assigned this brief to you.');
   assert.equal(

@@ -715,14 +715,15 @@ function renderTab(tab, brief, events, meId) {
   if (tab === 'parts') {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
     // A definition is network content: escaped plain text, pre-wrapped, never markdown.
-    const shaped = copy.shapedLine(brief.shapedAt);
-    return `${shaped ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(shaped)}</p>` : ''}
+    const since = [copy.shapedLine(brief.shapedAt), copy.startedLine(brief.startedAt)].filter(Boolean).join(' · ');
+    return `${since ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(since)}</p>` : ''}
       <ol class="cloud-briefs-parts">${brief.parts.map((part) => `
         <li>
           <span class="cloud-briefs-part-head">
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.type)}</span>
+            ${part.recordRef ? `<span class="cloud-briefs-muted cloud-briefs-part-ref">${escapeHtml(part.recordRef)}</span>` : ''}
           </span>
           ${part.definition ? `<details class="cloud-briefs-part-definition">
             <summary>${escapeHtml(copy.PART_DEFINITION_LABEL)}</summary>

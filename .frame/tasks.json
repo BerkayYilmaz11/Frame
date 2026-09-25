@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:11:41.962Z",
+  "lastUpdated": "2026-09-25T07:16:16.004Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9293,13 +9293,13 @@
       "title": "Read started briefs: add `startedAt` to `normalizeBrief` and `recordRef` to `normalizePart`, plus `startBrief` (POST `brief.start`), `START_REFUSALS` (including `NOT_SHAPED`, `PARTS_MISMATCH`, `RECORD_REF_TAKEN`) and `startThrough` in `src/main/cloud/cloudBriefs.js`; add the `started` history sentence and `startedLine` to `cloudBriefsCopy.js`; show \"Started <date>\" and each part's `recordRef` in the panel's Parts tab; cover it in `test/cloudBriefs.test.js` and `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:16:16.004Z",
+      "completedAt": "2026-09-25T07:16:16.004Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T02",

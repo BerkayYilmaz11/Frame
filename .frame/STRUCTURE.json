@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-24",
+  "lastUpdated": "2026-09-25",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -494,6 +494,9 @@
         "decideBrief",
         "decideThrough",
         "shapeBrief",
+        "START_REFUSALS",
+        "startBrief",
+        "startThrough",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -502,20 +505,20 @@
       ],
       "functions": {
         "str": {
-          "line": 39,
+          "line": 40,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 44,
+          "line": 45,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 48,
+          "line": 49,
           "params": [
             "set",
             "value",
@@ -523,63 +526,63 @@
           ]
         },
         "arr": {
-          "line": 52,
+          "line": 53,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 56,
+          "line": 57,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 63,
+          "line": 64,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 87,
+          "line": 89,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 99,
+          "line": 102,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 104,
+          "line": 107,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 110,
+          "line": 113,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 120,
+          "line": 123,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 125,
+          "line": 128,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 133,
+          "line": 136,
           "params": [
             "{ api",
             "token",
@@ -591,7 +594,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 141,
+          "line": 144,
           "params": [
             "{ api",
             "token",
@@ -602,7 +605,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 147,
+          "line": 150,
           "params": [
             "{ api",
             "token",
@@ -614,7 +617,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 158,
+          "line": 161,
           "params": [
             "{ api",
             "token",
@@ -625,33 +628,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 165,
+          "line": 168,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 174,
+          "line": 177,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 191,
+          "line": 194,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 204,
+          "line": 207,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 219,
+          "line": 222,
           "params": [
             "{ api",
             "token",
@@ -662,7 +665,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 225,
+          "line": 228,
           "params": [
             "{ api",
             "token",
@@ -675,7 +678,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 241,
+          "line": 244,
           "params": [
             "call",
             "{ input",
@@ -684,7 +687,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 261,
+          "line": 264,
           "params": [
             "{ api",
             "token",
@@ -698,7 +701,7 @@
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
         "decideBrief": {
-          "line": 280,
+          "line": 283,
           "params": [
             "{ api",
             "token",
@@ -710,7 +713,7 @@
           "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
         },
         "decideThrough": {
-          "line": 290,
+          "line": 293,
           "params": [
             "call",
             "{ id",
@@ -719,7 +722,7 @@
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
         "shapeBrief": {
-          "line": 315,
+          "line": 318,
           "params": [
             "{ api",
             "token",
@@ -730,8 +733,29 @@
           ],
           "purpose": "`brief.shape` → the brief with its new parts, normalized. Writes every part"
         },
+        "startBrief": {
+          "line": 342,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "parts }"
+          ],
+          "purpose": "`brief.start` → the brief detail, now started, normalized. Sets"
+        },
+        "startThrough": {
+          "line": 352,
+          "params": [
+            "call",
+            "{ id",
+            "parts }"
+          ],
+          "purpose": "Start a brief through `call`. The refusals come back as values, since"
+        },
         "discussionFacts": {
-          "line": 325,
+          "line": 372,
           "params": [
             "events",
             "meId"
@@ -739,7 +763,7 @@
           "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
         },
         "addDiscussionCounts": {
-          "line": 346,
+          "line": 393,
           "params": [
             "call",
             "briefs",
@@ -748,14 +772,14 @@
           "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "partSummary": {
-          "line": 358,
+          "line": 405,
           "params": [
             "parts"
           ],
           "purpose": "A brief's parts counted by shape: `{ spec, task }`."
         },
         "addPartCounts": {
-          "line": 373,
+          "line": 420,
           "params": [
             "call",
             "briefs",
@@ -764,7 +788,7 @@
           "purpose": "The briefs with `partCounts` (`{ spec, task }`) on each open shaped work"
         },
         "buildBriefWebUrl": {
-          "line": 387,
+          "line": 434,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -7242,6 +7266,7 @@
         "formatDate",
         "eventSentence",
         "shapedLine",
+        "startedLine",
         "PART_DEFINITION_LABEL",
         "reasonMessage",
         "DISCUSSIONS_TITLE",
@@ -7361,7 +7386,7 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "eventSentence": {
-          "line": 187,
+          "line": 191,
           "params": [
             "event",
             "meId"
@@ -7369,28 +7394,35 @@
           "purpose": "One history line: who did what, and the day it happened. → `{ sentence, date }`."
         },
         "shapedLine": {
-          "line": 196,
+          "line": 200,
           "params": [
             "iso"
           ],
           "purpose": "The Parts tab's line for a shaped brief: \"Shaped 18 Sept 2026\"; '' when unshaped or unreadable."
         },
+        "startedLine": {
+          "line": 206,
+          "params": [
+            "iso"
+          ],
+          "purpose": "The Parts tab's line for a started brief: \"Started 18 Sept 2026\"; '' when unstarted or unreadable."
+        },
         "reasonMessage": {
-          "line": 212,
+          "line": 222,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
         "discussionCountLabel": {
-          "line": 221,
+          "line": 231,
           "params": [
             "count"
           ],
           "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
         },
         "proposalStage": {
-          "line": 232,
+          "line": 242,
           "params": [
             "{ brief",
             "laneOpen",
@@ -7399,14 +7431,14 @@
           "purpose": "Where an open proposal stands, which decides its controls:"
         },
         "newCommentsLabel": {
-          "line": 240,
+          "line": 250,
           "params": [
             "count"
           ],
           "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
         },
         "newCommentIds": {
-          "line": 249,
+          "line": 259,
           "params": [
             "comments",
             "events",
@@ -7415,34 +7447,34 @@
           "purpose": "The ids of the comments that are new: added by someone other than `meId`"
         },
         "decideErrorMessage": {
-          "line": 277,
+          "line": 287,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Move to Work that failed."
         },
         "discussingIn": {
-          "line": 282,
+          "line": 292,
           "params": [
             "laneName"
           ],
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 292,
+          "line": 302,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 296,
+          "line": 306,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 308,
+          "line": 318,
           "params": [
             "events",
             "meId",
@@ -7451,14 +7483,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 339,
+          "line": 349,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "workStage": {
-          "line": 351,
+          "line": 361,
           "params": [
             "{ brief",
             "laneOpen }"
@@ -7466,7 +7498,7 @@
           "purpose": "Where a brief stands for Shape, which decides its work control:"
         },
         "laneLabel": {
-          "line": 358,
+          "line": 368,
           "params": [
             "purpose",
             "laneName"
@@ -7474,14 +7506,14 @@
           "purpose": "A brief lane's link: \"Discussing in <lane>\" or \"Shaping in <lane>\". A lane without a purpose is a Discuss lane."
         },
         "partCountLabel": {
-          "line": 378,
+          "line": 388,
           "params": [
             "counts"
           ],
           "purpose": "A shaped card's parts: \"1 spec\", \"2 specs · 1 task\"; '' for none or unknown."
         },
         "shapedNotice": {
-          "line": 385,
+          "line": 395,
           "params": [
             "number",
             "count"
@@ -7489,14 +7521,14 @@
           "purpose": "The toast when a Shape landed: \"Brief #5 was shaped into 2 parts and is ready to run.\"; the count is left out when unknown."
         },
         "shapeErrorMessage": {
-          "line": 393,
+          "line": 403,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Shape that could not start."
         },
         "submitLabel": {
-          "line": 411,
+          "line": 421,
           "params": [
             "kind",
             "pending"
@@ -7504,14 +7536,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 430,
+          "line": 440,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 435,
+          "line": 445,
           "params": [
             "number",
             "reason"
@@ -7964,7 +7996,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 772,
+          "line": 773,
           "params": [
             "events",
             "meId",
@@ -7973,7 +8005,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 800,
+          "line": 801,
           "params": [
             "brief",
             "events"
@@ -7981,7 +8013,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 818,
+          "line": 819,
           "params": [
             "brief",
             "events",
@@ -7990,23 +8022,23 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 834,
+          "line": 835,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 870
+          "line": 871
         },
         "confirmMoveToWork": {
-          "line": 876,
+          "line": 877,
           "params": [
             "priority"
           ]
         },
         "startLane": {
-          "line": 913,
+          "line": 914,
           "params": [
             "brief",
             "{ purpose",
@@ -8016,35 +8048,35 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 950,
+          "line": 951,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 955,
+          "line": 956,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 960,
+          "line": 961,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 979,
+          "line": 980,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 989,
+          "line": 990,
           "params": [
             "payload"
           ],
