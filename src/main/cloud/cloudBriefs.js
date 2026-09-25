@@ -95,6 +95,7 @@ function normalizePart(raw) {
     shape: oneOf(PART_SHAPES, p.shape, 'task'),
     type: oneOf(PART_TYPES, p.type, 'feature'),
     definition: str(p.definition),
+    key: strOrNull(p.key),
     recordRef: strOrNull(p.recordRef),
   };
 }
@@ -412,7 +413,7 @@ function partSummary(parts) {
 
 /** A part as a card draws it: no definition, which only the detail shows. */
 function partRow(part) {
-  return { id: part.id, title: part.title, shape: part.shape, type: part.type, recordRef: part.recordRef };
+  return { id: part.id, title: part.title, shape: part.shape, type: part.type, key: part.key, recordRef: part.recordRef };
 }
 
 /**

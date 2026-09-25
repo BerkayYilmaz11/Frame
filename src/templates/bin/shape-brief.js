@@ -9,7 +9,7 @@
  * written into the user's repo:
  *
  *   ELECTRON_RUN_AS_NODE=1 "$FRAME_NODE" <this file> --shape <id> <<'FRAME_PARTS'
- *   [{ "title": "…", "shape": "spec", "type": "feature", "definition": "…" }, …]
+ *   [{ "title": "…", "key": "…", "shape": "spec", "type": "feature", "definition": "…" }, …]
  *   FRAME_PARTS
  *
  * The parts come on stdin as one JSON array; a JSON string holds no raw
@@ -36,6 +36,9 @@ const crypto = require('crypto');
 
 const TITLE_MAX = 200;
 const DEFINITION_MAX = 10000;
+// A part's optional key (FrameCloud `briefPartKeySchema`): kebab-case, at most 40.
+const KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const KEY_MAX = 40;
 const SHAPES = ['spec', 'task'];
 const TYPES = ['feature', 'fix', 'refactor', 'docs', 'test'];
 const WAIT_MS = 30000;
@@ -76,6 +79,10 @@ function partProblem(part, n) {
   if (!TYPES.includes(p.type)) return `part ${n} needs a type of ${TYPES.join(', ')}.`;
   const definition = str(p.definition).trim();
   if (!definition || definition.length > DEFINITION_MAX) return `part ${n} needs a definition between 1 and ${DEFINITION_MAX} characters.`;
+  const key = str(p.key).trim();
+  if (key && (key.length > KEY_MAX || !KEY_PATTERN.test(key))) {
+    return `part ${n} needs a key in kebab-case (a-z, 0-9 and single hyphens) of at most ${KEY_MAX} characters, or none.`;
+  }
   return '';
 }
 
@@ -101,7 +108,11 @@ function requestFor({ shapeId, partsText, ts }) {
     const problem = partProblem(parts[i], i + 1);
     if (problem) return { ok: false, message: `Not shaped: ${problem}` };
   }
-  const clean = parts.map((p) => ({ title: p.title.trim(), shape: p.shape, type: p.type, definition: p.definition.trim() }));
+  const clean = parts.map((p) => {
+    const part = { title: p.title.trim(), shape: p.shape, type: p.type, definition: p.definition.trim() };
+    const key = str(p.key).trim();
+    return key ? { ...part, key } : part;
+  });
   return { ok: true, request: { shapeId, parts: clean, ts } };
 }
 

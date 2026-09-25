@@ -102,6 +102,14 @@ test('validateShapeInput accepts every type and a definition at the limit', () =
   assert.equal(core.validateShapeInput([{ ...PART, title: 'x'.repeat(200), definition: 'x'.repeat(10000) }]).ok, true);
 });
 
+test('validateShapeInput carries a trimmed key, leaves out an empty one, and takes one at 40 characters', () => {
+  const r = core.validateShapeInput([{ ...PART, key: ' llm-judge ' }, { ...PART, key: '' }, { ...PART, key: 'a'.repeat(40) }]);
+  assert.equal(r.ok, true);
+  assert.equal(r.input[0].key, 'llm-judge');
+  assert.equal('key' in r.input[1], false);
+  assert.equal(r.input[2].key, 'a'.repeat(40));
+});
+
 test('validateShapeInput refuses no parts and each bad field, naming the part', () => {
   const cases = [
     [undefined, { field: 'parts' }],
@@ -113,6 +121,8 @@ test('validateShapeInput refuses no parts and each bad field, naming the part', 
     [[{ ...PART, type: 'chore' }], { field: 'type', index: 0 }],
     [[{ ...PART, definition: '' }], { field: 'definition', index: 0 }],
     [[{ ...PART, definition: 'x'.repeat(10001) }], { field: 'definition', index: 0 }],
+    [[{ ...PART, key: 'Not_Kebab' }], { field: 'key', index: 0 }],
+    [[{ ...PART, key: 'a'.repeat(41) }], { field: 'key', index: 0 }],
     [[null], { field: 'title', index: 0 }],
   ];
   for (const [parts, expected] of cases) {
@@ -158,10 +168,18 @@ test('buildShapePrompt has a spec part written as spec.md sections, in order', (
   assert.match(prompt, /Problem, Goal and Success Criteria \(each "When X, then Y"\) always have content/);
 });
 
-test('buildShapePrompt has a task part written as task fields, with a task-sized title', () => {
+test('buildShapePrompt has a task part written as task fields', () => {
   const prompt = core.buildShapePrompt(PROMPT);
   assert.ok(prompt.includes('## Description, ## Acceptance Criteria, then ## Notes only when'));
-  assert.match(prompt, /Keep a task's title within 60 characters/);
+});
+
+test('buildShapePrompt asks for a short title and a short kebab-case key per part, and types by the work', () => {
+  const prompt = core.buildShapePrompt(PROMPT);
+  assert.match(prompt, /a title: a short noun phrase for people, at most 60 characters — not a sentence/);
+  assert.match(prompt, /a key: a short English name in kebab-case .* at most 32 characters/);
+  assert.match(prompt, /its type, by the work the part does, not by its subject: feature \(new capability, including tooling/);
+  assert.match(prompt, /test \(adds or changes tests only\)/);
+  assert.ok(prompt.includes('{ "title": "…", "key": "…", "shape": "spec"'));
 });
 
 test('buildShapePrompt sends detail gaps to Open Questions or Notes instead of asking', () => {

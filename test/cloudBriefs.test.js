@@ -169,6 +169,18 @@ test('normalizeBrief carries startedAt, null when unstarted', () => {
   assert.equal(core.normalizeBrief({ ...BRIEF, startedAt: 7 }).startedAt, null);
 });
 
+test('normalizeBriefDetail reads a part\'s key, null for a part without one', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF,
+    parts: [
+      { id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', key: 'llm-judge' },
+      { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix', key: '' },
+      { id: 'p3', position: 2, title: 'C', shape: 'task', type: 'fix' },
+    ],
+  });
+  assert.deepEqual(d.parts.map((p) => p.key), ['llm-judge', null, null]);
+});
+
 test('normalizeBriefDetail reads a part\'s recordRef, null for a part without one', () => {
   const d = core.normalizeBriefDetail({
     ...BRIEF,
@@ -488,9 +500,9 @@ test('addPartCounts reads open shaped work only, keeps its part rows, and surviv
   const counted = await core.addPartCounts(call, briefs, 'my-app');
   assert.deepEqual(counted.map((b) => b.partCounts), [{ spec: 2, task: 1 }, null, null, null, null]);
   assert.deepEqual(counted[0].parts, [
-    { id: 'a', title: '', shape: 'spec', type: 'feature', recordRef: null },
-    { id: 'b', title: '', shape: 'task', type: 'feature', recordRef: 'task-b' },
-    { id: 'c', title: '', shape: 'spec', type: 'feature', recordRef: null },
+    { id: 'a', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
+    { id: 'b', title: '', shape: 'task', type: 'feature', key: null, recordRef: 'task-b' },
+    { id: 'c', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
   ]);
   assert.deepEqual(counted.slice(1).map((b) => b.parts), [null, null, null, null]);
   assert.deepEqual(asked.map((i) => i.number).sort(), [1, 2]);

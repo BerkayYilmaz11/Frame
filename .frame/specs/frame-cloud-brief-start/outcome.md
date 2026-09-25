@@ -112,3 +112,11 @@ _Captured: 2026-09-25 · 5 file change(s)_
 
 ---
 
+## T16 — A part's short key from Shape
+
+Shape now asks for a short title, a kebab-case `key` and a type chosen by the work the part does, and FrameCloud stores the key (`brief-start` T09 there). Frame suggests the spec slug, task id and `<prefix>/<key>` branch from the key, and otherwise cuts the title's slug at a word boundary (32 for a branch, 48 for a slug). Deviation: `src/templates/bin/shape-brief.js` (outside the plan's Files) also validates and passes `key`, since it rebuilt each part from known fields and would have dropped it. Also replaced literal combining characters in `slugify`'s regex with `\u0300-\u036f` escapes.
+
+_Captured: 2026-09-25 · 9 file change(s)_
+
+---
+

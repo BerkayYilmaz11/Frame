@@ -37,8 +37,26 @@ const PART_TYPES = ['feature', 'fix', 'refactor', 'docs', 'test'];
 const SPEC_HEADINGS = ['Problem', 'Goal', 'Constraints', 'Success Criteria', 'Out of Scope', 'Open Questions'];
 const TASK_HEADINGS = ['Description', 'Acceptance Criteria', 'Notes'];
 
-/** Frame's task title limit (`tasks.json` schema), tighter than the server's part title. */
+/** Frame's task title limit (`tasks.json` schema), tighter than the server's part title; asked of every part. */
 const TASK_TITLE_MAX = 60;
+
+/**
+ * A part's key: the short name Start Work suggests for its spec slug, task id
+ * and branch. FrameCloud's `briefPartKeySchema` takes kebab-case up to 40
+ * characters; the prompt asks for 32 so a branch stays short.
+ */
+const KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const KEY_MAX = 40;
+const KEY_ASK = 32;
+
+/** What each type means, so a part is typed by the work it does, not by its subject. */
+const TYPE_MEANINGS = {
+  feature: 'new capability, including tooling, scripts and infrastructure',
+  fix: 'corrects wrong behavior',
+  refactor: 'changes structure without changing behavior',
+  docs: 'documentation only',
+  test: 'adds or changes tests only',
+};
 
 /** The server's refusals of `brief.shape` → the reason the command reports. */
 const SERVER_REFUSALS = {
@@ -147,9 +165,10 @@ function badRequest(field, index) {
 /**
  * The parts as FrameCloud's `shapeBriefInputSchema` takes them: at least one;
  * a title trimmed to 1–200 characters; `spec | task`; one of the five types;
- * a definition trimmed to 1–10,000 characters. The first bad part refuses
- * them all. → `{ ok: true, input: [{ title, shape, type, definition }] }` or
- * a badRequest naming the field and the part's index.
+ * a definition trimmed to 1–10,000 characters; and an optional key, trimmed,
+ * kebab-case within 40 characters (left out when absent or empty). The first
+ * bad part refuses them all. → `{ ok: true, input: [{ title, shape, type,
+ * definition, key? }] }` or a badRequest naming the field and the part's index.
  */
 function validateShapeInput(parts) {
   if (!Array.isArray(parts) || parts.length === 0) return badRequest('parts');
@@ -162,7 +181,9 @@ function validateShapeInput(parts) {
     if (!PART_TYPES.includes(p.type)) return badRequest('type', index);
     const definition = str(p.definition).trim();
     if (!definition || definition.length > LIMITS.body) return badRequest('definition', index);
-    input.push({ title, shape: p.shape, type: p.type, definition });
+    const key = str(p.key).trim();
+    if (key && (key.length > KEY_MAX || !KEY_PATTERN.test(key))) return badRequest('key', index);
+    input.push(key ? { title, shape: p.shape, type: p.type, definition, key } : { title, shape: p.shape, type: p.type, definition });
   }
   return { ok: true, input };
 }
@@ -207,16 +228,20 @@ function buildShapePrompt({ brief, events, commandPath, shapeId, meId = '' }) {
       'their own, or separate areas that need their own plan. When you do split, a small piece may be a task.',
     '3. Propose it straight away; do not question the user first. Ask only when something would change the shape itself ' +
       '(one part or several, spec or task) and neither the brief nor the code answers it. For each part give:',
-    `   - a title (at most ${LIMITS.title} characters);`,
+    `   - a title: a short noun phrase for people, at most ${TASK_TITLE_MAX} characters — not a sentence and not a summary; ` +
+      'the definition carries the detail;',
+    `   - a key: a short English name in kebab-case (a-z, 0-9 and single hyphens), at most ${KEY_ASK} characters, ` +
+      'the way you would name its branch (`llm-judge`, `spec-flow-cost`). Frame suggests the spec, task and branch names ' +
+      'from it, and the user can change them. Keep keys distinct within the brief;',
     `   - its shape: ${PART_SHAPES.join(' or ')};`,
-    `   - its type: one of ${PART_TYPES.join(', ')};`,
+    `   - its type, by the work the part does, not by its subject: ${PART_TYPES.map((t) => `${t} (${TYPE_MEANINGS[t]})`).join(', ')};`,
     '   - a definition, as plain text in the format the part will take in Frame, so whoever opens it does not have to ' +
       'ask about the goal:',
     `     - a spec part is written as the sections of a Frame spec.md, in this order: ${h(SPEC_HEADINGS.slice(0, 5))}, ` +
       'then ## Open Questions only when something is left open. Problem, Goal and Success Criteria (each "When X, then Y") ' +
       'always have content; Constraints and Out of Scope only when there is something to say.',
     `     - a task part is written as the fields of a Frame task: ${h(TASK_HEADINGS.slice(0, 2))}, ` +
-      `then ## Notes only when there is something to say. Keep a task's title within ${TASK_TITLE_MAX} characters.`,
+      'then ## Notes only when there is something to say.',
     '     Do not ask the user to fill gaps in the details — how to build it, edge cases, choices that can wait. ' +
       'List them under ## Open Questions (a spec) or ## Notes (a task): they are settled when the part itself is opened.',
     '4. Show the whole set and let the user change it. Never rewrite the brief\'s description — it is the user\'s.',
@@ -224,7 +249,7 @@ function buildShapePrompt({ brief, events, commandPath, shapeId, meId = '' }) {
       'Do not write the parts to a file in the repository.',
     '',
     'To write, run exactly this, replacing <parts JSON> with a JSON array of the approved parts, in order, each ' +
-      '`{ "title": "…", "shape": "spec", "type": "feature", "definition": "…" }` (newlines inside a definition written as `\\n`):',
+      '`{ "title": "…", "key": "…", "shape": "spec", "type": "feature", "definition": "…" }` (newlines inside a definition written as `\\n`):',
     '',
     fence(shapeCommand(commandPath, shapeId), 'sh'),
     '',
@@ -305,6 +330,7 @@ function fieldMessage(field, index) {
     case 'shape': return `Not shaped: ${which} needs a shape of ${PART_SHAPES.join(' or ')}.`;
     case 'type': return `Not shaped: ${which} needs a type of ${PART_TYPES.join(', ')}.`;
     case 'definition': return `Not shaped: ${which} needs a definition between 1 and ${LIMITS.body} characters.`;
+    case 'key': return `Not shaped: ${which} needs a key in kebab-case (a-z, 0-9 and single hyphens) of at most ${KEY_MAX} characters, or none.`;
     default: return 'Not shaped: the request was malformed.';
   }
 }

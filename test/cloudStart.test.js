@@ -36,14 +36,27 @@ test('slugify falls back when nothing is left', () => {
   assert.equal(start.slugify(undefined, 'x'), 'x');
 });
 
-test('suggestBranchName prefixes every type and slugifies the title', () => {
-  assert.equal(start.suggestBranchName('feature', 'Login flow'), 'feat/login-flow');
-  assert.equal(start.suggestBranchName('fix', 'Login flow'), 'fix/login-flow');
-  assert.equal(start.suggestBranchName('refactor', 'Login flow'), 'refactor/login-flow');
-  assert.equal(start.suggestBranchName('docs', 'Login flow'), 'docs/login-flow');
-  assert.equal(start.suggestBranchName('test', 'Login flow'), 'test/login-flow');
-  assert.equal(start.suggestBranchName('chore', 'Login flow'), 'feat/login-flow');
-  assert.equal(start.suggestBranchName('fix', '!!!', 'brief-3'), 'fix/brief-3');
+test('slugify cuts a long title at the last word that fits, and a single long word hard', () => {
+  assert.equal(start.slugify('Measure the spec flow\'s cost per successful outcome of an agent'), 'measure-the-spec-flow-s-cost-per-successful');
+  assert.equal(start.slugify('Blind, multi-provider LLM judge for spec-sized work', '', 32), 'blind-multi-provider-llm-judge');
+  assert.equal(start.slugify('x'.repeat(60), '', 32), 'x'.repeat(32));
+  assert.equal(start.slugify('short title', '', 32), 'short-title');
+});
+
+const titled = (title, key) => (key === undefined ? { title } : { title, key });
+
+test('suggestBranchName prefixes every type and names from the key, else the title within 32', () => {
+  assert.equal(start.suggestBranchName('feature', titled('Login flow')), 'feat/login-flow');
+  assert.equal(start.suggestBranchName('fix', titled('Login flow')), 'fix/login-flow');
+  assert.equal(start.suggestBranchName('refactor', titled('Login flow')), 'refactor/login-flow');
+  assert.equal(start.suggestBranchName('docs', titled('Login flow')), 'docs/login-flow');
+  assert.equal(start.suggestBranchName('test', titled('Login flow')), 'test/login-flow');
+  assert.equal(start.suggestBranchName('chore', titled('Login flow')), 'feat/login-flow');
+  assert.equal(start.suggestBranchName('fix', titled('!!!'), 'brief-3'), 'fix/brief-3');
+  assert.equal(start.suggestBranchName('test', titled('Blind, multi-provider LLM judge for spec-sized work: request coverage')),
+    'test/blind-multi-provider-llm-judge');
+  assert.equal(start.suggestBranchName('feature', titled('Blind, multi-provider LLM judge', 'llm-judge')), 'feat/llm-judge');
+  assert.equal(start.suggestBranchName('feature', titled('Login flow', null)), 'feat/login-flow');
 });
 
 // ─── Definitions ──────────────────────────────────────────────
@@ -116,6 +129,15 @@ test('allocateRefs counts refs picked earlier in the same start, per shape', () 
     part('p1', 'Login', 'spec'), part('p2', 'Login', 'spec'), part('p3', 'Login', 'task'), part('p4', 'Login', 'task'),
   ], {}, 3);
   assert.deepEqual(refs.map((r) => r.ref), ['login', 'login-2', 'task-login', 'task-login-2']);
+});
+
+test('allocateRefs names a part by its key when it has one, with the same -2 rule', () => {
+  const refs = start.allocateRefs(
+    [{ ...part('p1', 'A long spec title', 'spec'), key: 'llm-judge' }, { ...part('p2', 'A long task title', 'task'), key: 'fix-typo' }],
+    { specSlugs: ['llm-judge'] },
+    3,
+  );
+  assert.deepEqual(refs.map((r) => r.ref), ['llm-judge-2', 'task-fix-typo']);
 });
 
 test('allocateRefs falls back to brief-<N>-part-<P> and keeps a suffixed spec slug within 48', () => {

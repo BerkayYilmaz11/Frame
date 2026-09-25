@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T08:59:26.558Z",
+  "lastUpdated": "2026-09-25T09:07:14.632Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9488,13 +9488,13 @@
       "title": "A part's short key from Shape: the Shape prompt asks for a `key` per part (short English kebab-case, at most 32 characters) and `validateShapeInput` passes it; `normalizePart` reads it; `allocateRefs` and the branch suggestion use it when present, and otherwise the title's slug cut at a word boundary (32 characters for a branch, 48 for a slug); tests",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T16",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start (revision: names and base)",
       "createdAt": "2026-09-25T08:30:33.000Z",
-      "updatedAt": "2026-09-25T08:30:33.000Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T09:07:14.632Z",
+      "completedAt": "2026-09-25T09:07:14.632Z"
     }
   ],
   "metadata": {

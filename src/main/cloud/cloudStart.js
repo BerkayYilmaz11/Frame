@@ -19,6 +19,9 @@ const { getBrief, startThrough } = require('./cloudBriefs');
 /** spec.new's slug limit (specManager's SLUG_MAX_LEN). */
 const SLUG_MAX = 48;
 
+/** A branch suggestion's name, after its type prefix, when it comes from a title. */
+const BRANCH_NAME_MAX = 32;
+
 /** Frame's task title limit (`tasks.json` schema). */
 const TASK_TITLE_MAX = 60;
 
@@ -41,26 +44,38 @@ function obj(value) {
 
 /**
  * A title → spec.new's slug: lowercase, `[a-z0-9-]` only, runs of `-`
- * collapsed and trimmed, at most 48 characters. Letters are folded first as
- * cloudProjects.suggestSlug does, so "Giriş akışı" keeps its letters
- * (`giris-akisi`). → `fallback` when nothing is left.
+ * collapsed and trimmed, at most `max` characters (48 by default). Letters
+ * are folded first as cloudProjects.suggestSlug does, so "Giriş akışı" keeps
+ * its letters (`giris-akisi`). A slug too long is cut at the last word that
+ * fits, not mid-word; a single word longer than `max` is cut hard.
+ * → `fallback` when nothing is left.
  */
-function slugify(title, fallback = '') {
-  const slug = str(title)
+function slugify(title, fallback = '', max = SLUG_MAX) {
+  const full = str(title)
     .toLowerCase()
     .replace(/[ıßæøœđłþ]/g, (ch) => TRANSLITERATE[ch])
     .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, SLUG_MAX)
-    .replace(/-+$/, '');
-  return slug || fallback;
+    .replace(/^-+|-+$/g, '');
+  if (full.length <= max) return full || fallback;
+  const cut = full.slice(0, max + 1).lastIndexOf('-');
+  return (cut > 0 ? full.slice(0, cut) : full.slice(0, max)).replace(/-+$/, '') || fallback;
 }
 
-/** The branch Start Work suggests: the type's prefix, then the title's slug (`fallback` when the title has none). */
-function suggestBranchName(type, title, fallback = 'work') {
-  return `${BRANCH_PREFIXES[type] || BRANCH_PREFIXES.feature}${slugify(title, fallback)}`;
+/** A part's name for its spec slug or task id: its key from Shape, else its title's slug. */
+function partName(part, fallback, max = SLUG_MAX) {
+  const key = str(part && part.key);
+  return key || slugify(part && part.title, fallback, max);
+}
+
+/**
+ * The branch Start Work suggests for a part: the type's prefix, then its key
+ * from Shape, else its title's slug within 32 characters (`fallback` when the
+ * title has none).
+ */
+function suggestBranchName(type, part, fallback = 'work') {
+  return `${BRANCH_PREFIXES[type] || BRANCH_PREFIXES.feature}${partName(part, fallback, BRANCH_NAME_MAX)}`;
 }
 
 // ─── Definitions ──────────────────────────────────────────────
@@ -157,7 +172,8 @@ function freeName(base, taken, max = Infinity) {
 }
 
 /**
- * Each part's `recordRef`, in part order: a spec part's slug is checked
+ * Each part's `recordRef`, in part order, named from its key or else its
+ * title: a spec part's slug is checked
  * against the folder names in `.frame/specs/`, a task part's id
  * (`task-<slug>`) against every id in `tasks.json`, and refs picked earlier
  * in the same start count as taken. A title with no slug falls back to
@@ -167,7 +183,7 @@ function freeName(base, taken, max = Infinity) {
 function allocateRefs(parts, { specSlugs = [], taskIds = [] } = {}, number = 0) {
   const taken = { spec: new Set(specSlugs), task: new Set(taskIds) };
   return arr(parts).map((part, index) => {
-    const slug = slugify(part.title, `brief-${number}-part-${index + 1}`);
+    const slug = partName(part, `brief-${number}-part-${index + 1}`);
     const ref = part.shape === 'spec'
       ? freeName(slug, taken.spec, SLUG_MAX)
       : freeName(`task-${slug}`, taken.task);
@@ -342,7 +358,7 @@ function definitionProblem(part) {
 function branchSuggestions(brief) {
   const byPart = {};
   arr(brief.parts).forEach((part, index) => {
-    byPart[part.id] = suggestBranchName(part.type, part.title, `brief-${brief.number}-part-${index + 1}`);
+    byPart[part.id] = suggestBranchName(part.type, part, `brief-${brief.number}-part-${index + 1}`);
   });
   return byPart;
 }
@@ -546,6 +562,7 @@ async function handleStartRequest(request, deps) {
 
 module.exports = {
   SLUG_MAX,
+  BRANCH_NAME_MAX,
   TASK_TITLE_MAX,
   BRANCH_PREFIXES,
   slugify,

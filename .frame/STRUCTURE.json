@@ -551,38 +551,38 @@
           ]
         },
         "normalizeAttachment": {
-          "line": 102,
+          "line": 103,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 107,
+          "line": 108,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 113,
+          "line": 114,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 123,
+          "line": 124,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 128,
+          "line": 129,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 136,
+          "line": 137,
           "params": [
             "{ api",
             "token",
@@ -594,7 +594,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 144,
+          "line": 145,
           "params": [
             "{ api",
             "token",
@@ -605,7 +605,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 150,
+          "line": 151,
           "params": [
             "{ api",
             "token",
@@ -617,7 +617,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 161,
+          "line": 162,
           "params": [
             "{ api",
             "token",
@@ -628,33 +628,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 168,
+          "line": 169,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 177,
+          "line": 178,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 194,
+          "line": 195,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 207,
+          "line": 208,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 222,
+          "line": 223,
           "params": [
             "{ api",
             "token",
@@ -665,7 +665,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 228,
+          "line": 229,
           "params": [
             "{ api",
             "token",
@@ -678,7 +678,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 244,
+          "line": 245,
           "params": [
             "call",
             "{ input",
@@ -687,7 +687,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 264,
+          "line": 265,
           "params": [
             "{ api",
             "token",
@@ -701,7 +701,7 @@
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
         "decideBrief": {
-          "line": 283,
+          "line": 284,
           "params": [
             "{ api",
             "token",
@@ -713,7 +713,7 @@
           "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
         },
         "decideThrough": {
-          "line": 293,
+          "line": 294,
           "params": [
             "call",
             "{ id",
@@ -722,7 +722,7 @@
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
         "shapeBrief": {
-          "line": 318,
+          "line": 319,
           "params": [
             "{ api",
             "token",
@@ -734,7 +734,7 @@
           "purpose": "`brief.shape` → the brief with its new parts, normalized. Writes every part"
         },
         "startBrief": {
-          "line": 342,
+          "line": 343,
           "params": [
             "{ api",
             "token",
@@ -746,7 +746,7 @@
           "purpose": "`brief.start` → the brief detail, now started, normalized. Sets"
         },
         "startThrough": {
-          "line": 352,
+          "line": 353,
           "params": [
             "call",
             "{ id",
@@ -755,7 +755,7 @@
           "purpose": "Start a brief through `call`. The refusals come back as values, since"
         },
         "discussionFacts": {
-          "line": 372,
+          "line": 373,
           "params": [
             "events",
             "meId"
@@ -763,7 +763,7 @@
           "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
         },
         "addDiscussionCounts": {
-          "line": 393,
+          "line": 394,
           "params": [
             "call",
             "briefs",
@@ -772,21 +772,21 @@
           "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "partSummary": {
-          "line": 405,
+          "line": 406,
           "params": [
             "parts"
           ],
           "purpose": "A brief's parts counted by shape: `{ spec, task }`."
         },
         "partRow": {
-          "line": 414,
+          "line": 415,
           "params": [
             "part"
           ],
           "purpose": "A part as a card draws it: no definition, which only the detail shows."
         },
         "addPartCounts": {
-          "line": 426,
+          "line": 427,
           "params": [
             "call",
             "briefs",
@@ -795,7 +795,7 @@
           "purpose": "The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's"
         },
         "buildBriefWebUrl": {
-          "line": 442,
+          "line": 443,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1859,49 +1859,49 @@
       ],
       "functions": {
         "str": {
-          "line": 54,
+          "line": 72,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 58,
+          "line": 76,
           "params": [
             "value"
           ]
         },
         "hasOwn": {
-          "line": 62,
+          "line": 80,
           "params": [
             "o",
             "key"
           ]
         },
         "newShapeId": {
-          "line": 69,
+          "line": 87,
           "params": [
             "randomBytes = crypto.randomBytes"
           ],
           "purpose": "A fresh shape id: 24 hex characters, safe to show in a shell command."
         },
         "isShapeId": {
-          "line": 73,
+          "line": 91,
           "params": [
             "value"
           ]
         },
         "emptyStore": {
-          "line": 77
+          "line": 95
         },
         "normalizeEntry": {
-          "line": 82,
+          "line": 100,
           "params": [
             "raw"
           ],
           "purpose": "A stored entry, or null when any field is missing or malformed."
         },
         "addShape": {
-          "line": 91,
+          "line": 109,
           "params": [
             "store",
             "{ id",
@@ -1910,7 +1910,7 @@
           "purpose": "The store with one more entry. `entry` is `{ id, folderPath, number, toolId, createdAt }`."
         },
         "getShape": {
-          "line": 99,
+          "line": 117,
           "params": [
             "store",
             "id"
@@ -1918,7 +1918,7 @@
           "purpose": "The entry for an id, or null."
         },
         "pruneShapes": {
-          "line": 106,
+          "line": 124,
           "params": [
             "store",
             "now = Date.now("
@@ -1926,14 +1926,14 @@
           "purpose": "The store without entries older than 90 days, malformed ones or bad ids. Any shape in → a valid store out."
         },
         "promptFileName": {
-          "line": 124,
+          "line": 142,
           "params": [
             "shapeId"
           ],
           "purpose": "The prompt file's name for a shape id."
         },
         "promptInstruction": {
-          "line": 129,
+          "line": 147,
           "params": [
             "promptPath",
             "number"
@@ -1941,7 +1941,7 @@
           "purpose": "The one line a Shape lane receives: read the staged prompt."
         },
         "stalePromptFiles": {
-          "line": 134,
+          "line": 152,
           "params": [
             "names",
             "store"
@@ -1949,21 +1949,21 @@
           "purpose": "Prompt files whose shape is no longer in the store (pruned or unknown). Other names are left alone."
         },
         "badRequest": {
-          "line": 143,
+          "line": 161,
           "params": [
             "field",
             "index"
           ]
         },
         "validateShapeInput": {
-          "line": 154,
+          "line": 173,
           "params": [
             "parts"
           ],
           "purpose": "The parts as FrameCloud's `shapeBriefInputSchema` takes them: at least one;"
         },
         "shapeCommand": {
-          "line": 173,
+          "line": 194,
           "params": [
             "commandPath",
             "shapeId"
@@ -1971,7 +1971,7 @@
           "purpose": "The exact command the agent runs to shape, with the parts as JSON on stdin."
         },
         "buildShapePrompt": {
-          "line": 187,
+          "line": 208,
           "params": [
             "{ brief",
             "events",
@@ -1982,7 +1982,7 @@
           "purpose": "The prompt a Shape lane starts with. Every brief field is fenced and"
         },
         "shapeThrough": {
-          "line": 249,
+          "line": 274,
           "params": [
             "call",
             "{ id",
@@ -1991,7 +1991,7 @@
           "purpose": "Shape a brief through `call`, keeping the server's refusal: `call` reduces"
         },
         "handleShapeRequest": {
-          "line": 270,
+          "line": 295,
           "params": [
             "request",
             "deps"
@@ -1999,7 +1999,7 @@
           "purpose": "A bus request (`{ shapeId, parts }`) → what happened. `deps` is"
         },
         "fieldMessage": {
-          "line": 300,
+          "line": 325,
           "params": [
             "field",
             "index"
@@ -2007,7 +2007,7 @@
           "purpose": "The sentence for a refused part, naming it by its 1-based place in the list."
         },
         "replyMessage": {
-          "line": 313,
+          "line": 339,
           "params": [
             "result"
           ],
@@ -2149,6 +2149,7 @@
       "description": "cloudStart — the pure core of starting a shaped Frame Cloud work brief.",
       "exports": [
         "SLUG_MAX",
+        "BRANCH_NAME_MAX",
         "TASK_TITLE_MAX",
         "BRANCH_PREFIXES",
         "slugify",
@@ -2178,56 +2179,66 @@
       ],
       "functions": {
         "str": {
-          "line": 28,
+          "line": 31,
           "params": [
             "value"
           ]
         },
         "arr": {
-          "line": 32,
+          "line": 35,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 36,
+          "line": 39,
           "params": [
             "value"
           ]
         },
         "slugify": {
-          "line": 48,
+          "line": 53,
           "params": [
             "title",
-            "fallback = ''"
+            "fallback = ''",
+            "max = SLUG_MAX"
           ],
           "purpose": "A title → spec.new's slug: lowercase, `[a-z0-9-]` only, runs of `-`"
         },
+        "partName": {
+          "line": 67,
+          "params": [
+            "part",
+            "fallback",
+            "max = SLUG_MAX"
+          ],
+          "purpose": "A part's name for its spec slug or task id: its key from Shape, else its title's slug."
+        },
         "suggestBranchName": {
-          "line": 62,
+          "line": 77,
           "params": [
             "type",
-            "title",
+            "part",
             "fallback = 'work'"
           ],
-          "purpose": "The branch Start Work suggests: the type's prefix, then the title's slug (`fallback` when the title has none)."
+          "purpose": "The branch Start Work suggests for a part: the type's prefix, then its key"
         },
         "splitSections": {
-          "line": 72,
+          "line": 87,
           "params": [
             "text"
           ],
           "purpose": "A definition split on its `## ` headings, outside code fences."
         },
         "sameHeading": {
-          "line": 97,
+          "line": 112,
           "params": [
             "a",
             "b"
           ]
         },
         "sectionBody": {
-          "line": 102,
+          "line": 117,
           "params": [
             "sections",
             "name"
@@ -2235,21 +2246,21 @@
           "purpose": "The body under `name` (every section of that name, joined); '' when absent."
         },
         "parseSpecDefinition": {
-          "line": 112,
+          "line": 127,
           "params": [
             "text"
           ],
           "purpose": "A spec part's definition, checked: it needs `## Problem` and `## Goal`,"
         },
         "parseTaskDefinition": {
-          "line": 129,
+          "line": 144,
           "params": [
             "text"
           ],
           "purpose": "A task part's definition → the task's fields. `## Description` is required;"
         },
         "freeName": {
-          "line": 150,
+          "line": 165,
           "params": [
             "base",
             "taken",
@@ -2258,17 +2269,17 @@
           "purpose": "`base`, else `base-2`, `base-3`… — the first not in `taken`. A spec slug stays within 48 characters."
         },
         "allocateRefs": {
-          "line": 167,
+          "line": 183,
           "params": [
             "parts",
             "{ specSlugs = []",
             "taskIds = [] } = {}",
             "number = 0"
           ],
-          "purpose": "Each part's `recordRef`, in part order: a spec part's slug is checked"
+          "purpose": "Each part's `recordRef`, in part order, named from its key or else its"
         },
         "specFiles": {
-          "line": 187,
+          "line": 203,
           "params": [
             "{ slug",
             "title",
@@ -2278,14 +2289,14 @@
           "purpose": "A spec part's folder: `spec.md` is the part's title as a heading over the"
         },
         "taskTitle": {
-          "line": 204,
+          "line": 220,
           "params": [
             "title"
           ],
           "purpose": "A title within 60 characters: cut at the last space inside the limit, or hard at 60."
         },
         "taskRow": {
-          "line": 216,
+          "line": 232,
           "params": [
             "{ part",
             "fields",
@@ -2296,20 +2307,20 @@
           "purpose": "A task part's `tasks.json` row, pending. `fields` is parseTaskDefinition's;"
         },
         "startable": {
-          "line": 233,
+          "line": 249,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
         "isNonEmpty": {
-          "line": 245,
+          "line": 261,
           "params": [
             "value"
           ]
         },
         "begunKey": {
-          "line": 249,
+          "line": 265,
           "params": [
             "projectId",
             "number",
@@ -2317,23 +2328,23 @@
           ]
         },
         "normalizeBegunEntry": {
-          "line": 253,
+          "line": 269,
           "params": [
             "raw"
           ]
         },
         "emptyBegun": {
-          "line": 259
+          "line": 275
         },
         "normalizeBegun": {
-          "line": 264,
+          "line": 280,
           "params": [
             "store"
           ],
           "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
         },
         "addBegun": {
-          "line": 274,
+          "line": 290,
           "params": [
             "store",
             "{ projectId",
@@ -2346,7 +2357,7 @@
           "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
         },
         "getBegun": {
-          "line": 282,
+          "line": 298,
           "params": [
             "store",
             "projectId",
@@ -2356,7 +2367,7 @@
           "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
         },
         "withBegunBranches": {
-          "line": 289,
+          "line": 305,
           "params": [
             "briefs",
             "store",
@@ -2365,7 +2376,7 @@
           "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part. Briefs without parts are left as they are."
         },
         "pickBase": {
-          "line": 305,
+          "line": 321,
           "params": [
             "targetBranch",
             "{ local",
@@ -2374,14 +2385,14 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "baseOptions": {
-          "line": 317,
+          "line": 333,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 329,
+          "line": 345,
           "params": [
             "base",
             "deps"
@@ -2389,35 +2400,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 336,
+          "line": 352,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 342,
+          "line": 358,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 351,
+          "line": 367,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 357,
+          "line": 373,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 375,
+          "line": 391,
           "params": [
             "{ brief",
             "currentBranch",
@@ -2429,13 +2440,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 408,
+          "line": 424,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 436,
+          "line": 452,
           "params": [
             "request",
             "deps"
@@ -17747,20 +17758,20 @@
       ],
       "functions": {
         "parseArgs": {
-          "line": 50,
+          "line": 53,
           "params": [
             "argv"
           ],
           "purpose": "argv (after the script) → `{ ok, shapeId }` or `{ ok: false, message }`."
         },
         "str": {
-          "line": 66,
+          "line": 69,
           "params": [
             "value"
           ]
         },
         "partProblem": {
-          "line": 71,
+          "line": 74,
           "params": [
             "part",
             "n"
@@ -17768,7 +17779,7 @@
           "purpose": "The first bad part's sentence, or '' when the part is fine. `n` is its 1-based place."
         },
         "requestFor": {
-          "line": 87,
+          "line": 94,
           "params": [
             "{ shapeId",
             "partsText",
@@ -17777,19 +17788,19 @@
           "purpose": "The shape id + the stdin text → the bus request, or why not. The same"
         },
         "readAll": {
-          "line": 110,
+          "line": 121,
           "params": [
             "stream"
           ]
         },
         "readReply": {
-          "line": 119,
+          "line": 130,
           "params": [
             "file"
           ]
         },
         "run": {
-          "line": 132,
+          "line": 143,
           "params": [
             "{ argv",
             "partsText",
