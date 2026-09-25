@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T08:53:56.466Z",
+  "lastUpdated": "2026-09-25T08:59:26.558Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9475,13 +9475,13 @@
       "title": "Part rows for begun and unbegun parts: `partStatus` reads a local record first, then **On `<branch>`** for a part this machine began elsewhere, then **Not started · Begin** (replacing Not on this branch); Begin opens the dialog for that part; tests in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T15",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start (revision: one part at a time)",
       "createdAt": "2026-09-25T08:02:37.000Z",
-      "updatedAt": "2026-09-25T08:02:37.000Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T08:59:26.558Z",
+      "completedAt": "2026-09-25T08:59:26.558Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T16",

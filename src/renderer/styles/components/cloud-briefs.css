@@ -1348,13 +1348,18 @@ button.cloud-briefs-prow-title:hover {
   color: var(--text-secondary);
 }
 
-.tone-missing .cloud-briefs-prow-dot {
+.tone-elsewhere .cloud-briefs-prow-dot {
   border-style: dashed;
 }
 
-.tone-missing .cloud-briefs-prow-status,
-.tone-missing .cloud-briefs-prow-title {
+.tone-elsewhere .cloud-briefs-prow-status,
+.tone-elsewhere .cloud-briefs-prow-title {
   color: var(--text-tertiary);
+}
+
+.tone-elsewhere .cloud-briefs-prow-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
 .cloud-briefs-prow-action {
@@ -1385,6 +1390,16 @@ button.cloud-briefs-prow-title:hover {
 
 .cloud-briefs-prow-lane {
   border-color: transparent;
+}
+
+/* Begin: the one step a waiting part has, so it reads as the primary one. */
+.cloud-briefs-prow-run.begin {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.cloud-briefs-prow-run.begin:hover {
+  background: var(--accent-subtle);
 }
 
 .cloud-briefs-prows-summary {

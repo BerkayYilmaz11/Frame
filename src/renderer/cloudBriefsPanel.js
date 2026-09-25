@@ -770,22 +770,24 @@ function partFacts(part) {
 }
 
 /**
- * One part of a started brief: its shape, its title (which opens its spec or
- * task), where it stands, and either its live lane or Run.
+ * One part of a started brief, `number` its brief: its shape, its title
+ * (which opens its spec or task when this folder holds it), where it stands,
+ * and either its live lane, Run for its next step, or Begin while it waits on
+ * the brief.
  */
-function renderPartRow(part) {
-  const { status } = partFacts(part);
-  const attrs = `data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}"`;
+function renderPartRow(part, number) {
+  const { record, status } = partFacts(part);
+  const attrs = `data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}" data-number="${number}" data-part-id="${escapeHtml(part.id)}"`;
   const openLabel = part.shape === 'spec' ? copy.OPEN_SPEC_LABEL : copy.OPEN_TASK_LABEL;
-  const title = status.tone === 'missing'
-    ? `<span class="cloud-briefs-prow-title" title="${escapeHtml(part.recordRef)}">${escapeHtml(part.title)}</span>`
-    : `<button type="button" class="cloud-briefs-prow-title" data-action="open-part" ${attrs} title="${escapeHtml(`${openLabel} · ${part.recordRef}`)}" tabindex="-1">${escapeHtml(part.title)}</button>`;
+  const title = record
+    ? `<button type="button" class="cloud-briefs-prow-title" data-action="open-part" ${attrs} title="${escapeHtml(`${openLabel} · ${part.recordRef}`)}" tabindex="-1">${escapeHtml(part.title)}</button>`
+    : `<span class="cloud-briefs-prow-title" title="${escapeHtml(part.recordRef)}">${escapeHtml(part.title)}</span>`;
   const dot = part.shape === 'spec' ? agentDispatch.specStatusDotHtml(part.recordRef) : agentDispatch.taskStatusDotHtml(part.recordRef);
   let action = '';
   if (status.laneName !== null) {
     action = `<button type="button" class="cloud-briefs-prow-lane" data-action="enter-part-lane" ${attrs} tabindex="-1">${dot}<span>${escapeHtml(copy.laneLine(status.laneName))}</span></button>`;
   } else if (status.run) {
-    action = `<button type="button" class="cloud-briefs-prow-run" data-action="run-part" ${attrs} title="${escapeHtml(copy.runHint(status.run))}" tabindex="-1">${escapeHtml(copy.RUN_LABEL)}</button>`;
+    action = `<button type="button" class="cloud-briefs-prow-run${status.run === 'begin' ? ' begin' : ''}" data-action="run-part" data-run="${escapeHtml(status.run)}" ${attrs} title="${escapeHtml(copy.runHint(status.run))}" tabindex="-1">${escapeHtml(copy.runLabel(status.run))}</button>`;
   }
   return `<div class="cloud-briefs-prow tone-${escapeHtml(status.tone)}">
       <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
@@ -799,7 +801,7 @@ function renderPartRow(part) {
 function renderCardParts(brief) {
   const parts = brief.parts.filter((p) => p.recordRef);
   const summary = copy.partsSummary(parts.map((p) => partFacts(p).status));
-  return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p)}</li>`).join('')}</ul>
+  return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p, brief.number)}</li>`).join('')}</ul>
     ${summary ? `<p class="cloud-briefs-prows-summary">${escapeHtml(summary)}</p>` : ''}`;
 }
 
@@ -813,7 +815,7 @@ function renderPartSlots() {
   if (drawerMode !== 'detail' || !detail || !detail.result) return;
   for (const el of detailContentElement.querySelectorAll('[data-part-row]')) {
     const part = detail.result.brief.parts.find((p) => p.id === el.dataset.partRow);
-    if (part) el.innerHTML = renderPartRow(part);
+    if (part) el.innerHTML = renderPartRow(part, detail.result.brief.number);
   }
 }
 
@@ -847,7 +849,12 @@ function onLocalData(projectPath, { specs, tasks }) {
 }
 
 /** Run a part's next step through the path a spec or a task runs by today. */
-function runPart(shape, ref) {
+function runPart({ shape, ref, run, number, partId }) {
+  if (run === 'begin') {
+    const n = Number(number);
+    if (Number.isInteger(n) && partId) openStartDialog(n, partId);
+    return;
+  }
   if (shape === 'spec') {
     const spec = local.specs.get(ref);
     const { status } = partFacts({ shape, recordRef: ref });
@@ -870,7 +877,10 @@ function onPartAction(actionEl) {
   const { action, shape, ref } = actionEl.dataset;
   if (!ref) return false;
   if (action === 'open-part') openPart(shape, ref);
-  else if (action === 'run-part') runPart(shape, ref);
+  else if (action === 'run-part') {
+    const { run, number, partId } = actionEl.dataset;
+    runPart({ shape, ref, run, number, partId });
+  }
   else if (action === 'enter-part-lane') enterPartLane(shape, ref);
   else return false;
   return true;
@@ -887,7 +897,7 @@ function renderTab(tab, brief, events, meId) {
     return `${since ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(since)}</p>` : ''}
       <ol class="cloud-briefs-parts">${brief.parts.map((part) => `
         <li>
-          ${brief.startedAt && part.recordRef ? `<div class="cloud-briefs-prow-slot" data-part-row="${escapeHtml(part.id)}">${renderPartRow(part)}</div>` : `
+          ${brief.startedAt && part.recordRef ? `<div class="cloud-briefs-prow-slot" data-part-row="${escapeHtml(part.id)}">${renderPartRow(part, brief.number)}</div>` : `
           <span class="cloud-briefs-part-head">
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
@@ -1080,9 +1090,14 @@ async function confirmMoveToWork(priority) {
 
 /** Open the Start Work dialog on open, shaped, unstarted work. */
 function startWork(brief) {
-  const number = brief.number;
+  openStartDialog(brief.number, null);
+}
+
+/** The Start Work dialog, or Begin on part `partId` of a started brief. */
+function openStartDialog(number, partId) {
   cloudStartDialog.open({
     number,
+    partId,
     onStarted: (result) => {
       notify.success(copy.startedNotice(result));
       reloadAfterStart(number);
@@ -1096,7 +1111,6 @@ function startWork(brief) {
  * Begin: a lane on the chosen part, through the paths a spec or a task runs
  * by today — `/spec.plan` for a spec, the task run for a task, which then
  * goes in progress. Frame cut the branch already, so the task stays on it.
- * Create only (`begin` null) opens nothing.
  */
 async function openBeginLane(begin) {
   if (!begin) return;

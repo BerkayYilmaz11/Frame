@@ -104,3 +104,11 @@ _Captured: 2026-09-25 · 7 file change(s)_
 
 ---
 
+## T15 — Part rows for begun and unbegun parts
+
+Replaced Not on this branch with On `<branch>` (from the begun store) and Not started · Begin in `partStatus`. Wired Begin to the dialog's Begin mode, and gave the detail's parts `begunBranch` through `cloudBriefsService.get`. Titles link only to records this folder holds. Brief #1 of the first walk was started with the old all-parts flow and has no begun entries, so its rows read Begin away from `feat/eval-harness-…`.
+
+_Captured: 2026-09-25 · 5 file change(s)_
+
+---
+

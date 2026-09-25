@@ -494,10 +494,15 @@ test('partStatus reads a task part by its status', () => {
   assert.deepEqual(at('completed'), { label: 'Done', tone: 'done', run: null, laneName: null });
 });
 
-test('partStatus says Not on this branch for a record the folder does not hold', () => {
-  assert.deepEqual(copy.partStatus({ part: specPart, spec: undefined, task: { status: 'pending' } }),
-    { label: 'Not on this branch', tone: 'missing', laneName: null, run: null });
-  assert.equal(copy.partStatus({ part: taskPart }).tone, 'missing');
+test('partStatus for a part the folder does not hold: On <branch> when this machine began it, else Not started with Begin', () => {
+  assert.deepEqual(copy.partStatus({ part: { ...specPart, begunBranch: 'feat/login' }, task: { status: 'pending' } }),
+    { label: 'On feat/login', tone: 'elsewhere', laneName: null, run: null });
+  assert.deepEqual(copy.partStatus({ part: taskPart }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
+  assert.deepEqual(copy.partStatus({ part: { ...taskPart, begunBranch: null } }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
+});
+
+test('partStatus reads the folder\'s record first, even for a part begun on another branch', () => {
+  assert.equal(copy.partStatus({ part: { ...taskPart, begunBranch: 'fix/typo' }, task: { status: 'in_progress' } }).label, 'In progress');
 });
 
 test('partStatus lets a live lane win, and offers no Run then', () => {
@@ -521,12 +526,14 @@ test('partsSummary counts done, in progress and missing, only with more than one
   assert.equal(copy.partsSummary([s('active')]), '');
   assert.equal(copy.partsSummary([]), '');
   assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 done');
-  assert.equal(copy.partsSummary([s('active'), s('attention'), s('missing'), s('done')]), '1 of 4 done · 2 in progress · 1 not on this branch');
+  assert.equal(copy.partsSummary([s('active'), s('attention'), s('elsewhere'), s('done')]), '1 of 4 done · 2 in progress · 1 on another branch');
+  assert.equal(copy.partsSummary([s('elsewhere'), s('elsewhere'), s('idle')]), '0 of 3 done · 2 on other branches');
 });
 
 test('Run, its hints and the lane line', () => {
-  assert.equal(copy.RUN_LABEL, 'Run');
-  for (const run of ['spec.plan', 'spec.tasks', 'spec.implement', 'task']) assert.match(copy.runHint(run), /\.$/, run);
+  assert.equal(copy.runLabel('task'), 'Run');
+  assert.equal(copy.runLabel('begin'), 'Begin');
+  for (const run of ['spec.plan', 'spec.tasks', 'spec.implement', 'task', 'begin']) assert.match(copy.runHint(run), /\.$/, run);
   assert.equal(copy.runHint(null), '');
   assert.equal(copy.laneLine('Frame 3'), 'in Frame 3');
 });

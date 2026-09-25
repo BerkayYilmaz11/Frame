@@ -583,30 +583,44 @@ function taskState(task) {
 }
 
 /**
- * Where one part of a started brief stands in this folder. `spec` is its
- * `SPEC_DATA` entry and `task` its `tasks.json` row (either absent when the
- * folder does not hold it), `lane` its lane info. A live agent's state wins
- * over the record's, and then the part has no Run: its lane is the way in.
- * → `{ label, tone: 'idle' | 'active' | 'attention' | 'done' | 'missing',
- * laneName, run: 'spec.plan' | 'spec.tasks' | 'spec.implement' | 'task' | null }`.
+ * Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry
+ * and `task` its `tasks.json` row (either absent when this folder does not
+ * hold it), `lane` its lane info, and `part.begunBranch` the branch this
+ * machine began it on. In order: the folder holds its record → the record's
+ * state, where a live agent's wins (and then there is no Run: the lane is the
+ * way in); else this machine began it → "On <branch>"; else it waits on the
+ * brief → Not started, with Begin.
+ * → `{ label, tone: 'idle' | 'active' | 'attention' | 'done' | 'elsewhere',
+ * laneName, run: 'spec.plan' | 'spec.tasks' | 'spec.implement' | 'task' | 'begin' | null }`.
  */
 function partStatus({ part, spec, task, lane } = {}) {
   const p = part || {};
   if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
   const record = p.shape === 'spec' ? spec : task;
-  if (!record) return { label: 'Not on this branch', tone: 'missing', laneName: null, run: null };
+  if (!record) {
+    return p.begunBranch
+      ? { label: `On ${p.begunBranch}`, tone: 'elsewhere', laneName: null, run: null }
+      : { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
+  }
   const own = p.shape === 'spec' ? specState(record) : taskState(record);
   if (own.tone === 'done' || !lane || !lane.agentName) return { ...own, laneName: null };
   return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
 }
 
 const RUN_LABEL = 'Run';
+const BEGIN_LABEL = 'Begin';
 const RUN_HINTS = {
+  begin: 'Give this part its own branch and open it in a lane.',
   'spec.plan': 'Plan this spec in a new lane.',
   'spec.tasks': 'Break this spec\'s plan into tasks in a new lane.',
   'spec.implement': 'Implement this spec\'s tasks.',
   task: 'Run this task in a new lane.',
 };
+
+/** A part row's button: Begin for a part still on the brief, Run for its next step. */
+function runLabel(run) {
+  return run === 'begin' ? BEGIN_LABEL : RUN_LABEL;
+}
 
 /** What Run does for a part, as its tooltip. */
 function runHint(run) {
@@ -620,7 +634,7 @@ function laneLine(laneName) {
 
 /**
  * A started brief's line under its parts, only with more than one:
- * "1 of 3 done · 1 in progress · 1 not on this branch". `statuses` are
+ * "1 of 3 done · 1 in progress · 1 on another branch". `statuses` are
  * partStatus results.
  */
 function partsSummary(statuses) {
@@ -630,8 +644,8 @@ function partsSummary(statuses) {
   const pieces = [`${count('done')} of ${list.length} done`];
   const active = count('active', 'attention');
   if (active > 0) pieces.push(`${active} in progress`);
-  const missing = count('missing');
-  if (missing > 0) pieces.push(`${missing} not on this branch`);
+  const elsewhere = count('elsewhere');
+  if (elsewhere > 0) pieces.push(`${elsewhere} on ${elsewhere === 1 ? 'another branch' : 'other branches'}`);
   return pieces.join(' · ');
 }
 
@@ -759,6 +773,8 @@ module.exports = {
   partNotHereMessage,
   partStatus,
   RUN_LABEL,
+  BEGIN_LABEL,
+  runLabel,
   runHint,
   laneLine,
   partsSummary,

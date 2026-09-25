@@ -81,7 +81,8 @@ async function get(folderPath, number) {
   if (!events.ok) return { ok: false, reason: events.reason };
   return {
     ok: true,
-    brief: brief.value,
+    // Each part's branch when this machine began it (frame-cloud-brief-start T15).
+    brief: cloudStartService.withBegunBranches([brief.value], project.id)[0],
     events: events.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project, number)),
