@@ -388,3 +388,54 @@ Files: `src/main/cloud/cloudBriefs.js`, `test/cloudBriefs.test.js`,
 `test/cloudBriefsCopy.test.js`, `src/renderer/cloudBriefsPanel.js`,
 `src/renderer/agentDispatch.js` (`enterLane`),
 `src/renderer/styles/components/cloud-briefs.css`.
+
+## Revision — one part at a time (2026-09-25)
+
+Overturns the plan's "every part is written on one branch" and the spec's
+**Create only**, decided with the user after the first walk. Writing every
+part onto the branch cut for the chosen one made the brief a single branch
+while the flow treated each part as its own unit: the branch was named for
+one part but held all of them, the other parts were stuck (uncommitted) on
+it, starting the next part meant working on the wrong branch or carrying
+untracked folders across a switch, and "Not on this branch" became the
+normal state. Create only was that problem in its purest form.
+
+- **Start Work begins one part.** The dialog picks the part to begin (no
+  choice when there is one), cuts its branch from `targetBranch`, writes
+  **only that part**, and opens its lane. Create only is gone. Orchestrate
+  stays disabled, "Coming soon", and shows only when there is more than one
+  part — running parts side by side (a worktree each) is its job.
+- **The other parts stay in the cloud.** `brief.start` still carries every
+  part's `recordRef` (the server requires all of them): the refs are
+  reserved at start, and the files are written when each part is begun.
+  Their definitions are read from the cloud at that moment.
+- **Begin, on a started brief.** A part not begun yet reads **Not started ·
+  Begin** on the card and in the Parts tab. Begin opens the same dialog for
+  that part alone: branch field (its suggestion), base line, dirty warning.
+  It cuts a new branch from `targetBranch`, writes that part under its
+  reserved ref, and opens its lane. No cloud write: the brief is already
+  started. Each part gets its own branch, and so its own PR.
+- **Only the part being begun must parse.** Its definition is checked
+  before anything is written; another part's is checked when it is begun.
+  Prepare reports every part's problem so the dialog can disable that
+  choice.
+- **Begun parts are recorded on this machine** (asked: machine-local over a
+  FrameCloud field, which would read oddly once teams share briefs). main
+  keeps `<userData>/cloud-starts.json`: per cloud project, brief number and
+  part id, the `ref`, the `branch` and `begunAt`. Known limit: another
+  machine does not know, and may begin the same part again.
+- **A part row reads, in order:** the folder holds its record → its local
+  status and lane (as T11); else this machine began it → **On `<branch>`**,
+  no action (no branch switching from the card); else **Not started ·
+  Begin**. "Not on this branch" goes away.
+- **No automatic commit.** Asked: the part's lane commits its own work, and a
+  folder left dirty is caught by the next Begin's dirty warning.
+- **`partial` keeps its meaning** for the first start (the brief is started in
+  the cloud, the local steps failed). A failed Begin never touched the
+  cloud: its failure after the branch was cut is reported with the step and
+  the missing ref, and nothing is recorded as begun.
+
+Files added to the plan: `src/main/cloud/cloudStart.js` (the begun store and
+Begin mode), `src/main/cloud/cloudStartService.js` (the store file),
+`src/main/cloud/cloudBriefsService.js` (each listed part's `begunBranch`),
+`test/cloudStart.test.js`, and the renderer files T07–T11 touched.
