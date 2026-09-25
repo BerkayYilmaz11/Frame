@@ -8,11 +8,13 @@
  * effects into the core's handler for the start itself (`CLOUD_BRIEF_START`):
  * git through gitBranchesManager, spec folders through fsSafe under
  * frameStore's spec path, and task rows through tasksManager in one round.
- * The token and every write stay in main.
+ * It also keeps `<userData>/cloud-starts.json`, the parts this machine began
+ * and on which branch. The token and every write stay in main.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { app } = require('electron');
 const { IPC } = require('../../shared/ipcChannels');
 const { isValidBranchName } = require('../../shared/gitRefNames');
 const fsSafe = require('../fsSafe');
@@ -24,7 +26,41 @@ const cloudProjectsService = require('./cloudProjectsService');
 const { getBrief } = require('./cloudBriefs');
 const core = require('./cloudStart');
 
+const BEGUN_FILE = 'cloud-starts.json';
+
 let mainWindow = null;
+let begunStore = null; // loaded on first use
+
+// ─── Begun parts ──────────────────────────────────────────────
+
+function begunPath() {
+  return path.join(app.getPath('userData'), BEGUN_FILE);
+}
+
+/** The parts this machine began (`<userData>/cloud-starts.json`), read once. */
+function begun() {
+  if (!begunStore) {
+    const { data, error } = fsSafe.readJsonWithRecovery(begunPath());
+    if (error) logger.warn('cloudStart', `could not read ${begunPath()}`);
+    begunStore = core.normalizeBegun(data || core.emptyBegun());
+  }
+  return begunStore;
+}
+
+/** Record a part as begun on `branch`. A failed save is logged: the part is begun either way. */
+function recordBegun(entry) {
+  begunStore = core.addBegun(begun(), entry);
+  try {
+    fsSafe.writeFileAtomic(begunPath(), JSON.stringify(begunStore, null, 2));
+  } catch (err) {
+    logger.warn('cloudStart', `could not save ${BEGUN_FILE}: ${err.message}`);
+  }
+}
+
+/** The listed briefs with each part's `begunBranch`, for the folder's cloud project. */
+function withBegunBranches(briefs, projectId) {
+  return core.withBegunBranches(briefs, begun(), projectId);
+}
 
 /** The spec folder names in `.frame/specs/`. */
 function specSlugs(folderPath) {
@@ -159,4 +195,6 @@ module.exports = {
   setupIPC,
   prepare,
   start,
+  recordBegun,
+  withBegunBranches,
 };

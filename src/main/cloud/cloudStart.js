@@ -235,6 +235,70 @@ function startable(brief) {
   return b.kind === 'work' && b.status !== 'closed' && Boolean(b.shapedAt) && !b.startedAt;
 }
 
+// ─── Begun parts ──────────────────────────────────────────────
+//
+// Which parts this machine began, and on which branch. A started brief's
+// other parts stay in the cloud until each is begun, and the cloud knows
+// nothing per part, so this store is what tells "not started" from "begun on
+// another branch". Machine-local on purpose: another machine does not know.
+
+function isNonEmpty(value) {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function begunKey(projectId, number, partId) {
+  return `${projectId}:${number}:${partId}`;
+}
+
+function normalizeBegunEntry(raw) {
+  const e = obj(raw);
+  if (!isNonEmpty(e.ref) || !isNonEmpty(e.branch) || !isNonEmpty(e.begunAt)) return null;
+  return { ref: e.ref, branch: e.branch, begunAt: e.begunAt };
+}
+
+function emptyBegun() {
+  return { version: 1, begun: {} };
+}
+
+/** Any shape in → a valid store out: malformed entries and keys are dropped. */
+function normalizeBegun(store) {
+  const out = emptyBegun();
+  for (const [key, raw] of Object.entries(obj(obj(store).begun))) {
+    const entry = /^[^:]+:\d+:[^:]+$/.test(key) ? normalizeBegunEntry(raw) : null;
+    if (entry) out.begun[key] = entry;
+  }
+  return out;
+}
+
+/** The store with one part recorded as begun (a later Begin of the same part replaces it). */
+function addBegun(store, { projectId, number, partId, ref, branch, begunAt }) {
+  const base = normalizeBegun(store);
+  const entry = normalizeBegunEntry({ ref, branch, begunAt });
+  if (!isNonEmpty(projectId) || !Number.isInteger(number) || !isNonEmpty(partId) || !entry) return base;
+  return { version: 1, begun: { ...base.begun, [begunKey(projectId, number, partId)]: entry } };
+}
+
+/** `{ ref, branch, begunAt }` for a part this machine began, or null. */
+function getBegun(store, projectId, number, partId) {
+  const begun = obj(obj(store).begun);
+  const key = begunKey(projectId, number, partId);
+  return Object.prototype.hasOwnProperty.call(begun, key) ? normalizeBegunEntry(begun[key]) : null;
+}
+
+/** The briefs with `begunBranch` (a branch, or null) on each listed part. Briefs without parts are left as they are. */
+function withBegunBranches(briefs, store, projectId) {
+  return arr(briefs).map((brief) => {
+    if (!Array.isArray(brief.parts)) return brief;
+    return {
+      ...brief,
+      parts: brief.parts.map((part) => {
+        const entry = getBegun(store, projectId, brief.number, part.id);
+        return { ...part, begunBranch: entry ? entry.branch : null };
+      }),
+    };
+  });
+}
+
 // ─── The dialog and the start ─────────────────────────────────
 
 /** What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null. */
@@ -424,6 +488,11 @@ module.exports = {
   taskTitle,
   taskRow,
   startable,
+  emptyBegun,
+  normalizeBegun,
+  addBegun,
+  getBegun,
+  withBegunBranches,
   pickBase,
   prepareView,
   handleStartRequest,

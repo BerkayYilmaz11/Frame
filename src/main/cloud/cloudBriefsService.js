@@ -20,6 +20,7 @@ const { IPC } = require('../../shared/ipcChannels');
 const cloudSession = require('./cloudSession');
 const cloudProjectsService = require('./cloudProjectsService');
 const core = require('./cloudBriefs');
+const cloudStartService = require('./cloudStartService');
 
 const NOT_CONNECTED = { ok: false, reason: 'notConnected' };
 
@@ -56,10 +57,12 @@ async function list(folderPath, { includeClosed } = {}) {
   const discussed = await core.addDiscussionCounts(call, briefs.value, meId());
   // Open shaped work's parts by shape, one `brief.getByNumber` each (frame-cloud-brief-shape T11).
   const counted = await core.addPartCounts(call, discussed, project.slug);
+  // Each part's branch when this machine began it (frame-cloud-brief-start T12).
+  const begun = cloudStartService.withBegunBranches(counted, project.id);
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },
-    briefs: counted,
+    briefs: begun,
     milestones: milestones.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project)),

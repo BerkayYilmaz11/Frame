@@ -412,3 +412,48 @@ test('a failure after brief.start is partial, naming what was and was not writte
     assert.equal(starts().length, 1);
   }
 });
+
+// ─── Begun parts ──────────────────────────────────────────────
+
+const BEGUN = { projectId: 'proj1', number: 3, partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW };
+
+test('addBegun records a part under its project, brief and part, and getBegun reads it back', () => {
+  const store = start.addBegun(start.emptyBegun(), BEGUN);
+  assert.deepEqual(start.getBegun(store, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW });
+  assert.equal(start.getBegun(store, 'proj1', 3, 'p2'), null);
+  assert.equal(start.getBegun(store, 'proj2', 3, 'p1'), null);
+  assert.equal(start.getBegun(store, 'proj1', 4, 'p1'), null);
+});
+
+test('addBegun replaces a part begun again, and ignores a malformed entry', () => {
+  const once = start.addBegun(start.emptyBegun(), BEGUN);
+  const again = start.addBegun(once, { ...BEGUN, branch: 'feat/other' });
+  assert.equal(start.getBegun(again, 'proj1', 3, 'p1').branch, 'feat/other');
+  assert.deepEqual(once, start.addBegun(once, { ...BEGUN, partId: 'p2', branch: '' }));
+  assert.deepEqual(once, start.addBegun(once, { ...BEGUN, partId: 'p2', number: '3' }));
+});
+
+test('normalizeBegun turns any shape into a valid store', () => {
+  assert.deepEqual(start.normalizeBegun(null), { version: 1, begun: {} });
+  assert.deepEqual(start.normalizeBegun({ begun: [] }), { version: 1, begun: {} });
+  const kept = start.normalizeBegun({ begun: {
+    'proj1:3:p1': { ref: 'a', branch: 'feat/a', begunAt: NOW, extra: 1 },
+    'proj1:3:p2': { ref: 'b', branch: '' },
+    'bad-key': { ref: 'c', branch: 'feat/c', begunAt: NOW },
+  } });
+  assert.deepEqual(kept, { version: 1, begun: { 'proj1:3:p1': { ref: 'a', branch: 'feat/a', begunAt: NOW } } });
+});
+
+test('withBegunBranches marks each listed part with the branch this machine began it on', () => {
+  const store = start.addBegun(start.emptyBegun(), BEGUN);
+  const briefs = [
+    { number: 3, parts: [{ id: 'p1', recordRef: 'login-flow' }, { id: 'p2', recordRef: 'task-fix-typo' }] },
+    { number: 4, parts: null },
+    { number: 5 },
+  ];
+  const out = start.withBegunBranches(briefs, store, 'proj1');
+  assert.deepEqual(out[0].parts.map((p) => p.begunBranch), ['feat/login-flow', null]);
+  assert.equal(out[1].parts, null);
+  assert.equal('parts' in out[2], false);
+  assert.equal(briefs[0].parts[0].begunBranch, undefined);
+});

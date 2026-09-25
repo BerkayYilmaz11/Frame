@@ -80,3 +80,11 @@ _Captured: 2026-09-25 · 7 file change(s)_
 
 ---
 
+## T12 — Record begun parts on this machine
+
+Added the begun store to `cloudStart.js`, its `<userData>/cloud-starts.json` file to `cloudStartService.js` (`recordBegun`, `withBegunBranches`), and `begunBranch` on each listed part in `cloudBriefsService.list`. Keys are `<projectId>:<number>:<partId>`, and malformed entries are dropped on read. Nothing records a begun part yet: T13 calls `recordBegun`.
+
+_Captured: 2026-09-25 · 4 file change(s)_
+
+---
+

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T08:02:37.000Z",
+  "lastUpdated": "2026-09-25T08:04:45.851Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9436,13 +9436,13 @@
       "title": "Record begun parts on this machine: a pure begun store in `cloudStart.js` (add, lookup by project, brief and part) kept by `cloudStartService.js` in `<userData>/cloud-starts.json`, and each listed part's `begunBranch` added in `cloudBriefsService.list`; tests in `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T12",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start (revision: one part at a time)",
       "createdAt": "2026-09-25T08:02:37.000Z",
-      "updatedAt": "2026-09-25T08:02:37.000Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T08:04:45.851Z",
+      "completedAt": "2026-09-25T08:04:45.851Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T13",

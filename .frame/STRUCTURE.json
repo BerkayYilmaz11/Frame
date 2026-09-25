@@ -822,22 +822,23 @@
         "../shared/ipcChannels",
         "cloudSession",
         "cloudProjectsService",
-        "cloudBriefs"
+        "cloudBriefs",
+        "cloudStartService"
       ],
       "functions": {
         "meId": {
-          "line": 27,
+          "line": 28,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "webUrl": {
-          "line": 32,
+          "line": 33,
           "params": [
             "project",
             "number"
           ]
         },
         "list": {
-          "line": 45,
+          "line": 46,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -845,7 +846,7 @@
           "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "get": {
-          "line": 70,
+          "line": 73,
           "params": [
             "folderPath",
             "number"
@@ -853,7 +854,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 94,
+          "line": 97,
           "params": [
             "folderPath",
             "request"
@@ -861,7 +862,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 111,
+          "line": 114,
           "params": [
             "folderPath",
             "number",
@@ -870,7 +871,7 @@
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
         "openOnWeb": {
-          "line": 122,
+          "line": 125,
           "params": [
             "folderPath",
             "number"
@@ -878,7 +879,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 131,
+          "line": 134,
           "params": [
             "ipcMain"
           ]
@@ -2159,6 +2160,11 @@
         "taskTitle",
         "taskRow",
         "startable",
+        "emptyBegun",
+        "normalizeBegun",
+        "addBegun",
+        "getBegun",
+        "withBegunBranches",
         "pickBase",
         "prepareView",
         "handleStartRequest"
@@ -2293,8 +2299,70 @@
           ],
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
+        "isNonEmpty": {
+          "line": 245,
+          "params": [
+            "value"
+          ]
+        },
+        "begunKey": {
+          "line": 249,
+          "params": [
+            "projectId",
+            "number",
+            "partId"
+          ]
+        },
+        "normalizeBegunEntry": {
+          "line": 253,
+          "params": [
+            "raw"
+          ]
+        },
+        "emptyBegun": {
+          "line": 259
+        },
+        "normalizeBegun": {
+          "line": 264,
+          "params": [
+            "store"
+          ],
+          "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
+        },
+        "addBegun": {
+          "line": 274,
+          "params": [
+            "store",
+            "{ projectId",
+            "number",
+            "partId",
+            "ref",
+            "branch",
+            "begunAt }"
+          ],
+          "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
+        },
+        "getBegun": {
+          "line": 282,
+          "params": [
+            "store",
+            "projectId",
+            "number",
+            "partId"
+          ],
+          "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
+        },
+        "withBegunBranches": {
+          "line": 289,
+          "params": [
+            "briefs",
+            "store",
+            "projectId"
+          ],
+          "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part. Briefs without parts are left as they are."
+        },
         "pickBase": {
-          "line": 241,
+          "line": 305,
           "params": [
             "targetBranch",
             "{ local",
@@ -2303,21 +2371,21 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "definitionProblems": {
-          "line": 249,
+          "line": 313,
           "params": [
             "parts"
           ],
           "purpose": "Every part whose definition does not parse. → `[{ partId, title, reason }]`."
         },
         "branchSuggestions": {
-          "line": 257,
+          "line": 321,
           "params": [
             "brief"
           ],
           "purpose": "The branch each choice suggests: Create only from the brief's title and the first part's type, Begin from the part's."
         },
         "prepareView": {
-          "line": 272,
+          "line": 336,
           "params": [
             "{ brief",
             "currentBranch",
@@ -2327,13 +2395,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 289,
+          "line": 353,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 309,
+          "line": 373,
           "params": [
             "request",
             "deps"
@@ -2349,11 +2417,14 @@
         "init",
         "setupIPC",
         "prepare",
-        "start"
+        "start",
+        "recordBegun",
+        "withBegunBranches"
       ],
       "depends": [
         "fs",
         "path",
+        "electron",
         "../shared/ipcChannels",
         "../shared/gitRefNames",
         "fsSafe",
@@ -2366,29 +2437,51 @@
         "cloudStart"
       ],
       "functions": {
+        "begunPath": {
+          "line": 36
+        },
+        "begun": {
+          "line": 41,
+          "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
+        },
+        "recordBegun": {
+          "line": 51,
+          "params": [
+            "entry"
+          ],
+          "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
+        },
+        "withBegunBranches": {
+          "line": 61,
+          "params": [
+            "briefs",
+            "projectId"
+          ],
+          "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud project."
+        },
         "specSlugs": {
-          "line": 30,
+          "line": 66,
           "params": [
             "folderPath"
           ],
           "purpose": "The spec folder names in `.frame/specs/`."
         },
         "taskIds": {
-          "line": 41,
+          "line": 77,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "changeCount": {
-          "line": 47,
+          "line": 83,
           "params": [
             "folderPath"
           ],
           "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
         },
         "writeSpec": {
-          "line": 54,
+          "line": 90,
           "params": [
             "folderPath",
             "slug",
@@ -2397,7 +2490,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 64,
+          "line": 100,
           "params": [
             "folderPath",
             "rows"
@@ -2405,14 +2498,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 80,
+          "line": 116,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 88,
+          "line": 124,
           "params": [
             "folderPath",
             "number"
@@ -2420,7 +2513,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 115,
+          "line": 151,
           "params": [
             "folderPath",
             "request"
@@ -2428,13 +2521,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 148,
+          "line": 184,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 152,
+          "line": 188,
           "params": [
             "ipcMain"
           ]
