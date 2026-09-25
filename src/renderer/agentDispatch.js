@@ -844,6 +844,29 @@ function enterBriefLane(number) {
 }
 
 /**
+ * Open a spec in the Specs grid's drawer, the way the top bar's spec chip
+ * does (multiTerminalUI.enterSpecDrawer). → false when the terminal system
+ * is not ready.
+ */
+function showSpec(slug) {
+  if (!multiTerminalUI || !slug) return false;
+  multiTerminalUI.showSpecsGrid(); // mounts the grid synchronously
+  require('./specsDashboard').openSpec(slug, { instant: true });
+  return true;
+}
+
+/**
+ * Open a task in the Tasks board's drawer, the way the top bar's task chip
+ * does (multiTerminalUI.enterTaskDrawer). → false when the task is not in
+ * this folder's tasks (or the terminal system is not ready).
+ */
+function showTask(id) {
+  if (!multiTerminalUI || !id) return false;
+  multiTerminalUI.showTasksBoard(); // mounts the board synchronously
+  return require('./tasksDashboard').openTask(id, { instant: true });
+}
+
+/**
  * Activity dot for spec/task rows and detail headers: pulsing while the
  * assigned lane's agent works (fast red pulse on approval), steady while
  * it waits at the input box; empty string when no live agent is on it.
@@ -1071,6 +1094,8 @@ module.exports = {
   getTaskLaneInfo,
   getBriefLaneInfo,
   enterBriefLane,
+  showSpec,
+  showTask,
   onSpecLaneActivity,
   onTaskLaneActivity,
   onBriefLaneActivity,

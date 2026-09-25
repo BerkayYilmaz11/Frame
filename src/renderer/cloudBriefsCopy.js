@@ -542,6 +542,11 @@ function startedNotice({ number, specs, tasks, branch, stashMessage } = {}) {
 const OPEN_SPEC_LABEL = 'Open spec';
 const OPEN_TASK_LABEL = 'Open task';
 
+/** A part link whose task this folder does not hold. */
+function partNotHereMessage(ref) {
+  return `${ref} is not in this folder's tasks. It may be on another branch or machine.`;
+}
+
 // ─── New brief ────────────────────────────────────────────────
 
 const NEW_BRIEF_TITLE = 'New brief';
@@ -652,6 +657,7 @@ module.exports = {
   startedNotice,
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
+  partNotHereMessage,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

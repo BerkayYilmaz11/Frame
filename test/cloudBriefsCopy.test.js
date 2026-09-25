@@ -462,3 +462,9 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.startSubmitLabel(true), 'Starting…');
   assert.match(copy.baseMissingLine(''), /no target branch/);
 });
+
+test('the part link words', () => {
+  assert.equal(copy.OPEN_SPEC_LABEL, 'Open spec');
+  assert.equal(copy.OPEN_TASK_LABEL, 'Open task');
+  assert.equal(copy.partNotHereMessage('task-fix-typo'), 'task-fix-typo is not in this folder\'s tasks. It may be on another branch or machine.');
+});

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:29:36.822Z",
+  "lastUpdated": "2026-09-25T07:31:06.630Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9397,13 +9397,13 @@
       "title": "Link part rows to their records: add `showSpec(slug)` and `showTask(id)` to `src/renderer/agentDispatch.js` (mirroring `enterSpecDrawer`/`enterTaskDrawer`), and give each part with a `recordRef` in the Parts tab a link that opens its spec or task",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:31:06.630Z",
+      "completedAt": "2026-09-25T07:31:06.630Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T10",

@@ -64,3 +64,11 @@ _Captured: 2026-09-25 · 2 file change(s)_
 
 ---
 
+## T09 — Link part rows to their records
+
+Added `showSpec` and `showTask` to `agentDispatch.js`. The Parts tab's plain-text `recordRef` from T01 is now a link that opens the spec in the Specs grid or the task on the Tasks board. Beyond plan: a task link whose id this folder does not hold shows a toast (`partNotHereMessage` in `cloudBriefsCopy.js`, tested). A missing spec opens the grid's empty drawer as `specsDashboard` does today.
+
+_Captured: 2026-09-25 · 5 file change(s)_
+
+---
+

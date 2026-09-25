@@ -654,12 +654,24 @@ function onDetailClick(event) {
     if (detail && detail.result) startWork(detail.result.brief);
   } else if (action === 'move-to-work') {
     if (detail && detail.result) openMoveToWork(detail.result.brief);
+  } else if (action === 'open-part') {
+    openPart(actionEl.dataset.shape, actionEl.dataset.ref);
   } else if (action === 'go-to-brief-lane') {
     if (detail) agentDispatch.enterBriefLane(detail.number);
   } else if (action === 'link') {
     event.preventDefault();
     const url = actionEl.dataset.url || '';
     if (isWebUrl(url)) shell.openExternal(url);
+  }
+}
+
+/** Open a started part's spec or task; a task this folder does not hold (another branch, another machine) says so. */
+function openPart(shape, ref) {
+  if (!ref) return;
+  if (shape === 'spec') {
+    agentDispatch.showSpec(ref);
+  } else if (!agentDispatch.showTask(ref)) {
+    notify.info(copy.partNotHereMessage(ref));
   }
 }
 
@@ -726,6 +738,12 @@ function renderMeta(brief, events, meId) {
     </dl>`;
 }
 
+/** A started part's spec slug or task id, as a link that opens it in the Specs or Tasks view. */
+function partLink(part) {
+  const label = part.shape === 'spec' ? copy.OPEN_SPEC_LABEL : copy.OPEN_TASK_LABEL;
+  return `<button type="button" class="cloud-briefs-part-link" data-action="open-part" data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}" title="${escapeHtml(label)}" tabindex="-1">${escapeHtml(part.recordRef)}</button>`;
+}
+
 function renderTab(tab, brief, events, meId) {
   if (tab === 'parts') {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
@@ -738,7 +756,7 @@ function renderTab(tab, brief, events, meId) {
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.type)}</span>
-            ${part.recordRef ? `<span class="cloud-briefs-muted cloud-briefs-part-ref">${escapeHtml(part.recordRef)}</span>` : ''}
+            ${part.recordRef ? partLink(part) : ''}
           </span>
           ${part.definition ? `<details class="cloud-briefs-part-definition">
             <summary>${escapeHtml(copy.PART_DEFINITION_LABEL)}</summary>
