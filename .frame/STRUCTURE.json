@@ -2151,26 +2151,36 @@
         "specFiles",
         "taskTitle",
         "taskRow",
-        "startable"
+        "startable",
+        "pickBase",
+        "prepareView",
+        "handleStartRequest"
       ],
       "depends": [
-        "cloudProjects"
+        "cloudProjects",
+        "cloudBriefs"
       ],
       "functions": {
         "str": {
-          "line": 27,
+          "line": 28,
           "params": [
             "value"
           ]
         },
         "arr": {
-          "line": 31,
+          "line": 32,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 36,
           "params": [
             "value"
           ]
         },
         "slugify": {
-          "line": 43,
+          "line": 48,
           "params": [
             "title",
             "fallback = ''"
@@ -2178,7 +2188,7 @@
           "purpose": "A title → spec.new's slug: lowercase, `[a-z0-9-]` only, runs of `-`"
         },
         "suggestBranchName": {
-          "line": 57,
+          "line": 62,
           "params": [
             "type",
             "title",
@@ -2187,21 +2197,21 @@
           "purpose": "The branch Start Work suggests: the type's prefix, then the title's slug (`fallback` when the title has none)."
         },
         "splitSections": {
-          "line": 67,
+          "line": 72,
           "params": [
             "text"
           ],
           "purpose": "A definition split on its `## ` headings, outside code fences."
         },
         "sameHeading": {
-          "line": 92,
+          "line": 97,
           "params": [
             "a",
             "b"
           ]
         },
         "sectionBody": {
-          "line": 97,
+          "line": 102,
           "params": [
             "sections",
             "name"
@@ -2209,21 +2219,21 @@
           "purpose": "The body under `name` (every section of that name, joined); '' when absent."
         },
         "parseSpecDefinition": {
-          "line": 107,
+          "line": 112,
           "params": [
             "text"
           ],
           "purpose": "A spec part's definition, checked: it needs `## Problem` and `## Goal`,"
         },
         "parseTaskDefinition": {
-          "line": 124,
+          "line": 129,
           "params": [
             "text"
           ],
           "purpose": "A task part's definition → the task's fields. `## Description` is required;"
         },
         "freeName": {
-          "line": 145,
+          "line": 150,
           "params": [
             "base",
             "taken",
@@ -2232,7 +2242,7 @@
           "purpose": "`base`, else `base-2`, `base-3`… — the first not in `taken`. A spec slug stays within 48 characters."
         },
         "allocateRefs": {
-          "line": 162,
+          "line": 167,
           "params": [
             "parts",
             "{ specSlugs = []",
@@ -2242,7 +2252,7 @@
           "purpose": "Each part's `recordRef`, in part order: a spec part's slug is checked"
         },
         "specFiles": {
-          "line": 182,
+          "line": 187,
           "params": [
             "{ slug",
             "title",
@@ -2252,14 +2262,14 @@
           "purpose": "A spec part's folder: `spec.md` is the part's title as a heading over the"
         },
         "taskTitle": {
-          "line": 199,
+          "line": 204,
           "params": [
             "title"
           ],
           "purpose": "A title within 60 characters: cut at the last space inside the limit, or hard at 60."
         },
         "taskRow": {
-          "line": 211,
+          "line": 216,
           "params": [
             "{ part",
             "fields",
@@ -2270,11 +2280,58 @@
           "purpose": "A task part's `tasks.json` row, pending. `fields` is parseTaskDefinition's;"
         },
         "startable": {
-          "line": 228,
+          "line": 233,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
+        },
+        "pickBase": {
+          "line": 241,
+          "params": [
+            "targetBranch",
+            "{ local",
+            "remote }"
+          ],
+          "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
+        },
+        "definitionProblems": {
+          "line": 249,
+          "params": [
+            "parts"
+          ],
+          "purpose": "Every part whose definition does not parse. → `[{ partId, title, reason }]`."
+        },
+        "branchSuggestions": {
+          "line": 257,
+          "params": [
+            "brief"
+          ],
+          "purpose": "The branch each choice suggests: Create only from the brief's title and the first part's type, Begin from the part's."
+        },
+        "prepareView": {
+          "line": 272,
+          "params": [
+            "{ brief",
+            "currentBranch",
+            "changeCount",
+            "base }"
+          ],
+          "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
+        },
+        "errorText": {
+          "line": 289,
+          "params": [
+            "err"
+          ]
+        },
+        "handleStartRequest": {
+          "line": 309,
+          "params": [
+            "request",
+            "deps"
+          ],
+          "purpose": "A Start Work request (`{ number, beginPartId | null, branch, stash }`) →"
         }
       }
     },

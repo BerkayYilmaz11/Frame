@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T07:19:15.078Z",
+  "lastUpdated": "2026-09-25T07:21:23.788Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9319,13 +9319,13 @@
       "title": "Add `prepareView` and `handleStartRequest(request, deps)` to `cloudStart.js`: run every local check (startable, definitions, allocation, branch name with the suggestion fallback, branch free, base local or `origin/<target>`, dirty with consent) before one `startThrough`, then stash, branch (`track: false` for a remote base), specs and tasks; return the ok, refusal or `partial` shapes; test each path with fakes in `test/cloudStart.test.js`, including that the refs sent equal the refs written",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T07:21:23.788Z",
+      "completedAt": "2026-09-25T07:21:23.788Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T04",

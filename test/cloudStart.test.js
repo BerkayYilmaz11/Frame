@@ -199,3 +199,216 @@ test('startable is open, shaped, unstarted work only', () => {
   assert.equal(start.startable({ ...base, kind: 'proposal' }), false);
   assert.equal(start.startable(null), false);
 });
+
+// ─── The dialog and the start ─────────────────────────────────
+
+const { classifyLinkError } = require('../src/main/cloud/cloudProjects');
+
+const API = 'http://cloud.test';
+const SHAPED_AT = '2026-09-20T10:00:00.000Z';
+const TASK_DEF = '## Description\nFix the typo.\n\n## Acceptance Criteria\n- Spelled right.';
+
+const DETAIL = {
+  id: 'b1', number: 3, kind: 'work', title: 'Better login', priority: 'high', targetBranch: 'main',
+  status: 'backlog', shapedAt: SHAPED_AT, startedAt: null,
+  parts: [
+    { id: 'p1', position: 0, title: 'Login flow', shape: 'spec', type: 'feature', definition: SPEC_DEF },
+    { id: 'p2', position: 1, title: 'Fix typo', shape: 'task', type: 'fix', definition: TASK_DEF },
+  ],
+};
+
+const ok = (data) => ({ status: 200, body: { result: { data } } });
+const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+
+/**
+ * Fakes for every dep, recording each effect in `log`. `answers` overrides
+ * the cloud (`get`, `start`), the folder (`specSlugs`, `taskIds`, `local`,
+ * `remote`, `changeCount`) and failures (`fail: 'stash' | 'branch' | 'spec' | 'tasks'`).
+ */
+function fakes(answers = {}) {
+  const log = [];
+  const sent = [];
+  const fetchJson = async (url, opts = {}) => {
+    const name = url.slice(`${API}/trpc/`.length).split('?')[0];
+    sent.push({ name, body: opts.body });
+    if (name === 'brief.getByNumber') return answers.get || ok(DETAIL);
+    if (name === 'brief.start') return answers.start || ok({ ...DETAIL, startedAt: '2026-09-25T10:00:00.000Z' });
+    throw new Error(`unexpected ${name}`);
+  };
+  const call = async (fn) => {
+    try {
+      return { ok: true, value: await fn({ api: API, token: 't0k', fetchJson }) };
+    } catch (err) {
+      return { ok: false, reason: classifyLinkError(err) };
+    }
+  };
+  const local = new Set(answers.local || ['main']);
+  const failing = (step) => {
+    if (answers.fail === step) throw new Error(`${step} broke`);
+  };
+  const deps = {
+    call,
+    projectSlug: 'my-app',
+    specSlugs: async () => answers.specSlugs || [],
+    taskIds: async () => answers.taskIds || [],
+    currentBranch: async () => 'feat/other',
+    changeCount: async () => answers.changeCount || 0,
+    isValidBranchName: (name) => /^[a-z0-9/_-]+$/.test(name),
+    localBranchExists: async (name) => local.has(name),
+    remoteBranchExists: async (name) => (answers.remote || []).includes(name),
+    stash: async (message) => { failing('stash'); log.push(['stash', message]); },
+    createBranch: async (name, base, opts) => { failing('branch'); log.push(['branch', name, base, opts]); },
+    writeSpec: async (slug, files) => { failing('spec'); log.push(['spec', slug, files]); },
+    writeTasks: async (rows) => { failing('tasks'); log.push(['tasks', rows]); },
+    now: () => NOW,
+  };
+  return { deps, log, sent, starts: () => sent.filter((s) => s.name === 'brief.start') };
+}
+
+const REQUEST = { number: 3, beginPartId: 'p1', branch: 'feat/login-flow', stash: false };
+
+test('pickBase prefers the local target, then origin/, then nothing', () => {
+  assert.equal(start.pickBase('main', { local: true, remote: true }), 'main');
+  assert.equal(start.pickBase('main', { local: false, remote: true }), 'origin/main');
+  assert.equal(start.pickBase('main', { local: false, remote: false }), null);
+  assert.equal(start.pickBase('', { local: true, remote: true }), null);
+});
+
+test('prepareView lists the parts, the suggestions, the folder and any part that does not parse', () => {
+  const brief = { ...DETAIL, parts: [...DETAIL.parts, { id: 'p3', position: 2, title: 'Docs', shape: 'task', type: 'docs', definition: 'Just do it' }] };
+  const view = start.prepareView({ brief, currentBranch: 'feat/other', changeCount: 2, base: 'origin/main' });
+  assert.deepEqual(view, {
+    ok: true,
+    number: 3,
+    title: 'Better login',
+    targetBranch: 'main',
+    parts: [
+      { partId: 'p1', title: 'Login flow', shape: 'spec', type: 'feature' },
+      { partId: 'p2', title: 'Fix typo', shape: 'task', type: 'fix' },
+      { partId: 'p3', title: 'Docs', shape: 'task', type: 'docs' },
+    ],
+    suggestions: { createOnly: 'feat/better-login', parts: { p1: 'feat/login-flow', p2: 'fix/fix-typo', p3: 'docs/docs' } },
+    currentBranch: 'feat/other',
+    changeCount: 2,
+    base: 'origin/main',
+    problems: [{ partId: 'p3', title: 'Docs', reason: 'textBeforeHeading' }],
+  });
+});
+
+test('prepareView refuses a brief that is not startable', () => {
+  for (const brief of [{ ...DETAIL, startedAt: NOW }, { ...DETAIL, shapedAt: null }, { ...DETAIL, parts: [] }, null]) {
+    assert.deepEqual(start.prepareView({ brief, currentBranch: 'main', changeCount: 0, base: 'main' }), { ok: false, reason: 'notStartable' });
+  }
+});
+
+test('Begin with a spec: one brief.start with every ref in order, then the branch, the spec and the task', async () => {
+  const { deps, log, starts } = fakes();
+  const result = await start.handleStartRequest(REQUEST, deps);
+  assert.deepEqual(result, {
+    ok: true, number: 3, branch: 'feat/login-flow', specs: 1, tasks: 1, stashMessage: null,
+    begin: { shape: 'spec', slug: 'login-flow', title: 'Login flow' },
+  });
+  assert.equal(starts().length, 1);
+  assert.deepEqual(starts()[0].body, { id: 'b1', parts: [{ partId: 'p1', recordRef: 'login-flow' }, { partId: 'p2', recordRef: 'task-fix-typo' }] });
+  assert.deepEqual(log.map((e) => e[0]), ['branch', 'spec', 'tasks']);
+  assert.deepEqual(log[0], ['branch', 'feat/login-flow', 'main', { track: true }]);
+  assert.equal(log[1][2]['spec.md'], `# Login flow\n\n${SPEC_DEF}\n`);
+  assert.equal(log[2][1][0].acceptanceCriteria, '- Spelled right.');
+});
+
+test('the refs sent are the refs written, after a local collision', async () => {
+  const { deps, log, starts } = fakes({ specSlugs: ['login-flow'], taskIds: ['task-fix-typo', 'task-fix-typo-2'] });
+  await start.handleStartRequest(REQUEST, deps);
+  const sentRefs = starts()[0].body.parts.map((p) => p.recordRef);
+  assert.deepEqual(sentRefs, ['login-flow-2', 'task-fix-typo-3']);
+  assert.deepEqual([log[1][1], log[2][1][0].id], sentRefs);
+});
+
+test('Begin with a task gives the task to run', async () => {
+  const { deps } = fakes();
+  const result = await start.handleStartRequest({ ...REQUEST, beginPartId: 'p2', branch: '' }, deps);
+  assert.equal(result.branch, 'fix/fix-typo');
+  assert.deepEqual(result.begin, {
+    shape: 'task',
+    task: { id: 'task-fix-typo', title: 'Fix typo', description: 'Fix the typo.', priority: 'high' },
+  });
+});
+
+test('Create only opens nothing, and an empty branch takes the brief\'s suggestion', async () => {
+  const { deps, log } = fakes();
+  const result = await start.handleStartRequest({ number: 3, beginPartId: null, branch: '  ', stash: false }, deps);
+  assert.equal(result.ok, true);
+  assert.equal(result.begin, null);
+  assert.equal(result.branch, 'feat/better-login');
+  assert.equal(log[0][1], 'feat/better-login');
+});
+
+test('a remote base is cut without tracking', async () => {
+  const { deps, log } = fakes({ local: [], remote: ['main'] });
+  const result = await start.handleStartRequest(REQUEST, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(log[0], ['branch', 'feat/login-flow', 'origin/main', { track: false }]);
+});
+
+test('each local refusal writes nothing and sends no brief.start', async () => {
+  const badPart = { ...DETAIL, parts: [DETAIL.parts[0], { ...DETAIL.parts[1], definition: '## Notes\nx' }] };
+  const cases = [
+    [{ get: ok({ ...DETAIL, startedAt: NOW }) }, REQUEST, { ok: false, reason: 'notStartable' }],
+    [{ get: ok(badPart) }, REQUEST, { ok: false, reason: 'badDefinition', part: 'Fix typo', detail: 'noDescription' }],
+    [{}, { ...REQUEST, beginPartId: 'nope' }, { ok: false, reason: 'badRequest' }],
+    [{}, { ...REQUEST, branch: 'Bad Name' }, { ok: false, reason: 'badBranch', detail: 'Bad Name' }],
+    [{ local: ['main', 'feat/login-flow'] }, REQUEST, { ok: false, reason: 'branchTaken', detail: 'feat/login-flow' }],
+    [{ local: [] }, REQUEST, { ok: false, reason: 'baseMissing', detail: 'main' }],
+    [{ changeCount: 3 }, REQUEST, { ok: false, reason: 'dirty', changeCount: 3, currentBranch: 'feat/other' }],
+    [{ get: { status: 401, body: {} } }, REQUEST, { ok: false, reason: 'unauthorized' }],
+  ];
+  for (const [answers, request, expected] of cases) {
+    const { deps, log, starts } = fakes(answers);
+    assert.deepEqual(await start.handleStartRequest(request, deps), expected, expected.reason);
+    assert.equal(starts().length, 0, expected.reason);
+    assert.deepEqual(log, [], expected.reason);
+  }
+});
+
+test('a server refusal, recordRefTaken among them, writes nothing', async () => {
+  for (const [code, reason] of [['RECORD_REF_TAKEN', 'recordRefTaken'], ['ALREADY_STARTED', 'alreadyStarted'], ['PARTS_MISMATCH', 'partsMismatch'], ['NOT_SHAPED', 'notShaped']]) {
+    const { deps, log, starts } = fakes({ start: refusal(code), changeCount: 2 });
+    assert.deepEqual(await start.handleStartRequest({ ...REQUEST, stash: true }, deps), { ok: false, reason }, code);
+    assert.equal(starts().length, 1);
+    assert.deepEqual(log, [], code);
+  }
+});
+
+test('a dirty folder with consent is stashed as Start Work #N before the branch', async () => {
+  const { deps, log } = fakes({ changeCount: 2 });
+  const result = await start.handleStartRequest({ ...REQUEST, stash: true }, deps);
+  assert.equal(result.stashMessage, 'Start Work #3');
+  assert.deepEqual(log.map((e) => e[0]), ['stash', 'branch', 'spec', 'tasks']);
+  assert.deepEqual(log[0], ['stash', 'Start Work #3']);
+});
+
+test('a clean folder is never stashed, even with consent', async () => {
+  const { deps, log } = fakes();
+  const result = await start.handleStartRequest({ ...REQUEST, stash: true }, deps);
+  assert.equal(result.stashMessage, null);
+  assert.equal(log.some((e) => e[0] === 'stash'), false);
+});
+
+test('a failure after brief.start is partial, naming what was and was not written', async () => {
+  const everything = [
+    { title: 'Login flow', shape: 'spec', ref: 'login-flow' },
+    { title: 'Fix typo', shape: 'task', ref: 'task-fix-typo' },
+  ];
+  const cases = [
+    [{ fail: 'stash', changeCount: 1 }, 'stash', [], everything],
+    [{ fail: 'branch' }, 'branch', [], everything],
+    [{ fail: 'spec' }, 'files', [], everything],
+    [{ fail: 'tasks' }, 'files', ['login-flow'], [everything[1]]],
+  ];
+  for (const [answers, step, written, missing] of cases) {
+    const { deps, starts } = fakes(answers);
+    const result = await start.handleStartRequest({ ...REQUEST, stash: true }, deps);
+    assert.deepEqual(result, { ok: false, reason: 'partial', step, written, missing, error: `${answers.fail} broke` }, answers.fail);
+    assert.equal(starts().length, 1);
+  }
+});
