@@ -453,6 +453,7 @@ function renderCard(brief, milestoneName) {
 function renderCardActions(brief) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
   const n = brief.number;
+  if (copy.workStage({ brief, laneOpen: Boolean(lane) }) === 'start') return startWorkButton(n, 'start-card');
   if (lane) {
     return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(goToLaneLabel(lane))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}</span></button>`;
   }
@@ -483,6 +484,11 @@ function shapeButton(number, action) {
   const pending = starting === number;
   const label = copy.SHAPE_LABEL;
   return `<button type="button" class="cloud-briefs-primary-btn cloud-briefs-discuss-btn" data-action="${action}" data-number="${number}" title="${escapeHtml(copy.SHAPE_HINT)}" tabindex="-1"${pending ? ' disabled' : ''}>${escapeHtml(pending ? `${label}…` : label)}</button>`;
+}
+
+/** Start Work as a primary button, where Shape was. */
+function startWorkButton(number, action) {
+  return `<button type="button" class="cloud-briefs-primary-btn cloud-briefs-discuss-btn" data-action="${action}" data-number="${number}" title="${escapeHtml(copy.START_WORK_HINT)}" tabindex="-1">${escapeHtml(copy.START_WORK_LABEL)}</button>`;
 }
 
 function moveToWorkButton(number, action) {
@@ -796,10 +802,12 @@ function renderDiscussions(events, meId, attachments) {
  * The detail header's controls, by the same stages as the card: Go to
  * discussion or Go to shaping while a lane is open (whatever the brief has
  * become since), Discuss before any record, Move to Work + Discuss after one,
- * Shape on open unshaped work, nothing for a shaped or an ended brief.
+ * Shape on open unshaped work, Start Work on open shaped work (even while its
+ * Shape lane is still open), nothing for a started or an ended brief.
  */
 function renderDiscussAction(brief, events) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
+  if (copy.workStage({ brief, laneOpen: Boolean(lane) }) === 'start') return startWorkButton(brief.number, 'start-work');
   if (lane) {
     return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-brief-lane" title="${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(goToLaneLabel(lane))}</button>`;
   }

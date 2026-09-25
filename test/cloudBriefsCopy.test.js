@@ -310,10 +310,24 @@ test('workStage offers Shape only on open, unshaped work', () => {
   const work = { kind: 'work', status: 'backlog', shapedAt: null };
   assert.equal(copy.workStage({ brief: work, laneOpen: false }), 'shape');
   assert.equal(copy.workStage({ brief: { ...work, status: 'active' }, laneOpen: false }), 'shape');
-  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...work, shapedAt: '2026-09-20T10:00:00.000Z', startedAt: '2026-09-25T10:00:00.000Z' }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: { ...work, status: 'closed' }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: { kind: 'proposal', status: 'backlog', shapedAt: null }, laneOpen: false }), 'none');
   assert.equal(copy.workStage({ brief: null, laneOpen: false }), 'none');
+});
+
+test('workStage offers Start Work on open, shaped, unstarted work, even with a lane open', () => {
+  const shaped = { kind: 'work', status: 'backlog', shapedAt: '2026-09-20T10:00:00.000Z', startedAt: null };
+  assert.equal(copy.workStage({ brief: shaped, laneOpen: false }), 'start');
+  assert.equal(copy.workStage({ brief: shaped, laneOpen: true }), 'start');
+});
+
+test('workStage does not offer Start Work on a started, closed, unshaped or proposal brief', () => {
+  const shaped = { kind: 'work', status: 'backlog', shapedAt: '2026-09-20T10:00:00.000Z', startedAt: null };
+  assert.equal(copy.workStage({ brief: { ...shaped, status: 'active', startedAt: '2026-09-25T10:00:00.000Z' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...shaped, status: 'closed' }, laneOpen: false }), 'none');
+  assert.equal(copy.workStage({ brief: { ...shaped, shapedAt: null }, laneOpen: false }), 'shape');
+  assert.equal(copy.workStage({ brief: { ...shaped, kind: 'proposal' }, laneOpen: false }), 'none');
 });
 
 test('workStage gives way to an open lane of either purpose', () => {
@@ -393,4 +407,58 @@ test('discussionRecords says a write-up went to Links when the brief holds that 
   assert.deepEqual(records.map((r) => [r.id, r.inLinks]), [['e2', true], ['e1', false]]);
   assert.equal(records[1].url, 'https://claude.ai/artifact/old');
   assert.equal(copy.WRITE_UP_IN_LINKS, 'Write-up added to Links');
+});
+
+// ─── Start Work ───────────────────────────────────────────────
+
+test('startErrorMessage has a sentence for every refusal, naming what it can', () => {
+  assert.equal(copy.startErrorMessage({ reason: 'recordRefTaken' }),
+    'Another brief already uses one of these spec or task names. Pull the latest changes and start again.');
+  assert.equal(copy.startErrorMessage({ reason: 'branchTaken', detail: 'feat/login' }), 'A branch named feat/login already exists. Pick another name.');
+  assert.equal(copy.startErrorMessage({ reason: 'badBranch', detail: 'a b' }), '“a b” is not a branch name git accepts.');
+  assert.equal(copy.startErrorMessage({ reason: 'baseMissing', detail: 'main' }),
+    'The target branch main is not on this machine. Fetch or create it, then start again.');
+  assert.equal(copy.startErrorMessage({ reason: 'badDefinition', part: 'Fix typo', detail: 'noDescription' }),
+    '“Fix typo” has no Description section. Edit it on the web, then start again.');
+  for (const reason of ['notStartable', 'notWork', 'alreadyClosed', 'notShaped', 'alreadyStarted', 'partsMismatch', 'notFound', 'network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    const sentence = copy.startErrorMessage({ reason });
+    assert.notEqual(sentence, 'Start Work could not run. Try again.', reason);
+    assert.match(sentence, /\.$/, reason);
+  }
+  assert.equal(copy.startErrorMessage({ reason: 'mystery' }), 'Start Work could not run. Try again.');
+  assert.equal(copy.startErrorMessage(null), 'Start Work could not run. Try again.');
+});
+
+test('partialMessage names the failed step, what was written and what is missing with its ref', () => {
+  assert.equal(copy.partialMessage({
+    step: 'files',
+    error: 'disk full',
+    written: ['login-flow'],
+    missing: [{ title: 'Fix typo', shape: 'task', ref: 'task-fix-typo' }],
+  }), 'The brief is started in Frame Cloud, but writing the parts failed: disk full. Written: login-flow. '
+    + 'Not written — create these by hand under the same names: “Fix typo” (task task-fix-typo).');
+  assert.equal(copy.partialMessage({ step: 'branch', written: [], missing: [{ title: 'A', shape: 'spec', ref: 'a' }] }),
+    'The brief is started in Frame Cloud, but creating the branch failed. Not written — create these by hand under the same names: “A” (spec a).');
+  assert.match(copy.partialMessage({ step: 'stash', written: [], missing: [] }), /stashing your changes failed\.$/);
+});
+
+test('startedNotice names the counts and the branch, and the stash when there was one', () => {
+  assert.equal(copy.startedNotice({ number: 5, specs: 2, tasks: 1, branch: 'feat/login', stashMessage: null }),
+    'Brief #5 started: 2 specs, 1 task on feat/login.');
+  assert.equal(copy.startedNotice({ number: 5, specs: 1, tasks: 0, branch: 'feat/login', stashMessage: 'Start Work #5' }),
+    'Brief #5 started: 1 spec on feat/login. Your changes were stashed as “Start Work #5”.');
+  assert.equal(copy.startedNotice({ number: 5, specs: 0, tasks: 3, branch: 'fix/x' }), 'Brief #5 started: 3 tasks on fix/x.');
+});
+
+test('the Start Work dialog words', () => {
+  assert.equal(copy.START_WORK_LABEL, 'Start Work');
+  assert.equal(copy.startDialogTitle(5), 'Start work on brief #5');
+  assert.equal(copy.beginWithLabel('Login flow'), 'Begin with “Login flow”');
+  assert.equal(copy.ORCHESTRATE_LABEL, 'Orchestrate');
+  assert.equal(copy.COMING_SOON, 'Coming soon');
+  assert.equal(copy.cutFromLine('origin/main'), 'Cut from origin/main');
+  assert.equal(copy.dirtyWarning('feat/x', 1), 'feat/x has 1 uncommitted change. Stash them so the new branch starts clean, or cancel and commit them first.');
+  assert.match(copy.dirtyWarning('', 3), /^This folder has 3 uncommitted changes\./);
+  assert.equal(copy.startSubmitLabel(true), 'Starting…');
+  assert.match(copy.baseMissingLine(''), /no target branch/);
 });

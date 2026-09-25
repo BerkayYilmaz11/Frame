@@ -8,7 +8,7 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating, discussing and shaping are the writes: the web's other write copy
+ * Creating, discussing, shaping and starting are the writes: the web's other write copy
  * (Transform to Work, refusal sentences for other mutations, search params)
  * is left out.
  */
@@ -353,15 +353,19 @@ function discussErrorMessage(reason) {
 // ─── Shape ────────────────────────────────────────────────────
 
 /**
- * Where a brief stands for Shape, which decides its work control:
- * 'lane' (a brief lane of either purpose is open — one lane per brief) ·
- * 'shape' (open work whose parts were never written) · 'none' (a proposal,
- * an ended brief, or one already shaped: Shape never comes back).
+ * Where a work brief stands, which decides its work control:
+ * 'start' (open, shaped, unstarted work — ahead of an open lane, since
+ * shaping is finished once the parts are written) · 'lane' (a brief lane of
+ * either purpose is open — one lane per brief) · 'shape' (open work whose
+ * parts were never written) · 'none' (a proposal, an ended brief, or one
+ * already started: neither Shape nor Start Work comes back).
  */
 function workStage({ brief, laneOpen }) {
-  if (laneOpen) return 'lane';
   const b = brief || {};
-  return b.kind === 'work' && b.status !== 'closed' && !b.shapedAt ? 'shape' : 'none';
+  const openWork = b.kind === 'work' && b.status !== 'closed';
+  if (openWork && b.shapedAt && !b.startedAt) return 'start';
+  if (laneOpen) return 'lane';
+  return openWork && !b.shapedAt ? 'shape' : 'none';
 }
 
 /** A brief lane's link: "Discussing in <lane>" or "Shaping in <lane>". A lane without a purpose is a Discuss lane. */
@@ -403,6 +407,140 @@ const OPEN_BRIEF_LABEL = 'Open brief';
 function shapeErrorMessage(reason) {
   return SHAPE_MESSAGES[reason] || 'Shaping could not start. Try again.';
 }
+
+// ─── Start Work ───────────────────────────────────────────────
+
+const START_WORK_LABEL = 'Start Work';
+const START_WORK_HINT = 'Turn every part into a spec or a task on a new branch, and begin with the one you choose.';
+
+/** The dialog's heading: "Start work on brief #5". */
+function startDialogTitle(number) {
+  return `Start work on brief #${number}`;
+}
+
+const START_DIALOG_DESCRIPTION = 'Every part becomes a spec or a task in this folder, on a new branch.';
+const START_CHOICE_TITLE = 'Where to begin';
+
+/** A Begin choice: "Begin with “Login flow”". */
+function beginWithLabel(title) {
+  return `Begin with “${title}”`;
+}
+
+/** What Begin opens, by the part's shape. */
+function beginHint(shape) {
+  return shape === 'spec'
+    ? 'Creates every part, then opens a lane that plans this spec.'
+    : 'Creates every part, then opens a lane that runs this task.';
+}
+
+const CREATE_ONLY_LABEL = 'Create only';
+const CREATE_ONLY_HINT = 'Creates every part and opens no lane.';
+const ORCHESTRATE_LABEL = 'Orchestrate';
+const COMING_SOON = 'Coming soon';
+const BRANCH_LABEL = 'Branch';
+
+/** The line under the branch field: "Cut from main". */
+function cutFromLine(base) {
+  return `Cut from ${base}`;
+}
+
+/** The dialog's line when the brief's target branch is on neither this machine nor origin. */
+function baseMissingLine(targetBranch) {
+  return targetBranch
+    ? `The target branch ${targetBranch} is not on this machine. Fetch or create it, then start again.`
+    : 'This brief has no target branch. Set one on the web, then start again.';
+}
+
+/** The dirty folder's warning: "feat/x has 3 uncommitted changes. …". */
+function dirtyWarning(branch, count) {
+  const changes = `${count} uncommitted ${count === 1 ? 'change' : 'changes'}`;
+  const where = branch ? `${branch} has ${changes}` : `This folder has ${changes}`;
+  return `${where}. Stash them so the new branch starts clean, or cancel and commit them first.`;
+}
+
+const STASH_AND_CONTINUE_LABEL = 'Stash and continue';
+const CANCEL_LABEL = 'Cancel';
+
+/** The confirm button: "Start", or "Starting…" while it runs. */
+function startSubmitLabel(pending) {
+  return pending ? 'Starting…' : 'Start';
+}
+
+const PART_PROBLEMS = {
+  empty: 'has no definition',
+  noProblem: 'has no Problem section',
+  noGoal: 'has no Goal section',
+  noDescription: 'has no Description section',
+  textBeforeHeading: 'has text before its first heading',
+};
+
+/** A part whose definition does not parse: "“Fix typo” has no Description section. Edit it on the web." */
+function partProblemMessage(title, reason) {
+  return `“${title}” ${PART_PROBLEMS[reason] || 'cannot be read'}. Edit it on the web, then start again.`;
+}
+
+const START_MESSAGES = {
+  notStartable: 'Only open work that is shaped and not started yet can be started.',
+  notWork: 'This brief is a proposal. Only work can be started.',
+  alreadyClosed: 'This brief has ended.',
+  notShaped: 'This brief is not shaped yet. Shape it first.',
+  alreadyStarted: 'This brief has already been started, maybe on another machine.',
+  partsMismatch: 'The brief\'s parts changed on the web. Close this and start again.',
+  recordRefTaken: 'Another brief already uses one of these spec or task names. Pull the latest changes and start again.',
+  baseMissing: baseMissingLine(''),
+  badRequest: 'Pick where to begin and try again.',
+  notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`. */
+function startErrorMessage(result) {
+  const r = result || {};
+  if (r.reason === 'badBranch') return `${r.detail ? `“${r.detail}”` : 'That'} is not a branch name git accepts.`;
+  if (r.reason === 'branchTaken') return `A branch named ${r.detail || 'that'} already exists. Pick another name.`;
+  if (r.reason === 'baseMissing' && r.detail) return baseMissingLine(r.detail);
+  if (r.reason === 'badDefinition') return partProblemMessage(r.part || 'A part', r.detail);
+  return START_MESSAGES[r.reason] || 'Start Work could not run. Try again.';
+}
+
+const PARTIAL_STEPS = {
+  stash: 'stashing your changes failed',
+  branch: 'creating the branch failed',
+  files: 'writing the parts failed',
+};
+
+/**
+ * A start that went through in the cloud and then failed locally: which step
+ * failed, what was written, and each missing part with the name to create it
+ * under.
+ */
+function partialMessage(result) {
+  const r = result || {};
+  const step = PARTIAL_STEPS[r.step] || 'a step failed';
+  const lines = [`The brief is started in Frame Cloud, but ${step}${r.error ? `: ${r.error}` : ''}.`];
+  const written = Array.isArray(r.written) ? r.written : [];
+  const missing = Array.isArray(r.missing) ? r.missing : [];
+  if (written.length > 0) lines.push(`Written: ${written.join(', ')}.`);
+  if (missing.length > 0) {
+    lines.push(`Not written — create these by hand under the same names: ${missing
+      .map((m) => `“${m.title}” (${m.shape} ${m.ref})`).join(', ')}.`);
+  }
+  return lines.join(' ');
+}
+
+/** The toast when a start landed: "Brief #5 started: 2 specs, 1 task on feat/login." plus the stash when there was one. */
+function startedNotice({ number, specs, tasks, branch, stashMessage } = {}) {
+  const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const counts = [specs > 0 ? count(specs, 'spec') : '', tasks > 0 ? count(tasks, 'task') : ''].filter(Boolean).join(', ');
+  const main = `Brief #${number} started: ${counts || 'no parts'} on ${branch}.`;
+  return stashMessage ? `${main} Your changes were stashed as “${stashMessage}”.` : main;
+}
+
+const OPEN_SPEC_LABEL = 'Open spec';
+const OPEN_TASK_LABEL = 'Open task';
 
 // ─── New brief ────────────────────────────────────────────────
 
@@ -490,6 +628,30 @@ module.exports = {
   shapedNotice,
   OPEN_BRIEF_LABEL,
   partCountLabel,
+  START_WORK_LABEL,
+  START_WORK_HINT,
+  startDialogTitle,
+  START_DIALOG_DESCRIPTION,
+  START_CHOICE_TITLE,
+  beginWithLabel,
+  beginHint,
+  CREATE_ONLY_LABEL,
+  CREATE_ONLY_HINT,
+  ORCHESTRATE_LABEL,
+  COMING_SOON,
+  BRANCH_LABEL,
+  cutFromLine,
+  baseMissingLine,
+  dirtyWarning,
+  STASH_AND_CONTINUE_LABEL,
+  CANCEL_LABEL,
+  startSubmitLabel,
+  partProblemMessage,
+  startErrorMessage,
+  partialMessage,
+  startedNotice,
+  OPEN_SPEC_LABEL,
+  OPEN_TASK_LABEL,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

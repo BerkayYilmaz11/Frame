@@ -40,3 +40,11 @@ _Captured: 2026-09-25 · 3 file change(s)_
 
 ---
 
+## T06 — The Start Work words and button
+
+Added `workStage` `'start'` and the Start Work copy (labels, dialog words, `startErrorMessage`, `partialMessage`, `startedNotice`, `partProblemMessage`, part link labels) to `cloudBriefsCopy.js`, and a primary Start Work button on the card and in the detail in `cloudBriefsPanel.js`. Deviation: `startErrorMessage` takes the refusal object (`{ reason, part, detail }`), not a bare reason. One existing assertion (shaped work → `'none'`) was updated to a started brief, because the spec overturns it. The button clicks are wired with the dialog in T07.
+
+_Captured: 2026-09-25 · 3 file change(s)_
+
+---
+
