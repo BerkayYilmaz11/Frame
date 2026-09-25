@@ -120,3 +120,11 @@ _Captured: 2026-09-25 · 9 file change(s)_
 
 ---
 
+## T17 — Ignore a begun part whose branch is gone
+
+Fixed a walk finding: a begun entry whose branch was deleted kept its part in "On <branch>" on the card and alreadyBegun in the dialog. `withBegunBranches` now filters by the folder's local branches, in the board list, the brief detail and the dialog's prepare alike. The record file is left as it is. Followup: the board learns of a deleted branch only on its next load (focus or Refresh); listening for branch changes would make it immediate.
+
+_Captured: 2026-09-25 · 5 file change(s)_
+
+---
+

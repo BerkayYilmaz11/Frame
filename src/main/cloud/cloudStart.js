@@ -301,15 +301,21 @@ function getBegun(store, projectId, number, partId) {
   return Object.prototype.hasOwnProperty.call(begun, key) ? normalizeBegunEntry(begun[key]) : null;
 }
 
-/** The briefs with `begunBranch` (a branch, or null) on each listed part. Briefs without parts are left as they are. */
-function withBegunBranches(briefs, store, projectId) {
+/**
+ * The briefs with `begunBranch` (a branch, or null) on each listed part.
+ * `localBranches` (a Set of this folder's branch names) drops an entry whose
+ * branch is gone — deleted since, so the part waits to be begun again; left
+ * out, every entry counts. Briefs without parts are left as they are.
+ */
+function withBegunBranches(briefs, store, projectId, localBranches = null) {
   return arr(briefs).map((brief) => {
     if (!Array.isArray(brief.parts)) return brief;
     return {
       ...brief,
       parts: brief.parts.map((part) => {
         const entry = getBegun(store, projectId, brief.number, part.id);
-        return { ...part, begunBranch: entry ? entry.branch : null };
+        const live = entry && (!localBranches || localBranches.has(entry.branch));
+        return { ...part, begunBranch: live ? entry.branch : null };
       }),
     };
   });

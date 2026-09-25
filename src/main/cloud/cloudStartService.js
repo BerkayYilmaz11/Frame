@@ -57,9 +57,22 @@ function recordBegun(entry) {
   }
 }
 
-/** The listed briefs with each part's `begunBranch`, for the folder's cloud project. */
-function withBegunBranches(briefs, projectId) {
-  return core.withBegunBranches(briefs, begun(), projectId);
+/**
+ * The listed briefs with each part's `begunBranch`, for the folder's cloud
+ * project. A part begun on a branch this folder no longer has reads as not
+ * begun. When the branches cannot be read, every entry counts.
+ */
+async function withBegunBranches(briefs, projectId, folderPath) {
+  let localBranches = null;
+  try {
+    const list = await git.loadBranches(folderPath);
+    if (list && !list.error && Array.isArray(list.branches)) {
+      localBranches = new Set(list.branches.filter((b) => !b.isRemote).map((b) => b.name));
+    }
+  } catch (err) {
+    logger.warn('cloudStart', `could not list branches: ${err.message || err.error}`);
+  }
+  return core.withBegunBranches(briefs, begun(), projectId, localBranches);
 }
 
 /** The spec folder names in `.frame/specs/`. */
@@ -136,10 +149,14 @@ async function prepare(folderPath, number) {
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
     ]);
+    // A part begun on a branch this folder no longer has can be begun again,
+    // as the board shows it (the same filter as withBegunBranches).
+    const branches = list && !list.error && Array.isArray(list.branches) ? list.branches : null;
+    const [live] = core.withBegunBranches([brief], begun(), project.id,
+      branches ? new Set(branches.filter((b) => !b.isRemote).map((b) => b.name)) : null);
     const begunBranches = {};
-    for (const part of brief.parts) {
-      const entry = core.getBegun(begun(), project.id, brief.number, part.id);
-      if (entry) begunBranches[part.id] = entry.branch;
+    for (const part of live.parts) {
+      if (part.begunBranch) begunBranches[part.id] = part.begunBranch;
     }
     return core.prepareView({
       brief,

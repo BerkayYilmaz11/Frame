@@ -552,6 +552,13 @@ test('normalizeBegun turns any shape into a valid store', () => {
   assert.deepEqual(kept, { version: 1, begun: { 'proj1:3:p1': { ref: 'a', branch: 'feat/a', begunAt: NOW } } });
 });
 
+test('withBegunBranches drops an entry whose branch this folder no longer has', () => {
+  const store = start.addBegun(start.addBegun(start.emptyBegun(), BEGUN), { ...BEGUN, partId: 'p2', ref: 'task-x', branch: 'feat/gone' });
+  const briefs = [{ number: 3, parts: [{ id: 'p1' }, { id: 'p2' }] }];
+  const out = start.withBegunBranches(briefs, store, 'proj1', new Set(['main', 'feat/login-flow']));
+  assert.deepEqual(out[0].parts.map((p) => p.begunBranch), ['feat/login-flow', null]);
+});
+
 test('withBegunBranches marks each listed part with the branch this machine began it on', () => {
   const store = start.addBegun(start.emptyBegun(), BEGUN);
   const briefs = [

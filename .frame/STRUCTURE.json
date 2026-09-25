@@ -2367,16 +2367,17 @@
           "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
         },
         "withBegunBranches": {
-          "line": 305,
+          "line": 310,
           "params": [
             "briefs",
             "store",
-            "projectId"
+            "projectId",
+            "localBranches = null"
           ],
-          "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part. Briefs without parts are left as they are."
+          "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part."
         },
         "pickBase": {
-          "line": 321,
+          "line": 327,
           "params": [
             "targetBranch",
             "{ local",
@@ -2385,14 +2386,14 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "baseOptions": {
-          "line": 333,
+          "line": 339,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 345,
+          "line": 351,
           "params": [
             "base",
             "deps"
@@ -2400,35 +2401,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 352,
+          "line": 358,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 358,
+          "line": 364,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 367,
+          "line": 373,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 373,
+          "line": 379,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 391,
+          "line": 397,
           "params": [
             "{ brief",
             "currentBranch",
@@ -2440,13 +2441,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 424,
+          "line": 430,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 452,
+          "line": 458,
           "params": [
             "request",
             "deps"
@@ -2497,36 +2498,37 @@
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
         "withBegunBranches": {
-          "line": 61,
+          "line": 65,
           "params": [
             "briefs",
-            "projectId"
+            "projectId",
+            "folderPath"
           ],
-          "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud project."
+          "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 66,
+          "line": 79,
           "params": [
             "folderPath"
           ],
           "purpose": "The spec folder names in `.frame/specs/`."
         },
         "taskIds": {
-          "line": 77,
+          "line": 90,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "changeCount": {
-          "line": 83,
+          "line": 96,
           "params": [
             "folderPath"
           ],
           "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
         },
         "writeSpec": {
-          "line": 90,
+          "line": 103,
           "params": [
             "folderPath",
             "slug",
@@ -2535,7 +2537,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 100,
+          "line": 113,
           "params": [
             "folderPath",
             "rows"
@@ -2543,14 +2545,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 116,
+          "line": 129,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 124,
+          "line": 137,
           "params": [
             "folderPath",
             "number"
@@ -2558,7 +2560,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 159,
+          "line": 176,
           "params": [
             "folderPath",
             "request"
@@ -2566,13 +2568,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 195,
+          "line": 212,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 199,
+          "line": 216,
           "params": [
             "ipcMain"
           ]

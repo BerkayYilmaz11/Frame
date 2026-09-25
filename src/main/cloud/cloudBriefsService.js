@@ -58,7 +58,7 @@ async function list(folderPath, { includeClosed } = {}) {
   // Open shaped work's parts by shape, one `brief.getByNumber` each (frame-cloud-brief-shape T11).
   const counted = await core.addPartCounts(call, discussed, project.slug);
   // Each part's branch when this machine began it (frame-cloud-brief-start T12).
-  const begun = cloudStartService.withBegunBranches(counted, project.id);
+  const begun = await cloudStartService.withBegunBranches(counted, project.id, folderPath);
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },
@@ -82,7 +82,7 @@ async function get(folderPath, number) {
   return {
     ok: true,
     // Each part's branch when this machine began it (frame-cloud-brief-start T15).
-    brief: cloudStartService.withBegunBranches([brief.value], project.id)[0],
+    brief: (await cloudStartService.withBegunBranches([brief.value], project.id, folderPath))[0],
     events: events.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project, number)),
