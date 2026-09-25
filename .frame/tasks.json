@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-25T09:28:02.866Z",
+  "lastUpdated": "2026-09-25T09:32:35.345Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9410,13 +9410,13 @@
       "title": "Walk Start Work in Frame against FrameCloud's `feat/brief-start`: button visibility (including an open Shape lane), Begin with a spec, Begin with a task, Create only, dirty Cancel and Stash, a taken branch, a second start, a taken local slug getting `-2` on the web, the toast, part links, the card in Active, and Orchestrate disabled; record the walk in the outcome",
       "description": "",
       "source": "spec:frame-cloud-brief-start:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-start",
       "createdAt": "2026-09-25T07:11:41.961Z",
-      "updatedAt": "2026-09-25T07:11:41.961Z",
-      "completedAt": null
+      "updatedAt": "2026-09-25T09:32:35.345Z",
+      "completedAt": "2026-09-25T09:32:35.345Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-start-T11",

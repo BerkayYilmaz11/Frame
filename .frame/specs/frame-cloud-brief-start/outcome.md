@@ -128,3 +128,11 @@ _Captured: 2026-09-25 · 5 file change(s)_
 
 ---
 
+## T10 — Walk Start Work in Frame
+
+Walked twice in the dev build against FrameCloud `feat/brief-start`. The first walk (all parts on one branch) worked end to end but showed that model pins every part to one branch and names from long titles, which led to the one-part revision (T12–T15) and Shape keys (T16). The second walk confirmed a key-named part (`multi-model-judge`), a single part per branch, the On `<branch>` and Begin rows, and found the deleted-branch bug fixed in T17. The user walked the remaining cases and reported them passing.
+
+_Captured: 2026-09-25 · 2 file change(s)_
+
+---
+

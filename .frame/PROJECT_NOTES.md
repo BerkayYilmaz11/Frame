@@ -3916,3 +3916,61 @@ T11 shows "1 spec" / "2 specs · 1 task" on a shaped card, from one
 1078. Open: `layoutMigration.test.js` took ~50 s once while a dev Frame was
 running; each shaped card costs one detail request per board load, and a
 part count on `brief.list` would remove it.
+
+### [2026-09-25] Frame Cloud brief start: begin a shaped brief one part at a time
+
+Spec `frame-cloud-brief-start`, branch `feat/frame-cloud-brief-start` (off the
+`feat/frame-cloud-adaptor` umbrella). FrameCloud's `feat/brief-start` added
+`brief.start({ id, parts: [{ partId, recordRef }] })`: `started_at` is set
+once, every part is linked to its spec slug or task id, the brief goes Active,
+and a second start answers `ALREADY_STARTED` (plus `RECORD_REF_TAKEN` when
+another brief holds a ref). T01–T09 ran autonomously; the walk then reshaped
+the spec twice.
+
+**Cloud first.** `brief.start` goes before any stash, branch or file, and
+every local check (definition, name, branch free, base, dirty with consent)
+runs before it, so a refusal writes nothing anywhere. After the call a
+failure is `partial` and names what was not written. There is no recovery UI
+(asked at plan time). Main writes the files itself: Shape already wrote each
+definition in Frame's format, so no agent is involved.
+
+**Progress on the card (T11).** The Active card only counted parts ("1 spec ·
+1 task"). The user: "bunun çok daha production grade bir card olması
+gerekiyor… Biri x bir lane'de çalışıyor diğeri sadece yaratıldı ama
+çalışmıyor". Each part is now a row with its local status (spec phase or task
+status), its live lane with the activity dot, or Run, plus a summary line when
+there is more than one part. Everything is read from `SPEC_DATA`,
+`TASKS_DATA` and lane activity, with no extra cloud request.
+
+**One part at a time (T12–T15).** The first build wrote every part onto one
+branch named for the chosen part, plus a Create only option. The user: "2
+sini de bir branch seçip yaratıyoruz vs ama yaratılan o branch'te kalıyor
+sonra yenisine başlamak istersek bir problem yaşayabiliriz". Now Start Work
+reserves every ref in `brief.start` but writes only the chosen part, on its
+own branch. The other parts wait on the brief and are begun one by one from
+their rows, each on its own branch and so its own PR. Create only is gone, and
+Orchestrate (parallel parts) is shown, disabled, "Coming soon". Declined: an
+automatic commit of the written part ("neden böyle bir şey olsun istiyorsun").
+The lane commits, and the next Begin's dirty warning catches a dirty folder.
+Begun parts are recorded on this machine (`<userData>/cloud-starts.json`)
+rather than in FrameCloud; per the user, a per-part cloud field "takım
+çalışması da geldiği zaman… çok daha saçma olacak". Known limit: another
+machine does not know which parts were begun.
+
+**Names and base (T14, T16).** Branch and slug names came from part titles,
+which are long sentences in the brief's language, cut mid-word (`…-outc`).
+The user: "bizim spec ve task akışında gayet güzel branch name'leri ai
+tarafından verilebiliyordu". Shape now writes a short kebab-case `key` per
+part (FrameCloud `brief_part.key`, added by the user on `feat/brief-start`
+T09), plus a title of at most 60 characters and a type chosen by the work
+(evaluation tooling had been typed `test`). Frame suggests the slug, task id
+and `<prefix>/<key>` branch from the key, and the user can edit it. Without a
+key, names are cut at a word boundary. The branch row follows a code host's
+control, as the user asked: an editable name chip plus "from `<base>` ⌄",
+defaulting to the brief's target, with local and origin branches in the menu.
+
+**State.** 17 tasks done, spec `done`, walked by the user. `npm test` passes
+1153. Open: the card learns of a deleted branch only on its next load (focus
+or Refresh); brief #1 of the first walk was started under the old model and
+has no begun records; the dirty stash is still named "Start Work #N" for a
+Begin too.
