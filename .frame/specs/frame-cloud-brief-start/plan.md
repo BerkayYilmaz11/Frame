@@ -439,3 +439,33 @@ Files added to the plan: `src/main/cloud/cloudStart.js` (the begun store and
 Begin mode), `src/main/cloud/cloudStartService.js` (the store file),
 `src/main/cloud/cloudBriefsService.js` (each listed part's `begunBranch`),
 `test/cloudStart.test.js`, and the renderer files T07–T11 touched.
+
+## Revision — names and base (2026-09-25)
+
+Decided with the user after the one-part revision. The branch (and the spec
+slug or task id) was named from the part's title: a sentence for people,
+long, in the brief's language, and cut mid-word (`…-successful-outc`). In
+Frame's own spec and task flows an agent names the branch, and those names
+read well.
+
+- **Shape names each part.** The Shape agent already understands the work,
+  so it writes a short English kebab-case `key` per part (at most 32
+  characters). FrameCloud stores it (`brief_part.key`, FrameCloud
+  `brief-start` T09); a server without the column strips it rather than
+  refusing the shape.
+- **The key is a suggestion.** It prefills the spec slug or task id
+  (`-2`, `-3` on a collision) and the branch (`<type prefix>/<key>`); the
+  user can change the branch name in the dialog. A part without a key (shaped
+  before, or by a server that dropped it) falls back to the title's slug, now
+  cut at a word boundary: 32 characters for the branch, 48 for the slug.
+- **The branch row, like a code host's new-branch control:** a branch icon,
+  the name as an editable chip, and **from `<base>` ⌄**. The base defaults to
+  the brief's `targetBranch` (local, else `origin/…`) and its menu lists this
+  folder's local and origin branches, so the user can cut from another one.
+  The chosen base is sent with the request and checked in main (it must
+  exist); a remote base is still cut with `--no-track`.
+- The base menu and the branch row belong to the dialog (T14); the key and
+  the word-boundary rule are T16.
+
+Files added: `src/main/cloud/cloudShape.js` (the prompt and `key`
+validation) and `test/cloudShape.test.js`.
