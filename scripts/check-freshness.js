@@ -177,6 +177,50 @@ function checkStructureFreshness() {
 }
 
 /**
+ * 2d. Commit integration (STR-02b) — a pre-commit hook that still runs the
+ * old Frame snippet (`--changed`, then `git add` of the working map) puts
+ * untracked and unstaged content into commits; and a last `--staged` run
+ * that did not stage the map means that commit carried an old one.
+ */
+const OLD_SNIPPET = /frame:structure[\s\S]*?--changed[\s\S]*?git add[\s\S]*?frame:structure/;
+
+function readText(file) {
+  try {
+    return fs.readFileSync(file, 'utf-8');
+  } catch (e) {
+    return null;
+  }
+}
+
+function checkCommitIntegration() {
+  const hooksPath = git('git rev-parse --git-path hooks');
+  const candidates = [
+    hooksPath && path.resolve(ROOT_DIR, hooksPath, 'pre-commit'),
+    path.join(ROOT_DIR, '.husky', 'pre-commit')
+  ].filter(Boolean);
+  for (const file of [...new Set(candidates)]) {
+    const text = readText(file);
+    if (text && OLD_SNIPPET.test(text)) {
+      warn('structure-commit', `${path.relative(ROOT_DIR, file).split(path.sep).join('/')} still stages the working-tree STRUCTURE.json (untracked files included) — replace its Frame block with the current snippet (update-structure.js --staged)`);
+    }
+  }
+  const lefthook = readText(path.join(ROOT_DIR, 'lefthook.yml')) || readText(path.join(ROOT_DIR, 'lefthook.yaml'));
+  if (lefthook && /update-structure\.js --changed/.test(lefthook)) {
+    warn('structure-commit', 'lefthook still runs update-structure.js --changed — use --staged and drop the git add of the map');
+  }
+  const receipt = readText(path.join(ROOT_DIR, '.frame', 'runtime', 'structure', 'commit.json'));
+  let last = null;
+  try {
+    last = receipt ? JSON.parse(receipt) : null;
+  } catch (e) {
+    last = null;
+  }
+  if (last && ['unavailable', 'aborted', 'failed'].includes(last.status)) {
+    warn('structure-commit', `the last commit's STRUCTURE.json was not staged (${last.status}${last.reason ? `: ${last.reason}` : ''}) — that commit kept the previous map`);
+  }
+}
+
+/**
  * 3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry
  */
 function checkNotesStaleness() {
@@ -238,6 +282,7 @@ if (structure) {
   if (!checkStructureFreshness()) checkStructureDrift(structure);
   checkStructureGeneration(structure);
 }
+checkCommitIntegration();
 checkNotesStaleness();
 checkStuckTasks();
 checkQuickstartStaleness();

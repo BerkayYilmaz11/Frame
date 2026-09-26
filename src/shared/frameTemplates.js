@@ -581,8 +581,7 @@ No problem, continue. The user can also say what they consider important themsel
 ### How It Is Generated
 - \`update-structure.js --full\` (shipped in \`.frame/bin/\`; run it with
   \`node\` from the project root) rebuilds the whole map — it is also the
-  repair command. The pre-commit hook runs \`--changed\` and only touches the
-  files in the change.
+  repair command. The pre-commit hook runs \`--staged\` (see below).
 - Every project-owned text file gets an entry: source, configuration,
   documentation, and languages Frame cannot parse (those carry path and size
   with \`extraction.status: "unsupported"\`). Layout does not matter — root
@@ -625,8 +624,14 @@ No problem, continue. The user can also say what they consider important themsel
   \`stale\` (not verified recently, or the last scan was incomplete),
   \`unknown\` (no record — a fresh clone, or Frame has not run here). The
   lookup and freshness scripts report it; it is never guessed from dates.
-- The map committed with your changes still describes the working tree at
-  commit time, not only what you staged.
+- Commits get their own map. The pre-commit hook builds it from what is
+  staged — never from unstaged edits or untracked files — and stages only
+  that; the working copy stays the agents' view. While the two differ,
+  \`git status\` shows STRUCTURE.json as modified; that is expected.
+  \`git commit --no-verify\` skips the hook and can commit the working copy.
+- With Husky, lefthook or your own hook, call \`update-structure.js
+  --staged\` from it (the script is in \`.frame/bin/\`) and never \`git add\`
+  the map yourself. Frame keeps its own unedited hook up to date.
 
 ### What to Edit
 - Enrich entries in place: \`description\`, function \`purpose\`, fields of

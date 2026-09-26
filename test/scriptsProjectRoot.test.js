@@ -579,3 +579,44 @@ test('git commit with Frame\'s hook: untracked and unstaged content never reach 
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('check-freshness reports hooks that still stage the working map, and commits that kept an old map', () => {
+  const { getStructurePreCommitHookTemplate, getStructureHookSnippet } = require('../src/shared/frameTemplates');
+  const oldSnippet = [
+    '# >>> frame:structure (managed) >>>',
+    'FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_PARSER" --changed || true',
+    'git add "$FRAME_ROOT/.frame/STRUCTURE.json" || true',
+    '# <<< frame:structure (managed) <<<'
+  ].join('\n');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-commit-findings-'));
+  const env = { ...process.env, FRAME_PROJECT_ROOT: dir };
+  const findings = () => JSON.parse(spawnSync('node', [path.join(SCRIPTS, 'check-freshness.js'), '--json'], { encoding: 'utf8', env, cwd: dir }).stdout)
+    .findings.filter((f) => f.check === 'structure-commit').map((f) => f.message);
+  try {
+    spawnSync('git', ['init', '-q'], { cwd: dir });
+    const hook = path.join(dir, '.git', 'hooks', 'pre-commit');
+    fs.writeFileSync(hook, getStructurePreCommitHookTemplate());
+    assert.deepEqual(findings(), [], 'the current template is fine');
+
+    fs.writeFileSync(hook, `#!/bin/sh\n${oldSnippet}\n`);
+    assert.match(findings()[0], /^\.git\/hooks\/pre-commit still stages the working-tree STRUCTURE\.json/);
+
+    fs.writeFileSync(hook, `#!/bin/sh\n${getStructureHookSnippet()}\n`);
+    fs.mkdirSync(path.join(dir, '.husky'));
+    fs.writeFileSync(path.join(dir, '.husky', 'pre-commit'), `npm test\n${oldSnippet}\n`);
+    assert.match(findings()[0], /^\.husky\/pre-commit still stages/);
+    fs.rmSync(path.join(dir, '.husky'), { recursive: true });
+
+    fs.writeFileSync(path.join(dir, 'lefthook.yml'), 'pre-commit:\n  commands:\n    s:\n      run: node .frame/bin/update-structure.js --changed && git add .frame/STRUCTURE.json\n');
+    assert.match(findings()[0], /lefthook still runs update-structure\.js --changed/);
+    fs.rmSync(path.join(dir, 'lefthook.yml'));
+
+    fs.mkdirSync(path.join(dir, '.frame', 'runtime', 'structure'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'commit.json'), JSON.stringify({ status: 'aborted', reason: 'index-locked' }));
+    assert.deepEqual(findings(), ["the last commit's STRUCTURE.json was not staged (aborted: index-locked) — that commit kept the previous map"]);
+    fs.writeFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'commit.json'), JSON.stringify({ status: 'published' }));
+    assert.deepEqual(findings(), []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

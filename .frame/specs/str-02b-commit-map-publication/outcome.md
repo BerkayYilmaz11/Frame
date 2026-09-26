@@ -39,3 +39,11 @@ _Captured: 2026-09-26 · 7 file change(s)_
 _Captured: 2026-09-26 · 5 file change(s)_
 
 ---
+
+## T06 — Report outdated integration, document it, switch this repository
+
+`check-freshness` gained `structure-commit` findings: a pre-commit hook (Git's hooks path or `.husky/pre-commit`) whose Frame block still runs `--changed` and `git add`, a lefthook config still calling `--changed`, and a last `--staged` run recorded as unavailable/aborted/failed in `commit.json`. The generated REFERENCE now explains that commits get their own map from what is staged, the expected `git status` difference, the `--no-verify` gap, and how to call `--staged` from Husky/lefthook/custom hooks. This repository's `.githooks/pre-commit` runs `node scripts/update-structure.js --staged || true` on every commit (it used to run only for staged `src/*.js` and `git add` the working map), keeping the freshness report. Files touched: `scripts/check-freshness.js`, `src/shared/frameTemplates.js`, `.githooks/pre-commit`, `test/scriptsProjectRoot.test.js`, `test/projectAgnostic.test.js`.
+
+_Captured: 2026-09-26 · 5 file change(s)_
+
+---

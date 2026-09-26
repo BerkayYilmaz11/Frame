@@ -22,7 +22,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 774,
+      "sizeBytes": 391,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -46,7 +46,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1774,
+      "sizeBytes": 1566,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -6008,7 +6008,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 216456,
+      "sizeBytes": 216296,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16043,20 +16043,29 @@
         "checkStructureFreshness": {
           "line": 162
         },
+        "readText": {
+          "line": 187,
+          "params": [
+            "file"
+          ]
+        },
+        "checkCommitIntegration": {
+          "line": 195
+        },
         "checkNotesStaleness": {
-          "line": 182,
+          "line": 226,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 200,
+          "line": 244,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 221,
+          "line": 265,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 10408,
+      "sizeBytes": 12377,
       "extraction": {
         "status": "parsed"
       },
@@ -17632,6 +17641,146 @@
         }
       }
     },
+    "scripts/structure-commit": {
+      "file": "scripts/structure-commit.js",
+      "description": "STRUCTURE for a commit — the map built from Git's staged snapshot",
+      "exports": [
+        "publishStaged",
+        "receiptPath",
+        "buildStaged",
+        "createIndexFs",
+        "listEntries",
+        "resolveIndex",
+        "readBlobs",
+        "git",
+        "CommitUnavailable"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto",
+        "child_process",
+        "structure-discovery",
+        "structure-generation",
+        "structure-state",
+        "structure-snapshot"
+      ],
+      "functions": {
+        "sha256": {
+          "line": 44,
+          "params": [
+            "data"
+          ]
+        },
+        "git": {
+          "line": 62,
+          "params": [
+            "root",
+            "args",
+            "options = {}"
+          ],
+          "purpose": "Run Git for this checkout and its effective index. `GIT_INDEX_FILE` from"
+        },
+        "resolveIndex": {
+          "line": 77,
+          "params": [
+            "root",
+            "env = process.env"
+          ],
+          "purpose": "The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's."
+        },
+        "listEntries": {
+          "line": 87,
+          "params": [
+            "root",
+            "env = process.env"
+          ],
+          "purpose": "Staged entries of the effective index. Any unmerged stage makes the"
+        },
+        "readBlobs": {
+          "line": 105,
+          "params": [
+            "root",
+            "ids",
+            "env = process.env"
+          ],
+          "purpose": "Read blobs with one `cat-file --batch` process. Returns Map(id → Buffer)."
+        },
+        "enoent": {
+          "line": 126,
+          "params": [
+            "p"
+          ]
+        },
+        "fakeStat": {
+          "line": 132,
+          "params": [
+            "kind",
+            "size"
+          ]
+        },
+        "createIndexFs": {
+          "line": 149,
+          "params": [
+            "root",
+            "entries",
+            "blobOf"
+          ],
+          "purpose": "A read-only fs over the staged tree, enough for STR-01 discovery and"
+        },
+        "buildStaged": {
+          "line": 238,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Build the commit's map from the effective index."
+        },
+        "indexIdentity": {
+          "line": 328,
+          "params": [
+            "indexFile"
+          ]
+        },
+        "receiptPath": {
+          "line": 336,
+          "params": [
+            "root"
+          ]
+        },
+        "writeReceipt": {
+          "line": 340,
+          "params": [
+            "root",
+            "value"
+          ]
+        },
+        "publishStaged": {
+          "line": 370,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Build the commit's map and publish it into the effective index."
+        }
+      },
+      "sizeBytes": 15855,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "e2d9198bdb4c6a16",
+        "purposes": {
+          "buildStaged": "adaf4c93fc0707d5",
+          "createIndexFs": "f35ade5b3634de6c",
+          "git": "98c4595cc6e8df9b",
+          "listEntries": "eaccf2510f28346a",
+          "publishStaged": "21673266af206e48",
+          "readBlobs": "a00219d92f27c655",
+          "resolveIndex": "b3c2fc5d9205d7ce"
+        }
+      }
+    },
     "scripts/structure-discovery": {
       "file": "scripts/structure-discovery.js",
       "description": "STRUCTURE discovery — which files a project map must contain.",
@@ -18731,7 +18880,7 @@
           "purpose": "A content-keyed extraction cache bound to one observation's manifest."
         }
       },
-      "sizeBytes": 11162,
+      "sizeBytes": 11363,
       "extraction": {
         "status": "parsed"
       },
@@ -19161,76 +19310,77 @@
         "structure-discovery",
         "structure-generation",
         "structure-state",
-        "activity-log"
+        "activity-log",
+        "structure-commit"
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 41,
+          "line": 44,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "parseArgs": {
-          "line": 58,
+          "line": 61,
           "params": [
             "argv"
           ]
         },
         "say": {
-          "line": 83,
+          "line": 87,
           "params": [
             "line"
           ],
           "purpose": "Human text: stdout normally, stderr when stdout carries the envelope."
         },
         "warn": {
-          "line": 87,
+          "line": 91,
           "params": [
             "line"
           ]
         },
         "repairCommand": {
-          "line": 91
+          "line": 95
         },
         "printDiagnostics": {
-          "line": 96,
+          "line": 100,
           "params": [
             "diagnostics"
           ]
         },
         "emit": {
-          "line": 105,
+          "line": 109,
           "params": [
             "envelope"
           ]
         },
         "projectBlock": {
-          "line": 111
+          "line": 115
         },
         "getChangedFiles": {
-          "line": 121,
+          "line": 125,
           "purpose": "Staged and unstaged changes, exactly the sources the hook always used."
         },
         "toRootRelative": {
-          "line": 131,
+          "line": 135,
           "params": [
             "files"
           ],
           "purpose": "Explicit file arguments, relative to the project root."
         },
         "noteRun": {
-          "line": 158,
+          "line": 162,
           "params": [
             "startedAt",
             "changes"
           ]
         },
         "exitCodeFor": {
-          "line": 178,
+          "line": 182,
           "params": [
             "result"
           ]
         },
         "builtFrom": {
-          "line": 184,
+          "line": 188,
           "params": [
             "structure",
             "report",
@@ -19238,29 +19388,33 @@
           ]
         },
         "runFull": {
-          "line": 195
+          "line": 199
         },
         "runDelta": {
-          "line": 213,
+          "line": 217,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 241,
+          "line": 245,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 272
+          "line": 276
+        },
+        "runStaged": {
+          "line": 317,
+          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot and"
         },
         "main": {
-          "line": 306
+          "line": 336
         }
       },
-      "sizeBytes": 14875,
+      "sizeBytes": 17095,
       "extraction": {
         "status": "parsed"
       },
@@ -19268,6 +19422,7 @@
         "purposes": {
           "getChangedFiles": "0d5e846bb25dd0ff",
           "resolveProjectRoot": "bdaf2016db7ccaef",
+          "runStaged": "56af04bf4ae0ed57",
           "say": "fe3bfc9b1c053140",
           "toRootRelative": "a260ebe24f149a83"
         }
@@ -19850,7 +20005,7 @@
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 691,
+          "line": 696,
           "params": [
             "projectName",
             "project"
@@ -19858,21 +20013,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 719,
+          "line": 724,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 739,
+          "line": 744,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 785,
+          "line": 790,
           "params": [
             "projectName",
             "project"
@@ -19880,24 +20035,24 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 868,
+          "line": 873,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 911,
+          "line": 916,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 926
+          "line": 931
         },
         "getGenericWrapperTemplate": {
-          "line": 1079,
+          "line": 1084,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -19905,38 +20060,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1125
+          "line": 1130
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1161,
+          "line": 1166,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1189,
+          "line": 1194,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1208,
+          "line": 1213,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1220,
+          "line": 1225,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1240
+          "line": 1245
         },
         "getOrchBinScripts": {
-          "line": 1258,
+          "line": 1263,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 53178,
+      "sizeBytes": 53610,
       "extraction": {
         "status": "parsed"
       },
@@ -22693,7 +22848,7 @@
           ]
         }
       },
-      "sizeBytes": 27823,
+      "sizeBytes": 27851,
       "extraction": {
         "status": "parsed"
       },
@@ -22779,7 +22934,7 @@
           ]
         }
       },
-      "sizeBytes": 31360,
+      "sizeBytes": 33941,
       "extraction": {
         "status": "parsed"
       },
@@ -23241,6 +23396,52 @@
           "scriptsCopy": "4e1f88e5078fc751",
           "stagePackagedTree": "43181546d97c8ed2"
         }
+      }
+    },
+    "test/structureCommit.test": {
+      "file": "test/structureCommit.test.js",
+      "description": "structure-commit tests (STR-02b): the map a commit carries is built from",
+      "exports": [
+        "f"
+      ],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-commit",
+        "scripts/structure-lifecycle"
+      ],
+      "functions": {
+        "repo": {
+          "line": 18,
+          "params": [
+            "t",
+            "files = {}"
+          ]
+        },
+        "write": {
+          "line": 32,
+          "params": [
+            "dir",
+            "files"
+          ]
+        },
+        "committedRepo": {
+          "line": 173,
+          "params": [
+            "t"
+          ]
+        }
+      },
+      "sizeBytes": 13464,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "a7011505743ef3a5"
       }
     },
     "test/structureDiscovery.test": {
@@ -25506,17 +25707,15 @@
   },
   "generation": {
     "schema": 1,
-    "mode": "delta",
+    "mode": "full",
     "inventory": {
-      "coverage": "unknown",
-      "reasons": [
-        "delta"
-      ]
+      "coverage": "complete",
+      "reasons": []
     },
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 288,
+        "parsed": 290,
         "unsupported": 82,
         "partial": 0
       }
@@ -25563,7 +25762,26 @@
       }
     },
     "counts": {
-      "indexedFiles": 370,
+      "visitedEntries": 460,
+      "traversedDirectories": 80,
+      "eligibleFiles": 372,
+      "unreadable": 0,
+      "binaryFiles": 5,
+      "symlinks": 0,
+      "specialFiles": 0,
+      "excludedFiles": {
+        "hard": 0,
+        "gitignore": 0,
+        "config": 0
+      },
+      "prunedDirectories": {
+        "hard": 3,
+        "default": 0,
+        "gitignore": 0,
+        "config": 0,
+        "depth": 0
+      },
+      "indexedFiles": 372,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -25571,6 +25789,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "637d74c952fbe5aa4b33c491ce58af9979b2f7f7fe815e4855bb8398a7089bd0"
+    "revision": "2d78c4b2a7828f56eb5f520892746fa63a44aae3011b22e07c13087d00e12021"
   }
 }
