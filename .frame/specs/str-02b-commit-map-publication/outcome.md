@@ -15,3 +15,11 @@ Added `publishStaged`: captures the effective index's content hash, builds, refu
 _Captured: 2026-09-26 · 2 file change(s)_
 
 ---
+
+## T03 — Add the --staged command
+
+`update-structure.js --staged [--json]` runs `publishStaged` and prints one bounded envelope (`command: 'staged'`); exits 0 for published/unchanged/skipped, 1 for unavailable/aborted, 2 for failures and conflicting modes; a staged-config fallback is noted on stderr, and the run is recorded like the other modes. `structure-commit.js` is loaded only in this mode, so the other modes keep working with an older helper set; `--changed` is unchanged for hooks that still call it. Files touched: `scripts/update-structure.js`, `test/projectAgnostic.test.js`.
+
+_Captured: 2026-09-26 · 2 file change(s)_
+
+---

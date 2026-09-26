@@ -528,3 +528,57 @@ test('templates: the maintenance reference explains freshness and how to keep th
   }
   assert.deepEqual(require('../src/shared/docsHealth').namedPaths(section), ['.frame/config.json']);
 });
+
+/* ---------------------- STR-02b: --staged contract ---------------------- */
+
+function gitRepo(files) {
+  const dir = tmpProject(files);
+  const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q');
+  git('config', 'user.email', 't@example.com');
+  git('config', 'user.name', 'T');
+  return { dir, git };
+}
+
+test('cli: --staged stages the commit map and reports it in one envelope', () => {
+  const { dir, git } = gitRepo({ 'src/a.js': '// A' });
+  try {
+    git('add', '-A');
+    fs.writeFileSync(path.join(dir, 'notes-untracked.md'), '# Untracked');
+    const res = runParser(dir, ['--staged', '--json']);
+    assert.equal(res.status, 0, res.stderr);
+    const env = envelopeOf(res);
+    assert.equal(env.command, 'staged');
+    assert.equal(env.status, 'published');
+    assert.equal(env.exitCode, 0);
+    assert.equal(env.policyFallback, true);
+    assert.match(res.stderr, /Staged the commit's STRUCTURE\.json/);
+    const staged = git('show', ':.frame/STRUCTURE.json').stdout;
+    assert.ok(!staged.includes('notes-untracked'));
+    assert.ok(!fs.existsSync(mapOf(dir)), 'the working map is not written');
+    assert.equal(envelopeOf(runParser(dir, ['--staged', '--json'])).status, 'unchanged');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('cli: --staged exits 0 when not shared, 1 when unavailable, 2 on conflicting modes', () => {
+  const ignored = gitRepo({ 'a.js': 'x', '.gitignore': '.frame/\n' });
+  const plain = tmpProject({ 'a.js': 'x' });
+  try {
+    ignored.git('add', '-A');
+    const skipped = runParser(ignored.dir, ['--staged', '--json']);
+    assert.equal(skipped.status, 0);
+    assert.equal(envelopeOf(skipped).status, 'skipped');
+
+    const noRepo = runParser(plain, ['--staged', '--json']);
+    assert.equal(noRepo.status, 1);
+    assert.equal(envelopeOf(noRepo).status, 'unavailable');
+
+    assert.equal(runParser(plain, ['--staged', '--full']).status, 2);
+    assert.equal(runParser(plain, ['--staged', '--check']).status, 2);
+  } finally {
+    fs.rmSync(ignored.dir, { recursive: true, force: true });
+    fs.rmSync(plain, { recursive: true, force: true });
+  }
+});

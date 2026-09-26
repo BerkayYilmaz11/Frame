@@ -12,6 +12,7 @@
  *   node update-structure.js --changed       # staged + unstaged Git changes (pre-commit hook)
  *   node update-structure.js a.js b.py       # specific files
  *   node update-structure.js --check         # would a full rebuild change the map? (read-only)
+ *   node update-structure.js --staged        # the commit's map, from the index, into the index (pre-commit hook)
  *   add --json for one bounded result envelope on stdout (diagnostics go to stderr)
  *
  * Exit codes:
@@ -20,6 +21,8 @@
  *                          2 failure or another update running
  *   --check                0 in sync · 1 out of date · 2 missing, corrupt or
  *                          unverifiable
+ *   --staged               0 published, already staged or not shared ·
+ *                          1 unavailable or aborted · 2 failure
  */
 
 const fs = require('fs');
@@ -53,7 +56,7 @@ const ROOT_DIR = resolveProjectRoot();
 
 /* ------------------------------ arguments ---------------------------- */
 
-const FLAGS = new Set(['--full', '--changed', '--check', '--json']);
+const FLAGS = new Set(['--full', '--changed', '--check', '--staged', '--json']);
 
 function parseArgs(argv) {
   const flags = new Set();
@@ -66,10 +69,11 @@ function parseArgs(argv) {
       files.push(arg);
     }
   }
-  const modes = [flags.has('--full'), flags.has('--changed'), flags.has('--check'), files.length > 0].filter(Boolean).length;
-  if (modes > 1) return { error: 'choose one of --full, --changed, --check or a file list' };
+  const modes = [flags.has('--full'), flags.has('--changed'), flags.has('--check'), flags.has('--staged'), files.length > 0].filter(Boolean).length;
+  if (modes > 1) return { error: 'choose one of --full, --changed, --check, --staged or a file list' };
   let command = 'full';
   if (flags.has('--check')) command = 'check';
+  else if (flags.has('--staged')) command = 'staged';
   else if (flags.has('--changed')) command = 'changed';
   else if (files.length > 0) command = 'files';
   return { command, json: flags.has('--json'), files };
@@ -301,6 +305,32 @@ function runCheck() {
     : verdict(1, 'out-of-date', null, `STRUCTURE.json is out of date — run: ${repairCommand()}`);
 }
 
+/* ------------------------------- staged ------------------------------ */
+
+const STAGED_EXIT = { published: 0, unchanged: 0, skipped: 0, unavailable: 1, aborted: 1, failed: 2 };
+
+/**
+ * --staged (STR-02b): build the commit's map from the staged snapshot and
+ * publish it into the index only. Never touches the working map and never
+ * blocks the commit — the hook wraps it in `|| true`.
+ */
+function runStaged() {
+  const { publishStaged } = require('./structure-commit');
+  const result = publishStaged(ROOT_DIR);
+  const exitCode = STAGED_EXIT[result.status] ?? 2;
+  const files = typeof result.files === 'number' ? ` (${result.files} modules)` : '';
+  if (result.status === 'published') say(`✓ Staged the commit's STRUCTURE.json${files}`);
+  else if (result.status === 'unchanged') say(`✓ The commit's STRUCTURE.json is already staged${files}`);
+  else if (result.status === 'skipped') say('STRUCTURE.json is not shared with this repository — not staged.');
+  else if (result.status === 'unavailable') warn(`⚠ Commit map not generated: ${result.reason}${result.message ? ` — ${result.message}` : ''}`);
+  else if (result.status === 'aborted') warn(`⚠ Commit map not staged: ${result.reason === 'index-locked' ? 'the index is locked' : 'the index changed while it was being built'}.`);
+  else warn(`✗ Commit map failed: ${result.message || result.reason}`);
+  if (result.policyFallback && (result.status === 'published' || result.status === 'unchanged')) {
+    warn('  (no staged .frame/config.json — generator defaults were used)');
+  }
+  return { schema: RESULT_SCHEMA, command: 'staged', exitCode, ...result };
+}
+
 /* -------------------------------- main ------------------------------- */
 
 function main() {
@@ -312,6 +342,14 @@ function main() {
     warn(`✗ ${args.error}`);
     emit({ schema: RESULT_SCHEMA, command: 'invalid', exitCode: 2, state: 'failed', reason: 'usage', message: args.error });
     process.exitCode = 2;
+    return;
+  }
+
+  if (args.command === 'staged') {
+    const result = runStaged();
+    emit(result);
+    noteRun(startedAt, typeof result.files === 'number' ? result.files : undefined);
+    process.exitCode = result.exitCode;
     return;
   }
 
