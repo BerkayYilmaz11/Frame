@@ -147,7 +147,10 @@ function fakeStat(kind, size) {
  * Blob bytes are looked up lazily through `blobOf(relPath)`.
  */
 function createIndexFs(root, entries, blobOf) {
-  const dirs = new Map([['', new Set()]]);
+  // `.frame/` always exists in a Frame checkout. Present it even before any
+  // of its files is staged, so a map's own first staging does not change the
+  // discovery counts of the next build (and counts match the working view).
+  const dirs = new Map([['', new Set(['.frame'])], ['.frame', new Set()]]);
   const files = new Map();
   for (const [file, entry] of entries) {
     files.set(file, entry);
@@ -320,7 +323,103 @@ function buildStaged(root, options = {}) {
   };
 }
 
+/* ------------------------------ publication ----------------------------- */
+
+function indexIdentity(indexFile) {
+  try {
+    return sha256(fs.readFileSync(indexFile));
+  } catch (e) {
+    return null;
+  }
+}
+
+function receiptPath(root) {
+  return path.join(root, '.frame', 'runtime', 'structure', 'commit.json');
+}
+
+function writeReceipt(root, value) {
+  try {
+    const file = receiptPath(root);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const tmp = `${file}.tmp-${process.pid}`;
+    fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + '\n');
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    /* visibility only: a commit never fails over it */
+  }
+}
+
+/**
+ * Build the commit's map and publish it into the effective index.
+ *
+ * Only the map's index entry can change. The index identity is captured
+ * before building and rechecked right before `update-index`, which takes
+ * Git's own lock; a changed or locked index aborts without writing. A map
+ * path that is neither tracked nor shareable (ignored, local sharing mode)
+ * is never force-added. The working map is never touched.
+ *
+ * Returns { status, reason?, message?, blob?, mapPath?, policyFallback? }:
+ *   published   the staged map entry now holds this commit's map
+ *   unchanged   it already did
+ *   skipped     the map path is not shared with the repository
+ *   unavailable no single staged snapshot (unmerged, unreadable object, no Git)
+ *   aborted     the index changed or was locked while building
+ *   failed      anything else
+ * and records it in `.frame/runtime/structure/commit.json`.
+ */
+function publishStaged(root, options = {}) {
+  const env = options.env || process.env;
+  const startedAt = Date.now();
+  let context = {};
+  const finish = (result) => {
+    const value = { version: 1, at: new Date().toISOString(), ms: Date.now() - startedAt, ...context, ...result };
+    writeReceipt(root, value);
+    return value;
+  };
+
+  try {
+    const indexFile = resolveIndex(root, env);
+    const identity = indexIdentity(indexFile);
+    const built = buildStaged(root, options);
+    context = {
+      mapPath: built.mapPath,
+      policyFallback: built.policyFallback,
+      files: Object.keys(built.structure.modules).length,
+      indexDigest: identity
+    };
+
+    const staged = built.entries.get(built.mapPath);
+    if (!staged) {
+      const ignored = git(root, ['check-ignore', '-q', '--', built.mapPath], { env, allowFailure: true }).status === 0;
+      if (ignored) return finish({ status: 'skipped', reason: 'map-not-shared' });
+    }
+
+    const blob = git(root, ['hash-object', '-w', '--stdin'], { env, input: built.candidate }).stdout.toString().trim();
+    if (staged && staged.id === blob) return finish({ status: 'unchanged', blob });
+
+    if (options.hooks && typeof options.hooks.beforePublish === 'function') options.hooks.beforePublish();
+    if (indexIdentity(indexFile) !== identity) return finish({ status: 'aborted', reason: 'index-changed' });
+
+    const mode = staged && staged.mode === '100755' ? '100755' : '100644';
+    const update = git(root, ['update-index', '--add', '--cacheinfo', `${mode},${blob},${built.mapPath}`], { env, allowFailure: true });
+    if (update.status !== 0) {
+      const stderr = String(update.stderr || '');
+      return finish({
+        status: 'aborted',
+        reason: /index\.lock|File exists/.test(stderr) ? 'index-locked' : 'update-failed',
+        message: stderr.trim().split('\n')[0]
+      });
+    }
+    return finish({ status: 'published', blob });
+  } catch (err) {
+    if (err instanceof CommitUnavailable) return finish({ status: 'unavailable', reason: err.reason, message: err.message });
+    return finish({ status: 'failed', reason: 'error', message: err && err.message });
+  }
+}
+
 module.exports = {
+  publishStaged,
+  receiptPath,
   buildStaged,
   createIndexFs,
   listEntries,
