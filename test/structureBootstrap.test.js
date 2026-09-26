@@ -352,13 +352,15 @@ test('the lifecycle worker ships with its helpers and is activated after them', 
   for (const rel of LIFECYCLE_REQUIRES) assert.ok(order.indexOf(rel) < entry, `${rel} before structure-lifecycle.js`);
 });
 
-test('a missing lifecycle helper withholds only the lifecycle entry', () => {
+test('a missing snapshot helper withholds the parser and the lifecycle entry', () => {
+  // STR-02b: update-structure --staged uses structure-commit, which uses the
+  // snapshot helper, so the parser needs it too.
   const source = scriptsCopy();
   try {
     fs.rmSync(path.join(source, 'structure-snapshot.js'));
     const report = stageParserScripts(project, { sourceDir: source });
-    assert.deepEqual(report.unavailable, ['structure-lifecycle.js']);
-    assert.ok(fs.existsSync(bin('update-structure.js')), 'the parser does not depend on it');
+    assert.deepEqual(report.unavailable, ['update-structure.js', 'structure-lifecycle.js']);
+    assert.ok(!fs.existsSync(bin('update-structure.js')));
     assert.ok(!fs.existsSync(bin('structure-lifecycle.js')));
   } finally {
     fs.rmSync(source, { recursive: true, force: true });

@@ -46,7 +46,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1566,
+      "sizeBytes": 1774,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5109,7 +5109,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 89,
+          "line": 90,
           "params": [
             "fsImpl",
             "src",
@@ -5118,7 +5118,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 122,
+          "line": 123,
           "params": [
             "projectPath",
             "options = {}"
@@ -5126,41 +5126,41 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 203,
+          "line": 204,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "detectHookSetup": {
-          "line": 217,
+          "line": 218,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "installPreCommitHook": {
-          "line": 284,
+          "line": 285,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "scanTimeoutMs": {
-          "line": 351,
+          "line": 352,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 364,
+          "line": 365,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 376,
+          "line": 377,
           "params": [
             "envelope",
             "code"
@@ -5168,7 +5168,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 435,
+          "line": 436,
           "params": [
             "projectPath",
             "options = {}"
@@ -5176,7 +5176,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 553,
+          "line": 554,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5184,7 +5184,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 24135,
+      "sizeBytes": 24208,
       "extraction": {
         "status": "parsed"
       },
@@ -5984,7 +5984,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 216296,
+      "sizeBytes": 216456,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5996,7 +5996,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3670,
+      "sizeBytes": 3707,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -19776,6 +19776,8 @@
         "getStructurePreCommitHookTemplate",
         "getOrchBinScripts",
         "FRAME_HOOK_MARKER_START",
+        "PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256",
+        "classifyStructureHook",
         "FRAME_HOOK_MARKER_END"
       ],
       "depends": [
@@ -19882,34 +19884,42 @@
           "line": 1125
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1164,
+          "line": 1161,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
+        "classifyStructureHook": {
+          "line": 1189,
+          "params": [
+            "text"
+          ],
+          "purpose": "'current' when `text` is today's template, 'previous' when it is an"
+        },
         "getOrchBusHeader": {
-          "line": 1187,
+          "line": 1208,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1199,
+          "line": 1220,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1219
+          "line": 1240
         },
         "getOrchBinScripts": {
-          "line": 1237,
+          "line": 1258,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 52141,
+      "sizeBytes": 53178,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "17137e9ce2249380",
         "purposes": {
+          "classifyStructureHook": "20c10517568ebff5",
           "formatProjectFacts": "912c7ed02437c0e5",
           "getClaudeRuleTemplate": "f47b075da4e05782",
           "getDateString": "1303f512229000ae",
@@ -21806,7 +21816,7 @@
           "line": 690
         }
       },
-      "sizeBytes": 36200,
+      "sizeBytes": 36199,
       "extraction": {
         "status": "parsed"
       },
@@ -22609,7 +22619,8 @@
         "path",
         "src/shared/frameTemplates",
         "scripts/structure-state",
-        "src/shared/docsHealth"
+        "src/shared/docsHealth",
+        "crypto"
       ],
       "functions": {
         "runParser": {
@@ -22644,6 +22655,12 @@
           ],
           "purpose": "Every path under `dir` with size and mtime — proves a run wrote nothing."
         },
+        "gitRepo": {
+          "line": 534,
+          "params": [
+            "files"
+          ]
+        },
         "envelopeOf": {
           "line": 299,
           "params": [
@@ -22651,7 +22668,7 @@
           ]
         }
       },
-      "sizeBytes": 23864,
+      "sizeBytes": 27823,
       "extraction": {
         "status": "parsed"
       },
@@ -22710,7 +22727,7 @@
           ]
         },
         "ownershipProject": {
-          "line": 211,
+          "line": 212,
           "params": [
             "{ overlay = false",
             "root = false",
@@ -22718,20 +22735,26 @@
           ]
         },
         "readersSee": {
-          "line": 226,
+          "line": 227,
           "params": [
             "dir"
           ],
           "purpose": "Which copy each reader used: find-module prints files, freshness flags phantoms."
         },
         "lifecycleState": {
-          "line": 454,
+          "line": 455,
+          "params": [
+            "dir"
+          ]
+        },
+        "stagedMap": {
+          "line": 327,
           "params": [
             "dir"
           ]
         }
       },
-      "sizeBytes": 28961,
+      "sizeBytes": 28656,
       "extraction": {
         "status": "parsed"
       },
@@ -23167,7 +23190,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 17826,
+      "sizeBytes": 17951,
       "extraction": {
         "status": "parsed"
       },
@@ -25446,10 +25469,12 @@
   },
   "generation": {
     "schema": 1,
-    "mode": "full",
+    "mode": "delta",
     "inventory": {
-      "coverage": "complete",
-      "reasons": []
+      "coverage": "unknown",
+      "reasons": [
+        "delta"
+      ]
     },
     "extraction": {
       "coverage": "complete",
@@ -25501,25 +25526,6 @@
       }
     },
     "counts": {
-      "visitedEntries": 459,
-      "traversedDirectories": 80,
-      "eligibleFiles": 370,
-      "unreadable": 0,
-      "binaryFiles": 5,
-      "symlinks": 0,
-      "specialFiles": 0,
-      "excludedFiles": {
-        "hard": 1,
-        "gitignore": 0,
-        "config": 0
-      },
-      "prunedDirectories": {
-        "hard": 3,
-        "default": 0,
-        "gitignore": 0,
-        "config": 0,
-        "depth": 0
-      },
       "indexedFiles": 370,
       "legacyGroups": 0
     },
@@ -25528,6 +25534,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1d79e97f596c7ff1956ffd389ab8ffef441871c0b8f7838284bca7a58cb9c5b3"
+    "revision": "4fe6c930f99283dd826a12be8f12649519f13e44ca186765dcc66dec782e9009"
   }
 }

@@ -170,9 +170,10 @@ test('the pre-commit snippet updates a linked worktree\'s own STRUCTURE.json', (
     const result = spawnSync('sh', [hookFile], { cwd: worktreeDir, encoding: 'utf8', timeout: 30000 });
     assert.equal(result.status, 0, result.stderr);
 
-    const written = path.join(worktreeDir, '.frame', 'STRUCTURE.json');
-    assert.ok(fs.existsSync(written), 'the worktree got its own STRUCTURE.json');
-    const structure = JSON.parse(fs.readFileSync(written, 'utf8'));
+    // STR-02b: the hook stages the commit's map into the worktree's index
+    const staged = git(worktreeDir, ['show', ':.frame/STRUCTURE.json']);
+    assert.equal(staged.status, 0, 'the worktree got its own commit map');
+    const structure = JSON.parse(staged.stdout);
     assert.ok(Object.keys(structure.modules).some((k) => k.includes('gadgetManager')), 'and it describes the worktree');
   } finally {
     spawnSync('git', ['worktree', 'remove', '--force', worktreeDir], { cwd: mainDir });
@@ -321,21 +322,25 @@ test('readers report partial, unverified and non-replacing scans; a missing atte
   }
 });
 
-/* ------------- STR-01: the pre-commit hook after the pipeline change ------------- */
+/* ---------- the pre-commit hook: the commit's map comes from the index (STR-02b) ---------- */
 
-test('the hook snippet is unchanged: --changed, non-blocking, stages only the map target', () => {
+const stagedMap = (dir) => {
+  const r = spawnSync('git', ['show', ':.frame/STRUCTURE.json'], { cwd: dir, encoding: 'utf8' });
+  return r.status === 0 ? JSON.parse(r.stdout) : null;
+};
+
+test('the hook snippet runs --staged, never runs git add, and stays non-blocking', () => {
   const { getStructureHookSnippet } = require('../src/shared/frameTemplates');
   const snippet = getStructureHookSnippet();
-  assert.match(snippet, /node "\$FRAME_PARSER" --changed \|\| true/);
-  assert.ok(!/--full/.test(snippet), 'no full scan in a commit hook');
-  const staged = [...snippet.matchAll(/git add "([^"]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(staged, ['$FRAME_ROOT/.frame/STRUCTURE.json', '$FRAME_ROOT/STRUCTURE.json']);
+  assert.match(snippet, /node "\$FRAME_PARSER" --staged \|\| true/);
+  assert.ok(!/--full|--changed/.test(snippet), 'no full scan and no working-tree update in a commit hook');
+  assert.ok(!/git add/.test(snippet), 'the working map is never staged');
 });
 
-test('full map → hook commit → no-op commit: unaffected entries and no-op bytes survive, nothing else is staged', () => {
+test('hook commit → no-op commit: the commit map follows the index, the working map is left alone', () => {
   const { getStructureHookSnippet } = require('../src/shared/frameTemplates');
   const git = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hook-delta-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hook-staged-'));
   try {
     git(dir, ['init', '-q']);
     git(dir, ['config', 'user.email', 'test@example.com']);
@@ -346,14 +351,16 @@ test('full map → hook commit → no-op commit: unaffected entries and no-op by
     fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\n');
     fs.writeFileSync(path.join(dir, 'app', 'user.rb'), 'class User; end\n');
     fs.writeFileSync(path.join(dir, 'README.md'), '# Readme\n');
+    git(dir, ['add', '-A']);
+    git(dir, ['commit', '-q', '-m', 'init']);
     structureBootstrap.copyParserScripts(dir);
-    const full = spawnSync('node', [path.join(dir, '.frame', 'bin', 'update-structure.js')], { cwd: dir, encoding: 'utf8', env: { ...process.env, FRAME_PROJECT_ROOT: undefined } });
-    assert.equal(full.status, 0, full.stderr);
-    const mapFile = path.join(dir, '.frame', 'STRUCTURE.json');
-    const before = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
-
     const hookFile = path.join(dir, '.git', 'run-hook.sh');
     fs.writeFileSync(hookFile, `#!/bin/sh\n${getStructureHookSnippet()}\nexit 0\n`, { mode: 0o755 });
+
+    // the working map (agents' view) exists and must not change
+    spawnSync('node', [path.join(dir, '.frame', 'bin', 'update-structure.js')], { cwd: dir, env: { ...process.env, FRAME_PROJECT_ROOT: undefined } });
+    const mapFile = path.join(dir, '.frame', 'STRUCTURE.json');
+    const working = fs.readFileSync(mapFile, 'utf8');
 
     fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A changed\n');
     git(dir, ['add', 'src/a.js']);
@@ -361,49 +368,45 @@ test('full map → hook commit → no-op commit: unaffected entries and no-op by
     assert.equal(hook.status, 0, hook.stderr);
     const staged = git(dir, ['diff', '--cached', '--name-only']).stdout.split('\n').filter(Boolean).sort();
     assert.deepEqual(staged, ['.frame/STRUCTURE.json', 'src/a.js'], 'no runtime, recovery or source files beyond the commit');
-
-    const after = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
-    assert.equal(after.modules.a.description, 'A changed');
-    for (const key of ['b', 'app/user.rb', 'README']) assert.deepEqual(after.modules[key], before.modules[key], key);
+    const commitMap = stagedMap(dir);
+    assert.equal(commitMap.modules.a.description, 'A changed');
+    assert.deepEqual(Object.keys(commitMap.modules).sort(), ['README', 'a', 'app/user.rb', 'b']);
+    assert.equal(fs.readFileSync(mapFile, 'utf8'), working, 'the working map is untouched');
 
     git(dir, ['commit', '-q', '-m', 'change']);
-    const bytes = fs.readFileSync(mapFile, 'utf8');
+    const blob = git(dir, ['rev-parse', ':.frame/STRUCTURE.json']).stdout;
     const noop = spawnSync('sh', [hookFile], { cwd: dir, encoding: 'utf8' });
     assert.equal(noop.status, 0, noop.stderr);
-    assert.equal(fs.readFileSync(mapFile, 'utf8'), bytes, 'a no-op hook run leaves the map bytes alone');
+    assert.equal(git(dir, ['rev-parse', ':.frame/STRUCTURE.json']).stdout, blob, 'a no-op hook run stages nothing new');
     assert.deepEqual(git(dir, ['diff', '--cached', '--name-only']).stdout.trim(), '');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('a busy parser keeps the commit non-blocking and says the map was not refreshed', () => {
+test('a new hook with an older .frame/bin stays non-blocking and stages nothing', () => {
   const { getStructureHookSnippet } = require('../src/shared/frameTemplates');
   const git = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hook-busy-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hook-old-bin-'));
   try {
     git(dir, ['init', '-q']);
     fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.mkdirSync(path.join(dir, '.frame', 'bin'), { recursive: true });
     fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A\n');
-    structureBootstrap.copyParserScripts(dir);
-    spawnSync('node', [path.join(dir, '.frame', 'bin', 'update-structure.js')], { cwd: dir, encoding: 'utf8', env: { ...process.env, FRAME_PROJECT_ROOT: undefined } });
-    const mapFile = path.join(dir, '.frame', 'STRUCTURE.json');
-    const bytes = fs.readFileSync(mapFile, 'utf8');
-    fs.writeFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'lock'), JSON.stringify({ token: 'x', pid: process.pid, host: os.hostname() }));
-    fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A changed\n');
+    // a parser generation that does not know --staged
+    fs.writeFileSync(path.join(dir, '.frame', 'bin', 'update-structure.js'), 'console.error("unknown option"); process.exit(2);\n');
     git(dir, ['add', 'src/a.js']);
     const hookFile = path.join(dir, '.git', 'run-hook.sh');
     fs.writeFileSync(hookFile, `#!/bin/sh\n${getStructureHookSnippet()}\nexit 0\n`, { mode: 0o755 });
     const hook = spawnSync('sh', [hookFile], { cwd: dir, encoding: 'utf8' });
     assert.equal(hook.status, 0);
-    assert.match(hook.stderr, /not refreshed/);
-    assert.equal(fs.readFileSync(mapFile, 'utf8'), bytes);
+    assert.deepEqual(git(dir, ['diff', '--cached', '--name-only']).stdout.trim().split('\n'), ['src/a.js']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('a linked worktree borrowing the main parser leaves the main checkout\'s map and state alone', () => {
+test('a linked worktree borrowing the main parser stages its own commit map and leaves the main checkout alone', () => {
   const { getStructureHookSnippet } = require('../src/shared/frameTemplates');
   const git = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
   const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-wt-main-'));
@@ -414,14 +417,13 @@ test('a linked worktree borrowing the main parser leaves the main checkout\'s ma
     git(mainDir, ['config', 'user.name', 'Test']);
     fs.mkdirSync(path.join(mainDir, 'src'), { recursive: true });
     fs.writeFileSync(path.join(mainDir, 'src', 'mainOnly.js'), '// Main\n');
-    fs.writeFileSync(path.join(mainDir, '.gitignore'), '.frame/\n');
     git(mainDir, ['add', '.']);
     git(mainDir, ['commit', '-q', '-m', 'init']);
     structureBootstrap.copyParserScripts(mainDir);
     fs.writeFileSync(path.join(mainDir, '.frame', 'bin', 'intent-map.json'), JSON.stringify({ widgets: { modules: ['gadget'] } }));
     spawnSync('node', [path.join(mainDir, '.frame', 'bin', 'update-structure.js')], { cwd: mainDir, env: { ...process.env, FRAME_PROJECT_ROOT: undefined } });
     const mainMap = fs.readFileSync(path.join(mainDir, '.frame', 'STRUCTURE.json'), 'utf8');
-    const mainScan = fs.readFileSync(path.join(mainDir, '.frame', 'runtime', 'structure', 'scan.json'), 'utf8');
+    const mainIndex = git(mainDir, ['ls-files', '-s']).stdout;
 
     git(mainDir, ['worktree', 'add', '-q', '-b', 'wt', worktreeDir]);
     fs.writeFileSync(path.join(worktreeDir, 'src', 'gadget.js'), '// Gadget\n');
@@ -431,14 +433,13 @@ test('a linked worktree borrowing the main parser leaves the main checkout\'s ma
     const result = spawnSync('sh', [hookFile], { cwd: worktreeDir, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
 
-    const wtMap = JSON.parse(fs.readFileSync(path.join(worktreeDir, '.frame', 'STRUCTURE.json'), 'utf8'));
-    assert.ok(wtMap.modules.gadget, 'the worktree map describes the worktree');
-    // curation is looked up beside the borrowed parser, as before STR-01
+    const wtMap = stagedMap(worktreeDir);
+    assert.ok(wtMap.modules.gadget, 'the worktree commit map describes the worktree');
+    // curation is looked up beside the borrowed parser, as before
     assert.deepEqual(wtMap.intentIndex.widgets.map((e) => e.file), ['src/gadget.js']);
-    assert.ok(fs.existsSync(path.join(worktreeDir, '.frame', 'runtime', 'structure', 'scan.json')), 'state belongs to the worktree');
+    assert.ok(fs.existsSync(path.join(worktreeDir, '.frame', 'runtime', 'structure', 'commit.json')), 'the receipt belongs to the worktree');
     assert.equal(fs.readFileSync(path.join(mainDir, '.frame', 'STRUCTURE.json'), 'utf8'), mainMap, 'main map untouched');
-    assert.equal(fs.readFileSync(path.join(mainDir, '.frame', 'runtime', 'structure', 'scan.json'), 'utf8'), mainScan, 'main state untouched');
-    assert.ok(!fs.existsSync(path.join(mainDir, '.frame', 'runtime', 'structure', 'lock')));
+    assert.equal(git(mainDir, ['ls-files', '-s']).stdout, mainIndex, 'main index untouched');
   } finally {
     spawnSync('git', ['worktree', 'remove', '--force', worktreeDir], { cwd: mainDir });
     fs.rmSync(worktreeDir, { recursive: true, force: true });

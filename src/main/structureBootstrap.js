@@ -47,7 +47,7 @@ const SCRIPTS_SOURCE_DIR = path.join(__dirname, '..', '..', 'scripts');
 const HELPER_FILES = [
   'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
-  'structure-read.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
+  'structure-read.js', 'structure-commit.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
 ];
 const ENTRY_FILES = [
   'update-structure.js', 'structure-lifecycle.js', 'find-module.js', 'check-freshness.js',
@@ -60,7 +60,8 @@ const FS_SAFE_SOURCE = path.join(__dirname, 'fsSafe.js');
 // What update-structure.js cannot run without.
 const PARSER_REQUIRES = [
   'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
-  'structure-generation.js', 'structure-state.js', 'fsSafe.js',
+  'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
+  'structure-commit.js', 'fsSafe.js',
   'lang/javascript.js', 'lang/python.js', 'lang/go.js', 'lang/rust.js', 'lang/markdown.js'
 ];
 // What the lifecycle worker (STR-02) cannot run without.

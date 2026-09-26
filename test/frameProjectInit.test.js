@@ -617,7 +617,7 @@ test('generation works without Git and beside a custom hook it never touches', a
     fs.writeFileSync(hookFile, '#!/bin/sh\necho mine\n', { mode: 0o755 });
     const result = await frameProject.runProjectInit(custom, 'custom');
     assert.equal(result._structureBootstrap.hook.status, 'skipped-custom');
-    assert.match(result._structureBootstrap.hook.manualInstructions, /--changed/);
+    assert.match(result._structureBootstrap.hook.manualInstructions, /--staged/);
     assert.equal(result._structureBootstrap.initialScan.status, 'ok');
     assert.equal(fs.readFileSync(hookFile, 'utf8'), '#!/bin/sh\necho mine\n');
   } finally {

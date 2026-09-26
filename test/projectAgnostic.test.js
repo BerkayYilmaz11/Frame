@@ -582,3 +582,33 @@ test('cli: --staged exits 0 when not shared, 1 when unavailable, 2 on conflictin
     fs.rmSync(plain, { recursive: true, force: true });
   }
 });
+
+/* ------------------- STR-02b: hook templates ------------------- */
+
+test('templates: the pre-commit template is recognized; earlier unmodified templates are upgradable', () => {
+  const crypto = require('crypto');
+  const current = templates.getStructurePreCommitHookTemplate();
+  assert.equal(templates.classifyStructureHook(current), 'current');
+  assert.match(current, /While this file is unmodified, Frame keeps it up to\n# date; once you edit it, Frame leaves it alone\./);
+  assert.equal(templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.length, 3);
+  assert.ok(!templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.includes(crypto.createHash('sha256').update(current).digest('hex')));
+
+  // rebuild the last shipped template (a8c1c8c) from its snippet and confirm the hash
+  const { execSync } = require('child_process');
+  let previous = null;
+  try {
+    const src = execSync('git show a8c1c8c:src/shared/frameTemplates.js', { cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const grab = (re) => src.match(re)[0];
+    previous = new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
+      + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
+      + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
+      + 'return getStructurePreCommitHookTemplate();')();
+  } catch (e) {
+    previous = null; // shallow clone: the hash list is still pinned above
+  }
+  if (previous) {
+    assert.equal(templates.classifyStructureHook(previous), 'previous');
+    assert.equal(templates.classifyStructureHook(previous.replace('exit 0', 'npm run lint\nexit 0')), null, 'an edited copy is the user\'s');
+  }
+  assert.equal(templates.classifyStructureHook('#!/bin/sh\necho mine\n'), null);
+});

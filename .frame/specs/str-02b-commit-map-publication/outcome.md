@@ -23,3 +23,11 @@ _Captured: 2026-09-26 · 2 file change(s)_
 _Captured: 2026-09-26 · 2 file change(s)_
 
 ---
+
+## T04 — Replace the hook snippet and template
+
+The structure snippet now runs `update-structure.js --staged || true` through the unchanged worktree-borrowing logic and never runs `git add`; the template's header promise changed from "Frame will not overwrite it on subsequent inits" to "While this file is unmodified, Frame keeps it up to date; once you edit it, Frame leaves it alone" (D2 makes the old promise untrue). Earlier templates are recognized by SHA-256 recovered from history (d3b098d, fa17c93, a8c1c8c) via `classifyStructureHook`. Pulled forward from T05 to keep every commit green: shipping `structure-commit.js` as a parser helper (`HELPER_FILES`, `PARSER_REQUIRES`, `build.files`), since the new hook needs it; the snapshot helper is now a parser requirement as well. Five STR-01-era hook tests in `scriptsProjectRoot` were rewritten to the new contract (commit map read from the index, working map untouched), the busy-writer test replaced by an old-`.frame/bin` compatibility test. Files touched: `src/shared/frameTemplates.js`, `src/main/structureBootstrap.js`, `package.json`, `test/projectAgnostic.test.js`, `test/scriptsProjectRoot.test.js`, `test/frameProjectInit.test.js`, `test/structureBootstrap.test.js`.
+
+_Captured: 2026-09-26 · 7 file change(s)_
+
+---
