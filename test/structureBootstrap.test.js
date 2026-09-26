@@ -378,3 +378,91 @@ test('freshness readers are activated only after the read contract they import',
     fs.rmSync(source, { recursive: true, force: true });
   }
 });
+
+/* ------------------- STR-02b: hook installation and upgrades ------------------- */
+
+const { installPreCommitHook, upgradeStructureHook } = structureBootstrap;
+const frameTemplates = require('../src/shared/frameTemplates');
+
+/** The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone). */
+function previousTemplate() {
+  try {
+    const src = execFileSync('git', ['show', 'a8c1c8c:src/shared/frameTemplates.js'], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const grab = (re) => src.match(re)[0];
+    return new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
+      + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
+      + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
+      + 'return getStructurePreCommitHookTemplate();')();
+  } catch (_) {
+    return null;
+  }
+}
+const PREVIOUS = previousTemplate();
+
+function gitInit(dir) {
+  spawnSync('git', ['init', '-q'], { cwd: dir });
+  spawnSync('git', ['config', 'user.email', 't@example.com'], { cwd: dir });
+  spawnSync('git', ['config', 'user.name', 'T'], { cwd: dir });
+}
+const hookFile = (dir) => path.join(dir, '.git', 'hooks', 'pre-commit');
+
+test('a repository without a hook gets the current template, executable', async () => {
+  gitInit(project);
+  const result = await installPreCommitHook(project);
+  assert.equal(result.status, 'installed');
+  assert.equal(fs.readFileSync(hookFile(project), 'utf8'), frameTemplates.getStructurePreCommitHookTemplate());
+  assert.ok(fs.statSync(hookFile(project)).mode & 0o100);
+  assert.equal((await installPreCommitHook(project)).status, 'up-to-date');
+});
+
+test('a linked worktree installs into the shared hooks directory Git reports', async () => {
+  gitInit(project);
+  spawnSync('git', ['commit', '-q', '--allow-empty', '-m', 'init'], { cwd: project });
+  const wt = path.join(os.tmpdir(), `frame-bootstrap-wt-${process.pid}-${Date.now()}`);
+  spawnSync('git', ['worktree', 'add', '-q', '-b', 'wt', wt], { cwd: project });
+  try {
+    const result = await installPreCommitHook(wt);
+    assert.equal(result.status, 'installed', result.message);
+    assert.ok(fs.existsSync(hookFile(project)), 'hooks are shared with the main checkout');
+  } finally {
+    spawnSync('git', ['worktree', 'remove', '--force', wt], { cwd: project });
+    fs.rmSync(wt, { recursive: true, force: true });
+  }
+});
+
+test('an unmodified earlier Frame template is upgraded; an edited one is left alone', { skip: !PREVIOUS && 'template history unavailable' }, async () => {
+  gitInit(project);
+  fs.writeFileSync(hookFile(project), PREVIOUS, { mode: 0o755 });
+  assert.equal((await upgradeStructureHook(project)).status, 'upgraded');
+  assert.equal(fs.readFileSync(hookFile(project), 'utf8'), frameTemplates.getStructurePreCommitHookTemplate());
+
+  const edited = PREVIOUS.replace('exit 0', 'npm run lint\nexit 0');
+  fs.writeFileSync(hookFile(project), edited, { mode: 0o755 });
+  assert.equal((await upgradeStructureHook(project)).status, 'untouched');
+  const install = await installPreCommitHook(project);
+  assert.equal(install.status, 'skipped-custom');
+  assert.match(install.manualInstructions, /--staged/);
+  assert.equal(fs.readFileSync(hookFile(project), 'utf8'), edited);
+
+  fs.writeFileSync(hookFile(project), PREVIOUS, { mode: 0o755 });
+  assert.equal((await installPreCommitHook(project)).status, 'upgraded', 'init upgrades too');
+});
+
+test('a core.hooksPath folder is the user\'s: nothing is written there', async () => {
+  gitInit(project);
+  spawnSync('git', ['config', 'core.hooksPath', '.githooks'], { cwd: project });
+  const result = await installPreCommitHook(project);
+  assert.equal(result.status, 'skipped-custom');
+  assert.match(result.message, /core\.hooksPath points to \.githooks/);
+  assert.ok(!fs.existsSync(path.join(project, '.githooks')));
+  assert.ok(!fs.existsSync(hookFile(project)));
+});
+
+test('lefthook guidance uses the staged command and no git add', async () => {
+  gitInit(project);
+  fs.writeFileSync(path.join(project, 'lefthook.yml'), 'pre-commit: {}\n');
+  const result = await installPreCommitHook(project);
+  assert.equal(result.status, 'skipped-lefthook');
+  assert.match(result.manualInstructions, /update-structure\.js --staged/);
+  assert.ok(!/git add/.test(result.manualInstructions));
+});

@@ -29,11 +29,15 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { exec, spawn } = require('child_process');
+const { execFile, spawn } = require('child_process');
+const { promisify } = require('util');
+
+const execFileAsync = promisify(execFile);
 const { FRAME_DIR, FRAME_BIN_DIR } = require('../shared/frameConstants');
 const {
   getStructureHookSnippet,
-  getStructurePreCommitHookTemplate
+  getStructurePreCommitHookTemplate,
+  classifyStructureHook
 } = require('../shared/frameTemplates');
 
 // Resolve the location of Frame's bundled scripts/ folder. In dev this is
@@ -206,84 +210,109 @@ function copyParserScripts(projectPath) {
 }
 
 /**
+ * Where this checkout's `pre-commit` hook lives, asked of Git — a linked
+ * worktree's `.git` is a file, and `core.hooksPath` can move hooks anywhere.
+ * `insideGitDir` is false when the hooks directory is outside Git's own
+ * directory (core.hooksPath → a folder the user owns, often tracked): Frame
+ * never writes there. Resolves null when Git or the repository is missing.
+ */
+async function hookLocation(projectPath) {
+  const run = async (args) => {
+    try {
+      const { stdout } = await execFileAsync('git', args, { cwd: projectPath, encoding: 'utf8', timeout: 5000 });
+      return stdout.trim();
+    } catch (_) {
+      return null;
+    }
+  };
+  const [hooks, common] = await Promise.all([run(['rev-parse', '--git-path', 'hooks']), run(['rev-parse', '--git-common-dir'])]);
+  if (!hooks || !common) return null;
+  const hooksDir = path.resolve(projectPath, hooks);
+  const commonDir = path.resolve(projectPath, common);
+  const rel = path.relative(commonDir, hooksDir);
+  return {
+    hooksDir,
+    hookFile: path.join(hooksDir, 'pre-commit'),
+    insideGitDir: !rel.startsWith('..') && !path.isAbsolute(rel)
+  };
+}
+
+/**
  * Detect what kind of pre-commit hook setup the project has.
  *
- * Returns one of:
- *   - 'no-git'   — no .git/ folder, hook install impossible
- *   - 'husky'    — .husky/ folder exists and core.hooksPath points to it
- *   - 'lefthook' — lefthook.yml present in project root
- *   - 'custom'   — .git/hooks/pre-commit exists with non-default content
- *   - 'vanilla'  — no existing hook (or only the .sample), safe to write
+ * Returns { setup, location } where setup is one of:
+ *   - 'no-git'         — not a repository (or no Git), hook install impossible
+ *   - 'husky'          — .husky/ folder exists and core.hooksPath points to it
+ *   - 'lefthook'       — lefthook.yml present in project root
+ *   - 'hooks-path'     — core.hooksPath points outside Git's directory
+ *   - 'frame-current'  — the hook is Frame's current template, unmodified
+ *   - 'frame-previous' — an earlier Frame template, unmodified (upgradable)
+ *   - 'custom'         — any other existing pre-commit content
+ *   - 'vanilla'        — no existing hook (or only the .sample), safe to write
  */
 async function detectHookSetup(projectPath) {
-  const gitDir = path.join(projectPath, '.git');
-  if (!fs.existsSync(gitDir)) {
-    return 'no-git';
-  }
+  if (!fs.existsSync(path.join(projectPath, '.git'))) return { setup: 'no-git', location: null };
+  const location = await hookLocation(projectPath);
+  if (!location) return { setup: 'no-git', location: null };
 
   // Lefthook check — config file in project root
   if (
     fs.existsSync(path.join(projectPath, 'lefthook.yml')) ||
     fs.existsSync(path.join(projectPath, 'lefthook.yaml'))
   ) {
-    return 'lefthook';
+    return { setup: 'lefthook', location };
   }
 
-  // Husky check — .husky/ folder + core.hooksPath
+  // Husky check — .husky/ folder (with or without core.hooksPath set yet)
   const huskyDir = path.join(projectPath, '.husky');
   if (fs.existsSync(huskyDir) && fs.statSync(huskyDir).isDirectory()) {
-    try {
-      const hooksPath = await new Promise((resolve, reject) => {
-        exec('git config --get core.hooksPath', {
-          cwd: projectPath,
-          encoding: 'utf8',
-          timeout: 5000
-        }, (err, stdout) => (err ? reject(err) : resolve(stdout.trim())));
-      });
-      if (hooksPath && hooksPath.replace(/\/$/, '').endsWith('.husky')) {
-        return 'husky';
-      }
-    } catch (_) {
-      // git config returned non-zero (not set) — fall through
-    }
-    // Folder exists but hooksPath not set; treat as husky-in-progress
-    return 'husky';
+    return { setup: 'husky', location };
   }
 
-  // Vanilla check — does .git/hooks/pre-commit exist with real content?
-  const hookFile = path.join(gitDir, 'hooks', 'pre-commit');
-  if (fs.existsSync(hookFile)) {
+  // core.hooksPath elsewhere: that folder is the user's.
+  if (!location.insideGitDir) return { setup: 'hooks-path', location };
+
+  if (fs.existsSync(location.hookFile)) {
+    let content;
     try {
-      const content = fs.readFileSync(hookFile, 'utf8');
-      // Git's default samples end in .sample; if a bare pre-commit file
-      // exists with non-trivial content, treat it as custom.
-      if (content.trim().length > 0) {
-        return 'custom';
-      }
+      content = fs.readFileSync(location.hookFile, 'utf8');
     } catch (_) {
       // Can't read — treat as custom to be safe (don't overwrite blind)
-      return 'custom';
+      return { setup: 'custom', location };
     }
+    const frame = classifyStructureHook(content);
+    if (frame === 'current') return { setup: 'frame-current', location };
+    if (frame === 'previous') return { setup: 'frame-previous', location };
+    // Git's default samples end in .sample; a bare pre-commit file with
+    // non-trivial content is the user's.
+    if (content.trim().length > 0) return { setup: 'custom', location };
   }
 
-  return 'vanilla';
+  return { setup: 'vanilla', location };
+}
+
+function writeHook(location) {
+  fs.mkdirSync(path.dirname(location.hookFile), { recursive: true });
+  fs.writeFileSync(location.hookFile, getStructurePreCommitHookTemplate(), { mode: 0o755 });
+  fs.chmodSync(location.hookFile, 0o755);
 }
 
 /**
  * Install the pre-commit hook, but only where there is no hook to damage.
  *
- * Frame writes exactly one hook file: `.git/hooks/pre-commit` in a repository
- * that has none (a file git itself does not track). Husky, lefthook and any
- * existing custom hook get the snippet handed back as text — those files are
- * the user's, usually committed, and often generated by their own tooling.
+ * Frame writes exactly one hook file: `pre-commit` inside Git's own hooks
+ * directory (never tracked), when there is none — or when the existing one
+ * is an earlier Frame template nobody edited (STR-02b), which is replaced
+ * with the current one. Husky, lefthook, a core.hooksPath folder and any
+ * edited or custom hook get the snippet handed back as text — those files
+ * are the user's, usually committed, and often generated by their tooling.
  *
  * Returns: { status, message, manualInstructions? }
- *   status: 'installed' | 'skipped-custom' | 'skipped-husky'
- *           | 'skipped-no-git' | 'skipped-lefthook' | 'error'
- *   manualInstructions: string shown to user when we can't auto-install
+ *   status: 'installed' | 'upgraded' | 'up-to-date' | 'skipped-custom'
+ *           | 'skipped-husky' | 'skipped-no-git' | 'skipped-lefthook' | 'error'
  */
 async function installPreCommitHook(projectPath) {
-  const setup = await detectHookSetup(projectPath);
+  const { setup, location } = await detectHookSetup(projectPath);
 
   if (setup === 'no-git') {
     return {
@@ -302,7 +331,7 @@ async function installPreCommitHook(projectPath) {
         'pre-commit:',
         '  commands:',
         '    frame-structure:',
-        '      run: node .frame/bin/update-structure.js --changed && git add .frame/STRUCTURE.json',
+        '      run: node .frame/bin/update-structure.js --staged || true',
         '      env:',
         '        FRAME_PROJECT_ROOT: "{root}"'
       ].join('\n')
@@ -320,23 +349,51 @@ async function installPreCommitHook(projectPath) {
     };
   }
 
-  if (setup === 'custom') {
-    // Existing custom vanilla hook — don't auto-append in v1. Show what to add.
+  if (setup === 'hooks-path') {
     return {
       status: 'skipped-custom',
-      message: 'Existing pre-commit hook detected — add this snippet to .git/hooks/pre-commit manually:',
+      message: `core.hooksPath points to ${path.relative(projectPath, location.hooksDir) || location.hooksDir} — add this snippet to its pre-commit manually:`,
       manualInstructions: getStructureHookSnippet()
     };
   }
 
-  // setup === 'vanilla' — safe to write a fresh hook file
-  const hookFile = path.join(projectPath, '.git', 'hooks', 'pre-commit');
+  if (setup === 'custom') {
+    // Existing custom or edited hook — never rewritten. Show what to add.
+    return {
+      status: 'skipped-custom',
+      message: 'Existing pre-commit hook detected — add this snippet to it manually:',
+      manualInstructions: getStructureHookSnippet()
+    };
+  }
+
+  if (setup === 'frame-current') {
+    return { status: 'up-to-date', message: 'Frame pre-commit hook is current' };
+  }
+
+  // 'vanilla' or 'frame-previous' — Frame's to write
   try {
-    fs.mkdirSync(path.dirname(hookFile), { recursive: true });
-    fs.writeFileSync(hookFile, getStructurePreCommitHookTemplate(), { mode: 0o755 });
-    return { status: 'installed', message: 'Pre-commit hook installed at .git/hooks/pre-commit' };
+    writeHook(location);
+    return setup === 'frame-previous'
+      ? { status: 'upgraded', message: 'Frame pre-commit hook upgraded to stage the commit map from the index' }
+      : { status: 'installed', message: 'Pre-commit hook installed' };
   } catch (err) {
     return { status: 'error', message: `Failed to install hook: ${err.message}` };
+  }
+}
+
+/**
+ * On project open: replace an unmodified earlier Frame template with the
+ * current one. Nothing else is installed or touched here — a project without
+ * a hook gets one only through init, as before.
+ */
+async function upgradeStructureHook(projectPath) {
+  const { setup, location } = await detectHookSetup(projectPath);
+  if (setup !== 'frame-previous') return { status: setup === 'frame-current' ? 'up-to-date' : 'untouched' };
+  try {
+    writeHook(location);
+    return { status: 'upgraded' };
+  } catch (err) {
+    return { status: 'error', message: err.message };
   }
 }
 
@@ -593,5 +650,6 @@ module.exports = {
   LIFECYCLE_REQUIRES,
   detectHookSetup,
   installPreCommitHook,
+  upgradeStructureHook,
   runInitialFullScan
 };

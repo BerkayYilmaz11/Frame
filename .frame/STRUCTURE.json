@@ -1787,7 +1787,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1575,
+          "line": 1583,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -1795,7 +1795,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1597,
+          "line": 1605,
           "params": [
             "ipcMain"
           ],
@@ -1827,7 +1827,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 70996,
+      "sizeBytes": 71402,
       "extraction": {
         "status": "parsed"
       },
@@ -5097,6 +5097,7 @@
         "LIFECYCLE_REQUIRES",
         "detectHookSetup",
         "installPreCommitHook",
+        "upgradeStructureHook",
         "runInitialFullScan"
       ],
       "depends": [
@@ -5104,12 +5105,13 @@
         "path",
         "crypto",
         "child_process",
+        "util",
         "shared/frameConstants",
         "shared/frameTemplates"
       ],
       "functions": {
         "stageFile": {
-          "line": 90,
+          "line": 94,
           "params": [
             "fsImpl",
             "src",
@@ -5118,7 +5120,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 123,
+          "line": 127,
           "params": [
             "projectPath",
             "options = {}"
@@ -5126,41 +5128,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 204,
+          "line": 208,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
+        "hookLocation": {
+          "line": 219,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
+        },
         "detectHookSetup": {
-          "line": 218,
+          "line": 253,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
+        "writeHook": {
+          "line": 294,
+          "params": [
+            "location"
+          ]
+        },
         "installPreCommitHook": {
-          "line": 285,
+          "line": 314,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
+        "upgradeStructureHook": {
+          "line": 389,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "On project open: replace an unmodified earlier Frame template with the"
+        },
         "scanTimeoutMs": {
-          "line": 352,
+          "line": 409,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 365,
+          "line": 422,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 377,
+          "line": 434,
           "params": [
             "envelope",
             "code"
@@ -5168,7 +5190,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 436,
+          "line": 493,
           "params": [
             "projectPath",
             "options = {}"
@@ -5176,7 +5198,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 554,
+          "line": 611,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5184,7 +5206,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 24208,
+      "sizeBytes": 26865,
       "extraction": {
         "status": "parsed"
       },
@@ -5193,12 +5215,14 @@
         "purposes": {
           "bootstrapStructure": "723773900dfeea80",
           "detectHookSetup": "7139e135de5fdc39",
+          "hookLocation": "89a1589ed4e6559e",
           "installPreCommitHook": "748f5e3e8d88f1b5",
           "parseEnvelope": "b20189a62e13bc20",
           "runInitialFullScan": "428669e2648a82bd",
           "stageFile": "351d4019ce6a4dad",
           "stageParserScripts": "5834317416f84c7e",
-          "summarizeEnvelope": "4fdc1da7b5ddb106"
+          "summarizeEnvelope": "4fdc1da7b5ddb106",
+          "upgradeStructureHook": "a5bf8c8d0ca5f3c8"
         }
       }
     },
@@ -21850,7 +21874,8 @@
         "events",
         "src/main/structureLifecycle",
         "src/main/workspace",
-        "src/shared/ipcChannels"
+        "src/shared/ipcChannels",
+        "src/shared/frameTemplates"
       ],
       "functions": {
         "git": {
@@ -21895,7 +21920,7 @@
           "line": 336
         }
       },
-      "sizeBytes": 19416,
+      "sizeBytes": 21181,
       "extraction": {
         "status": "parsed"
       },
@@ -22754,7 +22779,7 @@
           ]
         }
       },
-      "sizeBytes": 28656,
+      "sizeBytes": 31360,
       "extraction": {
         "status": "parsed"
       },
@@ -23146,7 +23171,8 @@
         "os",
         "path",
         "child_process",
-        "src/main/structureBootstrap"
+        "src/main/structureBootstrap",
+        "src/shared/frameTemplates"
       ],
       "functions": {
         "runBinParser": {
@@ -23182,6 +23208,16 @@
           "line": 282,
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
+        "previousTemplate": {
+          "line": 388,
+          "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
+        },
+        "gitInit": {
+          "line": 402,
+          "params": [
+            "dir"
+          ]
+        },
         "PREVIOUS_GENERATION": {
           "line": 50,
           "params": [
@@ -23190,7 +23226,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 17951,
+      "sizeBytes": 22322,
       "extraction": {
         "status": "parsed"
       },
@@ -23201,6 +23237,7 @@
           "fakeParser": "05bf3f174d1714d8",
           "hangingAfterPublish": "cd656a5e67c0e5e6",
           "installPreviousGeneration": "2140d962e0406e6e",
+          "previousTemplate": "355d0d1b7218b28a",
           "scriptsCopy": "4e1f88e5078fc751",
           "stagePackagedTree": "43181546d97c8ed2"
         }
@@ -25534,6 +25571,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "4fe6c930f99283dd826a12be8f12649519f13e44ca186765dcc66dec782e9009"
+    "revision": "637d74c952fbe5aa4b33c491ce58af9979b2f7f7fe815e4855bb8398a7089bd0"
   }
 }

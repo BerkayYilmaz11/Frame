@@ -533,3 +533,49 @@ test('a linked worktree keeps its own map, receipt and lease when it borrows the
     fs.rmSync(mainDir, { recursive: true, force: true });
   }
 });
+
+/* ---------------- STR-02b: the leak, end to end through git commit ---------------- */
+
+test('git commit with Frame\'s hook: untracked and unstaged content never reach the committed map', async () => {
+  const git = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-leak-'));
+  try {
+    git(dir, ['init', '-q']);
+    git(dir, ['config', 'user.email', 'test@example.com']);
+    git(dir, ['config', 'user.name', 'Test']);
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A\n');
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\n');
+    git(dir, ['add', '-A']);
+    git(dir, ['commit', '-q', '-m', 'init']);
+    structureBootstrap.copyParserScripts(dir);
+    assert.equal((await structureBootstrap.installPreCommitHook(dir)).status, 'installed');
+
+    // the agents' working view knows about untracked work
+    fs.writeFileSync(path.join(dir, 'private-notes.md'), '# My private salary notes\n');
+    assert.equal(spawnSync('node', [path.join(dir, '.frame', 'bin', 'structure-lifecycle.js'), '--once'], { cwd: dir }).status, 0);
+    const workingMap = fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8');
+    assert.match(workingMap, /private salary/);
+
+    fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A staged\n');
+    git(dir, ['add', 'src/a.js']);
+    fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// UNSTAGED_SENTINEL\n');
+    const commit = git(dir, ['commit', '-q', '-m', 'change a']);
+    assert.equal(commit.status, 0, commit.stderr);
+    const committed = git(dir, ['show', 'HEAD:.frame/STRUCTURE.json']).stdout;
+    assert.ok(!/private|salary|UNSTAGED_SENTINEL/.test(committed), 'nothing untracked or unstaged in the commit');
+    assert.equal(JSON.parse(committed).modules.a.description, 'A staged');
+    assert.equal(fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8'), workingMap, 'the working view is untouched');
+
+    // a pathspec commit uses Git's temporary index
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B via pathspec\n');
+    const partial = git(dir, ['commit', '-q', '-m', 'only b', '--', 'src/b.js']);
+    assert.equal(partial.status, 0, partial.stderr);
+    const second = JSON.parse(git(dir, ['show', 'HEAD:.frame/STRUCTURE.json']).stdout);
+    assert.equal(second.modules.b.description, 'B via pathspec');
+    assert.equal(second.modules.a.description, 'A staged', 'the unstaged sentinel stayed out');
+    assert.ok(!Object.values(second.modules).some((m) => m.file === 'private-notes.md'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

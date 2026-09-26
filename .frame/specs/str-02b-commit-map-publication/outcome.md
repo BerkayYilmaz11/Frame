@@ -31,3 +31,11 @@ The structure snippet now runs `update-structure.js --staged || true` through th
 _Captured: 2026-09-26 · 7 file change(s)_
 
 ---
+
+## T05 — Install and upgrade the hook where Git keeps it
+
+`structureBootstrap` resolves the hooks directory with `git rev-parse --git-path hooks`/`--git-common-dir` (async, so the main process is not blocked): linked worktrees now install into the shared hooks directory instead of failing on a `.git` file; a `core.hooksPath` outside Git's directory is treated as the user's (instructions, nothing written); an unmodified earlier Frame template is replaced on init (`upgraded`) and on every open via the new `upgradeStructureHook` (called from `openProjectLayout` after tools are refreshed), the current template reports `up-to-date`, and edited/custom/Husky/lefthook hooks are never touched — lefthook guidance now uses `--staged` without `git add`. An open never installs a missing hook. The end-to-end test commits through a real installed hook and proves an untracked private note and an unstaged sentinel never reach the committed map, including a pathspec commit. (Shipping `structure-commit.js` moved to T04.) Files touched: `src/main/structureBootstrap.js`, `src/main/frameProject.js`, `test/structureBootstrap.test.js`, `test/frameProjectOpen.test.js`, `test/scriptsProjectRoot.test.js`.
+
+_Captured: 2026-09-26 · 5 file change(s)_
+
+---
