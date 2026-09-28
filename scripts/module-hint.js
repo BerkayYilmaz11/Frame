@@ -70,14 +70,13 @@ function resolveRoot(hookCwd) {
   return process.cwd();
 }
 
-/** `.frame/<name>` for a migrated project, the root while one is unmigrated. */
-function resolveMetaPath(root, name) {
-  const overlay = path.join(root, '.frame', name);
-  if (fs.existsSync(overlay)) return overlay;
-  const legacy = path.join(root, name);
-  if (fs.existsSync(legacy)) return legacy;
-  return overlay;
-}
+// Ownership and freshness come from the shared read contract (built-ins
+// only, never writes). Guarded: a .frame/bin/ from before STR-02 lacks it,
+// and a hook must never break over a missing sibling.
+let structureRead = null;
+try {
+  structureRead = require('./structure-read');
+} catch { /* older tooling: stay quiet */ }
 
 function finderCliPath(root) {
   const local = path.join(__dirname, 'find-module.js');
@@ -345,8 +344,11 @@ function searchMode(input) {
   if (words === null) return;               // not a search: silent, unrecorded
   if (!words.length) return quiet(root, 'no-words');
 
-  const structureFile = resolveMetaPath(root, 'STRUCTURE.json');
-  const structure = readJson(structureFile);
+  if (!structureRead) return quiet(root, 'no-index');
+  // Changes are being applied: an answer from the old map could point at
+  // files that just moved. Stay quiet until the worker catches up.
+  if (structureRead.readDescriptor(root).freshness === 'dirty') return quiet(root, 'map-dirty');
+  const structure = readJson(structureRead.resolveStructurePath(root));
   if (!structure || !structure.intentIndex) return quiet(root, 'no-index');
 
   let hit = null;

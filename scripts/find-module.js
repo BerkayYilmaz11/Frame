@@ -15,6 +15,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawnSync } = require('child_process');
+// Ownership, freshness and generation status: the shared read contract.
+const structureRead = require('./structure-read');
 
 /**
  * Which project this run is about. `__dirname/..` was wrong for the shipped
@@ -32,20 +34,14 @@ function resolveProjectRoot() {
   return process.cwd();
 }
 
-/**
- * Where a meta file lives: `.frame/<name>` for a migrated project, the root
- * only while an unmigrated project still has it there.
- */
-function resolveMetaPath(name) {
-  const overlay = path.join(ROOT_DIR, '.frame', name);
-  if (fs.existsSync(overlay)) return overlay;
-  const legacy = path.join(ROOT_DIR, name);
-  if (fs.existsSync(legacy)) return legacy;
-  return overlay;
+function repairCommand(root) {
+  const updater = path.join(__dirname, 'update-structure.js');
+  const rel = path.relative(root, updater).split(path.sep).join('/');
+  return `node ${rel && !rel.startsWith('..') ? rel : '.frame/bin/update-structure.js'} --full`;
 }
 
 const ROOT_DIR = resolveProjectRoot();
-const STRUCTURE_FILE = resolveMetaPath('STRUCTURE.json');
+const STRUCTURE_FILE = structureRead.resolveStructurePath(ROOT_DIR);
 
 function loadStructure() {
   try {
@@ -240,9 +236,33 @@ if (args.length === 0) {
 
 const structure = loadStructure();
 
-const banner = stalenessBanner(structure);
-if (banner) {
-  console.log(banner + '\n');
+// How current the map is. With a lifecycle receipt the answer is known and
+// replaces the date heuristic; without one (a clone, Frame not running here)
+// the old banner still applies.
+const RECEIPT_MISMATCH = ['artifact-changed', 'not-working-tree'];
+const descriptor = structureRead.readDescriptor(ROOT_DIR);
+const known = descriptor.freshness !== 'unknown' || descriptor.reasons.some((r) => RECEIPT_MISMATCH.includes(r));
+if (known) {
+  const why = descriptor.reasons.length ? ` (${descriptor.reasons.join(', ')})` : '';
+  if (descriptor.freshness === 'fresh') {
+    console.log('Map: fresh · working tree\n');
+  } else if (descriptor.freshness === 'dirty') {
+    console.log(`⚠ Map: dirty${why} — recent changes are still being applied\n`);
+  } else if (descriptor.freshness === 'stale') {
+    console.log(`⚠ Map: stale${why} — run: node ${path.relative(ROOT_DIR, path.join(__dirname, 'structure-lifecycle.js')).split(path.sep).join('/')} --once\n`);
+  } else {
+    console.log(`⚠ Map: unverified${why} — STRUCTURE.json changed since it was last checked\n`);
+  }
+} else {
+  const banner = stalenessBanner(structure);
+  if (banner) {
+    console.log(banner + '\n');
+  }
+}
+const generationWarnings = structureRead.generationNotes(ROOT_DIR, structure);
+if (generationWarnings.length > 0) {
+  for (const note of generationWarnings) console.log(`⚠ STRUCTURE.json ${note}`);
+  console.log(`  Rebuild: ${repairCommand(ROOT_DIR)}\n`);
 }
 
 if (args[0] === '--list') {

@@ -168,3 +168,94 @@ test('a Codex apply_patch is an edit, never a search', () => {
   const command = ['*** Begin Patch', '*** Add File: github.js', '+x', '*** End Patch'].join('\n');
   assert.equal(runHook({ session_id: 'cx', cwd: root, tool_name: 'apply_patch', tool_input: { command } }), null);
 });
+
+// ─── STR-01: version 1.1 maps and STRUCTURE ownership ─────
+
+test('a version 1.1 map answers with the same shape and limits', () => {
+  const v11 = {
+    version: '1.1',
+    lastUpdated: '2026-09-26',
+    modules: {
+      ...STRUCTURE.modules,
+      '@file:src/main/github.ts': { file: 'src/main/github.ts', description: '', sizeBytes: 10, extraction: { status: 'parsed' } }
+    },
+    legacyModuleGroups: { api: { path: 'apps/api', purpose: 'REST API' } },
+    curatedKeyOwners: { 'main/removed': 'src/main/removed.js' },
+    intentIndex: {
+      github: [
+        { module: 'main/githubManager', file: 'src/main/githubManager.js', description: 'GitHub Manager' },
+        { module: '@file:src/main/github.ts', file: 'src/main/github.ts', description: '' }
+      ]
+    },
+    generation: { schema: 1, mode: 'full', inventory: { coverage: 'complete', reasons: [] } }
+  };
+  const root = mkProject(v11);
+  const out = runHook(bash(root, 'grep -rn github src/'));
+  const ctx = out.hookSpecificOutput.additionalContext;
+  assert.match(ctx, /src\/main\/githubManager\.js — GitHub Manager/);
+  assert.match(ctx, /src\/main\/github\.ts/);
+  assert.match(ctx, /IPC: LOAD_GITHUB_ISSUES/);
+});
+
+test('an unowned root STRUCTURE.json is never read as Frame\'s map', () => {
+  const root = mkProject(null);
+  fs.writeFileSync(path.join(root, 'STRUCTURE.json'), JSON.stringify(STRUCTURE));
+  assert.equal(runHook(bash(root, 'grep -rn github src/')), null);
+
+  // the legacy init record makes it Frame's
+  fs.writeFileSync(path.join(root, '.frame', 'config.json'), JSON.stringify({ files: { structure: 'STRUCTURE.json' } }));
+  assert.match(runHook(bash(root, 'grep -rn github src/', 's2')).hookSpecificOutput.additionalContext, /githubManager/);
+});
+
+test('the hook never loads builder or state code', () => {
+  const source = fs.readFileSync(HOOK, 'utf8');
+  const requires = [...source.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
+  // the long-standing record/vocabulary helpers plus the read-only freshness
+  // contract (STR-02 D10); never a builder, the state writer or a process
+  assert.deepEqual(requires.filter((r) => r.startsWith('.')).sort(), ['./activity-log', './structure-read', './toolVocabulary']);
+  assert.ok(!requires.some((r) => /structure-(discovery|generation|state|snapshot|lifecycle)|update-structure|child_process/.test(r)), requires.join(', '));
+});
+
+// ─── STR-02: freshness ────────────────────────────────────
+
+const crypto = require('crypto');
+
+function withReceipt(root, { dirty = [], epoch = { requested: 1, applied: 1 } } = {}) {
+  const map = path.join(root, '.frame', 'STRUCTURE.json');
+  const bytes = fs.readFileSync(map);
+  const stat = fs.lstatSync(map);
+  fs.mkdirSync(path.join(root, '.frame', 'runtime', 'structure'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.frame', 'runtime', 'structure', 'lifecycle.json'), JSON.stringify({
+    version: 1, epoch, dirty,
+    receipt: {
+      view: 'working-tree', revision: 'r', artifactDigest: crypto.createHash('sha256').update(bytes).digest('hex'),
+      artifactStat: { ino: stat.ino, size: stat.size, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs },
+      observedAt: new Date().toISOString(), leaseMs: 90000, coverage: 'complete', extraction: 'complete'
+    }
+  }));
+}
+
+test('a map with changes still being applied gets no hint', () => {
+  const root = mkProject();
+  withReceipt(root, { dirty: ['file-event'], epoch: { requested: 2, applied: 1 } });
+  assert.equal(runHook(bash(root, 'grep -rn github src/')), null);
+});
+
+test('a fresh map, and a map with no receipt yet, still answer', () => {
+  const fresh = mkProject();
+  withReceipt(fresh);
+  assert.match(runHook(bash(fresh, 'grep -rn github src/')).hookSpecificOutput.additionalContext, /githubManager/);
+  const unknown = mkProject();
+  assert.match(runHook(bash(unknown, 'grep -rn github src/')).hookSpecificOutput.additionalContext, /githubManager/);
+});
+
+test('a hook copied without the read contract stays quiet instead of failing', () => {
+  const root = mkProject();
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-bin-'));
+  fs.copyFileSync(HOOK, path.join(bin, 'module-hint.js'));
+  const out = execFileSync('node', [path.join(bin, 'module-hint.js'), 'search'], {
+    input: JSON.stringify(bash(root, 'grep -rn github src/')), encoding: 'utf8'
+  });
+  assert.equal(out.trim(), '');
+  fs.rmSync(bin, { recursive: true, force: true });
+});

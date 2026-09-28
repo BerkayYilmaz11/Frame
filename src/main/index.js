@@ -47,6 +47,10 @@ const cloudBriefsService = require('./cloud/cloudBriefsService');
 const cloudDiscussionsService = require('./cloud/cloudDiscussionsService');
 const cloudShapeService = require('./cloud/cloudShapeService');
 const cloudStartService = require('./cloud/cloudStartService');
+const structureLifecycle = require('./structureLifecycle');
+
+// The running app keeps each open Frame checkout's STRUCTURE.json current.
+structureLifecycle.configure({ enabled: true });
 
 let mainWindow = null;
 let quitConfirmed = false;
@@ -406,6 +410,12 @@ app.on('before-quit', (e) => {
     return;
   }
   quitConfirmed = true;
+});
+
+// Structure lifecycle workers (STR-02) stop once quitting is certain —
+// will-quit only fires after before-quit's live-agent confirmation passed.
+app.on('will-quit', () => {
+  structureLifecycle.disposeAll();
 });
 
 app.on('window-all-closed', () => {
