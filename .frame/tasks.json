@@ -9579,13 +9579,13 @@
       "title": "Draw the G-A panel in the Frame Cloud window: in `index.html` give the Workspace link its `#cloud-workspace-link-label` span, the tab bar `id=\"cloud-tabbar\"` and add `#cloud-no-workspace` after the tab panels; in `src/renderer/cloudHub.js` draw the Workspace row from `workspaceRow`, swap the tab bar, panels and device notice for the panel on `status === 'noWorkspace'` and back, wire its button to `CLOUD_OPEN_WORKSPACE_ON_WEB` (disabled with `NO_WEB_ORIGIN` when `!canOpenWeb`); return early on `noWorkspace` in `src/renderer/cloudHubTabs.js` `render`; style `.cloud-no-workspace` in `src/renderer/styles/components/cloud-hub.css`",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:57:58.662Z",
+      "completedAt": "2026-09-28T14:57:58.662Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T07",

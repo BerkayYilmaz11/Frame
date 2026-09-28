@@ -17,12 +17,18 @@ const { ipcRenderer, shell, clipboard } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
 const cloudWelcome = require('./cloudWelcome');
+const noWorkspaceCopy = require('./cloudNoWorkspace');
 
 const SIGNED_IN_NOTE_MS = 4000;
 const TABS = ['projects', 'device'];
 const PROMPT_DISMISSED_KEY = 'cloudConnectPromptDismissed';
 // The states drawn inside the welcome layout (pitch + sign-in card).
 const WELCOME_STATES = ['signedOut', 'requestingCode', 'awaitingApproval', 'registering', 'failed'];
+
+// The ↗ after links that leave Frame, as in the Workspace row.
+const EXTERNAL_ICON =
+  '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>';
 
 const REASONS = {
   denied: 'Sign-in was denied in the browser.',
@@ -233,12 +239,13 @@ function land() {
 
 function renderHeader(s) {
   const user = s.user || {};
-  const workspace = s.workspace || {};
+  const workspaceRow = noWorkspaceCopy.workspaceRow(s.workspace);
   const device = s.device || {};
   setText('cloud-user-name', user.name || user.email || '—');
   setText('cloud-user-sub', user.githubLogin ? `@${user.githubLogin}` : user.name ? user.email || '' : '');
   renderAvatar(user);
-  setText('cloud-workspace', workspace.name || workspace.slug || '—');
+  setText('cloud-workspace', workspaceRow.value);
+  setText('cloud-workspace-link-label', workspaceRow.link);
   setText('cloud-device', device.name || '—');
 }
 
@@ -293,10 +300,63 @@ function renderProjects(state) {
       : state.status === 'loading' ? 'Loading…' : '';
     updated.classList.toggle('cloud-last-updated-stale', state.status === 'stale');
   }
+  renderNoWorkspace(state);
   if (tabs) tabs.render(state, activeTab);
   // One-shot, set by main only after a sign-in the user started.
   if (state.autoShowDevices) showDevicesPrompt(state);
   for (const listener of projectsListeners) listener(state);
+}
+
+/**
+ * Signed in without a workspace: the tab bar, both tabs and the devices
+ * notice give way to one panel that leads to creating a workspace on the web.
+ * A workspace that appears brings the tabs back on the active one.
+ */
+function renderNoWorkspace(state) {
+  const panelEl = document.getElementById('cloud-no-workspace');
+  if (!panelEl || !rootEl) return;
+  const tabbar = document.getElementById('cloud-tabbar');
+  const none = state.status === 'noWorkspace';
+  if (!none) {
+    if (panelEl.hidden) return;
+    panelEl.hidden = true;
+    panelEl.replaceChildren();
+    if (tabbar) tabbar.hidden = false;
+    setTab(activeTab);
+    return;
+  }
+
+  if (tabbar) tabbar.hidden = true;
+  rootEl.querySelectorAll('[data-cloud-panel]').forEach((panel) => {
+    panel.hidden = true;
+  });
+  hideDevicesPrompt();
+
+  const copy = noWorkspaceCopy.panel(Array.isArray(state.folders) ? state.folders.length : 0);
+  const title = document.createElement('h3');
+  title.className = 'cloud-no-workspace-title';
+  title.textContent = copy.title;
+  const body = document.createElement('p');
+  body.className = 'cloud-no-workspace-body';
+  body.textContent = copy.body;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'settings-about-btn settings-about-btn-primary cloud-no-workspace-btn';
+  const label = document.createElement('span');
+  label.textContent = copy.button;
+  button.appendChild(label);
+  button.insertAdjacentHTML('beforeend', EXTERNAL_ICON); // static markup, no server string
+  if (state.canOpenWeb) {
+    button.addEventListener('click', () => onAction('openWorkspace', button));
+  } else {
+    button.disabled = true;
+    button.title = noWorkspaceCopy.NO_WEB_ORIGIN;
+  }
+  const local = document.createElement('p');
+  local.className = 'cloud-no-workspace-local';
+  local.textContent = copy.local;
+  panelEl.replaceChildren(title, body, button, local);
+  panelEl.hidden = false;
 }
 
 /**
@@ -347,8 +407,10 @@ function setTab(tab, opts = {}) {
       btn.classList.toggle('active', on);
       btn.setAttribute('aria-selected', on ? 'true' : 'false');
     });
+    // Without a workspace the no-workspace panel stands in for both tabs.
+    const noWorkspace = Boolean(projectsState && projectsState.status === 'noWorkspace');
     rootEl.querySelectorAll('[data-cloud-panel]').forEach((panel) => {
-      panel.hidden = panel.dataset.cloudPanel !== tab;
+      panel.hidden = noWorkspace || panel.dataset.cloudPanel !== tab;
     });
   }
   if (tabs) {

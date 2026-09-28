@@ -1836,7 +1836,7 @@
                 <dd class="cloud-meta-value">
                   <span id="cloud-workspace" class="cloud-meta-text"></span>
                   <button type="button" class="cloud-link-btn" data-cloud-action="openWorkspace">
-                    Open in browser
+                    <span id="cloud-workspace-link-label">Open in browser</span>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
                   </button>
                 </dd>
@@ -1856,7 +1856,7 @@
             Frame Cloud couldn't be reached — showing the last known details.
           </p>
 
-          <div class="cloud-tabbar">
+          <div id="cloud-tabbar" class="cloud-tabbar">
             <div class="cloud-tabs" role="tablist">
               <button type="button" class="cloud-tab" role="tab" data-cloud-tab="projects">Cloud projects</button>
               <button type="button" class="cloud-tab" role="tab" data-cloud-tab="device">On this device <span id="cloud-device-count" class="cloud-tab-count"></span></button>
@@ -1869,6 +1869,8 @@
           <div id="cloud-device-notice" class="cloud-notice" hidden></div>
           <div id="cloud-tab-projects" class="cloud-tab-panel" role="tabpanel" data-cloud-panel="projects"></div>
           <div id="cloud-tab-device" class="cloud-tab-panel" role="tabpanel" data-cloud-panel="device" hidden></div>
+          <!-- Signed in without a workspace: this panel takes the tabs' place. -->
+          <div id="cloud-no-workspace" class="cloud-no-workspace" hidden></div>
         </div>
       </div>
     </div>

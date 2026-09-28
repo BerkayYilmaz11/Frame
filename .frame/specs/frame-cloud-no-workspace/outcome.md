@@ -40,3 +40,11 @@ _Captured: 2026-09-28 · 2 file change(s)_
 
 ---
 
+## T06 — The G-A panel in the Frame Cloud window
+
+Added `#cloud-workspace-link-label`, `id="cloud-tabbar"` and `#cloud-no-workspace` to `index.html`. `src/renderer/cloudHub.js` now draws the Workspace row from `workspaceRow()`, and a new `renderNoWorkspace()` swaps the tab bar, tabs and devices notice for the card (button through the existing `openWorkspace` action, disabled with `NO_WEB_ORIGIN` without `canOpenWeb`) and swaps back when a workspace appears. `cloudHubTabs.render` returns early on `noWorkspace`, and `.cloud-no-workspace` is styled in `cloud-hub.css`. Beyond the plan, `setTab` keeps both tab panels hidden while there is no workspace, so `open({ tab })` or the devices prompt cannot reveal an empty tab behind the card.
+
+_Captured: 2026-09-28 · 4 file change(s)_
+
+---
+
