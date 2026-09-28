@@ -48,3 +48,11 @@ _Captured: 2026-09-28 · 4 file change(s)_
 
 ---
 
+## T07 — Project Settings row
+
+Added a `projects.status === 'noWorkspace'` branch before the `!listed` one in `renderCloudRow` (`src/renderer/projectSettingsModal.js`). It shows `settingsRow()`'s "No workspace" label and description with an "Open Frame Cloud" button that opens the window without a tab, since the no-workspace panel stands in for both. Without this branch the row would read "Loading…" forever.
+
+_Captured: 2026-09-28 · 1 file change(s)_
+
+---
+

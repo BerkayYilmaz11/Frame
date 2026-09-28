@@ -9592,13 +9592,13 @@
       "title": "Add a `projects.status === 'noWorkspace'` branch before the `!listed` one in `renderCloudRow` in `src/renderer/projectSettingsModal.js`, showing `settingsRow()`'s \"No workspace\" label and description with an \"Open Frame Cloud\" action",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:58:40.900Z",
+      "completedAt": "2026-09-28T14:58:40.900Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T08",

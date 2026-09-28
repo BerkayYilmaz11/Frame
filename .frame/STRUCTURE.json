@@ -13744,21 +13744,22 @@
         "settingsOverlay",
         "doneWindow",
         "cloudHub",
+        "cloudNoWorkspace",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 55
+          "line": 56
         },
         "syncFromProject": {
-          "line": 263
+          "line": 264
         },
         "syncCloudRow": {
-          "line": 280,
+          "line": 281,
           "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
         },
         "cloudButton": {
-          "line": 299,
+          "line": 300,
           "params": [
             "label",
             "onClick",
@@ -13767,70 +13768,70 @@
           ]
         },
         "renderCloudRow": {
-          "line": 309
+          "line": 310
         },
         "disconnectFromCloud": {
-          "line": 372,
+          "line": 379,
           "params": [
             "projectPath"
           ]
         },
         "renderDoneWindow": {
-          "line": 395,
+          "line": 402,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 407,
+          "line": 414,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 424,
+          "line": 431,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 443,
+          "line": 450,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 463,
+          "line": 470,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 483,
+          "line": 490,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 509,
+          "line": 516,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 534,
+          "line": 541,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 550
+          "line": 557
         },
         "setRemoveFrameNote": {
-          "line": 564,
+          "line": 571,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 570,
+          "line": 577,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 576,
+          "line": 583,
           "params": [
             "message"
           ]
