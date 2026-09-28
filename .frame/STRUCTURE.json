@@ -1267,7 +1267,8 @@
         "planFolderRow",
         "shouldAutoShowDevices",
         "buildWebUrl",
-        "buildWorkspaceWebUrl"
+        "buildWorkspaceWebUrl",
+        "buildNewWorkspaceWebUrl"
       ],
       "depends": [
         "deviceFlow"
@@ -1452,6 +1453,22 @@
             "workspaceSlug } = {}"
           ],
           "purpose": "`{webOrigin}/{workspace}`, under the same guards as buildWebUrl."
+        },
+        "buildNewWorkspaceWebUrl": {
+          "line": 333,
+          "params": [
+            "{ apiUrl",
+            "webOrigin } = {}"
+          ],
+          "purpose": "`{webOrigin}/new`, where a signed-in user without a workspace creates one."
+        },
+        "webBase": {
+          "line": 339,
+          "params": [
+            "apiUrl",
+            "webOrigin"
+          ],
+          "purpose": "The web origin every link starts from, or null when the origin guards fail."
         }
       }
     },

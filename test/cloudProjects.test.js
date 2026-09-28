@@ -464,3 +464,29 @@ test('buildWebUrl answers null without an origin or an API address', () => {
   assert.equal(core.buildWebUrl({ ...WEB, apiUrl: '' }), null);
   assert.equal(core.buildWebUrl(), null);
 });
+
+test('buildNewWorkspaceWebUrl points at /new on the web origin', () => {
+  const { apiUrl, webOrigin } = WEB;
+  assert.equal(core.buildNewWorkspaceWebUrl({ apiUrl, webOrigin }), 'https://app.frame.test/new');
+  assert.equal(
+    core.buildNewWorkspaceWebUrl({ apiUrl, webOrigin: 'https://app.frame.test/device?code=X' }),
+    'https://app.frame.test/new'
+  );
+});
+
+test('buildNewWorkspaceWebUrl lets loopback serve the web over http', () => {
+  const { apiUrl } = WEB;
+  assert.equal(core.buildNewWorkspaceWebUrl({ apiUrl, webOrigin: 'http://localhost:5173' }), 'http://localhost:5173/new');
+  assert.equal(core.buildNewWorkspaceWebUrl({ apiUrl, webOrigin: 'http://127.0.0.1:5173' }), 'http://127.0.0.1:5173/new');
+});
+
+test('buildNewWorkspaceWebUrl refuses an http origin for an https API', () => {
+  assert.equal(core.buildNewWorkspaceWebUrl({ apiUrl: WEB.apiUrl, webOrigin: 'http://app.frame.test' }), null);
+});
+
+test('buildNewWorkspaceWebUrl refuses a non-http origin and a missing one', () => {
+  for (const origin of ['javascript:alert(1)', 'file:///etc/passwd', 'ftp://app.frame.test', 'not a url', '', null, undefined]) {
+    assert.equal(core.buildNewWorkspaceWebUrl({ apiUrl: WEB.apiUrl, webOrigin: origin }), null, String(origin));
+  }
+  assert.equal(core.buildNewWorkspaceWebUrl(), null);
+});

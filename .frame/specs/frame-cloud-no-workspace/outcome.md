@@ -8,3 +8,11 @@ _Captured: 2026-09-28 · 2 file change(s)_
 
 ---
 
+## T02 — The /new link
+
+Extracted the origin guards into a private `webBase(apiUrl, webOrigin)` in `src/main/cloud/cloudProjects.js`, used by `buildWorkspaceWebUrl` (and so by `buildWebUrl`) and by the new exported `buildNewWorkspaceWebUrl` → `<origin>/new`. Added four tests to `test/cloudProjects.test.js`: https, loopback over http, an http origin for an https API, and non-http or missing origins. The existing builder tests pass unchanged.
+
+_Captured: 2026-09-28 · 2 file change(s)_
+
+---
+

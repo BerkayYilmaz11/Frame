@@ -9527,13 +9527,13 @@
       "title": "Add `buildNewWorkspaceWebUrl({ apiUrl, webOrigin })` → `<origin>/new` to `src/main/cloud/cloudProjects.js`, sharing a private `webBase` origin check with `buildWebUrl` and `buildWorkspaceWebUrl`, export it, and cover https, loopback over http, an http origin for an https API and a non-http origin in `test/cloudProjects.test.js`",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:24:43.916Z",
+      "completedAt": "2026-09-28T14:24:43.916Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T03",
