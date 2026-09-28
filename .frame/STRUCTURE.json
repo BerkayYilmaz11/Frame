@@ -1542,53 +1542,57 @@
         "deleteCache": {
           "line": 162
         },
+        "hasWorkspace": {
+          "line": 176,
+          "purpose": "Signed in to a workspace. Without one, no workspace procedure is ever called."
+        },
         "status": {
-          "line": 175
+          "line": 181
         },
         "publicState": {
-          "line": 185,
+          "line": 192,
           "purpose": "The renderer's view. Built field by field — no token, no identity, no remote."
         },
         "push": {
-          "line": 217
+          "line": 224
         },
         "resetList": {
-          "line": 225
+          "line": 232
         },
         "call": {
-          "line": 242,
+          "line": 249,
           "params": [
             "fn"
           ],
           "purpose": "One bearer call through the shared rules: 401 signs out quietly, a"
         },
         "refresh": {
-          "line": 267,
+          "line": 274,
           "purpose": "Re-read the project list (and the folders). Concurrent callers share one request."
         },
         "loadCandidates": {
-          "line": 318,
+          "line": 332,
           "purpose": "`link.candidates` for every unconnected folder, three at a time, pushing as answers land."
         },
         "linkBlocked": {
-          "line": 350
+          "line": 364
         },
         "identityFor": {
-          "line": 357,
+          "line": 372,
           "params": [
             "folder"
           ],
           "purpose": "Stamp the folder's identity at the moment the user links it (S6)."
         },
         "afterLink": {
-          "line": 366,
+          "line": 381,
           "params": [
             "folderPath",
             "result"
           ]
         },
         "linkClaim": {
-          "line": 373,
+          "line": 388,
           "params": [
             "{ path",
             "projectId",
@@ -1597,7 +1601,7 @@
           ]
         },
         "linkCreate": {
-          "line": 395,
+          "line": 410,
           "params": [
             "{ path",
             "name",
@@ -1605,49 +1609,50 @@
           ]
         },
         "linkRelease": {
-          "line": 416,
+          "line": 431,
           "params": [
             "{ path"
           ]
         },
         "checkSlug": {
-          "line": 438,
+          "line": 453,
           "params": [
             "slug"
           ]
         },
         "openOnWeb": {
-          "line": 450,
+          "line": 466,
           "params": [
             "projectId"
           ],
           "purpose": "The renderer sends a project id; the URL is built and opened here."
         },
         "connectedProject": {
-          "line": 470,
+          "line": 486,
           "params": [
             "folderPath"
           ],
           "purpose": "The cloud project a known folder is connected to, from this service's own"
         },
         "openWorkspaceOnWeb": {
-          "line": 478
+          "line": 495,
+          "purpose": "The workspace's page, or `/new` to create one when there is none."
         },
         "onSessionChange": {
-          "line": 493,
+          "line": 509,
           "params": [
             "{ state",
             "userStarted }"
           ]
         },
         "init": {
-          "line": 531,
+          "line": 547,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 540,
+          "line": 556,
           "params": [
             "ipcMain"
           ]

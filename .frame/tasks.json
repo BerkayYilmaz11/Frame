@@ -9540,13 +9540,13 @@
       "title": "Stop the projects service at no workspace in `src/main/cloud/cloudProjectsService.js`: add `hasWorkspace()`, return `'noWorkspace'` from `status()` when signed in without one, make `refresh()` scan folders, clear `autoShowPending` and push without calling `project.list`, refuse with `noWorkspace` in `linkBlocked`/`checkSlug` and skip `loadCandidates`, skip `loadCache` for an empty slug, and have `openWorkspaceOnWeb()` open `buildNewWorkspaceWebUrl` when there is no workspace",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:41:39.734Z",
+      "completedAt": "2026-09-28T14:41:39.734Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T04",

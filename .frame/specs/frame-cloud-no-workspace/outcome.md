@@ -16,3 +16,11 @@ _Captured: 2026-09-28 · 2 file change(s)_
 
 ---
 
+## T03 — The projects service stops at no workspace
+
+Added `hasWorkspace()` to `src/main/cloud/cloudProjectsService.js`. Signed in without one, `status()` answers `'noWorkspace'` and `refresh()` only scans folders, drops `autoShowPending` and pushes. `loadCandidates` is skipped, `linkBlocked`/`checkSlug` refuse with `noWorkspace`, the cache is not loaded for an empty slug, and `openWorkspaceOnWeb` opens `/new`. As planned, the service stays untested (Electron wrapper, D3).
+
+_Captured: 2026-09-28 · 1 file change(s)_
+
+---
+
