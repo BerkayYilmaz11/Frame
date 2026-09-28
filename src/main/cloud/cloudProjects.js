@@ -325,6 +325,18 @@ function buildWebUrl({ apiUrl, webOrigin, workspaceSlug, projectSlug } = {}) {
 /** `{webOrigin}/{workspace}`, under the same guards as buildWebUrl. */
 function buildWorkspaceWebUrl({ apiUrl, webOrigin, workspaceSlug } = {}) {
   if (!slugShapeOk(workspaceSlug)) return null;
+  const base = webBase(apiUrl, webOrigin);
+  return base ? `${base}/${encodeURIComponent(workspaceSlug)}` : null;
+}
+
+/** `{webOrigin}/new`, where a signed-in user without a workspace creates one. */
+function buildNewWorkspaceWebUrl({ apiUrl, webOrigin } = {}) {
+  const base = webBase(apiUrl, webOrigin);
+  return base ? `${base}/new` : null;
+}
+
+/** The web origin every link starts from, or null when the origin guards fail. */
+function webBase(apiUrl, webOrigin) {
   let web;
   let api;
   try {
@@ -337,7 +349,7 @@ function buildWorkspaceWebUrl({ apiUrl, webOrigin, workspaceSlug } = {}) {
   if (api.protocol === 'https:' && web.protocol !== 'https:' && !LOOPBACK_HOSTS.has(web.hostname)) {
     return null;
   }
-  return `${web.origin}/${encodeURIComponent(workspaceSlug)}`;
+  return web.origin;
 }
 
 module.exports = {
@@ -362,4 +374,5 @@ module.exports = {
   shouldAutoShowDevices,
   buildWebUrl,
   buildWorkspaceWebUrl,
+  buildNewWorkspaceWebUrl,
 };

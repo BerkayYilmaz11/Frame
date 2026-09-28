@@ -172,8 +172,15 @@ function deleteCache() {
 
 // ─── State ────────────────────────────────────────────────────
 
+/** Signed in to a workspace. Without one, no workspace procedure is ever called. */
+function hasWorkspace() {
+  const auth = cloudSession.getAuth();
+  return Boolean(auth && auth.cloudWorkspace && auth.cloudWorkspace.slug);
+}
+
 function status() {
   if (!signedIn) return 'signedOut';
+  if (!hasWorkspace()) return 'noWorkspace';
   if (!lastUpdated) {
     if (error && !loading) return 'error';
     return 'loading';
@@ -271,6 +278,13 @@ function refresh() {
     scanFolders();
     return Promise.resolve(push());
   }
+  if (!hasWorkspace()) {
+    // Nothing to list: the folders still count for the no-workspace panel, and
+    // the after-sign-in devices prompt is dropped rather than kept for later.
+    scanFolders();
+    autoShowPending = false;
+    return Promise.resolve(push());
+  }
   const key = sessionKey;
   const run = (async () => {
     loading = true;
@@ -316,7 +330,7 @@ function refresh() {
 
 /** `link.candidates` for every unconnected folder, three at a time, pushing as answers land. */
 async function loadCandidates() {
-  if (!cloudSession.getAuth() || stale || !lastUpdated) return;
+  if (!cloudSession.getAuth() || !hasWorkspace() || stale || !lastUpdated) return;
   scanFolders();
   const { folderRows } = core.matchFolders(projects, folders);
   const targets = folders.filter((f, i) => !folderRows[i].connected);
@@ -349,6 +363,7 @@ async function loadCandidates() {
 
 function linkBlocked() {
   if (!cloudSession.getAuth()) return { ok: false, reason: 'unauthorized' };
+  if (!hasWorkspace()) return { ok: false, reason: 'noWorkspace' };
   if (stale || !lastUpdated) return { ok: false, reason: 'network' };
   return null;
 }
@@ -439,6 +454,7 @@ async function checkSlug(slug) {
   const slugError = core.validateSlug(slug);
   if (slugError) return { ok: false, reason: 'badRequest', slugError };
   if (!cloudSession.getAuth()) return { ok: false, reason: 'unauthorized' };
+  if (!hasWorkspace()) return { ok: false, reason: 'noWorkspace' };
   const result = await call((ctx) => core.checkSlug({ ...ctx, slug }));
   if (!result.ok) return { ok: false, reason: result.reason };
   return result.value
@@ -475,14 +491,14 @@ function connectedProject(folderPath) {
   return row && row.connected ? row.project : null;
 }
 
+/** The workspace's page, or `/new` to create one when there is none. */
 function openWorkspaceOnWeb() {
   const auth = cloudSession.getAuth();
   if (!auth) return false;
-  const url = core.buildWorkspaceWebUrl({
-    apiUrl: auth.serverUrl,
-    webOrigin: auth.webOrigin,
-    workspaceSlug: auth.cloudWorkspace && auth.cloudWorkspace.slug,
-  });
+  const origins = { apiUrl: auth.serverUrl, webOrigin: auth.webOrigin };
+  const url = hasWorkspace()
+    ? core.buildWorkspaceWebUrl({ ...origins, workspaceSlug: auth.cloudWorkspace.slug })
+    : core.buildNewWorkspaceWebUrl(origins);
   if (!url) return false;
   cloudSession.openUrl(url);
   return true;
@@ -503,7 +519,7 @@ function onSessionChange({ state, userStarted }) {
       resetList();
       refreshing = null;
       loading = false;
-      const cached = loadCache(auth.serverUrl, slug);
+      const cached = slug ? loadCache(auth.serverUrl, slug) : null; // no workspace, no cache
       if (cached) {
         projects = cached.projects;
         lastUpdated = cached.savedAt;

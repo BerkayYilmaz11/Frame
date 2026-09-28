@@ -3974,3 +3974,46 @@ defaulting to the brief's target, with local and origin branches in the menu.
 or Refresh); brief #1 of the first walk was started under the old model and
 has no begun records; the dirty stash is still named "Start Work #N" for a
 Begin too.
+
+### [2026-09-28] Frame Cloud no workspace: sign in without a workspace, G-A empty state
+
+Spec `frame-cloud-no-workspace`, branch `feat/frame-cloud-no-workspace` (off
+the `feat/frame-cloud-adaptor` umbrella), PR #25 into the umbrella. The
+desktop half of FrameCloud's `desktop-no-workspace`: `device.register` and
+`device.me` now answer `workspace: null` instead of 412 `NO_WORKSPACE`, and
+Frame treats that as signed in. The Team direction (G-A) makes signing in
+free and owning a workspace a paid choice made on the web. T01–T07 ran
+autonomously, and T08 was the user's walk.
+
+**Plan-time choices (asked).** A new workspace is picked up by `device.me`
+when the window opens and, while there is no workspace, when Frame's window
+regains focus (window-open only was rejected: a user coming back from the
+browser would keep seeing the empty state). The empty state is one panel in
+place of the tabs, not a card in Cloud projects plus a "Needs a workspace"
+variant of On this device.
+
+**The focus throttle was a mistake (D9 reversed).** The focus re-read first
+shipped throttled to 10 s. In the walk the user created a workspace, came
+back, and nothing changed until a second trip: "workspace yarattıktan sonra
+Frame'e focus oldum. Güncellenmedi tekrar web'e bakıp geri focus olduğumda
+güncellendi". Clicking "Create a workspace ↗" focuses Frame and started the
+clock, so a quick trip to the browser returned inside it. The first proposal
+was to shorten it to 2 s. The user asked "Bir saniye şeyi koymaya gerek var
+mı o zaman ?". It was removed: focus fires once per return, `refresh()`
+already shares one request, and the listener returns at once when a
+workspace exists (confirmed with the user first: "workspace varken bu
+sorgulama olmayacak değil mi ?"). The re-walk updated on the first return.
+
+**Umbrella sync.** Before the PR, `feat/frame-cloud-adaptor` took
+upstream/main #160–#163 by merge (`4e1d30e`). `src/main/index.js` conflicted
+(the cloud requires against `structureLifecycle`), and both were kept. The
+running Frame app keeps rewriting two upstream specs
+(`reliable-structure-generation`, `str-02-structure-lifecycle`) from `done`
+back to `tasks_generated` and adds their 22 tasks to `tasks.json`, because
+upstream ships them without those tasks. The user: "oraya dokunmayalım
+orayla aynı olsun". Those changes are discarded and never committed.
+
+**State.** 8 tasks done, spec `done`, `npm test` passes 1405. The walk
+confirmed the empty state and the first-return update. The relaunch without
+`project.list`, the Project Settings row and sign-out were not separately
+reported.

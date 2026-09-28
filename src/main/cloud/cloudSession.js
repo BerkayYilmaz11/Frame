@@ -450,6 +450,13 @@ function getState() {
 
 function init(window) {
   mainWindow = window;
+  // Signed in without a workspace, every return to Frame re-reads device.me,
+  // so a workspace created in the browser shows up on the way back. No
+  // throttle: focus fires once per return and refresh() shares one request.
+  window.on('focus', () => {
+    if (state.state !== 'signedIn' || state.workspace) return;
+    refresh();
+  });
 }
 
 function setupIPC(ipcMain) {

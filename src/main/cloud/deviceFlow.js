@@ -296,6 +296,8 @@ function signInReason(err) {
  * The whole sign-in: code → browser → poll → register.
  * Emits requestingCode → awaitingApproval → registering through onState and
  * resolves with the token and session, or with a failure reason. Never throws.
+ * `session.workspace` is `{ name, slug }` or null: signing in no longer needs a
+ * workspace, and only an older server's 412 NO_WORKSPACE still fails.
  */
 async function runSignIn({ api, fetchJson, sleep, now, signal, openUrl, deviceInfo, onState }) {
   const emit = (patch) => {
@@ -378,6 +380,7 @@ function sessionFromMe(data) {
 
 /**
  * `device.me`, re-registering once when the server has forgotten this device.
+ * `session.workspace` may be null, and may change from one call to the next.
  * Never throws.
  */
 async function refreshSession({ api, token, deviceInfo, fetchJson, signal }) {

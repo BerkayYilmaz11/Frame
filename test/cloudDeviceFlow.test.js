@@ -469,6 +469,19 @@ test('runSignIn reports noWorkspace when register answers 412 NO_WORKSPACE', asy
   assert.deepEqual(await h.run(), { ok: false, reason: 'noWorkspace' });
 });
 
+test('runSignIn signs in without a workspace when register answers workspace: null', async () => {
+  const h = signInHarness({
+    '/api/auth/device/code': [{ status: 200, body: CODE_BODY }],
+    '/api/auth/device/token': [TOKEN_OK],
+    '/trpc/device.register': [ok({ ...REGISTERED, workspace: null })],
+  });
+  const result = await h.run();
+  assert.equal(result.ok, true);
+  assert.equal(result.token, 'secret-token');
+  assert.equal(result.session.workspace, null);
+  assert.deepEqual(result.session.user, REGISTERED.user);
+});
+
 test('runSignIn reports rateLimited when /device/code answers 429', async () => {
   const h = signInHarness({ '/api/auth/device/code': [{ status: 429, body: {} }] });
   assert.deepEqual(await h.run(), { ok: false, reason: 'rateLimited' });
@@ -532,6 +545,28 @@ test('refreshSession returns the me payload as a session', async () => {
   const { fetchJson } = fakeFetch({ '/trpc/device.me': [ok(me)] });
   const result = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
   assert.deepEqual(result, { ok: true, session: { deviceId: 'd1', ...me } });
+});
+
+test('refreshSession returns a null workspace as null', async () => {
+  const me = { user: REGISTERED.user, workspace: null, device: { id: 'd1', name: 'Studio' } };
+  const { fetchJson } = fakeFetch({ '/trpc/device.me': [ok(me)] });
+  const result = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
+  assert.equal(result.ok, true);
+  assert.equal(result.session.workspace, null);
+});
+
+test('refreshSession picks up a workspace that appears on a later me', async () => {
+  const device = { id: 'd1', name: 'Studio' };
+  const { fetchJson } = fakeFetch({
+    '/trpc/device.me': [
+      ok({ user: REGISTERED.user, workspace: null, device }),
+      ok({ user: REGISTERED.user, workspace: REGISTERED.workspace, device }),
+    ],
+  });
+  const first = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
+  const second = await flow.refreshSession({ api: API, token: 'tk', deviceInfo: INFO, fetchJson });
+  assert.equal(first.session.workspace, null);
+  assert.deepEqual(second.session.workspace, { name: 'Lab', slug: 'lab' });
 });
 
 test('a session never carries access, even when an older server still sends it', async () => {

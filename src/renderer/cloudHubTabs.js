@@ -74,6 +74,8 @@ function render(state, activeTab) {
     rowUi.clear();
     candidatesRequested = false;
   }
+  // No workspace: both tabs are hidden behind the no-workspace panel.
+  if (state.status === 'noWorkspace') return;
   // Both tabs read the candidates: Cloud projects tells a project with a
   // folder here apart from one without. Look as soon as the list is ready.
   if (!candidatesRequested && state.status === 'ready') requestCandidates();

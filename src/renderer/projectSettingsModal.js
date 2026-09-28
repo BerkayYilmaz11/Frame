@@ -26,6 +26,7 @@ const projectListUI = require('./projectListUI');
 const settingsOverlay = require('./settingsOverlay');
 const doneWindow = require('./doneWindow');
 const cloudHub = require('./cloudHub');
+const cloudNoWorkspace = require('./cloudNoWorkspace');
 
 let overlay = null;
 let specDrivenToggleEl = null;
@@ -336,7 +337,13 @@ function renderCloudRow() {
   const folder = listed ? projects.folders.find((f) => f.path === projectPath) : null;
   const stale = !projects || projects.status !== 'ready';
 
-  if (!listed) {
+  if (projects && projects.status === 'noWorkspace') {
+    const copy = cloudNoWorkspace.settingsRow();
+    cloudLabelEl.textContent = copy.label;
+    cloudDescEl.textContent = copy.description;
+    // The window opens on the no-workspace panel; no tab to pick.
+    actions.push(cloudButton(copy.action, () => openHub()));
+  } else if (!listed) {
     cloudLabelEl.textContent = 'Frame Cloud';
     cloudDescEl.textContent = projects && projects.status === 'error'
       ? "Frame Cloud couldn't be reached."

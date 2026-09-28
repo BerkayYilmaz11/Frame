@@ -570,6 +570,47 @@
   padding-top: 10px;
 }
 
+/* ─── No workspace (in place of the tabs) ───────────────── */
+
+.cloud-no-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.cloud-no-workspace-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cloud-no-workspace-body {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.cloud-no-workspace-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.cloud-no-workspace-local {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
 /* ─── Rows (both tabs) ──────────────────────────────────── */
 
 .cloud-empty {
