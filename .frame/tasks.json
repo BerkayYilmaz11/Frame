@@ -9566,13 +9566,13 @@
       "title": "Write the pure copy module `src/renderer/cloudNoWorkspace.js` (`workspaceRow(workspace)`, `panel(folderCount)` with 0/1/N wording, `settingsRow()`, `NO_WEB_ORIGIN`) and `test/cloudNoWorkspace.test.js` covering both row forms, the panel body for 0, 1 and 3 folders, and no string naming a trial, plan, Pro or price",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:56:06.636Z",
+      "completedAt": "2026-09-28T14:56:06.636Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T06",

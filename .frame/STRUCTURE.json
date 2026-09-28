@@ -9370,6 +9370,44 @@
         }
       }
     },
+    "renderer/cloudNoWorkspace": {
+      "file": "src/renderer/cloudNoWorkspace.js",
+      "description": "cloudNoWorkspace — the words Frame Cloud says to a signed-in user who has",
+      "exports": [
+        "NO_WEB_ORIGIN",
+        "workspaceRow",
+        "panel",
+        "settingsRow"
+      ],
+      "depends": [],
+      "functions": {
+        "workspaceRow": {
+          "line": 19,
+          "params": [
+            "workspace"
+          ],
+          "purpose": "The account header's Workspace row → `{ value, link }`: the workspace and"
+        },
+        "panelBody": {
+          "line": 25,
+          "params": [
+            "folderCount"
+          ],
+          "purpose": "The body line, counting this device's Frame projects."
+        },
+        "panel": {
+          "line": 37,
+          "params": [
+            "folderCount"
+          ],
+          "purpose": "The panel in place of the tabs → `{ title, body, button, local }`."
+        },
+        "settingsRow": {
+          "line": 47,
+          "purpose": "Project Settings' Frame Cloud row without a workspace → `{ label, description, action }`."
+        }
+      }
+    },
     "renderer/cloudProjectMark": {
       "file": "src/renderer/cloudProjectMark.js",
       "description": "Frame Cloud — the Connected mark beside the project switcher.",
@@ -20190,6 +20228,18 @@
         "module": "shared/doneWindow",
         "file": "src/shared/doneWindow.js",
         "description": "doneWindow — how much of the \"done\" pile a board shows by default."
+      }
+    ],
+    "workspace": [
+      {
+        "module": "main/workspace",
+        "file": "src/main/workspace.js",
+        "description": "Workspace Module"
+      },
+      {
+        "module": "renderer/cloudNoWorkspace",
+        "file": "src/renderer/cloudNoWorkspace.js",
+        "description": "cloudNoWorkspace — the words Frame Cloud says to a signed-in user who has"
       }
     ],
     "zoom": [

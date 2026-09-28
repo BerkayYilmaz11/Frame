@@ -32,3 +32,11 @@ _Captured: 2026-09-28 · 1 file change(s)_
 
 ---
 
+## T05 — The copy
+
+Wrote `src/renderer/cloudNoWorkspace.js` (`NO_WEB_ORIGIN`, `workspaceRow`, `panel` with 0/1/N wording, `settingsRow`) and `test/cloudNoWorkspace.test.js` (8 tests, including a no-trial/plan/Pro/price guard). Two departures from `plan.md`: the body says briefs are seen "from the web" as `spec.md` has it, dropping the plan example's "and your phone"; and `settingsRow()` also returns the `action` label ("Open Frame Cloud"). "Has a workspace" means a non-empty slug, the same test as `hasWorkspace()` in main.
+
+_Captured: 2026-09-28 · 2 file change(s)_
+
+---
+
