@@ -13,6 +13,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, spawnSync } = require('child_process');
+// Ownership, freshness and generation status: the shared read contract.
+const structureRead = require('./structure-read');
 
 const STARTED_AT = Date.now();
 
@@ -47,6 +49,12 @@ function resolveMetaPath(name) {
   return { path: overlay, rel: `.frame/${name}` };
 }
 
+function repairCommand(root) {
+  const updater = path.join(__dirname, 'update-structure.js');
+  const rel = path.relative(root, updater).split(path.sep).join('/');
+  return `node ${rel && !rel.startsWith('..') ? rel : '.frame/bin/update-structure.js'} --full`;
+}
+
 const STALE_TASK_DAYS = 14;
 const NOTES_COMMIT_THRESHOLD = 10;
 const QUICKSTART_COMMIT_THRESHOLD = 30;
@@ -71,7 +79,8 @@ function git(cmd) {
 
 function readJSON(name) {
   try {
-    return JSON.parse(fs.readFileSync(resolveMetaPath(name).path, 'utf-8'));
+    const file = name === 'STRUCTURE.json' ? structureRead.resolveStructurePath(ROOT_DIR) : resolveMetaPath(name).path;
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
   } catch (e) {
     return null;
   }
@@ -133,6 +142,41 @@ function checkStructureDrift(structure) {
 }
 
 /**
+ * 2b. Generation status — a partial or unverified map, or a latest scan that
+ * did not replace the map. Reported only; the map is never repaired here.
+ */
+function checkStructureGeneration(structure) {
+  const notes = structureRead.generationNotes(ROOT_DIR, structure);
+  for (const note of notes) {
+    warn('structure-generation', `STRUCTURE.json ${note} — run: ${repairCommand(ROOT_DIR)}`);
+  }
+}
+
+/**
+ * 2c. Freshness — what the lifecycle receipt says about the working-tree
+ * map (STR-02). Returns true when the receipt answered the question, so the
+ * date heuristic above is not needed.
+ */
+const RECEIPT_MISMATCH = ['artifact-changed', 'not-working-tree'];
+
+function checkStructureFreshness() {
+  const d = structureRead.readDescriptor(ROOT_DIR);
+  const known = d.freshness !== 'unknown' || d.reasons.some((r) => RECEIPT_MISMATCH.includes(r));
+  const why = d.reasons.length ? ` (${d.reasons.join(', ')})` : '';
+  if (d.freshness === 'dirty') {
+    warn('structure-freshness', `STRUCTURE.json is dirty${why} — changes are waiting to be applied`);
+  } else if (d.freshness === 'stale') {
+    warn('structure-freshness', `STRUCTURE.json is stale${why} — lifecycle maintenance is not keeping it current`);
+  } else if (d.freshness === 'unknown' && known) {
+    warn('structure-freshness', `STRUCTURE.json changed since it was last verified${why}`);
+  }
+  if (d.missedBound && d.missedBound.reason) {
+    warn('structure-freshness', `the last STRUCTURE update missed its time bound (${d.missedBound.reason})`);
+  }
+  return known;
+}
+
+/**
  * 3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry
  */
 function checkNotesStaleness() {
@@ -191,7 +235,8 @@ function checkQuickstartStaleness() {
 const structure = readJSON('STRUCTURE.json');
 if (structure) {
   checkPhantomModules(structure);
-  checkStructureDrift(structure);
+  if (!checkStructureFreshness()) checkStructureDrift(structure);
+  checkStructureGeneration(structure);
 }
 checkNotesStaleness();
 checkStuckTasks();
