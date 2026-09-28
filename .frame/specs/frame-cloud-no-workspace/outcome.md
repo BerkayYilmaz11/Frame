@@ -56,3 +56,11 @@ _Captured: 2026-09-28 · 1 file change(s)_
 
 ---
 
+## T04 follow-up — Drop the no-workspace focus throttle
+
+In the manual walk, the first return to Frame after creating a workspace did not update. Clicking "Create a workspace ↗" focuses Frame, which started the 10 s throttle, and a quick trip to the browser came back inside that window and was skipped. Removed `NO_WORKSPACE_FOCUS_MS` and its timestamp from `src/main/cloud/cloudSession.js`, which overturns D9: focus fires once per return to the window, and `refresh()` already shares one request, so the throttle protected nothing and could miss a real return. The re-read still runs only while signed in without a workspace.
+
+_Captured: 2026-09-28 · 1 file change(s)_
+
+---
+
