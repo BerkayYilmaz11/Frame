@@ -35,6 +35,9 @@ const {
 // Account section stays hidden. Developers set FRAME_CLOUD_URL.
 const DEFAULT_CLOUD_SERVER_URL = '';
 const REQUEST_TIMEOUT_MS = 15000;
+// Signed in without a workspace, focus re-reads device.me at most this often,
+// so a workspace created in the browser shows up on the way back to Frame.
+const NO_WORKSPACE_FOCUS_MS = 10 * 1000;
 
 const PUBLIC_KEYS = [
   'state',
@@ -58,6 +61,7 @@ let webOrigin = null;
 let attempt = null; // AbortController of the running sign-in
 let refreshing = null;
 let started = false;
+let lastNoWorkspaceFocusAt = 0;
 const listeners = new Set();
 
 // ─── Dependencies for the core ────────────────────────────────
@@ -450,6 +454,12 @@ function getState() {
 
 function init(window) {
   mainWindow = window;
+  window.on('focus', () => {
+    if (state.state !== 'signedIn' || state.workspace) return;
+    if (Date.now() - lastNoWorkspaceFocusAt < NO_WORKSPACE_FOCUS_MS) return;
+    lastNoWorkspaceFocusAt = Date.now();
+    refresh();
+  });
 }
 
 function setupIPC(ipcMain) {

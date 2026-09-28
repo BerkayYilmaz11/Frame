@@ -24,3 +24,11 @@ _Captured: 2026-09-28 · 1 file change(s)_
 
 ---
 
+## T04 — Re-read on focus
+
+Added a `focus` listener in `cloudSession.init(window)` (`src/main/cloud/cloudSession.js`). While the state is `signedIn` and `state.workspace` is empty, it calls `refresh()` at most once per `NO_WORKSPACE_FOCUS_MS` (10 s). The throttle stamps on the attempt, not on success, so an unreachable server is not asked on every focus.
+
+_Captured: 2026-09-28 · 1 file change(s)_
+
+---
+

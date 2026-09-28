@@ -1708,10 +1708,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 65
+          "line": 69
         },
         "fetchJson": {
-          "line": 77,
+          "line": 81,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -1722,41 +1722,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 118,
+          "line": 122,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 138,
+          "line": 142,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 147,
+          "line": 151,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 160
+          "line": 164
         },
         "deviceInfo": {
-          "line": 182
+          "line": 186
         },
         "toPublicState": {
-          "line": 194
+          "line": 198
         },
         "getPublicState": {
-          "line": 202
-        },
-        "publish": {
           "line": 206
         },
+        "publish": {
+          "line": 210
+        },
         "setState": {
-          "line": 215,
+          "line": 219,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -1764,18 +1764,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 229,
+          "line": 233,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 238,
+          "line": 242,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 249,
+          "line": 253,
           "params": [
             "serverUrl",
             "session",
@@ -1783,54 +1783,54 @@
           ]
         },
         "bringToFront": {
-          "line": 263,
+          "line": 267,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 271
+          "line": 275
         },
         "signIn": {
-          "line": 280,
+          "line": 284,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 332
+          "line": 336
         },
         "refresh": {
-          "line": 340,
+          "line": 344,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
         },
         "sessionExpired": {
-          "line": 368,
+          "line": 372,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 382,
+          "line": 386,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 389,
+          "line": 393,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 415,
+          "line": 419,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 419
+          "line": 423
         },
         "getState": {
-          "line": 444,
+          "line": 448,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 451,
+          "line": 455,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 455,
+          "line": 465,
           "params": [
             "ipcMain"
           ]

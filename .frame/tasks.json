@@ -9553,13 +9553,13 @@
       "title": "Re-read the session on window focus while signed in without a workspace: in `src/main/cloud/cloudSession.js` `init(window)`, add a `focus` listener that calls `refresh()` at most once per `NO_WORKSPACE_FOCUS_MS` (10 s) only when `state.state === 'signedIn'` and `!state.workspace`",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:54:50.242Z",
+      "completedAt": "2026-09-28T14:54:50.242Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T05",
