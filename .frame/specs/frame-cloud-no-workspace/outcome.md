@@ -64,3 +64,11 @@ _Captured: 2026-09-28 · 1 file change(s)_
 
 ---
 
+## T08 — Walk it
+
+Walked by the user twice in the dev build against FrameCloud's dev server on `feat/desktop-no-workspace`. Walk 1: signing in without a workspace reached the no-workspace card, and after creating a workspace on the web the list appeared, but only on the second return to Frame (the focus throttle, fixed in the T04 follow-up). Walk 2, after that fix: the list appeared on the first return. The walk reports did not separately confirm the relaunch with no `project.list` in the server log, the Project Settings row, the missing Connected mark and Briefs row, or sign-out.
+
+_Captured: 2026-09-28 · 0 file change(s)_
+
+---
+
