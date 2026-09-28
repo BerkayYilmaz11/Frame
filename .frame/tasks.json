@@ -9514,13 +9514,13 @@
       "title": "Pin the null workspace in the sign-in core: add a doc-comment line to `runSignIn`/`refreshSession` in `src/main/cloud/deviceFlow.js` saying `workspace` may be null, and in `test/cloudDeviceFlow.test.js` cover `runSignIn` with `device.register` answering `workspace: null` (ok, `session.workspace === null`), `refreshSession` with `device.me` answering `workspace: null`, and a later `me` returning a workspace, keeping the 412 `NO_WORKSPACE` case as it is",
       "description": "",
       "source": "spec:frame-cloud-no-workspace:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-no-workspace",
       "createdAt": "2026-09-28T14:20:50.518Z",
-      "updatedAt": "2026-09-28T14:20:50.518Z",
-      "completedAt": null
+      "updatedAt": "2026-09-28T14:23:32.898Z",
+      "completedAt": "2026-09-28T14:23:32.898Z"
     },
     {
       "id": "task-spec-frame-cloud-no-workspace-T02",

@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-25",
+  "lastUpdated": "2026-09-28",
   "architecture": {},
   "modules": {
     "main/activityLog": {
@@ -2768,7 +2768,7 @@
           ]
         },
         "runSignIn": {
-          "line": 300,
+          "line": 302,
           "params": [
             "{ api",
             "fetchJson",
@@ -2782,19 +2782,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 358,
+          "line": 360,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 370,
+          "line": 372,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 383,
+          "line": 386,
           "params": [
             "{ api",
             "token",
