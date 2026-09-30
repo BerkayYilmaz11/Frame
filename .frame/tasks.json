@@ -9917,13 +9917,13 @@
       "title": "Keep invite mode beside the session in `src/main/cloud/cloudSession.js`: a module-level `inviteOnly` (null until read) and `waitlistEmail` (from user setting `cloudWaitlistEmail` at `loadSession`), a shared-request `readInviteMode()` called from `loadSession`'s signed-out branch and from `refresh()` whenever not signed in, and both fields added to `PUBLIC_KEYS` and merged by `toPublicState` only while not signed in",
       "description": "",
       "source": "spec:frame-cloud-early-access:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:02:10.647Z",
+      "completedAt": "2026-09-30T09:02:10.647Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T03",

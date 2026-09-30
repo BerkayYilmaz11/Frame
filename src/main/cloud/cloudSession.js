@@ -29,6 +29,7 @@ const {
   refreshSession,
   registerDevice,
   signOutDevice,
+  fetchInviteMode,
 } = require('./deviceFlow');
 
 // No FrameCloud is deployed yet: packaged builds resolve to nothing and the
@@ -47,7 +48,13 @@ const PUBLIC_KEYS = [
   'device',
   'reason',
   'serverUnreachable',
+  // Early access, beside `state` (see inviteOnly below); only while signed out.
+  'inviteOnly',
+  'waitlistEmail',
 ];
+
+// The address this machine last joined the waitlist with.
+const WAITLIST_EMAIL_KEY = 'cloudWaitlistEmail';
 
 let mainWindow = null;
 let state = { state: 'unavailable' };
@@ -58,6 +65,12 @@ let webOrigin = null;
 let attempt = null; // AbortController of the running sign-in
 let refreshing = null;
 let started = false;
+// Early access. Kept beside `state`, like webOrigin, so every transition keeps
+// them: whether the server is invite-only (null until read, or when it cannot
+// say) and the address this machine joined the waitlist with.
+let inviteOnly = null;
+let waitlistEmail = null;
+let readingMode = null;
 const listeners = new Set();
 
 // ─── Dependencies for the core ────────────────────────────────
@@ -195,6 +208,10 @@ function toPublicState() {
   const out = {};
   for (const key of PUBLIC_KEYS) {
     if (state[key] !== undefined) out[key] = state[key];
+  }
+  if (state.state !== 'signedIn') {
+    if (inviteOnly !== null) out.inviteOnly = inviteOnly;
+    if (waitlistEmail) out.waitlistEmail = waitlistEmail;
   }
   return out;
 }
@@ -336,9 +353,37 @@ function cancel() {
   return getPublicState();
 }
 
-/** One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data. */
+/**
+ * Signed out: one `invite.mode`, so the window knows whether to lead with the
+ * waitlist. Concurrent callers share the request; a failure keeps the last
+ * answer, and a server that cannot say (null) reads as not invite-only.
+ */
+function readInviteMode() {
+  const api = state.serverUrl;
+  if (!api) return Promise.resolve(getPublicState());
+  if (readingMode) return readingMode;
+  readingMode = fetchInviteMode({ api, fetchJson })
+    .then((mode) => {
+      if (state.serverUrl !== api) return;
+      inviteOnly = mode;
+      publish();
+    })
+    .catch(() => {})
+    .then(() => {
+      readingMode = null;
+      return getPublicState();
+    });
+  return readingMode;
+}
+
+/**
+ * One silent device.me. A dead token signs out quietly; an unreachable server
+ * keeps the last data. Signed out, it reads the invite mode instead.
+ */
 function refresh() {
-  if (state.state !== 'signedIn' || !token) return Promise.resolve(getPublicState());
+  if (state.state !== 'signedIn' || !token) {
+    return state.state === 'unavailable' ? Promise.resolve(getPublicState()) : readInviteMode();
+  }
   if (refreshing) return refreshing;
 
   const current = token;
@@ -420,6 +465,8 @@ function loadSession() {
   started = true;
   abortAttempt();
   const serverUrl = resolveUrl();
+  if (serverUrl !== state.serverUrl) inviteOnly = null; // another server's answer
+  waitlistEmail = userSettings.get(WAITLIST_EMAIL_KEY) || null;
   if (!serverUrl) {
     token = null;
     webOrigin = null;
@@ -431,6 +478,7 @@ function loadSession() {
     token = null;
     webOrigin = null;
     setState({ state: 'signedOut', serverUrl });
+    readInviteMode();
     return;
   }
   token = stored.token;
