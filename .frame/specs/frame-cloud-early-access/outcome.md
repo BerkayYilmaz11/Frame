@@ -24,3 +24,11 @@ _Captured: 2026-09-30 · 2 file change(s)_
 
 ---
 
+## T04 — The copy
+
+Wrote `src/renderer/cloudEarlyAccess.js` (`WAITLIST_URL`, `COPY`, `joinedBody`, `joinFailure`, `paneMode`) and `test/cloudEarlyAccess.test.js` (6 tests). `paneMode` leads with the waitlist only on an explicit `inviteOnly: true`, and `unavailable` shares `network`'s message. `joinedBody` is exported beside `COPY` instead of inside it, and `COPY` gained an `emailPlaceholder`.
+
+_Captured: 2026-09-30 · 2 file change(s)_
+
+---
+

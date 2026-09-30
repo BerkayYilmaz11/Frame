@@ -10955,6 +10955,53 @@
         }
       }
     },
+    "renderer/cloudEarlyAccess": {
+      "file": "src/renderer/cloudEarlyAccess.js",
+      "description": "cloudEarlyAccess — the words the Frame Cloud window says while the server",
+      "exports": [
+        "WAITLIST_URL",
+        "COPY",
+        "joinedBody",
+        "joinFailure",
+        "paneMode"
+      ],
+      "depends": [],
+      "functions": {
+        "joinedBody": {
+          "line": 36,
+          "params": [
+            "email"
+          ],
+          "purpose": "The joined card's body: \"We'll email ada@example.com when your invite is ready.\""
+        },
+        "joinFailure": {
+          "line": 51,
+          "params": [
+            "reason"
+          ],
+          "purpose": "Why a join failed, as one line, and whether to offer frame.cool instead."
+        },
+        "paneMode": {
+          "line": 60,
+          "params": [
+            "state"
+          ],
+          "purpose": "Which signed-out pane to show: today's (`classic`) unless the server said"
+        }
+      },
+      "sizeBytes": 2620,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "bd98e588a6d0d6d3",
+        "purposes": {
+          "joinFailure": "548330817ab6413d",
+          "joinedBody": "361f6f82ce3faa6d",
+          "paneMode": "8a8b6b8161a5fea9"
+        }
+      }
+    },
     "renderer/cloudHub": {
       "file": "src/renderer/cloudHub.js",
       "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
@@ -26278,6 +26325,24 @@
         }
       }
     },
+    "test/cloudEarlyAccess.test": {
+      "file": "test/cloudEarlyAccess.test.js",
+      "description": "cloudEarlyAccess tests — the Frame Cloud window's words while the server is",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/cloudEarlyAccess"
+      ],
+      "functions": {},
+      "sizeBytes": 2464,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "e079f4d94f05de62"
+      }
+    },
     "test/cloudProjects.test": {
       "file": "test/cloudProjects.test.js",
       "description": "cloudProjects tests — the pure core of Frame Cloud projects.",
@@ -30205,6 +30270,18 @@
   "files": {},
   "conventions": {},
   "intentIndex": {
+    "access": [
+      {
+        "module": "renderer/cloudEarlyAccess",
+        "file": "src/renderer/cloudEarlyAccess.js",
+        "description": "cloudEarlyAccess — the words the Frame Cloud window says while the server"
+      },
+      {
+        "module": "renderer/github/accessState",
+        "file": "src/renderer/github/accessState.js",
+        "description": "GitHub access state — pure (github-view-tree-layout spec, G3 / D6)."
+      }
+    ],
     "active": [
       {
         "module": "renderer/home/widgets/activeSpecs",
@@ -31268,7 +31345,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 322,
+        "parsed": 324,
         "unsupported": 85,
         "partial": 0
       }
@@ -31315,7 +31392,7 @@
       }
     },
     "counts": {
-      "indexedFiles": 408,
+      "indexedFiles": 410,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -31323,6 +31400,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "e04002d421ceca0496610e8a462f39a343e30a2bb69ea516c3f1df5919004e5c"
+    "revision": "9da63fc932e4b4c7dd6eb38d1d4468daaa71192b2cfff604a0c6e983319aeb84"
   }
 }

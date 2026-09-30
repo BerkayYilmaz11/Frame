@@ -9943,13 +9943,13 @@
       "title": "Write the pure copy module `src/renderer/cloudEarlyAccess.js` (`WAITLIST_URL = 'https://frame.cool/early-access'`, `COPY` with the plan's strings including the \"Open browser again\" awaiting hint, `joinFailure(reason)` → `{ message, showFallback }`, `paneMode(state)` → `classic | form | joined`) and `test/cloudEarlyAccess.test.js` covering every `paneMode` input, every `joinFailure` reason, `joinedBody`, and no string naming a plan, trial, price or Pro",
       "description": "",
       "source": "spec:frame-cloud-early-access:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:04:18.545Z",
+      "completedAt": "2026-09-30T09:04:18.545Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T05",
