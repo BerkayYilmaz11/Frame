@@ -48,3 +48,11 @@ _Captured: 2026-09-30 · 3 file change(s)_
 
 ---
 
+## T07 — Waiting and expired
+
+Extended `cancel()` in `src/main/cloud/cloudSession.js` so that `failed` goes back to `signedOut`. Added the `inviteHint` line to the awaiting pane and a hidden "Join the waitlist" button to the failed pane in `index.html`. `src/renderer/cloudHub.js` shows the hint while waiting and, after an expired code, shows `COPY.expired` and the button; both appear only when `inviteOnly` is true. The button's `joinWaitlist` action reuses `CLOUD_CANCEL_SIGN_IN`. No deviation from plan.md.
+
+_Captured: 2026-09-30 · 3 file change(s)_
+
+---
+

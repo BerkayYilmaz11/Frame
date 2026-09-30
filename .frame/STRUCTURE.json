@@ -302,7 +302,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 109894,
+      "sizeBytes": 110158,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -2393,51 +2393,51 @@
           "line": 351
         },
         "readInviteMode": {
-          "line": 363,
+          "line": 368,
           "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
         },
         "joinWaitlist": {
-          "line": 387,
+          "line": 392,
           "params": [
             "rawEmail"
           ],
           "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 404,
+          "line": 409,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 434,
+          "line": 439,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 448,
+          "line": 453,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 455,
+          "line": 460,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 481,
+          "line": 486,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 485
+          "line": 490
         },
         "getState": {
-          "line": 513,
+          "line": 518,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 520,
+          "line": 525,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 531,
+          "line": 536,
           "params": [
             "ipcMain"
           ]
@@ -2456,7 +2456,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 17615,
+      "sizeBytes": 17834,
       "extraction": {
         "status": "parsed"
       },
@@ -11031,97 +11031,97 @@
           "purpose": "Fill the early-access pane's static words once and wire its controls."
         },
         "showJoinFailure": {
-          "line": 182,
+          "line": 184,
           "params": [
             "reason"
           ],
           "purpose": "One line under the form for a failed join (null clears it), and frame.cool as the way out."
         },
         "renderEarlyAccess": {
-          "line": 194,
+          "line": 196,
           "params": [
             "s"
           ],
           "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 208
+          "line": 210
         },
         "pullProjects": {
-          "line": 221
+          "line": 223
         },
         "refreshProjects": {
-          "line": 235,
+          "line": 237,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 251,
+          "line": 253,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 283,
+          "line": 288,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 296,
+          "line": 301,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 330
+          "line": 339
         },
         "renderHeader": {
-          "line": 340,
+          "line": 349,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 354,
+          "line": 363,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 388,
+          "line": 397,
           "params": [
             "state"
           ]
         },
         "renderNoWorkspace": {
-          "line": 415,
+          "line": 424,
           "params": [
             "state"
           ],
           "purpose": "Signed in without a workspace: the tab bar, both tabs and the devices"
         },
         "showDevicesPrompt": {
-          "line": 467,
+          "line": 476,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 494
+          "line": 503
         },
         "setTab": {
-          "line": 499,
+          "line": 508,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 529,
+          "line": 538,
           "params": [
             "{ tab",
             "folderPath",
@@ -11130,42 +11130,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 537,
+          "line": 546,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 544,
+          "line": 553,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 550,
+          "line": 559,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 556,
+          "line": 565,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 562,
+          "line": 571,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 566,
+          "line": 575,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 575,
+          "line": 584,
           "params": [
             "date"
           ]
@@ -11178,7 +11178,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 22442,
+      "sizeBytes": 23026,
       "extraction": {
         "status": "parsed"
       },
@@ -31423,6 +31423,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "228a1827ca4f11d54d7ebe22abee7b77328fa4b8d69045242ca169a486992c26"
+    "revision": "8c99187356a4706402c748dccf8f21f9674c93b4b3ead1bea0ae3015f2b52471"
   }
 }

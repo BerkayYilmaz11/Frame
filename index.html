@@ -1806,6 +1806,7 @@
               </div>
               <div id="cloud-code" class="cloud-code"></div>
               <p class="cloud-waiting"><span class="cloud-spin" aria-hidden="true"></span>Waiting for approval…</p>
+              <p class="cloud-signin-text" data-cloud-note="inviteHint" id="cloud-invite-hint" hidden></p>
               <ol class="cloud-steps">
                 <li class="done">Frame opened your browser.</li>
                 <li class="now">Approve Frame on the page that opened.</li>
@@ -1834,6 +1835,7 @@
                 </p>
               </div>
               <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Try again</button>
+              <button type="button" id="cloud-failed-waitlist" class="settings-about-btn cloud-signin-btn" data-cloud-action="joinWaitlist" hidden></button>
             </div>
 
             <!-- Where Learn more leads (the guide, or frame.cool) is not settled. -->

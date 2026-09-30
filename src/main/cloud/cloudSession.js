@@ -349,6 +349,11 @@ async function signIn() {
 }
 
 function cancel() {
+  // After a failed sign-in, "Join the waitlist" leads back to the start.
+  if (!attempt && state.state === 'failed') {
+    setState({ state: 'signedOut', serverUrl: state.serverUrl });
+    return getPublicState();
+  }
   if (!attempt) return getPublicState();
   abortAttempt();
   setState({ state: 'signedOut', serverUrl: state.serverUrl });

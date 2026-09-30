@@ -9982,13 +9982,13 @@
       "title": "Add the invite-only waiting and expired states: extend `cancel()` in `src/main/cloud/cloudSession.js` to move `failed` to `signedOut`; in `index.html` add the awaiting pane's `data-cloud-note=\"inviteHint\"` line and the failed pane's `#cloud-failed-waitlist` button; in `src/renderer/cloudHub.js` show the hint when `inviteOnly` is true, use `COPY.expired` and show the button when the reason is `expired` and `inviteOnly` is true, and wire the button's `joinWaitlist` action to `CLOUD_CANCEL_SIGN_IN`",
       "description": "",
       "source": "spec:frame-cloud-early-access:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:08:20.888Z",
+      "completedAt": "2026-09-30T09:08:20.888Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T08",

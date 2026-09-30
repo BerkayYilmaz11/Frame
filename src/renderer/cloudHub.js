@@ -124,6 +124,8 @@ function initEarlyAccess() {
   setText('cloud-waitlist-another', COPY.useAnother);
   setText('cloud-early-already', COPY.alreadyInvited);
   setText('cloud-early-signin', COPY.signIn);
+  setText('cloud-invite-hint', COPY.awaitingHint);
+  setText('cloud-failed-waitlist', COPY.joinWaitlistAction);
   const input = document.getElementById('cloud-waitlist-email');
   if (input) input.placeholder = COPY.emailPlaceholder;
   setText('cloud-waitlist-fallback', `${COPY.fallbackLink} ↗`);
@@ -264,6 +266,9 @@ async function onAction(action, btn) {
     case 'openBrowser':
       if (isWebUrl(sessionState.verificationUrl)) shell.openExternal(sessionState.verificationUrl);
       return;
+    case 'joinWaitlist':
+      // failed → signed out, where the waitlist form is.
+      return invokeSession(IPC.CLOUD_CANCEL_SIGN_IN, btn);
     case 'openWorkspace':
       ipcRenderer.invoke(IPC.CLOUD_OPEN_WORKSPACE_ON_WEB).catch((err) => {
         console.error('Frame Cloud: could not open the workspace on the web', err);
@@ -309,6 +314,7 @@ function renderSession(state) {
     if (s.state !== 'signedIn') setNote('justSignedIn', false);
 
     if (s.state === 'signedOut') renderEarlyAccess(s);
+    setNote('inviteHint', s.state === 'awaitingApproval' && s.inviteOnly === true);
     if (s.state === 'awaitingApproval') {
       setText('cloud-code', s.userCode || '');
       setText('cloud-url', s.verificationUrl || '');
@@ -317,7 +323,10 @@ function renderSession(state) {
       // Main brought the window forward; land the user on the result.
       if (previous === 'registering') land();
     } else if (s.state === 'failed') {
-      setText('cloud-reason', REASONS[s.reason] || REASONS.network);
+      const inviteExpired = s.reason === 'expired' && s.inviteOnly === true;
+      setText('cloud-reason', inviteExpired ? earlyAccess.COPY.expired : REASONS[s.reason] || REASONS.network);
+      const joinBtn = document.getElementById('cloud-failed-waitlist');
+      if (joinBtn) joinBtn.hidden = !inviteExpired;
       const webLink = document.getElementById('cloud-web-link');
       if (webLink) webLink.hidden = !(s.reason === 'noWorkspace' && webOrigin(s.verificationUrl));
     }
