@@ -272,6 +272,13 @@
   gap: 8px;
 }
 
+.cloud-early-error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--warning-ink);
+}
+
 .cloud-early-joined {
   display: grid;
   gap: 6px;

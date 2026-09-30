@@ -40,3 +40,11 @@ _Captured: 2026-09-30 · 3 file change(s)_
 
 ---
 
+## T06 — Wire the waitlist form
+
+Wired the form in `src/renderer/cloudHub.js`: submit → `CLOUD_JOIN_WAITLIST`, with Join disabled while the field is empty or a join is pending. A failure shows `joinFailure`'s line in `#cloud-waitlist-error`, plus the "Join on frame.cool ↗" fallback when it applies, and typing clears the error. On success the joined card appears from main's push. `index.html` gained the error line and the fallback button, and `cloud-hub.css` the error style.
+
+_Captured: 2026-09-30 · 3 file change(s)_
+
+---
+

@@ -47,6 +47,7 @@ let activeTab = 'projects';
 let signedInNoteTimer = null;
 // "Use another address": show the waitlist form again over the joined card.
 let showWaitlistForm = false;
+let joining = false; // a waitlist.join in flight
 // Guards the landing: Frame Cloud never opens over onboarding or the tour.
 let isBlocked = () => false;
 let tabs = null;
@@ -125,6 +126,48 @@ function initEarlyAccess() {
   setText('cloud-early-signin', COPY.signIn);
   const input = document.getElementById('cloud-waitlist-email');
   if (input) input.placeholder = COPY.emailPlaceholder;
+  setText('cloud-waitlist-fallback', `${COPY.fallbackLink} ↗`);
+  const form = document.getElementById('cloud-early-form');
+  const join = document.getElementById('cloud-waitlist-join');
+  const syncJoin = () => {
+    if (join) join.disabled = joining || !(input && input.value.trim());
+  };
+  if (input) input.addEventListener('input', () => {
+    syncJoin();
+    showJoinFailure(null);
+  });
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (joining || !input || !input.value.trim()) return;
+      joining = true;
+      syncJoin();
+      showJoinFailure(null);
+      ipcRenderer
+        .invoke(IPC.CLOUD_JOIN_WAITLIST, input.value)
+        .then((result) => {
+          if (result && result.ok) {
+            // Main publishes the joined address; the card replaces the form.
+            showWaitlistForm = false;
+            input.value = '';
+          } else {
+            showJoinFailure((result && result.reason) || 'network');
+          }
+        })
+        .catch((err) => {
+          console.error('Frame Cloud: could not join the waitlist', err);
+          showJoinFailure('network');
+        })
+        .finally(() => {
+          joining = false;
+          syncJoin();
+          renderEarlyAccess(sessionState);
+        });
+    });
+  }
+  syncJoin();
+  const fallback = document.getElementById('cloud-waitlist-fallback');
+  if (fallback) fallback.addEventListener('click', () => shell.openExternal(earlyAccess.WAITLIST_URL));
   const another = document.getElementById('cloud-waitlist-another');
   if (another) {
     another.addEventListener('click', () => {
@@ -133,6 +176,18 @@ function initEarlyAccess() {
       if (input) input.focus();
     });
   }
+}
+
+/** One line under the form for a failed join (null clears it), and frame.cool as the way out. */
+function showJoinFailure(reason) {
+  const error = document.getElementById('cloud-waitlist-error');
+  const fallback = document.getElementById('cloud-waitlist-fallback');
+  const failure = reason ? earlyAccess.joinFailure(reason) : null;
+  if (error) {
+    error.textContent = failure ? failure.message : '';
+    error.hidden = !failure;
+  }
+  if (fallback) fallback.hidden = !(failure && failure.showFallback);
 }
 
 /** Signed out: today's pane, the waitlist form, or the joined card. */

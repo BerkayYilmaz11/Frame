@@ -302,7 +302,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 109684,
+      "sizeBytes": 109894,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -11016,105 +11016,112 @@
       ],
       "functions": {
         "init": {
-          "line": 60,
+          "line": 61,
           "params": [
             "opts = {}"
           ],
           "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
         },
         "onOpen": {
-          "line": 102,
+          "line": 103,
           "purpose": "Opening re-reads both states and asks the server once: device.me when"
         },
         "initEarlyAccess": {
-          "line": 116,
+          "line": 117,
           "purpose": "Fill the early-access pane's static words once and wire its controls."
         },
+        "showJoinFailure": {
+          "line": 182,
+          "params": [
+            "reason"
+          ],
+          "purpose": "One line under the form for a failed join (null clears it), and frame.cool as the way out."
+        },
         "renderEarlyAccess": {
-          "line": 139,
+          "line": 194,
           "params": [
             "s"
           ],
           "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 153
+          "line": 208
         },
         "pullProjects": {
-          "line": 166
+          "line": 221
         },
         "refreshProjects": {
-          "line": 180,
+          "line": 235,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 196,
+          "line": 251,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 228,
+          "line": 283,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 241,
+          "line": 296,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 275
+          "line": 330
         },
         "renderHeader": {
-          "line": 285,
+          "line": 340,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 299,
+          "line": 354,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 333,
+          "line": 388,
           "params": [
             "state"
           ]
         },
         "renderNoWorkspace": {
-          "line": 360,
+          "line": 415,
           "params": [
             "state"
           ],
           "purpose": "Signed in without a workspace: the tab bar, both tabs and the devices"
         },
         "showDevicesPrompt": {
-          "line": 412,
+          "line": 467,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 439
+          "line": 494
         },
         "setTab": {
-          "line": 444,
+          "line": 499,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 474,
+          "line": 529,
           "params": [
             "{ tab",
             "folderPath",
@@ -11123,42 +11130,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 482,
+          "line": 537,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 489,
+          "line": 544,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 495,
+          "line": 550,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 501,
+          "line": 556,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 507,
+          "line": 562,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 511,
+          "line": 566,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 520,
+          "line": 575,
           "params": [
             "date"
           ]
@@ -11171,7 +11178,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 20396,
+      "sizeBytes": 22442,
       "extraction": {
         "status": "parsed"
       },
@@ -11188,6 +11195,7 @@
           "renderEarlyAccess": "5cb65d4f1270d32d",
           "renderNoWorkspace": "c016122ddabc0788",
           "showDevicesPrompt": "2bc4cf5ae43e0cb3",
+          "showJoinFailure": "780ecb7fc1d760fd",
           "signIn": "47f2303caa9d739d",
           "signOut": "65a74c9baba38e0d"
         }
@@ -19166,7 +19174,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 22379,
+      "sizeBytes": 22484,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -31415,6 +31423,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8de453276fe105836f2407595c631db1d1b98398dbc709183697bb64dc02775f"
+    "revision": "228a1827ca4f11d54d7ebe22abee7b77328fa4b8d69045242ca169a486992c26"
   }
 }

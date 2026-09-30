@@ -9969,13 +9969,13 @@
       "title": "Wire the waitlist form in `src/renderer/cloudHub.js`: submit with `preventDefault` through `CLOUD_JOIN_WAITLIST`, disable Join while empty or pending, show `joinFailure(reason)` in `#cloud-waitlist-error`, and show `#cloud-waitlist-fallback` (\"Join on frame.cool ↗\", opened with `shell.openExternal(WAITLIST_URL)`) when the failure offers it; style the error and fallback in `cloud-hub.css`",
       "description": "",
       "source": "spec:frame-cloud-early-access:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:07:21.231Z",
+      "completedAt": "2026-09-30T09:07:21.231Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T07",
