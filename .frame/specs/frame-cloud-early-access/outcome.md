@@ -64,3 +64,11 @@ _Captured: 2026-09-30 · 2 file change(s)_
 
 ---
 
+## T09 — Walk it
+
+Walked by the user in the dev build against FrameCloud's `feat/early-access` dev server, and reported as working. The report named no individual checks, so the walk is recorded as a whole, not item by item from the plan's list. No code changed.
+
+_Captured: 2026-09-30 · 0 file change(s)_
+
+---
+
