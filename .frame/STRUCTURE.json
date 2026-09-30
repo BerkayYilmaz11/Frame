@@ -1997,27 +1997,34 @@
           ]
         },
         "getStructure": {
-          "line": 169,
+          "line": 174,
           "params": [
             "projectPath"
           ],
-          "purpose": "STRUCTURE.json parsed, or null when it is missing or unparseable."
+          "purpose": "The project's module map parsed, or null when it is missing or"
+        },
+        "workingViewPath": {
+          "line": 193,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Where the structure lifecycle keeps the working-tree view (STR-02c)."
         },
         "saveStructure": {
-          "line": 179,
+          "line": 197,
           "params": [
             "projectPath",
             "structure"
           ]
         },
         "readNotes": {
-          "line": 183,
+          "line": 201,
           "params": [
             "projectPath"
           ]
         },
         "appendNote": {
-          "line": 191,
+          "line": 209,
           "params": [
             "projectPath",
             "text"
@@ -2025,40 +2032,40 @@
           "purpose": "Append an entry to PROJECT_NOTES.md, keeping one blank line between it and"
         },
         "readQuickstart": {
-          "line": 200,
+          "line": 218,
           "params": [
             "projectPath"
           ]
         },
         "readAgents": {
-          "line": 204,
+          "line": 222,
           "params": [
             "projectPath"
           ]
         },
         "writeAgents": {
-          "line": 208,
+          "line": 226,
           "params": [
             "projectPath",
             "text"
           ]
         },
         "getProjectId": {
-          "line": 215,
+          "line": 233,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's stable id, or null if it has none yet."
         },
         "ensureProjectId": {
-          "line": 227,
+          "line": 245,
           "params": [
             "projectPath"
           ],
           "purpose": "Stamp a UUID into `.frame/config.json` once and return it; a project that"
         },
         "setupIPC": {
-          "line": 244,
+          "line": 262,
           "params": [
             "ipcMain"
           ],
@@ -2071,7 +2078,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 10055,
+      "sizeBytes": 10669,
       "extraction": {
         "status": "parsed"
       },
@@ -2081,7 +2088,7 @@
           "appendNote": "4638b55e22918626",
           "ensureProjectId": "ba7dbfded94437a3",
           "getProjectId": "425bd0bcce18a16f",
-          "getStructure": "99f2503948665939",
+          "getStructure": "6b39658e89876cb1",
           "getTasks": "3c991ad928e40811",
           "isLegacyLayout": "277dce68d0561322",
           "legacyFileNames": "a93ce7cb8636fbf9",
@@ -2091,6 +2098,7 @@
           "resolveSpecDir": "b0ee67e7e041d9b1",
           "setupIPC": "a8891dc5122d2f3c",
           "specsRoot": "8e3bb83a0d342608",
+          "workingViewPath": "20726b56eccb8b07",
           "writeConfig": "23f965c8bfafc24a"
         }
       }
@@ -16017,57 +16025,57 @@
           ]
         },
         "checkPhantomModules": {
-          "line": 92,
+          "line": 93,
           "params": [
             "structure"
           ],
           "purpose": "1. Phantom modules — STRUCTURE.json entries whose file is missing on disk"
         },
         "confirmContentDrift": {
-          "line": 105,
+          "line": 106,
           "purpose": "Ask update-structure.js --check whether a regen would actually change"
         },
         "checkStructureDrift": {
-          "line": 130,
+          "line": 131,
           "params": [
             "structure"
           ],
           "purpose": "2. STRUCTURE drift — the date heuristic (lastUpdated older than the last"
         },
         "checkStructureGeneration": {
-          "line": 148,
+          "line": 149,
           "params": [
             "structure"
           ],
           "purpose": "2b. Generation status — a partial or unverified map, or a latest scan that"
         },
         "checkStructureFreshness": {
-          "line": 162
+          "line": 163
         },
         "readText": {
-          "line": 185,
+          "line": 186,
           "params": [
             "file"
           ],
           "purpose": "2d. Commit integration (STR-02b) — a last `--staged` run that did not"
         },
         "checkCommitIntegration": {
-          "line": 193
+          "line": 194
         },
         "checkNotesStaleness": {
-          "line": 232,
+          "line": 233,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 250,
+          "line": 251,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 271,
+          "line": 272,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 12329,
+      "sizeBytes": 12414,
       "extraction": {
         "status": "parsed"
       },
@@ -16498,21 +16506,21 @@
           ]
         },
         "loadStructure": {
-          "line": 46
+          "line": 47
         },
         "loadIntentMap": {
-          "line": 59,
+          "line": 60,
           "purpose": "Load the curated concept map (synonyms live here). Sits next to this"
         },
         "stalenessBanner": {
-          "line": 76,
+          "line": 77,
           "params": [
             "structure"
           ],
           "purpose": "One-line warning when STRUCTURE.json is stale. The date comparison is a"
         },
         "searchIntentIndex": {
-          "line": 110,
+          "line": 111,
           "params": [
             "structure",
             "keyword"
@@ -16520,14 +16528,14 @@
           "purpose": "Search intentIndex for matching features"
         },
         "listFeatures": {
-          "line": 178,
+          "line": 179,
           "params": [
             "structure"
           ],
           "purpose": "List all features in intentIndex"
         },
         "printResults": {
-          "line": 196,
+          "line": 197,
           "params": [
             "structure",
             "results",
@@ -16536,7 +16544,7 @@
           "purpose": "Format and print results"
         }
       },
-      "sizeBytes": 9251,
+      "sizeBytes": 9331,
       "extraction": {
         "status": "parsed"
       },
@@ -17085,7 +17093,7 @@
           ]
         }
       },
-      "sizeBytes": 15867,
+      "sizeBytes": 15937,
       "extraction": {
         "status": "parsed"
       },
@@ -20142,14 +20150,14 @@
           ]
         },
         "getReferenceTemplate": {
-          "line": 453,
+          "line": 455,
           "params": [
             "projectName"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 696,
+          "line": 708,
           "params": [
             "projectName",
             "project"
@@ -20157,21 +20165,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 724,
+          "line": 736,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 744,
+          "line": 756,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 790,
+          "line": 802,
           "params": [
             "projectName",
             "project"
@@ -20179,24 +20187,24 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 873,
+          "line": 885,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 916,
+          "line": 928,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 931
+          "line": 943
         },
         "getGenericWrapperTemplate": {
-          "line": 1084,
+          "line": 1096,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -20204,38 +20212,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1130
+          "line": 1142
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1166,
+          "line": 1179,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1194,
+          "line": 1208,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1213,
+          "line": 1227,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1225,
+          "line": 1239,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1245
+          "line": 1259
         },
         "getOrchBinScripts": {
-          "line": 1263,
+          "line": 1277,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 53610,
+      "sizeBytes": 54568,
       "extraction": {
         "status": "parsed"
       },
@@ -22275,7 +22283,7 @@
           ]
         }
       },
-      "sizeBytes": 10067,
+      "sizeBytes": 10822,
       "extraction": {
         "status": "parsed"
       },
@@ -22841,7 +22849,7 @@
           ]
         }
       },
-      "sizeBytes": 11651,
+      "sizeBytes": 12523,
       "extraction": {
         "status": "parsed"
       },
@@ -22980,7 +22988,7 @@
           "purpose": "Every path under `dir` with size and mtime — proves a run wrote nothing."
         },
         "gitRepo": {
-          "line": 536,
+          "line": 537,
           "params": [
             "files"
           ]
@@ -22992,7 +23000,7 @@
           ]
         }
       },
-      "sizeBytes": 28314,
+      "sizeBytes": 28510,
       "extraction": {
         "status": "parsed"
       },
@@ -23084,7 +23092,7 @@
           ]
         }
       },
-      "sizeBytes": 42673,
+      "sizeBytes": 43964,
       "extraction": {
         "status": "parsed"
       },
@@ -25951,6 +25959,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ed2969a059cbc1d40fc30981fb8acfa229f1abe9c753c2acedbc0de94cc2346b"
+    "revision": "859fa6c387a5b70589dad88c312990b84f705db6989cb690fb37138df146c433"
   }
 }

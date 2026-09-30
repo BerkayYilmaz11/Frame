@@ -38,3 +38,19 @@ The outcome and the disk digest go to `.frame/runtime/structure/tracked.json`. `
 _Captured: 2026-10-01 · 6 file change(s)_
 
 ---
+
+## T05 — Consumers read the live view; documentation
+
+`find-module`, `module-hint` and `check-freshness` (phantom modules, drift, generation status) read through `structure-read.resolveReadPath`: the working view first, the tracked map otherwise. The kept-edits finding still hashes the tracked file. `frameStore.getStructure` (the app's structure view over `LOAD_STRUCTURE_MAP`) prefers `.frame/runtime/structure/working.json` and falls back to the tracked map when the working view is missing or unreadable; `saveStructure` still writes the tracked file, where prose is edited.
+
+Template wording:
+- AGENTS navigation: the tracked map is "as of the last commit, plus your prose edits"; `find-module.js` and hints use the live view.
+- REFERENCE "STRUCTURE.json Rules": the two views; `--full` rebuilds the live view; the hook stages and writes the commit map so `git status` stays clean and checkout, switch and pull never conflict; unstaged hand edits are kept and reported; old `--changed` + `git add` snippets work; prose is edited in the tracked file and reaches commits once staged.
+- QUICKSTART key-files row.
+- Hook snippet comment.
+
+Deviation: the REFERENCE text names the working view as `working.json` in `.frame/runtime/structure/`, not as a full path, because docs health requires every named `.frame/` file to exist and a fresh project has none yet. The hook template changed, so the STR-02b template's hash (from 2291b13) joined `PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256`, and its test now rebuilds both earlier templates from history. Files touched: `scripts/find-module.js`, `scripts/module-hint.js`, `scripts/check-freshness.js`, `src/main/frameStore.js`, `src/shared/frameTemplates.js`, `test/module-hint.test.js`, `test/frameStore.test.js`, `test/scriptsProjectRoot.test.js`, `test/projectAgnostic.test.js`.
+
+_Captured: 2026-10-01 · 9 file change(s)_
+
+---

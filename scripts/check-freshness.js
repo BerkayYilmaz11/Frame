@@ -79,7 +79,8 @@ function git(cmd) {
 
 function readJSON(name) {
   try {
-    const file = name === 'STRUCTURE.json' ? structureRead.resolveStructurePath(ROOT_DIR) : resolveMetaPath(name).path;
+    // STR-02c: STRUCTURE findings describe the live working-tree view when there is one.
+    const file = name === 'STRUCTURE.json' ? structureRead.resolveReadPath(ROOT_DIR) : resolveMetaPath(name).path;
     return JSON.parse(fs.readFileSync(file, 'utf-8'));
   } catch (e) {
     return null;

@@ -792,3 +792,25 @@ test('upgrade: a generated-only difference is archived and restored; hand edits 
     fs.rmSync(r.dir, { recursive: true, force: true });
   }
 });
+
+test('find-module and check-freshness read the live working view before the tracked map', () => {
+  const r = frameRepo('frame-02c-readers-');
+  const env = { ...process.env, FRAME_PROJECT_ROOT: r.dir };
+  const find = (word) => spawnSync('node', [path.join(SCRIPTS, 'find-module.js'), word], { encoding: 'utf8', env }).stdout;
+  const phantoms = () => JSON.parse(spawnSync('node', [path.join(SCRIPTS, 'check-freshness.js'), '--json'], { encoding: 'utf8', env, cwd: r.dir }).stdout)
+    .findings.filter((f) => f.check === 'phantom-module');
+  try {
+    fs.writeFileSync(path.join(r.dir, 'src', 'widgetMaker.js'), '// Widget maker\n');
+    fs.writeFileSync(path.join(r.dir, 'src', 'widgetStore.js'), '// Widget store\n');
+    fs.rmSync(path.join(r.dir, 'src', 'b.js'));
+    r.worker();
+    const tracked = JSON.parse(fs.readFileSync(path.join(r.dir, '.frame', 'STRUCTURE.json'), 'utf8'));
+    assert.ok(tracked.modules.b && !tracked.modules.widgetMaker, 'the tracked map is the committed view');
+    const out = find('widget');
+    assert.match(out, /^Map: fresh · working tree/);
+    assert.match(out, /src\/widgetMaker\.js/);
+    assert.deepEqual(phantoms(), [], 'a deleted file is gone from the live view');
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});

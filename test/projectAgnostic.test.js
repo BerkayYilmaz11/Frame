@@ -525,7 +525,8 @@ test('templates: the maintenance reference documents policy, results, limits and
 test('templates: the maintenance reference explains freshness and how to keep the map current', () => {
   const reference = templates.getReferenceTemplate('demo');
   const section = reference.slice(reference.indexOf('## STRUCTURE.json Rules'), reference.indexOf('## QUICKSTART.md Rules'));
-  for (const needle of ['structure-lifecycle.js --watch', '--once', '`fresh`', '`dirty`', '`stale`', '`unknown`', 'Commits get their own map', '--no-verify', '--staged']) {
+  for (const needle of ['structure-lifecycle.js --watch', '--once', '`fresh`', '`dirty`', '`stale`', '`unknown`', 'Commits get their own map', '--no-verify', '--staged',
+    'working.json', 'as of\n  the last commit', 'unstaged hand edits', '--changed']) {
     assert.ok(section.includes(needle), `reference mentions ${needle}`);
   }
   assert.deepEqual(require('../src/shared/docsHealth').namedPaths(section), ['.frame/config.json']);
@@ -597,25 +598,27 @@ test('templates: the pre-commit template is recognized; earlier unmodified templ
   const current = templates.getStructurePreCommitHookTemplate();
   assert.equal(templates.classifyStructureHook(current), 'current');
   assert.match(current, /While this file is unmodified, Frame keeps it up to\n# date; once you edit it, Frame leaves it alone\./);
-  assert.equal(templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.length, 3);
+  assert.equal(templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.length, 4);
   assert.ok(!templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.includes(crypto.createHash('sha256').update(current).digest('hex')));
 
-  // rebuild the last shipped template (a8c1c8c) from its snippet and confirm the hash
+  // rebuild earlier shipped templates (a8c1c8c, and STR-02b's 2291b13) from their snippets and confirm the hashes
   const { execSync } = require('child_process');
-  let previous = null;
-  try {
-    const src = execSync('git show a8c1c8c:src/shared/frameTemplates.js', { cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
-    const grab = (re) => src.match(re)[0];
-    previous = new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
-      + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
-      + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
-      + 'return getStructurePreCommitHookTemplate();')();
-  } catch (e) {
-    previous = null; // shallow clone: the hash list is still pinned above
-  }
-  if (previous) {
-    assert.equal(templates.classifyStructureHook(previous), 'previous');
-    assert.equal(templates.classifyStructureHook(previous.replace('exit 0', 'npm run lint\nexit 0')), null, 'an edited copy is the user\'s');
+  for (const rev of ['a8c1c8c', '2291b13']) {
+    let previous = null;
+    try {
+      const src = execSync(`git show ${rev}:src/shared/frameTemplates.js`, { cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+      const grab = (re) => src.match(re)[0];
+      previous = new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
+        + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
+        + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
+        + 'return getStructurePreCommitHookTemplate();')();
+    } catch (e) {
+      previous = null; // shallow clone: the hash list is still pinned above
+    }
+    if (previous) {
+      assert.equal(templates.classifyStructureHook(previous), 'previous', rev);
+      assert.equal(templates.classifyStructureHook(previous.replace('exit 0', 'npm run lint\nexit 0')), null, 'an edited copy is the user\'s');
+    }
   }
   assert.equal(templates.classifyStructureHook('#!/bin/sh\necho mine\n'), null);
 });
