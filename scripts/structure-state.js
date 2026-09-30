@@ -84,11 +84,16 @@ function resolveStructurePath(rootDir, fsImpl = fs) {
   return overlay;
 }
 
-function statePaths(rootDir, fsImpl = fs) {
+/**
+ * Paths for one checkout. `mapPath` targets another artifact than the owned
+ * tracked map — the working-tree view in runtime (STR-02c) — with the same
+ * lock, recovery and publication rules.
+ */
+function statePaths(rootDir, fsImpl = fs, mapPath = null) {
   const runtimeDir = path.join(rootDir, '.frame', 'runtime', 'structure');
   return {
     rootDir,
-    map: resolveStructurePath(rootDir, fsImpl),
+    map: mapPath || resolveStructurePath(rootDir, fsImpl),
     runtimeDir,
     scanFile: path.join(runtimeDir, 'scan.json'),
     lockFile: path.join(runtimeDir, 'lock'),
@@ -419,6 +424,7 @@ function relative(paths, file) {
  *
  * options:
  *   rootDir, mode ('full'|'delta'), attemptId (the parent's token, optional)
+ *   mapPath (optional) the artifact to publish; default the owned tracked map
  *   build(baseline) → {
  *     candidate: Buffer|string|null   (null = no-op, nothing to write)
  *     inventory: { coverage: 'complete'|'partial'|'unknown', reasons }
@@ -441,7 +447,7 @@ function relative(paths, file) {
 function runAttempt(options) {
   const fsImpl = options.fs || fs;
   const now = options.now ? () => new Date(options.now()) : () => new Date();
-  const paths = statePaths(options.rootDir, fsImpl);
+  const paths = statePaths(options.rootDir, fsImpl, options.mapPath);
   const attemptId = options.attemptId || crypto.randomUUID();
   const hooks = options.hooks || {};
   const pid = options.pid || process.pid;
@@ -724,7 +730,7 @@ function reconcileAttempt(rootDir, attemptId, options = {}) {
  */
 function snapshot(rootDir, options = {}) {
   const fsImpl = options.fs || fs;
-  const paths = statePaths(rootDir, fsImpl);
+  const paths = statePaths(rootDir, fsImpl, options.mapPath);
   const activeAtStart = writerActive(paths, options);
   const baseline = readBaseline(paths.map, fsImpl);
   return {

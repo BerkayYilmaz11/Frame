@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-26",
+  "lastUpdated": "2026-09-30",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -18665,6 +18665,8 @@
       "file": "scripts/structure-read.js",
       "description": "STRUCTURE read contract — how current is the map, and which map is it?",
       "exports": [
+        "workingViewPath",
+        "resolveReadPath",
         "readDescriptor",
         "generationNotes",
         "readStructure",
@@ -18680,52 +18682,66 @@
       ],
       "functions": {
         "readJson": {
-          "line": 50,
+          "line": 53,
           "params": [
             "file"
           ]
         },
         "isPlainObject": {
-          "line": 58,
+          "line": 61,
           "params": [
             "value"
           ]
         },
         "resolveStructurePath": {
-          "line": 63,
+          "line": 66,
           "params": [
             "root"
           ],
           "purpose": "The owned STRUCTURE.json path (overlay first; root only when recorded)."
         },
+        "workingViewPath": {
+          "line": 78,
+          "params": [
+            "root"
+          ],
+          "purpose": "Frame's live view of the working tree (STR-02c): generated, never tracked."
+        },
+        "resolveReadPath": {
+          "line": 86,
+          "params": [
+            "root"
+          ],
+          "purpose": "The map a reader should use: the working view when Frame has written one,"
+        },
         "lifecyclePath": {
-          "line": 74,
+          "line": 91,
           "params": [
             "root"
           ]
         },
         "artifactSignature": {
-          "line": 79,
+          "line": 96,
           "params": [
             "stat"
           ],
           "purpose": "The comparable identity of a file on disk (what a writer records)."
         },
         "sameSignature": {
-          "line": 83,
+          "line": 100,
           "params": [
             "a",
             "b"
           ]
         },
         "nowMs": {
-          "line": 88,
+          "line": 105,
           "params": [
             "options"
           ]
         },
         "readDescriptor": {
-          "line": 96,
+          "line": 113,
           "params": [
             "root",
             "options = {}"
@@ -18733,7 +18749,7 @@
           "purpose": "Status of the owned map without parsing it."
         },
         "readStructure": {
-          "line": 171,
+          "line": 197,
           "params": [
             "root",
             "options = {}"
@@ -18741,7 +18757,7 @@
           "purpose": "The parsed map plus its status. A map that cannot be parsed is returned as"
         },
         "generationNotes": {
-          "line": 216,
+          "line": 242,
           "params": [
             "root",
             "structure"
@@ -18749,7 +18765,7 @@
           "purpose": "Generation-status notes for a parsed map (STR-01's contract): whether the"
         }
       },
-      "sizeBytes": 9039,
+      "sizeBytes": 10315,
       "extraction": {
         "status": "parsed"
       },
@@ -18760,7 +18776,9 @@
           "generationNotes": "3c8d4d4272992f05",
           "readDescriptor": "8ad3b754162c00c3",
           "readStructure": "fbe6bcce1cf41386",
-          "resolveStructurePath": "e992531cd7f94ef1"
+          "resolveReadPath": "3954b675f37117ac",
+          "resolveStructurePath": "e992531cd7f94ef1",
+          "workingViewPath": "b175d5028e0cd5d5"
         }
       }
     },
@@ -18952,53 +18970,55 @@
           "purpose": "The map this project owns. Mirrors frameStore.resolvePath exactly:"
         },
         "statePaths": {
-          "line": 87,
+          "line": 92,
           "params": [
             "rootDir",
-            "fsImpl = fs"
-          ]
+            "fsImpl = fs",
+            "mapPath = null"
+          ],
+          "purpose": "Paths for one checkout. `mapPath` targets another artifact than the owned"
         },
         "isPlainObject": {
-          "line": 101,
+          "line": 106,
           "params": [
             "value"
           ]
         },
         "validateStructure": {
-          "line": 110,
+          "line": 115,
           "params": [
             "data"
           ],
           "purpose": "Shape check for a parsed map. Returns null when valid, otherwise a short"
         },
         "isUsableMap": {
-          "line": 133,
+          "line": 138,
           "params": [
             "data"
           ],
           "purpose": "A map a failed or partial scan may fall back to: valid, and the result of"
         },
         "digest": {
-          "line": 140,
+          "line": 145,
           "params": [
             "bytes"
           ]
         },
         "readBytes": {
-          "line": 144,
+          "line": 149,
           "params": [
             "fsImpl",
             "file"
           ]
         },
         "parseMap": {
-          "line": 152,
+          "line": 157,
           "params": [
             "bytes"
           ]
         },
         "readBaseline": {
-          "line": 170,
+          "line": 175,
           "params": [
             "mapPath",
             "fsImpl = fs"
@@ -19006,20 +19026,20 @@
           "purpose": "The baseline a mutating run builds on."
         },
         "defaultIsAlive": {
-          "line": 195,
+          "line": 200,
           "params": [
             "pid"
           ]
         },
         "readJson": {
-          "line": 205,
+          "line": 210,
           "params": [
             "fsImpl",
             "file"
           ]
         },
         "ownerIsGone": {
-          "line": 214,
+          "line": 219,
           "params": [
             "owner",
             "isAlive"
@@ -19027,7 +19047,7 @@
           "purpose": "True only when the owner is on this host and its process is gone."
         },
         "acquireLock": {
-          "line": 226,
+          "line": 231,
           "params": [
             "paths",
             "options = {}"
@@ -19035,7 +19055,7 @@
           "purpose": "Take the exclusive writer lock. Returns `{ ok: true, token }` or"
         },
         "releaseLock": {
-          "line": 280,
+          "line": 285,
           "params": [
             "paths",
             "token",
@@ -19044,7 +19064,7 @@
           "purpose": "Release the lock only if `token` still owns it."
         },
         "writerActive": {
-          "line": 292,
+          "line": 297,
           "params": [
             "paths",
             "options = {}"
@@ -19052,14 +19072,14 @@
           "purpose": "Is a live writer holding the lock right now? (Read-only; for --check.)"
         },
         "readAttempt": {
-          "line": 301,
+          "line": 306,
           "params": [
             "paths",
             "fsImpl = fs"
           ]
         },
         "writeAttempt": {
-          "line": 306,
+          "line": 311,
           "params": [
             "paths",
             "record",
@@ -19067,7 +19087,7 @@
           ]
         },
         "writeAtomicWith": {
-          "line": 313,
+          "line": 318,
           "params": [
             "fsImpl",
             "filePath",
@@ -19076,14 +19096,14 @@
           "purpose": "fsSafe's algorithm over an injected fs (tests inject write failures)."
         },
         "currentDigest": {
-          "line": 331,
+          "line": 336,
           "params": [
             "paths",
             "fsImpl"
           ]
         },
         "classifyOrphan": {
-          "line": 342,
+          "line": 347,
           "params": [
             "record",
             "paths",
@@ -19093,7 +19113,7 @@
           "purpose": "Classify a `running` record whose process is gone. The artifact digest"
         },
         "preserveBytes": {
-          "line": 376,
+          "line": 381,
           "params": [
             "paths",
             "bytes",
@@ -19102,33 +19122,33 @@
           "purpose": "Archive exact bytes at `recovery/<sha256>.json`. Identical content reuses"
         },
         "boundedDiagnostics": {
-          "line": 401,
+          "line": 406,
           "params": [
             "diagnostics"
           ]
         },
         "relative": {
-          "line": 413,
+          "line": 418,
           "params": [
             "paths",
             "file"
           ]
         },
         "runAttempt": {
-          "line": 441,
+          "line": 447,
           "params": [
             "options"
           ],
           "purpose": "Run one mutating attempt end to end."
         },
         "summarizePrevious": {
-          "line": 677,
+          "line": 683,
           "params": [
             "record"
           ]
         },
         "reconcileAttempt": {
-          "line": 697,
+          "line": 703,
           "params": [
             "rootDir",
             "attemptId",
@@ -19137,7 +19157,7 @@
           "purpose": "Parent-side reconciliation after its child exited without a usable"
         },
         "snapshot": {
-          "line": 725,
+          "line": 731,
           "params": [
             "rootDir",
             "options = {}"
@@ -19145,7 +19165,7 @@
           "purpose": "Read-only view for `--check`: no lock, no writes. `stable()` re-reads the"
         }
       },
-      "sizeBytes": 28312,
+      "sizeBytes": 28658,
       "extraction": {
         "status": "parsed"
       },
@@ -19164,6 +19184,7 @@
           "resolveStructurePath": "739369cd091b0f3f",
           "runAttempt": "506776eacaa61bb9",
           "snapshot": "9a3fabc60d7ee11d",
+          "statePaths": "9f80a8554aa79562",
           "validateStructure": "169fee911efa99e6",
           "writeAtomicWith": "a0ca9379073c9865",
           "writerActive": "a56c00de348cb409"
@@ -22934,7 +22955,7 @@
           ]
         }
       },
-      "sizeBytes": 33941,
+      "sizeBytes": 34148,
       "extraction": {
         "status": "parsed"
       },
@@ -23687,13 +23708,13 @@
       ],
       "functions": {
         "writeMap": {
-          "line": 31,
+          "line": 33,
           "params": [
             "content = MAP"
           ]
         },
         "writeReceipt": {
-          "line": 36,
+          "line": 38,
           "params": [
             "{ receipt = {}",
             "epoch = { requested",
@@ -23703,7 +23724,7 @@
           "purpose": "A receipt matching the map currently on disk, with optional overrides."
         }
       },
-      "sizeBytes": 8866,
+      "sizeBytes": 9860,
       "extraction": {
         "status": "parsed"
       },
@@ -23806,7 +23827,7 @@
           ]
         }
       },
-      "sizeBytes": 21223,
+      "sizeBytes": 22191,
       "extraction": {
         "status": "parsed"
       },
@@ -25789,6 +25810,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2d78c4b2a7828f56eb5f520892746fa63a44aae3011b22e07c13087d00e12021"
+    "revision": "637fe641213b7bb2342a359f70edb8e8073a75d1cd4c41fb71061fdb960a5cc1"
   }
 }

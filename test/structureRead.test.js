@@ -25,7 +25,9 @@ afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-const mapFile = () => path.join(root, '.frame', 'STRUCTURE.json');
+// The live view is what freshness describes (STR-02c).
+const mapFile = () => path.join(root, '.frame', 'runtime', 'structure', 'working.json');
+const trackedFile = () => path.join(root, '.frame', 'STRUCTURE.json');
 const MAP = { version: '1.1', modules: { a: { file: 'a.js' } }, generation: { inventory: { coverage: 'complete' }, extraction: { coverage: 'complete' }, revision: 'rev-map' } };
 
 function writeMap(content = MAP) {
@@ -102,13 +104,17 @@ test('stale: an expired lease or incomplete coverage', () => {
   assert.equal(readDescriptor(root, at(DEFAULT_LEASE_MS + 1)).freshness, 'stale');
 });
 
-test('unknown: no receipt, a legacy map, or an artifact that changed since the receipt', () => {
-  writeMap({ version: '1.0', modules: {} });
+test('unknown: no working view, no receipt, or an artifact that changed since the receipt', () => {
+  fs.writeFileSync(trackedFile(), JSON.stringify({ version: '1.0', modules: {} }));
   const legacy = readStructure(root, at(0));
   assert.equal(legacy.freshness, 'unknown');
-  assert.deepEqual(legacy.reasons, ['no-receipt']);
+  assert.deepEqual(legacy.reasons, ['no-working-view']);
+  assert.equal(legacy.path, trackedFile(), 'the tracked map is the fallback');
   assert.equal(legacy.revision, null);
   assert.deepEqual(legacy.map, { version: '1.0', modules: {} }, 'still readable');
+
+  writeMap({ version: '1.1', modules: {} });
+  assert.deepEqual(readStructure(root, at(0)).reasons, ['no-receipt']);
 
   writeMap();
   writeReceipt();
@@ -212,4 +218,17 @@ test('a missed bound is exposed; generation notes come from the map and the atte
   assert.deepEqual(generationNotes(root, { generation: { inventory: { coverage: 'partial', reasons: ['timeout'] } } }), ['covers only part of the project (timeout)']);
   fs.writeFileSync(path.join(root, '.frame', 'runtime', 'structure', 'scan.json'), JSON.stringify({ state: 'failed', reason: 'E_BOOM' }));
   assert.deepEqual(generationNotes(root, MAP), ['is from an earlier scan — the latest one failed (E_BOOM)']);
+});
+
+test('the working view wins over the tracked map; the tracked map is the fallback', () => {
+  const { workingViewPath, resolveReadPath } = require('../scripts/structure-read');
+  fs.writeFileSync(trackedFile(), JSON.stringify({ modules: { committed: { file: 'c.js' } } }));
+  assert.equal(resolveReadPath(root), trackedFile());
+  writeMap();
+  assert.equal(workingViewPath(root), mapFile());
+  assert.equal(resolveReadPath(root), mapFile());
+  writeReceipt();
+  const s = readStructure(root, at(0));
+  assert.equal(s.freshness, 'fresh');
+  assert.ok(s.map.modules.a && !s.map.modules.committed);
 });
