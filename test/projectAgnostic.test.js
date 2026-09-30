@@ -557,8 +557,13 @@ test('cli: --staged stages the commit map and reports it in one envelope', () =>
     assert.match(res.stderr, /Staged the commit's STRUCTURE\.json/);
     const staged = git('show', ':.frame/STRUCTURE.json').stdout;
     assert.ok(!staged.includes('notes-untracked'));
-    assert.ok(!fs.existsSync(mapOf(dir)), 'the working map is not written');
+    assert.equal(env.mirror, 'written');
+    assert.equal(fs.readFileSync(mapOf(dir), 'utf8'), staged, 'the tracked file mirrors the staged map');
     assert.equal(envelopeOf(runParser(dir, ['--staged', '--json'])).status, 'unchanged');
+    // STR-02c D7: --changed is the same publication (older snippets then `git add` it)
+    const changed = envelopeOf(runParser(dir, ['--changed', '--json']));
+    assert.equal(changed.command, 'changed');
+    assert.equal(changed.status, 'unchanged');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

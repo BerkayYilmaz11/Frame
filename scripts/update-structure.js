@@ -9,10 +9,10 @@
  * Usage:
  *   node update-structure.js                 # full rebuild
  *   node update-structure.js --full          # same, explicit (the repair command)
- *   node update-structure.js --changed       # staged + unstaged Git changes (pre-commit hook)
+ *   node update-structure.js --changed       # same as --staged (older hook snippets that then `git add` the map)
  *   node update-structure.js a.js b.py       # specific files
  *   node update-structure.js --check         # would a full rebuild change the map? (read-only)
- *   node update-structure.js --staged        # the commit's map, from the index, into the index (pre-commit hook)
+ *   node update-structure.js --staged        # the commit's map, from the index, into the index and the tracked file (pre-commit hook)
  *   add --json for one bounded result envelope on stdout (diagnostics go to stderr)
  *
  * Exit codes:
@@ -21,13 +21,12 @@
  *                          2 failure or another update running
  *   --check                0 in sync · 1 out of date · 2 missing, corrupt or
  *                          unverifiable
- *   --staged               0 published, already staged or not shared ·
+ *   --staged / --changed   0 published, already staged or not shared ·
  *                          1 unavailable or aborted · 2 failure
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const discovery = require('./structure-discovery');
 const generation = require('./structure-generation');
@@ -119,16 +118,6 @@ function projectBlock() {
   } catch (err) {
     return {};
   }
-}
-
-/** Staged and unstaged changes, exactly the sources the hook always used. */
-function getChangedFiles() {
-  const names = [];
-  for (const command of ['git diff --cached --name-only --diff-filter=ACMR', 'git diff --name-only --diff-filter=ACMR']) {
-    const output = execSync(command, { cwd: ROOT_DIR, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    names.push(...output.split('\n').filter(Boolean));
-  }
-  return [...new Set(names)];
 }
 
 /** Explicit file arguments, relative to the project root. */
@@ -366,11 +355,13 @@ function runCheck() {
 const STAGED_EXIT = { published: 0, unchanged: 0, skipped: 0, unavailable: 1, aborted: 1, failed: 2 };
 
 /**
- * --staged (STR-02b): build the commit's map from the staged snapshot and
- * publish it into the index only. Never touches the working map and never
- * blocks the commit — the hook wraps it in `|| true`.
+ * --staged (STR-02b): build the commit's map from the staged snapshot,
+ * publish it into the index and mirror it to the tracked file (STR-02c).
+ * Never blocks the commit — the hook wraps it in `|| true`. `--changed`
+ * (STR-02c D7) runs the same thing, so an older snippet's following
+ * `git add` of the map stages exactly this map.
  */
-function runStaged() {
+function runStaged(command = 'staged') {
   const { publishStaged } = require('./structure-commit');
   const result = publishStaged(ROOT_DIR);
   const exitCode = STAGED_EXIT[result.status] ?? 2;
@@ -384,7 +375,7 @@ function runStaged() {
   if (result.policyFallback && (result.status === 'published' || result.status === 'unchanged')) {
     warn('  (no staged .frame/config.json — generator defaults were used)');
   }
-  return { schema: RESULT_SCHEMA, command: 'staged', exitCode, ...result };
+  return { schema: RESULT_SCHEMA, command, exitCode, ...result };
 }
 
 /* -------------------------------- main ------------------------------- */
@@ -401,8 +392,8 @@ function main() {
     return;
   }
 
-  if (args.command === 'staged') {
-    const result = runStaged();
+  if (args.command === 'staged' || args.command === 'changed') {
+    const result = runStaged(args.command);
     emit(result);
     noteRun(startedAt, typeof result.files === 'number' ? result.files : undefined);
     process.exitCode = result.exitCode;
@@ -422,18 +413,8 @@ function main() {
     say('Mode: full');
     result = runFull();
   } else {
-    let candidates;
-    if (args.command === 'changed') {
-      try {
-        candidates = getChangedFiles();
-      } catch (err) {
-        warn(`⚠ Git error: ${err.message.split('\n')[0]} — only confirming existing entries.`);
-        candidates = [];
-      }
-    } else {
-      candidates = toRootRelative(args.files);
-    }
-    say(`Mode: ${args.command === 'changed' ? 'incremental' : 'specific'}, ${candidates.length} candidate file(s)`);
+    const candidates = toRootRelative(args.files);
+    say(`Mode: specific, ${candidates.length} candidate file(s)`);
     result = runDelta(candidates);
   }
 

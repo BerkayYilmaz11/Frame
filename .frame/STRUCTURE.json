@@ -16044,28 +16044,29 @@
           "line": 162
         },
         "readText": {
-          "line": 187,
+          "line": 185,
           "params": [
             "file"
-          ]
+          ],
+          "purpose": "2d. Commit integration (STR-02b) — a last `--staged` run that did not"
         },
         "checkCommitIntegration": {
-          "line": 195
+          "line": 193
         },
         "checkNotesStaleness": {
-          "line": 226,
+          "line": 209,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 244,
+          "line": 227,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 265,
+          "line": 248,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 12377,
+      "sizeBytes": 11337,
       "extraction": {
         "status": "parsed"
       },
@@ -16078,6 +16079,7 @@
           "checkStructureGeneration": "0348ebab53cef17e",
           "checkStuckTasks": "1f5e1836816e0dbd",
           "confirmContentDrift": "c2c5c559d55b8faf",
+          "readText": "874a7e71c64e872b",
           "resolveMetaPath": "246df3924894a319",
           "resolveProjectRoot": "bdaf2016db7ccaef"
         }
@@ -17646,6 +17648,7 @@
       "description": "STRUCTURE for a commit — the map built from Git's staged snapshot",
       "exports": [
         "publishStaged",
+        "repairPathspecIndex",
         "receiptPath",
         "buildStaged",
         "createIndexFs",
@@ -17667,13 +17670,13 @@
       ],
       "functions": {
         "sha256": {
-          "line": 44,
+          "line": 45,
           "params": [
             "data"
           ]
         },
         "git": {
-          "line": 62,
+          "line": 63,
           "params": [
             "root",
             "args",
@@ -17682,7 +17685,7 @@
           "purpose": "Run Git for this checkout and its effective index. `GIT_INDEX_FILE` from"
         },
         "resolveIndex": {
-          "line": 77,
+          "line": 78,
           "params": [
             "root",
             "env = process.env"
@@ -17690,7 +17693,7 @@
           "purpose": "The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's."
         },
         "listEntries": {
-          "line": 87,
+          "line": 88,
           "params": [
             "root",
             "env = process.env"
@@ -17698,7 +17701,7 @@
           "purpose": "Staged entries of the effective index. Any unmerged stage makes the"
         },
         "readBlobs": {
-          "line": 105,
+          "line": 106,
           "params": [
             "root",
             "ids",
@@ -17707,20 +17710,20 @@
           "purpose": "Read blobs with one `cat-file --batch` process. Returns Map(id → Buffer)."
         },
         "enoent": {
-          "line": 126,
+          "line": 127,
           "params": [
             "p"
           ]
         },
         "fakeStat": {
-          "line": 132,
+          "line": 133,
           "params": [
             "kind",
             "size"
           ]
         },
         "createIndexFs": {
-          "line": 149,
+          "line": 150,
           "params": [
             "root",
             "entries",
@@ -17729,7 +17732,7 @@
           "purpose": "A read-only fs over the staged tree, enough for STR-01 discovery and"
         },
         "buildStaged": {
-          "line": 238,
+          "line": 239,
           "params": [
             "root",
             "options = {}"
@@ -17737,26 +17740,45 @@
           "purpose": "Build the commit's map from the effective index."
         },
         "indexIdentity": {
-          "line": 328,
+          "line": 329,
           "params": [
             "indexFile"
           ]
         },
         "receiptPath": {
-          "line": 336,
+          "line": 337,
           "params": [
             "root"
           ]
         },
         "writeReceipt": {
-          "line": 340,
+          "line": 341,
           "params": [
             "root",
             "value"
           ]
         },
+        "mirrorToDisk": {
+          "line": 359,
+          "params": [
+            "root",
+            "mapPath",
+            "candidate",
+            "stagedId",
+            "env"
+          ],
+          "purpose": "Set the tracked map on disk to the commit's map (STR-02c D6), so a normal"
+        },
+        "repairPathspecIndex": {
+          "line": 392,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "A pathspec commit (`git commit -- <paths>`) runs the hook on a temporary"
+        },
         "publishStaged": {
-          "line": 370,
+          "line": 438,
           "params": [
             "root",
             "options = {}"
@@ -17764,7 +17786,7 @@
           "purpose": "Build the commit's map and publish it into the effective index."
         }
       },
-      "sizeBytes": 15855,
+      "sizeBytes": 18988,
       "extraction": {
         "status": "parsed"
       },
@@ -17775,8 +17797,10 @@
           "createIndexFs": "f35ade5b3634de6c",
           "git": "98c4595cc6e8df9b",
           "listEntries": "eaccf2510f28346a",
+          "mirrorToDisk": "4f2c6246e59def3a",
           "publishStaged": "21673266af206e48",
           "readBlobs": "a00219d92f27c655",
+          "repairPathspecIndex": "e4ae48fb4b081660",
           "resolveIndex": "b3c2fc5d9205d7ce"
         }
       }
@@ -18476,6 +18500,7 @@
         "structure-state",
         "structure-snapshot",
         "structure-read",
+        "structure-commit",
         "activity-log"
       ],
       "functions": {
@@ -18547,13 +18572,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 445,
+          "line": 450,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 450,
+          "line": 455,
           "params": [
             "root",
             "options = {}"
@@ -18561,21 +18586,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 454,
+          "line": 459,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 461,
+          "line": 466,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 481,
+          "line": 486,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18583,13 +18608,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 495,
+          "line": 500,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 506,
+          "line": 511,
           "params": [
             "root",
             "onEvent",
@@ -18598,14 +18623,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 607,
+          "line": 612,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 639,
+          "line": 644,
           "params": [
             "root",
             "options = {}"
@@ -18613,24 +18638,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 781
+          "line": 786
         },
         "writeLine": {
-          "line": 790,
+          "line": 795,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 794,
+          "line": 799,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 816,
+          "line": 821,
           "params": [
             "root",
             "supervised"
@@ -18638,10 +18663,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 858
+          "line": 863
         }
       },
-      "sizeBytes": 30837,
+      "sizeBytes": 31057,
       "extraction": {
         "status": "parsed"
       },
@@ -19358,7 +19383,6 @@
       "depends": [
         "fs",
         "path",
-        "child_process",
         "structure-discovery",
         "structure-generation",
         "structure-state",
@@ -19367,76 +19391,72 @@
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 44,
+          "line": 43,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "parseArgs": {
-          "line": 61,
+          "line": 60,
           "params": [
             "argv"
           ]
         },
         "say": {
-          "line": 87,
+          "line": 86,
           "params": [
             "line"
           ],
           "purpose": "Human text: stdout normally, stderr when stdout carries the envelope."
         },
         "warn": {
-          "line": 91,
+          "line": 90,
           "params": [
             "line"
           ]
         },
         "repairCommand": {
-          "line": 95
+          "line": 94
         },
         "printDiagnostics": {
-          "line": 100,
+          "line": 99,
           "params": [
             "diagnostics"
           ]
         },
         "emit": {
-          "line": 109,
+          "line": 108,
           "params": [
             "envelope"
           ]
         },
         "projectBlock": {
-          "line": 115
-        },
-        "getChangedFiles": {
-          "line": 125,
-          "purpose": "Staged and unstaged changes, exactly the sources the hook always used."
+          "line": 114
         },
         "toRootRelative": {
-          "line": 135,
+          "line": 124,
           "params": [
             "files"
           ],
           "purpose": "Explicit file arguments, relative to the project root."
         },
         "noteRun": {
-          "line": 162,
+          "line": 151,
           "params": [
             "startedAt",
             "changes"
           ]
         },
         "exitCodeFor": {
-          "line": 182,
+          "line": 171,
           "params": [
             "result"
           ]
         },
         "trackedPrior": {
-          "line": 192,
+          "line": 181,
           "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
         },
         "mirrorWorkingView": {
-          "line": 198,
+          "line": 187,
           "params": [
             "result",
             "discardsAuthored"
@@ -19444,7 +19464,7 @@
           "purpose": "After a working-view publish, keep an untracked map file equal to it."
         },
         "builtFrom": {
-          "line": 215,
+          "line": 204,
           "params": [
             "structure",
             "report",
@@ -19454,45 +19474,47 @@
           "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 233,
+          "line": 222,
           "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 257,
+          "line": 246,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 298,
+          "line": 287,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 329
+          "line": 318
         },
         "runStaged": {
-          "line": 373,
-          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot and"
+          "line": 364,
+          "params": [
+            "command = 'staged'"
+          ],
+          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot,"
         },
         "main": {
-          "line": 392
+          "line": 383
         }
       },
-      "sizeBytes": 19726,
+      "sizeBytes": 19119,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "builtFrom": "0f3b5f39b1a05377",
-          "getChangedFiles": "0d5e846bb25dd0ff",
           "mirrorWorkingView": "2b24665961d385c6",
           "resolveProjectRoot": "bdaf2016db7ccaef",
           "runFull": "018e3a0230855dd1",
-          "runStaged": "56af04bf4ae0ed57",
+          "runStaged": "5d25180306f61337",
           "say": "fe3bfc9b1c053140",
           "toRootRelative": "a260ebe24f149a83",
           "trackedPrior": "2f437ace033ca5c1"
@@ -22919,7 +22941,7 @@
           ]
         }
       },
-      "sizeBytes": 27990,
+      "sizeBytes": 28314,
       "extraction": {
         "status": "parsed"
       },
@@ -22998,6 +23020,12 @@
             "dir"
           ]
         },
+        "frameRepo": {
+          "line": 619,
+          "params": [
+            "prefix"
+          ]
+        },
         "stagedMap": {
           "line": 327,
           "params": [
@@ -23005,7 +23033,7 @@
           ]
         }
       },
-      "sizeBytes": 34280,
+      "sizeBytes": 40343,
       "extraction": {
         "status": "parsed"
       },
@@ -23505,9 +23533,15 @@
           "params": [
             "t"
           ]
+        },
+        "trackedMapRepo": {
+          "line": 297,
+          "params": [
+            "t"
+          ]
         }
       },
-      "sizeBytes": 13464,
+      "sizeBytes": 16049,
       "extraction": {
         "status": "parsed"
       },
@@ -25866,6 +25900,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "26075e597ad2a1b0eae493272e899840c8133c09ef586f40fa64f63c7f943182"
+    "revision": "c38ebdac53c447e70bf740492f7472d8540cdc3d6cbd080e3fc220d80d6d6a3b"
   }
 }

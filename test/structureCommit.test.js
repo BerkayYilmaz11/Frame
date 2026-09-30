@@ -178,7 +178,7 @@ function committedRepo(t) {
   return r;
 }
 
-test('publishing changes only the map entry; the working map is never written', (t) => {
+test('publishing changes only the map entry and mirrors it to the tracked file', (t) => {
   const { dir, git } = committedRepo(t);
   write(dir, { 'src/a.js': '// Staged\n' });
   git('add', 'src/a.js');
@@ -192,9 +192,9 @@ test('publishing changes only the map entry; the working map is never written', 
   assert.equal(changed.length, 1);
   assert.match(changed[0], /^100644 [0-9a-f]{40} 0\t\.frame\/STRUCTURE\.json$/);
   assert.deepEqual(after.filter((l) => !l.endsWith('.frame/STRUCTURE.json')), before, 'every other entry, mode and stage unchanged');
-  assert.ok(!fs.existsSync(path.join(dir, '.frame', 'STRUCTURE.json')), 'no working map was written');
-
   const staged = spawnSync('git', ['show', ':.frame/STRUCTURE.json'], { cwd: dir, encoding: 'utf8' }).stdout;
+  assert.equal(result.mirror, 'written');
+  assert.equal(fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8'), staged, 'the tracked file holds the commit map');
   assert.ok(!staged.includes('untracked') && !staged.includes('Private'));
   assert.equal(JSON.parse(staged).modules.a.description, 'Staged');
 
@@ -290,4 +290,61 @@ test('an unavailable snapshot is recorded, not thrown', (t) => {
   assert.equal(result.status, 'unavailable');
   assert.equal(result.reason, 'unmerged');
   assert.equal(JSON.parse(fs.readFileSync(commit.receiptPath(dir), 'utf8')).status, 'unavailable');
+});
+
+/* ------------- STR-02c: mirroring to the tracked file, pathspec repair ------------- */
+
+function trackedMapRepo(t) {
+  const r = committedRepo(t);
+  assert.equal(commit.publishStaged(r.dir).status, 'published');
+  r.git('commit', '-q', '-m', 'map');
+  return r;
+}
+
+test('unstaged edits in the tracked map are kept, never overwritten', (t) => {
+  const { dir, git } = trackedMapRepo(t);
+  const file = path.join(dir, '.frame', 'STRUCTURE.json');
+  const edited = fs.readFileSync(file, 'utf8').replace('"A"', '"Hand-written, not staged"');
+  fs.writeFileSync(file, edited);
+  write(dir, { 'src/a.js': '// A2\n' });
+  git('add', 'src/a.js');
+  const result = commit.publishStaged(dir);
+  assert.equal(result.status, 'published');
+  assert.equal(result.mirror, 'kept');
+  assert.equal(fs.readFileSync(file, 'utf8'), edited);
+  assert.equal(JSON.parse(fs.readFileSync(commit.receiptPath(dir), 'utf8')).mirror, 'kept');
+});
+
+test('a missing tracked map is restored from the commit map', (t) => {
+  const { dir } = trackedMapRepo(t);
+  const file = path.join(dir, '.frame', 'STRUCTURE.json');
+  const committed = fs.readFileSync(file, 'utf8');
+  fs.rmSync(file);
+  const result = commit.publishStaged(dir);
+  assert.equal(result.status, 'unchanged');
+  assert.equal(result.mirror, 'written');
+  assert.equal(fs.readFileSync(file, 'utf8'), committed);
+});
+
+test('repairPathspecIndex only moves an index entry that lags a disk equal to HEAD', (t) => {
+  const { dir, git } = trackedMapRepo(t);
+  assert.equal(commit.repairPathspecIndex(dir), 'clean');
+  const headId = git('rev-parse', 'HEAD:.frame/STRUCTURE.json').stdout.trim();
+  const setIndex = (id) => git('update-index', '--cacheinfo', `100644,${id},.frame/STRUCTURE.json`);
+
+  setIndex(git('hash-object', '-w', 'src/a.js').stdout.trim());
+  assert.equal(commit.repairPathspecIndex(dir), 'repaired');
+  assert.equal(git('rev-parse', ':.frame/STRUCTURE.json').stdout.trim(), headId);
+
+  // disk differs from HEAD: the staged entry may be deliberate
+  const file = path.join(dir, '.frame', 'STRUCTURE.json');
+  fs.writeFileSync(file, fs.readFileSync(file, 'utf8') + ' ');
+  setIndex(git('hash-object', '-w', 'src/b.js').stdout.trim());
+  assert.equal(commit.repairPathspecIndex(dir), 'clean');
+  assert.notEqual(git('rev-parse', ':.frame/STRUCTURE.json').stdout.trim(), headId);
+});
+
+test('repairPathspecIndex skips a repository whose HEAD has no map', (t) => {
+  const { dir } = committedRepo(t);
+  assert.equal(commit.repairPathspecIndex(dir), 'skipped');
 });

@@ -2,11 +2,12 @@
  * STRUCTURE for a commit — the map built from Git's staged snapshot
  * (STR-02b).
  *
- * The on-disk `.frame/STRUCTURE.json` is the agents' working-tree view
- * (STR-02): it lists untracked files and unstaged edits. A commit must carry
- * a map of what it actually contains, so the pre-commit hook builds one from
- * the effective index and publishes it into the index only — the working
- * view is never swapped, re-staged or rewritten.
+ * The working-tree view lives in `.frame/runtime/structure/working.json`
+ * (STR-02c); the tracked `.frame/STRUCTURE.json` is the committed view. A
+ * commit must carry a map of what it actually contains, so the pre-commit
+ * hook builds one from the effective index, publishes it into the index and
+ * mirrors the same bytes to the tracked file — unless that file holds
+ * unstaged edits, which are never overwritten.
  *
  * The snapshot is read through Git plumbing (`ls-files -s -z`,
  * `cat-file --batch`) and exposed as a small read-only fs. STR-01 discovery,
@@ -350,13 +351,80 @@ function writeReceipt(root, value) {
 }
 
 /**
+ * Set the tracked map on disk to the commit's map (STR-02c D6), so a normal
+ * commit leaves `git status` clean. Only a file equal to the entry staged
+ * before publishing (or a missing one) is replaced: anything else holds
+ * unstaged edits and is kept. Returns written | unchanged | kept | failed.
+ */
+function mirrorToDisk(root, mapPath, candidate, stagedId, env) {
+  const file = path.join(root, ...mapPath.split('/'));
+  let current = null;
+  try {
+    current = fs.readFileSync(file);
+  } catch (e) {
+    if (e.code !== 'ENOENT') return 'failed';
+  }
+  const bytes = Buffer.isBuffer(candidate) ? candidate : Buffer.from(candidate, 'utf8');
+  if (current && current.equals(bytes)) return 'unchanged';
+  try {
+    if (current) {
+      const diskId = git(root, ['hash-object', '--stdin'], { env, input: current }).stdout.toString().trim();
+      if (diskId !== stagedId) return 'kept';
+    }
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const tmp = `${file}.tmp-${process.pid}`;
+    fs.writeFileSync(tmp, bytes);
+    fs.renameSync(tmp, file);
+    return 'written';
+  } catch (e) {
+    return 'failed';
+  }
+}
+
+/**
+ * A pathspec commit (`git commit -- <paths>`) runs the hook on a temporary
+ * index: HEAD and the disk get the new map while the real index keeps the
+ * old entry. The worker repairs exactly that state (STR-02c D6): the tracked
+ * map on disk equals HEAD and the index entry differs → the entry is set to
+ * HEAD's blob. A deliberately staged edit cannot look like this — the disk
+ * would equal the staged version. Returns repaired | clean | skipped | failed.
+ */
+function repairPathspecIndex(root, options = {}) {
+  const env = options.env || process.env;
+  try {
+    const rel = path.relative(root, state.resolveStructurePath(root)).split(path.sep).join('/');
+    const head = git(root, ['rev-parse', '-q', '--verify', `HEAD:${rel}`], { env, allowFailure: true });
+    if (head.status !== 0) return 'skipped';
+    const headId = head.stdout.toString().trim();
+    const entry = git(root, ['ls-files', '-s', '--', rel], { env }).stdout.toString().trim();
+    const match = /^(\d+) ([0-9a-f]+) 0\t/.exec(entry);
+    if (!match || entry.includes('\n')) return 'skipped';
+    if (match[2] === headId) return 'clean';
+    let disk;
+    try {
+      disk = fs.readFileSync(path.join(root, ...rel.split('/')));
+    } catch (e) {
+      return 'skipped';
+    }
+    const diskId = git(root, ['hash-object', '--stdin'], { env, input: disk }).stdout.toString().trim();
+    if (diskId !== headId) return 'clean';
+    const update = git(root, ['update-index', '--cacheinfo', `${match[1]},${headId},${rel}`], { env, allowFailure: true });
+    return update.status === 0 ? 'repaired' : 'failed';
+  } catch (e) {
+    return 'failed';
+  }
+}
+
+/**
  * Build the commit's map and publish it into the effective index.
  *
  * Only the map's index entry can change. The index identity is captured
  * before building and rechecked right before `update-index`, which takes
  * Git's own lock; a changed or locked index aborts without writing. A map
  * path that is neither tracked nor shareable (ignored, local sharing mode)
- * is never force-added. The working map is never touched.
+ * is never force-added. After publishing (or finding it already staged)
+ * the tracked file on disk is set to the same bytes when it held no
+ * unstaged edits (`mirror` in the result).
  *
  * Returns { status, reason?, message?, blob?, mapPath?, policyFallback? }:
  *   published   the staged map entry now holds this commit's map
@@ -395,7 +463,8 @@ function publishStaged(root, options = {}) {
     }
 
     const blob = git(root, ['hash-object', '-w', '--stdin'], { env, input: built.candidate }).stdout.toString().trim();
-    if (staged && staged.id === blob) return finish({ status: 'unchanged', blob });
+    const mirror = () => mirrorToDisk(root, built.mapPath, built.candidate, staged ? staged.id : null, env);
+    if (staged && staged.id === blob) return finish({ status: 'unchanged', blob, mirror: mirror() });
 
     if (options.hooks && typeof options.hooks.beforePublish === 'function') options.hooks.beforePublish();
     if (indexIdentity(indexFile) !== identity) return finish({ status: 'aborted', reason: 'index-changed' });
@@ -410,7 +479,7 @@ function publishStaged(root, options = {}) {
         message: stderr.trim().split('\n')[0]
       });
     }
-    return finish({ status: 'published', blob });
+    return finish({ status: 'published', blob, mirror: mirror() });
   } catch (err) {
     if (err instanceof CommitUnavailable) return finish({ status: 'unavailable', reason: err.reason, message: err.message });
     return finish({ status: 'failed', reason: 'error', message: err && err.message });
@@ -419,6 +488,7 @@ function publishStaged(root, options = {}) {
 
 module.exports = {
   publishStaged,
+  repairPathspecIndex,
   receiptPath,
   buildStaged,
   createIndexFs,

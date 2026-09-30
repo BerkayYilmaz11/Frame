@@ -398,6 +398,10 @@ function reconcile(root, job = {}) {
     }
   }
 
+  // A pathspec commit leaves the real index behind HEAD's map (STR-02c D6).
+  let indexRepair = null;
+  if (resolveGitDirs(root)) indexRepair = require('./structure-commit').repairPathspecIndex(root);
+
   // The receipt describes the working view on disk now (written, unchanged,
   // or a retained older one after an incomplete inventory).
   const mapPath = workingPath;
@@ -436,6 +440,7 @@ function reconcile(root, job = {}) {
     hashed: observed.hashed,
     reused: observed.reused,
     cacheHits: cache.stats.hits,
+    indexRepair,
     ms: Date.now() - startedAt
   };
 }

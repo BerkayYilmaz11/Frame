@@ -15,3 +15,11 @@ The lifecycle worker and `update-structure.js` (`--full`, explicit files, `--che
 _Captured: 2026-10-01 · 7 file change(s)_
 
 ---
+
+## T03 — Commit side: mirror, `--changed`, pathspec repair
+
+`publishStaged` now mirrors the published (or already staged) commit map to the tracked file and records `mirror` (`written` / `unchanged` / `kept` / `failed`) in its result and `commit.json`. Deviation (loss-free guard): the disk file is replaced only when it equals the entry that was staged before publishing, or is missing. Anything else holds unstaged edits (prose not yet staged, or a pre-STR-02c working map) and is `kept`; T04's upgrade deals with the latter. `repairPathspecIndex` (in `structure-commit.js`, called by every worker reconciliation in a Git checkout, reported as `indexRepair`) sets the map's index entry to HEAD's blob only when the disk equals HEAD and the index differs. `update-structure.js --changed` is now the same publication as `--staged`, reported as command `changed`; the old Git-diff candidate path is gone. `check-freshness` no longer reports old `--changed` + `git add` snippets or lefthook lines; the finding for a commit that could not stage its map stays. Real-repository tests cover `switch`/`checkout`/`pull` with live untracked and unstaged work, a clean map after a normal commit, a pathspec commit repaired by the worker (a deliberately staged map is left alone) and an old snippet committing the index-built map. Files touched: `scripts/structure-commit.js`, `scripts/structure-lifecycle.js`, `scripts/update-structure.js`, `scripts/check-freshness.js`, `test/structureCommit.test.js`, `test/scriptsProjectRoot.test.js`, `test/projectAgnostic.test.js`.
+
+_Captured: 2026-10-01 · 7 file change(s)_
+
+---
