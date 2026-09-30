@@ -201,6 +201,29 @@ function checkCommitIntegration() {
   if (last && ['unavailable', 'aborted', 'failed'].includes(last.status)) {
     warn('structure-commit', `the last commit's STRUCTURE.json was not staged (${last.status}${last.reason ? `: ${last.reason}` : ''}) — that commit kept the previous map`);
   }
+
+  // STR-02c D8: the worker left the tracked map alone because it differs
+  // from the staged one in more than generated content. Reported while the
+  // file is still in the state the worker saw.
+  let tracked = null;
+  try {
+    tracked = JSON.parse(readText(path.join(ROOT_DIR, '.frame', 'runtime', 'structure', 'tracked.json')) || 'null');
+  } catch (e) {
+    tracked = null;
+  }
+  if (tracked && tracked.status === 'kept' && tracked.diskDigest) {
+    let current = null;
+    try {
+      current = require('crypto').createHash('sha256').update(fs.readFileSync(structureRead.resolveStructurePath(ROOT_DIR))).digest('hex');
+    } catch (e) {
+      current = null;
+    }
+    if (current === tracked.diskDigest) {
+      warn('structure-commit', tracked.reason === 'hand-edits'
+        ? 'STRUCTURE.json has unstaged hand edits — commits carry them only once you `git add` the file'
+        : `STRUCTURE.json differs from the staged map and was left alone (${tracked.reason})`);
+    }
+  }
 }
 
 /**

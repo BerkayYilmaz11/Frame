@@ -23,3 +23,18 @@ _Captured: 2026-10-01 · 7 file change(s)_
 _Captured: 2026-10-01 · 7 file change(s)_
 
 ---
+
+## T04 — Upgrade existing projects without loss
+
+`structure-generation` exports `authoredView`/`sameAuthoredContent`. The view keeps project-level fields (everything except version, lastUpdated, modules, intentIndex, ipcChannels, generation), and per file keeps prose that does not match its fingerprint plus unknown entry and function fields. Modules are keyed by file path, so key reallocation doesn't count. IPC channels count only when enriched beyond the generated skeleton. `structure-commit.reconcileTrackedMap` runs on every worker reconciliation in a Git checkout (replacing T03's direct repair call; the lifecycle result reports `trackedMap`):
+- clean: disk equals the index;
+- repaired: the pathspec case;
+- restored: a generated-only difference; the disk bytes are archived to `recovery/` first and the index version is written back;
+- kept: hand edits, or disk/index not valid JSON;
+- skipped: no index entry, a conflict, or an `index.lock` present.
+
+The outcome and the disk digest go to `.frame/runtime/structure/tracked.json`. `check-freshness` reports a `kept` map as a `structure-commit` finding while the disk still has that digest ("unstaged hand edits — commits carry them only once you `git add` the file"). Deviation: the comparison is against the index entry (what the next commit starts from) rather than HEAD, so an already staged edit is never considered. Checked on this repository read-only: its tracked map differs from the index in generated content only and will be restored by the worker's next run. Files touched: `scripts/structure-generation.js`, `scripts/structure-commit.js`, `scripts/structure-lifecycle.js`, `scripts/check-freshness.js`, `test/structureGeneration.test.js`, `test/scriptsProjectRoot.test.js`.
+
+_Captured: 2026-10-01 · 6 file change(s)_
+
+---

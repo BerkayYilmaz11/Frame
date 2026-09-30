@@ -905,6 +905,71 @@ function checkView(structure) {
   return view;
 }
 
+// Top-level fields a build derives from the tree, not from what a person wrote.
+const GENERATED_TOP_LEVEL = new Set(['version', 'lastUpdated', 'modules', 'intentIndex', 'ipcChannels', 'generation']);
+
+/**
+ * What a person wrote into a map (STR-02c D8), so two maps can be compared
+ * for authored content only: project-level fields (architecture notes,
+ * conventions, curated owners, legacy groups, unknown keys), and per file
+ * the prose that does not match its generated fingerprint plus unknown
+ * entry and function fields. IPC channels count only once enriched beyond
+ * the generated skeleton. Anything generated — facts, sizes, intents,
+ * fingerprinted prose, timestamps — is left out, so maps that differ only
+ * in generated content have equal views.
+ */
+function authoredView(structure) {
+  const view = {};
+  const source = isPlainObject(structure) ? structure : {};
+  for (const key of Object.keys(source).sort(compareBytes)) {
+    if (!GENERATED_TOP_LEVEL.has(key)) setOwn(view, key, source[key]);
+  }
+
+  const files = [];
+  for (const [key, entry] of Object.entries(isPlainObject(source.modules) ? source.modules : {})) {
+    if (!isPlainObject(entry)) {
+      files.push([`@invalid:${key}`, entry]);
+      continue;
+    }
+    const provenance = isPlainObject(entry.provenance) ? entry.provenance : {};
+    const purposes = isPlainObject(provenance.purposes) ? provenance.purposes : {};
+    const authored = {};
+    for (const field of Object.keys(entry).sort(compareBytes)) {
+      if (!GENERATED_FIELD_SET.has(field)) setOwn(authored, field, entry[field]);
+    }
+    if (isAuthoredProse(entry.description, provenance.description)) setOwn(authored, 'description', entry.description);
+    const functions = [];
+    for (const [name, fn] of Object.entries(isPlainObject(entry.functions) ? entry.functions : {})) {
+      if (!isPlainObject(fn)) continue;
+      const own = {};
+      for (const field of Object.keys(fn).sort(compareBytes)) {
+        if (!GENERATED_FUNCTION_FIELDS.has(field)) setOwn(own, field, fn[field]);
+      }
+      if (isAuthoredProse(fn.purpose, purposes[name])) setOwn(own, 'purpose', fn.purpose);
+      if (Object.keys(own).length) functions.push([name, own]);
+    }
+    if (functions.length) setOwn(authored, 'functions', sortedObject(functions));
+    if (Object.keys(authored).length) files.push([typeof entry.file === 'string' ? entry.file : `@key:${key}`, authored]);
+  }
+  setOwn(view, 'modules', sortedObject(files));
+
+  const channels = [];
+  for (const [category, group] of Object.entries(isPlainObject(source.ipcChannels) ? source.ipcChannels : {})) {
+    for (const [name, value] of Object.entries(isPlainObject(group) ? group : {})) {
+      const skeleton = isPlainObject(value) && Object.keys(value).every((k) => ['name', 'direction', 'description'].includes(k))
+        && value.direction === '' && value.description === '';
+      if (!skeleton) channels.push([`${category}/${name}`, value]);
+    }
+  }
+  setOwn(view, 'ipcChannels', sortedObject(channels));
+  return view;
+}
+
+/** True when two maps carry the same authored content (see authoredView). */
+function sameAuthoredContent(a, b) {
+  return canonical(authoredView(a)) === canonical(authoredView(b));
+}
+
 /**
  * The map's content revision (STR-02): SHA-256 of the `checkView` payload —
  * the facts, annotations, intents and effective policy a consumer relies on.
@@ -949,6 +1014,8 @@ module.exports = {
   revisionOf,
   contentView,
   checkView,
+  authoredView,
+  sameAuthoredContent,
   extractFacts,
   loadCuration,
   legacyKeyFor,

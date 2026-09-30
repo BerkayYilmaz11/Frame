@@ -750,3 +750,45 @@ test('an old --changed + git add snippet commits the index-built map', () => {
     fs.rmSync(r.dir, { recursive: true, force: true });
   }
 });
+
+test('upgrade: a generated-only difference is archived and restored; hand edits are kept and reported', () => {
+  const r = frameRepo('frame-02c-upgrade-');
+  const mapFile = path.join(r.dir, '.frame', 'STRUCTURE.json');
+  const env = { ...process.env, FRAME_PROJECT_ROOT: r.dir };
+  const findings = () => JSON.parse(spawnSync('node', [path.join(SCRIPTS, 'check-freshness.js'), '--json'], { encoding: 'utf8', env, cwd: r.dir }).stdout)
+    .findings.filter((f) => f.check === 'structure-commit').map((f) => f.message);
+  try {
+    const committed = fs.readFileSync(mapFile, 'utf8');
+    // what STR-02b left behind: the working-tree view in the tracked file
+    fs.writeFileSync(path.join(r.dir, 'scratch.js'), '// Scratch\n');
+    r.worker();
+    const oldWorkingMap = fs.readFileSync(path.join(r.dir, '.frame', 'runtime', 'structure', 'working.json'));
+    fs.writeFileSync(mapFile, oldWorkingMap);
+    assert.equal(r.mapStatus(), ' M .frame/STRUCTURE.json\n');
+
+    r.worker();
+    assert.equal(fs.readFileSync(mapFile, 'utf8'), committed, 'restored to the committed view');
+    assert.equal(r.mapStatus(), '');
+    const tracked = JSON.parse(fs.readFileSync(path.join(r.dir, '.frame', 'runtime', 'structure', 'tracked.json'), 'utf8'));
+    assert.equal(tracked.status, 'restored');
+    assert.deepEqual(fs.readFileSync(path.join(r.dir, tracked.recoveryPath)), oldWorkingMap, 'the old bytes are archived');
+    assert.deepEqual(findings(), []);
+
+    // the same difference plus a hand-written description: nothing is touched
+    const edited = JSON.parse(oldWorkingMap.toString('utf8'));
+    edited.modules.a.description = 'Hand-written, not staged';
+    const editedText = JSON.stringify(edited, null, 2) + '\n';
+    fs.writeFileSync(mapFile, editedText);
+    r.worker();
+    assert.equal(fs.readFileSync(mapFile, 'utf8'), editedText);
+    assert.deepEqual(findings(), ['STRUCTURE.json has unstaged hand edits — commits carry them only once you `git add` the file']);
+    assert.equal(r.working().modules.a.description, 'Hand-written, not staged', 'the working view still carries the prose');
+
+    // once staged there is nothing left to report
+    r.git(['add', '.frame/STRUCTURE.json']);
+    r.worker();
+    assert.deepEqual(findings(), []);
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});

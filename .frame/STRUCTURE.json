@@ -15976,6 +15976,7 @@
         "path",
         "child_process",
         "structure-read",
+        "crypto",
         "activity-log"
       ],
       "functions": {
@@ -16054,19 +16055,19 @@
           "line": 193
         },
         "checkNotesStaleness": {
-          "line": 209,
+          "line": 232,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 227,
+          "line": 250,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 248,
+          "line": 271,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 11337,
+      "sizeBytes": 12329,
       "extraction": {
         "status": "parsed"
       },
@@ -17649,6 +17650,8 @@
       "exports": [
         "publishStaged",
         "repairPathspecIndex",
+        "reconcileTrackedMap",
+        "trackedReceiptPath",
         "receiptPath",
         "buildStaged",
         "createIndexFs",
@@ -17758,8 +17761,15 @@
             "value"
           ]
         },
+        "writeJson": {
+          "line": 345,
+          "params": [
+            "file",
+            "value"
+          ]
+        },
         "mirrorToDisk": {
-          "line": 359,
+          "line": 362,
           "params": [
             "root",
             "mapPath",
@@ -17770,15 +17780,36 @@
           "purpose": "Set the tracked map on disk to the commit's map (STR-02c D6), so a normal"
         },
         "repairPathspecIndex": {
-          "line": 392,
+          "line": 395,
           "params": [
             "root",
             "options = {}"
           ],
           "purpose": "A pathspec commit (`git commit -- <paths>`) runs the hook on a temporary"
         },
+        "trackedReceiptPath": {
+          "line": 421,
+          "params": [
+            "root"
+          ]
+        },
+        "reconcileTrackedMap": {
+          "line": 441,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Bring the tracked map on disk back to the committed view when that loses"
+        },
+        "reconcileTracked": {
+          "line": 453,
+          "params": [
+            "root",
+            "env"
+          ]
+        },
         "publishStaged": {
-          "line": 438,
+          "line": 522,
           "params": [
             "root",
             "options = {}"
@@ -17786,7 +17817,7 @@
           "purpose": "Build the commit's map and publish it into the effective index."
         }
       },
-      "sizeBytes": 18988,
+      "sizeBytes": 22558,
       "extraction": {
         "status": "parsed"
       },
@@ -17800,6 +17831,7 @@
           "mirrorToDisk": "4f2c6246e59def3a",
           "publishStaged": "21673266af206e48",
           "readBlobs": "a00219d92f27c655",
+          "reconcileTrackedMap": "a93482f3ce233a1e",
           "repairPathspecIndex": "e4ae48fb4b081660",
           "resolveIndex": "b3c2fc5d9205d7ce"
         }
@@ -18102,6 +18134,8 @@
         "revisionOf",
         "contentView",
         "checkView",
+        "authoredView",
+        "sameAuthoredContent",
         "extractFacts",
         "loadCuration",
         "legacyKeyFor",
@@ -18349,15 +18383,30 @@
           ],
           "purpose": "What `--check` compares: the file/intent/annotation payload plus the"
         },
+        "authoredView": {
+          "line": 921,
+          "params": [
+            "structure"
+          ],
+          "purpose": "What a person wrote into a map (STR-02c D8), so two maps can be compared"
+        },
+        "sameAuthoredContent": {
+          "line": 969,
+          "params": [
+            "a",
+            "b"
+          ],
+          "purpose": "True when two maps carry the same authored content (see authoredView)."
+        },
         "revisionOf": {
-          "line": 917,
+          "line": 982,
           "params": [
             "structure"
           ],
           "purpose": "The map's content revision (STR-02): SHA-256 of the `checkView` payload —"
         },
         "serializeStructure": {
-          "line": 927,
+          "line": 992,
           "params": [
             "candidate",
             "prior",
@@ -18366,7 +18415,7 @@
           "purpose": "Final bytes for a candidate. `generation.revision` is stamped here so it"
         }
       },
-      "sizeBytes": 39202,
+      "sizeBytes": 42461,
       "extraction": {
         "status": "parsed"
       },
@@ -18376,6 +18425,7 @@
           "allocateKeys": "30677be9f7946a06",
           "analyzePrior": "4cf59c7e19b7cd49",
           "assemble": "b72cc9a6c06fce00",
+          "authoredView": "adec3fd8b0f192a5",
           "buildDelta": "3dcde68d968ef0db",
           "buildFull": "4ea6e72a52a2e968",
           "buildIntentIndex": "01073c03e68aab22",
@@ -18391,6 +18441,7 @@
           "mergeEntry": "18c2466e689184fb",
           "resolveProse": "8a818c4061a11e67",
           "revisionOf": "4a2774be47b3bcc0",
+          "sameAuthoredContent": "49ccb2822bd83d1c",
           "serializeStructure": "a498b5ff152ff5c9",
           "setOwn": "64bd67e7413b2806",
           "syncIpcChannels": "11541ff09b39bd62"
@@ -18572,13 +18623,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 450,
+          "line": 452,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 455,
+          "line": 457,
           "params": [
             "root",
             "options = {}"
@@ -18586,21 +18637,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 459,
+          "line": 461,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 466,
+          "line": 468,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 486,
+          "line": 488,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18608,13 +18659,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 500,
+          "line": 502,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 511,
+          "line": 513,
           "params": [
             "root",
             "onEvent",
@@ -18623,14 +18674,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 612,
+          "line": 614,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 644,
+          "line": 646,
           "params": [
             "root",
             "options = {}"
@@ -18638,24 +18689,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 786
+          "line": 788
         },
         "writeLine": {
-          "line": 795,
+          "line": 797,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 799,
+          "line": 801,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 821,
+          "line": 823,
           "params": [
             "root",
             "supervised"
@@ -18663,10 +18714,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 863
+          "line": 865
         }
       },
-      "sizeBytes": 31057,
+      "sizeBytes": 31157,
       "extraction": {
         "status": "parsed"
       },
@@ -23033,7 +23084,7 @@
           ]
         }
       },
-      "sizeBytes": 40343,
+      "sizeBytes": 42673,
       "extraction": {
         "status": "parsed"
       },
@@ -23609,19 +23660,19 @@
       ],
       "functions": {
         "scaffold": {
-          "line": 36,
+          "line": 38,
           "params": [
             "files"
           ]
         },
         "remove": {
-          "line": 44,
+          "line": 46,
           "params": [
             "rel"
           ]
         },
         "full": {
-          "line": 49,
+          "line": 51,
           "params": [
             "prior = null",
             "extra = {}"
@@ -23629,7 +23680,7 @@
           "purpose": "Full build → serialize → parse, like a publish/reload cycle."
         },
         "delta": {
-          "line": 56,
+          "line": 58,
           "params": [
             "prior",
             "changed",
@@ -23643,7 +23694,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 28774,
+      "sizeBytes": 31026,
       "extraction": {
         "status": "parsed"
       },
@@ -25900,6 +25951,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c38ebdac53c447e70bf740492f7472d8540cdc3d6cbd080e3fc220d80d6d6a3b"
+    "revision": "ed2969a059cbc1d40fc30981fb8acfa229f1abe9c753c2acedbc0de94cc2346b"
   }
 }

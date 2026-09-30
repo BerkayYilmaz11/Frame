@@ -17,6 +17,8 @@ const {
   buildDelta,
   serializeStructure,
   checkView,
+  authoredView,
+  sameAuthoredContent,
   legacyKeyFor,
   fallbackKeyFor,
   DeltaBaselineError
@@ -595,4 +597,40 @@ test('buildFull uses an injected extractor and merges annotations the same way',
   assert.equal(structure.modules.a.owner, 'me');
   assert.deepEqual(structure.modules.a.exports, ['x']);
   assert.equal(structure.modules.b.description, 'cached src/b.js');
+});
+
+/* ------------- STR-02c: the authored-content view (upgrade comparison) ------------- */
+
+test('maps that differ only in generated content have the same authored view', () => {
+  scaffold({ 'src/a.js': '// A\nfunction run() {}\nmodule.exports = { run };\n' });
+  const prior = full().map;
+  prior.modules.a.description = 'Written by a person';
+  prior.architectureNotes = { why: 'kept' };
+  prior.ipcChannels = { app: { GET_X: { name: 'get-x', direction: '', description: '' } } };
+  const committed = full(prior).map;
+
+  scaffold({ 'src/untracked.js': '// Untracked\n', 'src/a.js': '// A changed\nfunction run(x) {}\nfunction more() {}\nmodule.exports = { run, more };\n' });
+  const working = full(committed, { today: '2026-10-01' }).map;
+  working.ipcChannels.app.NEW_Y = { name: 'new-y', direction: '', description: '' };
+  assert.notDeepEqual(working, committed);
+  assert.ok(sameAuthoredContent(working, committed));
+  assert.equal(authoredView(working).modules['src/a.js'].description, 'Written by a person');
+  assert.deepEqual(authoredView(working).ipcChannels, {}, 'generated skeletons are not authored');
+});
+
+test('hand edits of prose, unknown fields, notes and enriched channels change the authored view', () => {
+  scaffold({ 'src/a.js': '// A\nfunction run() {}\nmodule.exports = { run };\n' });
+  const base = full().map;
+  const edit = (fn) => {
+    const copy = JSON.parse(JSON.stringify(base));
+    fn(copy);
+    return copy;
+  };
+  assert.ok(sameAuthoredContent(base, edit(() => {})));
+  assert.ok(!sameAuthoredContent(base, edit((m) => { m.modules.a.description = 'Hand-written'; })));
+  assert.ok(!sameAuthoredContent(base, edit((m) => { m.modules.a.functions.run.purpose = 'Starts things'; })));
+  assert.ok(!sameAuthoredContent(base, edit((m) => { m.modules.a.owner = 'team-a'; })));
+  assert.ok(!sameAuthoredContent(base, edit((m) => { m.architectureNotes = { why: 'x' }; })));
+  assert.ok(!sameAuthoredContent(base, edit((m) => { m.ipcChannels = { app: { X: { name: 'x', direction: 'r→m', description: 'd' } } }; })));
+  assert.ok(sameAuthoredContent(base, edit((m) => { m.modules.a.exports = ['changed']; m.lastUpdated = '1999-01-01'; })), 'generated fields are not authored');
 });

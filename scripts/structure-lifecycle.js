@@ -398,9 +398,11 @@ function reconcile(root, job = {}) {
     }
   }
 
-  // A pathspec commit leaves the real index behind HEAD's map (STR-02c D6).
-  let indexRepair = null;
-  if (resolveGitDirs(root)) indexRepair = require('./structure-commit').repairPathspecIndex(root);
+  // Keep the tracked map on the committed view without losing hand edits:
+  // repair a pathspec commit's index, restore a generated-only difference
+  // (STR-02c D6, D8).
+  let trackedMap = null;
+  if (resolveGitDirs(root)) trackedMap = require('./structure-commit').reconcileTrackedMap(root).status;
 
   // The receipt describes the working view on disk now (written, unchanged,
   // or a retained older one after an incomplete inventory).
@@ -440,7 +442,7 @@ function reconcile(root, job = {}) {
     hashed: observed.hashed,
     reused: observed.reused,
     cacheHits: cache.stats.hits,
-    indexRepair,
+    trackedMap,
     ms: Date.now() - startedAt
   };
 }

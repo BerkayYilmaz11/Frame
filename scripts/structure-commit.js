@@ -339,8 +339,11 @@ function receiptPath(root) {
 }
 
 function writeReceipt(root, value) {
+  writeJson(receiptPath(root), value);
+}
+
+function writeJson(file, value) {
   try {
-    const file = receiptPath(root);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const tmp = `${file}.tmp-${process.pid}`;
     fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + '\n');
@@ -413,6 +416,87 @@ function repairPathspecIndex(root, options = {}) {
   } catch (e) {
     return 'failed';
   }
+}
+
+function trackedReceiptPath(root) {
+  return path.join(root, '.frame', 'runtime', 'structure', 'tracked.json');
+}
+
+/**
+ * Bring the tracked map on disk back to the committed view when that loses
+ * nothing (STR-02c D6 + D8). Runs on every worker reconciliation:
+ *
+ *   clean      disk equals the index entry
+ *   repaired   a pathspec commit left the index behind HEAD (see above)
+ *   restored   disk differed from the index in generated content only (a
+ *              pre-STR-02c working map): the disk bytes are archived to
+ *              recovery and the index version is written back
+ *   kept       disk carries hand edits (or is not a valid map): left alone
+ *   skipped    no Git, no tracked map, a conflict or a Git operation running
+ *   failed     anything else
+ *
+ * The outcome is recorded in `.frame/runtime/structure/tracked.json` with the
+ * disk digest it describes, so a reader can tell whether it still applies.
+ */
+function reconcileTrackedMap(root, options = {}) {
+  const env = options.env || process.env;
+  let result;
+  try {
+    result = reconcileTracked(root, env);
+  } catch (err) {
+    result = { status: err instanceof CommitUnavailable ? 'skipped' : 'failed', reason: err.reason || 'error' };
+  }
+  writeJson(trackedReceiptPath(root), { version: 1, at: new Date().toISOString(), ...result });
+  return result;
+}
+
+function reconcileTracked(root, env) {
+  const rel = path.relative(root, state.resolveStructurePath(root)).split(path.sep).join('/');
+  const indexFile = resolveIndex(root, env);
+  if (fs.existsSync(`${indexFile}.lock`)) return { status: 'skipped', reason: 'git-busy' };
+  const entry = git(root, ['ls-files', '-s', '--', rel], { env }).stdout.toString().trim();
+  const match = /^(\d+) ([0-9a-f]+) 0\t/.exec(entry);
+  if (!match || entry.includes('\n')) return { status: 'skipped', reason: entry ? 'conflict' : 'untracked' };
+  const file = path.join(root, ...rel.split('/'));
+  let disk;
+  try {
+    disk = fs.readFileSync(file);
+  } catch (e) {
+    return { status: 'skipped', reason: 'missing' };
+  }
+  const diskDigest = sha256(disk);
+  const diskId = git(root, ['hash-object', '--stdin'], { env, input: disk }).stdout.toString().trim();
+  if (diskId === match[2]) return { status: 'clean', diskDigest };
+
+  const repair = repairPathspecIndex(root, { env });
+  if (repair === 'repaired') return { status: 'repaired', diskDigest };
+
+  const staged = readBlobs(root, [match[2]], env).get(match[2]);
+  const parse = (bytes) => {
+    try {
+      const value = JSON.parse(bytes.toString('utf8'));
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const onDisk = parse(disk);
+  const inIndex = parse(staged);
+  if (!onDisk || !inIndex) return { status: 'kept', reason: onDisk ? 'index-invalid' : 'disk-invalid', diskDigest };
+  if (!generation.sameAuthoredContent(onDisk, inIndex)) return { status: 'kept', reason: 'hand-edits', diskDigest };
+
+  const paths = state.statePaths(root);
+  const archived = state.preserveBytes(paths, disk);
+  const current = fs.readFileSync(file);
+  if (!current.equals(disk)) return { status: 'kept', reason: 'changed-while-checking', diskDigest: sha256(current) };
+  const tmp = `${file}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, staged);
+  fs.renameSync(tmp, file);
+  return {
+    status: 'restored',
+    diskDigest: sha256(staged),
+    recoveryPath: path.relative(root, archived).split(path.sep).join('/')
+  };
 }
 
 /**
@@ -489,6 +573,8 @@ function publishStaged(root, options = {}) {
 module.exports = {
   publishStaged,
   repairPathspecIndex,
+  reconcileTrackedMap,
+  trackedReceiptPath,
   receiptPath,
   buildStaged,
   createIndexFs,
