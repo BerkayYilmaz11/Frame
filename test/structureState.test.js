@@ -460,3 +460,22 @@ test('an identical-bytes result from a stale job is superseded, not reported unc
   const result = run(current, { options: { precondition: () => false } });
   assert.equal(result.state, 'superseded');
 });
+
+/* ------------------ STR-02c: publishing another artifact ------------------ */
+
+test('mapPath targets the working view with the same protocol; the tracked map is untouched', () => {
+  write('.frame/STRUCTURE.json', map({ committed: { file: 'c.js' } }));
+  const working = runtime('working.json');
+  const result = state.runAttempt({
+    rootDir: root, mode: 'full', isAlive, mapPath: working,
+    build: (baseline) => {
+      assert.equal(baseline.status, 'missing', 'the baseline is the target artifact');
+      return { candidate: map({ live: { file: 'l.js' } }), ...COMPLETE };
+    }
+  });
+  assert.equal(result.artifact, 'written');
+  assert.equal(result.map, '.frame/runtime/structure/working.json');
+  assert.ok(JSON.parse(fs.readFileSync(working, 'utf8')).modules.live);
+  assert.equal(fs.readFileSync(overlay(), 'utf8'), map({ committed: { file: 'c.js' } }));
+  assert.equal(state.snapshot(root, { isAlive, mapPath: working }).baseline.source, 'live');
+});

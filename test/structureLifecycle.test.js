@@ -784,3 +784,81 @@ test('the worker records start, map-changing updates and stop in its own project
   assert.equal(typeof reconciled.ms, 'number');
   assert.ok(!JSON.stringify(lines()).includes('src/a.js'), 'no file names in the record');
 });
+
+/* ---------------- STR-02c: the working view lives in runtime ---------------- */
+
+function trackedRepo(files) {
+  const dir = project(files);
+  const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q');
+  git('config', 'user.email', 't@example.com');
+  git('config', 'user.name', 'T');
+  reconcileAndRecord(dir); // map untracked yet: mirrored
+  git('add', '-A');
+  git('commit', '-q', '-m', 'init with map');
+  return { dir, git };
+}
+
+const workingOf = (dir) => JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'), 'utf8'));
+
+test('a tracked map is never written by the worker; the working view carries live changes', () => {
+  const { dir, git } = trackedRepo({ 'src/a.js': '// A\n', '.gitignore': '.frame/runtime/\n' });
+  try {
+    const tracked = fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8');
+    fs.writeFileSync(path.join(dir, 'untracked.js'), '// Untracked work\n');
+    fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A edited\n');
+    assert.equal(reconcileAndRecord(dir).status, 'published');
+    assert.equal(fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8'), tracked, 'tracked map untouched');
+    assert.ok(workingOf(dir).modules.untracked);
+    assert.equal(workingOf(dir).modules.a.description, 'A edited');
+    assert.equal(git('status', '--porcelain', '--', '.frame').stdout, '', 'git status clean for the map');
+    assert.equal(readDescriptor(dir).freshness, 'fresh');
+    assert.equal(git('switch', '-q', '-c', 'other').status, 0);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('prose written in the tracked map reaches the working view', () => {
+  const { dir } = trackedRepo({ 'src/a.js': '// A\n', '.gitignore': '.frame/runtime/\n' });
+  try {
+    const trackedFile = path.join(dir, '.frame', 'STRUCTURE.json');
+    const map = JSON.parse(fs.readFileSync(trackedFile, 'utf8'));
+    map.modules.a.description = 'Hand-written in the tracked file';
+    map.architectureNotes = { why: 'documented by a person' };
+    fs.writeFileSync(trackedFile, JSON.stringify(map, null, 2));
+    reconcileAndRecord(dir);
+    assert.equal(workingOf(dir).modules.a.description, 'Hand-written in the tracked file');
+    assert.deepEqual(workingOf(dir).architectureNotes, { why: 'documented by a person' });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('an untracked map file keeps mirroring the working view', () => {
+  const dir = project({ 'src/a.js': '// A\n' });
+  try {
+    reconcileAndRecord(dir);
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\n');
+    reconcileAndRecord(dir);
+    assert.equal(fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8'), fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'), 'utf8'));
+    assert.ok(mapOf(dir).modules.b);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('update-structure --full rebuilds the working view and leaves a tracked map alone', () => {
+  const { dir } = trackedRepo({ 'src/a.js': '// A\n', '.gitignore': '.frame/runtime/\n' });
+  try {
+    const tracked = fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8');
+    fs.writeFileSync(path.join(dir, 'src', 'c.js'), '// C\n');
+    const run = spawnSync('node', [path.join(SCRIPTS, 'update-structure.js'), '--full'], { encoding: 'utf8', env: { ...process.env, FRAME_PROJECT_ROOT: dir } });
+    assert.equal(run.status, 0, run.stderr);
+    assert.ok(workingOf(dir).modules.c);
+    assert.equal(fs.readFileSync(path.join(dir, '.frame', 'STRUCTURE.json'), 'utf8'), tracked);
+    assert.equal(spawnSync('node', [path.join(SCRIPTS, 'update-structure.js'), '--check'], { env: { ...process.env, FRAME_PROJECT_ROOT: dir } }).status, 0, '--check verifies the working view');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

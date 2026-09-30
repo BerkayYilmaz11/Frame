@@ -490,10 +490,16 @@ test('readers report the lifecycle freshness and skip the date heuristic once it
     assert.match(find(), /^⚠ Map: stale \(lease-expired\) — run: node .*structure-lifecycle\.js --once/);
     assert.match(findings()[0], /is stale \(lease-expired\)/);
 
+    // STR-02c: readers use the working view; prose edited in the tracked map
+    // does not change what the receipt vouches for.
     const mapFile = path.join(dir, '.frame', 'STRUCTURE.json');
     fs.writeFileSync(mapFile, fs.readFileSync(mapFile, 'utf8').replace('Widget maker', 'Edited by hand'));
-    assert.match(find(), /^⚠ Map: unverified \(artifact-changed\)/);
-    assert.match(findings()[0], /changed since it was last verified \(artifact-changed\)/);
+    assert.match(find(), /^⚠ Map: stale \(lease-expired\)/);
+
+    // Without a working view there is nothing live to vouch for: unknown, not an alarm.
+    fs.rmSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'));
+    assert.ok(!/^⚠ Map:|^Map:/.test(find()));
+    assert.deepEqual(findings().filter((f) => f.startsWith('structure-freshness')), []);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -580,8 +586,7 @@ test('git commit with Frame\'s hook: untracked and unstaged content never reach 
   }
 });
 
-test('check-freshness reports hooks that still stage the working map, and commits that kept an old map', () => {
-  const { getStructurePreCommitHookTemplate, getStructureHookSnippet } = require('../src/shared/frameTemplates');
+test('check-freshness accepts old --changed snippets and reports commits that kept an old map', () => {
   const oldSnippet = [
     '# >>> frame:structure (managed) >>>',
     'FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_PARSER" --changed || true',
@@ -594,22 +599,10 @@ test('check-freshness reports hooks that still stage the working map, and commit
     .findings.filter((f) => f.check === 'structure-commit').map((f) => f.message);
   try {
     spawnSync('git', ['init', '-q'], { cwd: dir });
-    const hook = path.join(dir, '.git', 'hooks', 'pre-commit');
-    fs.writeFileSync(hook, getStructurePreCommitHookTemplate());
-    assert.deepEqual(findings(), [], 'the current template is fine');
-
-    fs.writeFileSync(hook, `#!/bin/sh\n${oldSnippet}\n`);
-    assert.match(findings()[0], /^\.git\/hooks\/pre-commit still stages the working-tree STRUCTURE\.json/);
-
-    fs.writeFileSync(hook, `#!/bin/sh\n${getStructureHookSnippet()}\n`);
-    fs.mkdirSync(path.join(dir, '.husky'));
-    fs.writeFileSync(path.join(dir, '.husky', 'pre-commit'), `npm test\n${oldSnippet}\n`);
-    assert.match(findings()[0], /^\.husky\/pre-commit still stages/);
-    fs.rmSync(path.join(dir, '.husky'), { recursive: true });
-
+    // STR-02c D7: `--changed` stages the index-built map, so an old snippet is fine
+    fs.writeFileSync(path.join(dir, '.git', 'hooks', 'pre-commit'), `#!/bin/sh\n${oldSnippet}\n`);
     fs.writeFileSync(path.join(dir, 'lefthook.yml'), 'pre-commit:\n  commands:\n    s:\n      run: node .frame/bin/update-structure.js --changed && git add .frame/STRUCTURE.json\n');
-    assert.match(findings()[0], /lefthook still runs update-structure\.js --changed/);
-    fs.rmSync(path.join(dir, 'lefthook.yml'));
+    assert.deepEqual(findings(), []);
 
     fs.mkdirSync(path.join(dir, '.frame', 'runtime', 'structure'), { recursive: true });
     fs.writeFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'commit.json'), JSON.stringify({ status: 'aborted', reason: 'index-locked' }));
@@ -618,5 +611,206 @@ test('check-freshness reports hooks that still stage the working map, and commit
     assert.deepEqual(findings(), []);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+/* ------- STR-02c: the tracked map is the committed view; Git never refuses ------- */
+
+function frameRepo(prefix) {
+  const { getStructurePreCommitHookTemplate } = require('../src/shared/frameTemplates');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const git = (args, cwd = dir) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+  git(['init', '-q', '-b', 'main']);
+  git(['config', 'user.email', 'test@example.com']);
+  git(['config', 'user.name', 'Test']);
+  fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'src', 'a.js'), '// A\n');
+  fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\n');
+  structureBootstrap.copyParserScripts(dir);
+  fs.writeFileSync(path.join(dir, '.git', 'hooks', 'pre-commit'), getStructurePreCommitHookTemplate(), { mode: 0o755 });
+  const env = { ...process.env, FRAME_PROJECT_ROOT: undefined };
+  const worker = () => {
+    const r = spawnSync('node', [path.join(dir, '.frame', 'bin', 'structure-lifecycle.js'), '--once'], { cwd: dir, env, encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+  };
+  const mapStatus = () => git(['status', '--porcelain', '--', '.frame/STRUCTURE.json']).stdout;
+  const working = () => JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'), 'utf8'));
+  worker();
+  git(['add', '-A']);
+  const init = git(['commit', '-q', '-m', 'init']);
+  assert.equal(init.status, 0, init.stderr);
+  return { dir, git, worker, mapStatus, working };
+}
+
+test('live work never blocks checkout, switch or pull; a normal commit leaves the map clean', () => {
+  const r = frameRepo('frame-02c-switch-');
+  const clone = `${r.dir}-clone`;
+  try {
+    assert.equal(r.mapStatus(), '', 'clean after the first commit');
+
+    // a branch whose committed map differs
+    assert.equal(r.git(['switch', '-q', '-c', 'feature']).status, 0);
+    fs.writeFileSync(path.join(r.dir, 'src', 'c.js'), '// C on feature\n');
+    r.git(['add', 'src/c.js']);
+    assert.equal(r.git(['commit', '-q', '-m', 'c']).status, 0);
+    assert.equal(r.mapStatus(), '', 'the hook mirrored the commit map');
+    assert.equal(JSON.parse(r.git(['show', 'HEAD:.frame/STRUCTURE.json']).stdout).modules.c.description, 'C on feature');
+
+    // untracked and unstaged work lands in the working view only
+    fs.writeFileSync(path.join(r.dir, 'scratch.js'), '// Scratch\n');
+    fs.writeFileSync(path.join(r.dir, 'src', 'b.js'), '// B unstaged\n');
+    r.worker();
+    assert.ok(r.working().modules.scratch);
+    assert.equal(r.working().modules.b.description, 'B unstaged');
+    assert.equal(r.mapStatus(), '');
+
+    const sw = r.git(['switch', '-q', 'main']);
+    assert.equal(sw.status, 0, sw.stderr);
+    r.worker();
+    assert.ok(!r.working().modules.c);
+    const co = r.git(['checkout', '-q', 'feature']);
+    assert.equal(co.status, 0, co.stderr);
+    r.worker();
+    assert.ok(r.working().modules.c);
+
+    // a pull that changes the committed map
+    assert.equal(r.git(['stash', '-q']).status, 0);
+    assert.equal(r.git(['clone', '-q', '-b', 'feature', r.dir, clone], os.tmpdir()).status, 0);
+    r.git(['config', 'user.email', 'test@example.com'], clone);
+    r.git(['config', 'user.name', 'Test'], clone);
+    fs.writeFileSync(path.join(clone, 'src', 'd.js'), '// D upstream\n');
+    r.git(['add', 'src/d.js'], clone);
+    spawnSync('node', [path.join(r.dir, '.frame', 'bin', 'update-structure.js'), '--staged'], { cwd: clone, env: { ...process.env, FRAME_PROJECT_ROOT: clone } });
+    assert.equal(r.git(['commit', '-q', '--no-verify', '-m', 'd'], clone).status, 0);
+    assert.equal(r.git(['stash', 'pop', '-q']).status, 0);
+    r.worker();
+    const pull = r.git(['pull', '-q', '--ff-only', clone, 'feature']);
+    assert.equal(pull.status, 0, pull.stderr);
+    assert.equal(r.mapStatus(), '');
+    r.worker();
+    assert.ok(r.working().modules.d);
+    assert.ok(r.working().modules.scratch, 'untracked work is still in the working view');
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+    fs.rmSync(clone, { recursive: true, force: true });
+  }
+});
+
+test('a pathspec commit leaves the index behind HEAD until the worker repairs it', () => {
+  const r = frameRepo('frame-02c-pathspec-');
+  try {
+    fs.writeFileSync(path.join(r.dir, 'src', 'a.js'), '// A via pathspec\n');
+    const commit = r.git(['commit', '-q', '-m', 'a only', '--', 'src/a.js']);
+    assert.equal(commit.status, 0, commit.stderr);
+    const head = r.git(['rev-parse', 'HEAD:.frame/STRUCTURE.json']).stdout;
+    assert.equal(JSON.parse(r.git(['show', 'HEAD:.frame/STRUCTURE.json']).stdout).modules.a.description, 'A via pathspec');
+    assert.notEqual(r.git(['rev-parse', ':.frame/STRUCTURE.json']).stdout, head, 'the real index kept the old entry');
+
+    r.worker();
+    assert.equal(r.git(['rev-parse', ':.frame/STRUCTURE.json']).stdout, head);
+    assert.equal(r.mapStatus(), '');
+
+    // a deliberately staged map is never reverted
+    const file = path.join(r.dir, '.frame', 'STRUCTURE.json');
+    const map = JSON.parse(fs.readFileSync(file, 'utf8'));
+    map.modules.b.description = 'Staged prose';
+    fs.writeFileSync(file, JSON.stringify(map, null, 2) + '\n');
+    r.git(['add', '.frame/STRUCTURE.json']);
+    r.worker();
+    assert.equal(r.mapStatus(), 'M  .frame/STRUCTURE.json\n');
+    assert.equal(r.working().modules.b.description, 'Staged prose', 'prose from the tracked file reaches the working view');
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});
+
+test('an old --changed + git add snippet commits the index-built map', () => {
+  const r = frameRepo('frame-02c-old-snippet-');
+  try {
+    fs.writeFileSync(path.join(r.dir, '.git', 'hooks', 'pre-commit'), [
+      '#!/bin/sh',
+      '# >>> frame:structure (managed) >>>',
+      'FRAME_ROOT="$(git rev-parse --show-toplevel)"',
+      'FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_ROOT/.frame/bin/update-structure.js" --changed || true',
+      'git add "$FRAME_ROOT/.frame/STRUCTURE.json" || true',
+      '# <<< frame:structure (managed) <<<',
+      ''
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(r.dir, 'private-notes.md'), '# Private\n');
+    fs.writeFileSync(path.join(r.dir, 'src', 'b.js'), '// B staged\n');
+    r.git(['add', 'src/b.js']);
+    r.worker();
+    const commit = r.git(['commit', '-q', '-m', 'b']);
+    assert.equal(commit.status, 0, commit.stderr);
+    const committed = JSON.parse(r.git(['show', 'HEAD:.frame/STRUCTURE.json']).stdout);
+    assert.equal(committed.modules.b.description, 'B staged');
+    assert.ok(!Object.values(committed.modules).some((m) => m.file === 'private-notes.md'), 'untracked files stay out');
+    assert.equal(r.mapStatus(), '');
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});
+
+test('upgrade: a generated-only difference is archived and restored; hand edits are kept and reported', () => {
+  const r = frameRepo('frame-02c-upgrade-');
+  const mapFile = path.join(r.dir, '.frame', 'STRUCTURE.json');
+  const env = { ...process.env, FRAME_PROJECT_ROOT: r.dir };
+  const findings = () => JSON.parse(spawnSync('node', [path.join(SCRIPTS, 'check-freshness.js'), '--json'], { encoding: 'utf8', env, cwd: r.dir }).stdout)
+    .findings.filter((f) => f.check === 'structure-commit').map((f) => f.message);
+  try {
+    const committed = fs.readFileSync(mapFile, 'utf8');
+    // what STR-02b left behind: the working-tree view in the tracked file
+    fs.writeFileSync(path.join(r.dir, 'scratch.js'), '// Scratch\n');
+    r.worker();
+    const oldWorkingMap = fs.readFileSync(path.join(r.dir, '.frame', 'runtime', 'structure', 'working.json'));
+    fs.writeFileSync(mapFile, oldWorkingMap);
+    assert.equal(r.mapStatus(), ' M .frame/STRUCTURE.json\n');
+
+    r.worker();
+    assert.equal(fs.readFileSync(mapFile, 'utf8'), committed, 'restored to the committed view');
+    assert.equal(r.mapStatus(), '');
+    const tracked = JSON.parse(fs.readFileSync(path.join(r.dir, '.frame', 'runtime', 'structure', 'tracked.json'), 'utf8'));
+    assert.equal(tracked.status, 'restored');
+    assert.deepEqual(fs.readFileSync(path.join(r.dir, tracked.recoveryPath)), oldWorkingMap, 'the old bytes are archived');
+    assert.deepEqual(findings(), []);
+
+    // the same difference plus a hand-written description: nothing is touched
+    const edited = JSON.parse(oldWorkingMap.toString('utf8'));
+    edited.modules.a.description = 'Hand-written, not staged';
+    const editedText = JSON.stringify(edited, null, 2) + '\n';
+    fs.writeFileSync(mapFile, editedText);
+    r.worker();
+    assert.equal(fs.readFileSync(mapFile, 'utf8'), editedText);
+    assert.deepEqual(findings(), ['STRUCTURE.json has unstaged hand edits — commits carry them only once you `git add` the file']);
+    assert.equal(r.working().modules.a.description, 'Hand-written, not staged', 'the working view still carries the prose');
+
+    // once staged there is nothing left to report
+    r.git(['add', '.frame/STRUCTURE.json']);
+    r.worker();
+    assert.deepEqual(findings(), []);
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});
+
+test('find-module and check-freshness read the live working view before the tracked map', () => {
+  const r = frameRepo('frame-02c-readers-');
+  const env = { ...process.env, FRAME_PROJECT_ROOT: r.dir };
+  const find = (word) => spawnSync('node', [path.join(SCRIPTS, 'find-module.js'), word], { encoding: 'utf8', env }).stdout;
+  const phantoms = () => JSON.parse(spawnSync('node', [path.join(SCRIPTS, 'check-freshness.js'), '--json'], { encoding: 'utf8', env, cwd: r.dir }).stdout)
+    .findings.filter((f) => f.check === 'phantom-module');
+  try {
+    fs.writeFileSync(path.join(r.dir, 'src', 'widgetMaker.js'), '// Widget maker\n');
+    fs.writeFileSync(path.join(r.dir, 'src', 'widgetStore.js'), '// Widget store\n');
+    fs.rmSync(path.join(r.dir, 'src', 'b.js'));
+    r.worker();
+    const tracked = JSON.parse(fs.readFileSync(path.join(r.dir, '.frame', 'STRUCTURE.json'), 'utf8'));
+    assert.ok(tracked.modules.b && !tracked.modules.widgetMaker, 'the tracked map is the committed view');
+    const out = find('widget');
+    assert.match(out, /^Map: fresh · working tree/);
+    assert.match(out, /src\/widgetMaker\.js/);
+    assert.deepEqual(phantoms(), [], 'a deleted file is gone from the live view');
+  } finally {
+    fs.rmSync(r.dir, { recursive: true, force: true });
   }
 });

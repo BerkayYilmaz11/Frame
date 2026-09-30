@@ -380,7 +380,9 @@ implemented without approval.
 
 **Read these at the start of each session:**
 
-1. **\`.frame/STRUCTURE.json\`** — module map, which file is where
+1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
+   last commit, plus your prose edits; \`find-module.js\` and hints use Frame's
+   live view of the working tree)
 2. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
 3. **\`.frame/tasks.json\`** — pending tasks
 
@@ -579,8 +581,14 @@ No problem, continue. The user can also say what they consider important themsel
 **This file is the map of the codebase.** Frame generates it; you enrich it.
 
 ### How It Is Generated
+- There are two views. STRUCTURE.json (tracked) is the map as of
+  the last commit plus your prose edits. The live view of the working tree —
+  uncommitted files included — is \`working.json\` in
+  \`.frame/runtime/structure/\` (never committed); \`find-module.js\`, hints
+  and the app read it first.
+  Where the map is not tracked by Git, both files hold the live view.
 - \`update-structure.js --full\` (shipped in \`.frame/bin/\`; run it with
-  \`node\` from the project root) rebuilds the whole map — it is also the
+  \`node\` from the project root) rebuilds the live view — it is also the
   repair command. The pre-commit hook runs \`--staged\` (see below).
 - Every project-owned text file gets an entry: source, configuration,
   documentation, and languages Frame cannot parse (those carry path and size
@@ -613,8 +621,8 @@ No problem, continue. The user can also say what they consider important themsel
   preserved in \`.frame/runtime/structure/recovery/\`.
 
 ### Staying Current
-- While Frame has the project open, a background worker keeps the map in
-  step with the working tree — including files that are not committed yet:
+- While Frame has the project open, a background worker keeps the live view
+  in step with the working tree — including files that are not committed yet:
   edits land within a few seconds, and a full check every minute catches
   anything the file notifications missed. With Frame closed, run
   \`structure-lifecycle.js --watch\` from \`.frame/bin/\` (stop it with
@@ -625,18 +633,22 @@ No problem, continue. The user can also say what they consider important themsel
   \`unknown\` (no record — a fresh clone, or Frame has not run here). The
   lookup and freshness scripts report it; it is never guessed from dates.
 - Commits get their own map. The pre-commit hook builds it from what is
-  staged — never from unstaged edits or untracked files — and stages only
-  that; the working copy stays the agents' view. While the two differ,
-  \`git status\` shows STRUCTURE.json as modified; that is expected.
-  \`git commit --no-verify\` skips the hook and can commit the working copy.
+  staged — never from unstaged edits or untracked files — stages it and
+  writes the same map to STRUCTURE.json, so \`git status\` stays clean and
+  checkout, switch and pull never conflict with it. A STRUCTURE.json with
+  unstaged hand edits is left alone (the freshness check says so).
+  \`git commit --no-verify\` skips the hook and keeps the previous map.
 - With Husky, lefthook or your own hook, call \`update-structure.js
-  --staged\` from it (the script is in \`.frame/bin/\`) and never \`git add\`
-  the map yourself. Frame keeps its own unedited hook up to date.
+  --staged\` from it (the script is in \`.frame/bin/\`). An older snippet that
+  runs \`--changed\` and then \`git add\`s the map does the same. Frame keeps
+  its own unedited hook up to date.
 
 ### What to Edit
-- Enrich entries in place: \`description\`, function \`purpose\`, fields of
-  your own, and \`architectureNotes\`. They survive rebuilds, matched by the
-  entry's \`file\`.
+- Enrich entries in place in the tracked STRUCTURE.json (never in the live
+  view): \`description\`, function \`purpose\`, fields of your own, and
+  \`architectureNotes\`. They survive rebuilds, matched by the entry's
+  \`file\`, reach the live view on its next update, and reach commits once
+  you \`git add\` the file.
 - Do not rename module keys: curated concepts in \`intent-map.json\`
   (\`.frame/bin/\`) refer to them.
 
@@ -840,7 +852,7 @@ ${cmds.test || todo}
 
 | File | Purpose |
 |------|---------|
-| \`.frame/STRUCTURE.json\` | Module map and architecture (rebuild: \`node .frame/bin/update-structure.js --full\`) |
+| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |
 | \`.frame/PROJECT_NOTES.md\` | Decisions and context |
 | \`.frame/tasks.json\` | Task tracking |
 | \`.frame/QUICKSTART.md\` | This file |
@@ -1130,7 +1142,8 @@ const FRAME_HOOK_MARKER_END = '# <<< frame:structure (managed) <<<';
 function getStructureHookSnippet() {
   return `${FRAME_HOOK_MARKER_START}
 # Stage the commit's STRUCTURE.json, built from what is staged — never from
-# unstaged edits or untracked files. The working copy is left as it is.
+# unstaged edits or untracked files — and write the same map to the file
+# unless it holds unstaged edits.
 # Never blocks the commit. Safe to remove if you don't want Frame to manage
 # your STRUCTURE.json file.
 if command -v node >/dev/null 2>&1; then
@@ -1176,7 +1189,7 @@ exit 0
 
 /**
  * SHA-256 of every earlier `getStructurePreCommitHookTemplate()` output,
- * recovered from history (d3b098d, fa17c93, a8c1c8c). A hook file equal to
+ * recovered from history (d3b098d, fa17c93, a8c1c8c, 2291b13). A hook file equal to
  * one of them byte for byte was installed by Frame and never edited — the
  * only kind Frame may replace. Append the old hash whenever the template
  * changes; never remove one.
@@ -1184,7 +1197,8 @@ exit 0
 const PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256 = Object.freeze([
   'df6b8a6b586a71782e5bbaa8afaf542b49dedf60bdfdff8375cb2d257ee8d8fc',
   '306349fe4ac44c2f91ce3cdc44adc0f4f19ebeb06717603259a59d5bba528e91',
-  '405e7315a5ba4a9c60dfcc818aa1dfc3884b74492a146151195828f842136502'
+  '405e7315a5ba4a9c60dfcc818aa1dfc3884b74492a146151195828f842136502',
+  '03595a78608139d5074c972c0a96ae63b754e5e5124d7a4e16ecd676231eda8d'
 ]);
 
 /**

@@ -259,3 +259,17 @@ test('a hook copied without the read contract stays quiet instead of failing', (
   assert.equal(out.trim(), '');
   fs.rmSync(bin, { recursive: true, force: true });
 });
+
+// ─── STR-02c: the live working-tree view first ────────────
+
+test('the working view answers before the tracked map', () => {
+  const root = mkProject();
+  const live = JSON.parse(JSON.stringify(STRUCTURE));
+  live.intentIndex.github = [{ module: 'main/githubLive', file: 'src/main/githubLive.js' }];
+  live.modules['main/githubLive'] = { file: 'src/main/githubLive.js', description: 'Uncommitted GitHub work' };
+  fs.mkdirSync(path.join(root, '.frame', 'runtime', 'structure'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.frame', 'runtime', 'structure', 'working.json'), JSON.stringify(live));
+  const ctx = runHook({ session_id: 'w', cwd: root, tool_name: 'Grep', tool_input: { pattern: 'github' } }).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /githubLive\.js/);
+  assert.ok(!/githubManager/.test(ctx));
+});

@@ -35,8 +35,11 @@
  *                observedAt (ISO), leaseMs,
  *                coverage, extraction } }       both 'complete' | 'partial'
  *
- * Ownership follows STR-01 / frameStore.resolvePath: the overlay first, the
- * root copy only when `config.files` names it.
+ * Which file: the working view `.frame/runtime/structure/working.json`
+ * (STR-02c) when it exists; otherwise the tracked map, whose ownership
+ * follows STR-01 / frameStore.resolvePath — the overlay first, the root copy
+ * only when `config.files` names it. The tracked map holds the committed view
+ * plus hand edits, so without a working view freshness is `unknown`.
  */
 
 'use strict';
@@ -71,6 +74,20 @@ function resolveStructurePath(root) {
   return overlay;
 }
 
+/** Frame's live view of the working tree (STR-02c): generated, never tracked. */
+function workingViewPath(root) {
+  return path.join(root, '.frame', 'runtime', 'structure', 'working.json');
+}
+
+/**
+ * The map a reader should use: the working view when Frame has written one,
+ * otherwise the tracked map (the committed view plus hand edits).
+ */
+function resolveReadPath(root) {
+  const working = workingViewPath(root);
+  return fs.existsSync(working) ? working : resolveStructurePath(root);
+}
+
 function lifecyclePath(root) {
   return path.join(root, '.frame', 'runtime', 'structure', 'lifecycle.json');
 }
@@ -94,7 +111,8 @@ function nowMs(options) {
  * options.now — injectable clock (ms) for tests.
  */
 function readDescriptor(root, options = {}) {
-  const file = resolveStructurePath(root);
+  const file = resolveReadPath(root);
+  const hasWorkingView = file === workingViewPath(root);
   const out = {
     path: file,
     view: null,
@@ -120,6 +138,14 @@ function readDescriptor(root, options = {}) {
   const state = readJson(lifecyclePath(root));
   if (state && isPlainObject(state.missedBound)) out.missedBound = state.missedBound;
   const receipt = state && isPlainObject(state.receipt) ? state.receipt : null;
+  // Freshness describes the live view; the tracked map alone is the last
+  // commit plus hand edits, so its freshness is unknown — except for a
+  // receipt written before STR-02c, which described the tracked file itself
+  // and still matches it byte for byte (a project mid-upgrade).
+  if (!hasWorkingView && !(receipt && sameSignature(receipt.artifactStat, out.artifact))) {
+    out.reasons.push('no-working-view');
+    return out;
+  }
   if (!receipt) {
     out.reasons.push('no-receipt');
     return out;
@@ -232,6 +258,8 @@ function generationNotes(root, structure) {
 }
 
 module.exports = {
+  workingViewPath,
+  resolveReadPath,
   readDescriptor,
   generationNotes,
   readStructure,

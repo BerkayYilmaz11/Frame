@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-26",
+  "lastUpdated": "2026-09-30",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -1997,27 +1997,34 @@
           ]
         },
         "getStructure": {
-          "line": 169,
+          "line": 174,
           "params": [
             "projectPath"
           ],
-          "purpose": "STRUCTURE.json parsed, or null when it is missing or unparseable."
+          "purpose": "The project's module map parsed, or null when it is missing or"
+        },
+        "workingViewPath": {
+          "line": 193,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Where the structure lifecycle keeps the working-tree view (STR-02c)."
         },
         "saveStructure": {
-          "line": 179,
+          "line": 197,
           "params": [
             "projectPath",
             "structure"
           ]
         },
         "readNotes": {
-          "line": 183,
+          "line": 201,
           "params": [
             "projectPath"
           ]
         },
         "appendNote": {
-          "line": 191,
+          "line": 209,
           "params": [
             "projectPath",
             "text"
@@ -2025,40 +2032,40 @@
           "purpose": "Append an entry to PROJECT_NOTES.md, keeping one blank line between it and"
         },
         "readQuickstart": {
-          "line": 200,
+          "line": 218,
           "params": [
             "projectPath"
           ]
         },
         "readAgents": {
-          "line": 204,
+          "line": 222,
           "params": [
             "projectPath"
           ]
         },
         "writeAgents": {
-          "line": 208,
+          "line": 226,
           "params": [
             "projectPath",
             "text"
           ]
         },
         "getProjectId": {
-          "line": 215,
+          "line": 233,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's stable id, or null if it has none yet."
         },
         "ensureProjectId": {
-          "line": 227,
+          "line": 245,
           "params": [
             "projectPath"
           ],
           "purpose": "Stamp a UUID into `.frame/config.json` once and return it; a project that"
         },
         "setupIPC": {
-          "line": 244,
+          "line": 262,
           "params": [
             "ipcMain"
           ],
@@ -2071,7 +2078,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 10055,
+      "sizeBytes": 10669,
       "extraction": {
         "status": "parsed"
       },
@@ -2081,7 +2088,7 @@
           "appendNote": "4638b55e22918626",
           "ensureProjectId": "ba7dbfded94437a3",
           "getProjectId": "425bd0bcce18a16f",
-          "getStructure": "99f2503948665939",
+          "getStructure": "6b39658e89876cb1",
           "getTasks": "3c991ad928e40811",
           "isLegacyLayout": "277dce68d0561322",
           "legacyFileNames": "a93ce7cb8636fbf9",
@@ -2091,6 +2098,7 @@
           "resolveSpecDir": "b0ee67e7e041d9b1",
           "setupIPC": "a8891dc5122d2f3c",
           "specsRoot": "8e3bb83a0d342608",
+          "workingViewPath": "20726b56eccb8b07",
           "writeConfig": "23f965c8bfafc24a"
         }
       }
@@ -15976,6 +15984,7 @@
         "path",
         "child_process",
         "structure-read",
+        "crypto",
         "activity-log"
       ],
       "functions": {
@@ -16016,56 +16025,57 @@
           ]
         },
         "checkPhantomModules": {
-          "line": 92,
+          "line": 93,
           "params": [
             "structure"
           ],
           "purpose": "1. Phantom modules — STRUCTURE.json entries whose file is missing on disk"
         },
         "confirmContentDrift": {
-          "line": 105,
+          "line": 106,
           "purpose": "Ask update-structure.js --check whether a regen would actually change"
         },
         "checkStructureDrift": {
-          "line": 130,
+          "line": 131,
           "params": [
             "structure"
           ],
           "purpose": "2. STRUCTURE drift — the date heuristic (lastUpdated older than the last"
         },
         "checkStructureGeneration": {
-          "line": 148,
+          "line": 149,
           "params": [
             "structure"
           ],
           "purpose": "2b. Generation status — a partial or unverified map, or a latest scan that"
         },
         "checkStructureFreshness": {
-          "line": 162
+          "line": 163
         },
         "readText": {
-          "line": 187,
+          "line": 186,
           "params": [
             "file"
-          ]
+          ],
+          "purpose": "2d. Commit integration (STR-02b) — a last `--staged` run that did not"
         },
         "checkCommitIntegration": {
-          "line": 195
+          "line": 194
         },
         "checkNotesStaleness": {
-          "line": 226,
+          "line": 233,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 244,
+          "line": 251,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 265,
+          "line": 272,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 12377,
+      "sizeBytes": 12414,
       "extraction": {
         "status": "parsed"
       },
@@ -16078,6 +16088,7 @@
           "checkStructureGeneration": "0348ebab53cef17e",
           "checkStuckTasks": "1f5e1836816e0dbd",
           "confirmContentDrift": "c2c5c559d55b8faf",
+          "readText": "874a7e71c64e872b",
           "resolveMetaPath": "246df3924894a319",
           "resolveProjectRoot": "bdaf2016db7ccaef"
         }
@@ -16495,21 +16506,21 @@
           ]
         },
         "loadStructure": {
-          "line": 46
+          "line": 47
         },
         "loadIntentMap": {
-          "line": 59,
+          "line": 60,
           "purpose": "Load the curated concept map (synonyms live here). Sits next to this"
         },
         "stalenessBanner": {
-          "line": 76,
+          "line": 77,
           "params": [
             "structure"
           ],
           "purpose": "One-line warning when STRUCTURE.json is stale. The date comparison is a"
         },
         "searchIntentIndex": {
-          "line": 110,
+          "line": 111,
           "params": [
             "structure",
             "keyword"
@@ -16517,14 +16528,14 @@
           "purpose": "Search intentIndex for matching features"
         },
         "listFeatures": {
-          "line": 178,
+          "line": 179,
           "params": [
             "structure"
           ],
           "purpose": "List all features in intentIndex"
         },
         "printResults": {
-          "line": 196,
+          "line": 197,
           "params": [
             "structure",
             "results",
@@ -16533,7 +16544,7 @@
           "purpose": "Format and print results"
         }
       },
-      "sizeBytes": 9251,
+      "sizeBytes": 9331,
       "extraction": {
         "status": "parsed"
       },
@@ -17082,7 +17093,7 @@
           ]
         }
       },
-      "sizeBytes": 15867,
+      "sizeBytes": 15937,
       "extraction": {
         "status": "parsed"
       },
@@ -17646,6 +17657,9 @@
       "description": "STRUCTURE for a commit — the map built from Git's staged snapshot",
       "exports": [
         "publishStaged",
+        "repairPathspecIndex",
+        "reconcileTrackedMap",
+        "trackedReceiptPath",
         "receiptPath",
         "buildStaged",
         "createIndexFs",
@@ -17667,13 +17681,13 @@
       ],
       "functions": {
         "sha256": {
-          "line": 44,
+          "line": 45,
           "params": [
             "data"
           ]
         },
         "git": {
-          "line": 62,
+          "line": 63,
           "params": [
             "root",
             "args",
@@ -17682,7 +17696,7 @@
           "purpose": "Run Git for this checkout and its effective index. `GIT_INDEX_FILE` from"
         },
         "resolveIndex": {
-          "line": 77,
+          "line": 78,
           "params": [
             "root",
             "env = process.env"
@@ -17690,7 +17704,7 @@
           "purpose": "The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's."
         },
         "listEntries": {
-          "line": 87,
+          "line": 88,
           "params": [
             "root",
             "env = process.env"
@@ -17698,7 +17712,7 @@
           "purpose": "Staged entries of the effective index. Any unmerged stage makes the"
         },
         "readBlobs": {
-          "line": 105,
+          "line": 106,
           "params": [
             "root",
             "ids",
@@ -17707,20 +17721,20 @@
           "purpose": "Read blobs with one `cat-file --batch` process. Returns Map(id → Buffer)."
         },
         "enoent": {
-          "line": 126,
+          "line": 127,
           "params": [
             "p"
           ]
         },
         "fakeStat": {
-          "line": 132,
+          "line": 133,
           "params": [
             "kind",
             "size"
           ]
         },
         "createIndexFs": {
-          "line": 149,
+          "line": 150,
           "params": [
             "root",
             "entries",
@@ -17729,7 +17743,7 @@
           "purpose": "A read-only fs over the staged tree, enough for STR-01 discovery and"
         },
         "buildStaged": {
-          "line": 238,
+          "line": 239,
           "params": [
             "root",
             "options = {}"
@@ -17737,26 +17751,73 @@
           "purpose": "Build the commit's map from the effective index."
         },
         "indexIdentity": {
-          "line": 328,
+          "line": 329,
           "params": [
             "indexFile"
           ]
         },
         "receiptPath": {
-          "line": 336,
+          "line": 337,
           "params": [
             "root"
           ]
         },
         "writeReceipt": {
-          "line": 340,
+          "line": 341,
           "params": [
             "root",
             "value"
           ]
         },
+        "writeJson": {
+          "line": 345,
+          "params": [
+            "file",
+            "value"
+          ]
+        },
+        "mirrorToDisk": {
+          "line": 362,
+          "params": [
+            "root",
+            "mapPath",
+            "candidate",
+            "stagedId",
+            "env"
+          ],
+          "purpose": "Set the tracked map on disk to the commit's map (STR-02c D6), so a normal"
+        },
+        "repairPathspecIndex": {
+          "line": 395,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "A pathspec commit (`git commit -- <paths>`) runs the hook on a temporary"
+        },
+        "trackedReceiptPath": {
+          "line": 421,
+          "params": [
+            "root"
+          ]
+        },
+        "reconcileTrackedMap": {
+          "line": 441,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Bring the tracked map on disk back to the committed view when that loses"
+        },
+        "reconcileTracked": {
+          "line": 453,
+          "params": [
+            "root",
+            "env"
+          ]
+        },
         "publishStaged": {
-          "line": 370,
+          "line": 522,
           "params": [
             "root",
             "options = {}"
@@ -17764,7 +17825,7 @@
           "purpose": "Build the commit's map and publish it into the effective index."
         }
       },
-      "sizeBytes": 15855,
+      "sizeBytes": 22558,
       "extraction": {
         "status": "parsed"
       },
@@ -17775,8 +17836,11 @@
           "createIndexFs": "f35ade5b3634de6c",
           "git": "98c4595cc6e8df9b",
           "listEntries": "eaccf2510f28346a",
+          "mirrorToDisk": "4f2c6246e59def3a",
           "publishStaged": "21673266af206e48",
           "readBlobs": "a00219d92f27c655",
+          "reconcileTrackedMap": "a93482f3ce233a1e",
+          "repairPathspecIndex": "e4ae48fb4b081660",
           "resolveIndex": "b3c2fc5d9205d7ce"
         }
       }
@@ -18078,6 +18142,8 @@
         "revisionOf",
         "contentView",
         "checkView",
+        "authoredView",
+        "sameAuthoredContent",
         "extractFacts",
         "loadCuration",
         "legacyKeyFor",
@@ -18325,15 +18391,30 @@
           ],
           "purpose": "What `--check` compares: the file/intent/annotation payload plus the"
         },
+        "authoredView": {
+          "line": 921,
+          "params": [
+            "structure"
+          ],
+          "purpose": "What a person wrote into a map (STR-02c D8), so two maps can be compared"
+        },
+        "sameAuthoredContent": {
+          "line": 969,
+          "params": [
+            "a",
+            "b"
+          ],
+          "purpose": "True when two maps carry the same authored content (see authoredView)."
+        },
         "revisionOf": {
-          "line": 917,
+          "line": 982,
           "params": [
             "structure"
           ],
           "purpose": "The map's content revision (STR-02): SHA-256 of the `checkView` payload —"
         },
         "serializeStructure": {
-          "line": 927,
+          "line": 992,
           "params": [
             "candidate",
             "prior",
@@ -18342,7 +18423,7 @@
           "purpose": "Final bytes for a candidate. `generation.revision` is stamped here so it"
         }
       },
-      "sizeBytes": 39202,
+      "sizeBytes": 42461,
       "extraction": {
         "status": "parsed"
       },
@@ -18352,6 +18433,7 @@
           "allocateKeys": "30677be9f7946a06",
           "analyzePrior": "4cf59c7e19b7cd49",
           "assemble": "b72cc9a6c06fce00",
+          "authoredView": "adec3fd8b0f192a5",
           "buildDelta": "3dcde68d968ef0db",
           "buildFull": "4ea6e72a52a2e968",
           "buildIntentIndex": "01073c03e68aab22",
@@ -18367,6 +18449,7 @@
           "mergeEntry": "18c2466e689184fb",
           "resolveProse": "8a818c4061a11e67",
           "revisionOf": "4a2774be47b3bcc0",
+          "sameAuthoredContent": "49ccb2822bd83d1c",
           "serializeStructure": "a498b5ff152ff5c9",
           "setOwn": "64bd67e7413b2806",
           "syncIpcChannels": "11541ff09b39bd62"
@@ -18476,6 +18559,7 @@
         "structure-state",
         "structure-snapshot",
         "structure-read",
+        "structure-commit",
         "activity-log"
       ],
       "functions": {
@@ -18547,13 +18631,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 428,
+          "line": 452,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 433,
+          "line": 457,
           "params": [
             "root",
             "options = {}"
@@ -18561,21 +18645,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 437,
+          "line": 461,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 444,
+          "line": 468,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 464,
+          "line": 488,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18583,13 +18667,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 478,
+          "line": 502,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 489,
+          "line": 513,
           "params": [
             "root",
             "onEvent",
@@ -18598,14 +18682,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 590,
+          "line": 614,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 622,
+          "line": 646,
           "params": [
             "root",
             "options = {}"
@@ -18613,24 +18697,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 764
+          "line": 788
         },
         "writeLine": {
-          "line": 773,
+          "line": 797,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 777,
+          "line": 801,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 799,
+          "line": 823,
           "params": [
             "root",
             "supervised"
@@ -18638,10 +18722,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 841
+          "line": 865
         }
       },
-      "sizeBytes": 29952,
+      "sizeBytes": 31157,
       "extraction": {
         "status": "parsed"
       },
@@ -18665,6 +18749,8 @@
       "file": "scripts/structure-read.js",
       "description": "STRUCTURE read contract — how current is the map, and which map is it?",
       "exports": [
+        "workingViewPath",
+        "resolveReadPath",
         "readDescriptor",
         "generationNotes",
         "readStructure",
@@ -18680,52 +18766,66 @@
       ],
       "functions": {
         "readJson": {
-          "line": 50,
+          "line": 53,
           "params": [
             "file"
           ]
         },
         "isPlainObject": {
-          "line": 58,
+          "line": 61,
           "params": [
             "value"
           ]
         },
         "resolveStructurePath": {
-          "line": 63,
+          "line": 66,
           "params": [
             "root"
           ],
           "purpose": "The owned STRUCTURE.json path (overlay first; root only when recorded)."
         },
+        "workingViewPath": {
+          "line": 78,
+          "params": [
+            "root"
+          ],
+          "purpose": "Frame's live view of the working tree (STR-02c): generated, never tracked."
+        },
+        "resolveReadPath": {
+          "line": 86,
+          "params": [
+            "root"
+          ],
+          "purpose": "The map a reader should use: the working view when Frame has written one,"
+        },
         "lifecyclePath": {
-          "line": 74,
+          "line": 91,
           "params": [
             "root"
           ]
         },
         "artifactSignature": {
-          "line": 79,
+          "line": 96,
           "params": [
             "stat"
           ],
           "purpose": "The comparable identity of a file on disk (what a writer records)."
         },
         "sameSignature": {
-          "line": 83,
+          "line": 100,
           "params": [
             "a",
             "b"
           ]
         },
         "nowMs": {
-          "line": 88,
+          "line": 105,
           "params": [
             "options"
           ]
         },
         "readDescriptor": {
-          "line": 96,
+          "line": 113,
           "params": [
             "root",
             "options = {}"
@@ -18733,7 +18833,7 @@
           "purpose": "Status of the owned map without parsing it."
         },
         "readStructure": {
-          "line": 171,
+          "line": 197,
           "params": [
             "root",
             "options = {}"
@@ -18741,7 +18841,7 @@
           "purpose": "The parsed map plus its status. A map that cannot be parsed is returned as"
         },
         "generationNotes": {
-          "line": 216,
+          "line": 242,
           "params": [
             "root",
             "structure"
@@ -18749,7 +18849,7 @@
           "purpose": "Generation-status notes for a parsed map (STR-01's contract): whether the"
         }
       },
-      "sizeBytes": 9039,
+      "sizeBytes": 10315,
       "extraction": {
         "status": "parsed"
       },
@@ -18760,7 +18860,9 @@
           "generationNotes": "3c8d4d4272992f05",
           "readDescriptor": "8ad3b754162c00c3",
           "readStructure": "fbe6bcce1cf41386",
-          "resolveStructurePath": "e992531cd7f94ef1"
+          "resolveReadPath": "3954b675f37117ac",
+          "resolveStructurePath": "e992531cd7f94ef1",
+          "workingViewPath": "b175d5028e0cd5d5"
         }
       }
     },
@@ -18899,6 +19001,9 @@
       "file": "scripts/structure-state.js",
       "description": "STRUCTURE state — where the map lives, whether it is usable, and how a",
       "exports": [
+        "workingViewPath",
+        "mapTrackedByGit",
+        "mirrorToUntrackedMap",
         "resolveStructurePath",
         "statePaths",
         "validateStructure",
@@ -18921,7 +19026,8 @@
         "path",
         "crypto",
         "fsSafe",
-        "src/main/fsSafe"
+        "src/main/fsSafe",
+        "child_process"
       ],
       "functions": {
         "loadFsSafe": {
@@ -18952,53 +19058,55 @@
           "purpose": "The map this project owns. Mirrors frameStore.resolvePath exactly:"
         },
         "statePaths": {
-          "line": 87,
+          "line": 92,
           "params": [
             "rootDir",
-            "fsImpl = fs"
-          ]
+            "fsImpl = fs",
+            "mapPath = null"
+          ],
+          "purpose": "Paths for one checkout. `mapPath` targets another artifact than the owned"
         },
         "isPlainObject": {
-          "line": 101,
+          "line": 106,
           "params": [
             "value"
           ]
         },
         "validateStructure": {
-          "line": 110,
+          "line": 115,
           "params": [
             "data"
           ],
           "purpose": "Shape check for a parsed map. Returns null when valid, otherwise a short"
         },
         "isUsableMap": {
-          "line": 133,
+          "line": 138,
           "params": [
             "data"
           ],
           "purpose": "A map a failed or partial scan may fall back to: valid, and the result of"
         },
         "digest": {
-          "line": 140,
+          "line": 145,
           "params": [
             "bytes"
           ]
         },
         "readBytes": {
-          "line": 144,
+          "line": 149,
           "params": [
             "fsImpl",
             "file"
           ]
         },
         "parseMap": {
-          "line": 152,
+          "line": 157,
           "params": [
             "bytes"
           ]
         },
         "readBaseline": {
-          "line": 170,
+          "line": 175,
           "params": [
             "mapPath",
             "fsImpl = fs"
@@ -19006,20 +19114,20 @@
           "purpose": "The baseline a mutating run builds on."
         },
         "defaultIsAlive": {
-          "line": 195,
+          "line": 200,
           "params": [
             "pid"
           ]
         },
         "readJson": {
-          "line": 205,
+          "line": 210,
           "params": [
             "fsImpl",
             "file"
           ]
         },
         "ownerIsGone": {
-          "line": 214,
+          "line": 219,
           "params": [
             "owner",
             "isAlive"
@@ -19027,7 +19135,7 @@
           "purpose": "True only when the owner is on this host and its process is gone."
         },
         "acquireLock": {
-          "line": 226,
+          "line": 231,
           "params": [
             "paths",
             "options = {}"
@@ -19035,7 +19143,7 @@
           "purpose": "Take the exclusive writer lock. Returns `{ ok: true, token }` or"
         },
         "releaseLock": {
-          "line": 280,
+          "line": 285,
           "params": [
             "paths",
             "token",
@@ -19044,7 +19152,7 @@
           "purpose": "Release the lock only if `token` still owns it."
         },
         "writerActive": {
-          "line": 292,
+          "line": 297,
           "params": [
             "paths",
             "options = {}"
@@ -19052,14 +19160,14 @@
           "purpose": "Is a live writer holding the lock right now? (Read-only; for --check.)"
         },
         "readAttempt": {
-          "line": 301,
+          "line": 306,
           "params": [
             "paths",
             "fsImpl = fs"
           ]
         },
         "writeAttempt": {
-          "line": 306,
+          "line": 311,
           "params": [
             "paths",
             "record",
@@ -19067,7 +19175,7 @@
           ]
         },
         "writeAtomicWith": {
-          "line": 313,
+          "line": 318,
           "params": [
             "fsImpl",
             "filePath",
@@ -19076,14 +19184,14 @@
           "purpose": "fsSafe's algorithm over an injected fs (tests inject write failures)."
         },
         "currentDigest": {
-          "line": 331,
+          "line": 336,
           "params": [
             "paths",
             "fsImpl"
           ]
         },
         "classifyOrphan": {
-          "line": 342,
+          "line": 347,
           "params": [
             "record",
             "paths",
@@ -19093,7 +19201,7 @@
           "purpose": "Classify a `running` record whose process is gone. The artifact digest"
         },
         "preserveBytes": {
-          "line": 376,
+          "line": 381,
           "params": [
             "paths",
             "bytes",
@@ -19102,33 +19210,33 @@
           "purpose": "Archive exact bytes at `recovery/<sha256>.json`. Identical content reuses"
         },
         "boundedDiagnostics": {
-          "line": 401,
+          "line": 406,
           "params": [
             "diagnostics"
           ]
         },
         "relative": {
-          "line": 413,
+          "line": 418,
           "params": [
             "paths",
             "file"
           ]
         },
         "runAttempt": {
-          "line": 441,
+          "line": 447,
           "params": [
             "options"
           ],
           "purpose": "Run one mutating attempt end to end."
         },
         "summarizePrevious": {
-          "line": 677,
+          "line": 683,
           "params": [
             "record"
           ]
         },
         "reconcileAttempt": {
-          "line": 697,
+          "line": 703,
           "params": [
             "rootDir",
             "attemptId",
@@ -19137,15 +19245,39 @@
           "purpose": "Parent-side reconciliation after its child exited without a usable"
         },
         "snapshot": {
-          "line": 725,
+          "line": 731,
           "params": [
             "rootDir",
             "options = {}"
           ],
           "purpose": "Read-only view for `--check`: no lock, no writes. `stable()` re-reads the"
+        },
+        "workingViewPath": {
+          "line": 751,
+          "params": [
+            "rootDir"
+          ],
+          "purpose": "Frame's live view of the working tree: generated, never tracked."
+        },
+        "mapTrackedByGit": {
+          "line": 760,
+          "params": [
+            "rootDir",
+            "fsImpl = fs"
+          ],
+          "purpose": "Is the owned map path in Git's index? No Git, no repository or an"
+        },
+        "mirrorToUntrackedMap": {
+          "line": 775,
+          "params": [
+            "rootDir",
+            "bytes",
+            "options = {}"
+          ],
+          "purpose": "Keep an untracked map file equal to the working view (STR-02c D5). Never"
         }
       },
-      "sizeBytes": 28312,
+      "sizeBytes": 31030,
       "extraction": {
         "status": "parsed"
       },
@@ -19156,6 +19288,8 @@
           "classifyOrphan": "2a028dde13d829f7",
           "isUsableMap": "68ea61e8355d4f5d",
           "loadFsSafe": "9b708842aa78a527",
+          "mapTrackedByGit": "a6350797b141f566",
+          "mirrorToUntrackedMap": "fa02f0e156d4023a",
           "ownerIsGone": "a23422b64bc0b73f",
           "preserveBytes": "29912968f1fb7836",
           "readBaseline": "1f92e5823934cbc9",
@@ -19164,7 +19298,9 @@
           "resolveStructurePath": "739369cd091b0f3f",
           "runAttempt": "506776eacaa61bb9",
           "snapshot": "9a3fabc60d7ee11d",
+          "statePaths": "9f80a8554aa79562",
           "validateStructure": "169fee911efa99e6",
+          "workingViewPath": "f23c49fc6bdeb5fb",
           "writeAtomicWith": "a0ca9379073c9865",
           "writerActive": "a56c00de348cb409"
         }
@@ -19306,7 +19442,6 @@
       "depends": [
         "fs",
         "path",
-        "child_process",
         "structure-discovery",
         "structure-generation",
         "structure-state",
@@ -19315,116 +19450,133 @@
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 44,
+          "line": 43,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "parseArgs": {
-          "line": 61,
+          "line": 60,
           "params": [
             "argv"
           ]
         },
         "say": {
-          "line": 87,
+          "line": 86,
           "params": [
             "line"
           ],
           "purpose": "Human text: stdout normally, stderr when stdout carries the envelope."
         },
         "warn": {
-          "line": 91,
+          "line": 90,
           "params": [
             "line"
           ]
         },
         "repairCommand": {
-          "line": 95
+          "line": 94
         },
         "printDiagnostics": {
-          "line": 100,
+          "line": 99,
           "params": [
             "diagnostics"
           ]
         },
         "emit": {
-          "line": 109,
+          "line": 108,
           "params": [
             "envelope"
           ]
         },
         "projectBlock": {
-          "line": 115
-        },
-        "getChangedFiles": {
-          "line": 125,
-          "purpose": "Staged and unstaged changes, exactly the sources the hook always used."
+          "line": 114
         },
         "toRootRelative": {
-          "line": 135,
+          "line": 124,
           "params": [
             "files"
           ],
           "purpose": "Explicit file arguments, relative to the project root."
         },
         "noteRun": {
-          "line": 162,
+          "line": 151,
           "params": [
             "startedAt",
             "changes"
           ]
         },
         "exitCodeFor": {
-          "line": 182,
+          "line": 171,
           "params": [
             "result"
           ]
         },
+        "trackedPrior": {
+          "line": 181,
+          "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
+        },
+        "mirrorWorkingView": {
+          "line": 187,
+          "params": [
+            "result",
+            "discardsAuthored"
+          ],
+          "purpose": "After a working-view publish, keep an untracked map file equal to it."
+        },
         "builtFrom": {
-          "line": 188,
+          "line": 204,
           "params": [
             "structure",
             "report",
-            "prior"
-          ]
+            "prior",
+            "reference = prior"
+          ],
+          "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 199
+          "line": 222,
+          "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 217,
+          "line": 246,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 245,
+          "line": 287,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 276
+          "line": 318
         },
         "runStaged": {
-          "line": 317,
-          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot and"
+          "line": 364,
+          "params": [
+            "command = 'staged'"
+          ],
+          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot,"
         },
         "main": {
-          "line": 336
+          "line": 383
         }
       },
-      "sizeBytes": 17095,
+      "sizeBytes": 19119,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
-          "getChangedFiles": "0d5e846bb25dd0ff",
+          "builtFrom": "0f3b5f39b1a05377",
+          "mirrorWorkingView": "2b24665961d385c6",
           "resolveProjectRoot": "bdaf2016db7ccaef",
-          "runStaged": "56af04bf4ae0ed57",
+          "runFull": "018e3a0230855dd1",
+          "runStaged": "5d25180306f61337",
           "say": "fe3bfc9b1c053140",
-          "toRootRelative": "a260ebe24f149a83"
+          "toRootRelative": "a260ebe24f149a83",
+          "trackedPrior": "2f437ace033ca5c1"
         }
       }
     },
@@ -19998,14 +20150,14 @@
           ]
         },
         "getReferenceTemplate": {
-          "line": 453,
+          "line": 455,
           "params": [
             "projectName"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 696,
+          "line": 708,
           "params": [
             "projectName",
             "project"
@@ -20013,21 +20165,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 724,
+          "line": 736,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 744,
+          "line": 756,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 790,
+          "line": 802,
           "params": [
             "projectName",
             "project"
@@ -20035,24 +20187,24 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 873,
+          "line": 885,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 916,
+          "line": 928,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 931
+          "line": 943
         },
         "getGenericWrapperTemplate": {
-          "line": 1084,
+          "line": 1096,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -20060,38 +20212,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1130
+          "line": 1142
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1166,
+          "line": 1179,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1194,
+          "line": 1208,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1213,
+          "line": 1227,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1225,
+          "line": 1239,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1245
+          "line": 1259
         },
         "getOrchBinScripts": {
-          "line": 1263,
+          "line": 1277,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 53610,
+      "sizeBytes": 54568,
       "extraction": {
         "status": "parsed"
       },
@@ -21995,7 +22147,7 @@
           "line": 690
         }
       },
-      "sizeBytes": 36199,
+      "sizeBytes": 36584,
       "extraction": {
         "status": "parsed"
       },
@@ -22131,7 +22283,7 @@
           ]
         }
       },
-      "sizeBytes": 10067,
+      "sizeBytes": 10822,
       "extraction": {
         "status": "parsed"
       },
@@ -22697,7 +22849,7 @@
           ]
         }
       },
-      "sizeBytes": 11651,
+      "sizeBytes": 12523,
       "extraction": {
         "status": "parsed"
       },
@@ -22836,7 +22988,7 @@
           "purpose": "Every path under `dir` with size and mtime — proves a run wrote nothing."
         },
         "gitRepo": {
-          "line": 534,
+          "line": 537,
           "params": [
             "files"
           ]
@@ -22848,7 +23000,7 @@
           ]
         }
       },
-      "sizeBytes": 27851,
+      "sizeBytes": 28510,
       "extraction": {
         "status": "parsed"
       },
@@ -22927,6 +23079,12 @@
             "dir"
           ]
         },
+        "frameRepo": {
+          "line": 619,
+          "params": [
+            "prefix"
+          ]
+        },
         "stagedMap": {
           "line": 327,
           "params": [
@@ -22934,7 +23092,7 @@
           ]
         }
       },
-      "sizeBytes": 33941,
+      "sizeBytes": 43964,
       "extraction": {
         "status": "parsed"
       },
@@ -23434,9 +23592,15 @@
           "params": [
             "t"
           ]
+        },
+        "trackedMapRepo": {
+          "line": 297,
+          "params": [
+            "t"
+          ]
         }
       },
-      "sizeBytes": 13464,
+      "sizeBytes": 16049,
       "extraction": {
         "status": "parsed"
       },
@@ -23504,19 +23668,19 @@
       ],
       "functions": {
         "scaffold": {
-          "line": 36,
+          "line": 38,
           "params": [
             "files"
           ]
         },
         "remove": {
-          "line": 44,
+          "line": 46,
           "params": [
             "rel"
           ]
         },
         "full": {
-          "line": 49,
+          "line": 51,
           "params": [
             "prior = null",
             "extra = {}"
@@ -23524,7 +23688,7 @@
           "purpose": "Full build → serialize → parse, like a publish/reload cycle."
         },
         "delta": {
-          "line": 56,
+          "line": 58,
           "params": [
             "prior",
             "changed",
@@ -23538,7 +23702,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 28774,
+      "sizeBytes": 31026,
       "extraction": {
         "status": "parsed"
       },
@@ -23629,9 +23793,15 @@
           "params": [
             "files = { 'src/a.js'"
           ]
+        },
+        "trackedRepo": {
+          "line": 790,
+          "params": [
+            "files"
+          ]
         }
       },
-      "sizeBytes": 33299,
+      "sizeBytes": 37257,
       "extraction": {
         "status": "parsed"
       },
@@ -23687,13 +23857,13 @@
       ],
       "functions": {
         "writeMap": {
-          "line": 31,
+          "line": 33,
           "params": [
             "content = MAP"
           ]
         },
         "writeReceipt": {
-          "line": 36,
+          "line": 38,
           "params": [
             "{ receipt = {}",
             "epoch = { requested",
@@ -23703,7 +23873,7 @@
           "purpose": "A receipt matching the map currently on disk, with optional overrides."
         }
       },
-      "sizeBytes": 8866,
+      "sizeBytes": 9860,
       "extraction": {
         "status": "parsed"
       },
@@ -23806,7 +23976,7 @@
           ]
         }
       },
-      "sizeBytes": 21223,
+      "sizeBytes": 22191,
       "extraction": {
         "status": "parsed"
       },
@@ -25789,6 +25959,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2d78c4b2a7828f56eb5f520892746fa63a44aae3011b22e07c13087d00e12021"
+    "revision": "859fa6c387a5b70589dad88c312990b84f705db6989cb690fb37138df146c433"
   }
 }

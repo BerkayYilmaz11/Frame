@@ -79,7 +79,8 @@ function git(cmd) {
 
 function readJSON(name) {
   try {
-    const file = name === 'STRUCTURE.json' ? structureRead.resolveStructurePath(ROOT_DIR) : resolveMetaPath(name).path;
+    // STR-02c: STRUCTURE findings describe the live working-tree view when there is one.
+    const file = name === 'STRUCTURE.json' ? structureRead.resolveReadPath(ROOT_DIR) : resolveMetaPath(name).path;
     return JSON.parse(fs.readFileSync(file, 'utf-8'));
   } catch (e) {
     return null;
@@ -177,13 +178,11 @@ function checkStructureFreshness() {
 }
 
 /**
- * 2d. Commit integration (STR-02b) — a pre-commit hook that still runs the
- * old Frame snippet (`--changed`, then `git add` of the working map) puts
- * untracked and unstaged content into commits; and a last `--staged` run
- * that did not stage the map means that commit carried an old one.
+ * 2d. Commit integration (STR-02b) — a last `--staged` run that did not
+ * stage the map means that commit carried an old one. (Older snippets that
+ * run `--changed` and `git add` the map are fine since STR-02c: `--changed`
+ * stages and mirrors the index-built map.)
  */
-const OLD_SNIPPET = /frame:structure[\s\S]*?--changed[\s\S]*?git add[\s\S]*?frame:structure/;
-
 function readText(file) {
   try {
     return fs.readFileSync(file, 'utf-8');
@@ -193,21 +192,6 @@ function readText(file) {
 }
 
 function checkCommitIntegration() {
-  const hooksPath = git('git rev-parse --git-path hooks');
-  const candidates = [
-    hooksPath && path.resolve(ROOT_DIR, hooksPath, 'pre-commit'),
-    path.join(ROOT_DIR, '.husky', 'pre-commit')
-  ].filter(Boolean);
-  for (const file of [...new Set(candidates)]) {
-    const text = readText(file);
-    if (text && OLD_SNIPPET.test(text)) {
-      warn('structure-commit', `${path.relative(ROOT_DIR, file).split(path.sep).join('/')} still stages the working-tree STRUCTURE.json (untracked files included) — replace its Frame block with the current snippet (update-structure.js --staged)`);
-    }
-  }
-  const lefthook = readText(path.join(ROOT_DIR, 'lefthook.yml')) || readText(path.join(ROOT_DIR, 'lefthook.yaml'));
-  if (lefthook && /update-structure\.js --changed/.test(lefthook)) {
-    warn('structure-commit', 'lefthook still runs update-structure.js --changed — use --staged and drop the git add of the map');
-  }
   const receipt = readText(path.join(ROOT_DIR, '.frame', 'runtime', 'structure', 'commit.json'));
   let last = null;
   try {
@@ -217,6 +201,29 @@ function checkCommitIntegration() {
   }
   if (last && ['unavailable', 'aborted', 'failed'].includes(last.status)) {
     warn('structure-commit', `the last commit's STRUCTURE.json was not staged (${last.status}${last.reason ? `: ${last.reason}` : ''}) — that commit kept the previous map`);
+  }
+
+  // STR-02c D8: the worker left the tracked map alone because it differs
+  // from the staged one in more than generated content. Reported while the
+  // file is still in the state the worker saw.
+  let tracked = null;
+  try {
+    tracked = JSON.parse(readText(path.join(ROOT_DIR, '.frame', 'runtime', 'structure', 'tracked.json')) || 'null');
+  } catch (e) {
+    tracked = null;
+  }
+  if (tracked && tracked.status === 'kept' && tracked.diskDigest) {
+    let current = null;
+    try {
+      current = require('crypto').createHash('sha256').update(fs.readFileSync(structureRead.resolveStructurePath(ROOT_DIR))).digest('hex');
+    } catch (e) {
+      current = null;
+    }
+    if (current === tracked.diskDigest) {
+      warn('structure-commit', tracked.reason === 'hand-edits'
+        ? 'STRUCTURE.json has unstaged hand edits — commits carry them only once you `git add` the file'
+        : `STRUCTURE.json differs from the staged map and was left alone (${tracked.reason})`);
+    }
   }
 }
 

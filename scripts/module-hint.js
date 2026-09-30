@@ -348,7 +348,8 @@ function searchMode(input) {
   // Changes are being applied: an answer from the old map could point at
   // files that just moved. Stay quiet until the worker catches up.
   if (structureRead.readDescriptor(root).freshness === 'dirty') return quiet(root, 'map-dirty');
-  const structure = readJson(structureRead.resolveStructurePath(root));
+  // STR-02c: the live working-tree view first, the tracked map otherwise.
+  const structure = readJson(structureRead.resolveReadPath(root));
   if (!structure || !structure.intentIndex) return quiet(root, 'no-index');
 
   let hit = null;
