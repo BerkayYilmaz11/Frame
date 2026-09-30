@@ -9930,13 +9930,13 @@
       "title": "Add `CLOUD_JOIN_WAITLIST` to `src/shared/ipcChannels.js` and a `joinWaitlist(rawEmail)` in `src/main/cloud/cloudSession.js` that refuses a failed normalization as `invalid`, calls the core, and on success stores `cloudWaitlistEmail`, sets `waitlistEmail` and publishes, registered in `setupIPC` to return `{ ok, reason }`",
       "description": "",
       "source": "spec:frame-cloud-early-access:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:03:12.659Z",
+      "completedAt": "2026-09-30T09:03:12.659Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T04",

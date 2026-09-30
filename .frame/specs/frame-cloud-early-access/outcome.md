@@ -16,3 +16,11 @@ _Captured: 2026-09-30 · 1 file change(s)_
 
 ---
 
+## T03 — Join the waitlist from main
+
+Added `CLOUD_JOIN_WAITLIST` to `src/shared/ipcChannels.js` and `joinWaitlist(rawEmail)` to `src/main/cloud/cloudSession.js`. It normalizes the address (`invalid` on failure), answers `unavailable` with no server URL, calls the core, and on success stores `cloudWaitlistEmail`, sets `waitlistEmail` and publishes. The handler is registered in `setupIPC` and the function exported. No deviation from plan.md.
+
+_Captured: 2026-09-30 · 2 file change(s)_
+
+---
+

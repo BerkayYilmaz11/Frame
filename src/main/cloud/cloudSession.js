@@ -30,6 +30,8 @@ const {
   registerDevice,
   signOutDevice,
   fetchInviteMode,
+  normalizeWaitlistEmail,
+  joinWaitlist: joinWaitlistCall,
 } = require('./deviceFlow');
 
 // No FrameCloud is deployed yet: packaged builds resolve to nothing and the
@@ -377,6 +379,25 @@ function readInviteMode() {
 }
 
 /**
+ * Join the waitlist with the address the renderer typed. Main normalizes it
+ * (the renderer is not trusted with the check); on success the address is
+ * remembered on this machine, so the window shows "You're on the list" from
+ * then on. → `{ ok: true }` or `{ ok: false, reason }`.
+ */
+async function joinWaitlist(rawEmail) {
+  const email = normalizeWaitlistEmail(rawEmail);
+  if (!email) return { ok: false, reason: 'invalid' };
+  const api = state.serverUrl;
+  if (!api) return { ok: false, reason: 'unavailable' };
+  const result = await joinWaitlistCall({ api, email, fetchJson });
+  if (!result.ok) return result;
+  userSettings.set(WAITLIST_EMAIL_KEY, email);
+  waitlistEmail = email;
+  publish();
+  return { ok: true };
+}
+
+/**
  * One silent device.me. A dead token signs out quietly; an unreachable server
  * keeps the last data. Signed out, it reads the invite mode instead.
  */
@@ -517,6 +538,7 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_SIGN_OUT, () => signOut());
   ipcMain.handle(IPC.CLOUD_GET_STATE, () => getState());
   ipcMain.handle(IPC.CLOUD_REFRESH, () => refresh());
+  ipcMain.handle(IPC.CLOUD_JOIN_WAITLIST, (event, email) => joinWaitlist(email));
 }
 
 module.exports = {
@@ -528,6 +550,7 @@ module.exports = {
   refresh,
   signOut,
   getState,
+  joinWaitlist,
   getPublicState,
   toPublicState,
   getAuth,
