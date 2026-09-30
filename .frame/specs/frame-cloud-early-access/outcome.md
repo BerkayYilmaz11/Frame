@@ -32,3 +32,11 @@ _Captured: 2026-09-30 · 2 file change(s)_
 
 ---
 
+## T05 — The signed-out pane
+
+Wrapped today's signed-out content in `#cloud-classic`, with the button relabelled "Continue with GitHub". Added the `#cloud-early` block (form, joined card, "Already invited? Continue with GitHub") to `index.html`, and its styles to `cloud-hub.css`, reusing `cloud-input-box`. In `src/renderer/cloudHub.js`, `initEarlyAccess()` fills the words from `cloudEarlyAccess.js`, `renderEarlyAccess()` switches between classic, form and joined (with a renderer-local "Use another address" flag), and `onOpen` refreshes in every state except `unavailable`. The form's submit comes in T06.
+
+_Captured: 2026-09-30 · 3 file change(s)_
+
+---
+

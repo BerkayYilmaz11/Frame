@@ -302,7 +302,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 107573,
+      "sizeBytes": 109684,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -11011,98 +11011,110 @@
         "shared/ipcChannels",
         "settingsOverlay",
         "cloudWelcome",
-        "cloudNoWorkspace"
+        "cloudNoWorkspace",
+        "cloudEarlyAccess"
       ],
       "functions": {
         "init": {
-          "line": 57,
+          "line": 60,
           "params": [
             "opts = {}"
           ],
           "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
         },
         "onOpen": {
-          "line": 98,
-          "purpose": "Opening re-reads both states; a signed-in session asks the server once"
+          "line": 102,
+          "purpose": "Opening re-reads both states and asks the server once: device.me when"
+        },
+        "initEarlyAccess": {
+          "line": 116,
+          "purpose": "Fill the early-access pane's static words once and wire its controls."
+        },
+        "renderEarlyAccess": {
+          "line": 139,
+          "params": [
+            "s"
+          ],
+          "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 109
+          "line": 153
         },
         "pullProjects": {
-          "line": 122
+          "line": 166
         },
         "refreshProjects": {
-          "line": 136,
+          "line": 180,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 152,
+          "line": 196,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 184,
+          "line": 228,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 197,
+          "line": 241,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 230
+          "line": 275
         },
         "renderHeader": {
-          "line": 240,
+          "line": 285,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 254,
+          "line": 299,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 288,
+          "line": 333,
           "params": [
             "state"
           ]
         },
         "renderNoWorkspace": {
-          "line": 315,
+          "line": 360,
           "params": [
             "state"
           ],
           "purpose": "Signed in without a workspace: the tab bar, both tabs and the devices"
         },
         "showDevicesPrompt": {
-          "line": 367,
+          "line": 412,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 394
+          "line": 439
         },
         "setTab": {
-          "line": 399,
+          "line": 444,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 429,
+          "line": 474,
           "params": [
             "{ tab",
             "folderPath",
@@ -11111,42 +11123,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 437,
+          "line": 482,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 444,
+          "line": 489,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 450,
+          "line": 495,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 456,
+          "line": 501,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 462,
+          "line": 507,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 466,
+          "line": 511,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 475,
+          "line": 520,
           "params": [
             "date"
           ]
@@ -11159,7 +11171,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 15859,
+      "sizeBytes": 20396,
       "extraction": {
         "status": "parsed"
       },
@@ -11167,11 +11179,14 @@
         "description": "e430ebf4df6d0b4e",
         "purposes": {
           "init": "9a0c0e6482f0308d",
+          "initEarlyAccess": "467835ef44b64a7e",
           "isWebUrl": "9967ae39bf4f9ea8",
-          "onOpen": "7fc7181853ffd5ee",
+          "onOpen": "978035945ef6025f",
           "open": "d1c1050fa815a5e7",
           "refreshProjects": "00c2f19d6ac01af0",
           "renderAvatar": "4d0ff2874db3c840",
+          "renderEarlyAccess": "5cb65d4f1270d32d",
+          "renderNoWorkspace": "c016122ddabc0788",
           "showDevicesPrompt": "2bc4cf5ae43e0cb3",
           "signIn": "47f2303caa9d739d",
           "signOut": "65a74c9baba38e0d"
@@ -19151,7 +19166,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 20958,
+      "sizeBytes": 22379,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -31400,6 +31415,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "9da63fc932e4b4c7dd6eb38d1d4468daaa71192b2cfff604a0c6e983319aeb84"
+    "revision": "8de453276fe105836f2407595c631db1d1b98398dbc709183697bb64dc02775f"
   }
 }

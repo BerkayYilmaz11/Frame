@@ -18,6 +18,7 @@ const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
 const cloudWelcome = require('./cloudWelcome');
 const noWorkspaceCopy = require('./cloudNoWorkspace');
+const earlyAccess = require('./cloudEarlyAccess');
 
 const SIGNED_IN_NOTE_MS = 4000;
 const TABS = ['projects', 'device'];
@@ -44,6 +45,8 @@ let sessionState = { state: 'unavailable' };
 let projectsState = null;
 let activeTab = 'projects';
 let signedInNoteTimer = null;
+// "Use another address": show the waitlist form again over the joined card.
+let showWaitlistForm = false;
 // Guards the landing: Frame Cloud never opens over onboarding or the tour.
 let isBlocked = () => false;
 let tabs = null;
@@ -64,6 +67,7 @@ function init(opts = {}) {
   }
 
   cloudWelcome.render(document.getElementById('cloud-pitch'));
+  initEarlyAccess();
 
   rootEl.querySelectorAll('[data-cloud-action]').forEach((btn) => {
     btn.addEventListener('click', () => onAction(btn.dataset.cloudAction, btn));
@@ -93,17 +97,57 @@ function init(opts = {}) {
   pullProjects();
 }
 
-// Opening re-reads both states; a signed-in session asks the server once
-// (device.me) and re-reads the project list.
+// Opening re-reads both states and asks the server once: device.me when
+// signed in (then the project list), invite.mode when signed out.
 function onOpen() {
   // The after-sign-in notice belongs to that moment, not to later visits.
   hideDevicesPrompt();
   pullSession().then((state) => {
-    if (!state || state.state !== 'signedIn') return;
+    if (!state || state.state === 'unavailable') return;
     ipcRenderer.invoke(IPC.CLOUD_REFRESH).then(renderSession).catch(() => {});
-    refreshProjects();
+    if (state.state === 'signedIn') refreshProjects();
   });
   pullProjects();
+}
+
+// ─── Early access ─────────────────────────────────────────
+
+/** Fill the early-access pane's static words once and wire its controls. */
+function initEarlyAccess() {
+  const { COPY } = earlyAccess;
+  setText('cloud-early-title', COPY.title);
+  setText('cloud-early-lede', COPY.lede);
+  setText('cloud-waitlist-label', COPY.emailLabel);
+  setText('cloud-waitlist-join', COPY.join);
+  setText('cloud-early-joined-title', COPY.joinedTitle);
+  setText('cloud-waitlist-another', COPY.useAnother);
+  setText('cloud-early-already', COPY.alreadyInvited);
+  setText('cloud-early-signin', COPY.signIn);
+  const input = document.getElementById('cloud-waitlist-email');
+  if (input) input.placeholder = COPY.emailPlaceholder;
+  const another = document.getElementById('cloud-waitlist-another');
+  if (another) {
+    another.addEventListener('click', () => {
+      showWaitlistForm = true;
+      renderEarlyAccess(sessionState);
+      if (input) input.focus();
+    });
+  }
+}
+
+/** Signed out: today's pane, the waitlist form, or the joined card. */
+function renderEarlyAccess(s) {
+  let mode = earlyAccess.paneMode(s);
+  if (mode === 'joined' && showWaitlistForm) mode = 'form';
+  const show = (id, visible) => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = !visible;
+  };
+  show('cloud-classic', mode === 'classic');
+  show('cloud-early', mode !== 'classic');
+  show('cloud-early-form', mode === 'form');
+  show('cloud-early-joined', mode === 'joined');
+  if (mode === 'joined') setText('cloud-waitlist-joined-body', earlyAccess.joinedBody(s.waitlistEmail));
 }
 
 function pullSession() {
@@ -209,6 +253,7 @@ function renderSession(state) {
     setNote('signedInUnreachable', s.state === 'signedIn' && s.serverUnreachable);
     if (s.state !== 'signedIn') setNote('justSignedIn', false);
 
+    if (s.state === 'signedOut') renderEarlyAccess(s);
     if (s.state === 'awaitingApproval') {
       setText('cloud-code', s.userCode || '');
       setText('cloud-url', s.verificationUrl || '');

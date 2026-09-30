@@ -9956,13 +9956,13 @@
       "title": "Build the early-access signed-out pane: in `index.html` wrap today's signed-out content in `#cloud-classic` (its button relabelled \"Continue with GitHub\", D16) and add the `#cloud-early` block (form with `#cloud-waitlist-email`, joined card, \"Already invited? Continue with GitHub\" keeping `data-cloud-action=\"signIn\"`); in `src/renderer/cloudHub.js` toggle the three modes from `paneMode`, fill the joined body, handle \"Use another address\" with a renderer-local flag, and make `onOpen` invoke `CLOUD_REFRESH` in every state; style the form and joined card in `src/renderer/styles/components/cloud-hub.css`",
       "description": "",
       "source": "spec:frame-cloud-early-access:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:42:30.819Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:06:20.145Z",
+      "completedAt": "2026-09-30T09:06:20.145Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T06",
