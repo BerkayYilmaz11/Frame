@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-28",
+  "lastUpdated": "2026-09-30",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -3346,7 +3346,11 @@
         "signOutDevice",
         "runSignIn",
         "refreshSession",
-        "callTrpc"
+        "callTrpc",
+        "WAITLIST_EMAIL_MAX",
+        "fetchInviteMode",
+        "normalizeWaitlistEmail",
+        "joinWaitlist"
       ],
       "depends": [],
       "functions": {
@@ -3482,8 +3486,40 @@
             "signal }"
           ]
         },
+        "fetchInviteMode": {
+          "line": 235,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "Whether the server only lets invited people sign up (FrameCloud"
+        },
+        "normalizeWaitlistEmail": {
+          "line": 251,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A waitlist address as the server stores it — trimmed and lowercased as a"
+        },
+        "joinReason": {
+          "line": 262,
+          "params": [
+            "err"
+          ]
+        },
+        "joinWaitlist": {
+          "line": 277,
+          "params": [
+            "{ api",
+            "email",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,"
+        },
         "pollForToken": {
-          "line": 231,
+          "line": 297,
           "params": [
             "{ api",
             "code",
@@ -3495,13 +3531,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 284,
+          "line": 350,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 302,
+          "line": 368,
           "params": [
             "{ api",
             "fetchJson",
@@ -3515,19 +3551,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 360,
+          "line": 426,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 372,
+          "line": 438,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 386,
+          "line": 452,
           "params": [
             "{ api",
             "token",
@@ -3538,7 +3574,7 @@
           "purpose": "`device.me`, re-registering once when the server has forgotten this device."
         }
       },
-      "sizeBytes": 14014,
+      "sizeBytes": 16725,
       "extraction": {
         "status": "parsed"
       },
@@ -3549,9 +3585,12 @@
           "classifyTokenResponse": "2f95a6e8fdf2bb48",
           "classifyTrpcError": "34a7196859403c98",
           "deviceName": "35a3ebe056a4adea",
+          "fetchInviteMode": "ef0dda334a7ccabb",
           "formatDeviceInfo": "f82ed8754c1a28c5",
           "formatUserCode": "4c9e76b2335ffad4",
+          "joinWaitlist": "a142d39388236703",
           "looksLikeAddress": "add9a94f459e2d88",
+          "normalizeWaitlistEmail": "ece7e2e59dab85a3",
           "parseCodeResponse": "4626cbf9184c6f5c",
           "pollForToken": "b146490edbbeb889",
           "refreshSession": "1d622fffd281eb11",
@@ -26178,7 +26217,7 @@
           ]
         }
       },
-      "sizeBytes": 25999,
+      "sizeBytes": 30728,
       "extraction": {
         "status": "parsed"
       },
@@ -31199,10 +31238,12 @@
   },
   "generation": {
     "schema": 1,
-    "mode": "full",
+    "mode": "delta",
     "inventory": {
-      "coverage": "complete",
-      "reasons": []
+      "coverage": "unknown",
+      "reasons": [
+        "delta"
+      ]
     },
     "extraction": {
       "coverage": "complete",
@@ -31254,26 +31295,7 @@
       }
     },
     "counts": {
-      "visitedEntries": 503,
-      "traversedDirectories": 81,
-      "eligibleFiles": 407,
-      "unreadable": 0,
-      "binaryFiles": 5,
-      "symlinks": 0,
-      "specialFiles": 0,
-      "excludedFiles": {
-        "hard": 0,
-        "gitignore": 3,
-        "config": 0
-      },
-      "prunedDirectories": {
-        "hard": 4,
-        "default": 0,
-        "gitignore": 3,
-        "config": 0,
-        "depth": 0
-      },
-      "indexedFiles": 407,
+      "indexedFiles": 408,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -31281,6 +31303,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "259f2b1c804d3553f4563b987caa350cfab88bc843bef0817f6e2883cf5e2bbe"
+    "revision": "25c421615347169ddb5bf18ff267b78c97345b5ae1151fbecb0d502ecb2f067a"
   }
 }

@@ -9904,13 +9904,13 @@
       "title": "Add `fetchInviteMode` (tokenless GET `invite.mode` → `true`/`false`/`null`, `null` for a malformed answer or NOT_FOUND), `normalizeWaitlistEmail` (trim, lowercase as a whole, ≤254 characters, one `@`, non-empty local part, dotted domain) and `joinWaitlist` (tokenless POST `waitlist.join` with `{ email, source: 'desktop' }` → `{ ok: true }` or `{ ok: false, reason: invalid | rateLimited | network | unavailable }`, never throws) to `src/main/cloud/deviceFlow.js`, export them, and cover each answer, the missing token and every failure mapping in `test/cloudDeviceFlow.test.js`",
       "description": "",
       "source": "spec:frame-cloud-early-access:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:00:15.778Z",
+      "completedAt": "2026-09-30T09:00:15.778Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T02",

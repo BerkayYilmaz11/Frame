@@ -222,6 +222,72 @@ function signOutDevice({ api, token, fetchJson, signal }) {
   return callTrpc({ api, token, fetchJson, signal, name: 'device.signOut', method: 'POST', input: {} });
 }
 
+// ─── Early access ─────────────────────────────────────────────
+
+// FrameCloud's `waitlist` spec: the longest address it accepts (RFC 5321).
+const WAITLIST_EMAIL_MAX = 254;
+
+/**
+ * Whether the server only lets invited people sign up (FrameCloud
+ * `invite.mode`, public, no token). → true / false, or null when the answer
+ * is malformed or the server predates it (404). Other failures throw.
+ */
+async function fetchInviteMode({ api, fetchJson, signal }) {
+  let data;
+  try {
+    data = await callTrpc({ api, fetchJson, signal, name: 'invite.mode', method: 'GET' });
+  } catch (err) {
+    if (err && err.status === 404) return null;
+    throw err;
+  }
+  return data && typeof data.inviteOnly === 'boolean' ? data.inviteOnly : null;
+}
+
+/**
+ * A waitlist address as the server stores it — trimmed and lowercased as a
+ * whole, like FrameCloud's `normalizeWaitlistEmail` — or null when it cannot
+ * be one: longer than 254 characters, or not `local@domain.tld`.
+ */
+function normalizeWaitlistEmail(raw) {
+  if (typeof raw !== 'string') return null;
+  const email = raw.trim().toLowerCase();
+  if (!email || email.length > WAITLIST_EMAIL_MAX) return null;
+  const at = email.indexOf('@');
+  if (at <= 0 || at !== email.lastIndexOf('@')) return null;
+  const domain = email.slice(at + 1);
+  if (/\s/.test(email) || !/^[^.]+(\.[^.]+)+$/.test(domain)) return null;
+  return email;
+}
+
+function joinReason(err) {
+  const status = err && err.status;
+  if (status === 400) return 'invalid';
+  if (status === 404) return 'unavailable';
+  if (status === 429 || (err && err.kind === 'rate_limited')) return 'rateLimited';
+  return 'network';
+}
+
+/**
+ * Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,
+ * public, no token). The server answers the same for a new and a known
+ * address. → `{ ok: true }` or `{ ok: false, reason: 'invalid' | 'rateLimited'
+ * | 'network' | 'unavailable' }`, the last for a server without the waitlist.
+ * Never throws.
+ */
+async function joinWaitlist({ api, email, fetchJson, signal }) {
+  try {
+    await callTrpc({
+      api, fetchJson, signal,
+      name: 'waitlist.join',
+      method: 'POST',
+      input: { email, source: 'desktop' },
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: joinReason(err) };
+  }
+}
+
 /**
  * Poll `/api/auth/device/token` until the user decides, the code expires or
  * the signal fires. Waits `interval` before every request; `slow_down` adds
@@ -418,4 +484,8 @@ module.exports = {
   runSignIn,
   refreshSession,
   callTrpc,
+  WAITLIST_EMAIL_MAX,
+  fetchInviteMode,
+  normalizeWaitlistEmail,
+  joinWaitlist,
 };
