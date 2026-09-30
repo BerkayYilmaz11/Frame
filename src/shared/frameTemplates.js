@@ -581,8 +581,7 @@ No problem, continue. The user can also say what they consider important themsel
 ### How It Is Generated
 - \`update-structure.js --full\` (shipped in \`.frame/bin/\`; run it with
   \`node\` from the project root) rebuilds the whole map — it is also the
-  repair command. The pre-commit hook runs \`--changed\` and only touches the
-  files in the change.
+  repair command. The pre-commit hook runs \`--staged\` (see below).
 - Every project-owned text file gets an entry: source, configuration,
   documentation, and languages Frame cannot parse (those carry path and size
   with \`extraction.status: "unsupported"\`). Layout does not matter — root
@@ -625,8 +624,14 @@ No problem, continue. The user can also say what they consider important themsel
   \`stale\` (not verified recently, or the last scan was incomplete),
   \`unknown\` (no record — a fresh clone, or Frame has not run here). The
   lookup and freshness scripts report it; it is never guessed from dates.
-- The map committed with your changes still describes the working tree at
-  commit time, not only what you staged.
+- Commits get their own map. The pre-commit hook builds it from what is
+  staged — never from unstaged edits or untracked files — and stages only
+  that; the working copy stays the agents' view. While the two differ,
+  \`git status\` shows STRUCTURE.json as modified; that is expected.
+  \`git commit --no-verify\` skips the hook and can commit the working copy.
+- With Husky, lefthook or your own hook, call \`update-structure.js
+  --staged\` from it (the script is in \`.frame/bin/\`) and never \`git add\`
+  the map yourself. Frame keeps its own unedited hook up to date.
 
 ### What to Edit
 - Enrich entries in place: \`description\`, function \`purpose\`, fields of
@@ -1124,14 +1129,16 @@ const FRAME_HOOK_MARKER_END = '# <<< frame:structure (managed) <<<';
 
 function getStructureHookSnippet() {
   return `${FRAME_HOOK_MARKER_START}
-# Keep STRUCTURE.json in sync with staged JS changes. Safe to remove if you
-# don't want Frame to manage your STRUCTURE.json file.
+# Stage the commit's STRUCTURE.json, built from what is staged — never from
+# unstaged edits or untracked files. The working copy is left as it is.
+# Never blocks the commit. Safe to remove if you don't want Frame to manage
+# your STRUCTURE.json file.
 if command -v node >/dev/null 2>&1; then
   FRAME_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
   FRAME_PARSER="$FRAME_ROOT/.frame/bin/update-structure.js"
   if [ -n "$FRAME_ROOT" ] && [ ! -f "$FRAME_PARSER" ]; then
     # Linked worktree (or any checkout without its own .frame/bin): borrow the
-    # main worktree's parser, still writing this checkout's STRUCTURE.json.
+    # main worktree's parser, still building this checkout's commit map.
     FRAME_COMMON="$(git rev-parse --git-common-dir 2>/dev/null)"
     case "$FRAME_COMMON" in
       /*) ;;
@@ -1142,14 +1149,7 @@ if command -v node >/dev/null 2>&1; then
     fi
   fi
   if [ -n "$FRAME_ROOT" ] && [ -f "$FRAME_PARSER" ]; then
-    FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_PARSER" --changed || true
-    # .frame/STRUCTURE.json is where the parser writes; the root copy only
-    # exists in a project that has not migrated yet.
-    if [ -f "$FRAME_ROOT/.frame/STRUCTURE.json" ]; then
-      git add "$FRAME_ROOT/.frame/STRUCTURE.json" || true
-    elif [ -f "$FRAME_ROOT/STRUCTURE.json" ]; then
-      git add "$FRAME_ROOT/STRUCTURE.json" || true
-    fi
+    FRAME_PROJECT_ROOT="$FRAME_ROOT" node "$FRAME_PARSER" --staged || true
   fi
 fi
 ${FRAME_HOOK_MARKER_END}
@@ -1159,17 +1159,43 @@ ${FRAME_HOOK_MARKER_END}
 /**
  * Full pre-commit hook file content for the "no existing hook" case.
  * Husky/lefthook/existing hooks are the user's files: Frame writes nothing
- * there, it only hands back the snippet for them to paste.
+ * there, it only hands back the snippet for them to paste. An installed copy
+ * that is still byte-identical to one of Frame's templates is Frame's to
+ * keep current (STR-02b); an edited one is the user's.
  */
 function getStructurePreCommitHookTemplate() {
   return `#!/bin/sh
 # Frame pre-commit hook
-# Auto-installed by Frame on project initialization. You can edit or delete
-# this file freely — Frame will not overwrite it on subsequent inits.
+# Installed by Frame. While this file is unmodified, Frame keeps it up to
+# date; once you edit it, Frame leaves it alone.
 
 ${getStructureHookSnippet()}
 exit 0
 `;
+}
+
+/**
+ * SHA-256 of every earlier `getStructurePreCommitHookTemplate()` output,
+ * recovered from history (d3b098d, fa17c93, a8c1c8c). A hook file equal to
+ * one of them byte for byte was installed by Frame and never edited — the
+ * only kind Frame may replace. Append the old hash whenever the template
+ * changes; never remove one.
+ */
+const PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256 = Object.freeze([
+  'df6b8a6b586a71782e5bbaa8afaf542b49dedf60bdfdff8375cb2d257ee8d8fc',
+  '306349fe4ac44c2f91ce3cdc44adc0f4f19ebeb06717603259a59d5bba528e91',
+  '405e7315a5ba4a9c60dfcc818aa1dfc3884b74492a146151195828f842136502'
+]);
+
+/**
+ * 'current' when `text` is today's template, 'previous' when it is an
+ * unmodified earlier one (safe to replace), null for anything else.
+ */
+function classifyStructureHook(text) {
+  if (typeof text !== 'string') return null;
+  if (text === getStructurePreCommitHookTemplate()) return 'current';
+  const hash = crypto.createHash('sha256').update(text).digest('hex');
+  return PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.includes(hash) ? 'previous' : null;
 }
 
 /**
@@ -1273,5 +1299,7 @@ module.exports = {
   getStructurePreCommitHookTemplate,
   getOrchBinScripts,
   FRAME_HOOK_MARKER_START,
+  PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256,
+  classifyStructureHook,
   FRAME_HOOK_MARKER_END
 };

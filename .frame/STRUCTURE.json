@@ -22,7 +22,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 774,
+      "sizeBytes": 391,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -1787,7 +1787,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1575,
+          "line": 1583,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -1795,7 +1795,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1597,
+          "line": 1605,
           "params": [
             "ipcMain"
           ],
@@ -1827,7 +1827,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 70996,
+      "sizeBytes": 71402,
       "extraction": {
         "status": "parsed"
       },
@@ -5097,6 +5097,7 @@
         "LIFECYCLE_REQUIRES",
         "detectHookSetup",
         "installPreCommitHook",
+        "upgradeStructureHook",
         "runInitialFullScan"
       ],
       "depends": [
@@ -5104,12 +5105,13 @@
         "path",
         "crypto",
         "child_process",
+        "util",
         "shared/frameConstants",
         "shared/frameTemplates"
       ],
       "functions": {
         "stageFile": {
-          "line": 89,
+          "line": 94,
           "params": [
             "fsImpl",
             "src",
@@ -5118,7 +5120,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 122,
+          "line": 127,
           "params": [
             "projectPath",
             "options = {}"
@@ -5126,41 +5128,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 203,
+          "line": 208,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
+        "hookLocation": {
+          "line": 219,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
+        },
         "detectHookSetup": {
-          "line": 217,
+          "line": 253,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
+        "writeHook": {
+          "line": 294,
+          "params": [
+            "location"
+          ]
+        },
         "installPreCommitHook": {
-          "line": 284,
+          "line": 314,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
+        "upgradeStructureHook": {
+          "line": 389,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "On project open: replace an unmodified earlier Frame template with the"
+        },
         "scanTimeoutMs": {
-          "line": 351,
+          "line": 409,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 364,
+          "line": 422,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 376,
+          "line": 434,
           "params": [
             "envelope",
             "code"
@@ -5168,7 +5190,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 435,
+          "line": 493,
           "params": [
             "projectPath",
             "options = {}"
@@ -5176,7 +5198,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 553,
+          "line": 611,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5184,7 +5206,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 24135,
+      "sizeBytes": 26865,
       "extraction": {
         "status": "parsed"
       },
@@ -5193,12 +5215,14 @@
         "purposes": {
           "bootstrapStructure": "723773900dfeea80",
           "detectHookSetup": "7139e135de5fdc39",
+          "hookLocation": "89a1589ed4e6559e",
           "installPreCommitHook": "748f5e3e8d88f1b5",
           "parseEnvelope": "b20189a62e13bc20",
           "runInitialFullScan": "428669e2648a82bd",
           "stageFile": "351d4019ce6a4dad",
           "stageParserScripts": "5834317416f84c7e",
-          "summarizeEnvelope": "4fdc1da7b5ddb106"
+          "summarizeEnvelope": "4fdc1da7b5ddb106",
+          "upgradeStructureHook": "a5bf8c8d0ca5f3c8"
         }
       }
     },
@@ -5996,7 +6020,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3670,
+      "sizeBytes": 3707,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16019,20 +16043,29 @@
         "checkStructureFreshness": {
           "line": 162
         },
+        "readText": {
+          "line": 187,
+          "params": [
+            "file"
+          ]
+        },
+        "checkCommitIntegration": {
+          "line": 195
+        },
         "checkNotesStaleness": {
-          "line": 182,
+          "line": 226,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 200,
+          "line": 244,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 221,
+          "line": 265,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 10408,
+      "sizeBytes": 12377,
       "extraction": {
         "status": "parsed"
       },
@@ -17608,6 +17641,146 @@
         }
       }
     },
+    "scripts/structure-commit": {
+      "file": "scripts/structure-commit.js",
+      "description": "STRUCTURE for a commit — the map built from Git's staged snapshot",
+      "exports": [
+        "publishStaged",
+        "receiptPath",
+        "buildStaged",
+        "createIndexFs",
+        "listEntries",
+        "resolveIndex",
+        "readBlobs",
+        "git",
+        "CommitUnavailable"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto",
+        "child_process",
+        "structure-discovery",
+        "structure-generation",
+        "structure-state",
+        "structure-snapshot"
+      ],
+      "functions": {
+        "sha256": {
+          "line": 44,
+          "params": [
+            "data"
+          ]
+        },
+        "git": {
+          "line": 62,
+          "params": [
+            "root",
+            "args",
+            "options = {}"
+          ],
+          "purpose": "Run Git for this checkout and its effective index. `GIT_INDEX_FILE` from"
+        },
+        "resolveIndex": {
+          "line": 77,
+          "params": [
+            "root",
+            "env = process.env"
+          ],
+          "purpose": "The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's."
+        },
+        "listEntries": {
+          "line": 87,
+          "params": [
+            "root",
+            "env = process.env"
+          ],
+          "purpose": "Staged entries of the effective index. Any unmerged stage makes the"
+        },
+        "readBlobs": {
+          "line": 105,
+          "params": [
+            "root",
+            "ids",
+            "env = process.env"
+          ],
+          "purpose": "Read blobs with one `cat-file --batch` process. Returns Map(id → Buffer)."
+        },
+        "enoent": {
+          "line": 126,
+          "params": [
+            "p"
+          ]
+        },
+        "fakeStat": {
+          "line": 132,
+          "params": [
+            "kind",
+            "size"
+          ]
+        },
+        "createIndexFs": {
+          "line": 149,
+          "params": [
+            "root",
+            "entries",
+            "blobOf"
+          ],
+          "purpose": "A read-only fs over the staged tree, enough for STR-01 discovery and"
+        },
+        "buildStaged": {
+          "line": 238,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Build the commit's map from the effective index."
+        },
+        "indexIdentity": {
+          "line": 328,
+          "params": [
+            "indexFile"
+          ]
+        },
+        "receiptPath": {
+          "line": 336,
+          "params": [
+            "root"
+          ]
+        },
+        "writeReceipt": {
+          "line": 340,
+          "params": [
+            "root",
+            "value"
+          ]
+        },
+        "publishStaged": {
+          "line": 370,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Build the commit's map and publish it into the effective index."
+        }
+      },
+      "sizeBytes": 15855,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "e2d9198bdb4c6a16",
+        "purposes": {
+          "buildStaged": "adaf4c93fc0707d5",
+          "createIndexFs": "f35ade5b3634de6c",
+          "git": "98c4595cc6e8df9b",
+          "listEntries": "eaccf2510f28346a",
+          "publishStaged": "21673266af206e48",
+          "readBlobs": "a00219d92f27c655",
+          "resolveIndex": "b3c2fc5d9205d7ce"
+        }
+      }
+    },
     "scripts/structure-discovery": {
       "file": "scripts/structure-discovery.js",
       "description": "STRUCTURE discovery — which files a project map must contain.",
@@ -18707,7 +18880,7 @@
           "purpose": "A content-keyed extraction cache bound to one observation's manifest."
         }
       },
-      "sizeBytes": 11162,
+      "sizeBytes": 11363,
       "extraction": {
         "status": "parsed"
       },
@@ -19137,76 +19310,77 @@
         "structure-discovery",
         "structure-generation",
         "structure-state",
-        "activity-log"
+        "activity-log",
+        "structure-commit"
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 41,
+          "line": 44,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "parseArgs": {
-          "line": 58,
+          "line": 61,
           "params": [
             "argv"
           ]
         },
         "say": {
-          "line": 83,
+          "line": 87,
           "params": [
             "line"
           ],
           "purpose": "Human text: stdout normally, stderr when stdout carries the envelope."
         },
         "warn": {
-          "line": 87,
+          "line": 91,
           "params": [
             "line"
           ]
         },
         "repairCommand": {
-          "line": 91
+          "line": 95
         },
         "printDiagnostics": {
-          "line": 96,
+          "line": 100,
           "params": [
             "diagnostics"
           ]
         },
         "emit": {
-          "line": 105,
+          "line": 109,
           "params": [
             "envelope"
           ]
         },
         "projectBlock": {
-          "line": 111
+          "line": 115
         },
         "getChangedFiles": {
-          "line": 121,
+          "line": 125,
           "purpose": "Staged and unstaged changes, exactly the sources the hook always used."
         },
         "toRootRelative": {
-          "line": 131,
+          "line": 135,
           "params": [
             "files"
           ],
           "purpose": "Explicit file arguments, relative to the project root."
         },
         "noteRun": {
-          "line": 158,
+          "line": 162,
           "params": [
             "startedAt",
             "changes"
           ]
         },
         "exitCodeFor": {
-          "line": 178,
+          "line": 182,
           "params": [
             "result"
           ]
         },
         "builtFrom": {
-          "line": 184,
+          "line": 188,
           "params": [
             "structure",
             "report",
@@ -19214,29 +19388,33 @@
           ]
         },
         "runFull": {
-          "line": 195
+          "line": 199
         },
         "runDelta": {
-          "line": 213,
+          "line": 217,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 241,
+          "line": 245,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 272
+          "line": 276
+        },
+        "runStaged": {
+          "line": 317,
+          "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot and"
         },
         "main": {
-          "line": 306
+          "line": 336
         }
       },
-      "sizeBytes": 14875,
+      "sizeBytes": 17095,
       "extraction": {
         "status": "parsed"
       },
@@ -19244,6 +19422,7 @@
         "purposes": {
           "getChangedFiles": "0d5e846bb25dd0ff",
           "resolveProjectRoot": "bdaf2016db7ccaef",
+          "runStaged": "56af04bf4ae0ed57",
           "say": "fe3bfc9b1c053140",
           "toRootRelative": "a260ebe24f149a83"
         }
@@ -19776,6 +19955,8 @@
         "getStructurePreCommitHookTemplate",
         "getOrchBinScripts",
         "FRAME_HOOK_MARKER_START",
+        "PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256",
+        "classifyStructureHook",
         "FRAME_HOOK_MARKER_END"
       ],
       "depends": [
@@ -19824,7 +20005,7 @@
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 691,
+          "line": 696,
           "params": [
             "projectName",
             "project"
@@ -19832,21 +20013,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 719,
+          "line": 724,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 739,
+          "line": 744,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 785,
+          "line": 790,
           "params": [
             "projectName",
             "project"
@@ -19854,24 +20035,24 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 868,
+          "line": 873,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 911,
+          "line": 916,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 926
+          "line": 931
         },
         "getGenericWrapperTemplate": {
-          "line": 1079,
+          "line": 1084,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -19879,37 +20060,45 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1125
+          "line": 1130
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1164,
+          "line": 1166,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
+        "classifyStructureHook": {
+          "line": 1194,
+          "params": [
+            "text"
+          ],
+          "purpose": "'current' when `text` is today's template, 'previous' when it is an"
+        },
         "getOrchBusHeader": {
-          "line": 1187,
+          "line": 1213,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1199,
+          "line": 1225,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1219
+          "line": 1245
         },
         "getOrchBinScripts": {
-          "line": 1237,
+          "line": 1263,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 52141,
+      "sizeBytes": 53610,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "17137e9ce2249380",
         "purposes": {
+          "classifyStructureHook": "20c10517568ebff5",
           "formatProjectFacts": "912c7ed02437c0e5",
           "getClaudeRuleTemplate": "f47b075da4e05782",
           "getDateString": "1303f512229000ae",
@@ -21806,7 +21995,7 @@
           "line": 690
         }
       },
-      "sizeBytes": 36200,
+      "sizeBytes": 36199,
       "extraction": {
         "status": "parsed"
       },
@@ -21840,7 +22029,8 @@
         "events",
         "src/main/structureLifecycle",
         "src/main/workspace",
-        "src/shared/ipcChannels"
+        "src/shared/ipcChannels",
+        "src/shared/frameTemplates"
       ],
       "functions": {
         "git": {
@@ -21885,7 +22075,7 @@
           "line": 336
         }
       },
-      "sizeBytes": 19416,
+      "sizeBytes": 21181,
       "extraction": {
         "status": "parsed"
       },
@@ -22609,7 +22799,8 @@
         "path",
         "src/shared/frameTemplates",
         "scripts/structure-state",
-        "src/shared/docsHealth"
+        "src/shared/docsHealth",
+        "crypto"
       ],
       "functions": {
         "runParser": {
@@ -22644,6 +22835,12 @@
           ],
           "purpose": "Every path under `dir` with size and mtime — proves a run wrote nothing."
         },
+        "gitRepo": {
+          "line": 534,
+          "params": [
+            "files"
+          ]
+        },
         "envelopeOf": {
           "line": 299,
           "params": [
@@ -22651,7 +22848,7 @@
           ]
         }
       },
-      "sizeBytes": 23864,
+      "sizeBytes": 27851,
       "extraction": {
         "status": "parsed"
       },
@@ -22710,7 +22907,7 @@
           ]
         },
         "ownershipProject": {
-          "line": 211,
+          "line": 212,
           "params": [
             "{ overlay = false",
             "root = false",
@@ -22718,20 +22915,26 @@
           ]
         },
         "readersSee": {
-          "line": 226,
+          "line": 227,
           "params": [
             "dir"
           ],
           "purpose": "Which copy each reader used: find-module prints files, freshness flags phantoms."
         },
         "lifecycleState": {
-          "line": 454,
+          "line": 455,
+          "params": [
+            "dir"
+          ]
+        },
+        "stagedMap": {
+          "line": 327,
           "params": [
             "dir"
           ]
         }
       },
-      "sizeBytes": 28961,
+      "sizeBytes": 33941,
       "extraction": {
         "status": "parsed"
       },
@@ -23123,7 +23326,8 @@
         "os",
         "path",
         "child_process",
-        "src/main/structureBootstrap"
+        "src/main/structureBootstrap",
+        "src/shared/frameTemplates"
       ],
       "functions": {
         "runBinParser": {
@@ -23159,6 +23363,16 @@
           "line": 282,
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
+        "previousTemplate": {
+          "line": 388,
+          "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
+        },
+        "gitInit": {
+          "line": 402,
+          "params": [
+            "dir"
+          ]
+        },
         "PREVIOUS_GENERATION": {
           "line": 50,
           "params": [
@@ -23167,7 +23381,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 17826,
+      "sizeBytes": 22322,
       "extraction": {
         "status": "parsed"
       },
@@ -23178,9 +23392,56 @@
           "fakeParser": "05bf3f174d1714d8",
           "hangingAfterPublish": "cd656a5e67c0e5e6",
           "installPreviousGeneration": "2140d962e0406e6e",
+          "previousTemplate": "355d0d1b7218b28a",
           "scriptsCopy": "4e1f88e5078fc751",
           "stagePackagedTree": "43181546d97c8ed2"
         }
+      }
+    },
+    "test/structureCommit.test": {
+      "file": "test/structureCommit.test.js",
+      "description": "structure-commit tests (STR-02b): the map a commit carries is built from",
+      "exports": [
+        "f"
+      ],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-commit",
+        "scripts/structure-lifecycle"
+      ],
+      "functions": {
+        "repo": {
+          "line": 18,
+          "params": [
+            "t",
+            "files = {}"
+          ]
+        },
+        "write": {
+          "line": 32,
+          "params": [
+            "dir",
+            "files"
+          ]
+        },
+        "committedRepo": {
+          "line": 173,
+          "params": [
+            "t"
+          ]
+        }
+      },
+      "sizeBytes": 13464,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "a7011505743ef3a5"
       }
     },
     "test/structureDiscovery.test": {
@@ -25454,7 +25715,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 288,
+        "parsed": 290,
         "unsupported": 82,
         "partial": 0
       }
@@ -25501,15 +25762,15 @@
       }
     },
     "counts": {
-      "visitedEntries": 459,
+      "visitedEntries": 460,
       "traversedDirectories": 80,
-      "eligibleFiles": 370,
+      "eligibleFiles": 372,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
       "specialFiles": 0,
       "excludedFiles": {
-        "hard": 1,
+        "hard": 0,
         "gitignore": 0,
         "config": 0
       },
@@ -25520,7 +25781,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 370,
+      "indexedFiles": 372,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -25528,6 +25789,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1d79e97f596c7ff1956ffd389ab8ffef441871c0b8f7838284bca7a58cb9c5b3"
+    "revision": "2d78c4b2a7828f56eb5f520892746fa63a44aae3011b22e07c13087d00e12021"
   }
 }

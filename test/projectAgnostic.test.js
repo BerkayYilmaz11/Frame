@@ -523,8 +523,92 @@ test('templates: the maintenance reference documents policy, results, limits and
 test('templates: the maintenance reference explains freshness and how to keep the map current', () => {
   const reference = templates.getReferenceTemplate('demo');
   const section = reference.slice(reference.indexOf('## STRUCTURE.json Rules'), reference.indexOf('## QUICKSTART.md Rules'));
-  for (const needle of ['structure-lifecycle.js --watch', '--once', '`fresh`', '`dirty`', '`stale`', '`unknown`', 'not only what you staged']) {
+  for (const needle of ['structure-lifecycle.js --watch', '--once', '`fresh`', '`dirty`', '`stale`', '`unknown`', 'Commits get their own map', '--no-verify', '--staged']) {
     assert.ok(section.includes(needle), `reference mentions ${needle}`);
   }
   assert.deepEqual(require('../src/shared/docsHealth').namedPaths(section), ['.frame/config.json']);
+});
+
+/* ---------------------- STR-02b: --staged contract ---------------------- */
+
+function gitRepo(files) {
+  const dir = tmpProject(files);
+  const git = (...args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q');
+  git('config', 'user.email', 't@example.com');
+  git('config', 'user.name', 'T');
+  return { dir, git };
+}
+
+test('cli: --staged stages the commit map and reports it in one envelope', () => {
+  const { dir, git } = gitRepo({ 'src/a.js': '// A' });
+  try {
+    git('add', '-A');
+    fs.writeFileSync(path.join(dir, 'notes-untracked.md'), '# Untracked');
+    const res = runParser(dir, ['--staged', '--json']);
+    assert.equal(res.status, 0, res.stderr);
+    const env = envelopeOf(res);
+    assert.equal(env.command, 'staged');
+    assert.equal(env.status, 'published');
+    assert.equal(env.exitCode, 0);
+    assert.equal(env.policyFallback, true);
+    assert.match(res.stderr, /Staged the commit's STRUCTURE\.json/);
+    const staged = git('show', ':.frame/STRUCTURE.json').stdout;
+    assert.ok(!staged.includes('notes-untracked'));
+    assert.ok(!fs.existsSync(mapOf(dir)), 'the working map is not written');
+    assert.equal(envelopeOf(runParser(dir, ['--staged', '--json'])).status, 'unchanged');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('cli: --staged exits 0 when not shared, 1 when unavailable, 2 on conflicting modes', () => {
+  const ignored = gitRepo({ 'a.js': 'x', '.gitignore': '.frame/\n' });
+  const plain = tmpProject({ 'a.js': 'x' });
+  try {
+    ignored.git('add', '-A');
+    const skipped = runParser(ignored.dir, ['--staged', '--json']);
+    assert.equal(skipped.status, 0);
+    assert.equal(envelopeOf(skipped).status, 'skipped');
+
+    const noRepo = runParser(plain, ['--staged', '--json']);
+    assert.equal(noRepo.status, 1);
+    assert.equal(envelopeOf(noRepo).status, 'unavailable');
+
+    assert.equal(runParser(plain, ['--staged', '--full']).status, 2);
+    assert.equal(runParser(plain, ['--staged', '--check']).status, 2);
+  } finally {
+    fs.rmSync(ignored.dir, { recursive: true, force: true });
+    fs.rmSync(plain, { recursive: true, force: true });
+  }
+});
+
+/* ------------------- STR-02b: hook templates ------------------- */
+
+test('templates: the pre-commit template is recognized; earlier unmodified templates are upgradable', () => {
+  const crypto = require('crypto');
+  const current = templates.getStructurePreCommitHookTemplate();
+  assert.equal(templates.classifyStructureHook(current), 'current');
+  assert.match(current, /While this file is unmodified, Frame keeps it up to\n# date; once you edit it, Frame leaves it alone\./);
+  assert.equal(templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.length, 3);
+  assert.ok(!templates.PREVIOUS_STRUCTURE_HOOK_TEMPLATE_SHA256.includes(crypto.createHash('sha256').update(current).digest('hex')));
+
+  // rebuild the last shipped template (a8c1c8c) from its snippet and confirm the hash
+  const { execSync } = require('child_process');
+  let previous = null;
+  try {
+    const src = execSync('git show a8c1c8c:src/shared/frameTemplates.js', { cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const grab = (re) => src.match(re)[0];
+    previous = new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
+      + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
+      + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
+      + 'return getStructurePreCommitHookTemplate();')();
+  } catch (e) {
+    previous = null; // shallow clone: the hash list is still pinned above
+  }
+  if (previous) {
+    assert.equal(templates.classifyStructureHook(previous), 'previous');
+    assert.equal(templates.classifyStructureHook(previous.replace('exit 0', 'npm run lint\nexit 0')), null, 'an edited copy is the user\'s');
+  }
+  assert.equal(templates.classifyStructureHook('#!/bin/sh\necho mine\n'), null);
 });

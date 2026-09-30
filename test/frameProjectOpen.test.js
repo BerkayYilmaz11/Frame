@@ -444,3 +444,37 @@ test('removing a project from the workspace stops its worker', { skip: process.p
   assert.ok(!workspace.getProjects().some((p) => p.path === projectDir));
   assert.ok(fs.existsSync(path.join(home, '.frame')), 'the scratch home was used');
 });
+
+/* ------------------ STR-02b: opening upgrades an unmodified old hook ------------------ */
+
+test('an open replaces an unmodified earlier Frame hook and never touches a custom one', async (t) => {
+  const { execFileSync: run } = require('child_process');
+  let previous = null;
+  try {
+    const src = run('git', ['show', 'a8c1c8c:src/shared/frameTemplates.js'], { cwd: path.join(__dirname, '..'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const grab = (re) => src.match(re)[0];
+    previous = new Function(grab(/const FRAME_HOOK_MARKER_START[\s\S]*?const FRAME_HOOK_MARKER_END[^\n]*\n/)
+      + grab(/function getStructureHookSnippet\(\) \{[\s\S]*?\n\}\n/)
+      + grab(/function getStructurePreCommitHookTemplate\(\) \{[\s\S]*?\n\}\n/)
+      + 'return getStructurePreCommitHookTemplate();')();
+  } catch (_) {
+    t.skip('template history unavailable');
+    return;
+  }
+  const { getStructurePreCommitHookTemplate } = require('../src/shared/frameTemplates');
+  projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-open-hook-'));
+  git(projectDir, ['init', '-q']);
+  await frameProject.runProjectInit(projectDir, 'demo');
+  const hook = path.join(projectDir, '.git', 'hooks', 'pre-commit');
+  fs.writeFileSync(hook, previous, { mode: 0o755 });
+  await frameProject.openProjectLayout(projectDir);
+  assert.equal(fs.readFileSync(hook, 'utf8'), getStructurePreCommitHookTemplate());
+
+  fs.writeFileSync(hook, '#!/bin/sh\necho mine\n', { mode: 0o755 });
+  await frameProject.openProjectLayout(projectDir);
+  assert.equal(fs.readFileSync(hook, 'utf8'), '#!/bin/sh\necho mine\n');
+
+  fs.rmSync(hook);
+  await frameProject.openProjectLayout(projectDir);
+  assert.ok(!fs.existsSync(hook), 'an open never installs a hook that is not there');
+});
