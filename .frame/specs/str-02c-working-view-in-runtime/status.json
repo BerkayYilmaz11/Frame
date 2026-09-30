@@ -1,7 +1,7 @@
 {
   "slug": "str-02c-working-view-in-runtime",
   "title": "STR-02c — Working-Tree Map in Runtime",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-str-02c-working-view-in-runtime-T01",
     "task-spec-str-02c-working-view-in-runtime-T02",
@@ -11,7 +11,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-09-30T22:07:45Z",
-  "updated_at": "2026-09-30T22:12:32.572Z",
-  "last_phase_at": "2026-09-30T22:12:32.572Z",
+  "updated_at": "2026-09-30T22:17:34.294Z",
+  "last_phase_at": "2026-09-30T22:17:34.294Z",
   "implement_mode": "custom"
 }

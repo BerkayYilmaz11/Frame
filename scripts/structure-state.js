@@ -745,7 +745,61 @@ function snapshot(rootDir, options = {}) {
   };
 }
 
+/* ------------------------ working view (STR-02c) ------------------------ */
+
+/** Frame's live view of the working tree: generated, never tracked. */
+function workingViewPath(rootDir) {
+  return path.join(rootDir, '.frame', 'runtime', 'structure', 'working.json');
+}
+
+/**
+ * Is the owned map path in Git's index? No Git, no repository or an
+ * untracked/ignored map all answer false — then no checkout can conflict
+ * with the file, and writers may keep it equal to the working view.
+ */
+function mapTrackedByGit(rootDir, fsImpl = fs) {
+  const rel = path.relative(rootDir, resolveStructurePath(rootDir, fsImpl)).split(path.sep).join('/');
+  const result = require('child_process').spawnSync('git', ['ls-files', '--error-unmatch', '--', rel], {
+    cwd: rootDir,
+    stdio: ['ignore', 'ignore', 'ignore'],
+    timeout: 5000
+  });
+  return result.status === 0;
+}
+
+/**
+ * Keep an untracked map file equal to the working view (STR-02c D5). Never
+ * touches a tracked map. Authored content the new bytes would drop is
+ * archived first; if that fails, the file is left as it is.
+ */
+function mirrorToUntrackedMap(rootDir, bytes, options = {}) {
+  const fsImpl = options.fs || fs;
+  if (mapTrackedByGit(rootDir, fsImpl)) return { mirrored: false, reason: 'tracked' };
+  const target = resolveStructurePath(rootDir, fsImpl);
+  const candidate = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes, 'utf8');
+  const current = readBytes(fsImpl, target);
+  if (current.bytes && current.bytes.equals(candidate)) return { mirrored: false, reason: 'unchanged' };
+  const paths = statePaths(rootDir, fsImpl);
+  const recoveryPaths = [];
+  try {
+    // Archive what would be lost: authored content the new bytes drop, or a
+    // map that is not valid (nothing can prove it held nothing of value).
+    if (current.bytes && (options.discardsAuthored || !parseMap(current.bytes).data)) {
+      recoveryPaths.push(relative(paths, preserveBytes(paths, current.bytes, fsImpl)));
+    }
+    fsImpl.mkdirSync(path.dirname(target), { recursive: true });
+    if (fsImpl === fs) fsSafe.writeFileAtomic(target, candidate);
+    else writeAtomicWith(fsImpl, target, candidate);
+    return { mirrored: true, recoveryPaths };
+  } catch (err) {
+    return { mirrored: false, reason: 'error', message: err.message, recoveryPaths };
+  }
+}
+
 module.exports = {
+  workingViewPath,
+  mapTrackedByGit,
+  mirrorToUntrackedMap,
   resolveStructurePath,
   statePaths,
   validateStructure,

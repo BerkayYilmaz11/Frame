@@ -720,3 +720,10 @@ test('Remove Frame stops the worker before deleting .frame/', async (t) => {
   assert.deepEqual(result.errors, []);
   assert.deepEqual(structureLifecycle.list(), []);
 });
+
+test('a fresh init writes the working view and, while untracked, the map file too', async () => {
+  await frameProject.runProjectInit(projectDir, 'demo');
+  const working = path.join(projectDir, FRAME_DIR, 'runtime', 'structure', 'working.json');
+  assert.ok(fs.existsSync(working));
+  assert.equal(fs.readFileSync(mapPath(projectDir), 'utf8'), fs.readFileSync(working, 'utf8'));
+});

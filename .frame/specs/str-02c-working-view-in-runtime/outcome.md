@@ -7,3 +7,11 @@
 _Captured: 2026-10-01 · 5 file change(s)_
 
 ---
+
+## T02 — Build the working view in runtime; mirror only when the map is untracked
+
+The lifecycle worker and `update-structure.js` (`--full`, explicit files, `--check`) now build into `.frame/runtime/structure/working.json`. The tracked map is the generation prior (D2), so prose, unknown fields and architecture notes written there reach the working view; the existing working view is only the byte/`lastUpdated` reference. `structure-state` gained `workingViewPath`, `mapTrackedByGit` (`git ls-files --error-unmatch`) and `mirrorToUntrackedMap`: when the map path is not in the index (no Git, before the first commit, local sharing) the working view's bytes are copied to it (D5), archiving the current file to recovery first when it is invalid. Deviation: a corrupt tracked map is refused as a delta baseline (kind `corrupt`) rather than silently replaced; a fresh project with no working view seeds its delta from the tracked map. The STR-02 reader test was updated — a tracked-map hand edit no longer changes freshness; removing the working view makes it `unknown`. Files touched: `scripts/structure-state.js`, `scripts/update-structure.js`, `scripts/structure-lifecycle.js`, `test/structureLifecycle.test.js`, `test/projectAgnostic.test.js`, `test/frameProjectInit.test.js`, `test/scriptsProjectRoot.test.js`.
+
+_Captured: 2026-10-01 · 7 file change(s)_
+
+---

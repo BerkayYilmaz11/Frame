@@ -490,11 +490,14 @@ test('readers report the lifecycle freshness and skip the date heuristic once it
     assert.match(find(), /^⚠ Map: stale \(lease-expired\) — run: node .*structure-lifecycle\.js --once/);
     assert.match(findings()[0], /is stale \(lease-expired\)/);
 
-    // STR-02c: the tracked map is where prose is edited. Once it no longer
-    // matches a pre-STR-02c receipt there is no live view to vouch for, so
-    // freshness is unknown — not an alarm — and the date heuristic applies.
+    // STR-02c: readers use the working view; prose edited in the tracked map
+    // does not change what the receipt vouches for.
     const mapFile = path.join(dir, '.frame', 'STRUCTURE.json');
     fs.writeFileSync(mapFile, fs.readFileSync(mapFile, 'utf8').replace('Widget maker', 'Edited by hand'));
+    assert.match(find(), /^⚠ Map: stale \(lease-expired\)/);
+
+    // Without a working view there is nothing live to vouch for: unknown, not an alarm.
+    fs.rmSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'));
     assert.ok(!/^⚠ Map:|^Map:/.test(find()));
     assert.deepEqual(findings().filter((f) => f.startsWith('structure-freshness')), []);
   } finally {

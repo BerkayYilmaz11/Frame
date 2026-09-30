@@ -185,59 +185,112 @@ function exitCodeFor(result) {
   return 2;
 }
 
-function builtFrom(structure, report, prior) {
+/**
+ * The tracked map (committed view plus hand edits) as the generation prior
+ * for the working view (STR-02c D2), or null when it is missing or invalid.
+ */
+function trackedPrior() {
+  const baseline = state.readBaseline(state.resolveStructurePath(ROOT_DIR));
+  return baseline.status === 'valid' ? baseline.data : null;
+}
+
+/** After a working-view publish, keep an untracked map file equal to it. */
+function mirrorWorkingView(result, discardsAuthored) {
+  if (result.artifact !== 'written' && result.artifact !== 'unchanged') return;
+  try {
+    const bytes = fs.readFileSync(state.workingViewPath(ROOT_DIR));
+    const mirrored = state.mirrorToUntrackedMap(ROOT_DIR, bytes, { discardsAuthored });
+    if (mirrored.recoveryPaths && mirrored.recoveryPaths.length) {
+      result.recoveryPaths = [...(result.recoveryPaths || []), ...mirrored.recoveryPaths];
+    }
+  } catch (err) {
+    /* no working view to mirror */
+  }
+}
+
+/**
+ * `reference` is the artifact's own previous content (for lastUpdated and
+ * byte stability); it defaults to the generation prior.
+ */
+function builtFrom(structure, report, prior, reference = prior) {
   return {
-    candidate: generation.serializeStructure(structure, prior),
+    candidate: generation.serializeStructure(structure, reference),
     inventory: structure.generation.inventory,
     extraction: report.extraction,
     counts: structure.generation.counts,
     diagnostics: structure.generation.diagnostics,
-    discardsAuthored: report.discarded.length > 0
+    // The target is the working view: authored content lives in the tracked
+    // map, which this write never touches (the untracked mirror archives).
+    discardsAuthored: false
   };
 }
 
+/**
+ * --full (STR-02c D3): rebuild the working view. Hand-written prose comes
+ * from the tracked map; the tracked map itself changes only through commits
+ * (or is kept equal to the working view while Git does not track it).
+ */
 function runFull() {
   const curation = generation.loadCuration(__dirname);
-  return state.runAttempt({
+  let discarded = false;
+  const result = state.runAttempt({
     rootDir: ROOT_DIR,
     mode: 'full',
+    mapPath: state.workingViewPath(ROOT_DIR),
     attemptId: process.env.FRAME_STRUCTURE_ATTEMPT_ID || undefined,
     build: (baseline) => {
       const loaded = discovery.loadProjectStructureConfig(ROOT_DIR);
       const found = discovery.discover(ROOT_DIR, { structure: loaded.structure, legacyFiles: loaded.legacyFiles });
-      const prior = baseline.status === 'valid' ? baseline.data : null;
+      const prior = trackedPrior();
+      const reference = baseline.status === 'valid' ? baseline.data : prior;
       const { structure, report } = generation.buildFull({
         rootDir: ROOT_DIR, discovery: found, prior, curation, projectConfig: projectBlock()
       });
-      return builtFrom(structure, report, prior);
+      discarded = report.discarded.length > 0;
+      return builtFrom(structure, report, prior, reference);
     }
   });
+  mirrorWorkingView(result, discarded);
+  return result;
 }
 
 function runDelta(candidates) {
   const curation = generation.loadCuration(__dirname);
   let policyInputChanged = false;
+  let discarded = false;
   const result = state.runAttempt({
     rootDir: ROOT_DIR,
     mode: 'delta',
+    mapPath: state.workingViewPath(ROOT_DIR),
     attemptId: process.env.FRAME_STRUCTURE_ATTEMPT_ID || undefined,
     build: (baseline) => {
       const loaded = discovery.loadProjectStructureConfig(ROOT_DIR);
       const evaluation = discovery.evaluatePaths(ROOT_DIR, candidates, { structure: loaded.structure, legacyFiles: loaded.legacyFiles });
+      // A delta starts from the working view; without one, from the tracked map.
       let kind = 'valid';
-      if (baseline.status === 'missing') kind = 'missing';
-      else if (baseline.status === 'corrupt' || baseline.liveCorrupt) kind = 'corrupt';
-      const prior = kind === 'valid' ? baseline.data : null;
+      let prior = null;
+      if (baseline.status === 'corrupt' || baseline.liveCorrupt) kind = 'corrupt';
+      else if (baseline.status === 'valid') prior = baseline.data;
+      else {
+        // No working view yet: the tracked map is the baseline, with STR-01's
+        // rule that a corrupt baseline is refused rather than replaced.
+        const tracked = state.readBaseline(state.resolveStructurePath(ROOT_DIR));
+        if (tracked.status === 'corrupt' || tracked.liveCorrupt) kind = 'corrupt';
+        else if (tracked.status === 'valid') prior = tracked.data;
+        else kind = 'missing';
+      }
       const { structure, report } = generation.buildDelta({
         rootDir: ROOT_DIR, evaluation, prior, baseline: kind, curation, projectConfig: projectBlock()
       });
       policyInputChanged = report.policyInputChanged;
-      if (!report.changed) {
+      discarded = report.discarded.length > 0;
+      if (!report.changed && baseline.status === 'valid') {
         return { candidate: null, inventory: report.inventory, extraction: report.extraction, diagnostics: report.diagnostics };
       }
       return builtFrom(structure, report, prior);
     }
   });
+  mirrorWorkingView(result, discarded);
   result.policyInputChanged = policyInputChanged;
   return result;
 }
@@ -275,7 +328,10 @@ function reportMutation(result, command) {
 
 function runCheck() {
   const verdict = (exitCode, result, reason, message) => ({ schema: RESULT_SCHEMA, command: 'check', exitCode, result, reason, message });
-  const snap = state.snapshot(ROOT_DIR);
+  // The working view when Frame has one; otherwise the tracked map itself.
+  const working = state.workingViewPath(ROOT_DIR);
+  const checkingWorkingView = fs.existsSync(working);
+  const snap = state.snapshot(ROOT_DIR, checkingWorkingView ? { mapPath: working } : {});
   if (snap.baseline.status === 'missing') {
     return verdict(2, 'unverifiable', 'missing', `STRUCTURE.json missing — run: ${repairCommand()}`);
   }
@@ -295,7 +351,7 @@ function runCheck() {
     return verdict(2, 'unverifiable', 'incomplete-inventory', `Cannot verify: discovery incomplete (${found.incompleteReasons.join(', ')}).`);
   }
   const { structure } = generation.buildFull({
-    rootDir: ROOT_DIR, discovery: found, prior: snap.baseline.data,
+    rootDir: ROOT_DIR, discovery: found, prior: checkingWorkingView ? trackedPrior() : snap.baseline.data,
     curation: generation.loadCuration(__dirname), projectConfig: projectBlock()
   });
   const same = JSON.stringify(generation.checkView(structure)) === JSON.stringify(generation.checkView(snap.baseline.data));

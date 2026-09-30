@@ -18547,13 +18547,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 428,
+          "line": 445,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 433,
+          "line": 450,
           "params": [
             "root",
             "options = {}"
@@ -18561,21 +18561,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 437,
+          "line": 454,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 444,
+          "line": 461,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 464,
+          "line": 481,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18583,13 +18583,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 478,
+          "line": 495,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 489,
+          "line": 506,
           "params": [
             "root",
             "onEvent",
@@ -18598,14 +18598,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 590,
+          "line": 607,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 622,
+          "line": 639,
           "params": [
             "root",
             "options = {}"
@@ -18613,24 +18613,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 764
+          "line": 781
         },
         "writeLine": {
-          "line": 773,
+          "line": 790,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 777,
+          "line": 794,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 799,
+          "line": 816,
           "params": [
             "root",
             "supervised"
@@ -18638,10 +18638,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 841
+          "line": 858
         }
       },
-      "sizeBytes": 29952,
+      "sizeBytes": 30837,
       "extraction": {
         "status": "parsed"
       },
@@ -18917,6 +18917,9 @@
       "file": "scripts/structure-state.js",
       "description": "STRUCTURE state — where the map lives, whether it is usable, and how a",
       "exports": [
+        "workingViewPath",
+        "mapTrackedByGit",
+        "mirrorToUntrackedMap",
         "resolveStructurePath",
         "statePaths",
         "validateStructure",
@@ -18939,7 +18942,8 @@
         "path",
         "crypto",
         "fsSafe",
-        "src/main/fsSafe"
+        "src/main/fsSafe",
+        "child_process"
       ],
       "functions": {
         "loadFsSafe": {
@@ -19163,9 +19167,33 @@
             "options = {}"
           ],
           "purpose": "Read-only view for `--check`: no lock, no writes. `stable()` re-reads the"
+        },
+        "workingViewPath": {
+          "line": 751,
+          "params": [
+            "rootDir"
+          ],
+          "purpose": "Frame's live view of the working tree: generated, never tracked."
+        },
+        "mapTrackedByGit": {
+          "line": 760,
+          "params": [
+            "rootDir",
+            "fsImpl = fs"
+          ],
+          "purpose": "Is the owned map path in Git's index? No Git, no repository or an"
+        },
+        "mirrorToUntrackedMap": {
+          "line": 775,
+          "params": [
+            "rootDir",
+            "bytes",
+            "options = {}"
+          ],
+          "purpose": "Keep an untracked map file equal to the working view (STR-02c D5). Never"
         }
       },
-      "sizeBytes": 28658,
+      "sizeBytes": 31030,
       "extraction": {
         "status": "parsed"
       },
@@ -19176,6 +19204,8 @@
           "classifyOrphan": "2a028dde13d829f7",
           "isUsableMap": "68ea61e8355d4f5d",
           "loadFsSafe": "9b708842aa78a527",
+          "mapTrackedByGit": "a6350797b141f566",
+          "mirrorToUntrackedMap": "fa02f0e156d4023a",
           "ownerIsGone": "a23422b64bc0b73f",
           "preserveBytes": "29912968f1fb7836",
           "readBaseline": "1f92e5823934cbc9",
@@ -19186,6 +19216,7 @@
           "snapshot": "9a3fabc60d7ee11d",
           "statePaths": "9f80a8554aa79562",
           "validateStructure": "169fee911efa99e6",
+          "workingViewPath": "f23c49fc6bdeb5fb",
           "writeAtomicWith": "a0ca9379073c9865",
           "writerActive": "a56c00de348cb409"
         }
@@ -19400,52 +19431,71 @@
             "result"
           ]
         },
+        "trackedPrior": {
+          "line": 192,
+          "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
+        },
+        "mirrorWorkingView": {
+          "line": 198,
+          "params": [
+            "result",
+            "discardsAuthored"
+          ],
+          "purpose": "After a working-view publish, keep an untracked map file equal to it."
+        },
         "builtFrom": {
-          "line": 188,
+          "line": 215,
           "params": [
             "structure",
             "report",
-            "prior"
-          ]
+            "prior",
+            "reference = prior"
+          ],
+          "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 199
+          "line": 233,
+          "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 217,
+          "line": 257,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 245,
+          "line": 298,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 276
+          "line": 329
         },
         "runStaged": {
-          "line": 317,
+          "line": 373,
           "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot and"
         },
         "main": {
-          "line": 336
+          "line": 392
         }
       },
-      "sizeBytes": 17095,
+      "sizeBytes": 19726,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
+          "builtFrom": "0f3b5f39b1a05377",
           "getChangedFiles": "0d5e846bb25dd0ff",
+          "mirrorWorkingView": "2b24665961d385c6",
           "resolveProjectRoot": "bdaf2016db7ccaef",
+          "runFull": "018e3a0230855dd1",
           "runStaged": "56af04bf4ae0ed57",
           "say": "fe3bfc9b1c053140",
-          "toRootRelative": "a260ebe24f149a83"
+          "toRootRelative": "a260ebe24f149a83",
+          "trackedPrior": "2f437ace033ca5c1"
         }
       }
     },
@@ -22016,7 +22066,7 @@
           "line": 690
         }
       },
-      "sizeBytes": 36199,
+      "sizeBytes": 36584,
       "extraction": {
         "status": "parsed"
       },
@@ -22857,7 +22907,7 @@
           "purpose": "Every path under `dir` with size and mtime — proves a run wrote nothing."
         },
         "gitRepo": {
-          "line": 534,
+          "line": 536,
           "params": [
             "files"
           ]
@@ -22869,7 +22919,7 @@
           ]
         }
       },
-      "sizeBytes": 27851,
+      "sizeBytes": 27990,
       "extraction": {
         "status": "parsed"
       },
@@ -22955,7 +23005,7 @@
           ]
         }
       },
-      "sizeBytes": 34148,
+      "sizeBytes": 34280,
       "extraction": {
         "status": "parsed"
       },
@@ -23650,9 +23700,15 @@
           "params": [
             "files = { 'src/a.js'"
           ]
+        },
+        "trackedRepo": {
+          "line": 790,
+          "params": [
+            "files"
+          ]
         }
       },
-      "sizeBytes": 33299,
+      "sizeBytes": 37257,
       "extraction": {
         "status": "parsed"
       },
@@ -25810,6 +25866,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "637fe641213b7bb2342a359f70edb8e8073a75d1cd4c41fb71061fdb960a5cc1"
+    "revision": "26075e597ad2a1b0eae493272e899840c8133c09ef586f40fa64f63c7f943182"
   }
 }

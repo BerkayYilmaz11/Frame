@@ -370,7 +370,9 @@ test('cli: an incomplete inventory exits 1 — published on a first scan, retain
     assert.deepEqual(retained.coverage.reasons, ['limit-maxFiles']);
     assert.equal(fs.readFileSync(mapOf(tmp), 'utf8'), good);
 
+    // a first scan: no working view (STR-02c) and no map
     fs.rmSync(mapOf(tmp));
+    fs.rmSync(path.join(tmp, '.frame', 'runtime', 'structure', 'working.json'));
     const firstPartial = envelopeOf(runParser(tmp, ['--json']));
     assert.equal(firstPartial.exitCode, 1);
     assert.equal(firstPartial.published, true);

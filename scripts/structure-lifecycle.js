@@ -353,23 +353,31 @@ function reconcile(root, job = {}) {
   const cache = snapshot.createExtractionCache(root, observed.manifest);
   const curation = generation.loadCuration(__dirname);
   let report = null;
+  // STR-02c: the build lands in the working view. Hand-written prose comes
+  // from the tracked map (the generation prior); the working view's own
+  // previous bytes are only the lastUpdated/byte-stability reference.
+  const workingPath = state.workingViewPath(root);
+  const trackedBaseline = state.readBaseline(state.resolveStructurePath(root));
+  const trackedPrior = trackedBaseline.status === 'valid' ? trackedBaseline.data : null;
   const result = state.runAttempt({
     rootDir: root,
     mode: 'full',
+    mapPath: workingPath,
     precondition: () => cache.mixed.length === 0,
     build: (baseline) => {
-      const prior = baseline.status === 'valid' ? baseline.data : null;
+      const reference = baseline.status === 'valid' ? baseline.data : trackedPrior;
       const built = generation.buildFull({
-        rootDir: root, discovery: found, prior, curation, projectConfig: projectBlock(root), extract: cache.extract
+        rootDir: root, discovery: found, prior: trackedPrior, curation, projectConfig: projectBlock(root), extract: cache.extract
       });
       report = built.report;
       return {
-        candidate: generation.serializeStructure(built.structure, prior),
+        candidate: generation.serializeStructure(built.structure, reference),
         inventory: built.structure.generation.inventory,
         extraction: built.report.extraction,
         counts: built.structure.generation.counts,
         diagnostics: built.structure.generation.diagnostics,
-        discardsAuthored: built.report.discarded.length > 0
+        // the tracked map, where authored content lives, is not the target
+        discardsAuthored: false
       };
     }
   });
@@ -381,9 +389,18 @@ function reconcile(root, job = {}) {
   snapshot.saveManifest(root, observed.manifest);
   cache.prune();
 
-  // The receipt describes what is on disk now (written, unchanged or a
-  // retained older map after an incomplete inventory).
-  const mapPath = state.resolveStructurePath(root);
+  // Keep an untracked map file equal to the working view (STR-02c D5).
+  if (result.artifact === 'written' || result.artifact === 'unchanged') {
+    try {
+      state.mirrorToUntrackedMap(root, fs.readFileSync(workingPath), { discardsAuthored: report.discarded.length > 0 });
+    } catch (e) {
+      /* the working view is still correct */
+    }
+  }
+
+  // The receipt describes the working view on disk now (written, unchanged,
+  // or a retained older one after an incomplete inventory).
+  const mapPath = workingPath;
   let bytes = null;
   let stat = null;
   try {
