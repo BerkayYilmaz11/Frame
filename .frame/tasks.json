@@ -9995,13 +9995,13 @@
       "title": "Make the signed-out entry points open the window: in `src/renderer/frameSettingsModal.js` label the signed-out Account button \"Open Frame Cloud\" and call `cloudHub.open()` in both states; in `src/renderer/projectSettingsModal.js` show \"Frame Cloud is in early access.\" when `session.inviteOnly` is true (today's sentence otherwise) with an \"Open Frame Cloud\" button calling `openHub()`, leaving the palette's `cloud.signIn` unchanged",
       "description": "",
       "source": "spec:frame-cloud-early-access:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-early-access",
       "createdAt": "2026-09-30T08:35:08.801Z",
-      "updatedAt": "2026-09-30T08:35:08.801Z",
-      "completedAt": null
+      "updatedAt": "2026-09-30T09:09:18.127Z",
+      "completedAt": "2026-09-30T09:09:18.127Z"
     },
     {
       "id": "task-spec-frame-cloud-early-access-T09",

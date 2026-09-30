@@ -127,12 +127,12 @@ function initAccountSection() {
     return;
   }
 
-  // Close first: two dialogs never stack.
+  // Close first: two dialogs never stack. Signed out, the window opens on its
+  // signed-out pane rather than starting sign-in, so an invite-only server's
+  // waitlist is seen first (frame-cloud-early-access D1).
   accountOpenBtn.addEventListener('click', () => {
-    const signedIn = cloudHub.accountState() === 'signedIn';
     if (overlay) overlay.close();
-    if (signedIn) cloudHub.open();
-    else cloudHub.signIn();
+    cloudHub.open();
   });
 
   ipcRenderer.on(IPC.CLOUD_SESSION_STATE, (event, state) => renderAccount(state));
@@ -164,7 +164,7 @@ function renderAccount(state) {
     accountOpenBtn.textContent = 'Open Frame Cloud';
   } else {
     accountSummaryEl.textContent = 'Frame Cloud';
-    accountOpenBtn.textContent = 'Sign in…';
+    accountOpenBtn.textContent = 'Open Frame Cloud';
   }
 }
 

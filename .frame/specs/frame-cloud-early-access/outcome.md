@@ -56,3 +56,11 @@ _Captured: 2026-09-30 · 3 file change(s)_
 
 ---
 
+## T08 — Entry points open the window
+
+Settings → Account's signed-out button (`src/renderer/frameSettingsModal.js`) now reads "Open Frame Cloud" and opens the window. The Project Settings row (`src/renderer/projectSettingsModal.js`) says "Frame Cloud is in early access." when the server is invite-only, and its "Open Frame Cloud" button opens the window. Neither starts sign-in any more, and the palette's "Frame Cloud: Sign in" is unchanged. No deviation from plan.md.
+
+_Captured: 2026-09-30 · 2 file change(s)_
+
+---
+

@@ -13347,7 +13347,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 14162,
+      "sizeBytes": 14238,
       "extraction": {
         "status": "parsed"
       },
@@ -16618,21 +16618,22 @@
         "doneWindow",
         "cloudHub",
         "cloudNoWorkspace",
+        "cloudEarlyAccess",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 56
+          "line": 57
         },
         "syncFromProject": {
-          "line": 264
+          "line": 265
         },
         "syncCloudRow": {
-          "line": 281,
+          "line": 282,
           "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
         },
         "cloudButton": {
-          "line": 300,
+          "line": 301,
           "params": [
             "label",
             "onClick",
@@ -16641,76 +16642,76 @@
           ]
         },
         "renderCloudRow": {
-          "line": 310
+          "line": 311
         },
         "disconnectFromCloud": {
-          "line": 379,
+          "line": 381,
           "params": [
             "projectPath"
           ]
         },
         "renderDoneWindow": {
-          "line": 402,
+          "line": 404,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 414,
+          "line": 416,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 431,
+          "line": 433,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 450,
+          "line": 452,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 470,
+          "line": 472,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 490,
+          "line": 492,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 516,
+          "line": 518,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 541,
+          "line": 543,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 557
+          "line": 559
         },
         "setRemoveFrameNote": {
-          "line": 571,
+          "line": 573,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 577,
+          "line": 579,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 583,
+          "line": 585,
           "params": [
             "message"
           ]
         }
       },
-      "sizeBytes": 23163,
+      "sizeBytes": 23778,
       "extraction": {
         "status": "parsed"
       },
@@ -31423,6 +31424,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8c99187356a4706402c748dccf8f21f9674c93b4b3ead1bea0ae3015f2b52471"
+    "revision": "dbddaefb25cab9d41936e38652c4ab2321d24586ebf177539fafe7da72d5148d"
   }
 }
