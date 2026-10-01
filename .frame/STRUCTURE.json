@@ -2721,6 +2721,7 @@
         "fsSafe",
         "logger",
         "aiToolManager",
+        "cloudSession",
         "cloudProjectsService",
         "cloudBriefsService",
         "cloudShape",
@@ -2728,29 +2729,29 @@
       ],
       "functions": {
         "baseDir": {
-          "line": 52
+          "line": 58
         },
         "busDir": {
-          "line": 56
+          "line": 62
         },
         "repliesDir": {
-          "line": 60
+          "line": 66
         },
         "commandPath": {
-          "line": 64
+          "line": 70
         },
         "promptsDir": {
-          "line": 68
-        },
-        "loadStore": {
           "line": 74
         },
+        "loadStore": {
+          "line": 80
+        },
         "removeStalePrompts": {
-          "line": 85,
+          "line": 91,
           "purpose": "Delete the prompt files of shapes the store no longer holds."
         },
         "writePrompt": {
-          "line": 94,
+          "line": 100,
           "params": [
             "shapeId",
             "prompt"
@@ -2758,21 +2759,21 @@
           "purpose": "Write a shaping session's prompt atomically. → its path, or null."
         },
         "saveStore": {
-          "line": 107
+          "line": 113
         },
         "stageCommand": {
-          "line": 120,
+          "line": 126,
           "purpose": "Copy the command next to the bus, only when it changed. → staged?"
         },
         "isShapeable": {
-          "line": 136,
+          "line": 142,
           "params": [
             "brief"
           ],
           "purpose": "Open work whose parts were never written: the one brief Shape starts on."
         },
         "shape": {
-          "line": 146,
+          "line": 152,
           "params": [
             "folderPath",
             "number",
@@ -2781,14 +2782,14 @@
           "purpose": "Start shaping an open, unshaped work brief with `toolId`. The full prompt"
         },
         "writeReply": {
-          "line": 173,
+          "line": 179,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushShaped": {
-          "line": 184,
+          "line": 190,
           "params": [
             "folderPath",
             "number",
@@ -2796,30 +2797,40 @@
           ]
         },
         "handleFile": {
-          "line": 191,
+          "line": 197,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 229
+          "line": 235
         },
         "sweep": {
-          "line": 242,
+          "line": 248,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 258
+          "line": 264
+        },
+        "stopWatcher": {
+          "line": 284
+        },
+        "followSession": {
+          "line": 293,
+          "params": [
+            "publicState"
+          ],
+          "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 278,
+          "line": 298,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 292,
+          "line": 314,
           "params": [
             "ipcMain"
           ]
@@ -2833,13 +2844,14 @@
           "CLOUD_BRIEF_SHAPED"
         ]
       },
-      "sizeBytes": 10993,
+      "sizeBytes": 11781,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "7d3eb80cdbe6be44",
         "purposes": {
+          "followSession": "63a7d4021c5374ca",
           "handleFile": "3864f5de1851ce9b",
           "isShapeable": "02f517bf5fd14f34",
           "removeStalePrompts": "47397a9791b963a1",
@@ -32074,6 +32086,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "944dc7e07eef0864430c476991b87e2287b439e758caef88bf629f1a1d396c85"
+    "revision": "98abe824d19d36cc246baa553e7ed11105b797fdd885cfd1b7a13b88d68bef91"
   }
 }

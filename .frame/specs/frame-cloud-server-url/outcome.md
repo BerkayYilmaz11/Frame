@@ -55,3 +55,11 @@ _Captured: 2026-10-01 · 1 file change(s)_
 _Captured: 2026-10-01 · 1 file change(s)_
 
 ---
+
+## T08 — Shape bus watcher follows sign-in
+
+Gave `cloudShapeService.js` the same lifecycle as T07: one `getPublicState()` read and an `onChange` subscription in `init()`, the watcher started on `signedIn` and stopped otherwise, and an `initialised` flag for the re-init guard. The T07 scratch script, pointed at `cloud-shapes/`, showed the same results. File: `src/main/cloud/cloudShapeService.js`.
+
+_Captured: 2026-10-01 · 1 file change(s)_
+
+---
