@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-30",
+  "lastUpdated": "2026-10-01",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -17657,6 +17657,7 @@
       "description": "STRUCTURE for a commit — the map built from Git's staged snapshot",
       "exports": [
         "publishStaged",
+        "blobId",
         "repairPathspecIndex",
         "reconcileTrackedMap",
         "trackedReceiptPath",
@@ -17681,13 +17682,13 @@
       ],
       "functions": {
         "sha256": {
-          "line": 45,
+          "line": 46,
           "params": [
             "data"
           ]
         },
         "git": {
-          "line": 63,
+          "line": 64,
           "params": [
             "root",
             "args",
@@ -17695,8 +17696,16 @@
           ],
           "purpose": "Run Git for this checkout and its effective index. `GIT_INDEX_FILE` from"
         },
+        "blobId": {
+          "line": 90,
+          "params": [
+            "bytes",
+            "like"
+          ],
+          "purpose": "Git's object id for a blob, computed here instead of piping the bytes"
+        },
         "resolveIndex": {
-          "line": 78,
+          "line": 96,
           "params": [
             "root",
             "env = process.env"
@@ -17704,7 +17713,7 @@
           "purpose": "The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's."
         },
         "listEntries": {
-          "line": 88,
+          "line": 106,
           "params": [
             "root",
             "env = process.env"
@@ -17712,7 +17721,7 @@
           "purpose": "Staged entries of the effective index. Any unmerged stage makes the"
         },
         "readBlobs": {
-          "line": 106,
+          "line": 124,
           "params": [
             "root",
             "ids",
@@ -17721,20 +17730,20 @@
           "purpose": "Read blobs with one `cat-file --batch` process. Returns Map(id → Buffer)."
         },
         "enoent": {
-          "line": 127,
+          "line": 145,
           "params": [
             "p"
           ]
         },
         "fakeStat": {
-          "line": 133,
+          "line": 151,
           "params": [
             "kind",
             "size"
           ]
         },
         "createIndexFs": {
-          "line": 150,
+          "line": 168,
           "params": [
             "root",
             "entries",
@@ -17743,7 +17752,7 @@
           "purpose": "A read-only fs over the staged tree, enough for STR-01 discovery and"
         },
         "buildStaged": {
-          "line": 239,
+          "line": 257,
           "params": [
             "root",
             "options = {}"
@@ -17751,33 +17760,33 @@
           "purpose": "Build the commit's map from the effective index."
         },
         "indexIdentity": {
-          "line": 329,
+          "line": 347,
           "params": [
             "indexFile"
           ]
         },
         "receiptPath": {
-          "line": 337,
+          "line": 355,
           "params": [
             "root"
           ]
         },
         "writeReceipt": {
-          "line": 341,
+          "line": 359,
           "params": [
             "root",
             "value"
           ]
         },
         "writeJson": {
-          "line": 345,
+          "line": 363,
           "params": [
             "file",
             "value"
           ]
         },
         "mirrorToDisk": {
-          "line": 362,
+          "line": 380,
           "params": [
             "root",
             "mapPath",
@@ -17788,7 +17797,7 @@
           "purpose": "Set the tracked map on disk to the commit's map (STR-02c D6), so a normal"
         },
         "repairPathspecIndex": {
-          "line": 395,
+          "line": 412,
           "params": [
             "root",
             "options = {}"
@@ -17796,13 +17805,13 @@
           "purpose": "A pathspec commit (`git commit -- <paths>`) runs the hook on a temporary"
         },
         "trackedReceiptPath": {
-          "line": 421,
+          "line": 437,
           "params": [
             "root"
           ]
         },
         "reconcileTrackedMap": {
-          "line": 441,
+          "line": 457,
           "params": [
             "root",
             "options = {}"
@@ -17810,14 +17819,14 @@
           "purpose": "Bring the tracked map on disk back to the committed view when that loses"
         },
         "reconcileTracked": {
-          "line": 453,
+          "line": 469,
           "params": [
             "root",
             "env"
           ]
         },
         "publishStaged": {
-          "line": 522,
+          "line": 537,
           "params": [
             "root",
             "options = {}"
@@ -17825,13 +17834,14 @@
           "purpose": "Build the commit's map and publish it into the effective index."
         }
       },
-      "sizeBytes": 22558,
+      "sizeBytes": 23037,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "e2d9198bdb4c6a16",
         "purposes": {
+          "blobId": "300104a3c1e3211a",
           "buildStaged": "adaf4c93fc0707d5",
           "createIndexFs": "f35ade5b3634de6c",
           "git": "98c4595cc6e8df9b",
@@ -23570,7 +23580,8 @@
         "path",
         "child_process",
         "scripts/structure-commit",
-        "scripts/structure-lifecycle"
+        "scripts/structure-lifecycle",
+        "crypto"
       ],
       "functions": {
         "repo": {
@@ -23600,7 +23611,7 @@
           ]
         }
       },
-      "sizeBytes": 16049,
+      "sizeBytes": 17362,
       "extraction": {
         "status": "parsed"
       },
@@ -25959,6 +25970,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "859fa6c387a5b70589dad88c312990b84f705db6989cb690fb37138df146c433"
+    "revision": "1a4e0e0f7a37dbcee76b8c468106e982c6cbe8b610c1a113e53af64b6b7309d9"
   }
 }
