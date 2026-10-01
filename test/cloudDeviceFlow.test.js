@@ -100,14 +100,51 @@ test('formatUserCode groups eight characters and leaves other shapes alone', () 
 });
 
 test('resolveServerUrl prefers env, then setting, then default, and trims trailing slashes', () => {
-  assert.equal(
-    flow.resolveServerUrl({ env: 'http://a.test/', setting: 'http://b.test', defaultUrl: 'http://c.test' }),
-    'http://a.test'
+  const allowed = (url) => ({ url, refused: null });
+  assert.deepEqual(
+    flow.resolveServerUrl({ env: 'https://a.test/', setting: 'https://b.test', defaultUrl: 'https://c.test' }),
+    allowed('https://a.test')
   );
-  assert.equal(flow.resolveServerUrl({ env: '  ', setting: 'http://b.test//', defaultUrl: 'http://c.test' }), 'http://b.test');
-  assert.equal(flow.resolveServerUrl({ env: undefined, setting: null, defaultUrl: 'http://c.test' }), 'http://c.test');
-  assert.equal(flow.resolveServerUrl({ env: undefined, setting: '', defaultUrl: '' }), '');
-  assert.equal(flow.resolveServerUrl(), '');
+  assert.deepEqual(
+    flow.resolveServerUrl({ env: '  ', setting: 'https://b.test//', defaultUrl: 'https://c.test' }),
+    allowed('https://b.test')
+  );
+  assert.deepEqual(flow.resolveServerUrl({ env: undefined, setting: null, defaultUrl: 'https://c.test' }), allowed('https://c.test'));
+  assert.deepEqual(flow.resolveServerUrl({ env: undefined, setting: '', defaultUrl: '' }), allowed(''));
+  assert.deepEqual(flow.resolveServerUrl(), allowed(''));
+});
+
+test('checkServerUrl allows https on any host and http on localhost and 127.0.0.1 only', () => {
+  for (const url of ['https://cloud.test', 'https://localhost:3000', 'https://10.0.0.5/api']) {
+    assert.deepEqual(flow.checkServerUrl(url), { ok: true, url }, url);
+  }
+  for (const url of ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://LOCALHOST']) {
+    assert.deepEqual(flow.checkServerUrl(url), { ok: true, url }, url);
+  }
+  for (const url of ['http://cloud.test', 'http://192.168.1.5:3000', 'http://localhost.cloud.test', 'http://[::1]:3000']) {
+    assert.deepEqual(flow.checkServerUrl(url), { ok: false, reason: 'insecure' }, url);
+  }
+  for (const url of ['cloud.test', 'not a url', 'ftp://cloud.test', 'file:///tmp/x', 'javascript:alert(1)']) {
+    assert.deepEqual(flow.checkServerUrl(url), { ok: false, reason: 'invalid' }, url);
+  }
+});
+
+test('resolveServerUrl refuses http off loopback and unparsable addresses', () => {
+  assert.deepEqual(flow.resolveServerUrl({ env: 'http://cloud.test/' }), { url: '', refused: 'http://cloud.test' });
+  assert.deepEqual(flow.resolveServerUrl({ setting: 'cloud.test' }), { url: '', refused: 'cloud.test' });
+  assert.deepEqual(flow.resolveServerUrl({ defaultUrl: 'http://localhost:3000/' }), { url: 'http://localhost:3000', refused: null });
+  assert.deepEqual(flow.resolveServerUrl({ env: 'http://127.0.0.1:3000' }), { url: 'http://127.0.0.1:3000', refused: null });
+});
+
+test('resolveServerUrl does not fall through past a refused candidate', () => {
+  assert.deepEqual(
+    flow.resolveServerUrl({ env: 'http://cloud.test', setting: 'https://b.test', defaultUrl: 'https://c.test' }),
+    { url: '', refused: 'http://cloud.test' }
+  );
+  assert.deepEqual(
+    flow.resolveServerUrl({ env: '', setting: 'not a url', defaultUrl: 'https://c.test' }),
+    { url: '', refused: 'not a url' }
+  );
 });
 
 test('deviceName strips a trailing .local, cuts to 100 characters and never returns empty', () => {

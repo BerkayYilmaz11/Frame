@@ -1814,26 +1814,26 @@
       ],
       "functions": {
         "str": {
-          "line": 33,
+          "line": 31,
           "params": [
             "value"
           ]
         },
         "slugShapeOk": {
-          "line": 37,
+          "line": 35,
           "params": [
             "slug"
           ]
         },
         "normalizeProject": {
-          "line": 44,
+          "line": 42,
           "params": [
             "raw"
           ],
           "purpose": "One `project.list` entry, reduced to the fields Frame uses."
         },
         "listProjects": {
-          "line": 58,
+          "line": 56,
           "params": [
             "{ api",
             "token",
@@ -1843,7 +1843,7 @@
           "purpose": "`project.list` → normalized projects, server order."
         },
         "matchFolders": {
-          "line": 81,
+          "line": 79,
           "params": [
             "projects",
             "folders"
@@ -1851,14 +1851,14 @@
           "purpose": "The workspace's projects and this device's folders, seen from each side."
         },
         "compact": {
-          "line": 119,
+          "line": 117,
           "params": [
             "input"
           ],
           "purpose": "Optional fields are left out rather than sent empty."
         },
         "checkSlug": {
-          "line": 128,
+          "line": 126,
           "params": [
             "{ api",
             "token",
@@ -1869,13 +1869,13 @@
           "purpose": "`project.checkSlug` → true when the slug is free in the cloud workspace."
         },
         "normalizeCandidate": {
-          "line": 133,
+          "line": 131,
           "params": [
             "raw"
           ]
         },
         "getCandidates": {
-          "line": 145,
+          "line": 143,
           "params": [
             "{ api",
             "token",
@@ -1888,7 +1888,7 @@
           "purpose": "`link.candidates` → projects this folder could connect to, matches first (server order)."
         },
         "claim": {
-          "line": 156,
+          "line": 154,
           "params": [
             "{ api",
             "token",
@@ -1903,7 +1903,7 @@
           "purpose": "`link.claim` → `{ projectId, projectSlug, workspaceSlug }`. Throws CloudError."
         },
         "create": {
-          "line": 166,
+          "line": 164,
           "params": [
             "{ api",
             "token",
@@ -1917,7 +1917,7 @@
           "purpose": "`link.create` → the same answer as claim; the project is created already linked. Throws CloudError."
         },
         "release": {
-          "line": 180,
+          "line": 178,
           "params": [
             "{ api",
             "token",
@@ -1929,35 +1929,35 @@
           "purpose": "`link.release`. A refusal because this folder is not the one the project"
         },
         "classifyLinkError": {
-          "line": 219,
+          "line": 217,
           "params": [
             "err"
           ],
           "purpose": "A failed link call → what Frame does about it. The server puts its code in"
         },
         "suggestSlug": {
-          "line": 239,
+          "line": 237,
           "params": [
             "name"
           ],
           "purpose": "A project name → a slug suggestion, or '' when none is valid. Mirrors the"
         },
         "validateSlug": {
-          "line": 252,
+          "line": 250,
           "params": [
             "slug"
           ],
           "purpose": "null when `slug` is valid, else 'empty' | 'length' | 'format' | 'reserved'."
         },
         "nextSlug": {
-          "line": 261,
+          "line": 259,
           "params": [
             "slug"
           ],
           "purpose": "The next slug to try after a collision: `app` → `app-2`, `app-2` → `app-3`, kept within 32."
         },
         "planFolderRow": {
-          "line": 281,
+          "line": 279,
           "params": [
             "folderRow",
             "candidates",
@@ -1966,7 +1966,7 @@
           "purpose": "An unconnected folder and its `link.candidates` → how On this device draws"
         },
         "shouldAutoShowDevices": {
-          "line": 307,
+          "line": 305,
           "params": [
             "{ userStartedSignIn",
             "dismissed",
@@ -1975,7 +1975,7 @@
           "purpose": "The one automatic tab switch: after a sign-in the user started, unless turned off."
         },
         "buildWebUrl": {
-          "line": 319,
+          "line": 317,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1985,7 +1985,7 @@
           "purpose": "`{webOrigin}/{workspace}/{project}`, or null when any guard fails:"
         },
         "buildWorkspaceWebUrl": {
-          "line": 326,
+          "line": 324,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1994,7 +1994,7 @@
           "purpose": "`{webOrigin}/{workspace}`, under the same guards as buildWebUrl."
         },
         "buildNewWorkspaceWebUrl": {
-          "line": 333,
+          "line": 331,
           "params": [
             "{ apiUrl",
             "webOrigin } = {}"
@@ -2002,7 +2002,7 @@
           "purpose": "`{webOrigin}/new`, where a signed-in user without a workspace creates one."
         },
         "webBase": {
-          "line": 339,
+          "line": 337,
           "params": [
             "apiUrl",
             "webOrigin"
@@ -2010,7 +2010,7 @@
           "purpose": "The web origin every link starts from, or null when the origin guards fail."
         }
       },
-      "sizeBytes": 13656,
+      "sizeBytes": 13611,
       "extraction": {
         "status": "parsed"
       },
@@ -2296,10 +2296,17 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 80
+          "line": 84
+        },
+        "refusalReason": {
+          "line": 98,
+          "params": [
+            "address"
+          ],
+          "purpose": "Scheme and host only: the rest of a mistyped address could carry anything."
         },
         "fetchJson": {
-          "line": 92,
+          "line": 115,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -2310,41 +2317,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 133,
+          "line": 156,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 153,
+          "line": 176,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 162,
+          "line": 185,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 175
+          "line": 198
         },
         "deviceInfo": {
-          "line": 197
+          "line": 220
         },
         "toPublicState": {
-          "line": 209
+          "line": 232
         },
         "getPublicState": {
-          "line": 221
+          "line": 244
         },
         "publish": {
-          "line": 225
+          "line": 248
         },
         "setState": {
-          "line": 234,
+          "line": 257,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -2352,18 +2359,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 248,
+          "line": 271,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 257,
+          "line": 280,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 268,
+          "line": 291,
           "params": [
             "serverUrl",
             "session",
@@ -2371,65 +2378,65 @@
           ]
         },
         "bringToFront": {
-          "line": 282,
+          "line": 305,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 290
+          "line": 313
         },
         "signIn": {
-          "line": 299,
+          "line": 322,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 351
+          "line": 374
         },
         "readInviteMode": {
-          "line": 368,
+          "line": 391,
           "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
         },
         "joinWaitlist": {
-          "line": 392,
+          "line": 415,
           "params": [
             "rawEmail"
           ],
           "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 409,
+          "line": 432,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 439,
+          "line": 462,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 453,
+          "line": 476,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 460,
+          "line": 483,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 486,
+          "line": 509,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 490
+          "line": 513
         },
         "getState": {
-          "line": 518,
+          "line": 541,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 525,
+          "line": 548,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 536,
+          "line": 559,
           "params": [
             "ipcMain"
           ]
@@ -2448,7 +2455,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 17834,
+      "sizeBytes": 18614,
       "extraction": {
         "status": "parsed"
       },
@@ -2464,6 +2471,7 @@
           "reRegister": "e88a61fbed8a6f32",
           "readInviteMode": "dcc8a44616939165",
           "refresh": "61b40a9ce727f469",
+          "refusalReason": "abca5b658054eebe",
           "sessionExpired": "5d56148c50c4781e",
           "setState": "3d2187de732548f8",
           "signIn": "d5bda9fb4a6e3b43",
@@ -3339,6 +3347,8 @@
         "SLOW_DOWN_STEP_MS",
         "MAX_BACKOFF_MS",
         "CloudError",
+        "LOOPBACK_HOSTS",
+        "checkServerUrl",
         "resolveServerUrl",
         "parseCodeResponse",
         "formatUserCode",
@@ -3368,65 +3378,72 @@
             "signal"
           ]
         },
+        "checkServerUrl": {
+          "line": 54,
+          "params": [
+            "url"
+          ],
+          "purpose": "Whether Frame may talk to `url`: https on any host, http on LOOPBACK_HOSTS"
+        },
         "resolveServerUrl": {
-          "line": 46,
+          "line": 72,
           "params": [
             "{ env",
             "setting",
             "defaultUrl } = {}"
           ],
-          "purpose": "First non-empty of env → setting → default, without trailing slashes."
+          "purpose": "The first non-empty of env → setting → default, without trailing slashes,"
         },
         "parseCodeResponse": {
-          "line": 56,
+          "line": 83,
           "params": [
             "body"
           ],
           "purpose": "`/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body."
         },
         "formatUserCode": {
-          "line": 79,
+          "line": 106,
           "params": [
             "userCode"
           ],
           "purpose": "Display-only grouping: 'TTN4YFST' → 'TTN4-YFST'. Other shapes are returned as-is."
         },
         "classifyTokenResponse": {
-          "line": 86,
+          "line": 113,
           "params": [
             "res"
           ],
           "purpose": "One `/api/auth/device/token` answer → what the poll loop does next."
         },
         "classifyTrpcError": {
-          "line": 114,
+          "line": 141,
           "params": [
             "res"
           ],
           "purpose": "A failed tRPC answer → CloudError kind."
         },
         "looksLikeAddress": {
-          "line": 130,
+          "line": 157,
           "params": [
             "name"
           ],
           "purpose": "A hostname that is really a network address (macOS without a HostName"
         },
         "cleanName": {
-          "line": 134,
+          "line": 161,
           "params": [
             "raw"
           ]
         },
         "deviceName": {
-          "line": 144,
+          "line": 171,
           "params": [
             "hostname"
           ],
           "purpose": "A machine name → the name the server shows for this device."
         },
         "formatDeviceInfo": {
-          "line": 153,
+          "line": 180,
           "params": [
             "{ computerName",
             "hostname",
@@ -3437,7 +3454,7 @@
           "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
         },
         "send": {
-          "line": 163,
+          "line": 190,
           "params": [
             "fetchJson",
             "url",
@@ -3445,7 +3462,7 @@
           ]
         },
         "requestDeviceCode": {
-          "line": 172,
+          "line": 199,
           "params": [
             "{ api",
             "fetchJson",
@@ -3453,7 +3470,7 @@
           ]
         },
         "callTrpc": {
-          "line": 190,
+          "line": 217,
           "params": [
             "{ api",
             "name",
@@ -3466,7 +3483,7 @@
           "purpose": "One tRPC procedure, no transformer. A query (GET) carries its input as"
         },
         "registerDevice": {
-          "line": 208,
+          "line": 235,
           "params": [
             "{ api",
             "token",
@@ -3476,7 +3493,7 @@
           ]
         },
         "fetchMe": {
-          "line": 217,
+          "line": 244,
           "params": [
             "{ api",
             "token",
@@ -3485,7 +3502,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 221,
+          "line": 248,
           "params": [
             "{ api",
             "token",
@@ -3494,7 +3511,7 @@
           ]
         },
         "fetchInviteMode": {
-          "line": 235,
+          "line": 262,
           "params": [
             "{ api",
             "fetchJson",
@@ -3503,20 +3520,20 @@
           "purpose": "Whether the server only lets invited people sign up (FrameCloud"
         },
         "normalizeWaitlistEmail": {
-          "line": 251,
+          "line": 278,
           "params": [
             "raw"
           ],
           "purpose": "A waitlist address as the server stores it — trimmed and lowercased as a"
         },
         "joinReason": {
-          "line": 262,
+          "line": 289,
           "params": [
             "err"
           ]
         },
         "joinWaitlist": {
-          "line": 277,
+          "line": 304,
           "params": [
             "{ api",
             "email",
@@ -3526,7 +3543,7 @@
           "purpose": "Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,"
         },
         "pollForToken": {
-          "line": 297,
+          "line": 324,
           "params": [
             "{ api",
             "code",
@@ -3538,13 +3555,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 350,
+          "line": 377,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 368,
+          "line": 395,
           "params": [
             "{ api",
             "fetchJson",
@@ -3558,19 +3575,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 426,
+          "line": 453,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 438,
+          "line": 465,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 452,
+          "line": 479,
           "params": [
             "{ api",
             "token",
@@ -3581,7 +3598,7 @@
           "purpose": "`device.me`, re-registering once when the server has forgotten this device."
         }
       },
-      "sizeBytes": 16725,
+      "sizeBytes": 17958,
       "extraction": {
         "status": "parsed"
       },
@@ -3589,6 +3606,7 @@
         "description": "ebf2be089212533a",
         "purposes": {
           "callTrpc": "e96a249383caf0be",
+          "checkServerUrl": "dd2d3d2bcddc2cb0",
           "classifyTokenResponse": "2f95a6e8fdf2bb48",
           "classifyTrpcError": "34a7196859403c98",
           "deviceName": "35a3ebe056a4adea",
@@ -3601,7 +3619,7 @@
           "parseCodeResponse": "4626cbf9184c6f5c",
           "pollForToken": "b146490edbbeb889",
           "refreshSession": "1d622fffd281eb11",
-          "resolveServerUrl": "9b6759bf29c1e97f",
+          "resolveServerUrl": "ef1826ded8765dc2",
           "runSignIn": "cb6126d231cc3199"
         }
       }
@@ -26642,14 +26660,14 @@
           ]
         },
         "signInHarness": {
-          "line": 409,
+          "line": 446,
           "params": [
             "routes",
             "extra = {}"
           ]
         }
       },
-      "sizeBytes": 30728,
+      "sizeBytes": 32726,
       "extraction": {
         "status": "parsed"
       },
@@ -31895,6 +31913,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "72e75d493d0b8afacda07d03641a373539d4b96a1a8bb6829640ddb4c15fd97a"
+    "revision": "501fa04dff909db17f3e33c0734920272e94ecf3e087c9357868fa53a0418348"
   }
 }

@@ -11,7 +11,7 @@
  * is a thin shell and `node --test` runs the whole thing with a fake fetch.
  */
 
-const { callTrpc } = require('./deviceFlow');
+const { callTrpc, LOOPBACK_HOSTS } = require('./deviceFlow');
 
 // FrameCloud's slug rule: 3–32 characters of a-z and 0-9, hyphens only
 // between two of them.
@@ -21,8 +21,6 @@ const SLUG_MAX = 32;
 
 // Project slugs the web app's routes already use.
 const RESERVED_SLUGS = new Set(['new', 'briefs', 'import', 'settings', 'members', 'projects', 'inbox', 'search']);
-
-const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 const MATCH_LABELS = {
   id: 'Your repository',

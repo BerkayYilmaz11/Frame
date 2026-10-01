@@ -32,6 +32,7 @@ const {
   fetchInviteMode,
   normalizeWaitlistEmail,
   joinWaitlist: joinWaitlistCall,
+  checkServerUrl,
 } = require('./deviceFlow');
 
 // No FrameCloud is deployed yet: packaged builds resolve to nothing and the
@@ -75,14 +76,36 @@ let waitlistEmail = null;
 let readingMode = null;
 const listeners = new Set();
 
+// Refused addresses already logged: resolveUrl runs on every getState.
+const refusedLogged = new Set();
+
 // ─── Dependencies for the core ────────────────────────────────
 
 function resolveUrl() {
-  return resolveServerUrl({
+  const { url, refused } = resolveServerUrl({
     env: process.env.FRAME_CLOUD_URL,
     setting: userSettings.get('cloudServerUrl'),
     defaultUrl: DEFAULT_CLOUD_SERVER_URL,
   });
+  if (refused && !refusedLogged.has(refused)) {
+    refusedLogged.add(refused);
+    logger.warn('cloudSession', `Frame Cloud is off: ${refusalReason(refused)}`);
+  }
+  return url;
+}
+
+// Scheme and host only: the rest of a mistyped address could carry anything.
+function refusalReason(address) {
+  let parsed;
+  try {
+    parsed = new URL(address);
+  } catch {
+    return 'the server address is not a URL';
+  }
+  if (checkServerUrl(address).reason === 'insecure') {
+    return `${parsed.protocol}//${parsed.host} is not https (plain http only reaches localhost and 127.0.0.1)`;
+  }
+  return `${parsed.protocol} is not an http(s) address`;
 }
 
 /**

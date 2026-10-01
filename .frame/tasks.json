@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T17:15:46.926Z",
+  "lastUpdated": "2026-10-01T17:44:40.486Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10021,13 +10021,13 @@
       "title": "Add `LOOPBACK_HOSTS` and `checkServerUrl` to `src/main/cloud/deviceFlow.js` (https on any host, http only on `localhost`/`127.0.0.1`), make `resolveServerUrl` return `{ url, refused }` with the first non-empty candidate deciding and no fall-through, import `LOOPBACK_HOSTS` in `src/main/cloud/cloudProjects.js` instead of its own set, update `cloudSession.resolveUrl()` to take `.url` and log a refused value once per distinct value (scheme and host only), and move `test/cloudDeviceFlow.test.js`'s `resolveServerUrl` cases to https while adding the rule's cases (https any host, http on loopback, http elsewhere refused, unparsable refused, refused env value not falling through to the setting)",
       "description": "",
       "source": "spec:frame-cloud-server-url:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T17:44:40.486Z",
+      "completedAt": "2026-10-01T17:44:40.486Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T02",
