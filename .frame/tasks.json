@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T17:47:31.096Z",
+  "lastUpdated": "2026-10-01T17:54:22.094Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10047,13 +10047,13 @@
       "title": "Migrate the legacy `userData/cloud-session.json` in `sessionStore.load(serverUrl)`: when no per-server file exists and the legacy file's `serverUrl` matches, copy its JSON unchanged to the per-server path and delete the legacy file and its `.bak`; leave a legacy file for another server alone; make `clear(serverUrl)` also remove a legacy file for that server; cover each case in `test/cloudSessionStore.test.js`",
       "description": "",
       "source": "spec:frame-cloud-server-url:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T17:54:22.094Z",
+      "completedAt": "2026-10-01T17:54:22.094Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T04",

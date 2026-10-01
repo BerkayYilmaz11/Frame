@@ -2,7 +2,8 @@
  * sessionStore tests — Frame Cloud sessions kept per server.
  *
  * The dev Frame and the installed one share userData, so each server's
- * session lives in its own file and neither overwrites the other. Electron is
+ * session lives in its own file and neither overwrites the other; the old
+ * single-server file moves to its server's file on first load. Electron is
  * stubbed: `app.getPath('userData')` points at a temporary folder and
  * safeStorage seals tokens with a readable prefix, so a test can tell a
  * sealed token from a plain one.
@@ -81,6 +82,23 @@ function sessionFiles() {
   }
 }
 
+function legacyFile() {
+  return path.join(userData, 'cloud-session.json');
+}
+
+/** A session file as the single-server store wrote it, with its .bak. */
+function writeLegacy(serverUrl, token) {
+  const { token: _plain, ...rest } = session(serverUrl, token);
+  const raw = JSON.stringify(
+    { version: 1, ...rest, savedAt: '2026-09-20T10:00:00.000Z', token: Buffer.from(`sealed:${token}`).toString('base64') },
+    null,
+    2
+  );
+  fs.writeFileSync(legacyFile(), raw);
+  fs.writeFileSync(`${legacyFile()}.bak`, raw);
+  return raw;
+}
+
 beforeEach(() => {
   userData = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-cloud-session-'));
   vault.available = true;
@@ -153,6 +171,51 @@ test('a token that no longer decrypts reads as absent', () => {
   fs.writeFileSync(fileFor(PROD), JSON.stringify({ ...record, token: Buffer.from('garbage').toString('base64') }));
 
   assert.equal(freshStore().load(PROD), null);
+});
+
+test('a single-server file for the requested server moves to its own file unchanged', () => {
+  const raw = writeLegacy(PROD, 'tok-old');
+
+  const loaded = freshStore().load(PROD);
+
+  assert.equal(loaded.token, 'tok-old');
+  assert.equal(loaded.ephemeral, false);
+  assert.equal(loaded.savedAt, '2026-09-20T10:00:00.000Z');
+  assert.equal(fs.readFileSync(fileFor(PROD), 'utf8'), raw, 'copied as-is, token still sealed');
+  assert.ok(!fs.existsSync(legacyFile()));
+  assert.ok(!fs.existsSync(`${legacyFile()}.bak`));
+  assert.equal(freshStore().load(PROD).token, 'tok-old', 'still signed in after the next restart');
+});
+
+test('a single-server file for another server is left alone until that server loads', () => {
+  writeLegacy(LOCAL, 'tok-local');
+
+  assert.equal(freshStore().load(PROD), null);
+  assert.ok(fs.existsSync(legacyFile()));
+  assert.deepEqual(sessionFiles(), []);
+
+  assert.equal(freshStore().load(LOCAL).token, 'tok-local');
+  assert.ok(!fs.existsSync(legacyFile()));
+});
+
+test('a server with its own file ignores the single-server file, and clearing it removes both', () => {
+  freshStore().save(session(PROD, 'tok-new'));
+  writeLegacy(PROD, 'tok-old');
+
+  const store = freshStore();
+  assert.equal(store.load(PROD).token, 'tok-new');
+  assert.ok(fs.existsSync(legacyFile()), 'not migrated over a newer session');
+
+  store.clear(PROD);
+  assert.equal(store.load(PROD), null);
+  assert.ok(!fs.existsSync(legacyFile()));
+  assert.ok(!fs.existsSync(`${legacyFile()}.bak`));
+});
+
+test('clearing a server leaves a single-server file for another server', () => {
+  writeLegacy(LOCAL, 'tok-local');
+  freshStore().clear(PROD);
+  assert.ok(fs.existsSync(legacyFile()));
 });
 
 test('a file is read only for the server it was saved for', () => {

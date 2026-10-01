@@ -3642,52 +3642,77 @@
       ],
       "functions": {
         "sessionPath": {
-          "line": 31,
+          "line": 35,
           "params": [
             "serverUrl"
           ]
         },
+        "legacyPath": {
+          "line": 40
+        },
+        "readLegacy": {
+          "line": 45,
+          "purpose": "The single-server file's text and server, or null when it is absent or unreadable."
+        },
+        "removeFiles": {
+          "line": 56,
+          "params": [
+            "file"
+          ],
+          "purpose": "A session file and the fsSafe files beside it."
+        },
+        "migrateLegacy": {
+          "line": 71,
+          "params": [
+            "serverUrl",
+            "file"
+          ],
+          "purpose": "When `serverUrl` has no file of its own and the single-server file is its,"
+        },
         "encryptionAvailable": {
-          "line": 36
+          "line": 85
         },
         "pickSession": {
-          "line": 44,
+          "line": 93,
           "params": [
             "source",
             "token"
           ]
         },
         "load": {
-          "line": 62,
+          "line": 111,
           "params": [
             "serverUrl"
           ],
           "purpose": "The stored session for `serverUrl`, or null. A file for another server, an"
         },
         "save": {
-          "line": 90,
+          "line": 140,
           "params": [
             "session"
           ],
           "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })"
         },
         "clear": {
-          "line": 112,
+          "line": 165,
           "params": [
             "serverUrl"
           ],
-          "purpose": "Forget `serverUrl`'s session: its file, the fsSafe backup and the memory copy."
+          "purpose": "Forget `serverUrl`'s session: its file, the fsSafe backup, the memory copy,"
         }
       },
-      "sizeBytes": 4374,
+      "sizeBytes": 5948,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "b212ee64f98fe96d",
         "purposes": {
-          "clear": "22c7aba0b328749c",
+          "clear": "f1ea44f5d58736e5",
           "load": "0e6f1cbe55989812",
+          "migrateLegacy": "f223a8378e3776ea",
+          "readLegacy": "bdb61d043e83cdb6",
+          "removeFiles": "efc44f64aa32cfcd",
           "save": "495b1c7746743fbe"
         }
       }
@@ -26808,37 +26833,49 @@
       ],
       "functions": {
         "freshStore": {
-          "line": 47,
+          "line": 48,
           "purpose": "A new module instance: a second Frame, or the same one after a restart."
         },
         "session": {
-          "line": 55,
+          "line": 56,
           "params": [
             "serverUrl",
             "token"
           ]
         },
         "sessionsDir": {
-          "line": 67
+          "line": 68
         },
         "fileFor": {
-          "line": 71,
+          "line": 72,
           "params": [
             "serverUrl"
           ]
         },
         "sessionFiles": {
-          "line": 76
+          "line": 77
+        },
+        "legacyFile": {
+          "line": 85
+        },
+        "writeLegacy": {
+          "line": 90,
+          "params": [
+            "serverUrl",
+            "token"
+          ],
+          "purpose": "A session file as the single-server store wrote it, with its .bak."
         }
       },
-      "sizeBytes": 5751,
+      "sizeBytes": 8047,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "f5b799993240acd1",
         "purposes": {
-          "freshStore": "b1ef9fc4e96ec63b"
+          "freshStore": "b1ef9fc4e96ec63b",
+          "writeLegacy": "a9c4e15de422358b"
         }
       }
     },
@@ -31969,6 +32006,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2f972291566784e5c1dac410efebf1f679a9623fdb0e8c24fafb287af9e0b5a7"
+    "revision": "c845d9f868708460c4538850da141c871fcef4630be015e86fc87ad0e68de6e8"
   }
 }

@@ -15,3 +15,11 @@ Rewrote `sessionStore.js` to keep each server's session at `userData/cloud-sessi
 _Captured: 2026-10-01 · 3 file change(s)_
 
 ---
+
+## T03 — Move the old single-server session to its server's file
+
+Added `migrateLegacy` to `sessionStore.load(serverUrl)`: when the server has no per-server file and `userData/cloud-session.json` names it, the raw text is copied byte-for-byte to the per-server path and the old file is removed. An old file for another server stays put, and `clear(serverUrl)` removes the old file when it belongs to the same server. Diverged slightly from D4: removal shares `clear`'s helper, so the old `.tmp` goes too, and the old file is read with a plain parse rather than `fsSafe.readJsonWithRecovery`, so neither `clear` nor `load` moves a corrupt one aside. Files: `src/main/cloud/sessionStore.js`, `test/cloudSessionStore.test.js`.
+
+_Captured: 2026-10-01 · 2 file change(s)_
+
+---

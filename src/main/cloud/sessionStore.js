@@ -12,6 +12,9 @@
  * nothing is written: the session is kept in memory, per server, until quit
  * and `save()` answers `{ ephemeral: true }` so the Account section can say so.
  *
+ * Before this, one `userData/cloud-session.json` held the only session. The
+ * first load for its server moves it to that server's file.
+ *
  * Log lines name the path and the outcome only — never the session.
  */
 
@@ -23,6 +26,7 @@ const fsSafe = require('../fsSafe');
 const logger = require('../logger');
 
 const DIR_NAME = 'cloud-sessions';
+const LEGACY_FILE_NAME = 'cloud-session.json';
 const VERSION = 1;
 
 // serverUrl → session record, for sessions that could not be written.
@@ -31,6 +35,51 @@ const memory = new Map();
 function sessionPath(serverUrl) {
   const key = crypto.createHash('sha256').update(serverUrl).digest('hex').slice(0, 16);
   return path.join(app.getPath('userData'), DIR_NAME, `${key}.json`);
+}
+
+function legacyPath() {
+  return path.join(app.getPath('userData'), LEGACY_FILE_NAME);
+}
+
+/** The single-server file's text and server, or null when it is absent or unreadable. */
+function readLegacy() {
+  try {
+    const raw = fs.readFileSync(legacyPath(), 'utf8');
+    const data = JSON.parse(raw);
+    return data && typeof data.serverUrl === 'string' ? { raw, serverUrl: data.serverUrl } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A session file and the fsSafe files beside it. */
+function removeFiles(file) {
+  for (const target of [file, `${file}.bak`, `${file}.tmp`]) {
+    try {
+      fs.unlinkSync(target);
+    } catch (err) {
+      if (err.code !== 'ENOENT') logger.warn('cloudSession', `could not delete ${target}`);
+    }
+  }
+}
+
+/**
+ * When `serverUrl` has no file of its own and the single-server file is its,
+ * copy that file unchanged (the token stays sealed) and remove the old one. A
+ * single-server file for another server waits until that server is loaded.
+ */
+function migrateLegacy(serverUrl, file) {
+  if (fs.existsSync(file)) return;
+  const legacy = readLegacy();
+  if (!legacy || legacy.serverUrl !== serverUrl) return;
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fsSafe.writeFileAtomic(file, legacy.raw);
+  } catch {
+    logger.warn('cloudSession', `could not move ${legacyPath()} to ${file}`);
+    return;
+  }
+  removeFiles(legacyPath());
 }
 
 function encryptionAvailable() {
@@ -64,6 +113,7 @@ function load(serverUrl) {
   const held = memory.get(serverUrl);
   if (held) return { ...held, ephemeral: true };
   const file = sessionPath(serverUrl);
+  migrateLegacy(serverUrl, file);
   try {
     const { data, error } = fsSafe.readJsonWithRecovery(file);
     if (!data) {
@@ -108,18 +158,16 @@ function save(session) {
   }
 }
 
-/** Forget `serverUrl`'s session: its file, the fsSafe backup and the memory copy. */
+/**
+ * Forget `serverUrl`'s session: its file, the fsSafe backup, the memory copy,
+ * and the single-server file when that one is this server's too.
+ */
 function clear(serverUrl) {
   if (!serverUrl) return;
   memory.delete(serverUrl);
-  const file = sessionPath(serverUrl);
-  for (const target of [file, `${file}.bak`, `${file}.tmp`]) {
-    try {
-      fs.unlinkSync(target);
-    } catch (err) {
-      if (err.code !== 'ENOENT') logger.warn('cloudSession', `could not delete ${target}`);
-    }
-  }
+  removeFiles(sessionPath(serverUrl));
+  const legacy = readLegacy();
+  if (legacy && legacy.serverUrl === serverUrl) removeFiles(legacyPath());
 }
 
 module.exports = { load, save, clear };
