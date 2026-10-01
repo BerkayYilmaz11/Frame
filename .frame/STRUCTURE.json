@@ -19061,6 +19061,130 @@
         }
       }
     },
+    "scripts/structure-retrieval": {
+      "file": "scripts/structure-retrieval.js",
+      "description": "STRUCTURE retrieval (STR-03) — from a path, file name, symbol or concept",
+      "exports": [
+        "compileIndex",
+        "normalizeQuery",
+        "retrieve",
+        "legacyRetrieve",
+        "fold",
+        "splitWords",
+        "TIER",
+        "HOOK_MAX_TIER",
+        "LIMITS",
+        "INDEX_VERSION",
+        "ALGORITHM",
+        "NOISE"
+      ],
+      "depends": [],
+      "functions": {
+        "fold": {
+          "line": 62,
+          "params": [
+            "text"
+          ],
+          "purpose": "Case- and accent-insensitive search form; Turkish letters fold to ASCII."
+        },
+        "splitWords": {
+          "line": 72,
+          "params": [
+            "text"
+          ],
+          "purpose": "Identifier words: camelCase, snake_case, kebab-case, dotted and path parts."
+        },
+        "normalizeQuery": {
+          "line": 89,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A raw query → its search units. Regex syntax is dropped, alternations"
+        },
+        "basenameOf": {
+          "line": 120,
+          "params": [
+            "file"
+          ]
+        },
+        "stripExt": {
+          "line": 124,
+          "params": [
+            "name"
+          ]
+        },
+        "compileIndex": {
+          "line": 138,
+          "params": [
+            "structure",
+            "curation = {}",
+            "meta = {}"
+          ],
+          "purpose": "Compile the lookup index from a map (STR-02c read view) and the curated"
+        },
+        "matchUnit": {
+          "line": 223,
+          "params": [
+            "index",
+            "unit",
+            "phraseConcepts"
+          ],
+          "purpose": "Every match one unit has: Map(fileId → best tier) plus the concepts it named."
+        },
+        "retrieve": {
+          "line": 284,
+          "params": [
+            "index",
+            "query",
+            "options = {}"
+          ],
+          "purpose": "Rank the files that explain the query."
+        },
+        "retrieveUnits": {
+          "line": 296,
+          "params": [
+            "index",
+            "allUnits",
+            "mode",
+            "limit",
+            "options"
+          ]
+        },
+        "legacyRetrieve": {
+          "line": 379,
+          "params": [
+            "structure",
+            "curation",
+            "options = {}"
+          ],
+          "purpose": "Today's behavior, kept selectable as the rollback path (STR-03 D2):"
+        },
+        "legacyHookLookup": {
+          "line": 432,
+          "params": [
+            "index",
+            "intentMap",
+            "keyword"
+          ]
+        }
+      },
+      "sizeBytes": 19438,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "aa71905c9716ab4b",
+        "purposes": {
+          "compileIndex": "60c20164d8c3a443",
+          "fold": "475b654bf901e6d9",
+          "legacyRetrieve": "01c5d2059f3b0d6f",
+          "matchUnit": "02ae5ca770fd9391",
+          "normalizeQuery": "31b57c6910e130c5",
+          "retrieve": "acf77b261ff3fd1e",
+          "splitWords": "858bcfb0070cb9f5"
+        }
+      }
+    },
     "scripts/structure-snapshot": {
       "file": "scripts/structure-snapshot.js",
       "description": "STRUCTURE snapshot — content identity for the working tree (STR-02).",
@@ -24101,6 +24225,40 @@
         }
       }
     },
+    "test/structureRetrieval.test": {
+      "file": "test/structureRetrieval.test.js",
+      "description": "structure-retrieval tests (STR-03): evidence tiers, curated precedence,",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-retrieval"
+      ],
+      "functions": {
+        "mod": {
+          "line": 19,
+          "params": [
+            "file",
+            "description",
+            "extra = {}"
+          ]
+        },
+        "legacyProject": {
+          "line": 222
+        }
+      },
+      "sizeBytes": 13860,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "d9d8aeaf4888558c"
+      }
+    },
     "test/structureSnapshots.test": {
       "file": "test/structureSnapshots.test.js",
       "description": "structure-snapshot tests (STR-02 T03): content identity for the working",
@@ -26102,7 +26260,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 292,
+        "parsed": 294,
         "unsupported": 83,
         "partial": 0
       }
@@ -26149,9 +26307,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 463,
+      "visitedEntries": 465,
       "traversedDirectories": 80,
-      "eligibleFiles": 375,
+      "eligibleFiles": 377,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -26168,7 +26326,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 375,
+      "indexedFiles": 377,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -26176,6 +26334,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "60fa3f10f358213741926b7c4b230997858335f69a05121ded9fe6aa21eb2417"
+    "revision": "8e89c6fc955d86d991383345d2160ec4c97f950c910236d65ca47c6d6472744b"
   }
 }
