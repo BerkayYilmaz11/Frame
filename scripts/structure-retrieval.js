@@ -4,9 +4,10 @@
  *
  * One engine serves both `find-module.js` (explicit lookup) and
  * `module-hint.js` (the automatic search hint); the hook only takes the
- * stronger evidence tiers. Pure and dependency-free: no Git, no subprocess,
- * no network, nothing that builds or rewrites the map. Ships to
- * `.frame/bin/`.
+ * stronger evidence tiers. Dependency-free: no Git, no subprocess, no
+ * network, nothing that builds or rewrites the map. The only file it writes
+ * is its own derived `lookup.json` (publishLookup, called by the map's
+ * writers). Ships to `.frame/bin/`.
  *
  * Evidence tiers, strongest first:
  *   1 path            exact repo-relative path, or a path suffix ("lang/python.js")
@@ -367,6 +368,162 @@ function retrieveUnits(index, allUnits, mode, limit, options) {
   };
 }
 
+/* ------------------------- the published lookup file ------------------------ */
+//
+// `.frame/runtime/structure/lookup.json` is compiled after every working-view
+// publication (STR-03 A2), so a search hook reads a small file instead of the
+// whole map. It records the signature of the map file and of intent-map.json
+// it was built from; a mismatch makes it stale and a reader never trusts it.
+
+const fs = require('fs');
+const path = require('path');
+
+function lookupPath(root) {
+  return path.join(root, '.frame', 'runtime', 'structure', 'lookup.json');
+}
+
+/** intent-map.json beside the running scripts (scripts/ or .frame/bin/). */
+function curationPath(dir = __dirname) {
+  return path.join(dir, 'intent-map.json');
+}
+
+function readCuration(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function signatureOf(file) {
+  try {
+    const s = fs.statSync(file);
+    return { ino: s.ino, size: s.size, mtimeMs: s.mtimeMs, ctimeMs: s.ctimeMs };
+  } catch {
+    return null;
+  }
+}
+
+function sameSignature(a, b) {
+  if (a === null || b === null || a === undefined || b === undefined) return a == b; // eslint-disable-line eqeqeq
+  return a.ino === b.ino && a.size === b.size && a.mtimeMs === b.mtimeMs && a.ctimeMs === b.ctimeMs;
+}
+
+/**
+ * Compile and atomically publish lookup.json from the map at `mapPath`
+ * (default: the read view). Never throws: a failure is reported and the
+ * map publication it follows stands.
+ *
+ * Returns { status: 'published' | 'unchanged' | 'failed', bytes?, oversize?, reason? }.
+ */
+function publishLookup(root, options = {}) {
+  try {
+    const read = require('./structure-read');
+    const mapFile = options.mapPath || read.resolveReadPath(root);
+    const curationFile = options.curationPath || curationPath();
+    const relMap = path.relative(root, mapFile).split(path.sep).join('/');
+    const source = { path: relMap, signature: signatureOf(mapFile) };
+    const curation = { signature: signatureOf(curationFile) };
+    if (!source.signature) return { status: 'failed', reason: 'no-map' };
+
+    const target = lookupPath(root);
+    try {
+      const current = JSON.parse(fs.readFileSync(target, 'utf8'));
+      if (current.version === INDEX_VERSION && current.algorithm === ALGORITHM && current.source
+        && current.source.path === relMap && sameSignature(current.source.signature, source.signature)
+        && current.curation && sameSignature(current.curation.signature, curation.signature)) {
+        return { status: 'unchanged', bytes: fs.statSync(target).size, oversize: Boolean(current.oversize) };
+      }
+    } catch { /* none or unreadable: rebuild */ }
+
+    const structure = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
+    const index = compileIndex(structure, readCuration(curationFile), { source, curation, oversize: false });
+    let text = JSON.stringify(index);
+    if (Buffer.byteLength(text) > LIMITS.hookIndexBytes) {
+      index.oversize = true;
+      text = JSON.stringify(index);
+    }
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    const tmp = `${target}.tmp-${process.pid}`;
+    fs.writeFileSync(tmp, text);
+    fs.renameSync(tmp, target);
+    return { status: 'published', bytes: Buffer.byteLength(text), oversize: index.oversize };
+  } catch (err) {
+    return { status: 'failed', reason: (err && err.code) || 'error', message: err && err.message };
+  }
+}
+
+/**
+ * Read the published index for a lookup. Never compiles, never writes.
+ *
+ * options: { maxBytes } — larger files are not even read.
+ * Returns { state: 'fresh' | 'stale' | 'missing' | 'oversize' | 'invalid', index? }:
+ * fresh only when it was built from the current read view and curation by
+ * this algorithm. A stale index is still returned for callers that may use
+ * it with care; hooks must not.
+ */
+function loadLookup(root, options = {}) {
+  const file = lookupPath(root);
+  let size;
+  try {
+    size = fs.statSync(file).size;
+  } catch {
+    return { state: 'missing' };
+  }
+  if (options.maxBytes && size > options.maxBytes) return { state: 'oversize' };
+  let index;
+  try {
+    index = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return { state: 'invalid' };
+  }
+  if (!index || index.version !== INDEX_VERSION || !Array.isArray(index.files) || !index.terms || !Array.isArray(index.concepts)) {
+    return { state: 'invalid' };
+  }
+  if (index.oversize && options.maxBytes) return { state: 'oversize' };
+  let fresh = index.algorithm === ALGORITHM;
+  try {
+    const read = require('./structure-read');
+    const mapFile = read.resolveReadPath(root);
+    const relMap = path.relative(root, mapFile).split(path.sep).join('/');
+    fresh = fresh && index.source && index.source.path === relMap && sameSignature(index.source.signature, signatureOf(mapFile))
+      && index.curation && sameSignature(index.curation.signature, signatureOf(options.curationPath || curationPath()));
+  } catch {
+    fresh = false;
+  }
+  return { state: fresh ? 'fresh' : 'stale', index };
+}
+
+/**
+ * Compile an index in memory from the read view — the fallback when no
+ * fresh lookup.json exists (a clone without a running worker). Bounded:
+ * a map larger than `maxBytes` is not read.
+ * Returns { state: 'compiled' | 'missing' | 'oversize' | 'invalid', index?, structure? }.
+ */
+function indexFromMap(root, options = {}) {
+  let mapFile;
+  try {
+    mapFile = require('./structure-read').resolveReadPath(root);
+  } catch {
+    return { state: 'missing' };
+  }
+  let size;
+  try {
+    size = fs.statSync(mapFile).size;
+  } catch {
+    return { state: 'missing' };
+  }
+  if (options.maxBytes && size > options.maxBytes) return { state: 'oversize' };
+  let structure;
+  try {
+    structure = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
+  } catch {
+    return { state: 'invalid' };
+  }
+  if (!structure || typeof structure !== 'object' || !structure.modules) return { state: 'invalid' };
+  return { state: 'compiled', index: compileIndex(structure, readCuration(options.curationPath || curationPath())), structure };
+}
+
 /* --------------------------------- legacy -------------------------------- */
 
 /**
@@ -447,6 +604,11 @@ function legacyHookLookup(index, intentMap, keyword) {
 
 module.exports = {
   compileIndex,
+  publishLookup,
+  loadLookup,
+  indexFromMap,
+  lookupPath,
+  curationPath,
   normalizeQuery,
   retrieve,
   legacyRetrieve,

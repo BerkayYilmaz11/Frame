@@ -249,3 +249,76 @@ test('the legacy hook engine takes the first keyword that hits a curated tier', 
   assert.equal(R.legacyRetrieve(STRUCTURE, CURATION, { mode: 'hook', words: ['checkghauth'] }).status, 'no-match', 'no deep tier in hooks');
   assert.equal(R.legacyRetrieve({ modules: {} }, {}, { mode: 'cli', query: 'x' }).status, 'unavailable');
 });
+
+/* ------------------------- the published lookup file ------------------------ */
+
+function lookupProject(t, files = { 'src/a.js': '// Alpha module\nfunction runAlpha() {}\nmodule.exports = { runAlpha };\n' }) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-lookup-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  for (const [rel, content] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+    fs.writeFileSync(path.join(dir, rel), content);
+  }
+  const working = path.join(dir, '.frame', 'runtime', 'structure', 'working.json');
+  fs.mkdirSync(path.dirname(working), { recursive: true });
+  fs.writeFileSync(working, JSON.stringify({ generation: { revision: 'r1' }, modules: { a: mod('src/a.js', 'Alpha module', { functions: { runAlpha: {} } }) }, intentIndex: {} }));
+  const curation = path.join(dir, 'intent-map.json');
+  fs.writeFileSync(curation, JSON.stringify({ alpha: { synonyms: ['first'] } }));
+  return { dir, working, curation };
+}
+
+test('publishLookup writes a fresh index once and reports unchanged until an input changes', (t) => {
+  const { dir, working, curation } = lookupProject(t);
+  const first = R.publishLookup(dir, { curationPath: curation });
+  assert.equal(first.status, 'published');
+  assert.equal(first.oversize, false);
+  const loaded = R.loadLookup(dir, { curationPath: curation, maxBytes: R.LIMITS.hookIndexBytes });
+  assert.equal(loaded.state, 'fresh');
+  assert.equal(loaded.index.source.path, '.frame/runtime/structure/working.json');
+  assert.deepEqual(R.retrieve(loaded.index, 'runAlpha', { mode: 'hook' }).candidates.map((c) => c.path), ['src/a.js']);
+  assert.equal(R.publishLookup(dir, { curationPath: curation }).status, 'unchanged');
+
+  // a changed map makes it stale until it is republished
+  fs.writeFileSync(working, fs.readFileSync(working, 'utf8').replace('Alpha module', 'Alpha module, edited'));
+  assert.equal(R.loadLookup(dir, { curationPath: curation }).state, 'stale');
+  assert.equal(R.publishLookup(dir, { curationPath: curation }).status, 'published');
+  assert.equal(R.loadLookup(dir, { curationPath: curation }).state, 'fresh');
+
+  // so does a changed curation file
+  fs.writeFileSync(curation, JSON.stringify({ alpha: { synonyms: ['first', 'premier'] } }));
+  assert.equal(R.loadLookup(dir, { curationPath: curation }).state, 'stale');
+  assert.equal(R.publishLookup(dir, { curationPath: curation }).status, 'published');
+});
+
+test('loadLookup reports missing, invalid and oversize indexes without reading past the cap', (t) => {
+  const { dir, curation } = lookupProject(t);
+  assert.equal(R.loadLookup(dir).state, 'missing');
+  fs.writeFileSync(R.lookupPath(dir), '{ not json');
+  assert.equal(R.loadLookup(dir).state, 'invalid');
+  fs.writeFileSync(R.lookupPath(dir), JSON.stringify({ version: 999 }));
+  assert.equal(R.loadLookup(dir).state, 'invalid');
+  R.publishLookup(dir, { curationPath: curation, mapPath: undefined });
+  assert.equal(R.loadLookup(dir, { maxBytes: 10 }).state, 'oversize');
+});
+
+test('an index above the hook cap is published, flagged oversize, and refused to hooks', (t) => {
+  const modules = {};
+  for (let i = 0; i < 9000; i++) modules[`m${i}`] = mod(`src/area${i % 50}/widgetNumber${i}.js`, `Widget number ${i} with a long description to grow the index`, { functions: { [`handleWidget${i}`]: {} } });
+  const { dir, working, curation } = lookupProject(t);
+  fs.writeFileSync(working, JSON.stringify({ modules, intentIndex: {} }));
+  const r = R.publishLookup(dir, { curationPath: curation });
+  assert.equal(r.status, 'published');
+  assert.equal(r.oversize, true);
+  assert.ok(r.bytes > R.LIMITS.hookIndexBytes);
+  assert.equal(R.loadLookup(dir, { curationPath: curation, maxBytes: R.LIMITS.hookIndexBytes }).state, 'oversize');
+  assert.equal(R.loadLookup(dir, { curationPath: curation }).state, 'fresh', 'the CLI may still use it');
+});
+
+test('indexFromMap compiles the read view in memory and refuses a map above the cap', (t) => {
+  const { dir, curation } = lookupProject(t);
+  const r = R.indexFromMap(dir, { curationPath: curation });
+  assert.equal(r.state, 'compiled');
+  assert.deepEqual(R.retrieve(r.index, 'first', { mode: 'hook' }).candidates, [], 'no alpha concept in the intentIndex');
+  assert.equal(R.indexFromMap(dir, { maxBytes: 10 }).state, 'oversize');
+  assert.equal(fs.existsSync(R.lookupPath(dir)), false, 'never writes');
+});

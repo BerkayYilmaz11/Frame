@@ -814,3 +814,21 @@ test('find-module and check-freshness read the live working view before the trac
     fs.rmSync(r.dir, { recursive: true, force: true });
   }
 });
+
+test('a copied .frame/bin/ publishes lookup.json without Frame\'s repository', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-03-bin-'));
+  try {
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', 'gadget.js'), '// Gadget\nfunction buildGadget() {}\nmodule.exports = { buildGadget };\n');
+    structureBootstrap.copyParserScripts(dir);
+    assert.ok(fs.existsSync(path.join(dir, '.frame', 'bin', 'structure-retrieval.js')));
+    const env = { ...process.env, FRAME_PROJECT_ROOT: undefined };
+    const run = spawnSync('node', [path.join(dir, '.frame', 'bin', 'structure-lifecycle.js'), '--once'], { cwd: dir, env, encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    const index = JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'lookup.json'), 'utf8'));
+    assert.ok(index.terms['5:buildgadget']);
+    assert.ok(index.curation.signature, 'built with the copied intent-map.json');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

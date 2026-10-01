@@ -5214,7 +5214,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 26865,
+      "sizeBytes": 26943,
       "extraction": {
         "status": "parsed"
       },
@@ -6028,7 +6028,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3707,
+      "sizeBytes": 3747,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -18754,6 +18754,7 @@
         "structure-state",
         "structure-snapshot",
         "structure-read",
+        "structure-retrieval",
         "structure-commit",
         "activity-log"
       ],
@@ -18826,13 +18827,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 452,
+          "line": 463,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 457,
+          "line": 468,
           "params": [
             "root",
             "options = {}"
@@ -18840,21 +18841,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 461,
+          "line": 472,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 468,
+          "line": 479,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 488,
+          "line": 499,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18862,13 +18863,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 502,
+          "line": 513,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 513,
+          "line": 524,
           "params": [
             "root",
             "onEvent",
@@ -18877,14 +18878,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 614,
+          "line": 625,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 646,
+          "line": 657,
           "params": [
             "root",
             "options = {}"
@@ -18892,24 +18893,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 788
+          "line": 799
         },
         "writeLine": {
-          "line": 797,
+          "line": 808,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 801,
+          "line": 812,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 823,
+          "line": 834,
           "params": [
             "root",
             "supervised"
@@ -18917,10 +18918,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 865
+          "line": 876
         }
       },
-      "sizeBytes": 31157,
+      "sizeBytes": 31557,
       "extraction": {
         "status": "parsed"
       },
@@ -19066,6 +19067,11 @@
       "description": "STRUCTURE retrieval (STR-03) — from a path, file name, symbol or concept",
       "exports": [
         "compileIndex",
+        "publishLookup",
+        "loadLookup",
+        "indexFromMap",
+        "lookupPath",
+        "curationPath",
         "normalizeQuery",
         "retrieve",
         "legacyRetrieve",
@@ -19078,43 +19084,47 @@
         "ALGORITHM",
         "NOISE"
       ],
-      "depends": [],
+      "depends": [
+        "fs",
+        "path",
+        "structure-read"
+      ],
       "functions": {
         "fold": {
-          "line": 62,
+          "line": 63,
           "params": [
             "text"
           ],
           "purpose": "Case- and accent-insensitive search form; Turkish letters fold to ASCII."
         },
         "splitWords": {
-          "line": 72,
+          "line": 73,
           "params": [
             "text"
           ],
           "purpose": "Identifier words: camelCase, snake_case, kebab-case, dotted and path parts."
         },
         "normalizeQuery": {
-          "line": 89,
+          "line": 90,
           "params": [
             "raw"
           ],
           "purpose": "A raw query → its search units. Regex syntax is dropped, alternations"
         },
         "basenameOf": {
-          "line": 120,
+          "line": 121,
           "params": [
             "file"
           ]
         },
         "stripExt": {
-          "line": 124,
+          "line": 125,
           "params": [
             "name"
           ]
         },
         "compileIndex": {
-          "line": 138,
+          "line": 139,
           "params": [
             "structure",
             "curation = {}",
@@ -19123,7 +19133,7 @@
           "purpose": "Compile the lookup index from a map (STR-02c read view) and the curated"
         },
         "matchUnit": {
-          "line": 223,
+          "line": 224,
           "params": [
             "index",
             "unit",
@@ -19132,7 +19142,7 @@
           "purpose": "Every match one unit has: Map(fileId → best tier) plus the concepts it named."
         },
         "retrieve": {
-          "line": 284,
+          "line": 285,
           "params": [
             "index",
             "query",
@@ -19141,7 +19151,7 @@
           "purpose": "Rank the files that explain the query."
         },
         "retrieveUnits": {
-          "line": 296,
+          "line": 297,
           "params": [
             "index",
             "allUnits",
@@ -19150,8 +19160,64 @@
             "options"
           ]
         },
+        "lookupPath": {
+          "line": 381,
+          "params": [
+            "root"
+          ]
+        },
+        "curationPath": {
+          "line": 386,
+          "params": [
+            "dir = __dirname"
+          ],
+          "purpose": "intent-map.json beside the running scripts (scripts/ or .frame/bin/)."
+        },
+        "readCuration": {
+          "line": 390,
+          "params": [
+            "file"
+          ]
+        },
+        "signatureOf": {
+          "line": 398,
+          "params": [
+            "file"
+          ]
+        },
+        "sameSignature": {
+          "line": 407,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "publishLookup": {
+          "line": 419,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Compile and atomically publish lookup.json from the map at `mapPath`"
+        },
+        "loadLookup": {
+          "line": 465,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Read the published index for a lookup. Never compiles, never writes."
+        },
+        "indexFromMap": {
+          "line": 503,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Compile an index in memory from the read view — the fallback when no"
+        },
         "legacyRetrieve": {
-          "line": 379,
+          "line": 536,
           "params": [
             "structure",
             "curation",
@@ -19160,7 +19226,7 @@
           "purpose": "Today's behavior, kept selectable as the rollback path (STR-03 D2):"
         },
         "legacyHookLookup": {
-          "line": 432,
+          "line": 589,
           "params": [
             "index",
             "intentMap",
@@ -19168,7 +19234,7 @@
           ]
         }
       },
-      "sizeBytes": 19438,
+      "sizeBytes": 25653,
       "extraction": {
         "status": "parsed"
       },
@@ -19176,10 +19242,14 @@
         "description": "aa71905c9716ab4b",
         "purposes": {
           "compileIndex": "60c20164d8c3a443",
+          "curationPath": "37dd7da1d8d13d69",
           "fold": "475b654bf901e6d9",
+          "indexFromMap": "f0606664e619eacc",
           "legacyRetrieve": "01c5d2059f3b0d6f",
+          "loadLookup": "824e133bd24d973a",
           "matchUnit": "02ae5ca770fd9391",
           "normalizeQuery": "31b57c6910e130c5",
+          "publishLookup": "be63fd7f0ef49a09",
           "retrieve": "acf77b261ff3fd1e",
           "splitWords": "858bcfb0070cb9f5"
         }
@@ -19765,6 +19835,7 @@
         "structure-generation",
         "structure-state",
         "activity-log",
+        "structure-retrieval",
         "structure-commit"
       ],
       "functions": {
@@ -19833,8 +19904,15 @@
           "line": 181,
           "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
         },
+        "publishLookup": {
+          "line": 190,
+          "params": [
+            "result"
+          ],
+          "purpose": "After a working-view publish, refresh the derived lookup index (STR-03)."
+        },
         "mirrorWorkingView": {
-          "line": 187,
+          "line": 204,
           "params": [
             "result",
             "discardsAuthored"
@@ -19842,7 +19920,7 @@
           "purpose": "After a working-view publish, keep an untracked map file equal to it."
         },
         "builtFrom": {
-          "line": 204,
+          "line": 221,
           "params": [
             "structure",
             "report",
@@ -19852,37 +19930,37 @@
           "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 222,
+          "line": 239,
           "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 246,
+          "line": 264,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 287,
+          "line": 306,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 318
+          "line": 337
         },
         "runStaged": {
-          "line": 364,
+          "line": 383,
           "params": [
             "command = 'staged'"
           ],
           "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot,"
         },
         "main": {
-          "line": 383
+          "line": 402
         }
       },
-      "sizeBytes": 19119,
+      "sizeBytes": 19854,
       "extraction": {
         "status": "parsed"
       },
@@ -19890,6 +19968,7 @@
         "purposes": {
           "builtFrom": "0f3b5f39b1a05377",
           "mirrorWorkingView": "2b24665961d385c6",
+          "publishLookup": "5d6adb89f9495625",
           "resolveProjectRoot": "bdaf2016db7ccaef",
           "runFull": "018e3a0230855dd1",
           "runStaged": "5d25180306f61337",
@@ -23319,7 +23398,7 @@
           ]
         }
       },
-      "sizeBytes": 28510,
+      "sizeBytes": 30143,
       "extraction": {
         "status": "parsed"
       },
@@ -23433,7 +23512,7 @@
           ]
         }
       },
-      "sizeBytes": 43964,
+      "sizeBytes": 45042,
       "extraction": {
         "status": "parsed"
       },
@@ -24142,7 +24221,7 @@
           ]
         }
       },
-      "sizeBytes": 37257,
+      "sizeBytes": 38349,
       "extraction": {
         "status": "parsed"
       },
@@ -24228,7 +24307,9 @@
     "test/structureRetrieval.test": {
       "file": "test/structureRetrieval.test.js",
       "description": "structure-retrieval tests (STR-03): evidence tiers, curated precedence,",
-      "exports": [],
+      "exports": [
+        "runAlpha"
+      ],
       "depends": [
         "node:test",
         "node:assert/strict",
@@ -24249,9 +24330,16 @@
         },
         "legacyProject": {
           "line": 222
+        },
+        "lookupProject": {
+          "line": 255,
+          "params": [
+            "t",
+            "files = { 'src/a.js'"
+          ]
         }
       },
-      "sizeBytes": 13860,
+      "sizeBytes": 18299,
       "extraction": {
         "status": "parsed"
       },
@@ -26334,6 +26422,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8e89c6fc955d86d991383345d2160ec4c97f950c910236d65ca47c6d6472744b"
+    "revision": "9208a485423116b0dce84ba1d0ee9bd81382b15d6700a0e7ee7bd636118221f4"
   }
 }

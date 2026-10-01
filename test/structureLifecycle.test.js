@@ -862,3 +862,24 @@ test('update-structure --full rebuilds the working view and leaves a tracked map
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+/* ---------------- STR-03: the lookup index follows the working view ---------------- */
+
+test('the worker publishes lookup.json with the working view and refreshes it when the map changes', () => {
+  const dir = project({ 'src/a.js': '// A\nfunction alphaThing() {}\nmodule.exports = { alphaThing };\n' });
+  try {
+    const first = reconcileAndRecord(dir);
+    assert.equal(first.lookup, 'published');
+    const lookupFile = path.join(dir, '.frame', 'runtime', 'structure', 'lookup.json');
+    const index = JSON.parse(fs.readFileSync(lookupFile, 'utf8'));
+    assert.equal(index.source.path, '.frame/runtime/structure/working.json');
+    assert.ok(index.terms['5:alphathing']);
+    assert.equal(reconcileAndRecord(dir).lookup, 'unchanged');
+
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\nfunction betaThing() {}\nmodule.exports = { betaThing };\n');
+    assert.equal(reconcileAndRecord(dir).lookup, 'published');
+    assert.ok(JSON.parse(fs.readFileSync(lookupFile, 'utf8')).terms['5:betathing']);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

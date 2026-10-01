@@ -94,6 +94,7 @@
       "scripts/structure-read.js",
       "scripts/structure-lifecycle.js",
       "scripts/structure-commit.js",
+      "scripts/structure-retrieval.js",
       "scripts/structure-ignore.js",
       "scripts/structure-ignore.LICENSE",
       "scripts/find-module.js",

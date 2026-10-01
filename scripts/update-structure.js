@@ -183,6 +183,23 @@ function trackedPrior() {
   return baseline.status === 'valid' ? baseline.data : null;
 }
 
+/**
+ * After a working-view publish, refresh the derived lookup index (STR-03).
+ * A failure is reported in the result and never fails the map.
+ */
+function publishLookup(result) {
+  if (result.artifact !== 'written' && result.artifact !== 'unchanged') return;
+  let retrieval;
+  try {
+    retrieval = require('./structure-retrieval');
+  } catch (err) {
+    return; // an older .frame/bin/ without the retrieval helper
+  }
+  const lookup = retrieval.publishLookup(ROOT_DIR, { mapPath: state.workingViewPath(ROOT_DIR) });
+  result.lookup = lookup.status;
+  if (lookup.status === 'failed') warn(`⚠ Lookup index not published (${lookup.reason}) — searches fall back to the map.`);
+}
+
 /** After a working-view publish, keep an untracked map file equal to it. */
 function mirrorWorkingView(result, discardsAuthored) {
   if (result.artifact !== 'written' && result.artifact !== 'unchanged') return;
@@ -240,6 +257,7 @@ function runFull() {
     }
   });
   mirrorWorkingView(result, discarded);
+  publishLookup(result);
   return result;
 }
 
@@ -280,6 +298,7 @@ function runDelta(candidates) {
     }
   });
   mirrorWorkingView(result, discarded);
+  publishLookup(result);
   result.policyInputChanged = policyInputChanged;
   return result;
 }

@@ -38,3 +38,20 @@ Development split, in process on the pinned map: recall@5 95.1%, P@1 98.3%, hook
 _Captured: 2026-10-01 · 2 file change(s)_
 
 ---
+
+## T03 — Lookup index publication
+
+`structure-retrieval.js` gained three functions:
+- `publishLookup(root, { mapPath, curationPath })`: atomic `.frame/runtime/structure/lookup.json` (compact JSON) recording the source map path and signature (ino/size/mtime/ctime), the intent-map.json signature, revision and algorithm. It returns `unchanged` while those inputs match, and sets `oversize: true` above 2 MiB. It never throws.
+- `loadLookup(root, { maxBytes })`: `fresh` / `stale` / `missing` / `oversize` / `invalid`; above the cap it doesn't read the file.
+- `indexFromMap(root, { maxBytes })`: the in-memory fallback for D6, which never writes.
+
+The lifecycle worker (`lookup` in its result) and `update-structure.js` (`--full` and file updates, `lookup` in the envelope, with a stderr warning on failure) publish after every working-view publication.
+
+Deviation: `update-structure.js` does not list the new helper in its activation requirements. An existing bootstrap test records that the parser itself must not depend on `structure-read`. The call is guarded instead, so an older `.frame/bin/` just skips the index. `find-module.js` and `module-hint.js` require `structure-retrieval.js` for activation, and it ships as a helper (bootstrap list, `package.json`).
+
+Unplanned, separate: a commit hook hang (170 s in `git hash-object --stdin`, STR-02c's mirror) was fixed on its own branch, `fix/structure-hook-hash-in-process` (PR #168), outside this spec's footprint. Files touched: `scripts/structure-retrieval.js`, `scripts/structure-lifecycle.js`, `scripts/update-structure.js`, `src/main/structureBootstrap.js`, `package.json`, `test/structureRetrieval.test.js`, `test/structureLifecycle.test.js`, `test/projectAgnostic.test.js`, `test/scriptsProjectRoot.test.js`.
+
+_Captured: 2026-10-01 · 9 file change(s)_
+
+---

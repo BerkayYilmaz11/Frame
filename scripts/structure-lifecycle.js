@@ -398,6 +398,16 @@ function reconcile(root, job = {}) {
     }
   }
 
+  // The search index follows the working view (STR-03); never fails the map.
+  let lookup = null;
+  if (result.artifact === 'written' || result.artifact === 'unchanged') {
+    try {
+      lookup = require('./structure-retrieval').publishLookup(root, { mapPath: workingPath }).status;
+    } catch (e) {
+      lookup = null; // an older .frame/bin/ without the retrieval helper
+    }
+  }
+
   // Keep the tracked map on the committed view without losing hand edits:
   // repair a pathspec commit's index, restore a generated-only difference
   // (STR-02c D6, D8).
@@ -443,6 +453,7 @@ function reconcile(root, job = {}) {
     reused: observed.reused,
     cacheHits: cache.stats.hits,
     trackedMap,
+    lookup,
     ms: Date.now() - startedAt
   };
 }
