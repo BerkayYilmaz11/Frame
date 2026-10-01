@@ -464,7 +464,7 @@ function sessionExpired() {
   logger.info('cloudSession', 'session no longer valid — signed out');
   token = null;
   webOrigin = null;
-  sessionStore.clear();
+  sessionStore.clear(state.serverUrl);
   setState({ state: 'signedOut', serverUrl: state.serverUrl });
   return getPublicState();
 }
@@ -495,7 +495,7 @@ async function signOut() {
       serverUnreachable = err.kind === 'network' || err.kind === 'rate_limited';
     }
   }
-  sessionStore.clear();
+  sessionStore.clear(serverUrl);
   const next = { state: 'signedOut', serverUrl };
   if (serverUnreachable) next.serverUnreachable = true;
   setState(serverUrl ? next : { state: 'unavailable' });

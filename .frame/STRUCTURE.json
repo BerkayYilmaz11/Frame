@@ -2455,7 +2455,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 18614,
+      "sizeBytes": 18638,
       "extraction": {
         "status": "parsed"
       },
@@ -3626,13 +3626,14 @@
     },
     "main/cloud/sessionStore": {
       "file": "src/main/cloud/sessionStore.js",
-      "description": "sessionStore — where the Frame Cloud session lives between launches.",
+      "description": "sessionStore — where Frame Cloud sessions live between launches.",
       "exports": [
         "load",
         "save",
         "clear"
       ],
       "depends": [
+        "crypto",
         "fs",
         "path",
         "electron",
@@ -3641,47 +3642,53 @@
       ],
       "functions": {
         "sessionPath": {
-          "line": 24
+          "line": 31,
+          "params": [
+            "serverUrl"
+          ]
         },
         "encryptionAvailable": {
-          "line": 28
+          "line": 36
         },
         "pickSession": {
-          "line": 36,
+          "line": 44,
           "params": [
             "source",
             "token"
           ]
         },
         "load": {
-          "line": 54,
+          "line": 62,
           "params": [
             "serverUrl"
           ],
-          "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
+          "purpose": "The stored session for `serverUrl`, or null. A file for another server, an"
         },
         "save": {
-          "line": 83,
+          "line": 90,
           "params": [
             "session"
           ],
-          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })."
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })"
         },
         "clear": {
-          "line": 104,
-          "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
+          "line": 112,
+          "params": [
+            "serverUrl"
+          ],
+          "purpose": "Forget `serverUrl`'s session: its file, the fsSafe backup and the memory copy."
         }
       },
-      "sizeBytes": 3651,
+      "sizeBytes": 4374,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "9592bc12c89beae3",
+        "description": "b212ee64f98fe96d",
         "purposes": {
-          "clear": "452ed3a4e5078e90",
-          "load": "2c05662a9d2f6cc0",
-          "save": "9cd7367bf64b57c7"
+          "clear": "22c7aba0b328749c",
+          "load": "0e6f1cbe55989812",
+          "save": "495b1c7746743fbe"
         }
       }
     },
@@ -26786,6 +26793,55 @@
         }
       }
     },
+    "test/cloudSessionStore.test": {
+      "file": "test/cloudSessionStore.test.js",
+      "description": "sessionStore tests — Frame Cloud sessions kept per server.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "crypto",
+        "fs",
+        "os",
+        "path",
+        "node:module"
+      ],
+      "functions": {
+        "freshStore": {
+          "line": 47,
+          "purpose": "A new module instance: a second Frame, or the same one after a restart."
+        },
+        "session": {
+          "line": 55,
+          "params": [
+            "serverUrl",
+            "token"
+          ]
+        },
+        "sessionsDir": {
+          "line": 67
+        },
+        "fileFor": {
+          "line": 71,
+          "params": [
+            "serverUrl"
+          ]
+        },
+        "sessionFiles": {
+          "line": 76
+        }
+      },
+      "sizeBytes": 5751,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "f5b799993240acd1",
+        "purposes": {
+          "freshStore": "b1ef9fc4e96ec63b"
+        }
+      }
+    },
     "test/cloudShape.test": {
       "file": "test/cloudShape.test.js",
       "description": "cloudShape tests — the pure core of shaping a Frame Cloud work brief.",
@@ -30906,7 +30962,7 @@
       {
         "module": "main/cloud/sessionStore",
         "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
+        "description": "sessionStore — where Frame Cloud sessions live between launches."
       },
       {
         "module": "renderer/cloudHub",
@@ -31839,7 +31895,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 328,
+        "parsed": 329,
         "unsupported": 84,
         "partial": 0
       }
@@ -31886,9 +31942,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 501,
+      "visitedEntries": 502,
       "traversedDirectories": 81,
-      "eligibleFiles": 412,
+      "eligibleFiles": 413,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -31905,7 +31961,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 412,
+      "indexedFiles": 413,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -31913,6 +31969,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "501fa04dff909db17f3e33c0734920272e94ecf3e087c9357868fa53a0418348"
+    "revision": "2f972291566784e5c1dac410efebf1f679a9623fdb0e8c24fafb287af9e0b5a7"
   }
 }

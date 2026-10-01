@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T17:44:40.486Z",
+  "lastUpdated": "2026-10-01T17:47:31.096Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10034,13 +10034,13 @@
       "title": "Rewrite `src/main/cloud/sessionStore.js` to keep one session file per server at `userData/cloud-sessions/<first 16 hex of sha256(serverUrl)>.json` in today's record shape, with a per-server in-memory fallback when safeStorage is unavailable and `clear(serverUrl)` removing that server's file, `.bak`, `.tmp` and memory entry; pass the ended server to both `sessionStore.clear()` calls in `src/main/cloud/cloudSession.js`; add `test/cloudSessionStore.test.js` with `electron` stubbed through `Module._load` in an `mkdtemp` folder (two servers side by side, clearing one leaves the other, memory fallback per server, an undecryptable token reads as absent); confirm two running Frames on two servers stay signed in across restarts",
       "description": "",
       "source": "spec:frame-cloud-server-url:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T17:47:31.096Z",
+      "completedAt": "2026-10-01T17:47:31.096Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T03",

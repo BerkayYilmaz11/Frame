@@ -1,28 +1,36 @@
 /**
- * sessionStore — where the Frame Cloud session lives between launches.
+ * sessionStore — where Frame Cloud sessions live between launches.
  *
- * One file, `userData/cloud-session.json`, written through fsSafe. The token
- * is `safeStorage.encryptString` output in base64; everything else is plain
- * JSON. When the OS offers no encryption (Linux without a keyring) nothing is
- * written: the session is kept in memory until quit and `save()` answers
- * `{ ephemeral: true }` so the Account section can say so.
+ * One file per server, `userData/cloud-sessions/<key>.json`, the key being the
+ * first 16 hex characters of sha256(serverUrl). The dev Frame and the
+ * installed one share userData: with a file each, a session on production and
+ * one on a local FrameCloud sit side by side, and no two processes ever
+ * read-modify-write the same file. Written through fsSafe.
+ *
+ * The token is `safeStorage.encryptString` output in base64; everything else
+ * is plain JSON. When the OS offers no encryption (Linux without a keyring)
+ * nothing is written: the session is kept in memory, per server, until quit
+ * and `save()` answers `{ ephemeral: true }` so the Account section can say so.
  *
  * Log lines name the path and the outcome only — never the session.
  */
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { app, safeStorage } = require('electron');
 const fsSafe = require('../fsSafe');
 const logger = require('../logger');
 
-const FILE_NAME = 'cloud-session.json';
+const DIR_NAME = 'cloud-sessions';
 const VERSION = 1;
 
-let memory = null;
+// serverUrl → session record, for sessions that could not be written.
+const memory = new Map();
 
-function sessionPath() {
-  return path.join(app.getPath('userData'), FILE_NAME);
+function sessionPath(serverUrl) {
+  const key = crypto.createHash('sha256').update(serverUrl).digest('hex').slice(0, 16);
+  return path.join(app.getPath('userData'), DIR_NAME, `${key}.json`);
 }
 
 function encryptionAvailable() {
@@ -47,16 +55,15 @@ function pickSession(source, token) {
 }
 
 /**
- * The stored session for `serverUrl`, or null. A session saved for another
- * server, an unknown version or a token that no longer decrypts all count as
- * absent. Never throws.
+ * The stored session for `serverUrl`, or null. A file for another server, an
+ * unknown version or a token that no longer decrypts all count as absent.
+ * Never throws.
  */
 function load(serverUrl) {
   if (!serverUrl) return null;
-  if (memory) {
-    return memory.serverUrl === serverUrl ? { ...memory, ephemeral: true } : null;
-  }
-  const file = sessionPath();
+  const held = memory.get(serverUrl);
+  if (held) return { ...held, ephemeral: true };
+  const file = sessionPath(serverUrl);
   try {
     const { data, error } = fsSafe.readJsonWithRecovery(file);
     if (!data) {
@@ -77,33 +84,35 @@ function load(serverUrl) {
 }
 
 /**
- * Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin }).
- * Returns `{ ephemeral }` — true when the session only lives in memory.
+ * Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })
+ * in its server's file. Returns `{ ephemeral }` — true when it only lives in memory.
  */
 function save(session) {
   const record = pickSession({ ...session, savedAt: new Date().toISOString() }, session.token);
   if (!encryptionAvailable()) {
-    memory = record;
+    memory.set(record.serverUrl, record);
     logger.info('cloudSession', 'secure storage unavailable — session kept in memory only');
     return { ephemeral: true };
   }
-  const file = sessionPath();
+  const file = sessionPath(record.serverUrl);
   try {
     const encrypted = safeStorage.encryptString(session.token).toString('base64');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fsSafe.writeFileAtomic(file, JSON.stringify({ version: VERSION, ...record, token: encrypted }, null, 2));
-    memory = null;
+    memory.delete(record.serverUrl);
     return { ephemeral: false };
   } catch {
-    memory = record;
+    memory.set(record.serverUrl, record);
     logger.warn('cloudSession', `could not write ${file} — session kept in memory only`);
     return { ephemeral: true };
   }
 }
 
-/** Forget the session: the file, its fsSafe backup and the memory copy. */
-function clear() {
-  memory = null;
-  const file = sessionPath();
+/** Forget `serverUrl`'s session: its file, the fsSafe backup and the memory copy. */
+function clear(serverUrl) {
+  if (!serverUrl) return;
+  memory.delete(serverUrl);
+  const file = sessionPath(serverUrl);
   for (const target of [file, `${file}.bak`, `${file}.tmp`]) {
     try {
       fs.unlinkSync(target);

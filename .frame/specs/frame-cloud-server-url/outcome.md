@@ -7,3 +7,11 @@ Added `LOOPBACK_HOSTS` and `checkServerUrl` to `deviceFlow.js` and made `resolve
 _Captured: 2026-10-01 · 4 file change(s)_
 
 ---
+
+## T02 — One session file per server
+
+Rewrote `sessionStore.js` to keep each server's session at `userData/cloud-sessions/<first 16 hex of sha256(serverUrl)>.json` in the existing record shape, with a per-server memory `Map` fallback and `clear(serverUrl)` removing that server's file, `.bak`, `.tmp` and memory entry (an empty `serverUrl` is a no-op). Passed the ended server to both `clear()` calls in `cloudSession.js` and added `test/cloudSessionStore.test.js` (electron stubbed via `Module._load`, `mkdtemp` userData). The task's "two running Frames stay signed in across restarts" check was done as a test with separate module instances and a fresh one reading both, not by running two Frames by hand. Files: `src/main/cloud/sessionStore.js`, `src/main/cloud/cloudSession.js`, `test/cloudSessionStore.test.js`.
+
+_Captured: 2026-10-01 · 3 file change(s)_
+
+---
