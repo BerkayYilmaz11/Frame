@@ -23,3 +23,11 @@ Added `migrateLegacy` to `sessionStore.load(serverUrl)`: when the server has no 
 _Captured: 2026-10-01 · 2 file change(s)_
 
 ---
+
+## T04 — Release default from the packaged package.json
+
+Replaced `DEFAULT_CLOUD_SERVER_URL` in `cloudSession.js` with `RELEASE_CLOUD_SERVER_URL`, which reads `require('../../../package.json').frameCloudUrl` once at module load (a string, else `''`). Rewrote the comment to say a release built with `FRAME_CLOUD_RELEASE_URL` carries the field and the repository's `package.json` never does. This overturns frame-cloud-sign-in D2 as planned (D9). File: `src/main/cloud/cloudSession.js`.
+
+_Captured: 2026-10-01 · 1 file change(s)_
+
+---

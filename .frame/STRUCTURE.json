@@ -2292,21 +2292,22 @@
         "userSettings",
         "logger",
         "sessionStore",
-        "deviceFlow"
+        "deviceFlow",
+        "../../package.json"
       ],
       "functions": {
         "resolveUrl": {
-          "line": 84
+          "line": 89
         },
         "refusalReason": {
-          "line": 98,
+          "line": 103,
           "params": [
             "address"
           ],
           "purpose": "Scheme and host only: the rest of a mistyped address could carry anything."
         },
         "fetchJson": {
-          "line": 115,
+          "line": 120,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -2317,41 +2318,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 156,
+          "line": 161,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 176,
+          "line": 181,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 185,
+          "line": 190,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 198
+          "line": 203
         },
         "deviceInfo": {
-          "line": 220
+          "line": 225
         },
         "toPublicState": {
-          "line": 232
+          "line": 237
         },
         "getPublicState": {
-          "line": 244
+          "line": 249
         },
         "publish": {
-          "line": 248
+          "line": 253
         },
         "setState": {
-          "line": 257,
+          "line": 262,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -2359,18 +2360,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 271,
+          "line": 276,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 280,
+          "line": 285,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 291,
+          "line": 296,
           "params": [
             "serverUrl",
             "session",
@@ -2378,65 +2379,65 @@
           ]
         },
         "bringToFront": {
-          "line": 305,
+          "line": 310,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 313
+          "line": 318
         },
         "signIn": {
-          "line": 322,
+          "line": 327,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 374
+          "line": 379
         },
         "readInviteMode": {
-          "line": 391,
+          "line": 396,
           "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
         },
         "joinWaitlist": {
-          "line": 415,
+          "line": 420,
           "params": [
             "rawEmail"
           ],
           "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 432,
+          "line": 437,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 462,
+          "line": 467,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 476,
+          "line": 481,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 483,
+          "line": 488,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 509,
+          "line": 514,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 513
+          "line": 518
         },
         "getState": {
-          "line": 541,
+          "line": 546,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 548,
+          "line": 553,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 559,
+          "line": 564,
           "params": [
             "ipcMain"
           ]
@@ -2455,7 +2456,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 18638,
+      "sizeBytes": 19040,
       "extraction": {
         "status": "parsed"
       },
@@ -32006,6 +32007,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c845d9f868708460c4538850da141c871fcef4630be015e86fc87ad0e68de6e8"
+    "revision": "1e842c5012f4beffbbf9d360980ae2cf5c13ce5a5a5c2f0f93ca66bc222b833c"
   }
 }

@@ -35,9 +35,14 @@ const {
   checkServerUrl,
 } = require('./deviceFlow');
 
-// No FrameCloud is deployed yet: packaged builds resolve to nothing and the
-// Account section stays hidden. Developers set FRAME_CLOUD_URL.
-const DEFAULT_CLOUD_SERVER_URL = '';
+// The release default comes from the packaged package.json: a release built
+// with FRAME_CLOUD_RELEASE_URL carries `frameCloudUrl` there (written by
+// scripts/release-build.js through electron-builder's extraMetadata). The
+// repository's package.json has none, so `npm start` and builds made without
+// it resolve to nothing and the Account section stays hidden. Developers set
+// FRAME_CLOUD_URL or the cloudServerUrl setting.
+const { frameCloudUrl } = require('../../../package.json');
+const RELEASE_CLOUD_SERVER_URL = typeof frameCloudUrl === 'string' ? frameCloudUrl : '';
 const REQUEST_TIMEOUT_MS = 15000;
 
 const PUBLIC_KEYS = [
@@ -85,7 +90,7 @@ function resolveUrl() {
   const { url, refused } = resolveServerUrl({
     env: process.env.FRAME_CLOUD_URL,
     setting: userSettings.get('cloudServerUrl'),
-    defaultUrl: DEFAULT_CLOUD_SERVER_URL,
+    defaultUrl: RELEASE_CLOUD_SERVER_URL,
   });
   if (refused && !refusedLogged.has(refused)) {
     refusedLogged.add(refused);
