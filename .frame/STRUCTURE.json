@@ -5214,7 +5214,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 26865,
+      "sizeBytes": 26943,
       "extraction": {
         "status": "parsed"
       },
@@ -6028,7 +6028,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3707,
+      "sizeBytes": 3747,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16382,7 +16382,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3923,
+      "sizeBytes": 11950,
       "extraction": {
         "status": "parsed"
       },
@@ -16390,10 +16390,26 @@
         "description": "deafc552be20c9b3"
       }
     },
+    "scripts/eval/retrieval-cases.json": {
+      "file": "scripts/eval/retrieval-cases.json",
+      "description": "",
+      "exports": [],
+      "depends": [],
+      "functions": {},
+      "sizeBytes": 55037,
+      "extraction": {
+        "status": "unsupported",
+        "reason": "no-extractor"
+      }
+    },
     "scripts/eval/run-eval": {
       "file": "scripts/eval/run-eval.js",
       "description": "",
-      "exports": [],
+      "exports": [
+        "shuffled",
+        "hookActivity",
+        "RETRIEVAL_ARMS"
+      ],
       "depends": [
         "fs",
         "os",
@@ -16402,74 +16418,321 @@
       ],
       "functions": {
         "parseArgs": {
-          "line": 52
+          "line": 60
+        },
+        "shuffled": {
+          "line": 84,
+          "params": [
+            "items",
+            "seed"
+          ],
+          "purpose": "Deterministic shuffle (mulberry32) so a run order can be reproduced."
+        },
+        "setupRetrievalArm": {
+          "line": 106,
+          "params": [
+            "wt",
+            "arm",
+            "activityHome"
+          ],
+          "purpose": "Retrieval-arm setup: the same map for every arm (this checkout's"
+        },
+        "hookActivity": {
+          "line": 131,
+          "params": [
+            "activityHome"
+          ],
+          "purpose": "Search-hook records a cell produced: { records, injected }."
         },
         "git": {
-          "line": 70,
+          "line": 156,
           "params": [
             "cmd",
             "cwd"
           ]
         },
         "setupHooks": {
-          "line": 80,
+          "line": 166,
           "params": [
             "wt"
           ]
         },
         "runOne": {
-          "line": 105,
+          "line": 191,
           "params": [
             "task",
             "arm",
             "resultsDir",
             "timeoutSec",
-            "hooks"
+            "hooks",
+            "suite = SUITE",
+            "repeat = 1"
           ]
         },
         "main": {
-          "line": 193
+          "line": 290
         }
       },
-      "sizeBytes": 8937,
+      "sizeBytes": 13923,
       "extraction": {
         "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "hookActivity": "4631feb261596931",
+          "setupRetrievalArm": "783c6bac4f5c86a2",
+          "shuffled": "a75b35feb454edac"
+        }
+      }
+    },
+    "scripts/eval/run-retrieval": {
+      "file": "scripts/eval/run-retrieval.js",
+      "description": "",
+      "exports": [
+        "handle${i"
+      ],
+      "depends": [
+        "fs",
+        "os",
+        "path",
+        "crypto",
+        "child_process"
+      ],
+      "functions": {
+        "digest": {
+          "line": 53,
+          "params": [
+            "cases"
+          ]
+        },
+        "loadCases": {
+          "line": 58,
+          "params": [
+            "file = CASES_FILE"
+          ],
+          "purpose": "Load the corpus; a split whose hash does not match was edited after freezing."
+        },
+        "parseCli": {
+          "line": 71,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "Candidate files from find-module output: the --json envelope, or the human listing."
+        },
+        "parseHook": {
+          "line": 89,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "Hinted files and the raw context from a hook's stdout ('' = no hint)."
+        },
+        "quantile": {
+          "line": 109,
+          "params": [
+            "values",
+            "q"
+          ]
+        },
+        "summarize": {
+          "line": 122,
+          "params": [
+            "results"
+          ],
+          "purpose": "results: [{ case, cli: [files], cliMs, hooks: { claude: { files, context, ms }, codex: {…} } }]"
+        },
+        "evaluateGates": {
+          "line": 186,
+          "params": [
+            "summary",
+            "baseline = null",
+            "scale = null",
+            "gates = GATES"
+          ],
+          "purpose": "The A5 gates for one engine's held-out summary. `baseline` is legacy's"
+        },
+        "timed": {
+          "line": 212,
+          "params": [
+            "args",
+            "options"
+          ]
+        },
+        "baseEnv": {
+          "line": 218,
+          "params": [
+            "project",
+            "activityHome"
+          ]
+        },
+        "setEngine": {
+          "line": 222,
+          "params": [
+            "project",
+            "engine"
+          ]
+        },
+        "availableEngines": {
+          "line": 235,
+          "purpose": "Engines this checkout can run: legacy always; v2 once the shared engine exists."
+        },
+        "cliSupportsJson": {
+          "line": 241,
+          "params": [
+            "project",
+            "env"
+          ]
+        },
+        "hookPayloads": {
+          "line": 250,
+          "params": [
+            "c",
+            "sessionId",
+            "project"
+          ]
+        },
+        "runCase": {
+          "line": 264,
+          "params": [
+            "c",
+            "engine",
+            "project",
+            "env",
+            "json"
+          ]
+        },
+        "applyMutation": {
+          "line": 280,
+          "params": [
+            "base",
+            "mutate"
+          ]
+        },
+        "buildMap": {
+          "line": 289,
+          "params": [
+            "project",
+            "env"
+          ]
+        },
+        "exportPinned": {
+          "line": 308,
+          "params": [
+            "commit"
+          ]
+        },
+        "syntheticProject": {
+          "line": 315,
+          "params": [
+            "count"
+          ],
+          "purpose": "A synthetic project of `count` JavaScript files in nested packages."
+        },
+        "runScale": {
+          "line": 329,
+          "params": [
+            "engine",
+            "activityHome",
+            "sizes = [1000",
+            "10000]"
+          ]
+        },
+        "parseArgs": {
+          "line": 355,
+          "params": [
+            "argv"
+          ]
+        },
+        "printReport": {
+          "line": 373,
+          "params": [
+            "report"
+          ]
+        },
+        "main": {
+          "line": 398
+        }
+      },
+      "sizeBytes": 20432,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "availableEngines": "d7a3b42e8e1d0229",
+          "evaluateGates": "948f7fa8250c71c8",
+          "loadCases": "c4906eb41cfc462c",
+          "parseCli": "4090dfdc9064bc07",
+          "parseHook": "fcfc1b3dfcb70ab2",
+          "summarize": "38f21892ccfab5b8",
+          "syntheticProject": "522ebf564236d377"
+        }
       }
     },
     "scripts/eval/score": {
       "file": "scripts/eval/score.js",
       "description": "",
-      "exports": [],
+      "exports": [
+        "scoreTranscript",
+        "scoreRun",
+        "cellValidity",
+        "paired",
+        "aggregate"
+      ],
       "depends": [
         "fs",
         "path"
       ],
       "functions": {
         "scoreTranscript": {
-          "line": 28,
+          "line": 42,
           "params": [
-            "file"
+            "file",
+            "options = {}"
           ]
         },
+        "cellValidity": {
+          "line": 103,
+          "params": [
+            "meta",
+            "stats"
+          ],
+          "purpose": "Whether a retrieval-arm cell measured what its arm intends. Returns"
+        },
         "scoreRun": {
-          "line": 61,
+          "line": 112,
           "params": [
             "runDir"
           ]
         },
+        "paired": {
+          "line": 146,
+          "params": [
+            "runs",
+            "a",
+            "b",
+            "metric"
+          ],
+          "purpose": "Paired per-task comparison of arm `b` against arm `a` on valid cells:"
+        },
         "aggregate": {
-          "line": 82,
+          "line": 169,
           "params": [
             "runs"
           ]
         },
         "main": {
-          "line": 100
+          "line": 200
         }
       },
-      "sizeBytes": 6305,
+      "sizeBytes": 12560,
       "extraction": {
         "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "cellValidity": "a2468a06292c5481",
+          "paired": "49da72b4b2b66533"
+        }
       }
     },
     "scripts/eval/tasks.json": {
@@ -16478,7 +16741,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4609,
+      "sizeBytes": 12163,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16491,71 +16754,98 @@
       "depends": [
         "fs",
         "path",
-        "child_process",
-        "structure-read"
+        "structure-read",
+        "structure-retrieval"
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 26,
+          "line": 40,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
-        "repairCommand": {
-          "line": 37,
+        "scriptRel": {
+          "line": 53,
           "params": [
-            "root"
+            "name"
           ]
         },
-        "loadStructure": {
-          "line": 47
+        "repairCommand": {
+          "line": 58
         },
-        "loadIntentMap": {
-          "line": 60,
-          "purpose": "Load the curated concept map (synonyms live here). Sits next to this"
-        },
-        "stalenessBanner": {
-          "line": 77,
+        "parseArgs": {
+          "line": 64,
           "params": [
-            "structure"
-          ],
-          "purpose": "One-line warning when STRUCTURE.json is stale. The date comparison is a"
+            "argv"
+          ]
         },
-        "searchIntentIndex": {
+        "resolveEngine": {
+          "line": 83,
+          "params": [
+            "flag"
+          ],
+          "purpose": "--retrieval, then project.retrieval.engine, then the shipped default."
+        },
+        "loadStructure": {
+          "line": 101
+        },
+        "existsInProject": {
           "line": 111,
           "params": [
-            "structure",
-            "keyword"
+            "rel"
           ],
-          "purpose": "Search intentIndex for matching features"
+          "purpose": "A candidate is shown as present only if it is a regular file inside the project."
+        },
+        "v2Index": {
+          "line": 124,
+          "purpose": "The published index when it is current, else one compiled from the map."
+        },
+        "freshnessLines": {
+          "line": 137,
+          "params": [
+            "descriptor"
+          ],
+          "purpose": "How current the map is, from the lifecycle receipt only (STR-02). No Git,"
         },
         "listFeatures": {
-          "line": 179,
+          "line": 147,
           "params": [
             "structure"
-          ],
-          "purpose": "List all features in intentIndex"
+          ]
         },
-        "printResults": {
-          "line": 197,
+        "printLegacy": {
+          "line": 162,
           "params": [
             "structure",
-            "results",
-            "keyword"
+            "result",
+            "query"
           ],
-          "purpose": "Format and print results"
+          "purpose": "The pre-STR-03 listing: one block per matched feature, with its IPC channels."
+        },
+        "printV2": {
+          "line": 185,
+          "params": [
+            "result",
+            "query"
+          ]
+        },
+        "main": {
+          "line": 204
+        },
+        "readCuration": {
+          "line": 282
         }
       },
-      "sizeBytes": 9331,
+      "sizeBytes": 11585,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
-          "listFeatures": "abee8c0e66184dfd",
-          "loadIntentMap": "97c2e373d690a85c",
-          "printResults": "92ba06a56754bee9",
+          "existsInProject": "3efd68ebe169d576",
+          "freshnessLines": "1582f67449e3f170",
+          "printLegacy": "8df21ce15157510e",
+          "resolveEngine": "7af91aa82a028c2f",
           "resolveProjectRoot": "bdaf2016db7ccaef",
-          "searchIntentIndex": "331ec57f0459ec19",
-          "stalenessBanner": "ef7f87ea90f30ceb"
+          "v2Index": "cc60ff33199e094f"
         }
       }
     },
@@ -16949,53 +17239,54 @@
         "fs",
         "path",
         "structure-read",
+        "structure-retrieval",
         "activity-log",
         "toolVocabulary"
       ],
       "functions": {
         "toPosix": {
-          "line": 52,
+          "line": 56,
           "params": [
             "p"
           ]
         },
         "readStdin": {
-          "line": 54
+          "line": 58
         },
         "readJson": {
-          "line": 58,
+          "line": 62,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 64,
+          "line": 68,
           "params": [
             "hookCwd"
           ]
         },
         "finderCliPath": {
-          "line": 81,
+          "line": 91,
           "params": [
             "root"
           ]
         },
         "stateFile": {
-          "line": 89,
+          "line": 99,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "loadState": {
-          "line": 94,
+          "line": 104,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "saveState": {
-          "line": 99,
+          "line": 112,
           "params": [
             "root",
             "sessionId",
@@ -17003,23 +17294,23 @@
           ]
         },
         "cleanupState": {
-          "line": 107,
+          "line": 120,
           "params": [
             "root"
           ]
         },
         "setHookCli": {
-          "line": 153,
+          "line": 166,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 157
+          "line": 170
         },
         "note": {
-          "line": 161,
+          "line": 174,
           "params": [
             "root",
             "ev",
@@ -17027,7 +17318,7 @@
           ]
         },
         "quiet": {
-          "line": 177,
+          "line": 190,
           "params": [
             "root",
             "reason"
@@ -17035,50 +17326,51 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 181,
+          "line": 194,
           "params": [
             "context"
           ]
         },
         "searchSegments": {
-          "line": 203,
+          "line": 216,
           "params": [
             "cmd"
           ]
         },
         "extractPattern": {
-          "line": 222,
+          "line": 235,
           "params": [
             "seg"
           ],
           "purpose": "Pull the pattern operand out of one search segment (already known to start"
         },
         "candidates": {
-          "line": 238,
+          "line": 251,
           "params": [
             "raw"
           ],
           "purpose": "A raw pattern (regex, glob, or plain word) → the concept words worth"
         },
+        "patternFrom": {
+          "line": 266,
+          "params": [
+            "toolName",
+            "input"
+          ],
+          "purpose": "The raw pattern of a search call: null when the call is not a search at"
+        },
         "keywordsFrom": {
-          "line": 249,
+          "line": 286,
           "params": [
             "toolName",
             "input"
           ]
         },
         "loadIntentMap": {
-          "line": 286
-        },
-        "lookup": {
-          "line": 293,
-          "params": [
-            "structure",
-            "keyword"
-          ]
+          "line": 301
         },
         "render": {
-          "line": 315,
+          "line": 308,
           "params": [
             "root",
             "structure",
@@ -17086,23 +17378,94 @@
             "keyword"
           ]
         },
+        "engineFor": {
+          "line": 334,
+          "params": [
+            "root"
+          ],
+          "purpose": "project.retrieval.engine, else the shipped default; anything else is the default."
+        },
+        "existsInProject": {
+          "line": 342,
+          "params": [
+            "root",
+            "rel"
+          ],
+          "purpose": "A hinted file must be a regular file inside the project right now."
+        },
+        "legacyMode": {
+          "line": 354,
+          "params": [
+            "root",
+            "input",
+            "descriptor"
+          ]
+        },
+        "loadIndex": {
+          "line": 375,
+          "params": [
+            "root"
+          ],
+          "purpose": "The index to answer from: a current lookup.json, else the map compiled in memory."
+        },
+        "fingerprint": {
+          "line": 385,
+          "params": [
+            "paths"
+          ]
+        },
+        "shownQuery": {
+          "line": 392,
+          "params": [
+            "pattern"
+          ],
+          "purpose": "One line of the query, safe to show and to paste as a shell argument."
+        },
+        "shellQuote": {
+          "line": 396,
+          "params": [
+            "text"
+          ]
+        },
+        "renderV2": {
+          "line": 400,
+          "params": [
+            "root",
+            "result",
+            "pattern",
+            "descriptor"
+          ]
+        },
+        "v2Mode": {
+          "line": 430,
+          "params": [
+            "root",
+            "input",
+            "descriptor"
+          ]
+        },
         "searchMode": {
-          "line": 340,
+          "line": 462,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 15937,
+      "sizeBytes": 21053,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "candidates": "a9ed75e60ec11d73",
+          "engineFor": "dd31c17caca3abfa",
+          "existsInProject": "5dddbd190b145640",
           "extractPattern": "2c7cae15c16d94d2",
+          "loadIndex": "2f9196b0793b2ccf",
+          "patternFrom": "79c2136a033352ff",
           "quiet": "3e8f4a1504407442",
-          "setHookCli": "c07ecdee8595a6cf"
+          "setHookCli": "c07ecdee8595a6cf",
+          "shownQuery": "97f764f95a46a385"
         }
       }
     },
@@ -18569,6 +18932,7 @@
         "structure-state",
         "structure-snapshot",
         "structure-read",
+        "structure-retrieval",
         "structure-commit",
         "activity-log"
       ],
@@ -18641,13 +19005,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 452,
+          "line": 463,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 457,
+          "line": 468,
           "params": [
             "root",
             "options = {}"
@@ -18655,21 +19019,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 461,
+          "line": 472,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 468,
+          "line": 479,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 488,
+          "line": 499,
           "params": [
             "rel",
             "ownedRootMap"
@@ -18677,13 +19041,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 502,
+          "line": 513,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 513,
+          "line": 524,
           "params": [
             "root",
             "onEvent",
@@ -18692,14 +19056,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 614,
+          "line": 625,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 646,
+          "line": 657,
           "params": [
             "root",
             "options = {}"
@@ -18707,24 +19071,24 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "resolveProjectRoot": {
-          "line": 788
+          "line": 799
         },
         "writeLine": {
-          "line": 797,
+          "line": 808,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 801,
+          "line": 812,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 823,
+          "line": 834,
           "params": [
             "root",
             "supervised"
@@ -18732,10 +19096,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 865
+          "line": 876
         }
       },
-      "sizeBytes": 31157,
+      "sizeBytes": 31557,
       "extraction": {
         "status": "parsed"
       },
@@ -18873,6 +19237,201 @@
           "resolveReadPath": "3954b675f37117ac",
           "resolveStructurePath": "e992531cd7f94ef1",
           "workingViewPath": "b175d5028e0cd5d5"
+        }
+      }
+    },
+    "scripts/structure-retrieval": {
+      "file": "scripts/structure-retrieval.js",
+      "description": "STRUCTURE retrieval (STR-03) — from a path, file name, symbol or concept",
+      "exports": [
+        "compileIndex",
+        "publishLookup",
+        "loadLookup",
+        "indexFromMap",
+        "lookupPath",
+        "curationPath",
+        "normalizeQuery",
+        "retrieve",
+        "legacyRetrieve",
+        "fold",
+        "splitWords",
+        "ENGINES",
+        "DEFAULT_ENGINE",
+        "TIER",
+        "HOOK_MAX_TIER",
+        "LIMITS",
+        "INDEX_VERSION",
+        "ALGORITHM",
+        "NOISE"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "structure-read"
+      ],
+      "functions": {
+        "fold": {
+          "line": 68,
+          "params": [
+            "text"
+          ],
+          "purpose": "Case- and accent-insensitive search form; Turkish letters fold to ASCII."
+        },
+        "splitWords": {
+          "line": 78,
+          "params": [
+            "text"
+          ],
+          "purpose": "Identifier words: camelCase, snake_case, kebab-case, dotted and path parts."
+        },
+        "normalizeQuery": {
+          "line": 95,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A raw query → its search units. Regex syntax is dropped, alternations"
+        },
+        "basenameOf": {
+          "line": 126,
+          "params": [
+            "file"
+          ]
+        },
+        "stripExt": {
+          "line": 130,
+          "params": [
+            "name"
+          ]
+        },
+        "compileIndex": {
+          "line": 144,
+          "params": [
+            "structure",
+            "curation = {}",
+            "meta = {}"
+          ],
+          "purpose": "Compile the lookup index from a map (STR-02c read view) and the curated"
+        },
+        "matchUnit": {
+          "line": 229,
+          "params": [
+            "index",
+            "unit",
+            "phraseConcepts"
+          ],
+          "purpose": "Every match one unit has: Map(fileId → best tier) plus the concepts it named."
+        },
+        "retrieve": {
+          "line": 290,
+          "params": [
+            "index",
+            "query",
+            "options = {}"
+          ],
+          "purpose": "Rank the files that explain the query."
+        },
+        "retrieveUnits": {
+          "line": 302,
+          "params": [
+            "index",
+            "allUnits",
+            "mode",
+            "limit",
+            "options"
+          ]
+        },
+        "lookupPath": {
+          "line": 386,
+          "params": [
+            "root"
+          ]
+        },
+        "curationPath": {
+          "line": 391,
+          "params": [
+            "dir = __dirname"
+          ],
+          "purpose": "intent-map.json beside the running scripts (scripts/ or .frame/bin/)."
+        },
+        "readCuration": {
+          "line": 395,
+          "params": [
+            "file"
+          ]
+        },
+        "signatureOf": {
+          "line": 403,
+          "params": [
+            "file"
+          ]
+        },
+        "sameSignature": {
+          "line": 412,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "publishLookup": {
+          "line": 424,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Compile and atomically publish lookup.json from the map at `mapPath`"
+        },
+        "loadLookup": {
+          "line": 470,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Read the published index for a lookup. Never compiles, never writes."
+        },
+        "indexFromMap": {
+          "line": 508,
+          "params": [
+            "root",
+            "options = {}"
+          ],
+          "purpose": "Compile an index in memory from the read view — the fallback when no"
+        },
+        "legacyRetrieve": {
+          "line": 541,
+          "params": [
+            "structure",
+            "curation",
+            "options = {}"
+          ],
+          "purpose": "Today's behavior, kept selectable as the rollback path (STR-03 D2):"
+        },
+        "legacyHookLookup": {
+          "line": 594,
+          "params": [
+            "index",
+            "intentMap",
+            "keyword"
+          ]
+        }
+      },
+      "sizeBytes": 25912,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "aa71905c9716ab4b",
+        "purposes": {
+          "compileIndex": "60c20164d8c3a443",
+          "curationPath": "37dd7da1d8d13d69",
+          "fold": "475b654bf901e6d9",
+          "indexFromMap": "f0606664e619eacc",
+          "legacyRetrieve": "01c5d2059f3b0d6f",
+          "loadLookup": "824e133bd24d973a",
+          "matchUnit": "02ae5ca770fd9391",
+          "normalizeQuery": "31b57c6910e130c5",
+          "publishLookup": "be63fd7f0ef49a09",
+          "retrieve": "acf77b261ff3fd1e",
+          "splitWords": "858bcfb0070cb9f5"
         }
       }
     },
@@ -19456,6 +20015,7 @@
         "structure-generation",
         "structure-state",
         "activity-log",
+        "structure-retrieval",
         "structure-commit"
       ],
       "functions": {
@@ -19524,8 +20084,15 @@
           "line": 181,
           "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
         },
+        "publishLookup": {
+          "line": 190,
+          "params": [
+            "result"
+          ],
+          "purpose": "After a working-view publish, refresh the derived lookup index (STR-03)."
+        },
         "mirrorWorkingView": {
-          "line": 187,
+          "line": 204,
           "params": [
             "result",
             "discardsAuthored"
@@ -19533,7 +20100,7 @@
           "purpose": "After a working-view publish, keep an untracked map file equal to it."
         },
         "builtFrom": {
-          "line": 204,
+          "line": 221,
           "params": [
             "structure",
             "report",
@@ -19543,37 +20110,37 @@
           "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 222,
+          "line": 239,
           "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 246,
+          "line": 264,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 287,
+          "line": 306,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 318
+          "line": 337
         },
         "runStaged": {
-          "line": 364,
+          "line": 383,
           "params": [
             "command = 'staged'"
           ],
           "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot,"
         },
         "main": {
-          "line": 383
+          "line": 402
         }
       },
-      "sizeBytes": 19119,
+      "sizeBytes": 19854,
       "extraction": {
         "status": "parsed"
       },
@@ -19581,6 +20148,7 @@
         "purposes": {
           "builtFrom": "0f3b5f39b1a05377",
           "mirrorWorkingView": "2b24665961d385c6",
+          "publishLookup": "5d6adb89f9495625",
           "resolveProjectRoot": "bdaf2016db7ccaef",
           "runFull": "018e3a0230855dd1",
           "runStaged": "5d25180306f61337",
@@ -19611,32 +20179,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 420,
+          "line": 427,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 424,
+          "line": 431,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 428,
+          "line": 435,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 432,
+          "line": 439,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 455,
+          "line": 462,
           "params": [
             "name",
             "fields"
@@ -19644,7 +20212,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 472,
+          "line": 479,
           "params": [
             "name",
             "fields"
@@ -19652,7 +20220,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 493,
+          "line": 500,
           "params": [
             "name",
             "fields"
@@ -19660,7 +20228,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 22204,
+      "sizeBytes": 22748,
       "extraction": {
         "status": "parsed"
       },
@@ -20167,7 +20735,7 @@
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 708,
+          "line": 722,
           "params": [
             "projectName",
             "project"
@@ -20175,21 +20743,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 736,
+          "line": 750,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 756,
+          "line": 770,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 802,
+          "line": 816,
           "params": [
             "projectName",
             "project"
@@ -20197,24 +20765,24 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 885,
+          "line": 899,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 928,
+          "line": 942,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 943
+          "line": 957
         },
         "getGenericWrapperTemplate": {
-          "line": 1096,
+          "line": 1110,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -20222,38 +20790,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1142
+          "line": 1156
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1179,
+          "line": 1193,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1208,
+          "line": 1222,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1227,
+          "line": 1241,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1239,
+          "line": 1253,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1259
+          "line": 1273
         },
         "getOrchBinScripts": {
-          "line": 1277,
+          "line": 1291,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 54568,
+      "sizeBytes": 55440,
       "extraction": {
         "status": "parsed"
       },
@@ -21149,7 +21717,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 11100,
+      "sizeBytes": 11171,
       "extraction": {
         "status": "parsed"
       },
@@ -21614,6 +22182,45 @@
           "readIssueUrl": "993cd23316240f8f",
           "readMailto": "fd8d7e1632c805d7"
         }
+      }
+    },
+    "test/findModule.test": {
+      "file": "test/findModule.test.js",
+      "description": "find-module CLI (STR-03 T04): legacy-compatible output, the bounded",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-retrieval"
+      ],
+      "functions": {
+        "project": {
+          "line": 36,
+          "params": [
+            "t",
+            "{ structure = STRUCTURE",
+            "engine } = {}"
+          ]
+        },
+        "find": {
+          "line": 49,
+          "params": [
+            "dir",
+            "args",
+            "env = {}"
+          ]
+        }
+      },
+      "sizeBytes": 9262,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "1f35f244df9d4926"
       }
     },
     "test/fixtures/django-app/manage": {
@@ -22833,7 +23440,8 @@
         "os",
         "path",
         "child_process",
-        "crypto"
+        "crypto",
+        "scripts/structure-retrieval"
       ],
       "functions": {
         "runHook": {
@@ -22850,16 +23458,28 @@
           ]
         },
         "withReceipt": {
-          "line": 223,
+          "line": 239,
           "params": [
             "root",
             "{ dirty = []",
             "epoch = { requested",
             "applied"
           ]
+        },
+        "v2Project": {
+          "line": 307,
+          "params": [
+            "structure = V2_STRUCTURE"
+          ]
+        },
+        "runCodex": {
+          "line": 317,
+          "params": [
+            "input"
+          ]
         }
       },
-      "sizeBytes": 12523,
+      "sizeBytes": 21693,
       "extraction": {
         "status": "parsed"
       },
@@ -23010,7 +23630,7 @@
           ]
         }
       },
-      "sizeBytes": 28510,
+      "sizeBytes": 30143,
       "extraction": {
         "status": "parsed"
       },
@@ -23039,6 +23659,40 @@
       },
       "provenance": {
         "description": "7899da73ee2127a3"
+      }
+    },
+    "test/retrievalEval.test": {
+      "file": "test/retrievalEval.test.js",
+      "description": "STR-03 retrieval benchmark: the frozen corpus and the metric/gate math.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "path",
+        "child_process",
+        "scripts/eval/run-retrieval",
+        "fs",
+        "os",
+        "scripts/eval/score",
+        "scripts/eval/run-eval",
+        "scripts/eval/tasks.json"
+      ],
+      "functions": {
+        "cell": {
+          "line": 154,
+          "params": [
+            "t",
+            "{ meta",
+            "events }"
+          ]
+        }
+      },
+      "sizeBytes": 14299,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "bd894ce766feb6b8"
       }
     },
     "test/scriptsProjectRoot.test": {
@@ -23090,7 +23744,7 @@
           ]
         },
         "frameRepo": {
-          "line": 619,
+          "line": 620,
           "params": [
             "prefix"
           ]
@@ -23102,7 +23756,7 @@
           ]
         }
       },
-      "sizeBytes": 43964,
+      "sizeBytes": 45133,
       "extraction": {
         "status": "parsed"
       },
@@ -23812,7 +24466,7 @@
           ]
         }
       },
-      "sizeBytes": 37257,
+      "sizeBytes": 38349,
       "extraction": {
         "status": "parsed"
       },
@@ -23893,6 +24547,49 @@
         "purposes": {
           "writeReceipt": "763c201ec8132000"
         }
+      }
+    },
+    "test/structureRetrieval.test": {
+      "file": "test/structureRetrieval.test.js",
+      "description": "structure-retrieval tests (STR-03): evidence tiers, curated precedence,",
+      "exports": [
+        "runAlpha"
+      ],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-retrieval"
+      ],
+      "functions": {
+        "mod": {
+          "line": 19,
+          "params": [
+            "file",
+            "description",
+            "extra = {}"
+          ]
+        },
+        "legacyProject": {
+          "line": 222
+        },
+        "lookupProject": {
+          "line": 255,
+          "params": [
+            "t",
+            "files = { 'src/a.js'"
+          ]
+        }
+      },
+      "sizeBytes": 18299,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "d9d8aeaf4888558c"
       }
     },
     "test/structureSnapshots.test": {
@@ -25896,8 +26593,8 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 290,
-        "unsupported": 82,
+        "parsed": 295,
+        "unsupported": 83,
         "partial": 0
       }
     },
@@ -25943,9 +26640,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 460,
+      "visitedEntries": 466,
       "traversedDirectories": 80,
-      "eligibleFiles": 372,
+      "eligibleFiles": 378,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -25962,7 +26659,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 372,
+      "indexedFiles": 378,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -25970,6 +26667,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1a4e0e0f7a37dbcee76b8c468106e982c6cbe8b610c1a113e53af64b6b7309d9"
+    "revision": "7e6ffd5ee722d8ee987669249776d9adbf047a88cca417d69b5aa5a92ac17832"
   }
 }

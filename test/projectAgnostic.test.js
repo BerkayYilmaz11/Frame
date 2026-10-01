@@ -622,3 +622,35 @@ test('templates: the pre-commit template is recognized; earlier unmodified templ
   }
   assert.equal(templates.classifyStructureHook('#!/bin/sh\necho mine\n'), null);
 });
+
+/* ---------------------- STR-03: the derived lookup index ---------------------- */
+
+test('cli: --full and file updates publish lookup.json; a failed index never fails the map', () => {
+  const dir = tmpProject({ 'src/a.js': '// A\nfunction alphaThing() {}\nmodule.exports = { alphaThing };\n' });
+  try {
+    const full = envelopeOf(runParser(dir, ['--full', '--json']));
+    assert.equal(full.exitCode, 0);
+    assert.equal(full.lookup, 'published');
+    const lookupFile = path.join(dir, '.frame', 'runtime', 'structure', 'lookup.json');
+    assert.ok(JSON.parse(fs.readFileSync(lookupFile, 'utf8')).terms['5:alphathing']);
+
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\nfunction betaThing() {}\n');
+    const delta = envelopeOf(runParser(dir, ['src/b.js', '--json']));
+    assert.equal(delta.lookup, 'published');
+    assert.ok(JSON.parse(fs.readFileSync(lookupFile, 'utf8')).terms['5:betathing']);
+
+    // a directory where the index should go: publication fails, the map does not
+    fs.rmSync(lookupFile);
+    fs.mkdirSync(lookupFile);
+    fs.writeFileSync(path.join(lookupFile, 'blocker'), 'x');
+    fs.writeFileSync(path.join(dir, 'src', 'c.js'), '// C\n');
+    const res = runParser(dir, ['--full', '--json']);
+    const env = envelopeOf(res);
+    assert.equal(env.exitCode, 0);
+    assert.equal(env.lookup, 'failed');
+    assert.match(res.stderr, /Lookup index not published/);
+    assert.ok(JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'), 'utf8')).modules.c, 'the map was published');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

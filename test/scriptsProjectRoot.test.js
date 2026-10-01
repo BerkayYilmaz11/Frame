@@ -496,9 +496,10 @@ test('readers report the lifecycle freshness and skip the date heuristic once it
     fs.writeFileSync(mapFile, fs.readFileSync(mapFile, 'utf8').replace('Widget maker', 'Edited by hand'));
     assert.match(find(), /^⚠ Map: stale \(lease-expired\)/);
 
-    // Without a working view there is nothing live to vouch for: unknown, not an alarm.
+    // Without a working view there is nothing live to vouch for: unknown, said
+    // as such (STR-03 D13: no Git date heuristic in a lookup), not an alarm.
     fs.rmSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'));
-    assert.ok(!/^⚠ Map:|^Map:/.test(find()));
+    assert.match(find(), /^⚠ Map: unverified \(no-working-view\)/);
     assert.deepEqual(findings().filter((f) => f.startsWith('structure-freshness')), []);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -812,5 +813,23 @@ test('find-module and check-freshness read the live working view before the trac
     assert.deepEqual(phantoms(), [], 'a deleted file is gone from the live view');
   } finally {
     fs.rmSync(r.dir, { recursive: true, force: true });
+  }
+});
+
+test('a copied .frame/bin/ publishes lookup.json without Frame\'s repository', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-03-bin-'));
+  try {
+    fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', 'gadget.js'), '// Gadget\nfunction buildGadget() {}\nmodule.exports = { buildGadget };\n');
+    structureBootstrap.copyParserScripts(dir);
+    assert.ok(fs.existsSync(path.join(dir, '.frame', 'bin', 'structure-retrieval.js')));
+    const env = { ...process.env, FRAME_PROJECT_ROOT: undefined };
+    const run = spawnSync('node', [path.join(dir, '.frame', 'bin', 'structure-lifecycle.js'), '--once'], { cwd: dir, env, encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    const index = JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'lookup.json'), 'utf8'));
+    assert.ok(index.terms['5:buildgadget']);
+    assert.ok(index.curation.signature, 'built with the copied intent-map.json');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });

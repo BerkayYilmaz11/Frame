@@ -51,7 +51,7 @@ const SCRIPTS_SOURCE_DIR = path.join(__dirname, '..', '..', 'scripts');
 const HELPER_FILES = [
   'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
-  'structure-read.js', 'structure-commit.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
+  'structure-read.js', 'structure-commit.js', 'structure-retrieval.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
 ];
 const ENTRY_FILES = [
   'update-structure.js', 'structure-lifecycle.js', 'find-module.js', 'check-freshness.js',
@@ -75,9 +75,9 @@ const ENTRY_REQUIRES = {
   'update-structure.js': PARSER_REQUIRES,
   'structure-lifecycle.js': LIFECYCLE_REQUIRES,
   // Readers of the freshness contract (STR-02).
-  'find-module.js': ['structure-read.js'],
+  'find-module.js': ['structure-read.js', 'structure-retrieval.js'],
   'check-freshness.js': ['structure-read.js'],
-  'module-hint.js': ['structure-read.js']
+  'module-hint.js': ['structure-read.js', 'structure-retrieval.js']
 };
 // Historical name list, kept for readers of this module's exports.
 const PARSER_FILES = [...ENTRY_FILES, 'intent-map.json', ...HELPER_FILES];
