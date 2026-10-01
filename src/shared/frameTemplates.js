@@ -643,6 +643,20 @@ No problem, continue. The user can also say what they consider important themsel
   runs \`--changed\` and then \`git add\`s the map does the same. Frame keeps
   its own unedited hook up to date.
 
+### Looking Files Up
+- \`find-module.js\` (in \`.frame/bin/\`) answers a concept, a synonym, a file
+  name, a path or a function/IPC name. Each result says which of those
+  matched; several files of equal standing are listed as candidates. Add
+  \`--json\` for one machine-readable result and \`--limit N\` (at most 20).
+- The search hint that appears next to a grep uses the same lookup with
+  stricter evidence, and stays quiet while the map is being updated.
+- Two engines: \`legacy\` (the default — concepts and synonyms first, then a
+  text search) and \`v2\` (also file names, paths and symbols, with a compact
+  index kept in \`.frame/runtime/structure/\`). v2 becomes the default once
+  it passes Frame's retrieval benchmark. Opt in now with
+  \`"project": { "retrieval": { "engine": "v2" } }\` in \`.frame/config.json\`,
+  or per call with \`--retrieval=v2\`.
+
 ### What to Edit
 - Enrich entries in place in the tracked STRUCTURE.json (never in the live
   view): \`description\`, function \`purpose\`, fields of your own, and

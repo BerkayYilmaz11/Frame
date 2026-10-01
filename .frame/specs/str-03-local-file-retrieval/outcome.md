@@ -97,3 +97,21 @@ Files touched: `scripts/module-hint.js`, `src/shared/activityEvents.js`, `test/m
 _Captured: 2026-10-01 · 4 file change(s)_
 
 ---
+
+## T06 — Held-out run and promotion decision
+
+Both engines were run once on the held-out split (122 cases) after T05; v2 had been tuned on the development split only.
+
+v2 on held-out: exact recall 100%, recall@5 89.4%, P@1 92.0%, hook precision 96.5% (both adapters), false hints 3.6% (1/28), hook p95 41 ms on this repository and 55 ms at 10k files, max payload 692 characters, a 130 KB index against the 662 KB map. Legacy: 64.9 / 57.4 / 55.3 / 56.6 / 10.7%, 10k-file p95 68 ms.
+
+**The default stays `legacy`** (D2): v2 misses four predeclared gates (recall@5, hint precision, false hints, 10k-file latency), even though it beats legacy on every metric. `DEFAULT_ENGINE` is unchanged, and v2 is opt-in through `project.retrieval.engine` or `--retrieval=v2`.
+
+Failure analysis, without changing the engine afterwards:
+- All 10 recall misses are Turkish: 8 purely Turkish queries that need curated synonyms, and 2 with ASCII Turkish words.
+- The 3 wrong hints come from the coverage relaxation combined with partial concepts.
+
+Next-round candidates are recorded in `scripts/eval/README.md`, to be validated on a new held-out split. REFERENCE (STRUCTURE.json Rules) gained "Looking Files Up": what find-module answers, `--json`/`--limit`, the hook sharing the engine, and the two engines with the opt-in. Files touched: `scripts/eval/README.md`, `src/shared/frameTemplates.js`.
+
+_Captured: 2026-10-01 · 2 file change(s)_
+
+---

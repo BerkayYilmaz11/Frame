@@ -156,3 +156,53 @@ and false hints (both adapters), and the 10k-file hook latency. The misses are
 the ones the spec describes: files outside every intent group, function names,
 and partial concept matches that hint the wrong group (for example
 `structureBootstrap nerede` → every file in the `structure` group).
+
+## Held-out result and promotion decision — 2026-10-01
+
+Same machine and pin as the baseline. v2 was tuned on the development split
+only. The held-out split was run once, for both engines, after T05.
+
+| Held-out (122) | legacy | v2 | Gate |
+|---|---|---|---|
+| Exact recall (77) | 64.9% | **100%** | 100% ✓ |
+| recall@5 | 57.4% | 89.4% | ≥ 90% ✗ |
+| precision@1 | 55.3% | **92.0%** | ≥ 90% ✓ |
+| Emitted-hint precision (Claude / Codex) | 56.6% | 96.5% | ≥ 98% ✗ |
+| Hint recall | 31.9% | 88.3% | — |
+| False hints on negatives (28) | 10.7% | 3.6% (1) | ≤ 2% ✗ |
+| Hook p50/p95, this repository | 31 / 35 ms | 34 / 41 ms | ≤ 50 ms ✓ |
+| Hook p95, 10k files | 68 ms | 55 ms | ≤ 50 ms ✗ |
+| CLI p95 | 30 ms | 39 ms (10k: 105 ms) | ≤ 150 ms ✓ |
+| Max payload | 852 chars | 692 chars | ≤ 1,800 ✓ |
+| Index read by the hook | 662 KB map | 130 KB lookup | — |
+
+Development split, v2: recall@5 95.1%, P@1 98.3%, hook precision 100%,
+false hints 0/11.
+
+**Decision: the default stays `legacy`.** v2 is better than legacy on every
+measured metric, but it misses four predeclared gates, and the rule fixed
+before the run was that all of them must pass. v2 is available now with
+`--retrieval=v2` or `"project": { "retrieval": { "engine": "v2" } }` in
+`.frame/config.json`.
+
+Failure analysis (no engine change was made after this run):
+- **recall@5:** all 10 misses are Turkish queries. 8 are purely Turkish
+  ("ayarlar", "komut paleti", "güncelleme kontrolü") and need Turkish
+  synonyms in `intent-map.json`, which is curation and out of scope. 2 contain
+  ASCII Turkish words that the coverage rule cannot treat as prose
+  ("structureBootstrap nerede", "ana sayfa widget kaydı").
+- **Hint precision and false hints:** the 3 wrong hints come from the
+  "no file carries every word → rank by coverage" relaxation combined with
+  partial concepts. "görev paneli" hinted the `panel` group, "görev çalıştırma
+  modalı" the `modal` group, and "docker compose" `feedbackReport.js` (`dock` ⊂
+  "docker", plus its `compose` function).
+- **10k-file latency:** the 1.9 MB lookup index costs about 25 ms to parse on
+  top of node's startup.
+
+Candidates for the next round, each to be validated on a **new** held-out
+split (this one is now spent):
+1. Hooks require every identifier word to be covered by one file; the
+   relaxation stays CLI-only.
+2. Turkish synonyms for the curated concepts.
+3. A smaller index at scale: drop description postings for hooks, or split the
+   index by tier.
