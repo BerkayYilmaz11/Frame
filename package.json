@@ -16,9 +16,9 @@
     "find-module": "node scripts/find-module.js",
     "freshness": "node scripts/check-freshness.js",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dist": "npm run build && electron-builder --mac --dir",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac"
+    "dist": "npm run build && node scripts/release-build.js --mac --dir",
+    "dist:mac": "npm run build && node scripts/release-build.js --mac",
+    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false node scripts/release-build.js --mac"
   },
   "keywords": [
     "electron",

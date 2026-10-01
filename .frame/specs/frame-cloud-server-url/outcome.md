@@ -39,3 +39,11 @@ Added `scripts/release-build.js` with a pure `releaseArgs(argv, env)` that appen
 _Captured: 2026-10-01 · 2 file change(s)_
 
 ---
+
+## T06 — dist scripts call the release wrapper
+
+Switched `dist`, `dist:mac` and `dist:mac:unsigned` to `npm run build && node scripts/release-build.js <builder flags>`, keeping `CSC_IDENTITY_AUTO_DISCOVERY=false` on the unsigned one. I ran `npm run dist` twice: with a placeholder https `FRAME_CLOUD_RELEASE_URL`, the `app.asar` `package.json` carried `frameCloudUrl` and the repository's did not; without the variable, the build printed the warning, exited 0 and had no such field. Both verification builds ran with `CSC_IDENTITY_AUTO_DISCOVERY=false` to skip signing (mac.identity is another developer's certificate) and left a 274 MB `release/mac-arm64/` output, which is gitignored. File: `package.json`.
+
+_Captured: 2026-10-01 · 1 file change(s)_
+
+---

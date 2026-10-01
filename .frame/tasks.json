@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T18:00:52.528Z",
+  "lastUpdated": "2026-10-01T18:05:07.326Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10086,13 +10086,13 @@
       "title": "Switch the `dist`, `dist:mac` and `dist:mac:unsigned` scripts in `package.json` to `npm run build && node scripts/release-build.js <builder flags>` (keeping `CSC_IDENTITY_AUTO_DISCOVERY=false` on the unsigned one), then confirm with a `npm run dist` build that the `app.asar` `package.json` carries `frameCloudUrl` when the variable is set and that a build without it prints the warning and has no such field",
       "description": "",
       "source": "spec:frame-cloud-server-url:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T18:05:07.326Z",
+      "completedAt": "2026-10-01T18:05:07.326Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T07",
