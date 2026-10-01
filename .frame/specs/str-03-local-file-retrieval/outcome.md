@@ -73,3 +73,27 @@ Candidates are present only as regular files inside the project (a symlink escap
 _Captured: 2026-10-01 · 4 file change(s)_
 
 ---
+
+## T05 — Search hook on the shared engine
+
+`scripts/module-hint.js` resolves the engine from `project.retrieval.engine` (else `DEFAULT_ENGINE`). Legacy keeps today's behavior and output through `legacyRetrieve`.
+
+In v2 the hook:
+- Takes the raw pattern (Grep/Glob, `find -name|-path|-wholename`, the first parsable grep/rg/ag/ack segment).
+- Stays quiet when the map is dirty or its inventory coverage is not complete.
+- Reads a fresh `lookup.json` (≤ 2 MiB). Otherwise it compiles the read view in memory when that is ≤ 2 MiB, else quiet with `index-oversize`.
+- Emits only the leading tier-1–6 group. Files must be regular and inside the project.
+- Says "points to these files" for a fresh map and "has candidates … — map not verified recently (<freshness>)" otherwise.
+- Shell-quotes the query in the suggested command.
+- Fits at most 8 files in 1,800 characters: descriptions are clipped first, the cut falls on a whole candidate, and a "… more" line is reserved.
+- Dedups by revision plus answer fingerprint (at most 256 per session). Without a session id nothing is persisted.
+
+New quiet reasons: `map-incomplete`, `index-oversize`, `ambiguous-weak`, with texts in `src/shared/activityEvents.js`. Deviations:
+- The reasons also had to join `HINT_REASONS`, the enum `hint.quiet` validates against. `test/activityEvents.test.js` (not in the plan's file list) pins that count, so it was updated from 12 to 15.
+- The import test became a transitive closure walk (comments stripped), allowing exactly `activity-log`, `redact`, `structure-read`, `structure-retrieval` and `toolVocabulary`, and no `child_process`/network built-ins.
+
+Files touched: `scripts/module-hint.js`, `src/shared/activityEvents.js`, `test/module-hint.test.js`, `test/activityEvents.test.js`.
+
+_Captured: 2026-10-01 · 4 file change(s)_
+
+---

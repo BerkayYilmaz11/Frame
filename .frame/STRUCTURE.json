@@ -17171,53 +17171,54 @@
         "fs",
         "path",
         "structure-read",
+        "structure-retrieval",
         "activity-log",
         "toolVocabulary"
       ],
       "functions": {
         "toPosix": {
-          "line": 52,
+          "line": 56,
           "params": [
             "p"
           ]
         },
         "readStdin": {
-          "line": 54
+          "line": 58
         },
         "readJson": {
-          "line": 58,
+          "line": 62,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 64,
+          "line": 68,
           "params": [
             "hookCwd"
           ]
         },
         "finderCliPath": {
-          "line": 81,
+          "line": 91,
           "params": [
             "root"
           ]
         },
         "stateFile": {
-          "line": 89,
+          "line": 99,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "loadState": {
-          "line": 94,
+          "line": 104,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "saveState": {
-          "line": 99,
+          "line": 112,
           "params": [
             "root",
             "sessionId",
@@ -17225,23 +17226,23 @@
           ]
         },
         "cleanupState": {
-          "line": 107,
+          "line": 120,
           "params": [
             "root"
           ]
         },
         "setHookCli": {
-          "line": 153,
+          "line": 166,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 157
+          "line": 170
         },
         "note": {
-          "line": 161,
+          "line": 174,
           "params": [
             "root",
             "ev",
@@ -17249,7 +17250,7 @@
           ]
         },
         "quiet": {
-          "line": 177,
+          "line": 190,
           "params": [
             "root",
             "reason"
@@ -17257,50 +17258,51 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 181,
+          "line": 194,
           "params": [
             "context"
           ]
         },
         "searchSegments": {
-          "line": 203,
+          "line": 216,
           "params": [
             "cmd"
           ]
         },
         "extractPattern": {
-          "line": 222,
+          "line": 235,
           "params": [
             "seg"
           ],
           "purpose": "Pull the pattern operand out of one search segment (already known to start"
         },
         "candidates": {
-          "line": 238,
+          "line": 251,
           "params": [
             "raw"
           ],
           "purpose": "A raw pattern (regex, glob, or plain word) → the concept words worth"
         },
+        "patternFrom": {
+          "line": 266,
+          "params": [
+            "toolName",
+            "input"
+          ],
+          "purpose": "The raw pattern of a search call: null when the call is not a search at"
+        },
         "keywordsFrom": {
-          "line": 249,
+          "line": 286,
           "params": [
             "toolName",
             "input"
           ]
         },
         "loadIntentMap": {
-          "line": 286
-        },
-        "lookup": {
-          "line": 293,
-          "params": [
-            "structure",
-            "keyword"
-          ]
+          "line": 301
         },
         "render": {
-          "line": 315,
+          "line": 308,
           "params": [
             "root",
             "structure",
@@ -17308,23 +17310,94 @@
             "keyword"
           ]
         },
+        "engineFor": {
+          "line": 334,
+          "params": [
+            "root"
+          ],
+          "purpose": "project.retrieval.engine, else the shipped default; anything else is the default."
+        },
+        "existsInProject": {
+          "line": 342,
+          "params": [
+            "root",
+            "rel"
+          ],
+          "purpose": "A hinted file must be a regular file inside the project right now."
+        },
+        "legacyMode": {
+          "line": 354,
+          "params": [
+            "root",
+            "input",
+            "descriptor"
+          ]
+        },
+        "loadIndex": {
+          "line": 375,
+          "params": [
+            "root"
+          ],
+          "purpose": "The index to answer from: a current lookup.json, else the map compiled in memory."
+        },
+        "fingerprint": {
+          "line": 385,
+          "params": [
+            "paths"
+          ]
+        },
+        "shownQuery": {
+          "line": 392,
+          "params": [
+            "pattern"
+          ],
+          "purpose": "One line of the query, safe to show and to paste as a shell argument."
+        },
+        "shellQuote": {
+          "line": 396,
+          "params": [
+            "text"
+          ]
+        },
+        "renderV2": {
+          "line": 400,
+          "params": [
+            "root",
+            "result",
+            "pattern",
+            "descriptor"
+          ]
+        },
+        "v2Mode": {
+          "line": 430,
+          "params": [
+            "root",
+            "input",
+            "descriptor"
+          ]
+        },
         "searchMode": {
-          "line": 340,
+          "line": 462,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 15937,
+      "sizeBytes": 21053,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "candidates": "a9ed75e60ec11d73",
+          "engineFor": "dd31c17caca3abfa",
+          "existsInProject": "5dddbd190b145640",
           "extractPattern": "2c7cae15c16d94d2",
+          "loadIndex": "2f9196b0793b2ccf",
+          "patternFrom": "79c2136a033352ff",
           "quiet": "3e8f4a1504407442",
-          "setHookCli": "c07ecdee8595a6cf"
+          "setHookCli": "c07ecdee8595a6cf",
+          "shownQuery": "97f764f95a46a385"
         }
       }
     },
@@ -20028,32 +20101,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 420,
+          "line": 427,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 424,
+          "line": 431,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 428,
+          "line": 435,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 432,
+          "line": 439,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 455,
+          "line": 462,
           "params": [
             "name",
             "fields"
@@ -20061,7 +20134,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 472,
+          "line": 479,
           "params": [
             "name",
             "fields"
@@ -20069,7 +20142,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 493,
+          "line": 500,
           "params": [
             "name",
             "fields"
@@ -20077,7 +20150,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 22204,
+      "sizeBytes": 22748,
       "extraction": {
         "status": "parsed"
       },
@@ -21566,7 +21639,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 11100,
+      "sizeBytes": 11171,
       "extraction": {
         "status": "parsed"
       },
@@ -23289,7 +23362,8 @@
         "os",
         "path",
         "child_process",
-        "crypto"
+        "crypto",
+        "scripts/structure-retrieval"
       ],
       "functions": {
         "runHook": {
@@ -23306,16 +23380,28 @@
           ]
         },
         "withReceipt": {
-          "line": 223,
+          "line": 239,
           "params": [
             "root",
             "{ dirty = []",
             "epoch = { requested",
             "applied"
           ]
+        },
+        "v2Project": {
+          "line": 307,
+          "params": [
+            "structure = V2_STRUCTURE"
+          ]
+        },
+        "runCodex": {
+          "line": 317,
+          "params": [
+            "input"
+          ]
         }
       },
-      "sizeBytes": 12523,
+      "sizeBytes": 21693,
       "extraction": {
         "status": "parsed"
       },
@@ -26490,6 +26576,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2eaaedc700d2f754c9b5e1c59391d16d9c02580c9c1c2a13a7ef2e5a4bcef624"
+    "revision": "df418cd0388ef0973a219130be810456a7fc1a28710f02aa9e2c4562af463d03"
   }
 }
