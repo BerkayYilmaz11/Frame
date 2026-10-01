@@ -115,3 +115,27 @@ Next-round candidates are recorded in `scripts/eval/README.md`, to be validated 
 _Captured: 2026-10-01 · 2 file change(s)_
 
 ---
+
+## T07 — Matched-agent instrument
+
+`run-eval.js --retrieval-arms [--repeat N] [--seed S]` runs the new `retrievalSuite` (12 navigation tasks at 262f91b) across `no-hint` / `legacy` / `v2`, in a mulberry32-shuffled, reproducible order.
+
+Each cell:
+- builds the map with this checkout's `update-structure.js --full` (which publishes `lookup.json`);
+- for hooked arms, sets `project.retrieval.engine` and registers this checkout's `module-hint.js` for Grep|Glob|Bash with a per-cell `FRAME_ACTIVITY_HOME`;
+- commits the setup, so it never counts as agent diff;
+- records `setupOk`, `hookRecords`, `hintsInjected`, `worktree` and `repeat` in meta.
+
+`score.js` adds:
+- search and read calls, files read (made relative to the worktree), and expected files found (read or changed);
+- token accounting from the final `result` event only: input, cache creation and cache read, with output separate. No result event means `null`/unknown, kept out of averages.
+- `cellValidity`: setup failed, hook never ran while the agent searched, or hook activity in the no-hint arm.
+- `paired`: per-task means across repeats, valid cells only, with mean difference and lower/higher/same counts. Comparisons are printed and included in `--json`.
+
+The legacy frame/bare suite is unchanged. Re-scoring the old haiku pilot with cache tokens shows the frame arm used more input tokens (373k vs 173k average), another reason no saving is claimed before S8 runs.
+
+Deviation: task ids are neutral (`nav-01…12`), because descriptive ids leaked file names through the marker line. A test enforces that no prompt contains its file's stem. The README records the S8 protocol as **pending**: the paid run happens only on explicit command. Files touched: `scripts/eval/run-eval.js`, `scripts/eval/score.js`, `scripts/eval/tasks.json`, `scripts/eval/README.md`, `test/retrievalEval.test.js`.
+
+_Captured: 2026-10-01 · 5 file change(s)_
+
+---

@@ -16382,7 +16382,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 10176,
+      "sizeBytes": 11950,
       "extraction": {
         "status": "parsed"
       },
@@ -16405,7 +16405,11 @@
     "scripts/eval/run-eval": {
       "file": "scripts/eval/run-eval.js",
       "description": "",
-      "exports": [],
+      "exports": [
+        "shuffled",
+        "hookActivity",
+        "RETRIEVAL_ARMS"
+      ],
       "depends": [
         "fs",
         "os",
@@ -16414,38 +16418,71 @@
       ],
       "functions": {
         "parseArgs": {
-          "line": 52
+          "line": 60
+        },
+        "shuffled": {
+          "line": 84,
+          "params": [
+            "items",
+            "seed"
+          ],
+          "purpose": "Deterministic shuffle (mulberry32) so a run order can be reproduced."
+        },
+        "setupRetrievalArm": {
+          "line": 106,
+          "params": [
+            "wt",
+            "arm",
+            "activityHome"
+          ],
+          "purpose": "Retrieval-arm setup: the same map for every arm (this checkout's"
+        },
+        "hookActivity": {
+          "line": 131,
+          "params": [
+            "activityHome"
+          ],
+          "purpose": "Search-hook records a cell produced: { records, injected }."
         },
         "git": {
-          "line": 70,
+          "line": 156,
           "params": [
             "cmd",
             "cwd"
           ]
         },
         "setupHooks": {
-          "line": 80,
+          "line": 166,
           "params": [
             "wt"
           ]
         },
         "runOne": {
-          "line": 105,
+          "line": 191,
           "params": [
             "task",
             "arm",
             "resultsDir",
             "timeoutSec",
-            "hooks"
+            "hooks",
+            "suite = SUITE",
+            "repeat = 1"
           ]
         },
         "main": {
-          "line": 193
+          "line": 290
         }
       },
-      "sizeBytes": 8937,
+      "sizeBytes": 13923,
       "extraction": {
         "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "hookActivity": "4631feb261596931",
+          "setupRetrievalArm": "783c6bac4f5c86a2",
+          "shuffled": "a75b35feb454edac"
+        }
       }
     },
     "scripts/eval/run-retrieval": {
@@ -16634,37 +16671,68 @@
     "scripts/eval/score": {
       "file": "scripts/eval/score.js",
       "description": "",
-      "exports": [],
+      "exports": [
+        "scoreTranscript",
+        "scoreRun",
+        "cellValidity",
+        "paired",
+        "aggregate"
+      ],
       "depends": [
         "fs",
         "path"
       ],
       "functions": {
         "scoreTranscript": {
-          "line": 28,
+          "line": 42,
           "params": [
-            "file"
+            "file",
+            "options = {}"
           ]
         },
+        "cellValidity": {
+          "line": 103,
+          "params": [
+            "meta",
+            "stats"
+          ],
+          "purpose": "Whether a retrieval-arm cell measured what its arm intends. Returns"
+        },
         "scoreRun": {
-          "line": 61,
+          "line": 112,
           "params": [
             "runDir"
           ]
         },
+        "paired": {
+          "line": 146,
+          "params": [
+            "runs",
+            "a",
+            "b",
+            "metric"
+          ],
+          "purpose": "Paired per-task comparison of arm `b` against arm `a` on valid cells:"
+        },
         "aggregate": {
-          "line": 82,
+          "line": 169,
           "params": [
             "runs"
           ]
         },
         "main": {
-          "line": 100
+          "line": 200
         }
       },
-      "sizeBytes": 6305,
+      "sizeBytes": 12560,
       "extraction": {
         "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "cellValidity": "a2468a06292c5481",
+          "paired": "49da72b4b2b66533"
+        }
       }
     },
     "scripts/eval/tasks.json": {
@@ -16673,7 +16741,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4609,
+      "sizeBytes": 12163,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -23594,10 +23662,22 @@
         "child_process",
         "scripts/eval/run-retrieval",
         "fs",
-        "os"
+        "os",
+        "scripts/eval/score",
+        "scripts/eval/run-eval",
+        "scripts/eval/tasks.json"
       ],
-      "functions": {},
-      "sizeBytes": 7907,
+      "functions": {
+        "cell": {
+          "line": 154,
+          "params": [
+            "t",
+            "{ meta",
+            "events }"
+          ]
+        }
+      },
+      "sizeBytes": 14299,
       "extraction": {
         "status": "parsed"
       },
@@ -26576,6 +26656,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "121a88a87c6e220101e0edce75b3519c0b5c050fb98c9c260548db9db91f7998"
+    "revision": "8ddbb6d181092de18f78edbe353a52d9047cdfbea53647748c4655eaa5fab61c"
   }
 }

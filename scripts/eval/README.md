@@ -206,3 +206,40 @@ split (this one is now spent):
 2. Turkish synonyms for the curated concepts.
 3. A smaller index at scale: drop description postings for hooks, or split the
    index by tier.
+
+## Matched-agent navigation (S8) — pending
+
+Does the search hint actually save the agent work? The retrieval benchmark
+measures the hint, not its effect. This run measures the effect, and it costs
+real agent time and tokens, so it only runs when asked.
+
+- **Suite** — `retrievalSuite` in `tasks.json`: 12 navigation tasks at the
+  corpus pin (262f91b). Each prompt describes a file's behavior, never its
+  name. The task is done when a marker comment lands in that file and in no
+  other (`successCheck`).
+- **Arms** — `no-hint`, `legacy`, `v2`. Every cell gets its own worktree,
+  with this checkout's `update-structure.js --full` map and the same prompt,
+  model and permissions. Only the search hook differs: none, or this
+  checkout's `module-hint.js` with the arm's engine. The hook writes to a
+  per-cell `FRAME_ACTIVITY_HOME`.
+- **Validity** — a cell is invalid, and excluded from comparisons, when:
+  - its setup failed;
+  - a hooked arm's hook never ran although the agent searched;
+  - the no-hint arm recorded hook activity.
+- **Scoring** (`score.js`):
+  - expected files found (read or changed);
+  - search calls and read calls;
+  - input tokens including cache creation and cache reads, output tokens separately;
+  - elapsed time, failures.
+
+  Tokens come only from the final `result` event; a run without one is
+  `unknown`, not 0. Arms are compared per task (repeats averaged first): mean
+  difference, and how many tasks went down / up.
+
+```bash
+node scripts/eval/run-eval.js --retrieval-arms --repeat 5 --seed 7   # 12 × 3 × 5 = 180 agent runs
+node scripts/eval/score.js scripts/eval/results/<run>
+```
+
+**Status: not run yet.** No token saving is claimed for v2. A hint firing
+does not show that work was saved; only this paired measurement can.

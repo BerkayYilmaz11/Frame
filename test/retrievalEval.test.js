@@ -143,3 +143,115 @@ test('quantiles use the nearest-rank definition', () => {
   assert.equal(bench.quantile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.95), 10);
   assert.equal(bench.quantile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.5), 5);
 });
+
+/* ------------------------- matched-agent instrument (S8) ------------------------- */
+
+const fs = require('fs');
+const os = require('os');
+const score = require('../scripts/eval/score');
+const runEval = require('../scripts/eval/run-eval');
+
+function cell(t, { meta, events }) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-cell-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta));
+  fs.writeFileSync(path.join(dir, 'transcript.jsonl'), events.map((e) => JSON.stringify(e)).join('\n'));
+  return dir;
+}
+const tool = (name, input) => ({ type: 'assistant', message: { content: [{ type: 'tool_use', name, input }], usage: { input_tokens: 999999 } } });
+
+test('scoring counts searches, reads and found files; tokens come from the final result only, cache included', (t) => {
+  const wt = '/tmp/frame-eval-x';
+  const dir = cell(t, {
+    meta: { task: 'nav-a', arm: 'v2', retrievalArm: true, setupOk: true, hookRecords: 2, hintsInjected: 1, worktree: wt, expectedFiles: ['src/a.js', 'src/b.js'], changedFiles: ['src/b.js'], checkPassed: true, durationMs: 5000 },
+    events: [
+      tool('Grep', { pattern: 'alpha' }),
+      tool('Bash', { command: 'rg -n beta src/' }),
+      tool('Read', { file_path: `${wt}/src/a.js` }),
+      tool('Bash', { command: 'cat src/c.js' }),
+      tool('Edit', { file_path: `${wt}/src/b.js` }),
+      tool('Glob', { pattern: '**/*.md' }),
+      { type: 'result', usage: { input_tokens: 120, cache_creation_input_tokens: 3000, cache_read_input_tokens: 45000, output_tokens: 800 } }
+    ]
+  });
+  const r = score.scoreRun(dir);
+  assert.equal(r.searchCalls, 3);
+  assert.equal(r.searchBeforeFirstEdit, 2);
+  assert.equal(r.readCalls, 2);
+  assert.deepEqual(r.filesRead, ['src/a.js']);
+  assert.equal(r.filesFound, 2, 'read a.js, changed b.js');
+  assert.equal(r.totalInputTokens, 48120, 'never the per-message usage');
+  assert.equal(r.outputTokens, 800);
+  assert.equal(r.valid, true);
+});
+
+test('missing token telemetry is unknown, not zero, and stays out of averages', (t) => {
+  const known = score.scoreRun(cell(t, { meta: { task: 'x', arm: 'legacy', expectedFiles: [] }, events: [{ type: 'result', usage: { input_tokens: 100, output_tokens: 10 } }] }));
+  const unknown = score.scoreRun(cell(t, { meta: { task: 'x', arm: 'legacy', expectedFiles: [] }, events: [tool('Grep', { pattern: 'x' })] }));
+  assert.equal(unknown.totalInputTokens, null);
+  assert.equal(unknown.outputTokens, null);
+  const agg = score.aggregate([known, unknown]);
+  assert.equal(agg.avgTotalInputTokens, 100);
+  assert.equal(agg.tokensUnknown, 1);
+});
+
+test('a cell is invalid when its hook did not run as the arm intends', () => {
+  const v = (meta, stats = { searchCalls: 1 }) => score.cellValidity({ retrievalArm: true, setupOk: true, ...meta }, stats);
+  assert.deepEqual(v({ arm: 'v2', hookRecords: 0 }), { valid: false, reason: 'hook-never-ran' });
+  assert.deepEqual(v({ arm: 'v2', hookRecords: 0 }, { searchCalls: 0 }), { valid: true }, 'no search, nothing to hint');
+  assert.deepEqual(v({ arm: 'legacy', hookRecords: 3 }), { valid: true });
+  assert.deepEqual(v({ arm: 'no-hint', hookRecords: 1 }), { valid: false, reason: 'hook-ran-in-no-hint-arm' });
+  assert.deepEqual(v({ arm: 'no-hint', hookRecords: 0 }), { valid: true });
+  assert.deepEqual(v({ arm: 'v2', setupOk: false, hookRecords: 5 }), { valid: false, reason: 'setup-failed' });
+  assert.deepEqual(score.cellValidity({ arm: 'frame' }, { searchCalls: 9 }), { valid: true }, 'other suites are unaffected');
+});
+
+test('paired comparison averages repeats per task, uses valid cells only, and counts direction', () => {
+  const run = (task, arm, totalInputTokens, valid = true) => ({ task, arm, totalInputTokens, valid });
+  const runs = [
+    run('a', 'legacy', 100), run('a', 'legacy', 140), run('a', 'v2', 90), run('a', 'v2', 110),
+    run('b', 'legacy', 200), run('b', 'v2', 260),
+    run('c', 'legacy', 50), run('c', 'v2', 10, false),
+    run('d', 'legacy', null), run('d', 'v2', 70)
+  ];
+  const p = score.paired(runs, 'legacy', 'v2', 'totalInputTokens');
+  assert.equal(p.tasks, 2, 'c has no valid v2 cell, d has no known legacy value');
+  assert.equal(p.meanDiff, ((100 - 120) + (260 - 200)) / 2);
+  assert.deepEqual([p.lower, p.higher, p.same], [1, 1, 0]);
+});
+
+test('the navigation suite: at least 12 tasks, files named only by behavior, checks bound to the expected file', (t) => {
+  const suite = require('../scripts/eval/tasks.json').retrievalSuite;
+  assert.ok(suite.tasks.length >= 12);
+  const r = spawnSync('git', ['ls-tree', '-r', '--name-only', suite.pinnedCommit], { cwd: REPO_ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const files = r.status === 0 ? new Set(r.stdout.split('\n')) : null;
+  for (const task of suite.tasks) {
+    assert.equal(task.expectedFiles.length, 1);
+    const file = task.expectedFiles[0];
+    const stem = path.basename(file).replace(/\.[^.]+$/, '');
+    assert.ok(!task.prompt.toLowerCase().includes(stem.toLowerCase()), `${task.id}: the prompt must not name ${stem}`);
+    assert.ok(task.successCheck.includes(file) && task.successCheck.includes(`eval-nav: ${task.id}`), task.id);
+    if (files) assert.ok(files.has(file), `${task.id}: ${file} at the pinned commit`);
+  }
+  if (!files) t.diagnostic('pinned commit unavailable; file existence not checked');
+});
+
+test('cell order is shuffled reproducibly from the seed', () => {
+  const cells = Array.from({ length: 30 }, (_, i) => i);
+  const a = runEval.shuffled(cells, 7);
+  assert.deepEqual(runEval.shuffled(cells, 7), a);
+  assert.notDeepEqual(a, cells);
+  assert.deepEqual([...a].sort((x, y) => x - y), cells);
+  assert.deepEqual(runEval.RETRIEVAL_ARMS, ['no-hint', 'legacy', 'v2']);
+});
+
+test('hook activity counts only search-hint records', (t) => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-act-'));
+  t.after(() => fs.rmSync(home, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(home, 'p'), { recursive: true });
+  fs.writeFileSync(path.join(home, 'p', 'a.jsonl'), [
+    { ev: 'hint.injected', mode: 'search' }, { ev: 'hint.quiet', mode: 'search' },
+    { ev: 'hint.injected', mode: 'pre-edit' }, { ev: 'watch.fired' }
+  ].map((r) => JSON.stringify(r)).join('\n') + '\n{"partial');
+  assert.deepEqual(runEval.hookActivity(home), { records: 2, injected: 1 });
+});
