@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-28",
+  "lastUpdated": "2026-09-30",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -302,7 +302,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 107573,
+      "sizeBytes": 110158,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -2282,6 +2282,7 @@
         "refresh",
         "signOut",
         "getState",
+        "joinWaitlist",
         "getPublicState",
         "toPublicState",
         "getAuth",
@@ -2303,10 +2304,10 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 65
+          "line": 80
         },
         "fetchJson": {
-          "line": 77,
+          "line": 92,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -2317,41 +2318,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 118,
+          "line": 133,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 138,
+          "line": 153,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 147,
+          "line": 162,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 160
+          "line": 175
         },
         "deviceInfo": {
-          "line": 182
+          "line": 197
         },
         "toPublicState": {
-          "line": 194
+          "line": 209
         },
         "getPublicState": {
-          "line": 202
+          "line": 221
         },
         "publish": {
-          "line": 206
+          "line": 225
         },
         "setState": {
-          "line": 215,
+          "line": 234,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -2359,18 +2360,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 229,
+          "line": 248,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 238,
+          "line": 257,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 249,
+          "line": 268,
           "params": [
             "serverUrl",
             "session",
@@ -2378,54 +2379,65 @@
           ]
         },
         "bringToFront": {
-          "line": 263,
+          "line": 282,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 271
+          "line": 290
         },
         "signIn": {
-          "line": 280,
+          "line": 299,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 332
+          "line": 351
+        },
+        "readInviteMode": {
+          "line": 368,
+          "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
+        },
+        "joinWaitlist": {
+          "line": 392,
+          "params": [
+            "rawEmail"
+          ],
+          "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 340,
-          "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data."
+          "line": 409,
+          "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 368,
+          "line": 439,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 382,
+          "line": 453,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 389,
+          "line": 460,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 415,
+          "line": 486,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 419
+          "line": 490
         },
         "getState": {
-          "line": 444,
+          "line": 518,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 451,
+          "line": 525,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 462,
+          "line": 536,
           "params": [
             "ipcMain"
           ]
@@ -2437,13 +2449,14 @@
           "CLOUD_CANCEL_SIGN_IN",
           "CLOUD_SIGN_OUT",
           "CLOUD_GET_STATE",
-          "CLOUD_REFRESH"
+          "CLOUD_REFRESH",
+          "CLOUD_JOIN_WAITLIST"
         ],
         "emits": [
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 14715,
+      "sizeBytes": 17834,
       "extraction": {
         "status": "parsed"
       },
@@ -2454,9 +2467,11 @@
           "fetchJson": "ffa1cee0ea927e7f",
           "getAuth": "dfc66f7cad5c4fdf",
           "getState": "e857100c718d94c5",
+          "joinWaitlist": "2b27d9181e47bb9f",
           "onChange": "bfe824430b78ef69",
           "reRegister": "e88a61fbed8a6f32",
-          "refresh": "d9d234aa697922ce",
+          "readInviteMode": "dcc8a44616939165",
+          "refresh": "61b40a9ce727f469",
           "sessionExpired": "5d56148c50c4781e",
           "setState": "3d2187de732548f8",
           "signIn": "d5bda9fb4a6e3b43",
@@ -3346,7 +3361,11 @@
         "signOutDevice",
         "runSignIn",
         "refreshSession",
-        "callTrpc"
+        "callTrpc",
+        "WAITLIST_EMAIL_MAX",
+        "fetchInviteMode",
+        "normalizeWaitlistEmail",
+        "joinWaitlist"
       ],
       "depends": [],
       "functions": {
@@ -3482,8 +3501,40 @@
             "signal }"
           ]
         },
+        "fetchInviteMode": {
+          "line": 235,
+          "params": [
+            "{ api",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "Whether the server only lets invited people sign up (FrameCloud"
+        },
+        "normalizeWaitlistEmail": {
+          "line": 251,
+          "params": [
+            "raw"
+          ],
+          "purpose": "A waitlist address as the server stores it — trimmed and lowercased as a"
+        },
+        "joinReason": {
+          "line": 262,
+          "params": [
+            "err"
+          ]
+        },
+        "joinWaitlist": {
+          "line": 277,
+          "params": [
+            "{ api",
+            "email",
+            "fetchJson",
+            "signal }"
+          ],
+          "purpose": "Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,"
+        },
         "pollForToken": {
-          "line": 231,
+          "line": 297,
           "params": [
             "{ api",
             "code",
@@ -3495,13 +3546,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 284,
+          "line": 350,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 302,
+          "line": 368,
           "params": [
             "{ api",
             "fetchJson",
@@ -3515,19 +3566,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 360,
+          "line": 426,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 372,
+          "line": 438,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 386,
+          "line": 452,
           "params": [
             "{ api",
             "token",
@@ -3538,7 +3589,7 @@
           "purpose": "`device.me`, re-registering once when the server has forgotten this device."
         }
       },
-      "sizeBytes": 14014,
+      "sizeBytes": 16725,
       "extraction": {
         "status": "parsed"
       },
@@ -3549,9 +3600,12 @@
           "classifyTokenResponse": "2f95a6e8fdf2bb48",
           "classifyTrpcError": "34a7196859403c98",
           "deviceName": "35a3ebe056a4adea",
+          "fetchInviteMode": "ef0dda334a7ccabb",
           "formatDeviceInfo": "f82ed8754c1a28c5",
           "formatUserCode": "4c9e76b2335ffad4",
+          "joinWaitlist": "a142d39388236703",
           "looksLikeAddress": "add9a94f459e2d88",
+          "normalizeWaitlistEmail": "ece7e2e59dab85a3",
           "parseCodeResponse": "4626cbf9184c6f5c",
           "pollForToken": "b146490edbbeb889",
           "refreshSession": "1d622fffd281eb11",
@@ -10901,6 +10955,53 @@
         }
       }
     },
+    "renderer/cloudEarlyAccess": {
+      "file": "src/renderer/cloudEarlyAccess.js",
+      "description": "cloudEarlyAccess — the words the Frame Cloud window says while the server",
+      "exports": [
+        "WAITLIST_URL",
+        "COPY",
+        "joinedBody",
+        "joinFailure",
+        "paneMode"
+      ],
+      "depends": [],
+      "functions": {
+        "joinedBody": {
+          "line": 36,
+          "params": [
+            "email"
+          ],
+          "purpose": "The joined card's body: \"We'll email ada@example.com when your invite is ready.\""
+        },
+        "joinFailure": {
+          "line": 51,
+          "params": [
+            "reason"
+          ],
+          "purpose": "Why a join failed, as one line, and whether to offer frame.cool instead."
+        },
+        "paneMode": {
+          "line": 60,
+          "params": [
+            "state"
+          ],
+          "purpose": "Which signed-out pane to show: today's (`classic`) unless the server said"
+        }
+      },
+      "sizeBytes": 2620,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "bd98e588a6d0d6d3",
+        "purposes": {
+          "joinFailure": "548330817ab6413d",
+          "joinedBody": "361f6f82ce3faa6d",
+          "paneMode": "8a8b6b8161a5fea9"
+        }
+      }
+    },
     "renderer/cloudHub": {
       "file": "src/renderer/cloudHub.js",
       "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
@@ -10910,98 +11011,117 @@
         "shared/ipcChannels",
         "settingsOverlay",
         "cloudWelcome",
-        "cloudNoWorkspace"
+        "cloudNoWorkspace",
+        "cloudEarlyAccess"
       ],
       "functions": {
         "init": {
-          "line": 57,
+          "line": 61,
           "params": [
             "opts = {}"
           ],
           "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
         },
         "onOpen": {
-          "line": 98,
-          "purpose": "Opening re-reads both states; a signed-in session asks the server once"
+          "line": 103,
+          "purpose": "Opening re-reads both states and asks the server once: device.me when"
+        },
+        "initEarlyAccess": {
+          "line": 117,
+          "purpose": "Fill the early-access pane's static words once and wire its controls."
+        },
+        "showJoinFailure": {
+          "line": 184,
+          "params": [
+            "reason"
+          ],
+          "purpose": "One line under the form for a failed join (null clears it), and frame.cool as the way out."
+        },
+        "renderEarlyAccess": {
+          "line": 196,
+          "params": [
+            "s"
+          ],
+          "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 109
+          "line": 210
         },
         "pullProjects": {
-          "line": 122
+          "line": 223
         },
         "refreshProjects": {
-          "line": 136,
+          "line": 237,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 152,
+          "line": 253,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 184,
+          "line": 288,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 197,
+          "line": 301,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 230
+          "line": 339
         },
         "renderHeader": {
-          "line": 240,
+          "line": 349,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 254,
+          "line": 363,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 288,
+          "line": 397,
           "params": [
             "state"
           ]
         },
         "renderNoWorkspace": {
-          "line": 315,
+          "line": 424,
           "params": [
             "state"
           ],
           "purpose": "Signed in without a workspace: the tab bar, both tabs and the devices"
         },
         "showDevicesPrompt": {
-          "line": 367,
+          "line": 476,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 394
+          "line": 503
         },
         "setTab": {
-          "line": 399,
+          "line": 508,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 429,
+          "line": 538,
           "params": [
             "{ tab",
             "folderPath",
@@ -11010,42 +11130,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 437,
+          "line": 546,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 444,
+          "line": 553,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 450,
+          "line": 559,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 456,
+          "line": 565,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 462,
+          "line": 571,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 466,
+          "line": 575,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 475,
+          "line": 584,
           "params": [
             "date"
           ]
@@ -11058,7 +11178,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 15859,
+      "sizeBytes": 23026,
       "extraction": {
         "status": "parsed"
       },
@@ -11066,12 +11186,16 @@
         "description": "e430ebf4df6d0b4e",
         "purposes": {
           "init": "9a0c0e6482f0308d",
+          "initEarlyAccess": "467835ef44b64a7e",
           "isWebUrl": "9967ae39bf4f9ea8",
-          "onOpen": "7fc7181853ffd5ee",
+          "onOpen": "978035945ef6025f",
           "open": "d1c1050fa815a5e7",
           "refreshProjects": "00c2f19d6ac01af0",
           "renderAvatar": "4d0ff2874db3c840",
+          "renderEarlyAccess": "5cb65d4f1270d32d",
+          "renderNoWorkspace": "c016122ddabc0788",
           "showDevicesPrompt": "2bc4cf5ae43e0cb3",
+          "showJoinFailure": "780ecb7fc1d760fd",
           "signIn": "47f2303caa9d739d",
           "signOut": "65a74c9baba38e0d"
         }
@@ -13223,7 +13347,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 14162,
+      "sizeBytes": 14238,
       "extraction": {
         "status": "parsed"
       },
@@ -16494,21 +16618,22 @@
         "doneWindow",
         "cloudHub",
         "cloudNoWorkspace",
+        "cloudEarlyAccess",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 56
+          "line": 57
         },
         "syncFromProject": {
-          "line": 264
+          "line": 265
         },
         "syncCloudRow": {
-          "line": 281,
+          "line": 282,
           "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
         },
         "cloudButton": {
-          "line": 300,
+          "line": 301,
           "params": [
             "label",
             "onClick",
@@ -16517,76 +16642,76 @@
           ]
         },
         "renderCloudRow": {
-          "line": 310
+          "line": 311
         },
         "disconnectFromCloud": {
-          "line": 379,
+          "line": 381,
           "params": [
             "projectPath"
           ]
         },
         "renderDoneWindow": {
-          "line": 402,
+          "line": 404,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 414,
+          "line": 416,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 431,
+          "line": 433,
           "purpose": "The setup row's two states. A folder Frame was never initialized in has"
         },
         "setFrameSetupText": {
-          "line": 450,
+          "line": 452,
           "params": [
             "isFrame"
           ]
         },
         "syncMigrationDecision": {
-          "line": 470,
+          "line": 472,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 490,
+          "line": 492,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 516,
+          "line": 518,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 541,
+          "line": 543,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 557
+          "line": 559
         },
         "setRemoveFrameNote": {
-          "line": 571,
+          "line": 573,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 577,
+          "line": 579,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 583,
+          "line": 585,
           "params": [
             "message"
           ]
         }
       },
-      "sizeBytes": 23163,
+      "sizeBytes": 23778,
       "extraction": {
         "status": "parsed"
       },
@@ -19050,7 +19175,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 20958,
+      "sizeBytes": 22484,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -24900,7 +25025,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 16702,
+      "sizeBytes": 16829,
       "extraction": {
         "status": "parsed"
       },
@@ -26178,7 +26303,7 @@
           ]
         }
       },
-      "sizeBytes": 25999,
+      "sizeBytes": 30728,
       "extraction": {
         "status": "parsed"
       },
@@ -26222,6 +26347,24 @@
         "purposes": {
           "fakeDeps": "55362a5581b8c427"
         }
+      }
+    },
+    "test/cloudEarlyAccess.test": {
+      "file": "test/cloudEarlyAccess.test.js",
+      "description": "cloudEarlyAccess tests — the Frame Cloud window's words while the server is",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/cloudEarlyAccess"
+      ],
+      "functions": {},
+      "sizeBytes": 2464,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "e079f4d94f05de62"
       }
     },
     "test/cloudProjects.test": {
@@ -30139,6 +30282,11 @@
         "name": "cloud-brief-start",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_JOIN_WAITLIST": {
+        "name": "cloud-join-waitlist",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -30146,6 +30294,18 @@
   "files": {},
   "conventions": {},
   "intentIndex": {
+    "access": [
+      {
+        "module": "renderer/cloudEarlyAccess",
+        "file": "src/renderer/cloudEarlyAccess.js",
+        "description": "cloudEarlyAccess — the words the Frame Cloud window says while the server"
+      },
+      {
+        "module": "renderer/github/accessState",
+        "file": "src/renderer/github/accessState.js",
+        "description": "GitHub access state — pure (github-view-tree-layout spec, G3 / D6)."
+      }
+    ],
     "active": [
       {
         "module": "renderer/home/widgets/activeSpecs",
@@ -31199,15 +31359,17 @@
   },
   "generation": {
     "schema": 1,
-    "mode": "full",
+    "mode": "delta",
     "inventory": {
-      "coverage": "complete",
-      "reasons": []
+      "coverage": "unknown",
+      "reasons": [
+        "delta"
+      ]
     },
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 322,
+        "parsed": 324,
         "unsupported": 85,
         "partial": 0
       }
@@ -31254,26 +31416,7 @@
       }
     },
     "counts": {
-      "visitedEntries": 503,
-      "traversedDirectories": 81,
-      "eligibleFiles": 407,
-      "unreadable": 0,
-      "binaryFiles": 5,
-      "symlinks": 0,
-      "specialFiles": 0,
-      "excludedFiles": {
-        "hard": 0,
-        "gitignore": 3,
-        "config": 0
-      },
-      "prunedDirectories": {
-        "hard": 4,
-        "default": 0,
-        "gitignore": 3,
-        "config": 0,
-        "depth": 0
-      },
-      "indexedFiles": 407,
+      "indexedFiles": 410,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -31281,6 +31424,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "259f2b1c804d3553f4563b987caa350cfab88bc843bef0817f6e2883cf5e2bbe"
+    "revision": "dbddaefb25cab9d41936e38652c4ab2321d24586ebf177539fafe7da72d5148d"
   }
 }

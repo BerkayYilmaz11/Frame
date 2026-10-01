@@ -241,6 +241,7 @@ const IPC = {
   CLOUD_GET_STATE: 'cloud-get-state',                // renderer → main (invoke): the public session state
   CLOUD_REFRESH: 'cloud-refresh',                    // renderer → main (invoke): one device.me → state
   CLOUD_SESSION_STATE: 'cloud-session-state',        // main → renderer: public session state on every transition
+  CLOUD_JOIN_WAITLIST: 'cloud-join-waitlist',        // renderer → main (invoke): email → waitlist.join → { ok, reason }
 
   // Frame Cloud projects (frame-cloud-projects spec). The renderer names a
   // folder by path and a cloud project by id; main reads identities and

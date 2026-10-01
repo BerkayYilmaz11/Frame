@@ -4017,3 +4017,61 @@ orayla aynı olsun". Those changes are discarded and never committed.
 confirmed the empty state and the first-return update. The relaunch without
 `project.list`, the Project Settings row and sign-out were not separately
 reported.
+
+### [2026-09-30] Frame Cloud early access: the waitlist in the Frame Cloud window
+
+Spec `frame-cloud-early-access`, branch `feat/frame-cloud-early-access` (off
+the `feat/frame-cloud-adaptor` umbrella). It is the desktop half of FrameCloud's
+`early-access` spec (accounts are created only through `/beta-access/<token>`)
+and its `waitlist` spec (a public `waitlist.join`, one list).
+
+**How the flow was chosen.** The "Erken Erişim Akışı" page went through three
+versions:
+- v1 put the gate at workspace creation, with a "Request access" path for
+  account holders.
+- The user asked "Çok case mi yarattık ya ?".
+- Then: "hesap diye bir şey kimsede yok şu aşamada". Nobody has an account
+  yet, so the gate moved back to account creation: an account is created only
+  through an invite link, and everything after that is today's product.
+- The user rejected pushing undecided people through GitHub auth ("henüz daha
+  waitlist'e girip girmeyeceğini bilmeyen kullanıcıyı bir authentication
+  Flow'una sokmak da akıllıca bir UX deneyimi değil"). So the waitlist is the
+  default path, and sign-in is the secondary "Already invited?".
+
+**The waitlist lives in FrameCloud.** v3 had left the list to frame.cool, and
+FrameCloud's `early-access` built no waitlist. The Frame plan then chose an
+in-app form (D2).
+- The user asked "waitlist.join olsa bunu da istediğimiz yerden
+  çağırabilsek daha mantıklı olmuyor mu ?". FrameCloud then added the
+  `waitlist` spec:
+  - a table and a public mutation;
+  - a per-IP limit;
+  - CORS for frame.cool on that one path only, without credentials;
+  - `waitlist:list`.
+- Frame posts to it from main with no token.
+
+**Decisions in the Frame plan.**
+- The switch is FrameCloud's existing public `invite.mode`, not a Frame
+  constant, so closing early access needs no Frame release.
+- Settings → Account and Project Settings open the window instead of starting
+  sign-in ("Pencereyi açsınlar").
+- The button reads "Continue with GitHub", like the web ("Web'deki gibi
+  olsun").
+- The desktop cannot detect a refused sign-up: the device code stays
+  unapproved. A FrameCloud scan showed that the refusal keeps `redirect`. So
+  the waiting pane tells an invitee to open the invite link, then press Open
+  browser again, which approves the same code.
+
+**Found along the way, left alone on purpose.** The running Frame app rewrites
+`.frame/tasks.json` from memory across branch switches. It carried another
+branch's tasks into a fresh branch, and keeps resetting the upstream specs
+`reliable-structure-generation` and `str-02-structure-lifecycle` from `done`
+to `tasks_generated`, adding their 22 tasks. Those tasks already reached the
+umbrella through PR #25's close-out commit. The user: "yahu kalsın bunlar şu
+anda bunları düzeltmekle uğraşmayalım". The cleanup belongs to the umbrella,
+not to a work branch ("o cloud-adaptor çatı branchinin görevi olmalı").
+
+**State.** 9 tasks done, spec `done`, `npm test` passes 1419. The user walked
+the flow against FrameCloud `feat/early-access` and reported it working. It
+depends on FrameCloud `feat/early-access`, which is not yet merged into
+FrameCloud `main`.

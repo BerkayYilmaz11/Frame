@@ -29,6 +29,9 @@ const {
   refreshSession,
   registerDevice,
   signOutDevice,
+  fetchInviteMode,
+  normalizeWaitlistEmail,
+  joinWaitlist: joinWaitlistCall,
 } = require('./deviceFlow');
 
 // No FrameCloud is deployed yet: packaged builds resolve to nothing and the
@@ -47,7 +50,13 @@ const PUBLIC_KEYS = [
   'device',
   'reason',
   'serverUnreachable',
+  // Early access, beside `state` (see inviteOnly below); only while signed out.
+  'inviteOnly',
+  'waitlistEmail',
 ];
+
+// The address this machine last joined the waitlist with.
+const WAITLIST_EMAIL_KEY = 'cloudWaitlistEmail';
 
 let mainWindow = null;
 let state = { state: 'unavailable' };
@@ -58,6 +67,12 @@ let webOrigin = null;
 let attempt = null; // AbortController of the running sign-in
 let refreshing = null;
 let started = false;
+// Early access. Kept beside `state`, like webOrigin, so every transition keeps
+// them: whether the server is invite-only (null until read, or when it cannot
+// say) and the address this machine joined the waitlist with.
+let inviteOnly = null;
+let waitlistEmail = null;
+let readingMode = null;
 const listeners = new Set();
 
 // ─── Dependencies for the core ────────────────────────────────
@@ -196,6 +211,10 @@ function toPublicState() {
   for (const key of PUBLIC_KEYS) {
     if (state[key] !== undefined) out[key] = state[key];
   }
+  if (state.state !== 'signedIn') {
+    if (inviteOnly !== null) out.inviteOnly = inviteOnly;
+    if (waitlistEmail) out.waitlistEmail = waitlistEmail;
+  }
   return out;
 }
 
@@ -330,15 +349,67 @@ async function signIn() {
 }
 
 function cancel() {
+  // After a failed sign-in, "Join the waitlist" leads back to the start.
+  if (!attempt && state.state === 'failed') {
+    setState({ state: 'signedOut', serverUrl: state.serverUrl });
+    return getPublicState();
+  }
   if (!attempt) return getPublicState();
   abortAttempt();
   setState({ state: 'signedOut', serverUrl: state.serverUrl });
   return getPublicState();
 }
 
-/** One silent device.me. A dead token signs out quietly; an unreachable server keeps the last data. */
+/**
+ * Signed out: one `invite.mode`, so the window knows whether to lead with the
+ * waitlist. Concurrent callers share the request; a failure keeps the last
+ * answer, and a server that cannot say (null) reads as not invite-only.
+ */
+function readInviteMode() {
+  const api = state.serverUrl;
+  if (!api) return Promise.resolve(getPublicState());
+  if (readingMode) return readingMode;
+  readingMode = fetchInviteMode({ api, fetchJson })
+    .then((mode) => {
+      if (state.serverUrl !== api) return;
+      inviteOnly = mode;
+      publish();
+    })
+    .catch(() => {})
+    .then(() => {
+      readingMode = null;
+      return getPublicState();
+    });
+  return readingMode;
+}
+
+/**
+ * Join the waitlist with the address the renderer typed. Main normalizes it
+ * (the renderer is not trusted with the check); on success the address is
+ * remembered on this machine, so the window shows "You're on the list" from
+ * then on. → `{ ok: true }` or `{ ok: false, reason }`.
+ */
+async function joinWaitlist(rawEmail) {
+  const email = normalizeWaitlistEmail(rawEmail);
+  if (!email) return { ok: false, reason: 'invalid' };
+  const api = state.serverUrl;
+  if (!api) return { ok: false, reason: 'unavailable' };
+  const result = await joinWaitlistCall({ api, email, fetchJson });
+  if (!result.ok) return result;
+  userSettings.set(WAITLIST_EMAIL_KEY, email);
+  waitlistEmail = email;
+  publish();
+  return { ok: true };
+}
+
+/**
+ * One silent device.me. A dead token signs out quietly; an unreachable server
+ * keeps the last data. Signed out, it reads the invite mode instead.
+ */
 function refresh() {
-  if (state.state !== 'signedIn' || !token) return Promise.resolve(getPublicState());
+  if (state.state !== 'signedIn' || !token) {
+    return state.state === 'unavailable' ? Promise.resolve(getPublicState()) : readInviteMode();
+  }
   if (refreshing) return refreshing;
 
   const current = token;
@@ -420,6 +491,8 @@ function loadSession() {
   started = true;
   abortAttempt();
   const serverUrl = resolveUrl();
+  if (serverUrl !== state.serverUrl) inviteOnly = null; // another server's answer
+  waitlistEmail = userSettings.get(WAITLIST_EMAIL_KEY) || null;
   if (!serverUrl) {
     token = null;
     webOrigin = null;
@@ -431,6 +504,7 @@ function loadSession() {
     token = null;
     webOrigin = null;
     setState({ state: 'signedOut', serverUrl });
+    readInviteMode();
     return;
   }
   token = stored.token;
@@ -469,6 +543,7 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_SIGN_OUT, () => signOut());
   ipcMain.handle(IPC.CLOUD_GET_STATE, () => getState());
   ipcMain.handle(IPC.CLOUD_REFRESH, () => refresh());
+  ipcMain.handle(IPC.CLOUD_JOIN_WAITLIST, (event, email) => joinWaitlist(email));
 }
 
 module.exports = {
@@ -480,6 +555,7 @@ module.exports = {
   refresh,
   signOut,
   getState,
+  joinWaitlist,
   getPublicState,
   toPublicState,
   getAuth,

@@ -612,3 +612,64 @@ test('refreshSession reports unauthorized on 401 and network when offline', asyn
     { ok: false, reason: 'network' }
   );
 });
+
+// ─── Early access ─────────────────────────────────────────────
+
+test('fetchInviteMode reads invite.mode with a GET and no token', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/invite.mode': [ok({ inviteOnly: true })] });
+  assert.equal(await flow.fetchInviteMode({ api: API, fetchJson }), true);
+  assert.equal(calls[0].method, 'GET');
+  assert.equal(calls[0].token, undefined);
+  assert.equal(calls[0].query, '');
+});
+
+test('fetchInviteMode answers false for an open server', async () => {
+  const { fetchJson } = fakeFetch({ '/trpc/invite.mode': [ok({ inviteOnly: false })] });
+  assert.equal(await flow.fetchInviteMode({ api: API, fetchJson }), false);
+});
+
+test('fetchInviteMode answers null for a malformed answer or a server without invite.mode', async () => {
+  for (const answer of [ok({}), ok({ inviteOnly: 'yes' }), ok(null), trpcErr(404, 'NOT_FOUND')]) {
+    const { fetchJson } = fakeFetch({ '/trpc/invite.mode': [answer] });
+    assert.equal(await flow.fetchInviteMode({ api: API, fetchJson }), null, JSON.stringify(answer));
+  }
+});
+
+test('fetchInviteMode throws a CloudError when the server cannot be reached', async () => {
+  const { fetchJson } = fakeFetch({ '/trpc/invite.mode': [new Error('ECONNREFUSED')] });
+  await assert.rejects(flow.fetchInviteMode({ api: API, fetchJson }), (err) => err.kind === 'network');
+});
+
+test('normalizeWaitlistEmail trims and lowercases the whole address, like the server', () => {
+  assert.equal(flow.normalizeWaitlistEmail('  Ada@Example.COM '), 'ada@example.com');
+  assert.equal(flow.normalizeWaitlistEmail('a@b.co'), 'a@b.co');
+});
+
+test('normalizeWaitlistEmail refuses what cannot be an address', () => {
+  const tooLong = `${'x'.repeat(flow.WAITLIST_EMAIL_MAX)}@a.co`;
+  for (const bad of ['', '   ', 'ada', 'a@b', '@b.co', 'a@@b.co', 'a@b@c.co', 'a b@c.co', 'a@.co', 'a@b.co.', tooLong, null, 42]) {
+    assert.equal(flow.normalizeWaitlistEmail(bad), null, String(bad));
+  }
+});
+
+test('joinWaitlist posts the address with source desktop and no token', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/waitlist.join': [ok({ ok: true })] });
+  assert.deepEqual(await flow.joinWaitlist({ api: API, email: 'ada@example.com', fetchJson }), { ok: true });
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, undefined);
+  assert.deepEqual(calls[0].body, { email: 'ada@example.com', source: 'desktop' });
+});
+
+test('joinWaitlist maps every failure to a reason and never throws', async () => {
+  const cases = [
+    [trpcErr(400, 'BAD_REQUEST'), 'invalid'],
+    [trpcErr(429, 'TOO_MANY_REQUESTS'), 'rateLimited'],
+    [trpcErr(404, 'NOT_FOUND'), 'unavailable'],
+    [{ status: 502, body: {} }, 'network'],
+    [new Error('ECONNREFUSED'), 'network'],
+  ];
+  for (const [answer, reason] of cases) {
+    const { fetchJson } = fakeFetch({ '/trpc/waitlist.join': [answer] });
+    assert.deepEqual(await flow.joinWaitlist({ api: API, email: 'ada@example.com', fetchJson }), { ok: false, reason });
+  }
+});

@@ -27,6 +27,7 @@ const settingsOverlay = require('./settingsOverlay');
 const doneWindow = require('./doneWindow');
 const cloudHub = require('./cloudHub');
 const cloudNoWorkspace = require('./cloudNoWorkspace');
+const cloudEarlyAccess = require('./cloudEarlyAccess');
 
 let overlay = null;
 let specDrivenToggleEl = null;
@@ -323,12 +324,13 @@ function renderCloudRow() {
   };
 
   if (session.state !== 'signedIn') {
+    // The window, not sign-in: an invite-only server leads with the waitlist
+    // there (frame-cloud-early-access D1, D14).
     cloudLabelEl.textContent = 'Not signed in';
-    cloudDescEl.textContent = 'Sign in to connect this project to Frame Cloud.';
-    actions.push(cloudButton('Sign in', () => {
-      if (overlay) overlay.close();
-      cloudHub.signIn();
-    }, { primary: true }));
+    cloudDescEl.textContent = session.inviteOnly === true
+      ? cloudEarlyAccess.COPY.settingsRowEarly
+      : 'Sign in to connect this project to Frame Cloud.';
+    actions.push(cloudButton(cloudEarlyAccess.COPY.openCloud, () => openHub(), { primary: true }));
     cloudActionsEl.replaceChildren(...actions);
     return;
   }

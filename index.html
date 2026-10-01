@@ -1751,16 +1751,45 @@
           <section class="cloud-pitch" id="cloud-pitch"></section>
           <aside class="cloud-signin">
             <div data-cloud-state="signedOut" class="cloud-signin-pane" hidden>
-              <div class="cloud-signin-head">
-                <h4 class="cloud-signin-title">Sign in to Frame Cloud</h4>
-                <p class="cloud-signin-text">Sign-in happens in your browser with your GitHub account. Frame never sees your password.</p>
+              <!-- Today's sign-in; shown unless the server says it is invite-only. -->
+              <div id="cloud-classic" class="cloud-signin-pane">
+                <div class="cloud-signin-head">
+                  <h4 class="cloud-signin-title">Sign in to Frame Cloud</h4>
+                  <p class="cloud-signin-text">Sign-in happens in your browser with your GitHub account. Frame never sees your password.</p>
+                </div>
+                <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Continue with GitHub</button>
+                <ol class="cloud-steps">
+                  <li>Frame opens your browser.</li>
+                  <li>Approve Frame on the page that opens.</li>
+                  <li>Check that the code matches this screen.</li>
+                </ol>
               </div>
-              <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Sign in with GitHub</button>
-              <ol class="cloud-steps">
-                <li>Frame opens your browser.</li>
-                <li>Approve Frame on the page that opens.</li>
-                <li>Check that the code matches this screen.</li>
-              </ol>
+              <!-- Early access (frame-cloud-early-access): the waitlist first, sign-in
+                   for the invited. Words come from cloudEarlyAccess.js. -->
+              <div id="cloud-early" class="cloud-signin-pane" hidden>
+                <div class="cloud-signin-head">
+                  <h4 class="cloud-signin-title" id="cloud-early-title"></h4>
+                  <p class="cloud-signin-text" id="cloud-early-lede"></p>
+                </div>
+                <form id="cloud-early-form" class="cloud-early-form" novalidate>
+                  <label class="cloud-field-label" for="cloud-waitlist-email" id="cloud-waitlist-label"></label>
+                  <div class="cloud-input-box">
+                    <input id="cloud-waitlist-email" class="cloud-input" type="email" autocomplete="email" spellcheck="false">
+                  </div>
+                  <button type="submit" id="cloud-waitlist-join" class="settings-about-btn settings-about-btn-primary cloud-signin-btn"></button>
+                  <p id="cloud-waitlist-error" class="cloud-early-error" role="alert" hidden></p>
+                  <button type="button" id="cloud-waitlist-fallback" class="cloud-inline-link" hidden></button>
+                </form>
+                <div id="cloud-early-joined" class="cloud-early-joined" hidden>
+                  <h4 class="cloud-signin-title" id="cloud-early-joined-title"></h4>
+                  <p class="cloud-signin-text" id="cloud-waitlist-joined-body"></p>
+                  <button type="button" id="cloud-waitlist-another" class="cloud-inline-link"></button>
+                </div>
+                <p class="cloud-signin-text cloud-early-signin">
+                  <span id="cloud-early-already"></span>
+                  <button type="button" id="cloud-early-signin" class="cloud-inline-link" data-cloud-action="signIn"></button>
+                </p>
+              </div>
               <p class="settings-about-status cloud-note" data-cloud-note="signedOutUnreachable" hidden>
                 Signed out on this Mac. The server couldn't be reached, so the session there ends within 30 days.
               </p>
@@ -1777,6 +1806,7 @@
               </div>
               <div id="cloud-code" class="cloud-code"></div>
               <p class="cloud-waiting"><span class="cloud-spin" aria-hidden="true"></span>Waiting for approval…</p>
+              <p class="cloud-signin-text" data-cloud-note="inviteHint" id="cloud-invite-hint" hidden></p>
               <ol class="cloud-steps">
                 <li class="done">Frame opened your browser.</li>
                 <li class="now">Approve Frame on the page that opened.</li>
@@ -1805,6 +1835,7 @@
                 </p>
               </div>
               <button type="button" class="settings-about-btn settings-about-btn-primary cloud-signin-btn" data-cloud-action="signIn">Try again</button>
+              <button type="button" id="cloud-failed-waitlist" class="settings-about-btn cloud-signin-btn" data-cloud-action="joinWaitlist" hidden></button>
             </div>
 
             <!-- Where Learn more leads (the guide, or frame.cool) is not settled. -->
