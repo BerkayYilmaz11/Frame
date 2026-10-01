@@ -617,7 +617,7 @@ test('generation works without Git and beside a custom hook it never touches', a
     fs.writeFileSync(hookFile, '#!/bin/sh\necho mine\n', { mode: 0o755 });
     const result = await frameProject.runProjectInit(custom, 'custom');
     assert.equal(result._structureBootstrap.hook.status, 'skipped-custom');
-    assert.match(result._structureBootstrap.hook.manualInstructions, /--changed/);
+    assert.match(result._structureBootstrap.hook.manualInstructions, /--staged/);
     assert.equal(result._structureBootstrap.initialScan.status, 'ok');
     assert.equal(fs.readFileSync(hookFile, 'utf8'), '#!/bin/sh\necho mine\n');
   } finally {
@@ -719,4 +719,11 @@ test('Remove Frame stops the worker before deleting .frame/', async (t) => {
   assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR)));
   assert.deepEqual(result.errors, []);
   assert.deepEqual(structureLifecycle.list(), []);
+});
+
+test('a fresh init writes the working view and, while untracked, the map file too', async () => {
+  await frameProject.runProjectInit(projectDir, 'demo');
+  const working = path.join(projectDir, FRAME_DIR, 'runtime', 'structure', 'working.json');
+  assert.ok(fs.existsSync(working));
+  assert.equal(fs.readFileSync(mapPath(projectDir), 'utf8'), fs.readFileSync(working, 'utf8'));
 });

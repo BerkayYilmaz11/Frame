@@ -267,10 +267,13 @@ function createExtractionCache(root, manifest, options = {}) {
 
     stats.misses++;
     let parsed = null;
+    // Parse from the caller's source (the working tree, or the Git index for
+    // a commit build — STR-02b); the cache itself always lives on disk.
+    const source = extractOptions.fs || fsImpl;
     const capturing = {
-      ...fsImpl,
+      ...source,
       readFileSync: (p, ...rest) => {
-        const buf = fsImpl.readFileSync(p, ...rest);
+        const buf = source.readFileSync(p, ...rest);
         parsed = buf;
         return buf;
       }

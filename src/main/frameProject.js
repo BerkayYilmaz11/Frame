@@ -1521,6 +1521,14 @@ async function openProjectLayout(projectPath, hooks = {}) {
   } catch (err) {
     console.warn('[frame] could not refresh .frame/bin (non-fatal):', err.message);
   }
+  // An unmodified earlier Frame pre-commit hook still stages the working
+  // map, untracked files included; replace it with the current template.
+  // Edited, Husky, lefthook and core.hooksPath hooks are never touched.
+  try {
+    await structureBootstrap.upgradeStructureHook(projectPath);
+  } catch (err) {
+    console.warn('[frame] could not check the pre-commit hook (non-fatal):', err.message);
+  }
   try {
     commandStaging.stageCommandFiles(projectPath);
   } catch (err) {

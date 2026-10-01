@@ -41,7 +41,8 @@ function repairCommand(root) {
 }
 
 const ROOT_DIR = resolveProjectRoot();
-const STRUCTURE_FILE = structureRead.resolveStructurePath(ROOT_DIR);
+// STR-02c: the live working-tree view first, the tracked (committed) map otherwise.
+const STRUCTURE_FILE = structureRead.resolveReadPath(ROOT_DIR);
 
 function loadStructure() {
   try {

@@ -9,9 +9,10 @@
  * Usage:
  *   node update-structure.js                 # full rebuild
  *   node update-structure.js --full          # same, explicit (the repair command)
- *   node update-structure.js --changed       # staged + unstaged Git changes (pre-commit hook)
+ *   node update-structure.js --changed       # same as --staged (older hook snippets that then `git add` the map)
  *   node update-structure.js a.js b.py       # specific files
  *   node update-structure.js --check         # would a full rebuild change the map? (read-only)
+ *   node update-structure.js --staged        # the commit's map, from the index, into the index and the tracked file (pre-commit hook)
  *   add --json for one bounded result envelope on stdout (diagnostics go to stderr)
  *
  * Exit codes:
@@ -20,11 +21,12 @@
  *                          2 failure or another update running
  *   --check                0 in sync · 1 out of date · 2 missing, corrupt or
  *                          unverifiable
+ *   --staged / --changed   0 published, already staged or not shared ·
+ *                          1 unavailable or aborted · 2 failure
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const discovery = require('./structure-discovery');
 const generation = require('./structure-generation');
@@ -53,7 +55,7 @@ const ROOT_DIR = resolveProjectRoot();
 
 /* ------------------------------ arguments ---------------------------- */
 
-const FLAGS = new Set(['--full', '--changed', '--check', '--json']);
+const FLAGS = new Set(['--full', '--changed', '--check', '--staged', '--json']);
 
 function parseArgs(argv) {
   const flags = new Set();
@@ -66,10 +68,11 @@ function parseArgs(argv) {
       files.push(arg);
     }
   }
-  const modes = [flags.has('--full'), flags.has('--changed'), flags.has('--check'), files.length > 0].filter(Boolean).length;
-  if (modes > 1) return { error: 'choose one of --full, --changed, --check or a file list' };
+  const modes = [flags.has('--full'), flags.has('--changed'), flags.has('--check'), flags.has('--staged'), files.length > 0].filter(Boolean).length;
+  if (modes > 1) return { error: 'choose one of --full, --changed, --check, --staged or a file list' };
   let command = 'full';
   if (flags.has('--check')) command = 'check';
+  else if (flags.has('--staged')) command = 'staged';
   else if (flags.has('--changed')) command = 'changed';
   else if (files.length > 0) command = 'files';
   return { command, json: flags.has('--json'), files };
@@ -115,16 +118,6 @@ function projectBlock() {
   } catch (err) {
     return {};
   }
-}
-
-/** Staged and unstaged changes, exactly the sources the hook always used. */
-function getChangedFiles() {
-  const names = [];
-  for (const command of ['git diff --cached --name-only --diff-filter=ACMR', 'git diff --name-only --diff-filter=ACMR']) {
-    const output = execSync(command, { cwd: ROOT_DIR, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    names.push(...output.split('\n').filter(Boolean));
-  }
-  return [...new Set(names)];
 }
 
 /** Explicit file arguments, relative to the project root. */
@@ -181,59 +174,112 @@ function exitCodeFor(result) {
   return 2;
 }
 
-function builtFrom(structure, report, prior) {
+/**
+ * The tracked map (committed view plus hand edits) as the generation prior
+ * for the working view (STR-02c D2), or null when it is missing or invalid.
+ */
+function trackedPrior() {
+  const baseline = state.readBaseline(state.resolveStructurePath(ROOT_DIR));
+  return baseline.status === 'valid' ? baseline.data : null;
+}
+
+/** After a working-view publish, keep an untracked map file equal to it. */
+function mirrorWorkingView(result, discardsAuthored) {
+  if (result.artifact !== 'written' && result.artifact !== 'unchanged') return;
+  try {
+    const bytes = fs.readFileSync(state.workingViewPath(ROOT_DIR));
+    const mirrored = state.mirrorToUntrackedMap(ROOT_DIR, bytes, { discardsAuthored });
+    if (mirrored.recoveryPaths && mirrored.recoveryPaths.length) {
+      result.recoveryPaths = [...(result.recoveryPaths || []), ...mirrored.recoveryPaths];
+    }
+  } catch (err) {
+    /* no working view to mirror */
+  }
+}
+
+/**
+ * `reference` is the artifact's own previous content (for lastUpdated and
+ * byte stability); it defaults to the generation prior.
+ */
+function builtFrom(structure, report, prior, reference = prior) {
   return {
-    candidate: generation.serializeStructure(structure, prior),
+    candidate: generation.serializeStructure(structure, reference),
     inventory: structure.generation.inventory,
     extraction: report.extraction,
     counts: structure.generation.counts,
     diagnostics: structure.generation.diagnostics,
-    discardsAuthored: report.discarded.length > 0
+    // The target is the working view: authored content lives in the tracked
+    // map, which this write never touches (the untracked mirror archives).
+    discardsAuthored: false
   };
 }
 
+/**
+ * --full (STR-02c D3): rebuild the working view. Hand-written prose comes
+ * from the tracked map; the tracked map itself changes only through commits
+ * (or is kept equal to the working view while Git does not track it).
+ */
 function runFull() {
   const curation = generation.loadCuration(__dirname);
-  return state.runAttempt({
+  let discarded = false;
+  const result = state.runAttempt({
     rootDir: ROOT_DIR,
     mode: 'full',
+    mapPath: state.workingViewPath(ROOT_DIR),
     attemptId: process.env.FRAME_STRUCTURE_ATTEMPT_ID || undefined,
     build: (baseline) => {
       const loaded = discovery.loadProjectStructureConfig(ROOT_DIR);
       const found = discovery.discover(ROOT_DIR, { structure: loaded.structure, legacyFiles: loaded.legacyFiles });
-      const prior = baseline.status === 'valid' ? baseline.data : null;
+      const prior = trackedPrior();
+      const reference = baseline.status === 'valid' ? baseline.data : prior;
       const { structure, report } = generation.buildFull({
         rootDir: ROOT_DIR, discovery: found, prior, curation, projectConfig: projectBlock()
       });
-      return builtFrom(structure, report, prior);
+      discarded = report.discarded.length > 0;
+      return builtFrom(structure, report, prior, reference);
     }
   });
+  mirrorWorkingView(result, discarded);
+  return result;
 }
 
 function runDelta(candidates) {
   const curation = generation.loadCuration(__dirname);
   let policyInputChanged = false;
+  let discarded = false;
   const result = state.runAttempt({
     rootDir: ROOT_DIR,
     mode: 'delta',
+    mapPath: state.workingViewPath(ROOT_DIR),
     attemptId: process.env.FRAME_STRUCTURE_ATTEMPT_ID || undefined,
     build: (baseline) => {
       const loaded = discovery.loadProjectStructureConfig(ROOT_DIR);
       const evaluation = discovery.evaluatePaths(ROOT_DIR, candidates, { structure: loaded.structure, legacyFiles: loaded.legacyFiles });
+      // A delta starts from the working view; without one, from the tracked map.
       let kind = 'valid';
-      if (baseline.status === 'missing') kind = 'missing';
-      else if (baseline.status === 'corrupt' || baseline.liveCorrupt) kind = 'corrupt';
-      const prior = kind === 'valid' ? baseline.data : null;
+      let prior = null;
+      if (baseline.status === 'corrupt' || baseline.liveCorrupt) kind = 'corrupt';
+      else if (baseline.status === 'valid') prior = baseline.data;
+      else {
+        // No working view yet: the tracked map is the baseline, with STR-01's
+        // rule that a corrupt baseline is refused rather than replaced.
+        const tracked = state.readBaseline(state.resolveStructurePath(ROOT_DIR));
+        if (tracked.status === 'corrupt' || tracked.liveCorrupt) kind = 'corrupt';
+        else if (tracked.status === 'valid') prior = tracked.data;
+        else kind = 'missing';
+      }
       const { structure, report } = generation.buildDelta({
         rootDir: ROOT_DIR, evaluation, prior, baseline: kind, curation, projectConfig: projectBlock()
       });
       policyInputChanged = report.policyInputChanged;
-      if (!report.changed) {
+      discarded = report.discarded.length > 0;
+      if (!report.changed && baseline.status === 'valid') {
         return { candidate: null, inventory: report.inventory, extraction: report.extraction, diagnostics: report.diagnostics };
       }
       return builtFrom(structure, report, prior);
     }
   });
+  mirrorWorkingView(result, discarded);
   result.policyInputChanged = policyInputChanged;
   return result;
 }
@@ -271,7 +317,10 @@ function reportMutation(result, command) {
 
 function runCheck() {
   const verdict = (exitCode, result, reason, message) => ({ schema: RESULT_SCHEMA, command: 'check', exitCode, result, reason, message });
-  const snap = state.snapshot(ROOT_DIR);
+  // The working view when Frame has one; otherwise the tracked map itself.
+  const working = state.workingViewPath(ROOT_DIR);
+  const checkingWorkingView = fs.existsSync(working);
+  const snap = state.snapshot(ROOT_DIR, checkingWorkingView ? { mapPath: working } : {});
   if (snap.baseline.status === 'missing') {
     return verdict(2, 'unverifiable', 'missing', `STRUCTURE.json missing — run: ${repairCommand()}`);
   }
@@ -291,7 +340,7 @@ function runCheck() {
     return verdict(2, 'unverifiable', 'incomplete-inventory', `Cannot verify: discovery incomplete (${found.incompleteReasons.join(', ')}).`);
   }
   const { structure } = generation.buildFull({
-    rootDir: ROOT_DIR, discovery: found, prior: snap.baseline.data,
+    rootDir: ROOT_DIR, discovery: found, prior: checkingWorkingView ? trackedPrior() : snap.baseline.data,
     curation: generation.loadCuration(__dirname), projectConfig: projectBlock()
   });
   const same = JSON.stringify(generation.checkView(structure)) === JSON.stringify(generation.checkView(snap.baseline.data));
@@ -299,6 +348,34 @@ function runCheck() {
   return same
     ? verdict(0, 'in-sync', null, 'STRUCTURE.json is in sync with the project.')
     : verdict(1, 'out-of-date', null, `STRUCTURE.json is out of date — run: ${repairCommand()}`);
+}
+
+/* ------------------------------- staged ------------------------------ */
+
+const STAGED_EXIT = { published: 0, unchanged: 0, skipped: 0, unavailable: 1, aborted: 1, failed: 2 };
+
+/**
+ * --staged (STR-02b): build the commit's map from the staged snapshot,
+ * publish it into the index and mirror it to the tracked file (STR-02c).
+ * Never blocks the commit — the hook wraps it in `|| true`. `--changed`
+ * (STR-02c D7) runs the same thing, so an older snippet's following
+ * `git add` of the map stages exactly this map.
+ */
+function runStaged(command = 'staged') {
+  const { publishStaged } = require('./structure-commit');
+  const result = publishStaged(ROOT_DIR);
+  const exitCode = STAGED_EXIT[result.status] ?? 2;
+  const files = typeof result.files === 'number' ? ` (${result.files} modules)` : '';
+  if (result.status === 'published') say(`✓ Staged the commit's STRUCTURE.json${files}`);
+  else if (result.status === 'unchanged') say(`✓ The commit's STRUCTURE.json is already staged${files}`);
+  else if (result.status === 'skipped') say('STRUCTURE.json is not shared with this repository — not staged.');
+  else if (result.status === 'unavailable') warn(`⚠ Commit map not generated: ${result.reason}${result.message ? ` — ${result.message}` : ''}`);
+  else if (result.status === 'aborted') warn(`⚠ Commit map not staged: ${result.reason === 'index-locked' ? 'the index is locked' : 'the index changed while it was being built'}.`);
+  else warn(`✗ Commit map failed: ${result.message || result.reason}`);
+  if (result.policyFallback && (result.status === 'published' || result.status === 'unchanged')) {
+    warn('  (no staged .frame/config.json — generator defaults were used)');
+  }
+  return { schema: RESULT_SCHEMA, command, exitCode, ...result };
 }
 
 /* -------------------------------- main ------------------------------- */
@@ -315,6 +392,14 @@ function main() {
     return;
   }
 
+  if (args.command === 'staged' || args.command === 'changed') {
+    const result = runStaged(args.command);
+    emit(result);
+    noteRun(startedAt, typeof result.files === 'number' ? result.files : undefined);
+    process.exitCode = result.exitCode;
+    return;
+  }
+
   if (args.command === 'check') {
     const result = runCheck();
     (result.exitCode === 0 ? say : warn)(result.message);
@@ -328,18 +413,8 @@ function main() {
     say('Mode: full');
     result = runFull();
   } else {
-    let candidates;
-    if (args.command === 'changed') {
-      try {
-        candidates = getChangedFiles();
-      } catch (err) {
-        warn(`⚠ Git error: ${err.message.split('\n')[0]} — only confirming existing entries.`);
-        candidates = [];
-      }
-    } else {
-      candidates = toRootRelative(args.files);
-    }
-    say(`Mode: ${args.command === 'changed' ? 'incremental' : 'specific'}, ${candidates.length} candidate file(s)`);
+    const candidates = toRootRelative(args.files);
+    say(`Mode: specific, ${candidates.length} candidate file(s)`);
     result = runDelta(candidates);
   }
 
