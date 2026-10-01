@@ -31,6 +31,11 @@
 const INDEX_VERSION = 1;
 const ALGORITHM = 'str03-v2.1';
 
+// `legacy` is the pre-STR-03 behavior, kept selectable as the rollback path;
+// the default follows the benchmark gates (scripts/eval/README.md).
+const ENGINES = Object.freeze(['legacy', 'v2']);
+const DEFAULT_ENGINE = 'legacy';
+
 const LIMITS = Object.freeze({
   descriptionChars: 160,
   postingsPerTerm: 64,
@@ -614,6 +619,8 @@ module.exports = {
   legacyRetrieve,
   fold,
   splitWords,
+  ENGINES,
+  DEFAULT_ENGINE,
   TIER,
   HOOK_MAX_TIER,
   LIMITS,

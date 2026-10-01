@@ -16686,71 +16686,98 @@
       "depends": [
         "fs",
         "path",
-        "child_process",
-        "structure-read"
+        "structure-read",
+        "structure-retrieval"
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 26,
+          "line": 40,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
-        "repairCommand": {
-          "line": 37,
+        "scriptRel": {
+          "line": 53,
           "params": [
-            "root"
+            "name"
           ]
         },
-        "loadStructure": {
-          "line": 47
+        "repairCommand": {
+          "line": 58
         },
-        "loadIntentMap": {
-          "line": 60,
-          "purpose": "Load the curated concept map (synonyms live here). Sits next to this"
-        },
-        "stalenessBanner": {
-          "line": 77,
+        "parseArgs": {
+          "line": 64,
           "params": [
-            "structure"
-          ],
-          "purpose": "One-line warning when STRUCTURE.json is stale. The date comparison is a"
+            "argv"
+          ]
         },
-        "searchIntentIndex": {
+        "resolveEngine": {
+          "line": 83,
+          "params": [
+            "flag"
+          ],
+          "purpose": "--retrieval, then project.retrieval.engine, then the shipped default."
+        },
+        "loadStructure": {
+          "line": 101
+        },
+        "existsInProject": {
           "line": 111,
           "params": [
-            "structure",
-            "keyword"
+            "rel"
           ],
-          "purpose": "Search intentIndex for matching features"
+          "purpose": "A candidate is shown as present only if it is a regular file inside the project."
+        },
+        "v2Index": {
+          "line": 124,
+          "purpose": "The published index when it is current, else one compiled from the map."
+        },
+        "freshnessLines": {
+          "line": 137,
+          "params": [
+            "descriptor"
+          ],
+          "purpose": "How current the map is, from the lifecycle receipt only (STR-02). No Git,"
         },
         "listFeatures": {
-          "line": 179,
+          "line": 147,
           "params": [
             "structure"
-          ],
-          "purpose": "List all features in intentIndex"
+          ]
         },
-        "printResults": {
-          "line": 197,
+        "printLegacy": {
+          "line": 162,
           "params": [
             "structure",
-            "results",
-            "keyword"
+            "result",
+            "query"
           ],
-          "purpose": "Format and print results"
+          "purpose": "The pre-STR-03 listing: one block per matched feature, with its IPC channels."
+        },
+        "printV2": {
+          "line": 185,
+          "params": [
+            "result",
+            "query"
+          ]
+        },
+        "main": {
+          "line": 204
+        },
+        "readCuration": {
+          "line": 282
         }
       },
-      "sizeBytes": 9331,
+      "sizeBytes": 11585,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
-          "listFeatures": "abee8c0e66184dfd",
-          "loadIntentMap": "97c2e373d690a85c",
-          "printResults": "92ba06a56754bee9",
+          "existsInProject": "3efd68ebe169d576",
+          "freshnessLines": "1582f67449e3f170",
+          "printLegacy": "8df21ce15157510e",
+          "resolveEngine": "7af91aa82a028c2f",
           "resolveProjectRoot": "bdaf2016db7ccaef",
-          "searchIntentIndex": "331ec57f0459ec19",
-          "stalenessBanner": "ef7f87ea90f30ceb"
+          "v2Index": "cc60ff33199e094f"
         }
       }
     },
@@ -19077,6 +19104,8 @@
         "legacyRetrieve",
         "fold",
         "splitWords",
+        "ENGINES",
+        "DEFAULT_ENGINE",
         "TIER",
         "HOOK_MAX_TIER",
         "LIMITS",
@@ -19091,40 +19120,40 @@
       ],
       "functions": {
         "fold": {
-          "line": 63,
+          "line": 68,
           "params": [
             "text"
           ],
           "purpose": "Case- and accent-insensitive search form; Turkish letters fold to ASCII."
         },
         "splitWords": {
-          "line": 73,
+          "line": 78,
           "params": [
             "text"
           ],
           "purpose": "Identifier words: camelCase, snake_case, kebab-case, dotted and path parts."
         },
         "normalizeQuery": {
-          "line": 90,
+          "line": 95,
           "params": [
             "raw"
           ],
           "purpose": "A raw query → its search units. Regex syntax is dropped, alternations"
         },
         "basenameOf": {
-          "line": 121,
+          "line": 126,
           "params": [
             "file"
           ]
         },
         "stripExt": {
-          "line": 125,
+          "line": 130,
           "params": [
             "name"
           ]
         },
         "compileIndex": {
-          "line": 139,
+          "line": 144,
           "params": [
             "structure",
             "curation = {}",
@@ -19133,7 +19162,7 @@
           "purpose": "Compile the lookup index from a map (STR-02c read view) and the curated"
         },
         "matchUnit": {
-          "line": 224,
+          "line": 229,
           "params": [
             "index",
             "unit",
@@ -19142,7 +19171,7 @@
           "purpose": "Every match one unit has: Map(fileId → best tier) plus the concepts it named."
         },
         "retrieve": {
-          "line": 285,
+          "line": 290,
           "params": [
             "index",
             "query",
@@ -19151,7 +19180,7 @@
           "purpose": "Rank the files that explain the query."
         },
         "retrieveUnits": {
-          "line": 297,
+          "line": 302,
           "params": [
             "index",
             "allUnits",
@@ -19161,39 +19190,39 @@
           ]
         },
         "lookupPath": {
-          "line": 381,
+          "line": 386,
           "params": [
             "root"
           ]
         },
         "curationPath": {
-          "line": 386,
+          "line": 391,
           "params": [
             "dir = __dirname"
           ],
           "purpose": "intent-map.json beside the running scripts (scripts/ or .frame/bin/)."
         },
         "readCuration": {
-          "line": 390,
+          "line": 395,
           "params": [
             "file"
           ]
         },
         "signatureOf": {
-          "line": 398,
+          "line": 403,
           "params": [
             "file"
           ]
         },
         "sameSignature": {
-          "line": 407,
+          "line": 412,
           "params": [
             "a",
             "b"
           ]
         },
         "publishLookup": {
-          "line": 419,
+          "line": 424,
           "params": [
             "root",
             "options = {}"
@@ -19201,7 +19230,7 @@
           "purpose": "Compile and atomically publish lookup.json from the map at `mapPath`"
         },
         "loadLookup": {
-          "line": 465,
+          "line": 470,
           "params": [
             "root",
             "options = {}"
@@ -19209,7 +19238,7 @@
           "purpose": "Read the published index for a lookup. Never compiles, never writes."
         },
         "indexFromMap": {
-          "line": 503,
+          "line": 508,
           "params": [
             "root",
             "options = {}"
@@ -19217,7 +19246,7 @@
           "purpose": "Compile an index in memory from the read view — the fallback when no"
         },
         "legacyRetrieve": {
-          "line": 536,
+          "line": 541,
           "params": [
             "structure",
             "curation",
@@ -19226,7 +19255,7 @@
           "purpose": "Today's behavior, kept selectable as the rollback path (STR-03 D2):"
         },
         "legacyHookLookup": {
-          "line": 589,
+          "line": 594,
           "params": [
             "index",
             "intentMap",
@@ -19234,7 +19263,7 @@
           ]
         }
       },
-      "sizeBytes": 25653,
+      "sizeBytes": 25912,
       "extraction": {
         "status": "parsed"
       },
@@ -22004,6 +22033,45 @@
         }
       }
     },
+    "test/findModule.test": {
+      "file": "test/findModule.test.js",
+      "description": "find-module CLI (STR-03 T04): legacy-compatible output, the bounded",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-retrieval"
+      ],
+      "functions": {
+        "project": {
+          "line": 36,
+          "params": [
+            "t",
+            "{ structure = STRUCTURE",
+            "engine } = {}"
+          ]
+        },
+        "find": {
+          "line": 49,
+          "params": [
+            "dir",
+            "args",
+            "env = {}"
+          ]
+        }
+      },
+      "sizeBytes": 9262,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "1f35f244df9d4926"
+      }
+    },
     "test/fixtures/django-app/manage": {
       "file": "test/fixtures/django-app/manage.py",
       "description": "",
@@ -23500,7 +23568,7 @@
           ]
         },
         "frameRepo": {
-          "line": 619,
+          "line": 620,
           "params": [
             "prefix"
           ]
@@ -23512,7 +23580,7 @@
           ]
         }
       },
-      "sizeBytes": 45042,
+      "sizeBytes": 45133,
       "extraction": {
         "status": "parsed"
       },
@@ -26348,7 +26416,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 294,
+        "parsed": 295,
         "unsupported": 83,
         "partial": 0
       }
@@ -26395,9 +26463,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 465,
+      "visitedEntries": 466,
       "traversedDirectories": 80,
-      "eligibleFiles": 377,
+      "eligibleFiles": 378,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -26414,7 +26482,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 377,
+      "indexedFiles": 378,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -26422,6 +26490,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "9208a485423116b0dce84ba1d0ee9bd81382b15d6700a0e7ee7bd636118221f4"
+    "revision": "2eaaedc700d2f754c9b5e1c59391d16d9c02580c9c1c2a13a7ef2e5a4bcef624"
   }
 }

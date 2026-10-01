@@ -496,9 +496,10 @@ test('readers report the lifecycle freshness and skip the date heuristic once it
     fs.writeFileSync(mapFile, fs.readFileSync(mapFile, 'utf8').replace('Widget maker', 'Edited by hand'));
     assert.match(find(), /^⚠ Map: stale \(lease-expired\)/);
 
-    // Without a working view there is nothing live to vouch for: unknown, not an alarm.
+    // Without a working view there is nothing live to vouch for: unknown, said
+    // as such (STR-03 D13: no Git date heuristic in a lookup), not an alarm.
     fs.rmSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'));
-    assert.ok(!/^⚠ Map:|^Map:/.test(find()));
+    assert.match(find(), /^⚠ Map: unverified \(no-working-view\)/);
     assert.deepEqual(findings().filter((f) => f.startsWith('structure-freshness')), []);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

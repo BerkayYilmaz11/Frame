@@ -55,3 +55,21 @@ Unplanned, separate: a commit hook hang (170 s in `git hash-object --stdin`, STR
 _Captured: 2026-10-01 · 9 file change(s)_
 
 ---
+
+## T04 — Explicit lookup on the shared engine
+
+`scripts/find-module.js` now uses `structure-retrieval.js` for both engines. Engine selection: `--retrieval=legacy|v2`, else `project.retrieval.engine`, else `DEFAULT_ENGINE` (still `legacy` until T06 decides). An invalid value falls back with a stderr note.
+
+What each engine does:
+- `legacy` keeps the feature listing, IPC line, synonym tier and "⚠ file missing" marker (via `legacyRetrieve`).
+- `v2` prints "Files for" or "Candidates for … (several match equally)" with `[evidence]` per line. It uses a fresh `lookup.json` when there is one, otherwise compiles from the map.
+
+New flags:
+- `--json`: one `frame.lookup/1` envelope with status, engine, freshness, reasons, candidates and truncation. `no-match` exits 0; a missing or corrupt map gives `unavailable` with exit 1.
+- `--limit`: default 8, at most 20.
+
+Candidates are present only as regular files inside the project (a symlink escaping it counts as missing). The Git/`--check` date banner is gone (D13). An unknown map now says "⚠ Map: unverified (<reason or no lifecycle record>)", and the STR-02c reader test was updated for that. Files touched: `scripts/find-module.js`, `scripts/structure-retrieval.js` (engine constants), `test/findModule.test.js`, `test/scriptsProjectRoot.test.js`.
+
+_Captured: 2026-10-01 · 4 file change(s)_
+
+---
