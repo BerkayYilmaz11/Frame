@@ -47,3 +47,11 @@ Switched `dist`, `dist:mac` and `dist:mac:unsigned` to `npm run build && node sc
 _Captured: 2026-10-01 · 1 file change(s)_
 
 ---
+
+## T07 — Discuss bus watcher follows sign-in
+
+`cloudDiscussionsService.init()` now reads `cloudSession.getPublicState()` once and subscribes to `onChange`, starting the bus watcher on `signedIn` and stopping it otherwise (`stopWatcher` closes the `FSWatcher` and clears the debounce). The re-init guard moved from `watcher` to an `initialised` flag. In place of the plan's hand check I ran a scratch script with the session stubbed (not committed): no bus while signed out, a request answered once signed in, one written after sign-out left in place and drained on the next sign-in, and a second `init` adding no listener. File: `src/main/cloud/cloudDiscussionsService.js`.
+
+_Captured: 2026-10-01 · 1 file change(s)_
+
+---

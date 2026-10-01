@@ -1661,6 +1661,7 @@
         "fsSafe",
         "logger",
         "aiToolManager",
+        "cloudSession",
         "cloudProjectsService",
         "cloudBriefsService",
         "cloudDiscussions",
@@ -1669,29 +1670,29 @@
       ],
       "functions": {
         "baseDir": {
-          "line": 52
+          "line": 58
         },
         "busDir": {
-          "line": 56
+          "line": 62
         },
         "repliesDir": {
-          "line": 60
+          "line": 66
         },
         "commandPath": {
-          "line": 64
+          "line": 70
         },
         "promptsDir": {
-          "line": 68
-        },
-        "loadStore": {
           "line": 74
         },
+        "loadStore": {
+          "line": 80
+        },
         "removeStalePrompts": {
-          "line": 85,
+          "line": 91,
           "purpose": "Delete the prompt files of discussions the store no longer holds."
         },
         "writePrompt": {
-          "line": 94,
+          "line": 100,
           "params": [
             "discussionId",
             "prompt"
@@ -1699,14 +1700,14 @@
           "purpose": "Write a discussion's prompt atomically. → its path, or null."
         },
         "saveStore": {
-          "line": 107
+          "line": 113
         },
         "stageCommand": {
-          "line": 120,
+          "line": 126,
           "purpose": "Copy the command next to the bus, only when it changed. → staged?"
         },
         "discuss": {
-          "line": 140,
+          "line": 146,
           "params": [
             "folderPath",
             "number",
@@ -1715,44 +1716,54 @@
           "purpose": "Start a discussion of an open proposal with `toolId`. The full prompt is"
         },
         "writeReply": {
-          "line": 175,
+          "line": 181,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushRecorded": {
-          "line": 186,
+          "line": 192,
           "params": [
             "folderPath",
             "number"
           ]
         },
         "handleFile": {
-          "line": 193,
+          "line": 199,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 231
+          "line": 237
         },
         "sweep": {
-          "line": 244,
+          "line": 250,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 260
+          "line": 266
+        },
+        "stopWatcher": {
+          "line": 286
+        },
+        "followSession": {
+          "line": 295,
+          "params": [
+            "publicState"
+          ],
+          "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 280,
+          "line": 300,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 294,
+          "line": 316,
           "params": [
             "ipcMain"
           ]
@@ -1766,7 +1777,7 @@
           "CLOUD_BRIEF_DISCUSSION_RECORDED"
         ]
       },
-      "sizeBytes": 10980,
+      "sizeBytes": 11768,
       "extraction": {
         "status": "parsed"
       },
@@ -1774,6 +1785,7 @@
         "description": "f17f0e01f6d74cc3",
         "purposes": {
           "discuss": "7b7c7289ce188cb7",
+          "followSession": "63a7d4021c5374ca",
           "handleFile": "3864f5de1851ce9b",
           "removeStalePrompts": "4ca1456c3cfafea4",
           "stageCommand": "1daf0048f3df8927",
@@ -32062,6 +32074,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f3eeb1548c40405fa2127db4529f4f9fc101c131e012ae9bf831d92b3bc36508"
+    "revision": "944dc7e07eef0864430c476991b87e2287b439e758caef88bf629f1a1d396c85"
   }
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T18:05:07.326Z",
+  "lastUpdated": "2026-10-01T18:06:59.993Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10099,13 +10099,13 @@
       "title": "Make the command-bus watcher in `src/main/cloud/cloudDiscussionsService.js` follow sign-in: in `init()` read `cloudSession.getPublicState()` once and subscribe to `cloudSession.onChange`, start the watcher on `signedIn` and stop it on any other state (close the watcher, clear the debounce), and move the already-initialised guard from `watcher` to its own flag",
       "description": "",
       "source": "spec:frame-cloud-server-url:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T18:06:59.993Z",
+      "completedAt": "2026-10-01T18:06:59.993Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T08",
