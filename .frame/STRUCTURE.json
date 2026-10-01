@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-09-30",
+  "lastUpdated": "2026-10-01",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -16382,12 +16382,24 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3923,
+      "sizeBytes": 7654,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "deafc552be20c9b3"
+      }
+    },
+    "scripts/eval/retrieval-cases.json": {
+      "file": "scripts/eval/retrieval-cases.json",
+      "description": "",
+      "exports": [],
+      "depends": [],
+      "functions": {},
+      "sizeBytes": 55037,
+      "extraction": {
+        "status": "unsupported",
+        "reason": "no-extractor"
       }
     },
     "scripts/eval/run-eval": {
@@ -16434,6 +16446,189 @@
       "sizeBytes": 8937,
       "extraction": {
         "status": "parsed"
+      }
+    },
+    "scripts/eval/run-retrieval": {
+      "file": "scripts/eval/run-retrieval.js",
+      "description": "",
+      "exports": [
+        "handle${i"
+      ],
+      "depends": [
+        "fs",
+        "os",
+        "path",
+        "crypto",
+        "child_process"
+      ],
+      "functions": {
+        "digest": {
+          "line": 53,
+          "params": [
+            "cases"
+          ]
+        },
+        "loadCases": {
+          "line": 58,
+          "params": [
+            "file = CASES_FILE"
+          ],
+          "purpose": "Load the corpus; a split whose hash does not match was edited after freezing."
+        },
+        "parseCli": {
+          "line": 71,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "Candidate files from find-module output: the --json envelope, or the human listing."
+        },
+        "parseHook": {
+          "line": 89,
+          "params": [
+            "stdout"
+          ],
+          "purpose": "Hinted files and the raw context from a hook's stdout ('' = no hint)."
+        },
+        "quantile": {
+          "line": 109,
+          "params": [
+            "values",
+            "q"
+          ]
+        },
+        "summarize": {
+          "line": 122,
+          "params": [
+            "results"
+          ],
+          "purpose": "results: [{ case, cli: [files], cliMs, hooks: { claude: { files, context, ms }, codex: {…} } }]"
+        },
+        "evaluateGates": {
+          "line": 186,
+          "params": [
+            "summary",
+            "baseline = null",
+            "scale = null",
+            "gates = GATES"
+          ],
+          "purpose": "The A5 gates for one engine's held-out summary. `baseline` is legacy's"
+        },
+        "timed": {
+          "line": 212,
+          "params": [
+            "args",
+            "options"
+          ]
+        },
+        "baseEnv": {
+          "line": 218,
+          "params": [
+            "project",
+            "activityHome"
+          ]
+        },
+        "setEngine": {
+          "line": 222,
+          "params": [
+            "project",
+            "engine"
+          ]
+        },
+        "availableEngines": {
+          "line": 235,
+          "purpose": "Engines this checkout can run: legacy always; v2 once the shared engine exists."
+        },
+        "cliSupportsJson": {
+          "line": 241,
+          "params": [
+            "project",
+            "env"
+          ]
+        },
+        "hookPayloads": {
+          "line": 250,
+          "params": [
+            "c",
+            "sessionId",
+            "project"
+          ]
+        },
+        "runCase": {
+          "line": 264,
+          "params": [
+            "c",
+            "engine",
+            "project",
+            "env",
+            "json"
+          ]
+        },
+        "applyMutation": {
+          "line": 280,
+          "params": [
+            "base",
+            "mutate"
+          ]
+        },
+        "buildMap": {
+          "line": 289,
+          "params": [
+            "project",
+            "env"
+          ]
+        },
+        "exportPinned": {
+          "line": 308,
+          "params": [
+            "commit"
+          ]
+        },
+        "syntheticProject": {
+          "line": 315,
+          "params": [
+            "count"
+          ],
+          "purpose": "A synthetic project of `count` JavaScript files in nested packages."
+        },
+        "runScale": {
+          "line": 329,
+          "params": [
+            "engine",
+            "activityHome",
+            "sizes = [1000",
+            "10000]"
+          ]
+        },
+        "parseArgs": {
+          "line": 355,
+          "params": [
+            "argv"
+          ]
+        },
+        "printReport": {
+          "line": 373,
+          "params": [
+            "report"
+          ]
+        },
+        "main": {
+          "line": 398
+        }
+      },
+      "sizeBytes": 20432,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "availableEngines": "d7a3b42e8e1d0229",
+          "evaluateGates": "948f7fa8250c71c8",
+          "loadCases": "c4906eb41cfc462c",
+          "parseCli": "4090dfdc9064bc07",
+          "parseHook": "fcfc1b3dfcb70ab2",
+          "summarize": "38f21892ccfab5b8",
+          "syntheticProject": "522ebf564236d377"
+        }
       }
     },
     "scripts/eval/score": {
@@ -23031,6 +23226,28 @@
         "description": "7899da73ee2127a3"
       }
     },
+    "test/retrievalEval.test": {
+      "file": "test/retrievalEval.test.js",
+      "description": "STR-03 retrieval benchmark: the frozen corpus and the metric/gate math.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "path",
+        "child_process",
+        "scripts/eval/run-retrieval",
+        "fs",
+        "os"
+      ],
+      "functions": {},
+      "sizeBytes": 7907,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "bd894ce766feb6b8"
+      }
+    },
     "test/scriptsProjectRoot.test": {
       "file": "test/scriptsProjectRoot.test.js",
       "description": "Shipped-script project-root tests (non-invasive-overlay T03).",
@@ -25885,8 +26102,8 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 290,
-        "unsupported": 82,
+        "parsed": 292,
+        "unsupported": 83,
         "partial": 0
       }
     },
@@ -25932,9 +26149,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 460,
+      "visitedEntries": 463,
       "traversedDirectories": 80,
-      "eligibleFiles": 372,
+      "eligibleFiles": 375,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -25951,7 +26168,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 372,
+      "indexedFiles": 375,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -25959,6 +26176,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "859fa6c387a5b70589dad88c312990b84f705db6989cb690fb37138df146c433"
+    "revision": "60fa3f10f358213741926b7c4b230997858335f69a05121ded9fe6aa21eb2417"
   }
 }

@@ -74,3 +74,85 @@ The pilot's methodological catches are already folded into the harness:
 diffs are taken against the starting sha (agents that self-commit in the
 worktree no longer hide their changes), and grep-based success checks
 measure "did the named change land", not code quality.
+
+---
+
+# Retrieval benchmark (STR-03)
+
+Does `find-module` find the right file, and does the search hook speak only
+when it should? A deterministic, local measurement: no agent, no network.
+
+## Method
+
+- **Corpus** — `retrieval-cases.json`: 194 labelled queries against this
+  repository at `pinnedCommit` (262f91b). 72 development and 122 held-out,
+  disjoint by file family so paraphrases cannot leak between the splits.
+  35 Turkish queries (10 purely Turkish, with no identifier in them), 39
+  negatives, 72 whose expected files belong to no intent group, plus shell
+  and regex noise, same-name files, symbols, and three cases that change the
+  tree after indexing (a removed file, a renamed file, a file the map has not
+  seen). `expect` lists the acceptable files; `[]` means nothing should be
+  returned. Each split carries the SHA-256 of its cases, frozen before any
+  tuning; `test/retrievalEval.test.js` fails if a split is edited.
+- **Runner** — `run-retrieval.js`:
+  1. Exports the pinned commit with `git archive` and builds its map with this
+     checkout's `update-structure.js --full`.
+  2. Runs every case through `find-module.js` and the real `module-hint.js`
+     adapters, with Claude Code payloads (Grep/Glob/Bash) and Codex payloads
+     (Bash only, `search codex`). Every case is a cold process.
+  3. Generates synthetic 1k- and 10k-file projects for latency and index size.
+- **Metrics**:
+  - recall@5 (answerable cases, CLI);
+  - exact recall (path/basename/symbol/curated/synonym cases that are not Turkish-mixed);
+  - precision@1 (cases where the CLI returned anything);
+  - per adapter: emitted-hint precision, hint recall, false-hint rate on negatives, abstention;
+  - p50/p95 latency; additionalContext characters and bytes;
+  - map/lookup size and build time;
+  - strata per tag.
+
+```bash
+node scripts/eval/run-retrieval.js                  # every split and available engine
+node scripts/eval/run-retrieval.js --split heldOut --engine v2 --no-scale
+node scripts/eval/run-retrieval.js --json           # the full report
+```
+
+## Gates
+
+Evaluated on the held-out split only, and decided before the new engine was
+written. The new engine becomes the default only when all of them pass:
+
+| Gate | Limit |
+|---|---|
+| Exact recall | 100% |
+| recall@5 | ≥ 90% and not below legacy |
+| precision@1 | ≥ 90% |
+| Emitted-hint precision, every adapter | ≥ 98% |
+| False hints on negatives, every adapter | ≤ 2% |
+| Hook p95, this repository and the 10k-file fixture | ≤ 50 ms |
+| CLI p95 | ≤ 150 ms |
+| Hook payload | ≤ 1,800 characters |
+
+## Legacy baseline — 2026-10-01
+
+Apple M2 · macOS (Darwin 24.6.0) · node v20.20.0 · pinned 262f91b. The map is
+662 KB; `--full` builds it in 194 ms.
+
+| Held-out (122) | CLI | Hook (Claude) | Hook (Codex) |
+|---|---|---|---|
+| recall@5 / hint recall | 57.4% | 31.9% | 31.9% |
+| Exact recall (77) | 64.9% | — | — |
+| precision@1 / emitted precision | 55.3% | 56.6% | 56.6% |
+| False hints on negatives | — | 10.7% | 10.7% |
+| p50 / p95 | 41 / 44 ms | 30 / 33 ms | 30 / 33 ms |
+| Max payload | — | 852 chars | 852 chars |
+
+Development split (72): CLI recall@5 63.9%, P@1 68.1%; hook precision 63.9%,
+false hints 27.3%. Scale: 1k files gives a 607 KB map and hook p95 28 ms;
+10k files gives a 6.1 MB map and hook p95 60 ms (the hook parses the whole
+map on every search).
+
+Legacy fails 8 gates: exact recall, recall@5, precision@1, emitted precision
+and false hints (both adapters), and the 10k-file hook latency. The misses are
+the ones the spec describes: files outside every intent group, function names,
+and partial concept matches that hint the wrong group (for example
+`structureBootstrap nerede` → every file in the `structure` group).
