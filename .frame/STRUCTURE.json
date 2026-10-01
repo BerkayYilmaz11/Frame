@@ -22249,6 +22249,43 @@
         "description": "32ac7921fd767895"
       }
     },
+    "scripts/release-build": {
+      "file": "scripts/release-build.js",
+      "description": "",
+      "exports": [
+        "releaseArgs"
+      ],
+      "depends": [
+        "release-build",
+        "child_process",
+        "src/main/cloud/deviceFlow"
+      ],
+      "functions": {
+        "refusal": {
+          "line": 30,
+          "params": [
+            "value"
+          ]
+        },
+        "releaseArgs": {
+          "line": 48,
+          "params": [
+            "argv",
+            "env"
+          ],
+          "purpose": "The electron-builder arguments for this release, and the warning to print"
+        }
+      },
+      "sizeBytes": 2662,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "releaseArgs": "883b7baf34971235"
+        }
+      }
+    },
     "scripts/spec-command-hint": {
       "file": "scripts/spec-command-hint.js",
       "description": "",
@@ -28707,6 +28744,24 @@
         }
       }
     },
+    "test/releaseBuild.test": {
+      "file": "test/releaseBuild.test.js",
+      "description": "release-build tests — the Frame Cloud address a release carries.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "scripts/release-build"
+      ],
+      "functions": {},
+      "sizeBytes": 2988,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "c4566b8ad1cedad3"
+      }
+    },
     "test/reorder.test": {
       "file": "test/reorder.test.js",
       "description": "The pure half of drag-to-reorder (src/renderer/dnd/reorder.js): index",
@@ -31933,7 +31988,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 329,
+        "parsed": 331,
         "unsupported": 84,
         "partial": 0
       }
@@ -31980,9 +32035,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 502,
+      "visitedEntries": 504,
       "traversedDirectories": 81,
-      "eligibleFiles": 413,
+      "eligibleFiles": 415,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -31999,7 +32054,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 413,
+      "indexedFiles": 415,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -32007,6 +32062,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1e842c5012f4beffbbf9d360980ae2cf5c13ce5a5a5c2f0f93ca66bc222b833c"
+    "revision": "bdee58f4c78cd5b6f1b0d89553205321d30a7402d7441ece213a75f436487ace"
   }
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-01T17:56:29.709Z",
+  "lastUpdated": "2026-10-01T18:00:52.528Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10073,13 +10073,13 @@
       "title": "Add `scripts/release-build.js`: export a pure `releaseArgs(argv, env)` that appends `-c.extraMetadata.frameCloudUrl=<url>` only when `FRAME_CLOUD_RELEASE_URL` is an https, non-loopback address and otherwise returns a one-line warning that Frame Cloud will be off in this build, and when run directly print the warning and spawn electron-builder's `cli.js` with `process.execPath`, exiting with its status; add `test/releaseBuild.test.js` covering an https value, a missing, empty, http, loopback and unparsable value",
       "description": "",
       "source": "spec:frame-cloud-server-url:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-server-url",
       "createdAt": "2026-10-01T17:15:46.926Z",
-      "updatedAt": "2026-10-01T17:15:46.926Z",
-      "completedAt": null
+      "updatedAt": "2026-10-01T18:00:52.528Z",
+      "completedAt": "2026-10-01T18:00:52.528Z"
     },
     {
       "id": "task-spec-frame-cloud-server-url-T06",

@@ -31,3 +31,11 @@ Replaced `DEFAULT_CLOUD_SERVER_URL` in `cloudSession.js` with `RELEASE_CLOUD_SER
 _Captured: 2026-10-01 · 1 file change(s)_
 
 ---
+
+## T05 — Release wrapper: scripts/release-build.js
+
+Added `scripts/release-build.js` with a pure `releaseArgs(argv, env)` that appends `-c.extraMetadata.frameCloudUrl=<url>` only for an https, non-loopback `FRAME_CLOUD_RELEASE_URL` and otherwise returns a one-line warning naming the reason, never the address. Run directly, it spawns electron-builder's `cli.js` with `process.execPath` and exits with its status; a `--help` smoke run exits 0. The wrapper requires `LOOPBACK_HOSTS` from `src/main/cloud/deviceFlow.js` to keep one set (D8), and trims the value and strips trailing slashes as `resolveServerUrl` does. Files: `scripts/release-build.js`, `test/releaseBuild.test.js`.
+
+_Captured: 2026-10-01 · 2 file change(s)_
+
+---
