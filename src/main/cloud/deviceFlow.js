@@ -42,14 +42,41 @@ function isAbort(err, signal) {
 
 // ─── Building blocks ──────────────────────────────────────────
 
-/** First non-empty of env → setting → default, without trailing slashes. */
+// The only hosts reached over plain http: a FrameCloud on this machine.
+// Anywhere else the bearer token would cross the network in clear.
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1']);
+
+/**
+ * Whether Frame may talk to `url`: https on any host, http on LOOPBACK_HOSTS
+ * only. → `{ ok: true, url }` or `{ ok: false, reason }`, where reason is
+ * 'invalid' (not an http(s) URL) or 'insecure' (http elsewhere).
+ */
+function checkServerUrl(url) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { ok: false, reason: 'invalid' };
+  }
+  if (parsed.protocol === 'https:') return { ok: true, url };
+  if (parsed.protocol !== 'http:') return { ok: false, reason: 'invalid' };
+  return LOOPBACK_HOSTS.has(parsed.hostname) ? { ok: true, url } : { ok: false, reason: 'insecure' };
+}
+
+/**
+ * The first non-empty of env → setting → default, without trailing slashes,
+ * decides; a refused one does not fall through to the next. → `{ url, refused }`:
+ * `{ url, refused: null }` when checkServerUrl allows it, `{ url: '', refused:
+ * <candidate> }` when it does not, `{ url: '', refused: null }` when all are empty.
+ */
 function resolveServerUrl({ env, setting, defaultUrl } = {}) {
   for (const candidate of [env, setting, defaultUrl]) {
     if (typeof candidate !== 'string') continue;
     const trimmed = candidate.trim().replace(/\/+$/, '');
-    if (trimmed) return trimmed;
+    if (!trimmed) continue;
+    return checkServerUrl(trimmed).ok ? { url: trimmed, refused: null } : { url: '', refused: trimmed };
   }
-  return '';
+  return { url: '', refused: null };
 }
 
 /** `/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body. */
@@ -469,6 +496,8 @@ module.exports = {
   SLOW_DOWN_STEP_MS,
   MAX_BACKOFF_MS,
   CloudError,
+  LOOPBACK_HOSTS,
+  checkServerUrl,
   resolveServerUrl,
   parseCodeResponse,
   formatUserCode,

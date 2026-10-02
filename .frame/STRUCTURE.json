@@ -1661,6 +1661,7 @@
         "fsSafe",
         "logger",
         "aiToolManager",
+        "cloudSession",
         "cloudProjectsService",
         "cloudBriefsService",
         "cloudDiscussions",
@@ -1669,29 +1670,29 @@
       ],
       "functions": {
         "baseDir": {
-          "line": 52
+          "line": 58
         },
         "busDir": {
-          "line": 56
+          "line": 62
         },
         "repliesDir": {
-          "line": 60
+          "line": 66
         },
         "commandPath": {
-          "line": 64
+          "line": 70
         },
         "promptsDir": {
-          "line": 68
-        },
-        "loadStore": {
           "line": 74
         },
+        "loadStore": {
+          "line": 80
+        },
         "removeStalePrompts": {
-          "line": 85,
+          "line": 91,
           "purpose": "Delete the prompt files of discussions the store no longer holds."
         },
         "writePrompt": {
-          "line": 94,
+          "line": 100,
           "params": [
             "discussionId",
             "prompt"
@@ -1699,14 +1700,14 @@
           "purpose": "Write a discussion's prompt atomically. → its path, or null."
         },
         "saveStore": {
-          "line": 107
+          "line": 113
         },
         "stageCommand": {
-          "line": 120,
+          "line": 126,
           "purpose": "Copy the command next to the bus, only when it changed. → staged?"
         },
         "discuss": {
-          "line": 140,
+          "line": 146,
           "params": [
             "folderPath",
             "number",
@@ -1715,44 +1716,54 @@
           "purpose": "Start a discussion of an open proposal with `toolId`. The full prompt is"
         },
         "writeReply": {
-          "line": 175,
+          "line": 181,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushRecorded": {
-          "line": 186,
+          "line": 192,
           "params": [
             "folderPath",
             "number"
           ]
         },
         "handleFile": {
-          "line": 193,
+          "line": 199,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 231
+          "line": 237
         },
         "sweep": {
-          "line": 244,
+          "line": 250,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 260
+          "line": 266
+        },
+        "stopWatcher": {
+          "line": 286
+        },
+        "followSession": {
+          "line": 295,
+          "params": [
+            "publicState"
+          ],
+          "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 280,
+          "line": 300,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 294,
+          "line": 316,
           "params": [
             "ipcMain"
           ]
@@ -1766,7 +1777,7 @@
           "CLOUD_BRIEF_DISCUSSION_RECORDED"
         ]
       },
-      "sizeBytes": 10980,
+      "sizeBytes": 11768,
       "extraction": {
         "status": "parsed"
       },
@@ -1774,6 +1785,7 @@
         "description": "f17f0e01f6d74cc3",
         "purposes": {
           "discuss": "7b7c7289ce188cb7",
+          "followSession": "63a7d4021c5374ca",
           "handleFile": "3864f5de1851ce9b",
           "removeStalePrompts": "4ca1456c3cfafea4",
           "stageCommand": "1daf0048f3df8927",
@@ -1814,26 +1826,26 @@
       ],
       "functions": {
         "str": {
-          "line": 33,
+          "line": 31,
           "params": [
             "value"
           ]
         },
         "slugShapeOk": {
-          "line": 37,
+          "line": 35,
           "params": [
             "slug"
           ]
         },
         "normalizeProject": {
-          "line": 44,
+          "line": 42,
           "params": [
             "raw"
           ],
           "purpose": "One `project.list` entry, reduced to the fields Frame uses."
         },
         "listProjects": {
-          "line": 58,
+          "line": 56,
           "params": [
             "{ api",
             "token",
@@ -1843,7 +1855,7 @@
           "purpose": "`project.list` → normalized projects, server order."
         },
         "matchFolders": {
-          "line": 81,
+          "line": 79,
           "params": [
             "projects",
             "folders"
@@ -1851,14 +1863,14 @@
           "purpose": "The workspace's projects and this device's folders, seen from each side."
         },
         "compact": {
-          "line": 119,
+          "line": 117,
           "params": [
             "input"
           ],
           "purpose": "Optional fields are left out rather than sent empty."
         },
         "checkSlug": {
-          "line": 128,
+          "line": 126,
           "params": [
             "{ api",
             "token",
@@ -1869,13 +1881,13 @@
           "purpose": "`project.checkSlug` → true when the slug is free in the cloud workspace."
         },
         "normalizeCandidate": {
-          "line": 133,
+          "line": 131,
           "params": [
             "raw"
           ]
         },
         "getCandidates": {
-          "line": 145,
+          "line": 143,
           "params": [
             "{ api",
             "token",
@@ -1888,7 +1900,7 @@
           "purpose": "`link.candidates` → projects this folder could connect to, matches first (server order)."
         },
         "claim": {
-          "line": 156,
+          "line": 154,
           "params": [
             "{ api",
             "token",
@@ -1903,7 +1915,7 @@
           "purpose": "`link.claim` → `{ projectId, projectSlug, workspaceSlug }`. Throws CloudError."
         },
         "create": {
-          "line": 166,
+          "line": 164,
           "params": [
             "{ api",
             "token",
@@ -1917,7 +1929,7 @@
           "purpose": "`link.create` → the same answer as claim; the project is created already linked. Throws CloudError."
         },
         "release": {
-          "line": 180,
+          "line": 178,
           "params": [
             "{ api",
             "token",
@@ -1929,35 +1941,35 @@
           "purpose": "`link.release`. A refusal because this folder is not the one the project"
         },
         "classifyLinkError": {
-          "line": 219,
+          "line": 217,
           "params": [
             "err"
           ],
           "purpose": "A failed link call → what Frame does about it. The server puts its code in"
         },
         "suggestSlug": {
-          "line": 239,
+          "line": 237,
           "params": [
             "name"
           ],
           "purpose": "A project name → a slug suggestion, or '' when none is valid. Mirrors the"
         },
         "validateSlug": {
-          "line": 252,
+          "line": 250,
           "params": [
             "slug"
           ],
           "purpose": "null when `slug` is valid, else 'empty' | 'length' | 'format' | 'reserved'."
         },
         "nextSlug": {
-          "line": 261,
+          "line": 259,
           "params": [
             "slug"
           ],
           "purpose": "The next slug to try after a collision: `app` → `app-2`, `app-2` → `app-3`, kept within 32."
         },
         "planFolderRow": {
-          "line": 281,
+          "line": 279,
           "params": [
             "folderRow",
             "candidates",
@@ -1966,7 +1978,7 @@
           "purpose": "An unconnected folder and its `link.candidates` → how On this device draws"
         },
         "shouldAutoShowDevices": {
-          "line": 307,
+          "line": 305,
           "params": [
             "{ userStartedSignIn",
             "dismissed",
@@ -1975,7 +1987,7 @@
           "purpose": "The one automatic tab switch: after a sign-in the user started, unless turned off."
         },
         "buildWebUrl": {
-          "line": 319,
+          "line": 317,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1985,7 +1997,7 @@
           "purpose": "`{webOrigin}/{workspace}/{project}`, or null when any guard fails:"
         },
         "buildWorkspaceWebUrl": {
-          "line": 326,
+          "line": 324,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1994,7 +2006,7 @@
           "purpose": "`{webOrigin}/{workspace}`, under the same guards as buildWebUrl."
         },
         "buildNewWorkspaceWebUrl": {
-          "line": 333,
+          "line": 331,
           "params": [
             "{ apiUrl",
             "webOrigin } = {}"
@@ -2002,7 +2014,7 @@
           "purpose": "`{webOrigin}/new`, where a signed-in user without a workspace creates one."
         },
         "webBase": {
-          "line": 339,
+          "line": 337,
           "params": [
             "apiUrl",
             "webOrigin"
@@ -2010,7 +2022,7 @@
           "purpose": "The web origin every link starts from, or null when the origin guards fail."
         }
       },
-      "sizeBytes": 13656,
+      "sizeBytes": 13611,
       "extraction": {
         "status": "parsed"
       },
@@ -2292,14 +2304,22 @@
         "userSettings",
         "logger",
         "sessionStore",
-        "deviceFlow"
+        "deviceFlow",
+        "../../package.json"
       ],
       "functions": {
         "resolveUrl": {
-          "line": 80
+          "line": 89
+        },
+        "refusalReason": {
+          "line": 103,
+          "params": [
+            "address"
+          ],
+          "purpose": "Scheme and host only: the rest of a mistyped address could carry anything."
         },
         "fetchJson": {
-          "line": 92,
+          "line": 120,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -2310,41 +2330,41 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 133,
+          "line": 161,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 153,
+          "line": 181,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 162,
+          "line": 190,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 175
+          "line": 203
         },
         "deviceInfo": {
-          "line": 197
-        },
-        "toPublicState": {
-          "line": 209
-        },
-        "getPublicState": {
-          "line": 221
-        },
-        "publish": {
           "line": 225
         },
+        "toPublicState": {
+          "line": 237
+        },
+        "getPublicState": {
+          "line": 249
+        },
+        "publish": {
+          "line": 253
+        },
         "setState": {
-          "line": 234,
+          "line": 262,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -2352,18 +2372,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 248,
+          "line": 276,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 257,
+          "line": 285,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 268,
+          "line": 296,
           "params": [
             "serverUrl",
             "session",
@@ -2371,65 +2391,65 @@
           ]
         },
         "bringToFront": {
-          "line": 282,
+          "line": 310,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 290
+          "line": 318
         },
         "signIn": {
-          "line": 299,
+          "line": 327,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 351
+          "line": 379
         },
         "readInviteMode": {
-          "line": 368,
+          "line": 396,
           "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
         },
         "joinWaitlist": {
-          "line": 392,
+          "line": 420,
           "params": [
             "rawEmail"
           ],
           "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 409,
+          "line": 437,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 439,
+          "line": 467,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 453,
+          "line": 481,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 460,
+          "line": 488,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 486,
+          "line": 514,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 490
+          "line": 518
         },
         "getState": {
-          "line": 518,
+          "line": 546,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 525,
+          "line": 553,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 536,
+          "line": 564,
           "params": [
             "ipcMain"
           ]
@@ -2448,7 +2468,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 17834,
+      "sizeBytes": 19040,
       "extraction": {
         "status": "parsed"
       },
@@ -2464,6 +2484,7 @@
           "reRegister": "e88a61fbed8a6f32",
           "readInviteMode": "dcc8a44616939165",
           "refresh": "61b40a9ce727f469",
+          "refusalReason": "abca5b658054eebe",
           "sessionExpired": "5d56148c50c4781e",
           "setState": "3d2187de732548f8",
           "signIn": "d5bda9fb4a6e3b43",
@@ -2700,6 +2721,7 @@
         "fsSafe",
         "logger",
         "aiToolManager",
+        "cloudSession",
         "cloudProjectsService",
         "cloudBriefsService",
         "cloudShape",
@@ -2707,29 +2729,29 @@
       ],
       "functions": {
         "baseDir": {
-          "line": 52
+          "line": 58
         },
         "busDir": {
-          "line": 56
+          "line": 62
         },
         "repliesDir": {
-          "line": 60
+          "line": 66
         },
         "commandPath": {
-          "line": 64
+          "line": 70
         },
         "promptsDir": {
-          "line": 68
-        },
-        "loadStore": {
           "line": 74
         },
+        "loadStore": {
+          "line": 80
+        },
         "removeStalePrompts": {
-          "line": 85,
+          "line": 91,
           "purpose": "Delete the prompt files of shapes the store no longer holds."
         },
         "writePrompt": {
-          "line": 94,
+          "line": 100,
           "params": [
             "shapeId",
             "prompt"
@@ -2737,21 +2759,21 @@
           "purpose": "Write a shaping session's prompt atomically. → its path, or null."
         },
         "saveStore": {
-          "line": 107
+          "line": 113
         },
         "stageCommand": {
-          "line": 120,
+          "line": 126,
           "purpose": "Copy the command next to the bus, only when it changed. → staged?"
         },
         "isShapeable": {
-          "line": 136,
+          "line": 142,
           "params": [
             "brief"
           ],
           "purpose": "Open work whose parts were never written: the one brief Shape starts on."
         },
         "shape": {
-          "line": 146,
+          "line": 152,
           "params": [
             "folderPath",
             "number",
@@ -2760,14 +2782,14 @@
           "purpose": "Start shaping an open, unshaped work brief with `toolId`. The full prompt"
         },
         "writeReply": {
-          "line": 173,
+          "line": 179,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushShaped": {
-          "line": 184,
+          "line": 190,
           "params": [
             "folderPath",
             "number",
@@ -2775,30 +2797,40 @@
           ]
         },
         "handleFile": {
-          "line": 191,
+          "line": 197,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 229
+          "line": 235
         },
         "sweep": {
-          "line": 242,
+          "line": 248,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 258
+          "line": 264
+        },
+        "stopWatcher": {
+          "line": 284
+        },
+        "followSession": {
+          "line": 293,
+          "params": [
+            "publicState"
+          ],
+          "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 278,
+          "line": 298,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 292,
+          "line": 314,
           "params": [
             "ipcMain"
           ]
@@ -2812,13 +2844,14 @@
           "CLOUD_BRIEF_SHAPED"
         ]
       },
-      "sizeBytes": 10993,
+      "sizeBytes": 11781,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "7d3eb80cdbe6be44",
         "purposes": {
+          "followSession": "63a7d4021c5374ca",
           "handleFile": "3864f5de1851ce9b",
           "isShapeable": "02f517bf5fd14f34",
           "removeStalePrompts": "47397a9791b963a1",
@@ -3339,6 +3372,8 @@
         "SLOW_DOWN_STEP_MS",
         "MAX_BACKOFF_MS",
         "CloudError",
+        "LOOPBACK_HOSTS",
+        "checkServerUrl",
         "resolveServerUrl",
         "parseCodeResponse",
         "formatUserCode",
@@ -3368,65 +3403,72 @@
             "signal"
           ]
         },
+        "checkServerUrl": {
+          "line": 54,
+          "params": [
+            "url"
+          ],
+          "purpose": "Whether Frame may talk to `url`: https on any host, http on LOOPBACK_HOSTS"
+        },
         "resolveServerUrl": {
-          "line": 46,
+          "line": 72,
           "params": [
             "{ env",
             "setting",
             "defaultUrl } = {}"
           ],
-          "purpose": "First non-empty of env → setting → default, without trailing slashes."
+          "purpose": "The first non-empty of env → setting → default, without trailing slashes,"
         },
         "parseCodeResponse": {
-          "line": 56,
+          "line": 83,
           "params": [
             "body"
           ],
           "purpose": "`/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body."
         },
         "formatUserCode": {
-          "line": 79,
+          "line": 106,
           "params": [
             "userCode"
           ],
           "purpose": "Display-only grouping: 'TTN4YFST' → 'TTN4-YFST'. Other shapes are returned as-is."
         },
         "classifyTokenResponse": {
-          "line": 86,
+          "line": 113,
           "params": [
             "res"
           ],
           "purpose": "One `/api/auth/device/token` answer → what the poll loop does next."
         },
         "classifyTrpcError": {
-          "line": 114,
+          "line": 141,
           "params": [
             "res"
           ],
           "purpose": "A failed tRPC answer → CloudError kind."
         },
         "looksLikeAddress": {
-          "line": 130,
+          "line": 157,
           "params": [
             "name"
           ],
           "purpose": "A hostname that is really a network address (macOS without a HostName"
         },
         "cleanName": {
-          "line": 134,
+          "line": 161,
           "params": [
             "raw"
           ]
         },
         "deviceName": {
-          "line": 144,
+          "line": 171,
           "params": [
             "hostname"
           ],
           "purpose": "A machine name → the name the server shows for this device."
         },
         "formatDeviceInfo": {
-          "line": 153,
+          "line": 180,
           "params": [
             "{ computerName",
             "hostname",
@@ -3437,7 +3479,7 @@
           "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
         },
         "send": {
-          "line": 163,
+          "line": 190,
           "params": [
             "fetchJson",
             "url",
@@ -3445,7 +3487,7 @@
           ]
         },
         "requestDeviceCode": {
-          "line": 172,
+          "line": 199,
           "params": [
             "{ api",
             "fetchJson",
@@ -3453,7 +3495,7 @@
           ]
         },
         "callTrpc": {
-          "line": 190,
+          "line": 217,
           "params": [
             "{ api",
             "name",
@@ -3466,7 +3508,7 @@
           "purpose": "One tRPC procedure, no transformer. A query (GET) carries its input as"
         },
         "registerDevice": {
-          "line": 208,
+          "line": 235,
           "params": [
             "{ api",
             "token",
@@ -3476,7 +3518,7 @@
           ]
         },
         "fetchMe": {
-          "line": 217,
+          "line": 244,
           "params": [
             "{ api",
             "token",
@@ -3485,7 +3527,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 221,
+          "line": 248,
           "params": [
             "{ api",
             "token",
@@ -3494,7 +3536,7 @@
           ]
         },
         "fetchInviteMode": {
-          "line": 235,
+          "line": 262,
           "params": [
             "{ api",
             "fetchJson",
@@ -3503,20 +3545,20 @@
           "purpose": "Whether the server only lets invited people sign up (FrameCloud"
         },
         "normalizeWaitlistEmail": {
-          "line": 251,
+          "line": 278,
           "params": [
             "raw"
           ],
           "purpose": "A waitlist address as the server stores it — trimmed and lowercased as a"
         },
         "joinReason": {
-          "line": 262,
+          "line": 289,
           "params": [
             "err"
           ]
         },
         "joinWaitlist": {
-          "line": 277,
+          "line": 304,
           "params": [
             "{ api",
             "email",
@@ -3526,7 +3568,7 @@
           "purpose": "Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,"
         },
         "pollForToken": {
-          "line": 297,
+          "line": 324,
           "params": [
             "{ api",
             "code",
@@ -3538,13 +3580,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 350,
+          "line": 377,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 368,
+          "line": 395,
           "params": [
             "{ api",
             "fetchJson",
@@ -3558,19 +3600,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 426,
+          "line": 453,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 438,
+          "line": 465,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 452,
+          "line": 479,
           "params": [
             "{ api",
             "token",
@@ -3581,7 +3623,7 @@
           "purpose": "`device.me`, re-registering once when the server has forgotten this device."
         }
       },
-      "sizeBytes": 16725,
+      "sizeBytes": 17958,
       "extraction": {
         "status": "parsed"
       },
@@ -3589,6 +3631,7 @@
         "description": "ebf2be089212533a",
         "purposes": {
           "callTrpc": "e96a249383caf0be",
+          "checkServerUrl": "dd2d3d2bcddc2cb0",
           "classifyTokenResponse": "2f95a6e8fdf2bb48",
           "classifyTrpcError": "34a7196859403c98",
           "deviceName": "35a3ebe056a4adea",
@@ -3601,20 +3644,21 @@
           "parseCodeResponse": "4626cbf9184c6f5c",
           "pollForToken": "b146490edbbeb889",
           "refreshSession": "1d622fffd281eb11",
-          "resolveServerUrl": "9b6759bf29c1e97f",
+          "resolveServerUrl": "ef1826ded8765dc2",
           "runSignIn": "cb6126d231cc3199"
         }
       }
     },
     "main/cloud/sessionStore": {
       "file": "src/main/cloud/sessionStore.js",
-      "description": "sessionStore — where the Frame Cloud session lives between launches.",
+      "description": "sessionStore — where Frame Cloud sessions live between launches.",
       "exports": [
         "load",
         "save",
         "clear"
       ],
       "depends": [
+        "crypto",
         "fs",
         "path",
         "electron",
@@ -3623,47 +3667,78 @@
       ],
       "functions": {
         "sessionPath": {
-          "line": 24
+          "line": 35,
+          "params": [
+            "serverUrl"
+          ]
+        },
+        "legacyPath": {
+          "line": 40
+        },
+        "readLegacy": {
+          "line": 45,
+          "purpose": "The single-server file's text and server, or null when it is absent or unreadable."
+        },
+        "removeFiles": {
+          "line": 56,
+          "params": [
+            "file"
+          ],
+          "purpose": "A session file and the fsSafe files beside it."
+        },
+        "migrateLegacy": {
+          "line": 71,
+          "params": [
+            "serverUrl",
+            "file"
+          ],
+          "purpose": "When `serverUrl` has no file of its own and the single-server file is its,"
         },
         "encryptionAvailable": {
-          "line": 28
+          "line": 85
         },
         "pickSession": {
-          "line": 36,
+          "line": 93,
           "params": [
             "source",
             "token"
           ]
         },
         "load": {
-          "line": 54,
+          "line": 111,
           "params": [
             "serverUrl"
           ],
-          "purpose": "The stored session for `serverUrl`, or null. A session saved for another"
+          "purpose": "The stored session for `serverUrl`, or null. A file for another server, an"
         },
         "save": {
-          "line": 83,
+          "line": 140,
           "params": [
             "session"
           ],
-          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })."
+          "purpose": "Persist `session` ({ serverUrl, token, deviceId, user, workspace, device, webOrigin })"
         },
         "clear": {
-          "line": 104,
-          "purpose": "Forget the session: the file, its fsSafe backup and the memory copy."
+          "line": 165,
+          "params": [
+            "serverUrl"
+          ],
+          "purpose": "Forget `serverUrl`'s session: its file, the fsSafe backup, the memory copy,"
         }
       },
-      "sizeBytes": 3651,
+      "sizeBytes": 5948,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "9592bc12c89beae3",
+        "description": "b212ee64f98fe96d",
         "purposes": {
-          "clear": "452ed3a4e5078e90",
-          "load": "2c05662a9d2f6cc0",
-          "save": "9cd7367bf64b57c7"
+          "clear": "f1ea44f5d58736e5",
+          "load": "0e6f1cbe55989812",
+          "migrateLegacy": "f223a8378e3776ea",
+          "readLegacy": "bdb61d043e83cdb6",
+          "removeFiles": "efc44f64aa32cfcd",
+          "save": "495b1c7746743fbe"
         }
       }
     },
@@ -8818,7 +8893,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3707,
+      "sizeBytes": 3746,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -22198,6 +22273,43 @@
         "description": "32ac7921fd767895"
       }
     },
+    "scripts/release-build": {
+      "file": "scripts/release-build.js",
+      "description": "",
+      "exports": [
+        "releaseArgs"
+      ],
+      "depends": [
+        "release-build",
+        "child_process",
+        "src/main/cloud/deviceFlow"
+      ],
+      "functions": {
+        "refusal": {
+          "line": 30,
+          "params": [
+            "value"
+          ]
+        },
+        "releaseArgs": {
+          "line": 48,
+          "params": [
+            "argv",
+            "env"
+          ],
+          "purpose": "The electron-builder arguments for this release, and the warning to print"
+        }
+      },
+      "sizeBytes": 2662,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "releaseArgs": "883b7baf34971235"
+        }
+      }
+    },
     "scripts/spec-command-hint": {
       "file": "scripts/spec-command-hint.js",
       "description": "",
@@ -26642,14 +26754,14 @@
           ]
         },
         "signInHarness": {
-          "line": 409,
+          "line": 446,
           "params": [
             "routes",
             "extra = {}"
           ]
         }
       },
-      "sizeBytes": 30728,
+      "sizeBytes": 32726,
       "extraction": {
         "status": "parsed"
       },
@@ -26765,6 +26877,67 @@
         "description": "389fc0ae5bb8751b",
         "purposes": {
           "fakeFetch": "e169fa61c44b18c3"
+        }
+      }
+    },
+    "test/cloudSessionStore.test": {
+      "file": "test/cloudSessionStore.test.js",
+      "description": "sessionStore tests — Frame Cloud sessions kept per server.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "crypto",
+        "fs",
+        "os",
+        "path",
+        "node:module"
+      ],
+      "functions": {
+        "freshStore": {
+          "line": 48,
+          "purpose": "A new module instance: a second Frame, or the same one after a restart."
+        },
+        "session": {
+          "line": 56,
+          "params": [
+            "serverUrl",
+            "token"
+          ]
+        },
+        "sessionsDir": {
+          "line": 68
+        },
+        "fileFor": {
+          "line": 72,
+          "params": [
+            "serverUrl"
+          ]
+        },
+        "sessionFiles": {
+          "line": 77
+        },
+        "legacyFile": {
+          "line": 85
+        },
+        "writeLegacy": {
+          "line": 90,
+          "params": [
+            "serverUrl",
+            "token"
+          ],
+          "purpose": "A session file as the single-server store wrote it, with its .bak."
+        }
+      },
+      "sizeBytes": 8047,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "f5b799993240acd1",
+        "purposes": {
+          "freshStore": "b1ef9fc4e96ec63b",
+          "writeLegacy": "a9c4e15de422358b"
         }
       }
     },
@@ -28593,6 +28766,24 @@
         "purposes": {
           "answerFirst": "9f829a71bafe5781"
         }
+      }
+    },
+    "test/releaseBuild.test": {
+      "file": "test/releaseBuild.test.js",
+      "description": "release-build tests — the Frame Cloud address a release carries.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "scripts/release-build"
+      ],
+      "functions": {},
+      "sizeBytes": 2988,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "c4566b8ad1cedad3"
       }
     },
     "test/reorder.test": {
@@ -30888,7 +31079,7 @@
       {
         "module": "main/cloud/sessionStore",
         "file": "src/main/cloud/sessionStore.js",
-        "description": "sessionStore — where the Frame Cloud session lives between launches."
+        "description": "sessionStore — where Frame Cloud sessions live between launches."
       },
       {
         "module": "renderer/cloudHub",
@@ -31821,7 +32012,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 328,
+        "parsed": 331,
         "unsupported": 84,
         "partial": 0
       }
@@ -31868,9 +32059,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 501,
+      "visitedEntries": 504,
       "traversedDirectories": 81,
-      "eligibleFiles": 412,
+      "eligibleFiles": 415,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -31887,7 +32078,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 412,
+      "indexedFiles": 415,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -31895,6 +32086,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "72e75d493d0b8afacda07d03641a373539d4b96a1a8bb6829640ddb4c15fd97a"
+    "revision": "98abe824d19d36cc246baa553e7ed11105b797fdd885cfd1b7a13b88d68bef91"
   }
 }

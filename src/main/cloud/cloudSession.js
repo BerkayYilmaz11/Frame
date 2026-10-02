@@ -32,11 +32,17 @@ const {
   fetchInviteMode,
   normalizeWaitlistEmail,
   joinWaitlist: joinWaitlistCall,
+  checkServerUrl,
 } = require('./deviceFlow');
 
-// No FrameCloud is deployed yet: packaged builds resolve to nothing and the
-// Account section stays hidden. Developers set FRAME_CLOUD_URL.
-const DEFAULT_CLOUD_SERVER_URL = '';
+// The release default comes from the packaged package.json: a release built
+// with FRAME_CLOUD_RELEASE_URL carries `frameCloudUrl` there (written by
+// scripts/release-build.js through electron-builder's extraMetadata). The
+// repository's package.json has none, so `npm start` and builds made without
+// it resolve to nothing and the Account section stays hidden. Developers set
+// FRAME_CLOUD_URL or the cloudServerUrl setting.
+const { frameCloudUrl } = require('../../../package.json');
+const RELEASE_CLOUD_SERVER_URL = typeof frameCloudUrl === 'string' ? frameCloudUrl : '';
 const REQUEST_TIMEOUT_MS = 15000;
 
 const PUBLIC_KEYS = [
@@ -75,14 +81,36 @@ let waitlistEmail = null;
 let readingMode = null;
 const listeners = new Set();
 
+// Refused addresses already logged: resolveUrl runs on every getState.
+const refusedLogged = new Set();
+
 // ─── Dependencies for the core ────────────────────────────────
 
 function resolveUrl() {
-  return resolveServerUrl({
+  const { url, refused } = resolveServerUrl({
     env: process.env.FRAME_CLOUD_URL,
     setting: userSettings.get('cloudServerUrl'),
-    defaultUrl: DEFAULT_CLOUD_SERVER_URL,
+    defaultUrl: RELEASE_CLOUD_SERVER_URL,
   });
+  if (refused && !refusedLogged.has(refused)) {
+    refusedLogged.add(refused);
+    logger.warn('cloudSession', `Frame Cloud is off: ${refusalReason(refused)}`);
+  }
+  return url;
+}
+
+// Scheme and host only: the rest of a mistyped address could carry anything.
+function refusalReason(address) {
+  let parsed;
+  try {
+    parsed = new URL(address);
+  } catch {
+    return 'the server address is not a URL';
+  }
+  if (checkServerUrl(address).reason === 'insecure') {
+    return `${parsed.protocol}//${parsed.host} is not https (plain http only reaches localhost and 127.0.0.1)`;
+  }
+  return `${parsed.protocol} is not an http(s) address`;
 }
 
 /**
@@ -441,7 +469,7 @@ function sessionExpired() {
   logger.info('cloudSession', 'session no longer valid — signed out');
   token = null;
   webOrigin = null;
-  sessionStore.clear();
+  sessionStore.clear(state.serverUrl);
   setState({ state: 'signedOut', serverUrl: state.serverUrl });
   return getPublicState();
 }
@@ -472,7 +500,7 @@ async function signOut() {
       serverUnreachable = err.kind === 'network' || err.kind === 'rate_limited';
     }
   }
-  sessionStore.clear();
+  sessionStore.clear(serverUrl);
   const next = { state: 'signedOut', serverUrl };
   if (serverUnreachable) next.serverUnreachable = true;
   setState(serverUrl ? next : { state: 'unavailable' });

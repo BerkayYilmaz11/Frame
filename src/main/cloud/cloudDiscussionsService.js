@@ -19,6 +19,10 @@
  * id and returns the lane's prompt; the renderer opens the lane. A request is
  * claimed by renaming it, handled, answered in replies/, and a record that
  * landed is pushed as `CLOUD_BRIEF_DISCUSSION_RECORDED`.
+ *
+ * The bus is watched only while this Frame is signed in to Frame Cloud. Every
+ * Frame on the machine shares userData, so a signed-out one leaves requests
+ * alone instead of claiming them and answering that it does not know the id.
  */
 
 const fs = require('fs');
@@ -28,6 +32,7 @@ const { IPC } = require('../../shared/ipcChannels');
 const fsSafe = require('../fsSafe');
 const logger = require('../logger');
 const aiToolManager = require('../aiToolManager');
+const cloudSession = require('./cloudSession');
 const cloudProjectsService = require('./cloudProjectsService');
 const cloudBriefsService = require('./cloudBriefsService');
 const core = require('./cloudDiscussions');
@@ -46,6 +51,7 @@ const STALE_REPLY_MS = 10 * 60 * 1000;
 
 let mainWindow = null;
 let store = core.emptyStore();
+let initialised = false;
 let watcher = null;
 let debounce = null;
 
@@ -277,18 +283,34 @@ function startWatcher() {
   }
 }
 
+function stopWatcher() {
+  clearTimeout(debounce);
+  debounce = null;
+  if (!watcher) return;
+  try { watcher.close(); } catch { /* already closed */ }
+  watcher = null;
+}
+
+/** Watch the bus while signed in, and only then. */
+function followSession(publicState) {
+  if (publicState && publicState.state === 'signedIn') startWatcher();
+  else stopWatcher();
+}
+
 function init(window) {
   mainWindow = window;
-  if (watcher) return; // a re-created window keeps the running bus
+  if (initialised) return; // a re-created window keeps the running bus
   try {
     fs.mkdirSync(baseDir(), { recursive: true });
   } catch (err) {
     logger.warn('cloudDiscussions', `could not create ${baseDir()}: ${err.message}`);
     return;
   }
+  initialised = true;
   loadStore();
   stageCommand();
-  startWatcher();
+  followSession(cloudSession.getPublicState());
+  cloudSession.onChange(({ state }) => followSession(state));
 }
 
 function setupIPC(ipcMain) {
