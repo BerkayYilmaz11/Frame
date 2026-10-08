@@ -5892,24 +5892,55 @@
         "shared/ipcChannels",
         "https",
         "pollGate",
+        "logger",
         "updateState",
-        "../package.json"
+        "../package.json",
+        "electron-updater"
       ],
       "functions": {
         "init": {
-          "line": 32,
+          "line": 41,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 37
+          "line": 46
         },
         "startPeriodicRecheck": {
-          "line": 50
+          "line": 59
+        },
+        "usesUpdater": {
+          "line": 73,
+          "purpose": "Only a packaged macOS build can update itself: electron-updater needs the"
+        },
+        "notify": {
+          "line": 77,
+          "params": [
+            "channel",
+            "payload"
+          ]
+        },
+        "getUpdater": {
+          "line": 86,
+          "purpose": "Required lazily so tests and dev runs never load electron-updater."
         },
         "checkForUpdate": {
-          "line": 69,
+          "line": 119,
+          "purpose": "Check for a newer version. Resolves the same discriminated result on"
+        },
+        "record": {
+          "line": 123,
+          "params": [
+            "status",
+            "extra = {}"
+          ]
+        },
+        "checkWithUpdater": {
+          "line": 131
+        },
+        "checkWithGitHub": {
+          "line": 166,
           "purpose": "Check GitHub for a newer release."
         }
       },
@@ -5919,17 +5950,21 @@
           "GET_UPDATE_STATUS"
         ],
         "emits": [
+          "channel",
           "UPDATE_AVAILABLE"
         ]
       },
-      "sizeBytes": 4373,
+      "sizeBytes": 7925,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "bcb85f2b4293ff11",
         "purposes": {
-          "checkForUpdate": "bac96905370b31cf"
+          "checkForUpdate": "8d54abb8f11c163f",
+          "checkWithGitHub": "bac96905370b31cf",
+          "getUpdater": "13b5931bab76cbd2",
+          "usesUpdater": "4e0e6e43701bf4b1"
         }
       }
     },
@@ -27204,6 +27239,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a9e83495bb179867f4fdcceadffdb68384cd32a589fa0a50e17f10e3cf42a552"
+    "revision": "45d043c23b1fd0c010164bcb8c839bdc8d6942b067153b459da7e23ca48eea97"
   }
 }

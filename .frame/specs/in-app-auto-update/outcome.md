@@ -30,3 +30,11 @@ _Captured: 2026-10-08 · 1 file change(s)_
 
 ---
 
+## T05 — electron-updater path in updateChecker
+
+Split updateChecker.js into checkWithUpdater (packaged macOS, lazily requires electron-updater, auto-download and install-on-quit on, pushes UPDATE_AVAILABLE and UPDATE_DOWNLOADED) and checkWithGitHub (unchanged logic, sharing a new record() helper). A failed background download is logged and keeps the update 'available' instead of reporting an error, a choice the plan left open. A smoke run with stubbed electron and electron-updater exercised available, downloaded, up-to-date and error (missing latest-mac.yml → parse) paths, and a rejected downloadPromise caused no unhandled rejection. The plan's note that posthog-node is lazily required in analytics.js no longer holds after PR #165 (it is a top-level require); electron-updater is lazy regardless.
+
+_Captured: 2026-10-08 · 1 file change(s)_
+
+---
+
