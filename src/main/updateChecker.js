@@ -53,6 +53,7 @@ function setupIPC() {
     lastErrorReason,
     result: lastResult,
     downloaded,
+    autoUpdate: usesUpdater(),
     currentVersion: require('../../package.json').version
   }));
   // "Restart to install". quitAndInstall closes the window first, so the

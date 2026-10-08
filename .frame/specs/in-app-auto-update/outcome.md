@@ -46,3 +46,11 @@ _Captured: 2026-10-08 · 1 file change(s)_
 
 ---
 
+## T07 — Settings → About: restart to install
+
+Added the Restart to Install button and title id to the About banner in index.html, and the downloaded/downloading states to src/renderer/frameSettingsModal.js. Deviation: GET_UPDATE_STATUS also returns autoUpdate (src/main/updateChecker.js), which the plan didn't list; without it non-updater builds would show 'Downloading in the background…' falsely. Not exercised in a running app; checked with node --check and the test suite only, as the project has no DOM harness.
+
+_Captured: 2026-10-08 · 3 file change(s)_
+
+---
+

@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94287,
+      "sizeBytes": 94498,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5908,39 +5908,39 @@
           "line": 46
         },
         "startPeriodicRecheck": {
-          "line": 69
+          "line": 70
         },
         "usesUpdater": {
-          "line": 83,
+          "line": 84,
           "purpose": "Only a packaged macOS build can update itself: electron-updater needs the"
         },
         "notify": {
-          "line": 87,
+          "line": 88,
           "params": [
             "channel",
             "payload"
           ]
         },
         "getUpdater": {
-          "line": 96,
+          "line": 97,
           "purpose": "Required lazily so tests and dev runs never load electron-updater."
         },
         "checkForUpdate": {
-          "line": 129,
+          "line": 130,
           "purpose": "Check for a newer version. Resolves the same discriminated result on"
         },
         "record": {
-          "line": 133,
+          "line": 134,
           "params": [
             "status",
             "extra = {}"
           ]
         },
         "checkWithUpdater": {
-          "line": 141
+          "line": 142
         },
         "checkWithGitHub": {
-          "line": 176,
+          "line": 177,
           "purpose": "Check GitHub for a newer release."
         }
       },
@@ -5955,7 +5955,7 @@
           "UPDATE_AVAILABLE"
         ]
       },
-      "sizeBytes": 8408,
+      "sizeBytes": 8439,
       "extraction": {
         "status": "parsed"
       },
@@ -8573,19 +8573,19 @@
       ],
       "functions": {
         "init": {
-          "line": 47
+          "line": 53
         },
         "initAboutSection": {
-          "line": 124
+          "line": 139
         },
         "runCheck": {
-          "line": 209,
+          "line": 232,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 248,
+          "line": 272,
           "params": [
             "{ checked",
             "found",
@@ -8597,46 +8597,47 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 272,
+          "line": 306,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 283
+          "line": 323
         },
         "hideSidebarDot": {
-          "line": 287
+          "line": 327
         },
         "formatRelative": {
-          "line": 293,
+          "line": 333,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 309,
+          "line": 349,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 332
+          "line": 372
         },
         "syncErrorReportingAvailability": {
-          "line": 348,
+          "line": 388,
           "params": [
             "analyticsOn"
           ],
           "purpose": "Error reporting is gated on analytics in main (analytics.captureException"
         },
         "syncToggleFromSettings": {
-          "line": 355
+          "line": 395
         }
       },
       "ipc": {
         "listens": [
           "UI_ZOOM_CHANGED",
           "OPEN_SETTINGS",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": [
           "ANALYTICS_TRACK",
@@ -8645,7 +8646,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 14043,
+      "sizeBytes": 15724,
       "extraction": {
         "status": "parsed"
       },
@@ -27240,6 +27241,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8bb7b721db9ef6351f650e9d623a0749f6064ffce117b2c1e9342ece036aee56"
+    "revision": "575bbb314a824016db1af53540fd61f889570ef93ba0a630a61fca677be02b0b"
   }
 }

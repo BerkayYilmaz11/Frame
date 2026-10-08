@@ -42,7 +42,13 @@ let updateLatestEl = null;
 let updateReleasedEl = null;
 let updateLinkEl = null;
 let updateDismissBtn = null;
+let updateTitleEl = null;
+let updateInstallBtn = null;
 let currentUpdateInfo = null;
+// Auto-update (packaged macOS only): main downloads in the background and
+// the banner offers "Restart to Install" once the download is done.
+let autoUpdateActive = false;
+let updateDownloaded = false;
 
 function init() {
   toggleEl = document.getElementById('settings-analytics-toggle');
@@ -60,6 +66,8 @@ function init() {
   updateReleasedEl = document.getElementById('settings-update-released');
   updateLinkEl = document.getElementById('settings-update-link');
   updateDismissBtn = document.getElementById('settings-update-dismiss');
+  updateTitleEl = document.getElementById('settings-update-title');
+  updateInstallBtn = document.getElementById('settings-update-install');
 
   overlay = settingsOverlay.create('frame-settings-overlay', syncToggleFromSettings);
   if (!overlay || !toggleEl) {
@@ -119,6 +127,13 @@ function init() {
     currentUpdateInfo = info;
     renderUpdateState({ checked: true, found: true, info });
   });
+
+  ipcRenderer.on(IPC.UPDATE_DOWNLOADED, (event, info) => {
+    currentUpdateInfo = info;
+    autoUpdateActive = true;
+    updateDownloaded = true;
+    renderUpdateState({ checked: true, found: true, info });
+  });
 }
 
 function initAboutSection() {
@@ -158,6 +173,12 @@ function initAboutSection() {
     });
   }
 
+  if (updateInstallBtn) {
+    updateInstallBtn.addEventListener('click', () => {
+      ipcRenderer.invoke(IPC.INSTALL_UPDATE).catch(() => {});
+    });
+  }
+
   if (updateDismissBtn) {
     updateDismissBtn.addEventListener('click', async () => {
       if (!currentUpdateInfo) return;
@@ -177,6 +198,8 @@ function initAboutSection() {
     .invoke(IPC.GET_UPDATE_STATUS)
     .then((status) => {
       if (!status) return;
+      autoUpdateActive = !!status.autoUpdate;
+      updateDownloaded = !!status.downloaded;
       if (status.result) {
         currentUpdateInfo = status.result;
         renderUpdateState({
@@ -215,6 +238,7 @@ async function runCheck(userInitiated) {
     const res = await ipcRenderer.invoke(IPC.CHECK_FOR_UPDATE);
     if (res && res.status === 'update-available') {
       currentUpdateInfo = res.info;
+      if (res.downloaded) updateDownloaded = true;
       renderUpdateState({
         checked: true,
         found: true,
@@ -249,14 +273,24 @@ function renderUpdateState({ checked, found, failed, failReason, info, checkedAt
   if (!aboutStatusEl) return;
   const stamp = checkedAt ? formatRelative(new Date(checkedAt)) : '';
   if (found && info) {
-    aboutStatusEl.textContent = stamp ? `Last checked ${stamp}.` : '';
+    if (updateDownloaded) {
+      aboutStatusEl.textContent = 'Downloaded. Restart Frame to install it.';
+    } else if (autoUpdateActive) {
+      aboutStatusEl.textContent = stamp
+        ? `Downloading in the background… Last checked ${stamp}.`
+        : 'Downloading in the background…';
+    } else {
+      aboutStatusEl.textContent = stamp ? `Last checked ${stamp}.` : '';
+    }
     showUpdateBanner(info);
   } else if (failed) {
     const why = failReason === 'timeout'
       ? 'timed out'
       : failReason === 'parse'
         ? 'unexpected response'
-        : 'network error';
+        : failReason === 'download'
+          ? 'download failed'
+          : 'network error';
     aboutStatusEl.textContent = `Update check failed (${why}) — you may not be on the latest version.`;
     hideUpdateBanner();
   } else if (checked) {
@@ -272,6 +306,12 @@ function renderUpdateState({ checked, found, failed, failReason, info, checkedAt
 function showUpdateBanner(info) {
   if (!updateBanner) return;
   updateBanner.style.display = '';
+  if (updateTitleEl) {
+    updateTitleEl.textContent = updateDownloaded ? 'Update ready' : 'New version available';
+  }
+  if (updateInstallBtn) updateInstallBtn.style.display = updateDownloaded ? '' : 'none';
+  // One primary action at a time: installing outranks reading the notes.
+  if (updateLinkEl) updateLinkEl.classList.toggle('settings-about-btn-primary', !updateDownloaded);
   if (updateLatestEl) updateLatestEl.textContent = `v${info.latestVersion}`;
   if (updateReleasedEl) {
     const released = info.publishedAt ? formatRelative(new Date(info.publishedAt)) : '';
