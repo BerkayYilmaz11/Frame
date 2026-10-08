@@ -22,3 +22,11 @@ _Captured: 2026-10-08 · 1 file change(s)_
 
 ---
 
+## T04 — IPC channels for the downloaded state and install
+
+Added UPDATE_DOWNLOADED and INSTALL_UPDATE to the Update Check block of src/shared/ipcChannels.js. Checked that no channel value is duplicated. No deviation from the plan.
+
+_Captured: 2026-10-08 · 1 file change(s)_
+
+---
+

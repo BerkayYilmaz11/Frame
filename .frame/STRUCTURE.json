@@ -21321,7 +21321,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11930,
+      "sizeBytes": 12008,
       "extraction": {
         "status": "parsed"
       },
@@ -26196,6 +26196,20 @@
         "direction": "",
         "description": ""
       }
+    },
+    "downloaded": {
+      "UPDATE_DOWNLOADED": {
+        "name": "update-downloaded",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "install": {
+      "INSTALL_UPDATE": {
+        "name": "install-update",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -27190,6 +27204,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ea0fc28812d9f7b45dd3efabd3c6cb7eb6474ce065547c2152ea460f2541ae69"
+    "revision": "a9e83495bb179867f4fdcceadffdb68384cd32a589fa0a50e17f10e3cf42a552"
   }
 }

@@ -133,6 +133,8 @@ const IPC = {
   CHECK_FOR_UPDATE: 'check-for-update',
   UPDATE_AVAILABLE: 'update-available',
   GET_UPDATE_STATUS: 'get-update-status',
+  UPDATE_DOWNLOADED: 'update-downloaded',
+  INSTALL_UPDATE: 'install-update',
 
   // AI Tool Settings
   GET_AI_TOOL_CONFIG: 'get-ai-tool-config',
