@@ -38,3 +38,11 @@ _Captured: 2026-10-08 · 1 file change(s)_
 
 ---
 
+## T06 — Install handler and downloaded status
+
+Added the INSTALL_UPDATE handler (quitAndInstall via setImmediate, false unless packaged macOS with a downloaded update) and downloaded to GET_UPDATE_STATUS in src/main/updateChecker.js. Correction to the plan: quitAndInstall closes the window before before-quit fires, so the live-agent prompt comes from the window's 'close' handler (src/main/index.js), with the same effect. A stubbed smoke run confirmed install is refused before the download and calls quitAndInstall once after it.
+
+_Captured: 2026-10-08 · 1 file change(s)_
+
+---
+

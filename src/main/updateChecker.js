@@ -52,8 +52,18 @@ function setupIPC() {
     lastStatus,
     lastErrorReason,
     result: lastResult,
+    downloaded,
     currentVersion: require('../../package.json').version
   }));
+  // "Restart to install". quitAndInstall closes the window first, so the
+  // live-agent confirmation in index.js still runs; if the user cancels
+  // there, Frame stays open and the update installs on the next quit.
+  ipcMain.handle(IPC.INSTALL_UPDATE, () => {
+    if (!usesUpdater() || !downloaded) return false;
+    // Let this reply reach the renderer before the app starts quitting.
+    setImmediate(() => getUpdater().quitAndInstall());
+    return true;
+  });
 }
 
 function startPeriodicRecheck() {

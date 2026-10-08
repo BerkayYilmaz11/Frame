@@ -5908,53 +5908,54 @@
           "line": 46
         },
         "startPeriodicRecheck": {
-          "line": 59
+          "line": 69
         },
         "usesUpdater": {
-          "line": 73,
+          "line": 83,
           "purpose": "Only a packaged macOS build can update itself: electron-updater needs the"
         },
         "notify": {
-          "line": 77,
+          "line": 87,
           "params": [
             "channel",
             "payload"
           ]
         },
         "getUpdater": {
-          "line": 86,
+          "line": 96,
           "purpose": "Required lazily so tests and dev runs never load electron-updater."
         },
         "checkForUpdate": {
-          "line": 119,
+          "line": 129,
           "purpose": "Check for a newer version. Resolves the same discriminated result on"
         },
         "record": {
-          "line": 123,
+          "line": 133,
           "params": [
             "status",
             "extra = {}"
           ]
         },
         "checkWithUpdater": {
-          "line": 131
+          "line": 141
         },
         "checkWithGitHub": {
-          "line": 166,
+          "line": 176,
           "purpose": "Check GitHub for a newer release."
         }
       },
       "ipc": {
         "listens": [
           "CHECK_FOR_UPDATE",
-          "GET_UPDATE_STATUS"
+          "GET_UPDATE_STATUS",
+          "INSTALL_UPDATE"
         ],
         "emits": [
           "channel",
           "UPDATE_AVAILABLE"
         ]
       },
-      "sizeBytes": 7925,
+      "sizeBytes": 8408,
       "extraction": {
         "status": "parsed"
       },
@@ -27239,6 +27240,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "45d043c23b1fd0c010164bcb8c839bdc8d6942b067153b459da7e23ca48eea97"
+    "revision": "8bb7b721db9ef6351f650e9d623a0749f6064ffce117b2c1e9342ece036aee56"
   }
 }
