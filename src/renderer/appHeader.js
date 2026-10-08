@@ -19,7 +19,8 @@
  *     from the palette or the View menu shows here too. The
  *     applyTheme / currentTheme contract stays in terminalTabBar.js — the
  *     theme.* commands and terminalManager depend on it there.
- *   - The update bell: hidden until UPDATE_AVAILABLE, click opens the release.
+ *   - The update bell: hidden until UPDATE_AVAILABLE, click opens the release;
+ *     once UPDATE_DOWNLOADED arrives, click restarts Frame to install it.
  *   - The default-agent select: aiToolSelector.mountSelector() populates it.
  *   - The layout toggles. Click runs the registered command
  *     (panel.toggleSidebar / dock.toggle) so the button, ⌘B / ⌘J, the View
@@ -124,19 +125,35 @@ function initUpdateBell(root) {
   const updateBtn = root.querySelector('.btn-update-notify');
   if (!updateBtn) return;
   let updateInfo = null;
+  let downloadedVersion = null;
 
   updateBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (updateInfo) {
-      const { shell } = require('electron');
-      shell.openExternal(updateInfo.releaseUrl);
+    if (!updateInfo) return;
+    if (downloadedVersion === updateInfo.latestVersion) {
+      ipcRenderer.invoke(IPC.INSTALL_UPDATE).catch(() => {});
+      return;
     }
+    const { shell } = require('electron');
+    shell.openExternal(updateInfo.releaseUrl);
   });
+
+  const paint = () => {
+    updateBtn.style.display = '';
+    updateBtn.title = downloadedVersion === updateInfo.latestVersion
+      ? `Restart to install v${updateInfo.latestVersion}`
+      : `New version available: v${updateInfo.latestVersion}`;
+  };
 
   ipcRenderer.on(IPC.UPDATE_AVAILABLE, (event, info) => {
     updateInfo = info;
-    updateBtn.style.display = '';
-    updateBtn.title = `New version available: v${info.latestVersion}`;
+    paint();
+  });
+
+  ipcRenderer.on(IPC.UPDATE_DOWNLOADED, (event, info) => {
+    updateInfo = info;
+    downloadedVersion = info.latestVersion;
+    paint();
   });
 }
 

@@ -62,3 +62,11 @@ _Captured: 2026-10-08 · 2 file change(s)_
 
 ---
 
+## T09 — Header bell: restart to install
+
+Made the header bell in src/renderer/appHeader.js install on click once UPDATE_DOWNLOADED has arrived for the shown version (title 'Restart to install vX'), keeping the open-release-page behaviour before that. Bundled the worktree renderer with esbuild as a compile check, since no running app was exercised. Wrote digest.md; spec complete. Followup: confirm end to end with the first signed release carrying the updater (zip + latest-mac.yml output) and the release after it (actual install).
+
+_Captured: 2026-10-08 · 1 file change(s)_
+
+---
+

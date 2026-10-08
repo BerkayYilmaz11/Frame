@@ -6913,19 +6913,19 @@
       ],
       "functions": {
         "initTheme": {
-          "line": 45,
+          "line": 46,
           "params": [
             "root"
           ]
         },
         "initUpdateBell": {
-          "line": 123,
+          "line": 124,
           "params": [
             "root"
           ]
         },
         "paintToggle": {
-          "line": 144,
+          "line": 161,
           "params": [
             "btn",
             "{ on",
@@ -6936,22 +6936,23 @@
           "purpose": "Paint one toggle: pressed state, title, icon."
         },
         "initLayoutToggles": {
-          "line": 151,
+          "line": 168,
           "params": [
             "root"
           ]
         },
         "init": {
-          "line": 176
+          "line": 193
         }
       },
       "ipc": {
         "listens": [
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": []
       },
-      "sizeBytes": 7711,
+      "sizeBytes": 8263,
       "extraction": {
         "status": "parsed"
       },
@@ -27242,6 +27243,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "099b2a2d25aca2a66838cd3fbc0bf230b609b467027386acbca35a906732f5ae"
+    "revision": "f5035e7746eb3f84ee88c29cb8c851dae6f82b1e845b90d002e5c89c318b89fd"
   }
 }
