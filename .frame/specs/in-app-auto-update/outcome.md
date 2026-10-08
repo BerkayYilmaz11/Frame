@@ -14,3 +14,11 @@ _Captured: 2026-10-08 · 2 file change(s)_
 
 ---
 
+## T03 — Packaging config for the updater
+
+Added zip to build.mac.target, a GitHub build.publish block (kaanozhan/Frame), and --publish never on the three dist scripts in package.json. That the build actually writes the zip, its blockmap and latest-mac.yml was not verified in this run, because a signed build needs the Apple credentials and notarization. The first release build is where that is confirmed.
+
+_Captured: 2026-10-08 · 1 file change(s)_
+
+---
+

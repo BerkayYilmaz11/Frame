@@ -6200,7 +6200,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3812,
+      "sizeBytes": 3977,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -27190,6 +27190,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "23ba83b80fd701934aec18ff11b50b46d266f6e11d85c20647869f1dc8d9226f"
+    "revision": "ea0fc28812d9f7b45dd3efabd3c6cb7eb6474ce065547c2152ea460f2541ae69"
   }
 }
