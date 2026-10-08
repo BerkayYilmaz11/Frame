@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-07",
+  "lastUpdated": "2026-10-08",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -5892,32 +5892,25 @@
         "shared/ipcChannels",
         "https",
         "pollGate",
+        "updateState",
         "../package.json"
       ],
       "functions": {
         "init": {
-          "line": 31,
+          "line": 32,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 36
+          "line": 37
         },
         "startPeriodicRecheck": {
-          "line": 49
+          "line": 50
         },
         "checkForUpdate": {
-          "line": 68,
+          "line": 69,
           "purpose": "Check GitHub for a newer release."
-        },
-        "isNewerVersion": {
-          "line": 132,
-          "params": [
-            "current",
-            "latest"
-          ],
-          "purpose": "Compare semver: returns true if latest > current"
         }
       },
       "ipc": {
@@ -5929,15 +5922,76 @@
           "UPDATE_AVAILABLE"
         ]
       },
-      "sizeBytes": 4662,
+      "sizeBytes": 4373,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "bcb85f2b4293ff11",
         "purposes": {
-          "checkForUpdate": "bac96905370b31cf",
-          "isNewerVersion": "d700e5495ef59030"
+          "checkForUpdate": "bac96905370b31cf"
+        }
+      }
+    },
+    "main/updateState": {
+      "file": "src/main/updateState.js",
+      "description": "Update State Module",
+      "exports": [
+        "isNewerVersion",
+        "toInfo",
+        "errorReason",
+        "releaseUrlFor"
+      ],
+      "depends": [],
+      "functions": {
+        "isNewerVersion": {
+          "line": 31,
+          "params": [
+            "current",
+            "latest"
+          ],
+          "purpose": "Compare semver: returns true if latest > current"
+        },
+        "releaseUrlFor": {
+          "line": 41,
+          "params": [
+            "version"
+          ]
+        },
+        "notesText": {
+          "line": 49,
+          "params": [
+            "releaseNotes"
+          ],
+          "purpose": "electron-updater's release notes are a string, an array of"
+        },
+        "toInfo": {
+          "line": 66,
+          "params": [
+            "updateInfo",
+            "currentVersion"
+          ],
+          "purpose": "UpdateInfo → the `info` shape updateChecker has always sent:"
+        },
+        "errorReason": {
+          "line": 83,
+          "params": [
+            "err"
+          ],
+          "purpose": "Updater error → 'network' | 'timeout' | 'parse' | 'download'."
+        }
+      },
+      "sizeBytes": 3256,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "90a5441c55bba370",
+        "purposes": {
+          "errorReason": "9a162d5cdcc427a0",
+          "isNewerVersion": "d700e5495ef59030",
+          "notesText": "47134109949969f6",
+          "toInfo": "20c68e357bf99c45"
         }
       }
     },
@@ -22285,7 +22339,7 @@
         "src/shared/frameTemplates"
       ],
       "functions": {},
-      "sizeBytes": 8280,
+      "sizeBytes": 8412,
       "extraction": {
         "status": "parsed"
       },
@@ -22310,18 +22364,18 @@
       ],
       "functions": {
         "installedHome": {
-          "line": 45,
+          "line": 46,
           "purpose": "A CODEX_HOME with Frame's hooks installed."
         },
         "withActivity": {
-          "line": 52,
+          "line": 53,
           "params": [
             "records"
           ],
           "purpose": "Point the activity root at a temp dir and optionally seed one record."
         }
       },
-      "sizeBytes": 8282,
+      "sizeBytes": 8414,
       "extraction": {
         "status": "parsed"
       },
@@ -22350,11 +22404,11 @@
       ],
       "functions": {
         "mkProject": {
-          "line": 43,
+          "line": 44,
           "purpose": "A project with one spec, so getCommandPrompt has a status.json to read."
         }
       },
-      "sizeBytes": 8428,
+      "sizeBytes": 8560,
       "extraction": {
         "status": "parsed"
       },
@@ -23143,19 +23197,19 @@
       ],
       "functions": {
         "writeUserFiles": {
-          "line": 60,
+          "line": 61,
           "params": [
             "dir"
           ]
         },
         "hashFile": {
-          "line": 68,
+          "line": 69,
           "params": [
             "file"
           ]
         },
         "snapshotTree": {
-          "line": 73,
+          "line": 74,
           "params": [
             "dir",
             "{ excludeFrameOwned = true } = {}"
@@ -23163,14 +23217,14 @@
           "purpose": "Every file in the tree → sha256, excluding paths Frame is allowed to own."
         },
         "fakeWorkers": {
-          "line": 665,
+          "line": 666,
           "purpose": "A fake `--supervised` child that records what the supervisor sends."
         },
         "resetWorkers": {
-          "line": 690
+          "line": 691
         }
       },
-      "sizeBytes": 36584,
+      "sizeBytes": 36716,
       "extraction": {
         "status": "parsed"
       },
@@ -23209,48 +23263,48 @@
       ],
       "functions": {
         "git": {
-          "line": 60,
+          "line": 61,
           "params": [
             "cwd",
             "args"
           ]
         },
         "makeLegacyProject": {
-          "line": 86,
+          "line": 87,
           "params": [
             "{ commit = true } = {}"
           ],
           "purpose": "A project as Frame's pre-overlay init left it."
         },
         "hashFile": {
-          "line": 121,
+          "line": 122,
           "params": [
             "file"
           ]
         },
         "snapshotTree": {
-          "line": 126,
+          "line": 127,
           "params": [
             "dir"
           ],
           "purpose": "Every file in the tree → sha256, with `.git/` internals left out."
         },
         "frameLayout": {
-          "line": 143,
+          "line": 144,
           "params": [
             "dir"
           ],
           "purpose": "The paths under `.frame/`, so two projects' artifact sets can be compared."
         },
         "fakeWorkers": {
-          "line": 311,
+          "line": 312,
           "purpose": "A fake `--supervised` child that records what the supervisor sends."
         },
         "resetWorkers": {
-          "line": 336
+          "line": 337
         }
       },
-      "sizeBytes": 21181,
+      "sizeBytes": 21313,
       "extraction": {
         "status": "parsed"
       },
@@ -23443,26 +23497,26 @@
       ],
       "functions": {
         "git": {
-          "line": 37,
+          "line": 38,
           "params": [
             "cwd",
             "args"
           ]
         },
         "readJson": {
-          "line": 41,
+          "line": 42,
           "params": [
             "file"
           ]
         },
         "hookCommands": {
-          "line": 45,
+          "line": 46,
           "params": [
             "file"
           ]
         }
       },
-      "sizeBytes": 8720,
+      "sizeBytes": 8852,
       "extraction": {
         "status": "parsed"
       },
@@ -23721,14 +23775,14 @@
       ],
       "functions": {
         "git": {
-          "line": 41,
+          "line": 42,
           "params": [
             "cwd",
             "args"
           ]
         },
         "makeLegacyProject": {
-          "line": 68,
+          "line": 69,
           "params": [
             "{ withClaudeBlock = true",
             "commit = false } = {}"
@@ -23736,7 +23790,7 @@
           "purpose": "A project as Frame's pre-overlay init left it."
         }
       },
-      "sizeBytes": 31429,
+      "sizeBytes": 31561,
       "extraction": {
         "status": "parsed"
       },
@@ -24213,7 +24267,7 @@
       ],
       "functions": {
         "runHook": {
-          "line": 52,
+          "line": 53,
           "params": [
             "input",
             "{ raw = null",
@@ -24221,7 +24275,7 @@
           ]
         },
         "mkProject": {
-          "line": 63,
+          "line": 64,
           "params": [
             "specs = [{ slug",
             "title",
@@ -24230,7 +24284,7 @@
           "purpose": "A project with one spec in `phase`, and the command templates staged."
         }
       },
-      "sizeBytes": 12055,
+      "sizeBytes": 12187,
       "extraction": {
         "status": "parsed"
       },
@@ -24432,13 +24486,13 @@
       ],
       "functions": {
         "writeOverrideTemplate": {
-          "line": 65,
+          "line": 66,
           "params": [
             "content"
           ]
         },
         "writeSpec": {
-          "line": 71,
+          "line": 72,
           "params": [
             "slug",
             "title",
@@ -24446,7 +24500,7 @@
           ]
         }
       },
-      "sizeBytes": 8440,
+      "sizeBytes": 8572,
       "extraction": {
         "status": "parsed"
       },
@@ -24469,13 +24523,13 @@
       ],
       "functions": {
         "specDir": {
-          "line": 52,
+          "line": 53,
           "params": [
             "slug"
           ]
         },
         "writeConductorSpec": {
-          "line": 59,
+          "line": 60,
           "params": [
             "slug",
             "extra = {}"
@@ -24483,13 +24537,13 @@
           "purpose": "A spec folder as Frame's conductor writes it: no slug, no task ids."
         },
         "readStatus": {
-          "line": 74,
+          "line": 75,
           "params": [
             "slug"
           ]
         }
       },
-      "sizeBytes": 7349,
+      "sizeBytes": 7481,
       "extraction": {
         "status": "parsed"
       },
@@ -24517,22 +24571,22 @@
       ],
       "functions": {
         "specDir": {
-          "line": 60
+          "line": 61
         },
         "writeTasksMd": {
-          "line": 64,
+          "line": 65,
           "params": [
             "content"
           ]
         },
         "writeStatus": {
-          "line": 69
+          "line": 70
         },
         "readSpecTasks": {
-          "line": 83
+          "line": 84
         }
       },
-      "sizeBytes": 11490,
+      "sizeBytes": 11622,
       "extraction": {
         "status": "parsed"
       },
@@ -25230,6 +25284,24 @@
       },
       "provenance": {
         "description": "fbe11cd54bf5a922"
+      }
+    },
+    "test/updateState.test": {
+      "file": "test/updateState.test.js",
+      "description": "Update state — the pure half of the update checker.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/main/updateState"
+      ],
+      "functions": {},
+      "sizeBytes": 4144,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "8d14ca0750c74e20"
       }
     }
   },
@@ -26836,6 +26908,11 @@
     ],
     "state": [
       {
+        "module": "main/updateState",
+        "file": "src/main/updateState.js",
+        "description": "Update State Module"
+      },
+      {
         "module": "renderer/dock/dockState",
         "file": "src/renderer/dock/dockState.js",
         "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
@@ -26973,6 +27050,18 @@
         "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
       }
     ],
+    "update": [
+      {
+        "module": "main/updateChecker",
+        "file": "src/main/updateChecker.js",
+        "description": "Update Checker Module"
+      },
+      {
+        "module": "main/updateState",
+        "file": "src/main/updateState.js",
+        "description": "Update State Module"
+      }
+    ],
     "view": [
       {
         "module": "renderer/decisionsView",
@@ -27027,7 +27116,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 295,
+        "parsed": 297,
         "unsupported": 83,
         "partial": 0
       }
@@ -27074,9 +27163,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 466,
+      "visitedEntries": 468,
       "traversedDirectories": 80,
-      "eligibleFiles": 378,
+      "eligibleFiles": 380,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27093,7 +27182,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 378,
+      "indexedFiles": 380,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27101,6 +27190,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2d26793869a6b8a93b4c3286db4771905ca8adc726a3512958abf69deef9c36f"
+    "revision": "9d2d6c010130dcfa558e79ce0e4f8c488f50c64204a07f4c83c3ca1fcf4ad6b2"
   }
 }

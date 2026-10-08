@@ -16,6 +16,7 @@ const { ipcMain } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const https = require('https');
 const pollGate = require('./pollGate');
+const { isNewerVersion } = require('./updateState');
 
 const REPO_OWNER = 'kaanozhan';
 const REPO_NAME = 'Frame';
@@ -124,19 +125,6 @@ function checkForUpdate() {
     req.on('error', () => finish('error', { reason: 'network' }));
     req.setTimeout(10000, () => { req.destroy(); finish('error', { reason: 'timeout' }); });
   });
-}
-
-/**
- * Compare semver: returns true if latest > current
- */
-function isNewerVersion(current, latest) {
-  const c = current.split('.').map(Number);
-  const l = latest.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    if ((l[i] || 0) > (c[i] || 0)) return true;
-    if ((l[i] || 0) < (c[i] || 0)) return false;
-  }
-  return false;
 }
 
 module.exports = { init, setupIPC, checkForUpdate };
