@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94498,
+      "sizeBytes": 94531,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -10544,26 +10544,26 @@
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 535,
+          "line": 539,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 561,
+          "line": 578,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 587,
+          "line": 604,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 991,
+          "line": 1008,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1016,
+          "line": 1033,
           "params": [
             "err"
           ],
@@ -10575,14 +10575,15 @@
           "CLONE_GITHUB_REPO_RESULT",
           "UI_ZOOM_CHANGED",
           "RUN_APP_COMMAND",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": [
           "REFRESH_GIT_STATUS",
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 36509,
+      "sizeBytes": 37339,
       "extraction": {
         "status": "parsed"
       },
@@ -27241,6 +27242,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "575bbb314a824016db1af53540fd61f889570ef93ba0a630a61fca677be02b0b"
+    "revision": "099b2a2d25aca2a66838cd3fbc0bf230b609b467027386acbca35a906732f5ae"
   }
 }

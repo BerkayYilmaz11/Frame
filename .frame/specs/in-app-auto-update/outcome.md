@@ -54,3 +54,11 @@ _Captured: 2026-10-08 · 3 file change(s)_
 
 ---
 
+## T08 — Sidebar banner: restart to install
+
+Reworked setupUpdateDot in src/renderer/index.js around a shared show(): the banner title switches to 'Restart to install' when the shown version is downloaded, and the dismiss gating and click-to-open-About behaviour are unchanged. Added the #sidebar-update-banner-title id in index.html. Not exercised in a running app.
+
+_Captured: 2026-10-08 · 2 file change(s)_
+
+---
+
