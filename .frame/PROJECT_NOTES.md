@@ -3694,3 +3694,15 @@ narrow right rail (wider pills) and the command palette spacing.
 Same session, separate request: the left rail icons went from 40px to 32px
 (button 48px to 40px, 4px inset kept) with `stroke-width: 1.5` so the stroke
 still renders at 2px.
+
+### [2026-10-09] AI sessions resume after a relaunch (spec: restore-ai-sessions-on-relaunch)
+
+User's request (Turkish, verbatim): "frame i kapatıp açtığımızda herşey sıfırdan başlıyor, açık olan terminal sessionlarının bilgisine sahibiz zaten, uygulama tekrar açıldığında terminalleri ve sessionları açarak başlayabiliriz bence. […] son açık olan proje açıldığında gelir ve terminaller ve sessionlar başlatılır. eğer diğer projelerde de bu durum varsa, kullanıcı o projeyi açtığında terminaller ve sessionlar başlatılır." Then: plain shells (zsh/bash) are ignored; restore is automatic, no prompt; Codex included alongside Claude Code (Gemini/OpenCode out).
+
+Decisions taken with the user:
+- Capture by a `SessionStart` hook plus a per-terminal env (`FRAME_TERMINAL_ID`), not by guessing from transcripts. The user first asked what the hook does; after the explanation (two Claude terminals in one project would cross-assign, `/clear` would be missed) chose the hook.
+- Hook installed per project, not in `~/.claude/settings.json`: Claude entry in the project's sharing-mode settings file; Codex entry in `CODEX_HOME/hooks.json` (the only place Codex reads) guarded on `.frame/`. Consequence accepted: projects never initialized with Frame do not restore.
+- The session hook ignores the active-tool gate, so one project with a Claude and a Codex terminal restores both.
+- "Last active project" is saved explicitly. Mid-implementation a conflict surfaced with the existing Default-project setting ("Frame opens it every time it launches"); the user chose: open the last project **only when it has sessions to resume**, otherwise the default as before. The setting's text now states the exception.
+
+Measured (measurements.md): both CLIs pass the env to the hook; `$PPID` is the CLI and its pgid equals the terminal's tpgid, while a CLI nested in a session's Bash tool sits in another group — that check filters nested reports.

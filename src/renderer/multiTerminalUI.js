@@ -17,7 +17,10 @@
  */
 
 
+const { ipcRenderer } = require('electron');
+const { IPC } = require('../shared/ipcChannels');
 const { TerminalManager } = require('./terminalManager');
+const sessionRestore = require('./sessionRestore');
 const { TerminalTabBar } = require('./terminalTabBar');
 const { TerminalsView } = require('./terminalsView');
 const { HomeBoard } = require('./homeBoard');
@@ -168,6 +171,12 @@ class MultiTerminalUI {
     this.taskDrawer = null;
 
     this.manager.setCurrentProject(projectPath);
+
+    // Every way into a project passes here. Remembered so a relaunch can come
+    // back to it when it had AI sessions running, and the first open in this
+    // run resumes them (restore-ai-sessions-on-relaunch).
+    if (projectPath) ipcRenderer.send(IPC.SESSION_RESTORE_SET_LAST_PROJECT, projectPath);
+    sessionRestore.maybeRestore(projectPath, this);
 
     // Update UI to show terminals for current project
     this._onStateChange(this._currentState());
