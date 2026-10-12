@@ -904,6 +904,30 @@ function getSpecFootprint(projectPath, slug) {
   return parseFootprintMarkdown(plan);
 }
 
+// A task imported for the first time starts from what the spec itself
+// records, not from 'pending'. Specs are implemented in worktrees whose task
+// state lives in a tasks.json nobody commits, so a finished spec can arrive
+// by merge with its tasks.md but none of its tasks — and importing those as
+// pending walked it from `done` back to `tasks_generated`. The spec's own
+// files travel with it: a `done` phase means every task finished, and the
+// implement loop writes one `## T<n> — …` outcome entry per finished task.
+const OUTCOME_TASK_RE = /^##\s+(T\d{1,3})\b/gm;
+
+function completedTaskIdsFromOutcome(content) {
+  const ids = new Set();
+  if (!content) return ids;
+  for (const m of content.matchAll(OUTCOME_TASK_RE)) ids.add(m[1]);
+  return ids;
+}
+
+function initialTaskState(status, outcomeIds, taskId, now) {
+  if (status && status.phase === 'done') {
+    return { status: 'completed', completedAt: status.last_phase_at || status.updated_at || now };
+  }
+  if (outcomeIds.has(taskId)) return { status: 'completed', completedAt: now };
+  return { status: 'pending', completedAt: null };
+}
+
 function syncTasksFromMarkdown(projectPath, slug) {
   const tasksMdPath = path.join(getSpecDir(projectPath, slug), TASKS_FILE);
   const md = readFileSafe(tasksMdPath);
@@ -923,6 +947,10 @@ function syncTasksFromMarkdown(projectPath, slug) {
   const now = new Date().toISOString();
   const generatedIds = [];
   let added = 0, updated = 0, unchanged = 0;
+  const specStatus = readStatus(projectPath, slug);
+  const outcomeIds = completedTaskIdsFromOutcome(
+    readFileSafe(path.join(getSpecDir(projectPath, slug), OUTCOME_FILE))
+  );
 
   for (const item of parsed) {
     const sourceMarker = `spec:${slug}:${item.taskId}`;
@@ -938,18 +966,19 @@ function syncTasksFromMarkdown(projectPath, slug) {
         unchanged++;
       }
     } else {
+      const initial = initialTaskState(specStatus, outcomeIds, item.taskId, now);
       tasksData.tasks.push({
         id,
         title: item.description,
         description: '',
         source: sourceMarker,
-        status: 'pending',
+        status: initial.status,
         priority: 'medium',
         category: 'feature',
         context: `From spec: ${slug}`,
         createdAt: now,
         updatedAt: now,
-        completedAt: null
+        completedAt: initial.completedAt
       });
       tasksData.metadata = tasksData.metadata || {};
       tasksData.metadata.totalCreated = (tasksData.metadata.totalCreated || 0) + 1;
