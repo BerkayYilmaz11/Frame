@@ -16,9 +16,9 @@
     "find-module": "node scripts/find-module.js",
     "freshness": "node scripts/check-freshness.js",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dist": "npm run build && electron-builder --mac --dir",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac"
+    "dist": "npm run build && electron-builder --mac --dir --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --publish never"
   },
   "keywords": [
     "electron",
@@ -43,6 +43,7 @@
     "d3": "^7.9.0",
     "diff2html": "^3.4.56",
     "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9",
     "lucide": "^0.577.0",
     "marked": "^17.0.5",
     "node-pty": "^1.0.0",
@@ -57,7 +58,8 @@
       "category": "public.app-category.developer-tools",
       "icon": "assets/icon.icns",
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -78,6 +80,11 @@
           "path": "/Applications"
         }
       ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kaanozhan",
+      "repo": "Frame"
     },
     "directories": {
       "output": "release"

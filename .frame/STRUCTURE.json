@@ -6250,52 +6250,142 @@
         "shared/ipcChannels",
         "https",
         "pollGate",
-        "../package.json"
+        "logger",
+        "updateState",
+        "../package.json",
+        "electron-updater"
       ],
       "functions": {
         "init": {
-          "line": 31,
+          "line": 41,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 36
+          "line": 46
         },
         "startPeriodicRecheck": {
-          "line": 49
+          "line": 70
+        },
+        "usesUpdater": {
+          "line": 84,
+          "purpose": "Only a packaged macOS build can update itself: electron-updater needs the"
+        },
+        "notify": {
+          "line": 88,
+          "params": [
+            "channel",
+            "payload"
+          ]
+        },
+        "getUpdater": {
+          "line": 97,
+          "purpose": "Required lazily so tests and dev runs never load electron-updater."
         },
         "checkForUpdate": {
-          "line": 68,
-          "purpose": "Check GitHub for a newer release."
+          "line": 130,
+          "purpose": "Check for a newer version. Resolves the same discriminated result on"
         },
-        "isNewerVersion": {
-          "line": 132,
+        "record": {
+          "line": 134,
           "params": [
-            "current",
-            "latest"
-          ],
-          "purpose": "Compare semver: returns true if latest > current"
+            "status",
+            "extra = {}"
+          ]
+        },
+        "checkWithUpdater": {
+          "line": 142
+        },
+        "checkWithGitHub": {
+          "line": 177,
+          "purpose": "Check GitHub for a newer release."
         }
       },
       "ipc": {
         "listens": [
           "CHECK_FOR_UPDATE",
-          "GET_UPDATE_STATUS"
+          "GET_UPDATE_STATUS",
+          "INSTALL_UPDATE"
         ],
         "emits": [
+          "channel",
           "UPDATE_AVAILABLE"
         ]
       },
-      "sizeBytes": 4662,
+      "sizeBytes": 8439,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "bcb85f2b4293ff11",
         "purposes": {
-          "checkForUpdate": "bac96905370b31cf",
-          "isNewerVersion": "d700e5495ef59030"
+          "checkForUpdate": "8d54abb8f11c163f",
+          "checkWithGitHub": "bac96905370b31cf",
+          "getUpdater": "13b5931bab76cbd2",
+          "usesUpdater": "4e0e6e43701bf4b1"
+        }
+      }
+    },
+    "main/updateState": {
+      "file": "src/main/updateState.js",
+      "description": "Update State Module",
+      "exports": [
+        "isNewerVersion",
+        "toInfo",
+        "errorReason",
+        "releaseUrlFor"
+      ],
+      "depends": [],
+      "functions": {
+        "isNewerVersion": {
+          "line": 31,
+          "params": [
+            "current",
+            "latest"
+          ],
+          "purpose": "Compare semver: returns true if latest > current"
+        },
+        "releaseUrlFor": {
+          "line": 41,
+          "params": [
+            "version"
+          ]
+        },
+        "notesText": {
+          "line": 49,
+          "params": [
+            "releaseNotes"
+          ],
+          "purpose": "electron-updater's release notes are a string, an array of"
+        },
+        "toInfo": {
+          "line": 66,
+          "params": [
+            "updateInfo",
+            "currentVersion"
+          ],
+          "purpose": "UpdateInfo → the `info` shape updateChecker has always sent:"
+        },
+        "errorReason": {
+          "line": 83,
+          "params": [
+            "err"
+          ],
+          "purpose": "Updater error → 'network' | 'timeout' | 'parse' | 'download'."
+        }
+      },
+      "sizeBytes": 3256,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "90a5441c55bba370",
+        "purposes": {
+          "errorReason": "9a162d5cdcc427a0",
+          "isNewerVersion": "d700e5495ef59030",
+          "notesText": "47134109949969f6",
+          "toInfo": "20c68e357bf99c45"
         }
       }
     },
@@ -6493,7 +6583,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 217739,
+      "sizeBytes": 219753,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -7196,19 +7286,19 @@
       ],
       "functions": {
         "initTheme": {
-          "line": 45,
+          "line": 46,
           "params": [
             "root"
           ]
         },
         "initUpdateBell": {
-          "line": 123,
+          "line": 124,
           "params": [
             "root"
           ]
         },
         "paintToggle": {
-          "line": 144,
+          "line": 161,
           "params": [
             "btn",
             "{ on",
@@ -7219,22 +7309,23 @@
           "purpose": "Paint one toggle: pressed state, title, icon."
         },
         "initLayoutToggles": {
-          "line": 151,
+          "line": 168,
           "params": [
             "root"
           ]
         },
         "init": {
-          "line": 176
+          "line": 193
         }
       },
       "ipc": {
         "listens": [
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": []
       },
-      "sizeBytes": 7711,
+      "sizeBytes": 8263,
       "extraction": {
         "status": "parsed"
       },
@@ -8856,19 +8947,19 @@
       ],
       "functions": {
         "init": {
-          "line": 47
+          "line": 53
         },
         "initAboutSection": {
-          "line": 124
+          "line": 139
         },
         "runCheck": {
-          "line": 209,
+          "line": 232,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 248,
+          "line": 272,
           "params": [
             "{ checked",
             "found",
@@ -8880,46 +8971,47 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 272,
+          "line": 306,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 283
+          "line": 323
         },
         "hideSidebarDot": {
-          "line": 287
+          "line": 327
         },
         "formatRelative": {
-          "line": 293,
+          "line": 333,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 309,
+          "line": 349,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 332
+          "line": 372
         },
         "syncErrorReportingAvailability": {
-          "line": 348,
+          "line": 388,
           "params": [
             "analyticsOn"
           ],
           "purpose": "Error reporting is gated on analytics in main (analytics.captureException"
         },
         "syncToggleFromSettings": {
-          "line": 355
+          "line": 395
         }
       },
       "ipc": {
         "listens": [
           "UI_ZOOM_CHANGED",
           "OPEN_SETTINGS",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": [
           "ANALYTICS_TRACK",
@@ -8928,7 +9020,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 14043,
+      "sizeBytes": 15724,
       "extraction": {
         "status": "parsed"
       },
@@ -10855,7 +10947,8 @@
           "CLONE_GITHUB_REPO_RESULT",
           "UI_ZOOM_CHANGED",
           "RUN_APP_COMMAND",
-          "UPDATE_AVAILABLE"
+          "UPDATE_AVAILABLE",
+          "UPDATE_DOWNLOADED"
         ],
         "emits": [
           "REFRESH_GIT_STATUS",
@@ -25814,6 +25907,24 @@
       "provenance": {
         "description": "fbe11cd54bf5a922"
       }
+    },
+    "test/updateState.test": {
+      "file": "test/updateState.test.js",
+      "description": "Update state — the pure half of the update checker.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/main/updateState"
+      ],
+      "functions": {},
+      "sizeBytes": 4144,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "8d14ca0750c74e20"
+      }
     }
   },
   "ipcChannels": {
@@ -27495,6 +27606,11 @@
     ],
     "state": [
       {
+        "module": "main/updateState",
+        "file": "src/main/updateState.js",
+        "description": "Update State Module"
+      },
+      {
         "module": "renderer/dock/dockState",
         "file": "src/renderer/dock/dockState.js",
         "description": "Dock state — pure (dock-panel-readonly-views spec, D2)."
@@ -27642,6 +27758,18 @@
         "module": "renderer/tour/tourSteps",
         "file": "src/renderer/tour/tourSteps.js",
         "description": "The guided tour's steps and rules (first-run-guided-tour spec)."
+      }
+    ],
+    "update": [
+      {
+        "module": "main/updateChecker",
+        "file": "src/main/updateChecker.js",
+        "description": "Update Checker Module"
+      },
+      {
+        "module": "main/updateState",
+        "file": "src/main/updateState.js",
+        "description": "Update State Module"
       }
     ],
     "view": [

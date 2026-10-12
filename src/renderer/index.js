@@ -555,12 +555,18 @@ function setupProjectSwitcher() {
  * version (Settings → About → "Dismiss this version"); click opens
  * Settings → About. The header's bell (appHeader.js) is the other signal;
  * the pulsing dot beside the mark was removed on 2026-09-14.
+ *
+ * Once auto-update has downloaded the version (UPDATE_DOWNLOADED, packaged
+ * macOS only) the title reads "Restart to install"; the click still opens
+ * About, where the install button is.
  */
 function setupUpdateDot() {
   const banner = document.getElementById('sidebar-update-banner');
+  const bannerTitleEl = document.getElementById('sidebar-update-banner-title');
   const bannerVersionEl = document.getElementById('sidebar-update-banner-version');
+  let downloadedVersion = null;
 
-  ipcRenderer.on(IPC.UPDATE_AVAILABLE, async (event, info) => {
+  const show = async (info) => {
     if (!info || !info.latestVersion) return;
     const dismissed = await ipcRenderer.invoke(
       IPC.GET_USER_SETTING,
@@ -568,9 +574,20 @@ function setupUpdateDot() {
     );
     if (dismissed === info.latestVersion) return;
     if (banner) {
+      const ready = downloadedVersion === info.latestVersion;
+      if (bannerTitleEl) bannerTitleEl.textContent = ready ? 'Restart to install' : 'New version available';
+      banner.setAttribute('aria-label', ready
+        ? 'Update ready to install, click to view details'
+        : 'Update available, click to view details');
       if (bannerVersionEl) bannerVersionEl.textContent = `v${info.latestVersion}`;
       banner.style.display = '';
     }
+  };
+
+  ipcRenderer.on(IPC.UPDATE_AVAILABLE, (event, info) => show(info));
+  ipcRenderer.on(IPC.UPDATE_DOWNLOADED, (event, info) => {
+    if (info && info.latestVersion) downloadedVersion = info.latestVersion;
+    show(info);
   });
 
   if (banner) {
