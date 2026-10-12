@@ -278,3 +278,67 @@ test('two Frames arguing over one spec stop being answered', () => {
   assert.ok(corrected <= 3, `and then stops answering (corrected ${corrected} times)`);
   assert.equal(phaseNow(), 'done', 'the last write is the other Frame\'s, not ours');
 });
+
+// ─── first import starts from what the spec records ─────────
+
+function setStatus(fields) {
+  const statusPath = path.join(specDir(), 'status.json');
+  const s = JSON.parse(fs.readFileSync(statusPath, 'utf8'));
+  fs.writeFileSync(statusPath, JSON.stringify({ ...s, ...fields }, null, 2), 'utf8');
+}
+
+test('a finished spec arriving by merge is imported completed, not walked back', () => {
+  // Implemented in a worktree: its tasks were completed in a tasks.json nobody
+  // commits, so main gets tasks.md and a `done` status.json but no tasks.
+  // Importing them as pending used to rewind the spec to tasks_generated.
+  writeStatus();
+  writeTasksMd(NON_ASCENDING);
+  setStatus({ phase: 'done', last_phase_at: '2026-10-08T13:29:41.859Z' });
+
+  specManager.syncTasksFromMarkdown(projectDir, SLUG);
+
+  const tasks = readSpecTasks();
+  assert.equal(tasks.length, 6);
+  assert.ok(tasks.every(t => t.status === 'completed'), 'every task imported completed');
+  assert.ok(tasks.every(t => t.completedAt === '2026-10-08T13:29:41.859Z'), 'completedAt is when the spec finished');
+
+  specManager.reconcilePhase(projectDir, SLUG, tasksManager.loadTasks(projectDir));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(specDir(), 'status.json'), 'utf8')).phase, 'done');
+});
+
+test('an unfinished spec imports the tasks its outcome.md records as completed', () => {
+  writeStatus();
+  writeTasksMd(NON_ASCENDING);
+  setStatus({ phase: 'implementing' });
+  fs.writeFileSync(path.join(specDir(), 'outcome.md'), [
+    '## T01 — Expose the report path', '', 'Did it.', '', '---', '',
+    '## T05 — Handle a missing report', '', 'Did it. Mentions T03 in passing.', '', '---', ''
+  ].join('\n'), 'utf8');
+
+  specManager.syncTasksFromMarkdown(projectDir, SLUG);
+
+  const status = (id) => readSpecTasks().find(t => t.source === `spec:${SLUG}:${id}`).status;
+  assert.equal(status('T01'), 'completed');
+  assert.equal(status('T05'), 'completed');
+  assert.equal(status('T03'), 'pending', 'a task only mentioned in prose is not completed');
+  assert.equal(status('T02'), 'pending');
+  assert.equal(
+    specManager.derivePhase(projectDir, SLUG, 'implementing', tasksManager.loadTasks(projectDir)),
+    'implementing'
+  );
+});
+
+test('the initial state applies to first import only — user-set status still wins', () => {
+  writeStatus();
+  writeTasksMd(NON_ASCENDING);
+  setStatus({ phase: 'done' });
+  specManager.syncTasksFromMarkdown(projectDir, SLUG);
+
+  // The user reopens a task.
+  const data = tasksManager.loadTasks(projectDir);
+  data.tasks.find(t => t.source === `spec:${SLUG}:T03`).status = 'pending';
+  tasksManager.saveTasks(projectDir, data);
+
+  specManager.syncTasksFromMarkdown(projectDir, SLUG);
+  assert.equal(readSpecTasks().find(t => t.source === `spec:${SLUG}:T03`).status, 'pending');
+});
