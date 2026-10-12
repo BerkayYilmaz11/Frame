@@ -425,6 +425,84 @@ mainWindow.webContents.openDevTools();
 
 ## Session Notes
 
+### [2026-09-21] IP-based location turned on, one day after turning it off
+
+**Context:** The PostHog migration shipped with `disableGeoip: true` and
+PRIVACY.md said, in two places, that location is never derived or stored. Asked
+the same day whether country was visible in the dashboard, the answer was no —
+by our own choice.
+
+**Decision:** Reverse it. Geo lookup is on; PostHog resolves the request IP to
+country/region on arrival and discards the IP. The alternative offered was
+device timezone (`Europe/Istanbul`), which answers the same question without
+touching a stated promise; it was declined in favour of the IP path.
+
+**What this cost, recorded so it is not forgotten:** a promise published in the
+morning was withdrawn in the afternoon. PRIVACY.md now has an **Approximate
+location** section stating what is derived rather than a line saying it is not —
+the doc is accurate again, but it is the second version of a claim about the same
+subject in one day. `NOTICE_VERSION` went to 3, so every user is interrupted a
+second time within days of the first card; the second card is what makes the
+change honest and also what makes the first one look provisional.
+
+**Rule reaffirmed (it held):** `NOTICE_VERSION` bumps when the disclosure
+changes. This is exactly that case, and bumping was not optional — collecting
+location under a card that says location is not collected would have been the
+real failure.
+
+**Open:** if location is ever narrowed or removed again, do not quietly drop the
+PRIVACY.md section — a third revision of the same claim needs to say what changed
+and why, or the document stops being read as a commitment.
+
+---
+
+### [2026-09-21] Analytics moved to PostHog — reversing the Aptabase decision
+
+**Context:** `audit-q3-product-analytics` (July) chose Aptabase deliberately and
+recorded a rejection of PostHog: *"PostHog's funnels/identity features exceed the
+spec's out-of-scope line (no per-user tracking)"* (`plan.md:11`). It measured
+activation as unique-users-per-event and accepted the imprecision. Two months of
+using that dashboard showed the cost: Aptabase attaches no identifier at all, so
+`app_started` cannot distinguish one person launching forty times from forty
+people launching once, and there is no funnel, no retention and no per-user
+feature usage. Every question worth asking about the roadmap turned out to be
+user-level.
+
+**Decision:** Reverse it. PostHog EU cloud, with a random per-install UUID as the
+distinct id. The July constraint was right about the trade — identity is a real
+privacy cost — and wrong about which side of it to take, because the alternative
+was not "less data", it was "no answers".
+
+Four choices shaped how the cost gets paid rather than avoided:
+
+- **Default-on opt-out kept**, not switched to opt-in. On a developer tool opt-in
+  yields 5–15% participation, and none of the questions survive that sample. The
+  cost is paid by disclosure instead.
+- **Anonymous only.** No self-identify field, no email. The PRIVACY.md line "no
+  email addresses or any personally identifiable information" stays true as
+  written.
+- **The notice re-shows.** People acknowledged a system with no identifier;
+  `telemetryNoticeShown` became `telemetryNoticeVersion` so the changed text
+  reaches them once. Default-on is only honest if the change is surfaced.
+- **Error detail on a separate opt-in channel**, not a redacted `message`
+  property on `error_occurred`. A free-form property would end the registry's
+  mechanically enum-only guarantee, and nothing would stop the next widening.
+
+**What did not change:** the `telemetryEvents.js` registry and `validateEvent`
+gate, the fail-closed opt-out, and the renderer-revalidated-in-main rule. Only
+`track()`'s final send call moved. No event was added — the user-level views come
+entirely from attaching the install id to the eleven events that already existed.
+
+**Rules established:**
+- Opting out **deletes** the install id; re-enabling mints a new one. An opt-out
+  that leaves a resumable identifier is not an opt-out.
+- `NOTICE_VERSION` is bumped only when the disclosure itself changes — it is not
+  a release counter, and a bump interrupts every user once.
+- The error channel never becomes an event. If exception detail is ever wanted in
+  the registry, that is a decision to re-open here, not a property to add.
+
+---
+
 ### [2026-01-25] Project Navigation System
 
 **Context:** When Claude Code enters a project, it needs to quickly capture the context.
@@ -3569,6 +3647,53 @@ Same pass: `onboarding.js` stopped binding `#onboarding-open-folder` and
 Left alone: `healthNotice` still uses a top strip; the separate
 `status-bar-notice-tray` spec (specified the same day) moves it into the
 status bar.
+
+### [2026-10-02] shadcn/ui look adopted as CSS only — no React, palette unchanged
+
+The request was to replace Frame's components with shadcn/ui components.
+shadcn/ui needs React + Tailwind + Radix; Frame's renderer is vanilla JS with
+plain CSS (85 renderer modules, ~18,500 lines of CSS, stylesheets linked
+straight from `index.html`). Three routes were weighed: a full React
+migration (weeks, spec-scale), React islands for isolated surfaces only, or
+porting shadcn's visual language onto the existing classes. The user first
+picked the islands route, then asked for "an easier UI change that fits what
+is already defined" and approved the CSS-only port. Basecoat UI (shadcn for
+plain HTML) was rejected because it needs Tailwind, whose global reset would
+fight the existing CSS; Shoelace / Web Awesome because they do not look like
+shadcn and would mean rewriting markup into custom elements.
+
+What was done, in four passes, CSS only — no class names, markup or JS
+changed, and every colour still comes from `variables.css` so all four themes
+keep working:
+
+- Buttons (`.btn`, `.btn-secondary`, `.btn-success`, `.modal-btn*`): flat
+  fills, no gradient / hover lift / glow; disabled is 50% opacity.
+- Focus ring on buttons, fields and switches: accent border plus a 3px
+  `color-mix(accent 35%)` halo, replacing the per-rule outlines.
+- Fields in modals and the task form: one border and radius; focus shows the
+  ring only.
+- Modals and the command palette: fade + zoom entrance instead of a slide,
+  no tinted footer band, neutral close button.
+- Tooltip: inverted (ink fill, deep-surface text). This deliberately
+  overturns the earlier "elevated-surface language like the other popovers"
+  choice recorded in `tooltip.css`.
+- Tabs: active label is `--text-primary` with the accent underline, matching
+  the dock tabs. Badges/chips became pills. Cards moved to `--radius-lg` and
+  `--border-default`. Menus use neutral hover and the shared shadow tokens.
+- Switches (settings and plugins): borderless muted track, accent when on.
+
+Colour changes made along the way, flagged to the user as reversible: the
+modal primary button, the modal checkbox and the plugin switch moved from
+`--success` to `--accent-primary`, so the app has one primary colour and
+their text/mark is dark instead of white.
+
+Not verified on screen: `node`/`npm` were unavailable in the session, so the
+app was never launched. The user was asked to check the light themes, the
+narrow right rail (wider pills) and the command palette spacing.
+
+Same session, separate request: the left rail icons went from 40px to 32px
+(button 48px to 40px, 4px inset kept) with `stroke-width: 1.5` so the stroke
+still renders at 2px.
 
 ### [2026-10-09] AI sessions resume after a relaunch (spec: restore-ai-sessions-on-relaunch)
 

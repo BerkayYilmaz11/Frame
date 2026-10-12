@@ -7,7 +7,7 @@ const pty = require('node-pty');
 const { IPC } = require('../shared/ipcChannels');
 const logger = require('./logger');
 const promptLogger = require('./promptLogger');
-const telemetry = require('./telemetry');
+const analytics = require('./analytics');
 const pollGate = require('./pollGate');
 const sessionRestore = require('./sessionRestore');
 
@@ -505,7 +505,7 @@ function setupIPC(ipcMain) {
       const terminalId = createTerminal(workingDir, projectPath, shellPath, extraEnv);
       event.reply(IPC.TERMINAL_CREATED, { terminalId, success: true });
     } catch (error) {
-      telemetry.track('error_occurred', { category: 'terminal_create_failed' });
+      analytics.track('error_occurred', { category: 'terminal_create_failed' });
       event.reply(IPC.TERMINAL_CREATED, { success: false, error: error.message });
     }
   });
