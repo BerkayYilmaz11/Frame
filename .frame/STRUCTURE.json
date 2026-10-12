@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-08",
+  "lastUpdated": "2026-10-12",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94531,
+      "sizeBytes": 93933,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -1701,7 +1701,9 @@
         "runProjectInit",
         "syncClaudeRule",
         "installSpecHintHook",
+        "installSessionHook",
         "installCodexHintHook",
+        "installCodexSessionHook",
         "removeCodexHintHook",
         "codexHookTrustState",
         "codexHome",
@@ -1719,6 +1721,7 @@
       ],
       "depends": [
         "fs",
+        "os",
         "path",
         "shared/ipcChannels",
         "shared/frameConstants",
@@ -1747,28 +1750,28 @@
       ],
       "functions": {
         "init": {
-          "line": 32,
+          "line": 33,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 50,
+          "line": 51,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 58,
+          "line": 59,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 71,
+          "line": 72,
           "params": [
             "filePath",
             "content"
@@ -1776,21 +1779,21 @@
           "purpose": "Create file if it doesn't exist"
         },
         "checkExistingFrameFiles": {
-          "line": 85,
+          "line": 86,
           "params": [
             "projectPath"
           ],
           "purpose": "Check which Frame files already exist in the project"
         },
         "showInitializeConfirmation": {
-          "line": 112,
+          "line": 113,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 157,
+          "line": 158,
           "params": [
             "projectPath",
             "projectName",
@@ -1798,7 +1801,7 @@
           ]
         },
         "doInitializeFrameProject": {
-          "line": 165,
+          "line": 166,
           "params": [
             "projectPath",
             "projectName",
@@ -1806,7 +1809,7 @@
           ]
         },
         "mergeInitConfig": {
-          "line": 185,
+          "line": 186,
           "params": [
             "defaults",
             "existing",
@@ -1817,7 +1820,7 @@
           "purpose": "Config for (re-)init: the template's defaults *underneath* whatever the"
         },
         "runProjectInit": {
-          "line": 202,
+          "line": 203,
           "params": [
             "projectPath",
             "projectName",
@@ -1825,20 +1828,20 @@
           ]
         },
         "ensureProjectArtifacts": {
-          "line": 445,
+          "line": 451,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-ensure on open what a fresh init creates."
         },
         "syncClaudeRule": {
-          "line": 468,
+          "line": 474,
           "params": [
             "projectPath"
           ]
         },
         "detectJsonIndent": {
-          "line": 495,
+          "line": 501,
           "params": [
             "text",
             "fallback = 2"
@@ -1846,30 +1849,46 @@
           "purpose": "The indentation an existing settings file uses, so rewriting it preserves"
         },
         "hookCommandsIn": {
-          "line": 502,
+          "line": 508,
           "params": [
             "settings"
           ],
           "purpose": "Every hook command in a settings object, whatever shape the file is in."
         },
         "frameHookCommands": {
-          "line": 519,
+          "line": 525,
           "purpose": "The command strings Frame installs today."
         },
         "installSpecHintHook": {
-          "line": 543,
+          "line": 549,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
           ],
           "purpose": "Register the spec-hint hooks in the project's Claude settings file."
         },
+        "mergeHookEntries": {
+          "line": 632,
+          "params": [
+            "hooks",
+            "template"
+          ],
+          "purpose": "Append each template entry to a hooks object unless an identical one is"
+        },
+        "installSessionHook": {
+          "line": 658,
+          "params": [
+            "projectPath",
+            "{ file = 'settings.json' } = {}"
+          ],
+          "purpose": "Register the session report hook (restore-ai-sessions-on-relaunch) in the"
+        },
         "codexHome": {
-          "line": 627,
+          "line": 688,
           "purpose": "Where Codex keeps its configuration. `CODEX_HOME` wins so a test — or a"
         },
         "installCodexHintHook": {
-          "line": 645,
+          "line": 706,
           "params": [
             "projectPath",
             "{ enabled = true",
@@ -1877,15 +1896,22 @@
           ],
           "purpose": "Register Frame's hooks for Codex in `CODEX_HOME/hooks.json`."
         },
+        "installCodexSessionHook": {
+          "line": 773,
+          "params": [
+            "{ home = null } = {}"
+          ],
+          "purpose": "Register the Codex session report hook (restore-ai-sessions-on-relaunch) in"
+        },
         "removeCodexHintHook": {
-          "line": 708,
+          "line": 804,
           "params": [
             "{ home = null } = {}"
           ],
           "purpose": "Take Frame's Codex entries back out. Exact-match on the command string, so"
         },
         "codexHookTrustState": {
-          "line": 760,
+          "line": 859,
           "params": [
             "projectPath",
             "{ home = null",
@@ -1894,11 +1920,11 @@
           "purpose": "Are Frame's Codex hooks installed, and have they ever actually run?"
         },
         "codexHookCommands": {
-          "line": 796,
+          "line": 895,
           "purpose": "Every command string Frame's Codex hook entries carry."
         },
         "removeSpecHintHook": {
-          "line": 811,
+          "line": 910,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
@@ -1906,13 +1932,13 @@
           "purpose": "Take Frame's hook entries back out of a Claude settings file. Exact-match on"
         },
         "getDoneWindow": {
-          "line": 880,
+          "line": 982,
           "params": [
             "projectPath"
           ]
         },
         "setDoneWindow": {
-          "line": 885,
+          "line": 987,
           "params": [
             "projectPath",
             "board",
@@ -1920,74 +1946,74 @@
           ]
         },
         "isSpecDrivenEnabled": {
-          "line": 910,
+          "line": 1012,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 915,
+          "line": 1017,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 944,
+          "line": 1046,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 972,
+          "line": 1074,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 976,
+          "line": 1078,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 990,
+          "line": 1092,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 1000,
+          "line": 1102,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "specDocDescriptors": {
-          "line": 1101,
+          "line": 1203,
           "params": [
             "projectPath"
           ],
           "purpose": "The spec-section descriptors, in the order they must be settled: the target"
         },
         "readTextOrNull": {
-          "line": 1129,
+          "line": 1231,
           "params": [
             "file"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 1143,
+          "line": 1245,
           "params": [
             "projectPath"
           ],
           "purpose": "Upgrade the Frame-managed sections and report what could not be settled."
         },
         "appendSpecSection": {
-          "line": 1226,
+          "line": 1328,
           "params": [
             "projectPath",
             "rel"
@@ -1995,14 +2021,14 @@
           "purpose": "Append the managed spec section to a document the pass deliberately refused"
         },
         "docsHealthFor": {
-          "line": 1265,
+          "line": 1367,
           "params": [
             "projectPath"
           ],
           "purpose": "The report on its own, without running the repair pass — what the UI asks"
         },
         "recordDocsActivity": {
-          "line": 1287,
+          "line": 1389,
           "params": [
             "written",
             "appended",
@@ -2011,20 +2037,20 @@
           "purpose": "Put the pass's result on the record. This is the half that was missing when"
         },
         "detachThenRemoveFrame": {
-          "line": 1326,
+          "line": 1428,
           "params": [
             "projectPath"
           ],
           "purpose": "Remove Frame after its lifecycle worker has stopped, so no child is still"
         },
         "removeFrame": {
-          "line": 1335,
+          "line": 1437,
           "params": [
             "projectPath"
           ]
         },
         "dropEmptySettingsFile": {
-          "line": 1389,
+          "line": 1491,
           "params": [
             "projectPath",
             "file"
@@ -2032,21 +2058,21 @@
           "purpose": "Delete a Claude settings file that now parses to `{}` — Frame wrote it to"
         },
         "isFrameOwnedHookResidue": {
-          "line": 1415,
+          "line": 1517,
           "params": [
             "text"
           ],
           "purpose": "What Frame's own pre-commit file looks like once its managed block is gone:"
         },
         "removeHookSnippet": {
-          "line": 1431,
+          "line": 1533,
           "params": [
             "projectPath"
           ],
           "purpose": "Strip Frame's marker-wrapped block from whichever pre-commit hook carries"
         },
         "openProjectLayout": {
-          "line": 1483,
+          "line": 1585,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2054,7 +2080,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1583,
+          "line": 1692,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2062,7 +2088,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1605,
+          "line": 1714,
           "params": [
             "ipcMain"
           ],
@@ -2094,7 +2120,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 71396,
+      "sizeBytes": 75455,
       "extraction": {
         "status": "parsed"
       },
@@ -2118,9 +2144,12 @@
           "hookCommandsIn": "8186c8a3eddccd32",
           "init": "04f8375031ed9cdf",
           "installCodexHintHook": "e9234935ccee5018",
+          "installCodexSessionHook": "bc8d6e350160a8fe",
+          "installSessionHook": "cfca35f1e1623885",
           "installSpecHintHook": "3fc33ee2c1a3b714",
           "isFrameOwnedHookResidue": "d7f9a0bc5445700c",
           "isFrameProject": "5329ad46f9d42478",
+          "mergeHookEntries": "cd20ef380b3ca8d9",
           "mergeInitConfig": "9fe7ad780af82471",
           "openProjectLayout": "842c0e2ecb1f9947",
           "rearmAfterMigration": "87898ea8b9d19046",
@@ -2986,14 +3015,14 @@
           "purpose": "Apply a mode: store it, move Frame's hook entries to the file that mode"
         },
         "reconcile": {
-          "line": 166,
+          "line": 175,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-apply the stored mode. Called on project open and after migration: the"
         }
       },
-      "sizeBytes": 6975,
+      "sizeBytes": 7450,
       "extraction": {
         "status": "parsed"
       },
@@ -3294,6 +3323,7 @@
         "crashGuard",
         "pty",
         "ptyManager",
+        "sessionRestore",
         "menu",
         "dialogs",
         "fileTree",
@@ -3325,26 +3355,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 58,
+          "line": 59,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 76,
+          "line": 77,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 177
+          "line": 178
         },
         "setupAllIPC": {
-          "line": 207,
+          "line": 208,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 297,
+          "line": 301,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 345,
+          "line": 349,
           "params": [
             "window"
           ],
@@ -3367,7 +3397,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 15545,
+      "sizeBytes": 15724,
       "extraction": {
         "status": "parsed"
       },
@@ -4692,26 +4722,27 @@
         "promptLogger",
         "analytics",
         "pollGate",
+        "sessionRestore",
         "child_process",
         "fs"
       ],
       "functions": {
         "flushOutput": {
-          "line": 26,
+          "line": 27,
           "params": [
             "terminalId"
           ],
           "purpose": "Flush a terminal's buffered output as one coalesced send."
         },
         "init": {
-          "line": 46,
+          "line": 47,
           "params": [
             "window"
           ],
           "purpose": "Initialize PTY manager with window reference"
         },
         "getForegroundCommand": {
-          "line": 61,
+          "line": 62,
           "params": [
             "shellPid",
             "callback"
@@ -4719,14 +4750,14 @@
           "purpose": "Resolve the full command line of the terminal's foreground process."
         },
         "getDefaultShell": {
-          "line": 80
+          "line": 81
         },
         "getAvailableShells": {
-          "line": 97,
+          "line": 98,
           "purpose": "Get available shells on the system"
         },
         "createTerminal": {
-          "line": 183,
+          "line": 184,
           "params": [
             "workingDir = null",
             "projectPath = null",
@@ -4736,28 +4767,28 @@
           "purpose": "Create a new terminal instance"
         },
         "getTerminalsByProject": {
-          "line": 321,
+          "line": 331,
           "params": [
             "projectPath"
           ],
           "purpose": "Get terminals for a specific project"
         },
         "getTerminalInfo": {
-          "line": 336,
+          "line": 346,
           "params": [
             "terminalId"
           ],
           "purpose": "Get terminal info"
         },
         "getLastOutputAt": {
-          "line": 348,
+          "line": 358,
           "params": [
             "terminalId"
           ],
           "purpose": "Last time this terminal produced output (epoch ms), or null if unknown."
         },
         "writeToTerminal": {
-          "line": 356,
+          "line": 366,
           "params": [
             "terminalId",
             "data"
@@ -4765,7 +4796,7 @@
           "purpose": "Write data to specific terminal"
         },
         "resizeTerminal": {
-          "line": 366,
+          "line": 376,
           "params": [
             "terminalId",
             "cols",
@@ -4774,46 +4805,47 @@
           "purpose": "Resize specific terminal"
         },
         "wasDestroyedOnRequest": {
-          "line": 378,
+          "line": 391,
           "params": [
             "terminalId"
           ]
         },
         "destroyTerminal": {
-          "line": 385,
+          "line": 399,
           "params": [
-            "terminalId"
+            "terminalId",
+            "{ teardown = false } = {}"
           ],
-          "purpose": "Destroy specific terminal"
+          "purpose": "Destroy specific terminal. `teardown` marks one that dies with its"
         },
         "destroyAll": {
-          "line": 404,
+          "line": 420,
           "purpose": "Destroy all terminals"
         },
         "getTerminalCount": {
-          "line": 422,
+          "line": 440,
           "purpose": "Get terminal count"
         },
         "getTerminalIds": {
-          "line": 429,
+          "line": 447,
           "purpose": "Get all terminal IDs"
         },
         "destroyExcept": {
-          "line": 439,
+          "line": 457,
           "params": [
             "knownIds"
           ],
           "purpose": "Destroy every PTY the renderer doesn't know about. A renderer reload"
         },
         "hasTerminal": {
-          "line": 449,
+          "line": 467,
           "params": [
             "terminalId"
           ],
           "purpose": "Check if terminal exists"
         },
         "setupIPC": {
-          "line": 456,
+          "line": 474,
           "params": [
             "ipcMain"
           ],
@@ -4834,7 +4866,7 @@
           "TERMINAL_PROCESS_DATA"
         ]
       },
-      "sizeBytes": 16556,
+      "sizeBytes": 17669,
       "extraction": {
         "status": "parsed"
       },
@@ -4844,7 +4876,7 @@
           "createTerminal": "b33d916178fe23ba",
           "destroyAll": "ae9b9368ced1121a",
           "destroyExcept": "2db42ba4367a26b0",
-          "destroyTerminal": "91fbe85d01e6982e",
+          "destroyTerminal": "1c5d8c995da929c7",
           "flushOutput": "862238b90ed7f8f0",
           "getAvailableShells": "538bc64a26510be8",
           "getForegroundCommand": "7c0ce6301fb394c1",
@@ -4858,6 +4890,331 @@
           "resizeTerminal": "810c8f104494f695",
           "setupIPC": "9454079ed67a9898",
           "writeToTerminal": "6e7ca448a2aac555"
+        }
+      }
+    },
+    "main/sessionRestore": {
+      "file": "src/main/sessionRestore.js",
+      "description": "Session restore — the main-process half (restore-ai-sessions-on-relaunch).",
+      "exports": [
+        "init",
+        "envFor",
+        "registerTerminal",
+        "onForeground",
+        "onClose",
+        "freeze",
+        "setupIPC"
+      ],
+      "depends": [
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "fsSafe",
+        "sessionRestoreStore",
+        "shared/ipcChannels",
+        "shared/frameConstants"
+      ],
+      "functions": {
+        "init": {
+          "line": 55,
+          "purpose": "Create the report directory, drop last run's leftovers (their terminals"
+        },
+        "envFor": {
+          "line": 80,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "The env a PTY needs so its CLIs can report. Empty when init failed."
+        },
+        "writeStore": {
+          "line": 87
+        },
+        "persist": {
+          "line": 100,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Rewrite one project's record from its live terminals."
+        },
+        "registerTerminal": {
+          "line": 112,
+          "params": [
+            "terminalId",
+            "{ projectPath = null",
+            "shellPid = null } = {}"
+          ]
+        },
+        "onForeground": {
+          "line": 119,
+          "params": [
+            "terminalId",
+            "processName",
+            "shellName"
+          ]
+        },
+        "onClose": {
+          "line": 125,
+          "params": [
+            "terminalId"
+          ],
+          "purpose": "The user closed the terminal or its shell exited."
+        },
+        "freeze": {
+          "line": 132,
+          "purpose": "App teardown: keep every record exactly as it is."
+        },
+        "scheduleScan": {
+          "line": 138
+        },
+        "scanReports": {
+          "line": 146
+        },
+        "isForegroundJob": {
+          "line": 178,
+          "params": [
+            "pid",
+            "shellPid",
+            "callback"
+          ],
+          "purpose": "Is `pid` the terminal's foreground job? A CLI started from inside a"
+        },
+        "take": {
+          "line": 201,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "A project's restore plan. Holds the project's record until the renderer"
+        },
+        "restoreDone": {
+          "line": 210,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "launchProject": {
+          "line": 222,
+          "purpose": "The project to open on launch instead of the default one: the project the"
+        },
+        "setLastActiveProject": {
+          "line": 229,
+          "params": [
+            "projectPath"
+          ]
+        },
+        "setupIPC": {
+          "line": 236,
+          "params": [
+            "ipcMain"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [
+          "SESSION_RESTORE_TAKE",
+          "SESSION_RESTORE_DONE",
+          "SESSION_RESTORE_CLAIM",
+          "SESSION_RESTORE_META",
+          "SESSION_RESTORE_GET_LAST_PROJECT",
+          "SESSION_RESTORE_SET_LAST_PROJECT"
+        ],
+        "emits": []
+      },
+      "sizeBytes": 9287,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "56e0dc7645f72d66",
+        "purposes": {
+          "envFor": "30895657cf37f5c8",
+          "freeze": "8af1f3193e28563a",
+          "init": "d53665acde5503bc",
+          "isForegroundJob": "34cdff934cc1d37f",
+          "launchProject": "11a50d0b9f2e3a19",
+          "onClose": "4eedc38351ae9028",
+          "persist": "5e8a9c379af7ca5c",
+          "take": "d506f8cc1cf5a1ec"
+        }
+      }
+    },
+    "main/sessionRestoreStore": {
+      "file": "src/main/sessionRestoreStore.js",
+      "description": "Which AI session runs in which terminal, and what each project restores.",
+      "exports": [
+        "STORE_VERSION",
+        "TOOLS",
+        "MAX_PROJECTS",
+        "MAX_RESTORE",
+        "isSessionId",
+        "parseReportName",
+        "parseReport",
+        "registerTerminal",
+        "applyReport",
+        "applyClaim",
+        "applyMeta",
+        "applyForeground",
+        "applyClose",
+        "normalizeStore",
+        "projectRecord",
+        "putRecord",
+        "planRestore"
+      ],
+      "depends": [
+        "path"
+      ],
+      "functions": {
+        "isAbsolutePath": {
+          "line": 47,
+          "params": [
+            "value"
+          ]
+        },
+        "isSessionId": {
+          "line": 51,
+          "params": [
+            "value"
+          ]
+        },
+        "parseReportName": {
+          "line": 59,
+          "params": [
+            "name"
+          ],
+          "purpose": "Parse a report file's name. Anything else in the directory — the hook's"
+        },
+        "parseReport": {
+          "line": 71,
+          "params": [
+            "name",
+            "text"
+          ],
+          "purpose": "A report is the CLI's SessionStart payload, verbatim. Returns null for a"
+        },
+        "emptyEntry": {
+          "line": 94,
+          "params": [
+            "terminalId",
+            "projectPath",
+            "createdAt"
+          ]
+        },
+        "hasSession": {
+          "line": 112,
+          "params": [
+            "entry"
+          ]
+        },
+        "registerTerminal": {
+          "line": 117,
+          "params": [
+            "live",
+            "terminalId",
+            "{ projectPath = null",
+            "createdAt = 0 } = {}"
+          ],
+          "purpose": "A PTY was spawned. Terminals without a project (global) are never restored."
+        },
+        "applyReport": {
+          "line": 127,
+          "params": [
+            "live",
+            "report"
+          ],
+          "purpose": "A CLI reported its session. The caller has already checked the reporter is"
+        },
+        "applyClaim": {
+          "line": 145,
+          "params": [
+            "live",
+            "terminalId",
+            "{ tool",
+            "sessionId",
+            "transcriptPath",
+            "cwd = null",
+            "name = null } = {}"
+          ],
+          "purpose": "The renderer opened this terminal to resume a saved session. Registered"
+        },
+        "applyMeta": {
+          "line": 160,
+          "params": [
+            "live",
+            "terminalId",
+            "{ name",
+            "active } = {}"
+          ],
+          "purpose": "Rename and focus, from the renderer. `active: true` clears the flag on"
+        },
+        "applyForeground": {
+          "line": 183,
+          "params": [
+            "live",
+            "terminalId",
+            "{ processName",
+            "shellName } = {}"
+          ],
+          "purpose": "The terminal's foreground process changed (ptyManager's poll). Anything"
+        },
+        "applyClose": {
+          "line": 200,
+          "params": [
+            "live",
+            "terminalId"
+          ],
+          "purpose": "The user closed the terminal, or its shell exited. Never called during"
+        },
+        "normalizeStore": {
+          "line": 209,
+          "params": [
+            "raw"
+          ]
+        },
+        "projectRecord": {
+          "line": 222,
+          "params": [
+            "live",
+            "projectPath",
+            "now"
+          ],
+          "purpose": "A project's record, projected from its live terminals, oldest first."
+        },
+        "putRecord": {
+          "line": 245,
+          "params": [
+            "store",
+            "projectPath",
+            "record"
+          ],
+          "purpose": "Write a project's record into the store. An empty record removes the"
+        },
+        "planRestore": {
+          "line": 268,
+          "params": [
+            "record",
+            "exists"
+          ],
+          "purpose": "What to reopen for a project: its saved sessions whose transcript still"
+        }
+      },
+      "sizeBytes": 10878,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "39452a27c5316c5e",
+        "purposes": {
+          "applyClaim": "1cc0d12c21c21ae8",
+          "applyClose": "e90adb56b8be1847",
+          "applyForeground": "1f33efe107f397b9",
+          "applyMeta": "5a08aefb4602cba9",
+          "applyReport": "b47508eaeef2c9cf",
+          "parseReport": "4773a8490cd2c87d",
+          "parseReportName": "01988f96928080e1",
+          "planRestore": "7af52cb2256369f6",
+          "projectRecord": "285caec9896e0c76",
+          "putRecord": "209518f20ff09823",
+          "registerTerminal": "4d5af1e749a027e8"
         }
       }
     },
@@ -5269,48 +5626,48 @@
           ]
         },
         "stopWatching": {
-          "line": 1347
+          "line": 1356
         },
         "markSpecNewLaunch": {
-          "line": 1400,
+          "line": 1409,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1406,
+          "line": 1415,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1422,
+          "line": 1431,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1433,
+          "line": 1442,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1461,
+          "line": 1470,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1485,
+          "line": 1494,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1489,
+          "line": 1498,
           "params": [
             "ipcMain"
           ]
@@ -5333,10 +5690,11 @@
         "emits": [
           "TASKS_DATA",
           "TASKS_DATA",
+          "SPEC_DATA",
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 67654,
+      "sizeBytes": 68199,
       "extraction": {
         "status": "parsed"
       },
@@ -6103,6 +6461,7 @@
         "fsSafe",
         "shared/ipcChannels",
         "shared/frameConstants",
+        "frameProject",
         "structureLifecycle"
       ],
       "functions": {
@@ -6196,7 +6555,7 @@
           "WORKSPACE_UPDATED"
         ]
       },
-      "sizeBytes": 6581,
+      "sizeBytes": 6940,
       "extraction": {
         "status": "parsed"
       },
@@ -6236,7 +6595,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3977,
+      "sizeBytes": 3820,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -6513,6 +6872,7 @@
         "dispatch",
         "startDefaultAgent",
         "resumeClaudeSession",
+        "resumeAgentSession",
         "dispatchSpecCommand",
         "dispatchSpecNew",
         "getSpecLaneInfo",
@@ -6585,8 +6945,20 @@
           ],
           "purpose": "Resume a Claude Code session from the sessions list."
         },
+        "resumeAgentSession": {
+          "line": 363,
+          "params": [
+            "tool",
+            "sessionId",
+            "{ projectPath",
+            "cwd = null",
+            "name = null",
+            "focus = false } = {}"
+          ],
+          "purpose": "Resume a Claude Code or Codex session in a new terminal of `projectPath`"
+        },
         "_askNewOrRestart": {
-          "line": 381,
+          "line": 405,
           "params": [
             "frameName",
             "hasAgent"
@@ -6594,7 +6966,7 @@
           "purpose": "\"Open a new Frame / Kill & restart here\" — asked when the focused Frame is"
         },
         "dispatchSpecCommand": {
-          "line": 438,
+          "line": 462,
           "params": [
             "{ slug",
             "title = null",
@@ -6603,7 +6975,7 @@
           "purpose": "Run a spec command in the spec's assigned lane — or a new Frame."
         },
         "_dispatchImplement": {
-          "line": 513,
+          "line": 537,
           "params": [
             "{ slug",
             "title",
@@ -6613,107 +6985,107 @@
           "purpose": "The spec.implement path: modal → record implement_mode → stage → dispatch."
         },
         "_isSpecCreatorLane": {
-          "line": 620,
+          "line": 644,
           "params": [
             "terminalId"
           ],
           "purpose": "Still open, and still carrying the transient name we gave it."
         },
         "_onSpecData": {
-          "line": 636,
+          "line": 660,
           "params": [
             "specs"
           ],
           "purpose": "A new slug appeared — attach it to the lane that produced it."
         },
         "_bindSpecCreatorLane": {
-          "line": 656,
+          "line": 680,
           "params": [
             "terminalId",
             "slug"
           ]
         },
         "dispatchSpecNew": {
-          "line": 692,
+          "line": 716,
           "params": [
             "description"
           ],
           "purpose": "Hand the user's free-form text to the standard `spec.new` flow."
         },
         "getSpecLaneInfo": {
-          "line": 780,
+          "line": 804,
           "params": [
             "slug"
           ],
           "purpose": "Live info about the lane a spec is assigned to, or null when unassigned"
         },
         "getTaskLaneInfo": {
-          "line": 804,
+          "line": 828,
           "params": [
             "taskId"
           ],
           "purpose": "Live info about the lane working on a task, or null. Unlike specs there"
         },
         "specStatusDotHtml": {
-          "line": 825,
+          "line": 849,
           "params": [
             "slug"
           ],
           "purpose": "Activity dot for spec/task rows and detail headers: pulsing while the"
         },
         "taskStatusDotHtml": {
-          "line": 829,
+          "line": 853,
           "params": [
             "taskId"
           ]
         },
         "_activityDotHtml": {
-          "line": 833,
+          "line": 857,
           "params": [
             "info"
           ]
         },
         "onSpecLaneActivity": {
-          "line": 850,
+          "line": 874,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to spec-lane activity. Callback: (slug) — consumers re-read"
         },
         "_notifySpecLane": {
-          "line": 858,
+          "line": 882,
           "params": [
             "slug"
           ]
         },
         "onTaskLaneActivity": {
-          "line": 881,
+          "line": 905,
           "params": [
             "callback"
           ],
           "purpose": "Subscribe to task-lane activity. Callback: (taskId|null) — null means"
         },
         "_notifyTaskLane": {
-          "line": 889,
+          "line": 913,
           "params": [
             "taskId"
           ]
         },
         "_assignedLane": {
-          "line": 907,
+          "line": 931,
           "params": [
             "slug"
           ],
           "purpose": "Assigned lane for a slug, validated against open terminals — a closed"
         },
         "_laneName": {
-          "line": 917,
+          "line": 941,
           "params": [
             "terminalId"
           ]
         },
         "_askContinueOrNew": {
-          "line": 926,
+          "line": 950,
           "params": [
             "frameName",
             "specName"
@@ -6721,14 +7093,14 @@
           "purpose": "\"Continue in <Frame> / Open a new Frame\" — always asked when the spec"
         },
         "_waitForAgentReady": {
-          "line": 967,
+          "line": 991,
           "params": [
             "terminalId"
           ],
           "purpose": "Cold-start readiness gate: resolves true once laneStatus sees a known"
         },
         "_fail": {
-          "line": 996,
+          "line": 1020,
           "params": [
             "terminalId",
             "message"
@@ -6747,7 +7119,7 @@
           "SPEC_AGENT_ACTIVITY"
         ]
       },
-      "sizeBytes": 41538,
+      "sizeBytes": 42666,
       "extraction": {
         "status": "parsed"
       },
@@ -6771,6 +7143,7 @@
           "init": "3d1404d039c22fa0",
           "onSpecLaneActivity": "1b4e7ed6ed6c2632",
           "onTaskLaneActivity": "863993a5752901e2",
+          "resumeAgentSession": "4b5e5e9b617b4a11",
           "resumeClaudeSession": "97754980e5a2990e",
           "specStatusDotHtml": "9d83539dc7f4dd47",
           "startDefaultAgent": "aa04575f71b22e95"
@@ -10196,10 +10569,9 @@
           "purpose": "Local, like every other renderer module's copy — six of them exist and the"
         },
         "widgetShell": {
-          "line": 45,
+          "line": 44,
           "params": [
             "{ id",
-            "icon",
             "title",
             "actionLabel",
             "actionIcon = Plus",
@@ -10210,7 +10582,7 @@
           "purpose": "Build one widget's card."
         },
         "statsHtml": {
-          "line": 83,
+          "line": 81,
           "params": [
             "pairs",
             "variant = ''"
@@ -10218,7 +10590,7 @@
           "purpose": "A compact \"12 feature · 6 fix\" strip. Counts lead, because the number is"
         },
         "tally": {
-          "line": 92,
+          "line": 90,
           "params": [
             "items",
             "keyOf"
@@ -10226,14 +10598,14 @@
           "purpose": "Count by key, biggest first, with a tail past the fourth."
         },
         "moreHtml": {
-          "line": 106,
+          "line": 104,
           "params": [
             "extra"
           ],
           "purpose": "Never truncate a list silently — say how much is not shown."
         }
       },
-      "sizeBytes": 4578,
+      "sizeBytes": 4450,
       "extraction": {
         "status": "parsed"
       },
@@ -10260,7 +10632,6 @@
         "defaultEnabled",
         "isAvailable",
         "mount(el) {\n    this.card = widgetShell({\n      id",
-        "icon",
         "title",
         "onOpen"
       ],
@@ -10273,7 +10644,7 @@
         "../../specSection"
       ],
       "functions": {},
-      "sizeBytes": 3416,
+      "sizeBytes": 3390,
       "extraction": {
         "status": "parsed"
       },
@@ -10293,7 +10664,6 @@
         "defaultEnabled",
         "isAvailable",
         "mount(el) {\n    this.card = widgetShell({\n      id",
-        "icon",
         "title",
         "onOpen"
       ],
@@ -10307,7 +10677,7 @@
         "../../specsDashboard"
       ],
       "functions": {},
-      "sizeBytes": 5996,
+      "sizeBytes": 5977,
       "extraction": {
         "status": "parsed"
       },
@@ -10329,9 +10699,9 @@
         "mount(el",
         "ctx) {\n    this.ctx = ctx;\n    this._starting = false;\n\n    this.el = document.createElement('div');\n    this.el.className = 'home-composer';\n    // The picker is the shared .ai-tool-picker (the terminal header's)",
         "the native <select> underneath stays the\n    // interactive element",
-        "so clicking anywhere on the box opens it.\n    // The greeting sits centred over the box",
-        "and the agent picker just\n    // under its bottom-left corner — Start stays inside",
-        "where you type.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n        <div class=\"home-composer-box\">\n          <textarea class=\"home-composer-input\" rows=\"5\" spellcheck=\"false\"\n                    aria-label=\"Prompt for the agent\" placeholder=\"${escapeHtml(PLACEHOLDER)"
+        "so clicking anywhere on the box opens it.\n    // The greeting sits over the box; the agent picker and Start share the\n    // box's bottom row",
+        "picker left",
+        "Start right.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n        <div class=\"home-composer-box\">\n          <textarea class=\"home-composer-input\" rows=\"5\" spellcheck=\"false\"\n                    aria-label=\"Prompt for the agent\" placeholder=\"${escapeHtml(PLACEHOLDER)"
       ],
       "depends": [
         "lucide",
@@ -10341,7 +10711,7 @@
         "../../agentDispatch"
       ],
       "functions": {},
-      "sizeBytes": 6887,
+      "sizeBytes": 6533,
       "extraction": {
         "status": "parsed"
       },
@@ -10372,7 +10742,7 @@
         "../../terminal"
       ],
       "functions": {},
-      "sizeBytes": 4375,
+      "sizeBytes": 4352,
       "extraction": {
         "status": "parsed"
       },
@@ -10501,6 +10871,7 @@
         "sidebarResize",
         "appHeader",
         "aiToolSelector",
+        "selectMenu",
         "commandRegistry",
         "commandPalette",
         "cheatSheet",
@@ -10533,38 +10904,38 @@
       ],
       "functions": {
         "init": {
-          "line": 64,
+          "line": 65,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 317,
+          "line": 324,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 425,
+          "line": 432,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 539,
+          "line": 559,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 578,
+          "line": 585,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 604,
+          "line": 611,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1008,
+          "line": 1015,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1033,
+          "line": 1040,
           "params": [
             "err"
           ],
@@ -10584,7 +10955,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 37339,
+      "sizeBytes": 37953,
       "extraction": {
         "status": "parsed"
       },
@@ -10929,7 +11300,10 @@
         "MultiTerminalUI"
       ],
       "depends": [
+        "electron",
+        "shared/ipcChannels",
         "terminalManager",
+        "sessionRestore",
         "terminalTabBar",
         "terminalsView",
         "homeBoard",
@@ -10947,7 +11321,13 @@
         "projectListUI"
       ],
       "functions": {},
-      "sizeBytes": 34695,
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "SESSION_RESTORE_SET_LAST_PROJECT"
+        ]
+      },
+      "sizeBytes": 35201,
       "extraction": {
         "status": "parsed"
       },
@@ -11702,22 +12082,26 @@
           ],
           "purpose": "Workspace data arrived — refresh state (no rows to render anymore)."
         },
+        "selectLaunchProject": {
+          "line": 71,
+          "purpose": "Open the launch project: the one the user left, when it had AI sessions"
+        },
         "isDefaultProject": {
-          "line": 73,
+          "line": 89,
           "params": [
             "projectPath"
           ],
-          "purpose": "Is this the project Frame opens on launch?"
+          "purpose": "Is this the default project?"
         },
         "setDefaultProject": {
-          "line": 90,
+          "line": 106,
           "params": [
             "projectPath"
           ],
           "purpose": "Make a project the one Frame opens on launch, by moving it to the front."
         },
         "confirmRemoveProject": {
-          "line": 103,
+          "line": 119,
           "params": [
             "projectPath",
             "projectName"
@@ -11725,103 +12109,102 @@
           "purpose": "Confirmation + removal (also offered as the × in the switcher menu)."
         },
         "selectProject": {
-          "line": 129,
+          "line": 145,
           "params": [
             "projectPath"
           ],
           "purpose": "Select a project"
         },
         "setActiveProject": {
-          "line": 140,
+          "line": 156,
           "params": [
             "projectPath"
           ],
           "purpose": "Set active project (visual state lives in the switcher + workspace nav)"
         },
         "getActiveProject": {
-          "line": 146
+          "line": 162
         },
         "addProject": {
-          "line": 153,
+          "line": 169,
           "params": [
             "projectPath",
-            "projectName",
-            "isFrameProject = false"
+            "projectName"
           ],
           "purpose": "Add project to workspace"
         },
         "removeProject": {
-          "line": 164,
+          "line": 180,
           "params": [
             "projectPath"
           ],
           "purpose": "Remove project from workspace"
         },
         "setupIPC": {
-          "line": 180,
+          "line": 196,
           "purpose": "Setup IPC listeners"
         },
         "applyAgentStatuses": {
-          "line": 211,
+          "line": 227,
           "params": [
             "map"
           ],
           "purpose": "Per-project agent status counts (from projectStatusBadges). Stored for the"
         },
         "getAgentStatus": {
-          "line": 217,
+          "line": 233,
           "params": [
             "projectPath"
           ],
           "purpose": "{ approval, input } counts for one project, or undefined."
         },
         "selectNextProject": {
-          "line": 224,
+          "line": 240,
           "purpose": "Select next project in list"
         },
         "selectPrevProject": {
-          "line": 235,
+          "line": 251,
           "purpose": "Select previous project in list"
         },
         "focus": {
-          "line": 246,
+          "line": 262,
           "purpose": "\"Focus Project List\" now means: open the switcher dropdown."
         },
         "blur": {
-          "line": 251,
+          "line": 267,
           "purpose": "No list rows to blur anymore — kept for callers."
         },
         "getProjects": {
-          "line": 257,
+          "line": 273,
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 321
+          "line": 337
         },
         "saveCollapsedGroups": {
-          "line": 330,
+          "line": 346,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 338
+          "line": 354
         },
         "revealNavItem": {
-          "line": 407,
+          "line": 423,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 420
+          "line": 436
         },
         "refreshWorkspaceNav": {
-          "line": 432
+          "line": 448
         },
         "updateWorkspaceNav": {
-          "line": 508,
+          "line": 524,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -11839,7 +12222,7 @@
           "REMOVE_PROJECT_FROM_WORKSPACE"
         ]
       },
-      "sizeBytes": 20113,
+      "sizeBytes": 20596,
       "extraction": {
         "status": "parsed"
       },
@@ -11854,11 +12237,12 @@
           "getAgentStatus": "58aa9e289baa1014",
           "getProjects": "a80547c433308646",
           "init": "b0191b86c936f558",
-          "isDefaultProject": "d0f8ce44ee2eda81",
+          "isDefaultProject": "aec8a734885deb99",
           "loadProjects": "fd8f9e8d29f90885",
           "removeProject": "ffa3a4a134bf5b20",
           "renderProjects": "04b96b3b783d8203",
           "revealNavItem": "e08e882c45c25ea2",
+          "selectLaunchProject": "92566c058d1b6328",
           "selectNextProject": "05f2261213152608",
           "selectPrevProject": "2f1e10aa3fbb4120",
           "selectProject": "dd18e6f08d5e0eea",
@@ -11945,56 +12329,50 @@
         },
         "syncFrameSetup": {
           "line": 287,
-          "purpose": "The setup row's two states. A folder Frame was never initialized in has"
-        },
-        "setFrameSetupText": {
-          "line": 306,
-          "params": [
-            "isFrame"
-          ]
+          "purpose": "Setup and removal are two surfaces. A project without `.frame/` gets the"
         },
         "syncMigrationDecision": {
-          "line": 326,
+          "line": 303,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 346,
+          "line": 323,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 372,
+          "line": 349,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 397,
+          "line": 374,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 413
+          "line": 390
         },
         "setRemoveFrameNote": {
-          "line": 427,
+          "line": 404,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 433,
+          "line": 410,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 439,
+          "line": 416,
           "params": [
             "message"
           ]
         }
       },
-      "sizeBytes": 17653,
+      "sizeBytes": 17028,
       "extraction": {
         "status": "parsed"
       },
@@ -12004,7 +12382,7 @@
           "renderDoneWindow": "f90e651e2a0efdd7",
           "renderGitSharing": "bcc466bcbad35aaa",
           "syncDefaultProject": "2d85ae9384cf7277",
-          "syncFrameSetup": "b6df866b2ad1d672",
+          "syncFrameSetup": "908f15bcc259101a",
           "syncMigrationDecision": "b6017d7974ccc825",
           "syncSpecDrivenToggle": "275e568b931fd4bd"
         }
@@ -12348,58 +12726,31 @@
     },
     "renderer/sampleBanner": {
       "file": "src/renderer/sampleBanner.js",
-      "description": "First-run banners (sample mode + post-init detection)",
+      "description": "Sample Banner",
       "exports": [
         "init"
       ],
       "depends": [
-        "electron",
-        "shared/ipcChannels",
         "state",
-        "tasksPanel",
-        "specPanel",
-        "htmlUtils",
         "terminal"
       ],
       "functions": {
-        "detectionSummary": {
-          "line": 32,
-          "params": [
-            "project"
-          ],
-          "purpose": "One-line summary of the detected stack for the post-init banner"
-        },
-        "setDetectionVisible": {
-          "line": 44,
-          "params": [
-            "visible"
-          ]
-        },
         "init": {
-          "line": 49
+          "line": 18
         },
         "setVisible": {
-          "line": 103,
+          "line": 54,
           "params": [
             "visible"
           ]
         }
       },
-      "ipc": {
-        "listens": [
-          "FRAME_PROJECT_INITIALIZED"
-        ],
-        "emits": []
-      },
-      "sizeBytes": 4445,
+      "sizeBytes": 1912,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "b22c847db22bea5a",
-        "purposes": {
-          "detectionSummary": "25e4ca4f88686e19"
-        }
+        "description": "c0c26ee62e7c42bc"
       }
     },
     "renderer/sectionRail": {
@@ -12457,6 +12808,132 @@
         "description": "2ec71c102b172e93",
         "purposes": {
           "render": "1e18c115c84813c1"
+        }
+      }
+    },
+    "renderer/selectMenu": {
+      "file": "src/renderer/selectMenu.js",
+      "description": "Select Menu Module",
+      "exports": [
+        "init",
+        "close"
+      ],
+      "depends": [],
+      "functions": {
+        "init": {
+          "line": 16
+        },
+        "anchorFor": {
+          "line": 21,
+          "params": [
+            "select"
+          ],
+          "purpose": "The box the menu hangs under: a picker's styled label, else the select."
+        },
+        "onMouseDown": {
+          "line": 25,
+          "params": [
+            "e"
+          ]
+        },
+        "open": {
+          "line": 46,
+          "params": [
+            "select"
+          ]
+        },
+        "place": {
+          "line": 83,
+          "params": [
+            "menu",
+            "anchor"
+          ],
+          "purpose": "Under the anchor, left-aligned, at least as wide; flips up when short."
+        },
+        "highlight": {
+          "line": 98,
+          "params": [
+            "index"
+          ]
+        },
+        "choose": {
+          "line": 106,
+          "params": [
+            "select",
+            "value"
+          ]
+        },
+        "onKeydown": {
+          "line": 114,
+          "params": [
+            "e"
+          ]
+        },
+        "onScroll": {
+          "line": 137,
+          "params": [
+            "e"
+          ]
+        },
+        "close": {
+          "line": 141
+        }
+      },
+      "sizeBytes": 5277,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "f57e41e7a5fbf9e5",
+        "purposes": {
+          "anchorFor": "9aa51a7605fd597b",
+          "place": "a417eef24a82a12b"
+        }
+      }
+    },
+    "renderer/sessionRestore": {
+      "file": "src/renderer/sessionRestore.js",
+      "description": "Session restore — the renderer half (restore-ai-sessions-on-relaunch).",
+      "exports": [
+        "maybeRestore"
+      ],
+      "depends": [
+        "fs",
+        "electron",
+        "shared/ipcChannels",
+        "agentDispatch"
+      ],
+      "functions": {
+        "maybeRestore": {
+          "line": 27,
+          "params": [
+            "projectPath",
+            "host"
+          ],
+          "purpose": "Restore a project's sessions if this is its first open in this run."
+        },
+        "safeIsDir": {
+          "line": 73,
+          "params": [
+            "dir"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "SESSION_RESTORE_CLAIM",
+          "SESSION_RESTORE_DONE"
+        ]
+      },
+      "sizeBytes": 2864,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "6bcb9a213bd9274c",
+        "purposes": {
+          "maybeRestore": "16e769e101258226"
         }
       }
     },
@@ -12710,69 +13187,69 @@
           "line": 31
         },
         "evaluate": {
-          "line": 53,
+          "line": 52,
           "purpose": "Show the hint if this project qualifies. Safe to call repeatedly — a"
         },
         "schedule": {
-          "line": 74,
+          "line": 73,
           "params": [
             "projectPath"
           ]
         },
         "refresh": {
-          "line": 85,
+          "line": 84,
           "purpose": "Re-check after the Project Settings toggle changed the flag."
         },
         "render": {
-          "line": 90,
+          "line": 89,
           "params": [
             "projectPath"
           ]
         },
         "onOutsideClick": {
-          "line": 126,
+          "line": 125,
           "params": [
             "e"
           ]
         },
         "position": {
-          "line": 135,
+          "line": 134,
           "purpose": "Anchor to the Project Settings button: same baseline, just outboard of the rail."
         },
         "enable": {
-          "line": 157,
+          "line": 156,
           "params": [
             "projectPath",
             "btn"
           ]
         },
         "dismissForever": {
-          "line": 179,
+          "line": 178,
           "params": [
             "projectPath"
           ]
         },
         "markDismissed": {
-          "line": 189,
+          "line": 188,
           "params": [
             "projectPath"
           ],
           "purpose": "Remember that this project should not be hinted at again. Lives in user"
         },
         "isDismissed": {
-          "line": 201,
+          "line": 200,
           "params": [
             "projectPath"
           ]
         },
         "readDismissed": {
-          "line": 206
+          "line": 205
         },
         "hide": {
-          "line": 211
+          "line": 210
         }
       },
-      "sizeBytes": 7250,
+      "sizeBytes": 7423,
       "extraction": {
         "status": "parsed"
       },
@@ -13043,7 +13520,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 33160,
+      "sizeBytes": 33334,
       "extraction": {
         "status": "parsed"
       },
@@ -13191,7 +13668,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 20151,
+      "sizeBytes": 20325,
       "extraction": {
         "status": "parsed"
       },
@@ -13431,7 +13908,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 34321,
+      "sizeBytes": 34495,
       "extraction": {
         "status": "parsed"
       },
@@ -13471,6 +13948,7 @@
       "depends": [
         "electron",
         "shared/ipcChannels",
+        "projectSettingsModal",
         "healthNotice",
         "migrationModal"
       ],
@@ -13519,95 +13997,95 @@
           "purpose": "Set Frame project status"
         },
         "noteFrameRemoved": {
-          "line": 150,
+          "line": 152,
           "params": [
             "projectPath"
           ],
           "purpose": "Frame was removed from this project (Settings → Workflow). Flip the flag so"
         },
         "onFrameStatusChange": {
-          "line": 161,
+          "line": 163,
           "params": [
             "callback"
           ],
           "purpose": "Register callback for Frame status change"
         },
         "onFrameInitialized": {
-          "line": 168,
+          "line": 170,
           "params": [
             "callback"
           ],
           "purpose": "Register callback for Frame project initialized"
         },
         "updateFrameUI": {
-          "line": 175,
+          "line": 177,
           "purpose": "Update Frame-related UI"
         },
         "initializeAsFrameProject": {
-          "line": 190,
+          "line": 192,
           "purpose": "Initialize current project as Frame project"
         },
         "showInitializeFrameModal": {
-          "line": 199,
+          "line": 201,
           "purpose": "Show custom initialize Frame modal"
         },
         "hideInitializeFrameModal": {
-          "line": 212,
+          "line": 214,
           "purpose": "Hide initialize Frame modal"
         },
         "dismissInitPrompt": {
-          "line": 224,
+          "line": 226,
           "purpose": "Dismiss the prompt without initializing (\"Not Now\" / close / Escape /"
         },
         "handleInitializeFrame": {
-          "line": 235,
+          "line": 237,
           "purpose": "Handle initialize Frame confirmation"
         },
         "setupInitFrameModalListeners": {
-          "line": 256,
+          "line": 258,
           "purpose": "Setup initialize Frame modal listeners"
         },
         "showInitSpotlight": {
-          "line": 282,
+          "line": 284,
           "purpose": "Show spotlight tour for the initialize button (first time only)"
         },
         "dismissSpotlight": {
-          "line": 323,
+          "line": 325,
           "purpose": "Dismiss spotlight and mark as seen"
         },
         "setupSpotlightListeners": {
-          "line": 334,
+          "line": 336,
           "purpose": "Setup spotlight tour listeners"
         },
         "updateProjectUI": {
-          "line": 376,
+          "line": 378,
           "purpose": "Update project UI elements"
         },
         "selectProjectFolder": {
-          "line": 400,
+          "line": 402,
           "purpose": "Request folder selection"
         },
         "createNewProject": {
-          "line": 407,
+          "line": 409,
           "purpose": "Request new project creation"
         },
         "openSampleProject": {
-          "line": 417,
+          "line": 419,
           "purpose": "Open the bundled sample project. Main copies it into the user-data"
         },
         "getIsSampleProject": {
-          "line": 424,
+          "line": 426,
           "purpose": "Check whether the current project is the bundled sample."
         },
         "onSampleChange": {
-          "line": 432,
+          "line": 434,
           "params": [
             "callback"
           ],
           "purpose": "Register a callback fired whenever the current project's"
         },
         "setupIPC": {
-          "line": 439,
+          "line": 441,
           "purpose": "Setup IPC listeners"
         }
       },
@@ -13626,7 +14104,7 @@
           "OPEN_SAMPLE_PROJECT"
         ]
       },
-      "sizeBytes": 14397,
+      "sizeBytes": 14532,
       "extraction": {
         "status": "parsed"
       },
@@ -14403,7 +14881,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3015,
+      "sizeBytes": 2991,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14427,7 +14905,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 13116,
+      "sizeBytes": 13599,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14451,7 +14929,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3254,
+      "sizeBytes": 3230,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14463,7 +14941,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 2532,
+      "sizeBytes": 2519,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14487,7 +14965,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 8637,
+      "sizeBytes": 8627,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14499,7 +14977,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 9093,
+      "sizeBytes": 8845,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14511,7 +14989,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 6537,
+      "sizeBytes": 6524,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14523,7 +15001,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 5265,
+      "sizeBytes": 5263,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14535,7 +15013,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1786,
+      "sizeBytes": 1754,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14547,7 +15025,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12169,
+      "sizeBytes": 12167,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14559,7 +15037,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 34683,
+      "sizeBytes": 34666,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14571,7 +15049,19 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 33455,
+      "sizeBytes": 37599,
+      "extraction": {
+        "status": "unsupported",
+        "reason": "no-extractor"
+      }
+    },
+    "renderer/styles/components/menu.css": {
+      "file": "src/renderer/styles/components/menu.css",
+      "description": "",
+      "exports": [],
+      "depends": [],
+      "functions": {},
+      "sizeBytes": 4644,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14595,7 +15085,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12573,
+      "sizeBytes": 12569,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14607,7 +15097,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 103934,
+      "sizeBytes": 104208,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14667,7 +15157,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 8092,
+      "sizeBytes": 8983,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14715,7 +15205,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 35715,
+      "sizeBytes": 35709,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14727,7 +15217,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3864,
+      "sizeBytes": 4065,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14739,7 +15229,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 15712,
+      "sizeBytes": 16038,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14751,7 +15241,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 905,
+      "sizeBytes": 1120,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14775,7 +15265,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 19515,
+      "sizeBytes": 20778,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14799,7 +15289,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12551,
+      "sizeBytes": 12443,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14811,7 +15301,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3408,
+      "sizeBytes": 3518,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -14823,7 +15313,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 7575,
+      "sizeBytes": 9715,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15506,7 +15996,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 19895,
+      "sizeBytes": 20065,
       "extraction": {
         "status": "parsed"
       },
@@ -15763,6 +16253,13 @@
         },
         "installGlobalDropGuard": {
           "line": 48
+        },
+        "terminalName": {
+          "line": 63,
+          "params": [
+            "n"
+          ],
+          "purpose": "A terminal's default name, number first (\"1st Terminal\", \"2nd Terminal\"):"
         }
       },
       "ipc": {
@@ -15775,18 +16272,21 @@
         "emits": [
           "TERMINAL_CREATE",
           "GET_AVAILABLE_SHELLS",
+          "SESSION_RESTORE_META",
+          "SESSION_RESTORE_META",
           "TERMINAL_DESTROY",
           "TERMINAL_RESIZE_ID"
         ]
       },
-      "sizeBytes": 27618,
+      "sizeBytes": 28317,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "5503a1b34dbada83",
         "purposes": {
-          "getTerminalTheme": "c1851af8b213ec21"
+          "getTerminalTheme": "c1851af8b213ec21",
+          "terminalName": "1c4c500d3f4e3dbd"
         }
       }
     },
@@ -15805,25 +16305,26 @@
         "lucide",
         "htmlUtils",
         "laneStatus",
-        "notify"
+        "notify",
+        "tooltip"
       ],
       "functions": {
         "lucideIcon": {
-          "line": 40,
+          "line": 41,
           "params": [
             "data",
             "size = 18"
           ]
         },
         "applyTheme": {
-          "line": 56,
+          "line": 57,
           "params": [
             "name"
           ],
           "purpose": "Apply a theme app-wide. Writing data-theme (the id) and data-scheme"
         },
         "currentTheme": {
-          "line": 67,
+          "line": 68,
           "purpose": "The theme currently applied — a themes.js id."
         }
       },
@@ -15833,7 +16334,7 @@
           "THEME_CHANGED"
         ]
       },
-      "sizeBytes": 21066,
+      "sizeBytes": 22056,
       "extraction": {
         "status": "parsed"
       },
@@ -15880,7 +16381,7 @@
           ]
         }
       },
-      "sizeBytes": 26107,
+      "sizeBytes": 26487,
       "extraction": {
         "status": "parsed"
       },
@@ -21142,6 +21643,8 @@
         "SPEC_HINT_HOOKS",
         "CODEX_HINT_HOOKS",
         "LEGACY_SPEC_HINT_COMMANDS",
+        "SESSION_REPORT_HOOKS",
+        "CODEX_SESSION_REPORT_HOOKS",
         "SPEC_DRIVEN_SECTION",
         "SPEC_DRIVEN_CORE_SECTION",
         "renderSpecSection",
@@ -21253,8 +21756,16 @@
         "getFrameGitignoreBlock": {
           "line": 966
         },
+        "sessionReportCommand": {
+          "line": 1123,
+          "params": [
+            "tool",
+            "guard = ''"
+          ],
+          "purpose": "Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the"
+        },
         "getGenericWrapperTemplate": {
-          "line": 1119,
+          "line": 1158,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -21262,38 +21773,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1165
+          "line": 1204
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1202,
+          "line": 1241,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1231,
+          "line": 1270,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1250,
+          "line": 1289,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1262,
+          "line": 1301,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1282
+          "line": 1321
         },
         "getOrchBinScripts": {
-          "line": 1300,
+          "line": 1339,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 55957,
+      "sizeBytes": 57811,
       "extraction": {
         "status": "parsed"
       },
@@ -21315,7 +21826,8 @@
           "getStructurePreCommitHookTemplate": "66fc6794d6915e67",
           "getStructureTemplate": "ae0768942621daa6",
           "getTasksTemplate": "51a7303c8276cb87",
-          "renderSpecSection": "7fd001cb3ae45a96"
+          "renderSpecSection": "7fd001cb3ae45a96",
+          "sessionReportCommand": "2fb12d8e2b0bae69"
         }
       }
     },
@@ -21360,7 +21872,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12008,
+      "sizeBytes": 12794,
       "extraction": {
         "status": "parsed"
       },
@@ -23242,13 +23754,13 @@
           ]
         },
         "hashFile": {
-          "line": 69,
+          "line": 74,
           "params": [
             "file"
           ]
         },
         "snapshotTree": {
-          "line": 74,
+          "line": 79,
           "params": [
             "dir",
             "{ excludeFrameOwned = true } = {}"
@@ -23256,14 +23768,14 @@
           "purpose": "Every file in the tree → sha256, excluding paths Frame is allowed to own."
         },
         "fakeWorkers": {
-          "line": 666,
+          "line": 672,
           "purpose": "A fake `--supervised` child that records what the supervisor sends."
         },
         "resetWorkers": {
-          "line": 691
+          "line": 697
         }
       },
-      "sizeBytes": 36716,
+      "sizeBytes": 37156,
       "extraction": {
         "status": "parsed"
       },
@@ -23549,13 +24061,13 @@
           ]
         },
         "hookCommands": {
-          "line": 46,
+          "line": 49,
           "params": [
             "file"
           ]
         }
       },
-      "sizeBytes": 8852,
+      "sizeBytes": 8988,
       "extraction": {
         "status": "parsed"
       },
@@ -23829,7 +24341,7 @@
           "purpose": "A project as Frame's pre-overlay init left it."
         }
       },
-      "sizeBytes": 31561,
+      "sizeBytes": 32034,
       "extraction": {
         "status": "parsed"
       },
@@ -24288,6 +24800,77 @@
         "purposes": {
           "readersSee": "844215cb5e5884c1"
         }
+      }
+    },
+    "test/sessionHookInstall.test": {
+      "file": "test/sessionHookInstall.test.js",
+      "description": "Session report hook install/remove (restore-ai-sessions-on-relaunch).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "node:module",
+        "src/main/frameProject",
+        "src/shared/frameTemplates"
+      ],
+      "functions": {},
+      "sizeBytes": 9230,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "4467a520941da104"
+      }
+    },
+    "test/sessionRestoreStore.test": {
+      "file": "test/sessionRestoreStore.test.js",
+      "description": "The session-restore store's pure core: which reports count, how the live",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/main/sessionRestoreStore"
+      ],
+      "functions": {
+        "payload": {
+          "line": 20,
+          "params": [
+            "sessionId",
+            "extra = {}"
+          ]
+        },
+        "liveWith": {
+          "line": 31,
+          "params": [
+            "...terminals"
+          ]
+        },
+        "report": {
+          "line": 37,
+          "params": [
+            "terminalId",
+            "tool",
+            "sessionId"
+          ]
+        },
+        "rec": {
+          "line": 187,
+          "params": [
+            "sessions",
+            "activeSessionId = null"
+          ]
+        }
+      },
+      "sizeBytes": 11199,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "134639e22914d629"
       }
     },
     "test/spec-command-hint.test": {
@@ -26236,16 +26819,34 @@
         "description": ""
       }
     },
-    "downloaded": {
-      "UPDATE_DOWNLOADED": {
-        "name": "update-downloaded",
+    "session": {
+      "SESSION_RESTORE_TAKE": {
+        "name": "session-restore-take",
         "direction": "",
         "description": ""
-      }
-    },
-    "install": {
-      "INSTALL_UPDATE": {
-        "name": "install-update",
+      },
+      "SESSION_RESTORE_DONE": {
+        "name": "session-restore-done",
+        "direction": "",
+        "description": ""
+      },
+      "SESSION_RESTORE_CLAIM": {
+        "name": "session-restore-claim",
+        "direction": "",
+        "description": ""
+      },
+      "SESSION_RESTORE_META": {
+        "name": "session-restore-meta",
+        "direction": "",
+        "description": ""
+      },
+      "SESSION_RESTORE_GET_LAST_PROJECT": {
+        "name": "session-restore-get-last-project",
+        "direction": "",
+        "description": ""
+      },
+      "SESSION_RESTORE_SET_LAST_PROJECT": {
+        "name": "session-restore-set-last-project",
         "direction": "",
         "description": ""
       }
@@ -26653,6 +27254,18 @@
         "description": "IPC Channel Constants"
       }
     ],
+    "menu": [
+      {
+        "module": "main/menu",
+        "file": "src/main/menu.js",
+        "description": "Application Menu Module"
+      },
+      {
+        "module": "renderer/selectMenu",
+        "file": "src/renderer/selectMenu.js",
+        "description": "Select Menu Module"
+      }
+    ],
     "migration": [
       {
         "module": "main/layoutMigration",
@@ -26855,6 +27468,23 @@
         "description": ""
       }
     ],
+    "restore": [
+      {
+        "module": "main/sessionRestore",
+        "file": "src/main/sessionRestore.js",
+        "description": "Session restore — the main-process half (restore-ai-sessions-on-relaunch)."
+      },
+      {
+        "module": "main/sessionRestoreStore",
+        "file": "src/main/sessionRestoreStore.js",
+        "description": "Which AI session runs in which terminal, and what each project restores."
+      },
+      {
+        "module": "renderer/sessionRestore",
+        "file": "src/renderer/sessionRestore.js",
+        "description": "Session restore — the renderer half (restore-ai-sessions-on-relaunch)."
+      }
+    ],
     "rows": [
       {
         "module": "renderer/home/agentRows",
@@ -26891,9 +27521,24 @@
     ],
     "session": [
       {
+        "module": "main/sessionRestore",
+        "file": "src/main/sessionRestore.js",
+        "description": "Session restore — the main-process half (restore-ai-sessions-on-relaunch)."
+      },
+      {
+        "module": "main/sessionRestoreStore",
+        "file": "src/main/sessionRestoreStore.js",
+        "description": "Which AI session runs in which terminal, and what each project restores."
+      },
+      {
         "module": "renderer/home/sessionRows",
         "file": "src/renderer/home/sessionRows.js",
         "description": "Which Claude sessions Home offers to resume, and how they are labelled."
+      },
+      {
+        "module": "renderer/sessionRestore",
+        "file": "src/renderer/sessionRestore.js",
+        "description": "Session restore — the renderer half (restore-ai-sessions-on-relaunch)."
       },
       {
         "module": "templates/sample-project/src/auth/session",
@@ -26996,6 +27641,18 @@
         "module": "renderer/statusBar",
         "file": "src/renderer/statusBar.js",
         "description": "Status Bar Module"
+      }
+    ],
+    "store": [
+      {
+        "module": "main/frameStore",
+        "file": "src/main/frameStore.js",
+        "description": "frameStore — the one module that knows where a project's meta files live."
+      },
+      {
+        "module": "main/sessionRestoreStore",
+        "file": "src/main/sessionRestoreStore.js",
+        "description": "Which AI session runs in which terminal, and what each project restores."
       }
     ],
     "structure": [
@@ -27169,8 +27826,8 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 297,
-        "unsupported": 83,
+        "parsed": 301,
+        "unsupported": 84,
         "partial": 0
       }
     },
@@ -27216,9 +27873,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 468,
+      "visitedEntries": 473,
       "traversedDirectories": 80,
-      "eligibleFiles": 380,
+      "eligibleFiles": 385,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27235,7 +27892,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 380,
+      "indexedFiles": 385,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27243,6 +27900,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f5035e7746eb3f84ee88c29cb8c851dae6f82b1e845b90d002e5c89c318b89fd"
+    "revision": "f572aecba93fd955cf0066179faf19ce574c95d4860282a3e3b2dd8f709f281a"
   }
 }

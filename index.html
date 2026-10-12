@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="node_modules/@fontsource/inter/400.css">
   <link rel="stylesheet" href="node_modules/@fontsource/inter/500.css">
   <link rel="stylesheet" href="node_modules/@fontsource/inter/600.css">
+  <link rel="stylesheet" href="node_modules/@fontsource/inter/700.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/400.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/500.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/600.css">
@@ -49,13 +50,6 @@
       You're exploring the <strong>sample project</strong>. Poke around freely — when you're ready, open your own project to start real work.
     </span>
     <button type="button" id="sample-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
-  </div>
-
-  <!-- First-run detection banner (shown right after a project is initialized as a Frame project) -->
-  <div id="detection-banner" class="sample-banner" role="status">
-    <span class="sample-banner-icon">&#10022;</span>
-    <span id="detection-banner-text" class="sample-banner-text"></span>
-    <button type="button" id="detection-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
   </div>
 
   <!-- App Loader — boot splash and, on a first run, the onboarding screen
@@ -115,8 +109,8 @@
        the center (shell-chrome-app-header-collapsible-panels spec). Static
        markup on purpose — it exists before any script runs, so nothing in
        it flashes at boot and every module that binds by id finds its
-       element at DOMContentLoaded. Left: Frame's mark. Center:
-       the current-project switcher. Right: the window-level controls and
+       element at DOMContentLoaded. Left: Frame's mark. Right: the
+       project and agent pickers with Start, the window-level controls and
        the layout toggles. appHeader.js wires the behavior. -->
   <header id="app-header">
     <div class="app-header-left">
@@ -129,25 +123,9 @@
       </svg>
       <span class="app-header-brand">Frame</span>
     </div>
-    <!-- Current-project switcher: the one project selector, in the
-         header's center (VS Code's command-center spot) so it stays
-         reachable while the sidebar is collapsed. Everything on both sides
-         — Files / Changes / GitHub on the rail, Work / Context in the
-         panel, the center — is about the project chosen here. -->
-    <div class="app-header-center">
-      <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
-        <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-          <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-          </svg>
-          <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-          <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-        <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
-      </div>
-    </div>
+    <!-- Spacer: keeps the brand at the left end and the controls at the
+         right end. -->
+    <div class="app-header-center"></div>
     <div class="app-header-right">
       <!-- Default Agent launcher: the tool select beside Start. Start launches
            whatever this says (index.js binds #sidebar-agent-launch by id).
@@ -156,6 +134,20 @@
            stale. The options below are a placeholder: aiToolSelector
            repopulates from the real tool list. -->
       <div class="lane-bar-launcher">
+        <!-- Current-project switcher: the one project selector, directly left
+             of the agent picker and drawn the same way (a small uppercase
+             label, then the value), so the header reads "Project · Agent ·
+             Start". index.js binds it by id. -->
+        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+            <span class="sidebar-current-project-label">Project</span>
+            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+        </div>
         <!-- The select is wrapped in a label so the visible control (label
              text, agent name, chevron) is one styled box while the native
              <select> stays the interactive element underneath — clicking
@@ -170,12 +162,7 @@
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </label>
-        <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-          <span>Start</span>
-        </button>
+        <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">Start</button>
       </div>
       <!-- Layout toggles (VS Code's "toggle primary side bar" / "toggle
            panel"): each shows its region's open state and flips it. They run
@@ -1430,6 +1417,21 @@
         <button type="button" class="settings-close" data-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
+        <!-- Only for a project without .frame/: the one place Frame is set up
+             from. Opening such a project lands here (state.js), and the
+             button hands over to the init modal. -->
+        <div class="settings-init-banner" id="settings-init-banner" style="display:none;">
+          <div class="settings-row-text">
+            <div class="settings-init-banner-title">Frame isn't set up in this project</div>
+            <p class="settings-row-desc">
+              Initializing adds <code>.frame/</code> for AI context, specs, task tracking and
+              session notes; the settings below apply once it's set up. Nothing is added to
+              your project root.
+            </p>
+          </div>
+          <button type="button" class="settings-init-btn" id="settings-init-frame">Initialize Frame</button>
+        </div>
+
         <div class="settings-section">
           <h4 class="settings-section-title">Workflow</h4>
           <div class="settings-row">
@@ -1489,21 +1491,18 @@
             <button type="button" class="settings-action-btn" id="settings-migration-decision">Review</button>
           </div>
 
-          <!-- One row, two states: a project that has Frame can remove it, one
-               that does not can set it up. Which of the two buttons is shown
-               is decided in syncFrameSetup() — a folder that was never
-               initialized has nothing to remove, and one just removed must
-               stop offering to remove it again. -->
-          <div class="settings-row">
+          <!-- Shown only while the project has Frame (syncFrameSetup) — a folder
+               that was never initialized has nothing to remove; setting it up
+               is the banner at the top. -->
+          <div class="settings-row" id="settings-remove-frame-row">
             <div class="settings-row-text">
-              <label class="settings-row-label" id="settings-frame-setup-label">Remove Frame from this project</label>
-              <p class="settings-row-desc" id="settings-frame-setup-desc">
+              <label class="settings-row-label">Remove Frame from this project</label>
+              <p class="settings-row-desc">
                 Deletes <code>.frame/</code>, <code>.claude/rules/frame.md</code> and Frame's hook
                 entries. Your own files are never touched.
               </p>
               <p class="settings-row-desc" id="settings-remove-frame-note" style="display:none;"></p>
             </div>
-            <button type="button" class="settings-action-btn" id="settings-init-frame" style="display:none;">Initialize</button>
             <button type="button" class="settings-danger-btn" id="settings-remove-frame">Remove Frame</button>
           </div>
         </div>

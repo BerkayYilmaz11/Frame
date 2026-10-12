@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const fsp = require('fs').promises;
+const os = require('os');
 const path = require('path');
 const { IPC } = require('../shared/ipcChannels');
 const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR, CLAUDE_RULE_PATH } = require('../shared/frameConstants');
@@ -400,6 +401,11 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   } catch (err) {
     console.warn('[frame] applying sharing mode failed (non-fatal):', err.message);
   }
+  try {
+    installCodexSessionHook();
+  } catch (err) {
+    console.warn('[frame] codex session hook install failed (non-fatal):', err.message);
+  }
 
   // Update workspace to mark as Frame project
   workspace.updateProjectFrameStatus(projectPath, true);
@@ -620,6 +626,61 @@ function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
 }
 
 /**
+ * Append each template entry to a hooks object unless an identical one is
+ * already there. Returns how many were added.
+ */
+function mergeHookEntries(hooks, template) {
+  let added = 0;
+  for (const eventName of Object.keys(template)) {
+    const list = Array.isArray(hooks[eventName]) ? hooks[eventName] : [];
+    for (const entry of template[eventName]) {
+      const sig = JSON.stringify(entry);
+      if (!list.some((x) => JSON.stringify(x) === sig)) {
+        list.push(entry);
+        added++;
+      }
+    }
+    hooks[eventName] = list;
+  }
+  return added;
+}
+
+/**
+ * Register the session report hook (restore-ai-sessions-on-relaunch) in the
+ * project's Claude settings file. Unlike the spec-hint hooks this is **not**
+ * gated on the active tool: a Claude session started by hand in a project
+ * whose active tool is Codex is still a session to restore. The command is
+ * env-guarded, so it costs nothing outside a Frame terminal.
+ *
+ * Same merge-safe contract as `installSpecHintHook`; removal rides on
+ * `removeSpecHintHook`, which treats these entries as Frame's too.
+ */
+function installSessionHook(projectPath, { file = 'settings.json' } = {}) {
+  const settingsDir = path.join(projectPath, '.claude');
+  const settingsPath = path.join(settingsDir, file);
+
+  let settings = {};
+  let indent = 2;
+  if (fs.existsSync(settingsPath)) {
+    const raw = fs.readFileSync(settingsPath, 'utf8');
+    try {
+      settings = JSON.parse(raw);
+    } catch (err) {
+      return { installed: false, manual: true, reason: `.claude/${file} is not valid JSON (${err.message})` };
+    }
+    indent = detectJsonIndent(raw);
+  }
+
+  settings.hooks = settings.hooks || {};
+  const added = mergeHookEntries(settings.hooks, templates.SESSION_REPORT_HOOKS);
+  if (added > 0) {
+    fs.mkdirSync(settingsDir, { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, indent) + '\n');
+  }
+  return { installed: true, added, file };
+}
+
+/**
  * Where Codex keeps its configuration. `CODEX_HOME` wins so a test — or a
  * user running more than one Codex profile — can point this somewhere else
  * without touching the real one.
@@ -700,6 +761,41 @@ function installCodexHintHook(projectPath, { enabled = true, home = null } = {})
 }
 
 /**
+ * Register the Codex session report hook (restore-ai-sessions-on-relaunch) in
+ * `CODEX_HOME/hooks.json`. Not gated on the active tool — a Codex session
+ * started by hand in a Claude project is still one to restore — and not
+ * per project in where it lives, since Codex reads only this global file; the
+ * command's own `.frame/` guard is what scopes it to Frame projects.
+ *
+ * Codex will not run it until the user trusts it, like every Frame hook
+ * there. Until then its sessions are simply not captured, never guessed.
+ */
+function installCodexSessionHook({ home = null } = {}) {
+  const dir = home || codexHome();
+  const hooksPath = path.join(dir, 'hooks.json');
+
+  let config = {};
+  let indent = 2;
+  if (fs.existsSync(hooksPath)) {
+    const raw = fs.readFileSync(hooksPath, 'utf8');
+    try {
+      config = JSON.parse(raw);
+    } catch (err) {
+      return { installed: false, manual: true, reason: `${hooksPath} is not valid JSON (${err.message})` };
+    }
+    indent = detectJsonIndent(raw);
+  }
+
+  config.hooks = config.hooks || {};
+  const added = mergeHookEntries(config.hooks, templates.CODEX_SESSION_REPORT_HOOKS);
+  if (added > 0) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(hooksPath, JSON.stringify(config, null, indent) + '\n');
+  }
+  return { installed: true, added, path: hooksPath };
+}
+
+/**
  * Take Frame's Codex entries back out. Exact-match on the command string, so
  * a hook the user wrote — even one calling the same script differently — is
  * not ours to remove. Empty event arrays and an empty `hooks` object are
@@ -720,6 +816,9 @@ function removeCodexHintHook({ home = null } = {}) {
   if (!config.hooks || typeof config.hooks !== 'object') return { removed: 0 };
 
   const ours = new Set(codexHookCommands());
+  for (const list of Object.values(templates.CODEX_SESSION_REPORT_HOOKS)) {
+    for (const entry of list) for (const h of entry.hooks) ours.add(h.command);
+  }
   let removed = 0;
   for (const eventName of Object.keys(config.hooks)) {
     const list = config.hooks[eventName];
@@ -823,7 +922,10 @@ function removeSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   if (!settings.hooks || typeof settings.hooks !== 'object') return { removed: 0 };
 
   const frameCommands = new Set(templates.LEGACY_SPEC_HINT_COMMANDS);
-  for (const entries of Object.values(templates.SPEC_HINT_HOOKS)) {
+  for (const entries of [
+    ...Object.values(templates.SPEC_HINT_HOOKS),
+    ...Object.values(templates.SESSION_REPORT_HOOKS)
+  ]) {
     for (const entry of entries) {
       for (const hook of entry.hooks) frameCommands.add(hook.command);
     }
@@ -1542,6 +1644,13 @@ async function openProjectLayout(projectPath, hooks = {}) {
   } catch (err) {
     console.warn('[frame] could not reconcile the sharing mode (non-fatal):', err.message);
   }
+  // The Codex half of the session report hook. Its Claude half rides on
+  // reconcile above; this one lives in CODEX_HOME, so it is ensured here.
+  try {
+    installCodexSessionHook();
+  } catch (err) {
+    console.warn('[frame] could not ensure the codex session hook (non-fatal):', err.message);
+  }
   // The artifacts an older Frame never wrote, then the managed sections at
   // the current generation. 2 before 3: the pointer's target must exist
   // before anything writes a pointer at it. WATCH_SPECS does this too — a
@@ -1742,7 +1851,9 @@ module.exports = {
   runProjectInit,
   syncClaudeRule,
   installSpecHintHook,
+  installSessionHook,
   installCodexHintHook,
+  installCodexSessionHook,
   removeCodexHintHook,
   codexHookTrustState,
   codexHome,
