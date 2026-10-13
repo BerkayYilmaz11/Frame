@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T13:24:03.022Z",
+  "lastUpdated": "2026-10-13T07:58:01Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8491,10 +8491,25 @@
       "createdAt": "2026-09-21T13:24:03.022Z",
       "updatedAt": "2026-09-21T13:52:51Z",
       "completedAt": "2026-09-21T13:52:51Z"
+    },
+    {
+      "id": "task-spec-hint-first-sentence",
+      "title": "Spec hint line carries the first full sentence",
+      "description": "scripts/spec-index.js takes the first physical line of digest.md as a spec's hint line, and the first physical line of each outcome section cut at 160 characters. Digests wrap near 75 columns and outcome paragraphs run long, so 45 of this repo's 50 digest lines and 361 of its 405 outcome lines end mid-sentence. Read the first paragraph unwrapped, take its first sentence, and when that runs past the cap cut it at a word boundary with an ellipsis (digest 280 characters, outcome 160). Bump INDEX_VERSION so cached indexes rebuild. Files: scripts/spec-index.js, test/spec-index.test.js.",
+      "userRequest": "User said: \"1. Onu o zaman task açıp bir yapalım,\" — replying to the proposal to do the two small spec-channel fixes (full-sentence spec line, narrower command hint) as tasks on one work branch.",
+      "acceptanceCriteria": "- A digest whose first sentence wraps over several lines yields the whole sentence as digestLine.\n- A sentence longer than the cap ends at a word boundary with an ellipsis.\n- Outcome lines follow the same rule at 160 characters.\n- A cached version-1 index is rebuilt.\n- npm test passes.",
+      "notes": "Step 1 of the decision-memory roadmap (Faz 1 in the doc \"Frame'in hafıza katmanı\"). The 280 cap comes from this repo's digests: first sentences have a median of 195 characters and 38 of 50 fit whole, while three lines stay well under the host's 2000-character inline limit. spec-knowledge-layer's rule holds: the line is an entry point, never a substitute for the chain.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "2026-10-13 — decision-memory roadmap, step 1; branch fix/spec-channel-fixes under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-13T07:52:20Z",
+      "updatedAt": "2026-10-13T07:58:01Z",
+      "completedAt": "2026-10-13T07:58:01Z"
     }
   ],
   "metadata": {
-    "totalCreated": 619,
+    "totalCreated": 620,
     "totalCompleted": 29
   },
   "categories": {
