@@ -291,8 +291,8 @@ test('a payload larger than the pipe buffer arrives whole', () => {
   // Regression: `process.stdout.write()` followed by `process.exit(0)` tore
   // the process down mid-write, truncating anything past roughly 8 KB and
   // handing the host unparseable JSON rather than an error. Today's real
-  // payloads sit under that, but `digestLine` is whatever the first body
-  // line of a digest happens to be, so nothing bounds prompt mode.
+  // payloads sit under that, but the hook reads the index as it finds it and
+  // only the current builder caps `digestLine`, so nothing bounds prompt mode.
   const long = `Telemetry work. ${'It goes on at length. '.repeat(700)}`;
   const root = mkProject({
     version: 1,

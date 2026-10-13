@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-12",
+  "lastUpdated": "2026-10-13",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93933,
+      "sizeBytes": 94177,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5551,35 +5551,50 @@
             "slug"
           ]
         },
+        "completedTaskIdsFromOutcome": {
+          "line": 916,
+          "params": [
+            "content"
+          ]
+        },
+        "initialTaskState": {
+          "line": 923,
+          "params": [
+            "status",
+            "outcomeIds",
+            "taskId",
+            "now"
+          ]
+        },
         "syncTasksFromMarkdown": {
-          "line": 907,
+          "line": 931,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 987,
+          "line": 1016,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 994,
+          "line": 1023,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1011,
+          "line": 1040,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1050,
+          "line": 1079,
           "params": [
             "projectPath",
             "slug",
@@ -5588,7 +5603,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1079,
+          "line": 1108,
           "params": [
             "projectPath",
             "query"
@@ -5596,7 +5611,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1100,
+          "line": 1129,
           "params": [
             "projectPath",
             "slug",
@@ -5604,14 +5619,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1124,
+          "line": 1153,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1141,
+          "line": 1170,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5620,54 +5635,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1256,
+          "line": 1285,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1356
+          "line": 1385
         },
         "markSpecNewLaunch": {
-          "line": 1409,
+          "line": 1438,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1415,
+          "line": 1444,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1431,
+          "line": 1460,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1442,
+          "line": 1471,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1470,
+          "line": 1499,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1494,
+          "line": 1523,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1498,
+          "line": 1527,
           "params": [
             "ipcMain"
           ]
@@ -5694,7 +5709,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 68199,
+      "sizeBytes": 69592,
       "extraction": {
         "status": "parsed"
       },
@@ -6595,7 +6610,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3820,
+      "sizeBytes": 4019,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -10916,26 +10931,26 @@
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 559,
+          "line": 563,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 585,
+          "line": 602,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 611,
+          "line": 628,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1015,
+          "line": 1032,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1040,
+          "line": 1057,
           "params": [
             "err"
           ],
@@ -10955,7 +10970,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 37953,
+      "sizeBytes": 38783,
       "extraction": {
         "status": "parsed"
       },
@@ -18449,38 +18464,38 @@
       ],
       "functions": {
         "readStdin": {
-          "line": 77
+          "line": 86
         },
         "readJson": {
-          "line": 81,
+          "line": 90,
           "params": [
             "p"
           ]
         },
         "readText": {
-          "line": 85,
+          "line": 94,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 89,
+          "line": 98,
           "params": [
             "hookCwd"
           ]
         },
         "setHookCli": {
-          "line": 126,
+          "line": 135,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 130
+          "line": 139
         },
         "note": {
-          "line": 134,
+          "line": 143,
           "params": [
             "root",
             "ev",
@@ -18488,20 +18503,20 @@
           ]
         },
         "emit": {
-          "line": 151,
+          "line": 160,
           "params": [
             "context"
           ]
         },
         "commandOf": {
-          "line": 160,
+          "line": 169,
           "params": [
             "prompt"
           ],
           "purpose": "Which spec command this prompt is asking for, or null."
         },
         "namedSlug": {
-          "line": 177,
+          "line": 187,
           "params": [
             "root",
             "prompt"
@@ -18509,7 +18524,7 @@
           "purpose": "A slug the prompt names outright — an explicit target always wins."
         },
         "candidates": {
-          "line": 192,
+          "line": 202,
           "params": [
             "root",
             "command"
@@ -18517,7 +18532,7 @@
           "purpose": "Specs whose phase this command acts on."
         },
         "templatePath": {
-          "line": 220,
+          "line": 230,
           "params": [
             "root",
             "tool",
@@ -18525,7 +18540,7 @@
           ]
         },
         "reportAssetRel": {
-          "line": 234,
+          "line": 244,
           "params": [
             "root",
             "tool",
@@ -18534,27 +18549,27 @@
           "purpose": "Report assets resolve like templatePath and end at the base tool: only"
         },
         "interpolate": {
-          "line": 242,
+          "line": 252,
           "params": [
             "template",
             "vars"
           ]
         },
         "catalogLines": {
-          "line": 248,
+          "line": 258,
           "params": [
             "index"
           ],
           "purpose": "Six-line copy of spec-index.js's formatter — see the header note."
         },
         "specCatalog": {
-          "line": 255,
+          "line": 265,
           "params": [
             "root"
           ]
         },
         "buildPrompt": {
-          "line": 262,
+          "line": 272,
           "params": [
             "root",
             "slug",
@@ -18563,13 +18578,13 @@
           ]
         },
         "promptMode": {
-          "line": 292,
+          "line": 302,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 15758,
+      "sizeBytes": 16391,
       "extraction": {
         "status": "parsed"
       },
@@ -18781,7 +18796,7 @@
           ]
         }
       },
-      "sizeBytes": 14684,
+      "sizeBytes": 14710,
       "extraction": {
         "status": "parsed"
       },
@@ -18814,59 +18829,74 @@
       ],
       "functions": {
         "toPosix": {
-          "line": 47,
+          "line": 48,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 49,
+          "line": 50,
           "params": [
             "explicit"
           ]
         },
         "readSafe": {
-          "line": 59,
+          "line": 60,
           "params": [
             "p"
           ]
         },
         "readJsonSafe": {
-          "line": 63,
+          "line": 64,
           "params": [
             "p"
           ]
         },
         "parseFrontMatter": {
-          "line": 79,
+          "line": 80,
           "params": [
             "md"
           ],
           "purpose": "Fenced front-matter at the top of spec.md/digest.md:"
         },
         "parseFootprint": {
-          "line": 96,
+          "line": 97,
           "params": [
             "md"
           ],
           "purpose": "`## Footprint` bullets — same contract getSpecFootprint parses."
         },
+        "firstParagraph": {
+          "line": 128,
+          "params": [
+            "md"
+          ],
+          "purpose": "First paragraph of a markdown body, unwrapped: leading headings and blank"
+        },
+        "firstSentence": {
+          "line": 148,
+          "params": [
+            "text",
+            "cap"
+          ],
+          "purpose": "The first sentence of `text`, cut at a word boundary with \"…\" when it runs"
+        },
         "parseOutcome": {
-          "line": 117,
+          "line": 174,
           "params": [
             "md"
           ],
           "purpose": "Outcome sections: `## T<n> — title` … `_Captured: <date> …_`."
         },
         "parseDigest": {
-          "line": 145,
+          "line": 201,
           "params": [
             "md"
           ],
-          "purpose": "digest.md: front-matter + first non-heading body line."
+          "purpose": "digest.md: front-matter + the first sentence of the body."
         },
         "lexicalKeywords": {
-          "line": 154,
+          "line": 210,
           "params": [
             "slug",
             "title"
@@ -18874,21 +18904,21 @@
           "purpose": "Fallback keywords when nothing is declared: title + slug tokens."
         },
         "gitExec": {
-          "line": 163,
+          "line": 219,
           "params": [
             "projectPath",
             "args"
           ]
         },
         "buildRenameMap": {
-          "line": 171,
+          "line": 227,
           "params": [
             "projectPath"
           ],
           "purpose": "One pass over history: rename chains old→final path."
         },
         "buildLastTouchMap": {
-          "line": 190,
+          "line": 246,
           "params": [
             "projectPath",
             "sinceIso"
@@ -18896,45 +18926,45 @@
           "purpose": "file → last commit date (ISO), one git call since the oldest spec close."
         },
         "build": {
-          "line": 207,
+          "line": 263,
           "params": [
             "projectPath"
           ]
         },
         "indexPath": {
-          "line": 352,
+          "line": 408,
           "params": [
             "projectPath"
           ]
         },
         "newestSourceMtime": {
-          "line": 356,
+          "line": 412,
           "params": [
             "root"
           ]
         },
         "writeIndex": {
-          "line": 372,
+          "line": 428,
           "params": [
             "projectPath"
           ]
         },
         "ensureFresh": {
-          "line": 385,
+          "line": 441,
           "params": [
             "projectPath"
           ],
           "purpose": "Rebuild only when the index is missing or older than the newest spec"
         },
         "catalogLines": {
-          "line": 399,
+          "line": 455,
           "params": [
             "index"
           ],
           "purpose": "One compact line per spec — the {spec_catalog} embed for spec.new."
         }
       },
-      "sizeBytes": 17100,
+      "sizeBytes": 19173,
       "extraction": {
         "status": "parsed"
       },
@@ -18944,8 +18974,10 @@
           "buildRenameMap": "92f50b9673fe220f",
           "catalogLines": "718c0b376a2d93d6",
           "ensureFresh": "6587c44c71eb2fe8",
+          "firstParagraph": "bcdec6abb5a050e5",
+          "firstSentence": "556060c1bca1028b",
           "lexicalKeywords": "d0a6eacbf069c1f6",
-          "parseDigest": "64f5b6dab96b8ba7",
+          "parseDigest": "4a83bd05f3efb5fc",
           "parseFootprint": "2cbd05b5ef6d5091",
           "parseFrontMatter": "ab7e13a321f1523c",
           "parseOutcome": "0a8e749f98978b97"
@@ -21872,7 +21904,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12794,
+      "sizeBytes": 12872,
       "extraction": {
         "status": "parsed"
       },
@@ -24906,7 +24938,7 @@
           "purpose": "A project with one spec in `phase`, and the command templates staged."
         }
       },
-      "sizeBytes": 12187,
+      "sizeBytes": 13396,
       "extraction": {
         "status": "parsed"
       },
@@ -24960,7 +24992,7 @@
           ]
         }
       },
-      "sizeBytes": 15884,
+      "sizeBytes": 15900,
       "extraction": {
         "status": "parsed"
       },
@@ -25006,7 +25038,7 @@
           ]
         }
       },
-      "sizeBytes": 9880,
+      "sizeBytes": 12413,
       "extraction": {
         "status": "parsed"
       },
@@ -25206,9 +25238,15 @@
         },
         "readSpecTasks": {
           "line": 84
+        },
+        "setStatus": {
+          "line": 284,
+          "params": [
+            "fields"
+          ]
         }
       },
-      "sizeBytes": 11622,
+      "sizeBytes": 14445,
       "extraction": {
         "status": "parsed"
       },
@@ -26850,6 +26888,20 @@
         "direction": "",
         "description": ""
       }
+    },
+    "downloaded": {
+      "UPDATE_DOWNLOADED": {
+        "name": "update-downloaded",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "install": {
+      "INSTALL_UPDATE": {
+        "name": "install-update",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -27826,7 +27878,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 301,
+        "parsed": 303,
         "unsupported": 84,
         "partial": 0
       }
@@ -27873,9 +27925,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 473,
+      "visitedEntries": 475,
       "traversedDirectories": 80,
-      "eligibleFiles": 385,
+      "eligibleFiles": 387,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27892,7 +27944,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 385,
+      "indexedFiles": 387,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27900,6 +27952,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f572aecba93fd955cf0066179faf19ce574c95d4860282a3e3b2dd8f709f281a"
+    "revision": "7da2e5b2b85fd6a2f059de6d479f00b6f35b17b92c456584fe7fbeb3cb9cff6f"
   }
 }

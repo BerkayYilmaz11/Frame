@@ -31,7 +31,8 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
-const INDEX_VERSION = 1;
+// 2: digestLine and record lines are first sentences, not first physical lines.
+const INDEX_VERSION = 2;
 const INDEX_DIR_REL = path.join('.frame', 'index');
 const INDEX_FILE = 'spec-index.json';
 const SPECS_REL = path.join('.frame', 'specs');
@@ -109,6 +110,62 @@ function parseFootprint(md) {
 
 const PATHLIKE = /^[\w.@$-]+(?:\/[\w.@$*-]+)+$/;
 
+// One-line summaries are capped so a hint stays inlinable: the host inlines a
+// hook's additionalContext only up to 2000 characters, and prompt mode sends
+// up to three digest lines. Across this repo's digests the first sentence has
+// a median of 195 characters; 280 lets three in four through whole.
+const DIGEST_LINE_CAP = 280;
+const OUTCOME_LINE_CAP = 160;
+
+/**
+ * First paragraph of a markdown body, unwrapped: leading headings and blank
+ * lines are skipped, then lines are joined up to the first blank line or
+ * heading. Digests wrap near 75 columns, so a physical line is rarely a whole
+ * thought. A line that opens with "-" or "+" is joined as well: it may be
+ * wrapped prose, and when it is a list under "provides:" its first items say
+ * more than the colon does.
+ */
+function firstParagraph(md) {
+  const out = [];
+  for (const raw of String(md || '').split('\n')) {
+    const s = raw.trim();
+    if (!out.length) {
+      if (s && !s.startsWith('#')) out.push(s);
+      continue;
+    }
+    if (!s || s.startsWith('#')) break;
+    out.push(s);
+  }
+  return out.join(' ');
+}
+
+/**
+ * The first sentence of `text`, cut at a word boundary with "…" when it runs
+ * past `cap`. A period ends a sentence only before whitespace — so not inside
+ * `spec-index.js` or `v1.2` — and not after "e.g.", after the number of a
+ * list item, or when a lowercase word follows.
+ */
+function firstSentence(text, cap) {
+  const s = String(text || '').trim();
+  let end = s.length;
+  const re = /[.!?]+["'”’)\]`*_]*(?=\s)/g;
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    const stop = m.index + m[0].length;
+    const head = s.slice(0, stop);
+    if (!/\p{L}/u.test(head)) continue;
+    if (/(?:^|[\s(])(?:e\.g|i\.e|vs|cf)\.$/i.test(head)) continue;
+    if (/^\s+\p{Ll}/u.test(s.slice(stop))) continue;
+    end = stop;
+    break;
+  }
+  const sentence = s.slice(0, end);
+  if (sentence.length <= cap) return sentence;
+  const cut = sentence.slice(0, cap - 1);
+  const space = cut.lastIndexOf(' ');
+  return (space > 0 ? cut.slice(0, space) : cut).replace(/[\s,;:—–(-]+$/, '') + '…';
+}
+
 /**
  * Outcome sections: `## T<n> — title` … `_Captured: <date> …_`.
  * Files come from the sentence after a "Files touched" marker when present,
@@ -122,8 +179,7 @@ function parseOutcome(md) {
   while ((match = re.exec(md)) !== null) marks.push({ task: match[1], title: match[2].trim(), start: match.index });
   for (let i = 0; i < marks.length; i++) {
     const body = md.slice(marks[i].start, i + 1 < marks.length ? marks[i + 1].start : md.length);
-    const firstPara = body.split('\n').slice(1).map(s => s.trim()).filter(Boolean)[0] || '';
-    const line = firstPara.split(/(?<=[.!?])\s/)[0].slice(0, 160);
+    const line = firstSentence(firstParagraph(body), OUTCOME_LINE_CAP);
     const dateM = body.match(/_Captured:\s*([0-9]{4}-[0-9]{2}-[0-9]{2})/);
     const scope = (() => {
       const ft = body.match(/Files touched[:.]?([\s\S]*?)(?:\n\n|_Captured|$)/i);
@@ -141,12 +197,12 @@ function parseOutcome(md) {
   return sections;
 }
 
-/** digest.md: front-matter + first non-heading body line. */
+/** digest.md: front-matter + the first sentence of the body. */
 function parseDigest(md) {
   if (!md) return { fm: parseFrontMatter(null), digestLine: null };
   const fm = parseFrontMatter(md);
   const body = md.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, '');
-  const digestLine = body.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'))[0] || null;
+  const digestLine = firstSentence(firstParagraph(body), DIGEST_LINE_CAP) || null;
   return { fm, digestLine };
 }
 

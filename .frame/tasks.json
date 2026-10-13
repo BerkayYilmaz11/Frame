@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-09-21T13:24:03.022Z",
+  "lastUpdated": "2026-10-13T07:58:01Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8491,10 +8491,40 @@
       "createdAt": "2026-09-21T13:24:03.022Z",
       "updatedAt": "2026-09-21T13:52:51Z",
       "completedAt": "2026-09-21T13:52:51Z"
+    },
+    {
+      "id": "task-spec-hint-first-sentence",
+      "title": "Spec hint line carries the first full sentence",
+      "description": "scripts/spec-index.js takes the first physical line of digest.md as a spec's hint line, and the first physical line of each outcome section cut at 160 characters. Digests wrap near 75 columns and outcome paragraphs run long, so 45 of this repo's 50 digest lines and 361 of its 405 outcome lines end mid-sentence. Read the first paragraph unwrapped, take its first sentence, and when that runs past the cap cut it at a word boundary with an ellipsis (digest 280 characters, outcome 160). Bump INDEX_VERSION so cached indexes rebuild. Files: scripts/spec-index.js, test/spec-index.test.js.",
+      "userRequest": "User said: \"1. Onu o zaman task açıp bir yapalım,\" — replying to the proposal to do the two small spec-channel fixes (full-sentence spec line, narrower command hint) as tasks on one work branch.",
+      "acceptanceCriteria": "- A digest whose first sentence wraps over several lines yields the whole sentence as digestLine.\n- A sentence longer than the cap ends at a word boundary with an ellipsis.\n- Outcome lines follow the same rule at 160 characters.\n- A cached version-1 index is rebuilt.\n- npm test passes.",
+      "notes": "Step 1 of the decision-memory roadmap (Faz 1 in the doc \"Frame'in hafıza katmanı\"). The 280 cap comes from this repo's digests: first sentences have a median of 195 characters and 38 of 50 fit whole, while three lines stay well under the host's 2000-character inline limit. spec-knowledge-layer's rule holds: the line is an entry point, never a substitute for the chain.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "2026-10-13 — decision-memory roadmap, step 1; branch fix/spec-channel-fixes under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-13T07:52:20Z",
+      "updatedAt": "2026-10-13T07:58:01Z",
+      "completedAt": "2026-10-13T07:58:01Z"
+    },
+    {
+      "id": "task-narrow-spec-command-hint",
+      "title": "Narrow the conversational trigger of spec-command-hint",
+      "description": "scripts/spec-command-hint.js treats any prompt that holds the word \"spec\" and one of plan/task/implement as a spec command, stages that command's flow and tells the agent to follow it. In this repo's sessions the rule fired on 22 of 560 distinct prompts and none was a command: all were discussion, and 19 of them were read as spec.tasks. Make the conversational rule count only in a short prompt (at most 8 words) and only on plural task forms. The explicit forms (/spec.plan, spec.plan, spec plan) and the Frame button stay as they are. Files: scripts/spec-command-hint.js, test/spec-command-hint.test.js.",
+      "userRequest": "User said: \"1. Onu o zaman task açıp bir yapalım,\" — replying to the proposal to do the two small spec-channel fixes (full-sentence spec line, narrower command hint) as tasks on one work branch.",
+      "acceptanceCriteria": "- A short ask such as \"alpha spec ini planla\" still stages the flow.\n- A long message that mentions a spec beside a plan, task or implement word says nothing.\n- \"task\" as a noun beside \"spec\" does not select spec.tasks, and neither does \"tasks.json\".\n- The explicit forms behave as before at any length.\n- npm test passes.",
+      "notes": "Step 1 of the decision-memory roadmap (Faz 1 in the doc \"Frame'in hafıza katmanı\"). Found while measuring and left unchanged: the explicit forms also fire inside discussion (6 of the 10 explicit hits in the same sessions, e.g. a sentence that names spec.plan). Whether to narrow those is the user's call.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "2026-10-13 — decision-memory roadmap, step 1; branch fix/spec-channel-fixes under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-13T07:52:20Z",
+      "updatedAt": "2026-10-13T07:58:01Z",
+      "completedAt": "2026-10-13T07:58:01Z"
     }
   ],
   "metadata": {
-    "totalCreated": 619,
+    "totalCreated": 621,
     "totalCompleted": 29
   },
   "categories": {

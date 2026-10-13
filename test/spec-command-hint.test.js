@@ -107,6 +107,28 @@ test('a verb without "spec" is just English and says nothing', () => {
   assert.equal(ask(root, 'bu isi planla'), null);
 });
 
+test('a long message that names a spec and a verb is a discussion, not a command', () => {
+  // Measured on this repo's sessions: 22 conversational hits in 560 prompts,
+  // none of them a command. Each one staged a flow the user had not asked for.
+  const root = mkProject();
+  assert.equal(ask(root, 'henuz spec e gecmeyelim, daha tartisiyoruz; once plan uzerinde biraz daha konusalim'), null);
+  assert.equal(ask(root, 'we should talk about how a spec gets its plan before anyone writes more code'), null);
+});
+
+test('"task" as a noun beside "spec" is not the tasks command', () => {
+  const root = mkProject([{ slug: 'alpha', title: 'Alpha', phase: 'planned' }]);
+  assert.equal(ask(root, 'bu spec e ek bir task olarak eklenebilir'), null);
+  assert.equal(ask(root, 'alpha spec neden tasks.json uretiyor'), null);
+  assert.ok(ask(root, 'alpha spec inin tasklarını çıkar'));
+  assert.ok(ask(root, 'generate tasks for the alpha spec'));
+});
+
+test('an explicit form counts at any length', () => {
+  const root = mkProject();
+  const ctx = ctxOf(ask(root, '/spec.plan for alpha, and keep the migration and the rollback as separate steps please'));
+  assert.match(ctx, /spec\.plan` on spec `alpha`/);
+});
+
 test('an unrelated prompt says nothing', () => {
   const root = mkProject();
   assert.equal(ask(root, 'why is this test failing'), null);
