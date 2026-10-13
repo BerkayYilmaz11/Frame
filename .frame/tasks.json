@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:46:40.024Z",
+  "lastUpdated": "2026-10-13T14:53:51.435Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8631,13 +8631,13 @@
       "title": "Add `scripts/eval/spec-close/make-fixture.js` (a throwaway git project with one two-task spec, `.frame/bin/` from `structureBootstrap.copyParserScripts`, staged command files from `commandStaging`, `.claude/settings.json` holding `SPEC_HINT_HOOKS`, its own activity home; kinds `natural`, `induced-prompt`, `induced-turn`) and `scripts/eval/spec-close/run.js` (headless `claude -p` sessions over fixtures, several at a time, each with `--max-budget-usd`, tabulating `spec-close.js --json`, the reminder and close rows, cost and tool calls); cover the three fixture kinds in `test/spec-close-fixture.test.js` by piping hook payloads through the fixture's own `.frame/bin/`, with no agent",
       "description": "",
       "source": "spec:spec-close-step:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:53:51.435Z",
+      "completedAt": "2026-10-13T14:53:51.435Z"
     },
     {
       "id": "task-spec-spec-close-step-T10",

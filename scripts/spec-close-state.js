@@ -458,6 +458,7 @@ function reminder(root, sessionId, now = Date.now()) {
 }
 
 module.exports = {
+  STATE_VERSION,
   SLUG_RE,
   STATE_REL,
   SESSIONS_REL,

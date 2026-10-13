@@ -17669,6 +17669,199 @@
         }
       }
     },
+    "scripts/eval/spec-close/make-fixture": {
+      "file": "scripts/eval/spec-close/make-fixture.js",
+      "description": "",
+      "exports": [
+        "greet"
+      ],
+      "depends": [
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "node:test",
+        "node:assert/strict",
+        "src/greet",
+        "src/index"
+      ],
+      "functions": {
+        "greet": {
+          "line": 133,
+          "params": [
+            "name"
+          ],
+          "purpose": "A greeting for \\`name\\`, or for a stranger when there is none."
+        },
+        "write": {
+          "line": 197,
+          "params": [
+            "root",
+            "rel",
+            "content"
+          ]
+        },
+        "taskStates": {
+          "line": 203,
+          "params": [
+            "kind",
+            "now"
+          ]
+        },
+        "makeFixture": {
+          "line": 219,
+          "params": [
+            "{ kind",
+            "dir = null",
+            "now = Date.now("
+          ],
+          "purpose": "Build one fixture. Returns what a runner needs: where it is, what to ask,"
+        }
+      },
+      "sizeBytes": 12599,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "greet": "2fcd7e9bb126b07e",
+          "makeFixture": "063d1a3dcb408e3a"
+        }
+      }
+    },
+    "scripts/eval/spec-close/run": {
+      "file": "scripts/eval/spec-close/run.js",
+      "description": "",
+      "exports": [
+        "parseArgs",
+        "agentArgs",
+        "sessionEnv",
+        "parseTranscript",
+        "closeRows",
+        "summarize",
+        "table",
+        "DISALLOWED"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "make-fixture"
+      ],
+      "functions": {
+        "parseArgs": {
+          "line": 74,
+          "params": [
+            "argv"
+          ]
+        },
+        "agentArgs": {
+          "line": 107,
+          "params": [
+            "{ prompt",
+            "settingsPath",
+            "budget",
+            "model }"
+          ],
+          "purpose": "The CLI arguments for one fixture session."
+        },
+        "sessionEnv": {
+          "line": 123,
+          "params": [
+            "base",
+            "fixture"
+          ],
+          "purpose": "The environment for one fixture session: the caller's, minus what binds it to the caller."
+        },
+        "parseTranscript": {
+          "line": 143,
+          "params": [
+            "text"
+          ],
+          "purpose": "A stream-json transcript → the few facts the table needs. Tolerant of"
+        },
+        "closeRows": {
+          "line": 175,
+          "params": [
+            "activityHome",
+            "root"
+          ],
+          "purpose": "The fixture's own activity rows that concern the close step."
+        },
+        "summarize": {
+          "line": 190,
+          "params": [
+            "{ id",
+            "kind",
+            "verdict",
+            "defects",
+            "transcript",
+            "rows",
+            "timedOut",
+            "exitCode }"
+          ],
+          "purpose": "One session's row. `verdict` is spec-close.js's, run after the session."
+        },
+        "table": {
+          "line": 217,
+          "params": [
+            "results"
+          ],
+          "purpose": "Results → the markdown table recorded in the spec's outcome."
+        },
+        "runSession": {
+          "line": 242,
+          "params": [
+            "fixture",
+            "opts",
+            "runDir"
+          ]
+        },
+        "inspect": {
+          "line": 269,
+          "params": [
+            "fixture",
+            "runDir"
+          ],
+          "purpose": "What the fixture looks like after its session, read without changing it."
+        },
+        "pool": {
+          "line": 286,
+          "params": [
+            "items",
+            "size",
+            "worker"
+          ]
+        },
+        "main": {
+          "line": 300,
+          "params": [
+            "argv"
+          ]
+        },
+        "median": {
+          "line": 209,
+          "params": [
+            "values"
+          ]
+        }
+      },
+      "sizeBytes": 16410,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "agentArgs": "0c1a50eb171b8b31",
+          "closeRows": "c7d8e48a6ace2a80",
+          "inspect": "3f4ba67db26288f4",
+          "parseTranscript": "bdcb3da86d5ef5b0",
+          "sessionEnv": "8bc17c5c687a1f89",
+          "summarize": "0e166fedcdbe611a",
+          "table": "15e2e5c767ab65ea"
+        }
+      }
+    },
     "scripts/eval/tasks.json": {
       "file": "scripts/eval/tasks.json",
       "description": "",
@@ -18570,6 +18763,7 @@
       "file": "scripts/spec-close-state.js",
       "description": "Spec close state — what a closed spec still owes.",
       "exports": [
+        "STATE_VERSION",
         "SLUG_RE",
         "STATE_REL",
         "SESSIONS_REL",
@@ -18783,7 +18977,7 @@
           "purpose": "What a hook should do about closed specs right now."
         }
       },
-      "sizeBytes": 18257,
+      "sizeBytes": 18274,
       "extraction": {
         "status": "parsed"
       },
@@ -25337,6 +25531,64 @@
         "description": "134639e22914d629"
       }
     },
+    "test/spec-close-fixture.test": {
+      "file": "test/spec-close-fixture.test.js",
+      "description": "Spec close step — fixture and runner tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "path",
+        "child_process",
+        "scripts/eval/spec-close/make-fixture",
+        "scripts/eval/spec-close/run",
+        "src/shared/frameTemplates"
+      ],
+      "functions": {
+        "withFixture": {
+          "line": 36,
+          "params": [
+            "kind",
+            "fn"
+          ]
+        },
+        "envOf": {
+          "line": 46,
+          "params": [
+            "fixture"
+          ],
+          "purpose": "The fixture's environment for anything run inside it: its own activity home, nobody else's root."
+        },
+        "hook": {
+          "line": 58,
+          "params": [
+            "fixture",
+            "event",
+            "script",
+            "payload"
+          ],
+          "purpose": "Run one registered hook the way Claude Code would: the command string from"
+        },
+        "closeCheck": {
+          "line": 76,
+          "params": [
+            "fixture"
+          ]
+        }
+      },
+      "sizeBytes": 15079,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "01eee78c43692144",
+        "purposes": {
+          "envOf": "77a2d52e47a88a90",
+          "hook": "90fb94588feabdbf"
+        }
+      }
+    },
     "test/spec-close-state.test": {
       "file": "test/spec-close-state.test.js",
       "description": "Spec close state — helper tests.",
@@ -28447,7 +28699,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 307,
+        "parsed": 310,
         "unsupported": 84,
         "partial": 0
       }
@@ -28494,9 +28746,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 479,
-      "traversedDirectories": 80,
-      "eligibleFiles": 391,
+      "visitedEntries": 483,
+      "traversedDirectories": 81,
+      "eligibleFiles": 394,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -28513,7 +28765,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 391,
+      "indexedFiles": 394,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -28521,6 +28773,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "049e5683ae0f7ad1053fa72fcb5bd3a69f8fa369c664d84b48822cb0b3ac6c90"
+    "revision": "afbf256f7848e0d0030134f13022973b4ab1457e4865cffe2edc78edd4108e9c"
   }
 }

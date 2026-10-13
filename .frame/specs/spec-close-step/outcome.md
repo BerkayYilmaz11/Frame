@@ -111,3 +111,20 @@ reminder and when, and the two cases that are never announced. As `plan.md` D15 
 _Captured: 2026-10-13 · 1 file change_
 
 ---
+## T09 — Fixture builder and runner for the test run
+
+Added `scripts/eval/spec-close/make-fixture.js`, which builds a throwaway git project around a
+two-task dummy spec with `.frame/bin/`, the staged command files and the hooks all taken from Frame's
+own code, in three kinds (`natural`, `induced-prompt`, `induced-turn`), and `run.js`, which launches
+headless `claude -p` sessions over them and tabulates `spec-close.js --json`, the reminder and close
+rows, cost and tool calls; `test/spec-close-fixture.test.js` drives each kind through the fixture's own
+registered hook commands with no agent. Chosen where `plan.md` was silent: sessions launch with the
+permission file `implement-launch.js` builds and `--permission-mode auto` (not
+`--dangerously-skip-permissions`), project settings only, no MCP and no saved session, and `--n` has
+no default so nothing is spent by accident. Files: the two scripts, the test,
+`scripts/spec-close-state.js` (exports `STATE_VERSION`).
+Followup: Frame's autonomous allowlist (`IMPLEMENT_ALLOW`) does not name `spec-close.js`, so in a real autonomous run the digest step's command is decided by auto mode's classifier rather than by a rule.
+
+_Captured: 2026-10-13 · 4 file changes_
+
+---
