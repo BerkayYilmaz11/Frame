@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:38:46.429Z",
+  "lastUpdated": "2026-10-13T14:40:58.328Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8592,13 +8592,13 @@
       "title": "Ship the two scripts: `spec-close-state.js` under `HELPER_FILES`, `spec-close.js` under `ENTRY_FILES` with its `ENTRY_REQUIRES` entry in `src/main/structureBootstrap.js`, and both in `build.files` in `package.json`",
       "description": "",
       "source": "spec:spec-close-step:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:40:58.328Z",
+      "completedAt": "2026-10-13T14:40:58.328Z"
     },
     {
       "id": "task-spec-spec-close-step-T07",

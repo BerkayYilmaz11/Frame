@@ -72,3 +72,15 @@ existing `no-context` reason. Files: `scripts/spec-hint.js`, `test/spec-hint.tes
 _Captured: 2026-10-13 · 2 file changes_
 
 ---
+## T06 — Ship the helper and the script to `.frame/bin/`
+
+Listed `spec-close-state.js` under `HELPER_FILES` and `spec-close.js` under `ENTRY_FILES` in
+`src/main/structureBootstrap.js`, with `'spec-close.js': ['spec-close-state.js']` in
+`ENTRY_REQUIRES`, and added both to `build.files` in `package.json`. The two hooks get no
+`ENTRY_REQUIRES` entry: they read the helper behind a guarded require and ship without it. `tasks.md`
+named no test for this task; two cases went into `test/spec-close.test.js` — the staged copy runs
+from `.frame/bin/`, and an installation without the helper withholds only the script.
+
+_Captured: 2026-10-13 · 3 file changes_
+
+---

@@ -338,3 +338,43 @@ test('without spec-index.js beside it the script still runs, and says what it co
   assert.equal(res.status, 0);
   assert.match(res.stdout, /digest: ok — \.frame\/specs\/a-spec\/digest\.md\n {2}\(not checked: first-sentence length — /);
 });
+
+// ─── shipping ─────────────────────────────────────────────
+//
+// The script reaches a project through structureBootstrap, and it is the one
+// close-step file that cannot run without the helper. The two hooks that also
+// read the helper do so behind a guarded require, so they ship regardless.
+
+const { stageParserScripts } = require('../src/main/structureBootstrap');
+
+test('Frame stages the helper and the script into .frame/bin/, and the staged copy runs', () => {
+  const root = mkProject();
+  const report = stageParserScripts(root);
+  assert.deepEqual(report.unavailable, []);
+  assert.ok(report.copied.includes('spec-close-state.js'));
+  assert.ok(report.copied.includes('spec-close.js'));
+  assert.ok(report.copied.indexOf('spec-close-state.js') < report.copied.indexOf('spec-close.js'), 'helper before entry');
+
+  const res = spawnSync('node', [path.join(root, '.frame', 'bin', 'spec-close.js'), 'a-spec', '--json'], {
+    encoding: 'utf8',
+    env: { ...process.env, FRAME_PROJECT_ROOT: '', FRAME_ACTIVITY_HOME: path.join(root, '.activity-home') }
+  });
+  assert.equal(res.status, 0);
+  assert.equal(JSON.parse(res.stdout).verdict, 'missing');
+});
+
+test('an installation without the helper withholds the script and still ships both hooks', () => {
+  const root = mkProject();
+  const source = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-scripts-'));
+  try {
+    fs.cpSync(path.join(__dirname, '..', 'scripts'), source, { recursive: true });
+    fs.rmSync(path.join(source, 'spec-close-state.js'));
+    const report = stageParserScripts(root, { sourceDir: source });
+    assert.deepEqual(report.unavailable, ['spec-close.js']);
+    const bin = (file) => path.join(root, '.frame', 'bin', file);
+    assert.ok(!fs.existsSync(bin('spec-close.js')), 'never activated without what it requires');
+    assert.ok(fs.existsSync(bin('docs-hint.js')) && fs.existsSync(bin('spec-hint.js')), 'the hooks degrade on their own');
+  } finally {
+    fs.rmSync(source, { recursive: true, force: true });
+  }
+});

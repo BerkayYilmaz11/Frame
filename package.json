@@ -116,6 +116,8 @@
       "scripts/module-hint.js",
       "scripts/docs-hint.js",
       "scripts/spec-command-hint.js",
+      "scripts/spec-close-state.js",
+      "scripts/spec-close.js",
       "scripts/toolVocabulary.js",
       "scripts/redact.js",
       "scripts/activity-log.js",

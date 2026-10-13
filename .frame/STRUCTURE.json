@@ -5761,7 +5761,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 94,
+          "line": 99,
           "params": [
             "fsImpl",
             "src",
@@ -5770,7 +5770,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 127,
+          "line": 132,
           "params": [
             "projectPath",
             "options = {}"
@@ -5778,61 +5778,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 208,
+          "line": 213,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 219,
+          "line": 224,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 253,
+          "line": 258,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 294,
+          "line": 299,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 314,
+          "line": 319,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 389,
+          "line": 394,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 409,
+          "line": 414,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 422,
+          "line": 427,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 434,
+          "line": 439,
           "params": [
             "envelope",
             "code"
@@ -5840,7 +5840,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 493,
+          "line": 498,
           "params": [
             "projectPath",
             "options = {}"
@@ -5848,7 +5848,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 611,
+          "line": 616,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5856,7 +5856,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 26943,
+      "sizeBytes": 27244,
       "extraction": {
         "status": "parsed"
       },
@@ -6610,7 +6610,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4019,
+      "sizeBytes": 4087,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -25387,7 +25387,8 @@
         "scripts/spec-close",
         "scripts/spec-index",
         "src/shared/activityEvents",
-        "scripts/activity-log"
+        "scripts/activity-log",
+        "src/main/structureBootstrap"
       ],
       "functions": {
         "mkProject": {
@@ -25416,7 +25417,7 @@
           "purpose": "Every file under the project, with its content — the activity home aside."
         }
       },
-      "sizeBytes": 15370,
+      "sizeBytes": 17474,
       "extraction": {
         "status": "parsed"
       },
@@ -28496,6 +28497,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "995cf54b4274cc47e6d7309323e7ac4e1802572428953ccdeec1e4412101a7c8"
+    "revision": "a86b4d777941b5628d67c03ae9e5d296bae4bd682a7586caa97a57c322718546"
   }
 }
