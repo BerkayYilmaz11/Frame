@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:35:11.471Z",
+  "lastUpdated": "2026-10-13T14:38:46.429Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8579,13 +8579,13 @@
       "title": "In `scripts/spec-hint.js`, compute the reminder in `promptMode` before the topic early returns, behind a guarded require, put it ahead of the topic lines, and when the two together would pass the host's inline limit drop topic lines from the end without marking them seen; extend `test/spec-hint.test.js` for the reminder alone, with topics, over the limit, and already announced by the docs hook in the same session",
       "description": "",
       "source": "spec:spec-close-step:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:38:46.429Z",
+      "completedAt": "2026-10-13T14:38:46.429Z"
     },
     {
       "id": "task-spec-spec-close-step-T06",

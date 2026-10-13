@@ -19016,64 +19016,65 @@
         "fs",
         "path",
         "activity-log",
-        "toolVocabulary"
+        "toolVocabulary",
+        "spec-close-state"
       ],
       "functions": {
         "toPosix": {
-          "line": 43,
+          "line": 47,
           "params": [
             "p"
           ]
         },
         "fold": {
-          "line": 45,
+          "line": 49,
           "params": [
             "s"
           ]
         },
         "tokenize": {
-          "line": 54,
+          "line": 58,
           "params": [
             "s"
           ]
         },
         "readStdin": {
-          "line": 58
+          "line": 62
         },
         "readJson": {
-          "line": 62,
+          "line": 66,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 68,
+          "line": 72,
           "params": [
             "hookCwd"
           ]
         },
         "contextCliPath": {
-          "line": 77,
+          "line": 81,
           "params": [
             "root"
           ]
         },
         "stateFile": {
-          "line": 85,
+          "line": 89,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "loadState": {
-          "line": 90,
+          "line": 94,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "saveState": {
-          "line": 95,
+          "line": 99,
           "params": [
             "root",
             "sessionId",
@@ -19081,23 +19082,23 @@
           ]
         },
         "cleanupState": {
-          "line": 103,
+          "line": 107,
           "params": [
             "root"
           ]
         },
         "setHookCli": {
-          "line": 155,
+          "line": 168,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 159
+          "line": 172
         },
         "note": {
-          "line": 163,
+          "line": 176,
           "params": [
             "root",
             "ev",
@@ -19105,7 +19106,7 @@
           ]
         },
         "quiet": {
-          "line": 178,
+          "line": 191,
           "params": [
             "root",
             "mode",
@@ -19115,7 +19116,7 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 184,
+          "line": 197,
           "params": [
             "eventName",
             "context",
@@ -19123,31 +19124,61 @@
           ]
         },
         "formatEntry": {
-          "line": 199,
+          "line": 212,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 211,
+          "line": 224,
           "params": [
             "input"
           ]
         },
+        "inlineBudget": {
+          "line": 283,
+          "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
+        },
+        "closeReminder": {
+          "line": 293,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "The close reminder for this prompt, or null. The helper decides everything"
+        },
+        "freshTopics": {
+          "line": 308,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "Specs related to this prompt that the session has not been shown, or null"
+        },
+        "topicBlock": {
+          "line": 348,
+          "params": [
+            "index",
+            "list"
+          ]
+        },
         "promptMode": {
-          "line": 265,
+          "line": 358,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 14710,
+      "sizeBytes": 17558,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
+          "closeReminder": "53f0b45f5426931c",
+          "freshTopics": "0d2ec57657e79c1b",
+          "inlineBudget": "493a88afee203081",
           "quiet": "3e8f4a1504407442",
           "setHookCli": "c07ecdee8595a6cf"
         }
@@ -25452,7 +25483,8 @@
         "os",
         "path",
         "child_process",
-        "scripts/activity-log"
+        "scripts/activity-log",
+        "src/shared/activityEvents"
       ],
       "functions": {
         "runHook": {
@@ -25482,14 +25514,34 @@
           "params": [
             "root"
           ]
+        },
+        "addClosed": {
+          "line": 351,
+          "params": [
+            "root",
+            "{ digest = false } = {}"
+          ],
+          "purpose": "Give a project a spec that closed after reminders started, with no digest."
+        },
+        "wideIndex": {
+          "line": 365,
+          "params": [
+            "slugs",
+            "width"
+          ],
+          "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 15900,
+      "sizeBytes": 25101,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "68fc601a032f6611"
+        "description": "68fc601a032f6611",
+        "purposes": {
+          "addClosed": "52b4ef65691ca189",
+          "wideIndex": "42801f3b44956247"
+        }
       }
     },
     "test/spec-index.test": {
@@ -28444,6 +28496,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f5c0d1a89bb0f1045713546816ac39fc55b7bf85d0caef6b31f8fdad49cf741e"
+    "revision": "995cf54b4274cc47e6d7309323e7ac4e1802572428953ccdeec1e4412101a7c8"
   }
 }

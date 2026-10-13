@@ -332,3 +332,179 @@ test('a payload carrying a path but no tool name still works', () => {
   });
   assert.ok(out, 'a nameless payload with a path must still inject');
 });
+
+// ─── the close reminder at prompt time ────────────────────
+//
+// docs-hint.js says it on the next tool call; this is for the turn that ended
+// without one. The helper's decisions are covered in spec-close-state.test.js
+// — asserted here is that the reminder arrives whatever the prompt is about,
+// goes first, and costs related specs their place only when the two together
+// would pass what the host inlines.
+
+const DOCS_HINT = path.join(__dirname, '..', 'scripts', 'docs-hint.js');
+const events = require('../src/shared/activityEvents');
+const CLOSE_LINE = 'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me';
+const TOPIC_HEADER = 'Specs related to this request (from the project\'s spec archive):';
+const BUDGET = 1980; // Claude Code inlines 2000; the hook keeps docs-hint's margin
+
+/** Give a project a spec that closed after reminders started, with no digest. */
+function addClosed(root, { digest = false } = {}) {
+  const frame = path.join(root, '.frame');
+  fs.mkdirSync(path.join(frame, 'specs', 'close-me'), { recursive: true });
+  if (digest) fs.writeFileSync(path.join(frame, 'specs', 'close-me', 'digest.md'), '---\nkeywords: a\n---\nDone.\n');
+  fs.mkdirSync(path.join(frame, 'runtime', 'spec-close'), { recursive: true });
+  fs.writeFileSync(path.join(frame, 'runtime', 'spec-close', 'state.json'),
+    JSON.stringify({ version: 1, baseline: '2026-01-01T00:00:00.000Z', tasks: { mtimeMs: 0, size: 0 }, closed: [] }));
+  fs.writeFileSync(path.join(frame, 'tasks.json'), JSON.stringify({
+    tasks: [1, 2].map((n) => ({ id: `t${n}`, source: `spec:close-me:T0${n}`, status: 'completed', completedAt: '2026-02-01T10:00:00Z' }))
+  }));
+  return root;
+}
+
+/** An index whose topics all match "telemetry", each with a digest line of `width` characters. */
+function wideIndex(slugs, width) {
+  const topics = {};
+  for (const slug of slugs) {
+    topics[slug] = {
+      title: slug, phase: 'done', keywords: ['telemetry'], declared: true, related: [], supersedes: null,
+      digestLine: `${slug} ${'x'.repeat(width)}`.slice(0, width), paths: []
+    };
+  }
+  return { version: 2, generatedAt: 'x', root: 'x', topics, files: {} };
+}
+
+const ctxOf = (out) => out.hookSpecificOutput.additionalContext;
+const prompt = (root, text, session = 'p1') => ({ session_id: session, cwd: root, prompt: text });
+
+test('a prompt with nothing to search still carries the close reminder', () => {
+  for (const make of [() => mkProject(null), () => mkProject(IDX_ONE)]) {
+    const root = addClosed(make());
+    const out = runHook('prompt', prompt(root, 'ok'));
+    assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
+    assert.equal(ctxOf(out), CLOSE_LINE);
+  }
+});
+
+test('with related specs the reminder goes first and the block follows as it always was', () => {
+  const plain = ctxOf(runHook('prompt', prompt(mkProject(IDX_ONE), 'telemetry polling')));
+  assert.ok(plain.startsWith(TOPIC_HEADER), 'without a closed spec the payload is unchanged');
+
+  const root = addClosed(mkProject(IDX_ONE));
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'telemetry polling')));
+  assert.equal(ctx, `${CLOSE_LINE}\n\n${plain}`);
+  // Both were delivered, so neither repeats in the session.
+  assert.equal(runHook('prompt', prompt(root, 'telemetry polling')), null);
+});
+
+test('once the digest exists the prompt payload is exactly the related specs', () => {
+  const root = addClosed(mkProject(IDX_ONE), { digest: true });
+  assert.ok(ctxOf(runHook('prompt', prompt(root, 'telemetry polling'))).startsWith(TOPIC_HEADER));
+  assert.equal(runHook('prompt', prompt(root, 'ok', 'p2')), null);
+});
+
+test('over the inline limit, related specs are dropped from the end and come back later', () => {
+  const root = addClosed(mkProject(wideIndex(['spec-one', 'spec-two', 'spec-three'], 700)));
+  const first = ctxOf(runHook('prompt', prompt(root, 'telemetry')));
+  assert.ok(first.startsWith(`${CLOSE_LINE}\n\n${TOPIC_HEADER}`));
+  assert.ok(first.length <= BUDGET, `${first.length} chars exceeds ${BUDGET}`);
+  assert.match(first, /- spec-one \(done\)/);
+  assert.match(first, /- spec-two \(done\)/);
+  assert.ok(!first.includes('spec-three'), 'the last line gave way');
+  assert.match(first, /let the user know which prior decisions apply\.$/, 'the block is still whole');
+
+  // The dropped spec was not marked as shown: the next prompt delivers it,
+  // and only it — the reminder and the two sent lines are not repeated.
+  const second = ctxOf(runHook('prompt', prompt(root, 'telemetry')));
+  assert.ok(second.startsWith(TOPIC_HEADER));
+  assert.match(second, /- spec-three \(done\)/);
+  assert.ok(!second.includes('spec-one') && !second.includes('spec-two'));
+  assert.equal(runHook('prompt', prompt(root, 'telemetry')), null);
+});
+
+test('when not even one related spec fits, the reminder goes alone and says why in the record', () => {
+  const root = addClosed(mkProject(wideIndex(['spec-one'], 2500)));
+  withActivity(root, (env) => {
+    assert.equal(ctxOf(runHook('prompt', prompt(root, 'telemetry'), { env })), CLOSE_LINE);
+    const rows = recordsFor(root);
+    assert.deepEqual(rows.map((r) => [r.ev, r.mode, r.reason || null]),
+      [['hint.injected', 'spec-close', null], ['hint.quiet', 'prompt', 'no-context']]);
+    // Unmarked, so it arrives on the next prompt the way it always did.
+    assert.match(ctxOf(runHook('prompt', prompt(root, 'telemetry'), { env })), /- spec-one \(done\)/);
+  });
+});
+
+test('Codex inlines more, so nothing is dropped there', () => {
+  const root = addClosed(mkProject(wideIndex(['spec-one', 'spec-two', 'spec-three'], 700)));
+  const stdout = execFileSync('node', [HINT, 'prompt', 'codex'], {
+    input: JSON.stringify({ ...prompt(root, 'telemetry'), turn_id: 't', model: 'm' }), encoding: 'utf8'
+  });
+  const ctx = ctxOf(JSON.parse(stdout));
+  assert.ok(ctx.startsWith(CLOSE_LINE));
+  for (const slug of ['spec-one', 'spec-two', 'spec-three']) assert.ok(ctx.includes(`- ${slug} (done)`));
+  assert.ok(ctx.length > 2000);
+});
+
+test('a reminder the docs hook already gave on a tool call is not repeated at the prompt', () => {
+  const root = addClosed(mkProject(IDX_ONE));
+  const tool = execFileSync('node', [DOCS_HINT, 'pre-edit'], {
+    input: JSON.stringify({ session_id: 'same', cwd: root, tool_name: 'Bash', tool_input: { command: 'git status' } }),
+    encoding: 'utf8'
+  });
+  assert.equal(ctxOf(JSON.parse(tool)), CLOSE_LINE);
+
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'telemetry polling', 'same')));
+  assert.ok(ctx.startsWith(TOPIC_HEADER), 'related specs only');
+  assert.ok(!ctx.includes('close-me'));
+  assert.equal(runHook('prompt', prompt(root, 'ok', 'same')), null);
+});
+
+test('and one given at the prompt is not repeated on the next tool call', () => {
+  const root = addClosed(mkProject(null));
+  assert.equal(ctxOf(runHook('prompt', prompt(root, 'ok', 'same'))), CLOSE_LINE);
+  const tool = execFileSync('node', [DOCS_HINT, 'pre-edit'], {
+    input: JSON.stringify({ session_id: 'same', cwd: root, tool_name: 'Bash', tool_input: { command: 'git status' } }),
+    encoding: 'utf8'
+  });
+  assert.equal(tool.trim(), '');
+});
+
+test('the prompt-time reminder and its quiet reasons are recorded under spec-close', () => {
+  const root = addClosed(mkProject(null));
+  withActivity(root, (env) => {
+    runHook('prompt', prompt(root, 'ok'), { env });
+    runHook('prompt', prompt(root, 'ok'), { env });
+    runHook('prompt', prompt(root, 'ok'), { env });
+    const rows = recordsFor(root).filter((r) => r.mode === 'spec-close');
+    assert.deepEqual(rows.map((r) => [r.ev, r.kind, r.host, r.specs ?? null, r.reason ?? null]), [
+      ['hint.injected', 'action', 'claude-hook', 1, null],
+      ['hint.quiet', 'suppression', 'claude-hook', null, 'session-dedup']
+    ]);
+    for (const row of rows) {
+      const kept = events.validateEvent(row.ev, row);
+      assert.equal(kept.mode, 'spec-close');
+      if (row.reason) assert.equal(kept.reason, row.reason);
+    }
+  });
+});
+
+test('an unreadable tasks.json leaves prompt mode exactly as it was', () => {
+  const root = addClosed(mkProject(IDX_ONE));
+  fs.writeFileSync(path.join(root, '.frame', 'tasks.json'), '{ truncated');
+  assert.ok(ctxOf(runHook('prompt', prompt(root, 'telemetry polling'))).startsWith(TOPIC_HEADER));
+  assert.equal(runHook('prompt', prompt(root, 'ok', 'p2')), null);
+});
+
+test('a .frame/bin/ without the helper surfaces related specs as before and nothing else', () => {
+  const root = addClosed(mkProject(IDX_ONE));
+  const bin = path.join(root, '.frame', 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  for (const file of ['spec-hint.js', 'toolVocabulary.js', 'activity-log.js', 'redact.js']) {
+    fs.copyFileSync(path.join(__dirname, '..', 'scripts', file), path.join(bin, file));
+  }
+  const run = (input) => {
+    const stdout = execFileSync('node', [path.join(bin, 'spec-hint.js'), 'prompt'], { input: JSON.stringify(input), encoding: 'utf8' });
+    return stdout.trim() ? JSON.parse(stdout) : null;
+  };
+  assert.equal(run(prompt(root, 'ok')), null);
+  assert.ok(ctxOf(run(prompt(root, 'telemetry polling'))).startsWith(TOPIC_HEADER));
+});

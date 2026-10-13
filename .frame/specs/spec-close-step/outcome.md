@@ -59,3 +59,16 @@ helper, the inline limit with five 120-character slugs).
 _Captured: 2026-10-13 · 2 file changes_
 
 ---
+## T05 — Prompt-time reminder in `spec-hint.js prompt`
+
+Split `promptMode` in `scripts/spec-hint.js` into `closeReminder`, `freshTopics` and `topicBlock`, so
+the reminder is asked for before any topic path can return and goes first, whole, ahead of the
+related-specs block; when the two together would pass the host's inline limit, related specs are
+dropped from the end and left unmarked, so the next prompt delivers them. A prompt with related
+specs and no reminder sends the same bytes as before, and stays unbounded as before. Not in
+`plan.md`: when not even one related spec fits beside the reminder, the prompt path records the
+existing `no-context` reason. Files: `scripts/spec-hint.js`, `test/spec-hint.test.js` (11 new cases).
+
+_Captured: 2026-10-13 · 2 file changes_
+
+---
