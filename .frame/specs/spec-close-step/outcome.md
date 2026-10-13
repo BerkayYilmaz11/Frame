@@ -45,3 +45,17 @@ not checked instead of reporting `ok`. Files: `scripts/spec-close.js`, `scripts/
 _Captured: 2026-10-13 · 5 file changes_
 
 ---
+## T04 — Same-turn reminder in `docs-hint.js pre-edit`
+
+Wired `scripts/docs-hint.js` to call `spec-close-state.js`'s `reminder()` on the path that used to
+return in silence — a shell or edit call that is not a meta write — behind a guarded require, emit
+the line as `PreToolUse` context, and write one `hint.quiet` row per reason the helper reports and
+one `hint.injected` row per reminder, all under mode `spec-close`. A meta write still delivers only
+its section and does not consume the reminder, which arrives on the next call. Files:
+`scripts/docs-hint.js`, `test/docs-hint.test.js` (12 new cases: Claude Code `Bash` and `Edit`, Codex
+shell and `apply_patch`, each quiet reason, an unreadable `tasks.json`, a `.frame/bin/` without the
+helper, the inline limit with five 120-character slugs).
+
+_Captured: 2026-10-13 · 2 file changes_
+
+---

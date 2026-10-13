@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:25:31.763Z",
+  "lastUpdated": "2026-10-13T14:35:11.471Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8566,13 +8566,13 @@
       "title": "In `scripts/docs-hint.js`, call the close-state helper on the path that returns silently today (not a meta-file write), behind a guarded require, emit its one-line reminder as `PreToolUse` context and record each quiet reason when a candidate exists; a meta-file write keeps today's payload and carries no reminder; extend `test/docs-hint.test.js` for Claude Code `Bash` and `Edit`, Codex shell and `apply_patch`, a `.frame/bin/` without the helper and an unreadable `tasks.json`",
       "description": "",
       "source": "spec:spec-close-step:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:35:11.471Z",
+      "completedAt": "2026-10-13T14:35:11.471Z"
     },
     {
       "id": "task-spec-spec-close-step-T05",

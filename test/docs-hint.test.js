@@ -26,9 +26,10 @@ const HOOK = path.join(__dirname, '..', 'scripts', 'docs-hint.js');
 const REPO = path.join(__dirname, '..');
 const CAP = 1980; // must match scripts/docs-hint.js
 
-function runHook(mode, input, { raw = null } = {}) {
-  const stdout = execFileSync('node', [HOOK, mode], {
+function runHook(mode, input, { raw = null, env = {}, args = [], hook = HOOK } = {}) {
+  const stdout = execFileSync('node', [hook, mode, ...args], {
     input: raw !== null ? raw : JSON.stringify(input),
+    env: { ...process.env, ...env },
     encoding: 'utf8'
   }); // execFileSync throws on non-zero exit — reaching here asserts exit 0
   return stdout.trim() ? JSON.parse(stdout) : null;
@@ -296,4 +297,213 @@ test('Codex gets the whole section where Claude Code would be trimmed', () => {
   }));
   assert.ok(!codex.includes('[trimmed'), 'Codex takes it whole');
   assert.ok(codex.length > 2000, 'and it is bigger than Claude Code could inline');
+});
+
+// ─── the close reminder ───────────────────────────────────
+//
+// The non-meta path — every call above that asserts `null` — is where a spec
+// that closed without its digest is announced. The helper's own decisions are
+// covered in spec-close-state.test.js; what is asserted here is the wiring:
+// which calls carry the line, in which CLI's payload shape, what a meta write
+// still delivers, and that each outcome leaves its row.
+
+const activityLog = require('../scripts/activity-log');
+const events = require('../src/shared/activityEvents');
+
+/**
+ * A project where reminders started on 2026-01-01 and `slug` closed after
+ * that with no digest. `over` adjusts the one thing a test is about.
+ */
+function mkClosed({ slug = 'close-me', completedAt = '2026-02-01T10:00:00Z', digest = false, tasksRaw = null } = {}) {
+  const root = mkProject();
+  const frame = path.join(root, '.frame');
+  fs.mkdirSync(path.join(frame, 'specs', slug), { recursive: true });
+  if (digest) fs.writeFileSync(path.join(frame, 'specs', slug, 'digest.md'), '---\nkeywords: a\n---\nDone.\n');
+  fs.mkdirSync(path.join(frame, 'runtime', 'spec-close'), { recursive: true });
+  fs.writeFileSync(path.join(frame, 'runtime', 'spec-close', 'state.json'),
+    JSON.stringify({ version: 1, baseline: '2026-01-01T00:00:00.000Z', tasks: { mtimeMs: 0, size: 0 }, closed: [] }));
+  fs.writeFileSync(path.join(frame, 'tasks.json'), tasksRaw !== null ? tasksRaw : JSON.stringify({
+    tasks: [1, 2].map((n) => ({ id: `t${n}`, source: `spec:${slug}:T0${n}`, status: 'completed', completedAt }))
+  }));
+  return root;
+}
+
+const homeOf = (root) => path.join(root, '.activity-home');
+const closeEnv = (root) => ({ FRAME_ACTIVITY_HOME: homeOf(root) });
+
+/** Every activity row the hook wrote for this project, each checked against the registry. */
+function rowsOf(root) {
+  let rows = [];
+  try {
+    rows = fs.readFileSync(path.join(homeOf(root), activityLog.projectKey(root), 'activity.jsonl'), 'utf8')
+      .split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  } catch { /* nothing recorded */ }
+  for (const row of rows) {
+    const kept = events.validateEvent(row.ev, row);
+    assert.ok(kept, `${row.ev} is not a registered event`);
+    for (const key of ['host', 'mode', 'reason', 'specs']) {
+      if (row[key] !== undefined) assert.equal(kept[key], row[key], `${row.ev}.${key}=${row[key]} is outside the registry`);
+    }
+  }
+  return rows;
+}
+
+const closeRows = (root) => rowsOf(root).filter((r) => r.mode === 'spec-close');
+const LINE = 'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me';
+const srcEdit = (root, session = 'a') =>
+  ({ session_id: session, cwd: root, tool_name: 'Edit', tool_input: { file_path: path.join(root, 'src', 'index.js') } });
+
+test('the next shell call after a spec closes carries the one-line reminder', () => {
+  const root = mkClosed();
+  const out = runHook('pre-edit', bash(root, 'git status'), { env: closeEnv(root) });
+  assert.equal(out.hookSpecificOutput.hookEventName, 'PreToolUse');
+  assert.equal(ctxOf(out), LINE);
+  assert.deepEqual(closeRows(root).map((r) => [r.ev, r.kind, r.host, r.specs]),
+    [['hint.injected', 'action', 'claude-hook', 1]]);
+});
+
+test('so does the next edit of an ordinary file', () => {
+  const root = mkClosed();
+  assert.equal(ctxOf(runHook('pre-edit', srcEdit(root), { env: closeEnv(root) })), LINE);
+});
+
+test('a Codex shell call carries it, recorded under the Codex host', () => {
+  const root = mkClosed();
+  const out = runHook('pre-edit', {
+    session_id: 'cx', cwd: root, turn_id: 't', permission_mode: 'default', model: 'm',
+    tool_name: 'Bash', tool_input: { command: 'git status' }
+  }, { env: closeEnv(root), args: ['codex'] });
+  assert.equal(out.hookSpecificOutput.hookEventName, 'PreToolUse');
+  assert.equal(ctxOf(out), LINE);
+  assert.deepEqual(closeRows(root).map((r) => [r.ev, r.host]), [['hint.injected', 'codex-hook']]);
+});
+
+test('a Codex apply_patch on an ordinary file carries it', () => {
+  const root = mkClosed();
+  const command = ['*** Begin Patch', '*** Update File: src/a.js', '+x', '*** End Patch'].join('\n');
+  const out = runHook('pre-edit', {
+    session_id: 'cx', cwd: root, turn_id: 't', tool_name: 'apply_patch', tool_input: { command }
+  }, { env: closeEnv(root), args: ['codex'] });
+  assert.equal(ctxOf(out), LINE);
+  assert.equal(closeRows(root)[0].host, 'codex-hook');
+});
+
+test('a meta write keeps its own payload and carries no reminder — the next call does', () => {
+  const root = mkClosed();
+  const env = closeEnv(root);
+  for (const input of [edit(root, 'tasks.json'), bash(root, 'echo "{}" > .frame/PROJECT_NOTES.md')]) {
+    const ctx = ctxOf(runHook('pre-edit', input, { env }));
+    assert.match(ctx, /^Frame's rules for writing /);
+    assert.ok(!ctx.includes('has every task completed'), 'the section is delivered alone');
+  }
+  const command = ['*** Begin Patch', '*** Update File: .frame/tasks.json', '+{}', '*** End Patch'].join('\n');
+  const codex = ctxOf(runHook('pre-edit',
+    { session_id: 'a', cwd: root, tool_name: 'apply_patch', tool_input: { command } }, { env, args: ['codex'] }));
+  assert.ok(!codex.includes('has every task completed'));
+  assert.deepEqual(closeRows(root), [], 'a meta write does not consume the reminder');
+
+  assert.equal(ctxOf(runHook('pre-edit', bash(root, 'git status'), { env })), LINE);
+});
+
+test('a spec is announced once per session; the repeat is recorded once, not per call', () => {
+  const root = mkClosed();
+  const env = closeEnv(root);
+  assert.ok(runHook('pre-edit', bash(root, 'ls'), { env }));
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null);
+  assert.equal(runHook('pre-edit', srcEdit(root), { env }), null);
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null);
+  assert.deepEqual(closeRows(root).map((r) => [r.ev, r.reason || null]),
+    [['hint.injected', null], ['hint.quiet', 'session-dedup']]);
+  // Another session has not heard it.
+  assert.equal(ctxOf(runHook('pre-edit', srcEdit(root, 'b'), { env })), LINE);
+});
+
+test('once the digest exists nothing is said and nothing is recorded', () => {
+  const root = mkClosed({ digest: true });
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), { env: closeEnv(root) }), null);
+  assert.deepEqual(rowsOf(root), []);
+});
+
+test('a project with no closed spec stays silent and unrecorded on every call', () => {
+  const root = mkProject();
+  fs.writeFileSync(path.join(root, '.frame', 'tasks.json'), JSON.stringify({
+    tasks: [{ id: 't1', source: 'spec:open-spec:T01', status: 'in_progress', completedAt: null }]
+  }));
+  fs.mkdirSync(path.join(root, '.frame', 'specs', 'open-spec'), { recursive: true });
+  const env = closeEnv(root);
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null);
+  assert.equal(runHook('pre-edit', srcEdit(root), { env }), null);
+  assert.deepEqual(rowsOf(root), []);
+});
+
+test('each reason a reminder is withheld leaves its own row', () => {
+  const cases = [
+    ['before-baseline', () => mkClosed({ completedAt: '2025-12-01T10:00:00Z' })],
+    ['no-close-time', () => mkClosed({ completedAt: null })],
+    ['orchestrated', () => {
+      const root = mkClosed();
+      fs.mkdirSync(path.join(root, '.frame', 'worktrees', 'close-me'), { recursive: true });
+      return root;
+    }],
+    ['git-unavailable', () => {
+      const root = mkClosed();
+      fs.writeFileSync(path.join(root, '.git'), 'gitdir: /nowhere/at/all\n');
+      return root;
+    }]
+  ];
+  for (const [reason, make] of cases) {
+    const root = make();
+    const env = closeEnv(root);
+    assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null, `${reason}: no reminder`);
+    assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null);
+    assert.deepEqual(closeRows(root).map((r) => [r.ev, r.kind, r.reason]), [['hint.quiet', 'suppression', reason]],
+      `${reason}: one row for the session`);
+  }
+});
+
+test('an unreadable tasks.json behaves as before, with one row saying why', () => {
+  const root = mkClosed({ tasksRaw: '{ "tasks": [ truncated' });
+  const env = closeEnv(root);
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), { env }), null);
+  assert.equal(runHook('pre-edit', srcEdit(root), { env }), null);
+  assert.deepEqual(closeRows(root).map((r) => [r.ev, r.reason]), [['hint.quiet', 'no-index']]);
+  // …and a meta write is untouched by it.
+  assert.match(ctxOf(runHook('pre-edit', edit(root, 'tasks.json'), { env })), /The id\/title\/status shape/);
+});
+
+test('a .frame/bin/ without the helper behaves exactly as it did', () => {
+  const root = mkClosed();
+  const bin = path.join(root, '.frame', 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  for (const file of ['docs-hint.js', 'toolVocabulary.js', 'activity-log.js', 'redact.js']) {
+    fs.copyFileSync(path.join(REPO, 'scripts', file), path.join(bin, file));
+  }
+  const opts = { env: closeEnv(root), hook: path.join(bin, 'docs-hint.js') };
+  assert.equal(runHook('pre-edit', bash(root, 'ls'), opts), null);
+  assert.equal(runHook('pre-edit', srcEdit(root), opts), null);
+  assert.deepEqual(closeRows(root), [], 'no helper, so nothing decided and nothing to record');
+  assert.match(ctxOf(runHook('pre-edit', edit(root, 'tasks.json'), opts)), /The id\/title\/status shape/);
+
+  // With the helper beside it, the same copy speaks — and names the script where it lives.
+  for (const file of ['spec-close-state.js', 'spec-close.js']) {
+    fs.copyFileSync(path.join(REPO, 'scripts', file), path.join(bin, file));
+  }
+  assert.equal(ctxOf(runHook('pre-edit', bash(root, 'ls'), opts)), LINE);
+});
+
+test('the reminder stays inside the inline limit at its widest', () => {
+  const root = mkProject();
+  const frame = path.join(root, '.frame');
+  const slugs = ['a', 'b', 'c', 'd', 'e'].map((c) => c.repeat(120));
+  for (const slug of slugs) fs.mkdirSync(path.join(frame, 'specs', slug), { recursive: true });
+  fs.mkdirSync(path.join(frame, 'runtime', 'spec-close'), { recursive: true });
+  fs.writeFileSync(path.join(frame, 'runtime', 'spec-close', 'state.json'),
+    JSON.stringify({ version: 1, baseline: '2026-01-01T00:00:00.000Z', tasks: { mtimeMs: 0, size: 0 }, closed: [] }));
+  fs.writeFileSync(path.join(frame, 'tasks.json'), JSON.stringify({
+    tasks: slugs.map((slug) => ({ id: slug, source: `spec:${slug}:T01`, status: 'completed', completedAt: '2026-02-01T10:00:00Z' }))
+  }));
+  const ctx = ctxOf(runHook('pre-edit', bash(root, 'ls'), { env: closeEnv(root) }));
+  assert.match(ctx, / and 2 more have every task completed but no digest — run for each: /);
+  assert.ok(!ctx.includes('\n'), 'one line');
+  assert.ok(ctx.length <= CAP, `${ctx.length} chars exceeds the ${CAP} cap`);
 });

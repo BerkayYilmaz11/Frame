@@ -16997,46 +16997,47 @@
         "fs",
         "path",
         "activity-log",
-        "toolVocabulary"
+        "toolVocabulary",
+        "spec-close-state"
       ],
       "functions": {
         "capFor": {
-          "line": 69,
+          "line": 76,
           "params": [
             "payload"
           ],
           "purpose": "The cap for the CLI this payload came from. Claude Code inlines 2 000"
         },
         "readStdin": {
-          "line": 111
+          "line": 118
         },
         "resolveRoot": {
-          "line": 115,
+          "line": 122,
           "params": [
             "hookCwd"
           ]
         },
         "referencePath": {
-          "line": 124,
+          "line": 131,
           "params": [
             "root"
           ]
         },
         "cliPath": {
-          "line": 128,
+          "line": 135,
           "params": [
             "root"
           ]
         },
         "parseSections": {
-          "line": 140,
+          "line": 147,
           "params": [
             "text"
           ],
           "purpose": "REFERENCE.md → [{ title, body, subs: [{ title, body }] }], in file order."
         },
         "renderSection": {
-          "line": 171,
+          "line": 178,
           "params": [
             "section",
             "subsetTitles"
@@ -17044,7 +17045,7 @@
           "purpose": "One section, or only the named subsections of it, as markdown."
         },
         "capped": {
-          "line": 188,
+          "line": 195,
           "params": [
             "root",
             "preamble",
@@ -17054,17 +17055,17 @@
           "purpose": "Compose the payload and keep it under CAP. Over-length degrades to a"
         },
         "setHookCli": {
-          "line": 227,
+          "line": 244,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 231
+          "line": 248
         },
         "note": {
-          "line": 235,
+          "line": 252,
           "params": [
             "root",
             "ev",
@@ -17073,54 +17074,62 @@
           ]
         },
         "emit": {
-          "line": 250,
+          "line": 267,
           "params": [
             "eventName",
             "context"
           ]
         },
         "loadSections": {
-          "line": 258,
+          "line": 275,
           "params": [
             "root"
           ]
         },
         "sessionStart": {
-          "line": 269,
+          "line": 286,
           "params": [
             "input"
           ]
         },
         "writeTargets": {
-          "line": 293,
+          "line": 310,
           "params": [
             "cmd"
           ],
           "purpose": "Every path a shell command would actually write to: redirect destinations,"
         },
         "sectionForPath": {
-          "line": 310,
+          "line": 327,
           "params": [
             "p"
           ],
           "purpose": "One path → the meta file it is, or null. The `.frame/` requirement is the"
         },
         "metaTargetOf": {
-          "line": 318,
+          "line": 335,
           "params": [
             "toolName",
             "input"
           ],
           "purpose": "The meta file this write targets, or null."
         },
+        "closeReminder": {
+          "line": 365,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "The same-turn close reminder. An agent closes a spec's last task through a"
+        },
         "preEdit": {
-          "line": 340,
+          "line": 375,
           "params": [
             "input"
           ]
         },
         "sectionCli": {
-          "line": 358,
+          "line": 393,
           "params": [
             "root",
             "name"
@@ -17128,7 +17137,7 @@
           "purpose": "CLI: print one section, or list them. The manual escape hatch."
         }
       },
-      "sizeBytes": 16534,
+      "sizeBytes": 18115,
       "extraction": {
         "status": "parsed"
       },
@@ -17136,6 +17145,7 @@
         "purposes": {
           "capFor": "c346ef29e91448a4",
           "capped": "5704334cf6752807",
+          "closeReminder": "c6d5f278abbc85da",
           "metaTargetOf": "d6a15510bcb3879e",
           "parseSections": "89349ae4dda49ea0",
           "renderSection": "cd5686e4ce121b6d",
@@ -23422,7 +23432,9 @@
         "fs",
         "os",
         "path",
-        "child_process"
+        "child_process",
+        "scripts/activity-log",
+        "src/shared/activityEvents"
       ],
       "functions": {
         "runHook": {
@@ -23430,22 +23442,46 @@
           "params": [
             "mode",
             "input",
-            "{ raw = null } = {}"
+            "{ raw = null",
+            "env = {}",
+            "args = []",
+            "hook = HOOK } = {}"
           ]
         },
         "mkProject": {
-          "line": 68,
+          "line": 69,
           "params": [
             "reference = REFERENCE"
           ]
+        },
+        "mkClosed": {
+          "line": 317,
+          "params": [
+            "{ slug = 'close-me'",
+            "completedAt = '2026-02-01T10",
+            "digest = false",
+            "tasksRaw = null } = {}"
+          ],
+          "purpose": "A project where reminders started on 2026-01-01 and `slug` closed after"
+        },
+        "rowsOf": {
+          "line": 335,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every activity row the hook wrote for this project, each checked against the registry."
         }
       },
-      "sizeBytes": 13653,
+      "sizeBytes": 24522,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "7cf6097a8e5aec5b"
+        "description": "7cf6097a8e5aec5b",
+        "purposes": {
+          "mkClosed": "77e8b8d1e53e93fc",
+          "rowsOf": "2b5937aa7baca604"
+        }
       }
     },
     "test/docsHealth.test": {
@@ -28408,6 +28444,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "83f2ded0a8d5844933c4bec35050232957358438d526d39fb8fa3c273f32c271"
+    "revision": "f5c0d1a89bb0f1045713546816ac39fc55b7bf85d0caef6b31f8fdad49cf741e"
   }
 }
