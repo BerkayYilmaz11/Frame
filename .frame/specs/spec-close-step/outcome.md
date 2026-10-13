@@ -15,3 +15,17 @@ beyond the plan: a non-git project is treated as not orchestrated without asking
 _Captured: 2026-10-13 · 2 file changes_
 
 ---
+## T02 — Declare the `spec-close` mode, its reasons and `spec.close_checked`
+
+Added the `spec-close` mode to `hint.injected` and `hint.quiet` through one shared `HINT_MODES`
+list, four reasons to `HINT_REASONS` (`orchestrated`, `before-baseline`, `no-close-time`, and T01's
+`git-unavailable`, which `plan.md` did not list), a `SPEC_CLOSE_REASON_TEXT` map where `no-index`
+reads as "tasks.json could not be read", and the `spec.close_checked` event with host, slug, a
+`CLOSE_VERDICTS` enum and a defect count. `PRIVACY.md` gained a "Spec close reminders" bullet in the
+same commit. Files: `src/shared/activityEvents.js`, `PRIVACY.md`, `test/activityEvents.test.js`.
+Followup: `spec.close_checked` shows only under the Activity panel's "All" filter until
+`src/renderer/activityPanel.js` maps it to the `specs` group — that file is outside this plan.
+
+_Captured: 2026-10-13 · 3 file changes_
+
+---

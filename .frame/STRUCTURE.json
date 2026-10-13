@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11723,
+      "sizeBytes": 12288,
       "extraction": {
         "status": "parsed"
       },
@@ -21410,6 +21410,8 @@
         "WATCHERS",
         "POLLERS",
         "HINT_REASONS",
+        "HINT_MODES",
+        "CLOSE_VERDICTS",
         "LIFECYCLE_REASONS",
         "MISSED_BOUND_REASONS",
         "HOSTS",
@@ -21423,32 +21425,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 429,
+          "line": 477,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 433,
+          "line": 481,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 437,
+          "line": 485,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 441,
+          "line": 489,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 464,
+          "line": 512,
           "params": [
             "name",
             "fields"
@@ -21456,7 +21458,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 481,
+          "line": 529,
           "params": [
             "name",
             "fields"
@@ -21464,7 +21466,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 502,
+          "line": 550,
           "params": [
             "name",
             "fields"
@@ -21472,7 +21474,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 22912,
+      "sizeBytes": 25547,
       "extraction": {
         "status": "parsed"
       },
@@ -22972,7 +22974,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 11202,
+      "sizeBytes": 14872,
       "extraction": {
         "status": "parsed"
       },
@@ -28251,6 +28253,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "3dc418b87df89465b49efc0015b2b57d3ac33f926df53efbb0066435f5ea954f"
+    "revision": "30ec021739aa9e91bfdb5ed0f37844248c739163635016d5a93b717904a9f428"
   }
 }

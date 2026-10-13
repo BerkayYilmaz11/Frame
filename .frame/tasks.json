@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:13:39.708Z",
+  "lastUpdated": "2026-10-13T14:20:54.854Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8540,13 +8540,13 @@
       "title": "Declare the `spec-close` mode on `hint.injected` and `hint.quiet`, the reasons `orchestrated`, `before-baseline` and `no-close-time`, and the `spec.close_checked` event (host `cli`, slug, verdict `ok` / `missing` / `malformed`, defect count) in `src/shared/activityEvents.js`; update `PRIVACY.md` in the same commit; extend `test/activityEvents.test.js`",
       "description": "",
       "source": "spec:spec-close-step:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:20:54.854Z",
+      "completedAt": "2026-10-13T14:20:54.854Z"
     },
     {
       "id": "task-spec-spec-close-step-T03",
