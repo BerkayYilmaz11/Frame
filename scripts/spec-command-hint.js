@@ -68,11 +68,20 @@ const ACTS_ON = {
 // only counts when the word "spec" appears with it. Turkish forms are here
 // because this project is worked in Turkish; the same reasoning applies —
 // each is a verb that needs "spec" beside it to mean anything.
+//
+// "spec" beside a verb is still not enough. Across 560 prompts from this
+// repo's own sessions the rule fired 22 times and never on a command: a
+// discussion about specs names plans and tasks too, and 19 of the 22 were
+// read as `spec.tasks`. So the task forms are plural only, never the noun
+// "task" or a file such as `tasks.json`, and the whole entry counts only in a
+// short prompt — the commands in that set ran to four words, the discussions
+// to a median of thirty.
 const VERBS = {
   'spec.plan': /\b(plan|planla|planlayalim|planlayalım)\b/i,
-  'spec.tasks': /\b(tasks?|task'?lar|görevler|gorevler)\b/i,
+  'spec.tasks': /\b(tasks(?!\.\w)|task'?lar|görevler|gorevler)/i,
   'spec.implement': /\b(implement|implemente|uygula|kodla)\b/i
 };
+const CONVERSATIONAL_MAX_WORDS = 8;
 
 function readStdin() {
   try { return fs.readFileSync(0, 'utf8'); } catch { return ''; }
@@ -167,6 +176,7 @@ function commandOf(prompt) {
     if (new RegExp(`(^|\\s)/?${bare}\\b`, 'i').test(p)) return cmd;
   }
   if (!/\bspec\b/i.test(p)) return null; // a verb alone is just English
+  if (p.trim().split(/\s+/).length > CONVERSATIONAL_MAX_WORDS) return null; // a discussion, not a command
   for (const [cmd, re] of Object.entries(VERBS)) {
     if (re.test(p)) return cmd;
   }

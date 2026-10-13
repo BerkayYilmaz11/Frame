@@ -18464,38 +18464,38 @@
       ],
       "functions": {
         "readStdin": {
-          "line": 77
+          "line": 86
         },
         "readJson": {
-          "line": 81,
+          "line": 90,
           "params": [
             "p"
           ]
         },
         "readText": {
-          "line": 85,
+          "line": 94,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 89,
+          "line": 98,
           "params": [
             "hookCwd"
           ]
         },
         "setHookCli": {
-          "line": 126,
+          "line": 135,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 130
+          "line": 139
         },
         "note": {
-          "line": 134,
+          "line": 143,
           "params": [
             "root",
             "ev",
@@ -18503,20 +18503,20 @@
           ]
         },
         "emit": {
-          "line": 151,
+          "line": 160,
           "params": [
             "context"
           ]
         },
         "commandOf": {
-          "line": 160,
+          "line": 169,
           "params": [
             "prompt"
           ],
           "purpose": "Which spec command this prompt is asking for, or null."
         },
         "namedSlug": {
-          "line": 177,
+          "line": 187,
           "params": [
             "root",
             "prompt"
@@ -18524,7 +18524,7 @@
           "purpose": "A slug the prompt names outright — an explicit target always wins."
         },
         "candidates": {
-          "line": 192,
+          "line": 202,
           "params": [
             "root",
             "command"
@@ -18532,7 +18532,7 @@
           "purpose": "Specs whose phase this command acts on."
         },
         "templatePath": {
-          "line": 220,
+          "line": 230,
           "params": [
             "root",
             "tool",
@@ -18540,7 +18540,7 @@
           ]
         },
         "reportAssetRel": {
-          "line": 234,
+          "line": 244,
           "params": [
             "root",
             "tool",
@@ -18549,27 +18549,27 @@
           "purpose": "Report assets resolve like templatePath and end at the base tool: only"
         },
         "interpolate": {
-          "line": 242,
+          "line": 252,
           "params": [
             "template",
             "vars"
           ]
         },
         "catalogLines": {
-          "line": 248,
+          "line": 258,
           "params": [
             "index"
           ],
           "purpose": "Six-line copy of spec-index.js's formatter — see the header note."
         },
         "specCatalog": {
-          "line": 255,
+          "line": 265,
           "params": [
             "root"
           ]
         },
         "buildPrompt": {
-          "line": 262,
+          "line": 272,
           "params": [
             "root",
             "slug",
@@ -18578,13 +18578,13 @@
           ]
         },
         "promptMode": {
-          "line": 292,
+          "line": 302,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 15758,
+      "sizeBytes": 16391,
       "extraction": {
         "status": "parsed"
       },
@@ -24938,7 +24938,7 @@
           "purpose": "A project with one spec in `phase`, and the command templates staged."
         }
       },
-      "sizeBytes": 12187,
+      "sizeBytes": 13396,
       "extraction": {
         "status": "parsed"
       },
@@ -27952,6 +27952,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "00b497666611a8c1aecbc3475cf82d78b1fcce551ceae4975676ed51a29e86e8"
+    "revision": "7da2e5b2b85fd6a2f059de6d479f00b6f35b17b92c456584fe7fbeb3cb9cff6f"
   }
 }
