@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:20:54.854Z",
+  "lastUpdated": "2026-10-13T14:25:31.763Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8553,13 +8553,13 @@
       "title": "Add `scripts/spec-close.js <slug> [--json] [--strict]`: the task count, then one line per close item — `ok`, `missing` with the digest shape, or the named defect (no front-matter, no `keywords:` line, first sentence over `DIGEST_LINE_CAP`, no `Chain:` line) — printing paths and never file bodies, exiting 0 unless `--strict`, writing nothing but its `spec.close_checked` row and never a phase; export `firstSentence`, `firstParagraph` and `DIGEST_LINE_CAP` from `scripts/spec-index.js`; cover it in `test/spec-close.test.js`; add both new scripts to the mirror list in `test/metaPathGuard.test.js`",
       "description": "",
       "source": "spec:spec-close-step:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:25:31.763Z",
+      "completedAt": "2026-10-13T14:25:31.763Z"
     },
     {
       "id": "task-spec-spec-close-step-T04",

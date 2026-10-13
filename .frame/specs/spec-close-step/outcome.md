@@ -29,3 +29,19 @@ Followup: `spec.close_checked` shows only under the Activity panel's "All" filte
 _Captured: 2026-10-13 · 3 file changes_
 
 ---
+## T03 — The close script: `spec-close.js <slug> [--json] [--strict]`
+
+Added `scripts/spec-close.js`, which prints one spec's task count and then one line per close item —
+`ok`, `missing` with the digest shape, or each named defect (`no-front-matter`, `no-keywords`,
+`first-sentence-too-long`, `no-chain-line`) — exits 0 unless `--strict`, and writes only its
+`spec.close_checked` row; `scripts/spec-index.js` now exports `firstSentence`, `firstParagraph` and
+`DIGEST_LINE_CAP`, so the length it measures is the one a hint carries. Run over this repo's 50
+digests it flags 12, all for the first sentence, the figure `spec.md` measured by hand. Beyond
+`plan.md`: a spec that is not closed reports `not due` and records no row, an unknown slug is a
+one-line error, and a `.frame/bin/` whose `spec-index.js` predates the exports says the length was
+not checked instead of reporting `ok`. Files: `scripts/spec-close.js`, `scripts/spec-index.js`,
+`scripts/spec-close-state.js` (exports `SLUG_RE`), `test/spec-close.test.js`, `test/metaPathGuard.test.js`.
+
+_Captured: 2026-10-13 · 5 file changes_
+
+---

@@ -18452,10 +18452,107 @@
         "description": "32ac7921fd767895"
       }
     },
+    "scripts/spec-close": {
+      "file": "scripts/spec-close.js",
+      "description": "",
+      "exports": [
+        "DIGEST_SHAPE",
+        "CHAIN_LINE",
+        "DIGEST_LINE_CAP",
+        "ITEM_CHECKS",
+        "digestDefects",
+        "checkSpec",
+        "textReport"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "spec-close-state",
+        "spec-index",
+        "activity-log"
+      ],
+      "functions": {
+        "toPosix": {
+          "line": 71,
+          "params": [
+            "p"
+          ]
+        },
+        "resolveRoot": {
+          "line": 73
+        },
+        "specDir": {
+          "line": 82,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "digestDefects": {
+          "line": 91,
+          "params": [
+            "md"
+          ],
+          "purpose": "Named defects of one digest, in the order a reader would fix them."
+        },
+        "checkSpec": {
+          "line": 146,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Everything this script knows about one spec, as data. Pure apart from"
+        },
+        "selfCommand": {
+          "line": 191,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "taskLine": {
+          "line": 195,
+          "params": [
+            "result"
+          ]
+        },
+        "textReport": {
+          "line": 202,
+          "params": [
+            "root",
+            "result"
+          ]
+        },
+        "record": {
+          "line": 230,
+          "params": [
+            "root",
+            "result"
+          ]
+        },
+        "main": {
+          "line": 248,
+          "params": [
+            "argv"
+          ]
+        }
+      },
+      "sizeBytes": 11676,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "checkSpec": "94a5a95ab78e5f38",
+          "digestDefects": "0fe97d9cb34d80e7"
+        }
+      }
+    },
     "scripts/spec-close-state": {
       "file": "scripts/spec-close-state.js",
       "description": "Spec close state — what a closed spec still owes.",
       "exports": [
+        "SLUG_RE",
         "STATE_REL",
         "SESSIONS_REL",
         "SESSION_TTL_MS",
@@ -18668,7 +18765,7 @@
           "purpose": "What a hook should do about closed specs right now."
         }
       },
-      "sizeBytes": 18246,
+      "sizeBytes": 18257,
       "extraction": {
         "status": "parsed"
       },
@@ -19058,7 +19155,10 @@
         "parseFrontMatter",
         "parseFootprint",
         "parseOutcome",
-        "parseDigest"
+        "parseDigest",
+        "not a copy of them.\n  firstSentence",
+        "firstParagraph",
+        "DIGEST_LINE_CAP"
       ],
       "depends": [
         "spec-index",
@@ -19203,7 +19303,7 @@
           "purpose": "One compact line per spec — the {spec_catalog} embed for spec.new."
         }
       },
-      "sizeBytes": 19173,
+      "sizeBytes": 19372,
       "extraction": {
         "status": "parsed"
       },
@@ -24679,11 +24779,11 @@
           "purpose": "Lines in `relFile` that build a path with a `specs` segment, as `file:line`."
         },
         "expectedSegments": {
-          "line": 102,
+          "line": 104,
           "purpose": "The segments frameStore puts between a project and its specs: ['.frame', 'specs']."
         },
         "joinArguments": {
-          "line": 112,
+          "line": 114,
           "params": [
             "line",
             "from"
@@ -24691,14 +24791,14 @@
           "purpose": "The arguments of the `path.join(` call starting at `from`, as a flat list."
         },
         "specPathJoins": {
-          "line": 132,
+          "line": 134,
           "params": [
             "relFile"
           ],
           "purpose": "Every spec-path join in `relFile`, with its segments resolved where we can."
         }
       },
-      "sizeBytes": 6975,
+      "sizeBytes": 7057,
       "extraction": {
         "status": "parsed"
       },
@@ -25203,6 +25303,61 @@
         "purposes": {
           "mkProject": "c1fd4333a7aaf9e4",
           "writeTasks": "3de6815b184f2a3c"
+        }
+      }
+    },
+    "test/spec-close.test": {
+      "file": "test/spec-close.test.js",
+      "description": "Spec close step — close script tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/spec-close",
+        "scripts/spec-index",
+        "src/shared/activityEvents",
+        "scripts/activity-log"
+      ],
+      "functions": {
+        "mkProject": {
+          "line": 48,
+          "params": [
+            "{ slug = 'a-spec'",
+            "statuses = ['completed'",
+            "'completed']",
+            "digest = null",
+            "tasksRaw = null } = {}"
+          ],
+          "purpose": "A project with one spec. `digest` is the file's text, or null for none."
+        },
+        "run": {
+          "line": 59,
+          "params": [
+            "root",
+            "args"
+          ]
+        },
+        "snapshot": {
+          "line": 74,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every file under the project, with its content — the activity home aside."
+        }
+      },
+      "sizeBytes": 15370,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "04eb4c5e40bc2520",
+        "purposes": {
+          "mkProject": "b3984d82c4aeb33e",
+          "snapshot": "d1ea210d6033143c"
         }
       }
     },
@@ -28179,7 +28334,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 305,
+        "parsed": 307,
         "unsupported": 84,
         "partial": 0
       }
@@ -28226,9 +28381,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 477,
+      "visitedEntries": 479,
       "traversedDirectories": 80,
-      "eligibleFiles": 389,
+      "eligibleFiles": 391,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -28245,7 +28400,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 389,
+      "indexedFiles": 391,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -28253,6 +28408,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "30ec021739aa9e91bfdb5ed0f37844248c739163635016d5a93b717904a9f428"
+    "revision": "83f2ded0a8d5844933c4bec35050232957358438d526d39fb8fa3c273f32c271"
   }
 }

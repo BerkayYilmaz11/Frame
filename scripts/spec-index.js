@@ -460,7 +460,12 @@ function catalogLines(index) {
     });
 }
 
-module.exports = { build, writeIndex, ensureFresh, indexPath, catalogLines, parseFrontMatter, parseFootprint, parseOutcome, parseDigest };
+module.exports = {
+  build, writeIndex, ensureFresh, indexPath, catalogLines, parseFrontMatter, parseFootprint, parseOutcome, parseDigest,
+  // For spec-close.js: a digest is checked with the same sentence rule and
+  // the same cap that decide what a hint carries, not a copy of them.
+  firstSentence, firstParagraph, DIGEST_LINE_CAP
+};
 
 // ─── CLI ──────────────────────────────────────────────────
 

@@ -87,7 +87,7 @@ test('the guard is live — it still finds the joins in the exempt shipped tree'
 
 // ─── Mirror drift ─────────────────────────────────────────────
 //
-// These three ship into a user project's `.frame/bin/` and each carries its
+// These ship into a user project's `.frame/bin/` and each carries its
 // own copy of the `.frame/specs` literal, because none of them can require
 // frameStore from there. Coupling is impossible, so the answer is a test: the
 // segments they join must be the ones frameStore resolves to.
@@ -95,6 +95,8 @@ test('the guard is live — it still finds the joins in the exempt shipped tree'
 const MIRRORS = [
   path.join('scripts', 'spec-index.js'),
   path.join('scripts', 'spec-command-hint.js'),
+  path.join('scripts', 'spec-close-state.js'),
+  path.join('scripts', 'spec-close.js'),
   path.join('src', 'templates', 'bin', 'implement-launch.js')
 ];
 
