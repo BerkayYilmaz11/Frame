@@ -18452,6 +18452,245 @@
         "description": "32ac7921fd767895"
       }
     },
+    "scripts/spec-close-state": {
+      "file": "scripts/spec-close-state.js",
+      "description": "Spec close state — what a closed spec still owes.",
+      "exports": [
+        "STATE_REL",
+        "SESSIONS_REL",
+        "SESSION_TTL_MS",
+        "MAX_NAMED",
+        "CLOSE_ITEMS",
+        "missingItems",
+        "readTasks",
+        "specTaskCounts",
+        "closedSpecs",
+        "closeState",
+        "isOrchestrated",
+        "pending",
+        "sessionKey",
+        "closeScriptPath",
+        "reminder"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process"
+      ],
+      "functions": {
+        "toPosix": {
+          "line": 70,
+          "params": [
+            "p"
+          ]
+        },
+        "readJson": {
+          "line": 72,
+          "params": [
+            "p"
+          ]
+        },
+        "tasksPath": {
+          "line": 76,
+          "params": [
+            "root"
+          ]
+        },
+        "specDir": {
+          "line": 77,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "missingItems": {
+          "line": 93,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Ids of the close items this spec still lacks."
+        },
+        "timeOf": {
+          "line": 113,
+          "params": [
+            "value"
+          ],
+          "purpose": "A timestamp as milliseconds, or null. A date with no time counts as the end"
+        },
+        "readTasks": {
+          "line": 120,
+          "params": [
+            "root"
+          ],
+          "purpose": "tasks.json → its task list, or null when it cannot be read as one."
+        },
+        "specTaskCounts": {
+          "line": 127,
+          "params": [
+            "tasks"
+          ],
+          "purpose": "Task list → Map of slug → { total, completed, latest } for spec tasks."
+        },
+        "closedSpecs": {
+          "line": 155,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot"
+        },
+        "writeState": {
+          "line": 183,
+          "params": [
+            "root",
+            "state"
+          ]
+        },
+        "closeState": {
+          "line": 203,
+          "params": [
+            "root",
+            "now = Date.now("
+          ],
+          "purpose": "`{ baseline, closed, unreadable, hit }` for this project, or null when it"
+        },
+        "insideGitRepo": {
+          "line": 233,
+          "params": [
+            "root"
+          ]
+        },
+        "isOrchestrated": {
+          "line": 257,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Whether a spec is run by Frame's orchestration: true, false, or null when"
+        },
+        "openSpecs": {
+          "line": 275,
+          "params": [
+            "root",
+            "state"
+          ],
+          "purpose": "Closed specs with at least one missing item, newest close first."
+        },
+        "timeReason": {
+          "line": 290,
+          "params": [
+            "spec",
+            "baseline"
+          ],
+          "purpose": "Why a spec that is owed something is not announced, without asking git."
+        },
+        "orchestrationReason": {
+          "line": 297,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "pending": {
+          "line": 308,
+          "params": [
+            "root",
+            "now = Date.now("
+          ],
+          "purpose": "Closed, after the baseline, something missing, not run by orchestration —"
+        },
+        "sessionKey": {
+          "line": 327,
+          "params": [
+            "sessionId",
+            "now = Date.now("
+          ],
+          "purpose": "A host that sends no session id still gets at most one reminder a day."
+        },
+        "sessionFile": {
+          "line": 332,
+          "params": [
+            "root",
+            "key"
+          ]
+        },
+        "loadSession": {
+          "line": 336,
+          "params": [
+            "root",
+            "key"
+          ]
+        },
+        "cleanupSessions": {
+          "line": 345,
+          "params": [
+            "root",
+            "now"
+          ]
+        },
+        "saveSession": {
+          "line": 357,
+          "params": [
+            "root",
+            "key",
+            "session",
+            "now"
+          ]
+        },
+        "closeScriptPath": {
+          "line": 369,
+          "params": [
+            "root"
+          ],
+          "purpose": "The close script, as a path an agent can run from the project root."
+        },
+        "labelsOf": {
+          "line": 378,
+          "params": [
+            "specs"
+          ]
+        },
+        "reminderLine": {
+          "line": 383,
+          "params": [
+            "root",
+            "named",
+            "more"
+          ]
+        },
+        "reminder": {
+          "line": 406,
+          "params": [
+            "root",
+            "sessionId",
+            "now = Date.now("
+          ],
+          "purpose": "What a hook should do about closed specs right now."
+        }
+      },
+      "sizeBytes": 18246,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "31fd80bb4a098694",
+        "purposes": {
+          "closeScriptPath": "eb55c527830baae1",
+          "closeState": "2a7dbc7cff204910",
+          "closedSpecs": "f77dc4293baf183b",
+          "isOrchestrated": "9eb319e04d59282d",
+          "missingItems": "265b8c8c40498710",
+          "openSpecs": "2a0f20095011198c",
+          "pending": "d1106efac627412d",
+          "readTasks": "b2a62548c72b1fa1",
+          "reminder": "f3dc678226bb00a5",
+          "sessionKey": "3ab5b382c4ceb8e1",
+          "specTaskCounts": "23893a21574aea54",
+          "timeOf": "964231ab15f867b1",
+          "timeReason": "31f0258d6ae62824"
+        }
+      }
+    },
     "scripts/spec-command-hint": {
       "file": "scripts/spec-command-hint.js",
       "description": "",
@@ -24905,6 +25144,66 @@
         "description": "134639e22914d629"
       }
     },
+    "test/spec-close-state.test": {
+      "file": "test/spec-close-state.test.js",
+      "description": "Spec close state — helper tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/spec-close-state"
+      ],
+      "functions": {
+        "writeTasks": {
+          "line": 41,
+          "params": [
+            "root",
+            "tasks",
+            "{ raw = null } = {}"
+          ],
+          "purpose": "Write tasks.json with an mtime no earlier write shared."
+        },
+        "mkSpec": {
+          "line": 50,
+          "params": [
+            "root",
+            "slug",
+            "{ digest = false",
+            "status = null } = {}"
+          ]
+        },
+        "mkProject": {
+          "line": 59,
+          "params": [
+            "{ specs = []",
+            "tasks = []",
+            "baseline = true } = {}"
+          ],
+          "purpose": "A project whose baseline is T0, holding the given specs and tasks."
+        },
+        "gitInit": {
+          "line": 248,
+          "params": [
+            "root"
+          ]
+        }
+      },
+      "sizeBytes": 18534,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "24c240c9101ebaa5",
+        "purposes": {
+          "mkProject": "c1fd4333a7aaf9e4",
+          "writeTasks": "3de6815b184f2a3c"
+        }
+      }
+    },
     "test/spec-command-hint.test": {
       "file": "test/spec-command-hint.test.js",
       "description": "Spec command hook script tests.",
@@ -27878,7 +28177,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 303,
+        "parsed": 305,
         "unsupported": 84,
         "partial": 0
       }
@@ -27925,9 +28224,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 475,
+      "visitedEntries": 477,
       "traversedDirectories": 80,
-      "eligibleFiles": 387,
+      "eligibleFiles": 389,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27944,7 +28243,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 387,
+      "indexedFiles": 389,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27952,6 +28251,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "7da2e5b2b85fd6a2f059de6d479f00b6f35b17b92c456584fe7fbeb3cb9cff6f"
+    "revision": "3dc418b87df89465b49efc0015b2b57d3ac33f926df53efbb0066435f5ea954f"
   }
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T13:51:50.163Z",
+  "lastUpdated": "2026-10-13T14:13:39.708Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8527,13 +8527,13 @@
       "title": "Add `scripts/spec-close-state.js`: closed specs read from `.frame/tasks.json` (at least one spec task, all completed, close time from the latest `completedAt` then `status.json`'s `last_phase_at`), the `CLOSE_ITEMS` list with its one `digest` item, the baseline and the mtime-and-size cache in `.frame/runtime/spec-close/state.json`, the orchestration check (`.frame/worktrees/<slug>` or a `refs/heads/frame/<slug>/` ref, quiet when git fails), per-session dedup with a per-day key when no session id arrives, and the one-line reminder naming the close script; cover it in `test/spec-close-state.test.js`, including a cache hit that does not re-read `tasks.json`",
       "description": "",
       "source": "spec:spec-close-step:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:13:39.708Z",
+      "completedAt": "2026-10-13T14:13:39.708Z"
     },
     {
       "id": "task-spec-spec-close-step-T02",
