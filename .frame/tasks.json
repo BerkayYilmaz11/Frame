@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:40:58.328Z",
+  "lastUpdated": "2026-10-13T14:44:24.012Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8605,13 +8605,13 @@
       "title": "In `src/templates/commands/claude-code/spec.implement.md`, state the digest in the shared core as a numbered step — write `digest.md` in the shape under a new `### The digest`, run `{close_script_path} {slug}`, fix what it names, then the phase goes to `done` — name the step at the phase rule, the closing summary, the stop condition and the describe-your-own list, and remove the section at the end; fill `{close_script_path}` in `src/main/specManager.js` and `scripts/spec-command-hint.js` (`.frame/bin/spec-close.js` when present, else `scripts/spec-close.js` when present, else the first); extend `test/codexTemplates.test.js` and `test/spec-command-hint.test.js`; add to `test/spec-close.test.js` a check that the template's digest shape equals the script's",
       "description": "",
       "source": "spec:spec-close-step:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:44:24.012Z",
+      "completedAt": "2026-10-13T14:44:24.012Z"
     },
     {
       "id": "task-spec-spec-close-step-T08",

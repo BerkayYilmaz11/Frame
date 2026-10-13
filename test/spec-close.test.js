@@ -378,3 +378,40 @@ test('an installation without the helper withholds the script and still ships bo
     fs.rmSync(source, { recursive: true, force: true });
   }
 });
+
+// ─── one shape, stated twice ──────────────────────────────
+//
+// The implement template states the digest's shape because an agent that
+// never runs this script must still know what to write; the script repeats it
+// for a session that never saw the template. Two copies drift, so they are
+// compared here rather than trusted.
+
+const TEMPLATE = path.join(__dirname, '..', 'src', 'templates', 'commands', 'claude-code', 'spec.implement.md');
+
+test("the template's digest shape is the script's, character for character", () => {
+  const template = fs.readFileSync(TEMPLATE, 'utf8');
+  const heading = template.indexOf('\n### The digest\n');
+  assert.ok(heading >= 0, 'the template has a "### The digest" section');
+  const rest = template.slice(heading);
+  const fence = rest.match(/\n```\n([\s\S]*?)\n```\n/);
+  assert.ok(fence, 'the section carries one fenced shape');
+  assert.equal(fence[1], specClose.DIGEST_SHAPE);
+  assert.ok(fence[1].endsWith(specClose.CHAIN_LINE));
+});
+
+test('the cap the template quotes is the cap the script enforces', () => {
+  const template = fs.readFileSync(TEMPLATE, 'utf8');
+  const quoted = template.match(/first sentence, cut\s+at (\d+) characters/);
+  assert.ok(quoted, 'the template says where the first sentence is cut');
+  assert.equal(Number(quoted[1]), specClose.DIGEST_LINE_CAP);
+});
+
+test('a digest written exactly to the template shape passes the check', () => {
+  // Filled in the way an agent would fill it: placeholders replaced, layout kept.
+  const digest = specClose.DIGEST_SHAPE
+    .replace(/<3-8 comma-separated[^>]*>/, 'close step, digest')
+    .replace(/<comma-separated slugs, or omit>/, 'spec-knowledge-layer')
+    .replace(/<slug, or omit>/, 'old-spec')
+    .replace(/<≤15 lines:[\s\S]*?>/, 'Added a close step. It checks the digest.');
+  assert.deepEqual(specClose.digestDefects(`${digest}\n`), []);
+});

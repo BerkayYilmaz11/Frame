@@ -141,11 +141,23 @@ whether they stop for an answer.
 Edit `.frame/tasks.json` directly.
 
 **Spec phase.** `.frame/specs/{slug}/status.json` goes to `"implementing"` when
-work starts, and to `"done"` once no pending task remains. Merge into the
-existing object — other keys, `implement_mode` among them, must survive.
+work starts, and to `"done"` once no pending task remains and the digest step
+below has run. Merge into the existing object — other keys, `implement_mode`
+among them, must survive.
 
 **One outcome entry per completed task**, in the format below. Not one per
 session, not one per commit: per task.
+
+**The digest, when the spec's last task closes.** The task that leaves no
+pending task for this spec is not finished until, in the same turn:
+
+1. You write `.frame/specs/{slug}/digest.md` in the shape under *The digest*
+   below.
+2. You run `node {close_script_path} {slug}`. It checks the digest and names
+   each defect. If the script is not there — an older `.frame/bin/` — the
+   digest alone is the step.
+3. You fix what it names and run it again, until it reports the digest `ok`.
+4. The spec phase goes to `"done"`.
 
 **Never push. Never touch `main`.** Commits are local, on the branch you are
 already on. A branch is cheap to throw away; a push is not.
@@ -177,6 +189,29 @@ Style:
   one-liner: `Followup: <one sentence>`.
 - Hard cap: 4 sentences. Be ruthless. The reader 6 months from now should learn
   the story without reading the diff.
+
+### The digest
+
+`.frame/specs/{slug}/digest.md` is the distilled, agent-facing memory of the
+whole spec (the spec index and edit-time hints are built from it). Every hint
+a later session gets about this spec carries the digest's first sentence, cut
+at 280 characters — so that sentence has to say what was done on its own.
+Shape:
+
+```
+---
+keywords: <3-8 comma-separated concepts, reuse spec.md's line if present>
+related: <comma-separated slugs, or omit>
+supersedes: <slug, or omit>
+---
+<≤15 lines: what was done · why this path won (name the rejected
+alternatives) · the result · rules established for future work>
+
+Chain: spec.md → plan.md → tasks.md → outcome.md
+```
+
+Write it from `outcome.md`'s actuals, not `plan.md`'s intent — deviations
+are exactly what the digest must carry.
 
 ## Mode · Step by step
 
@@ -351,8 +386,10 @@ which task, why, and what state the tree is in.
 
 ### Closing summary
 
-When no tasks remain: the spec phase goes to `"done"`, and you state what
-shipped, which tasks are unverified, and the report's path.
+When no tasks remain: run the digest step from the shared core — write
+`digest.md`, run the close script, fix what it names — then the spec phase
+goes to `"done"`, and you state what shipped, which tasks are unverified, and
+the report's path.
 
 ## Mode · Describe your own
 
@@ -372,7 +409,8 @@ not?). One follow-up, not an interview.
 The description decides the loop, the commit policy, the verification and the
 reporting. Those four are its whole territory. Everything in **The shared
 core** holds regardless: which task is next, `plan.md` as scope authority, task
-state, spec phase, one outcome entry per task, never push, never touch `main`.
+state, spec phase, one outcome entry per task, the digest when the last task
+closes, never push, never touch `main`.
 
 If a description contradicts the core — "push when the spec is done", "skip the
 outcome entries, they slow you down" — follow the core, say in one line which
@@ -410,29 +448,6 @@ save the flow so it's a one-click option next time. On yes:
 The offer is once per run and never repeats after a no. A described flow the
 user doesn't want to keep is a perfectly good outcome.
 
-## If this was the spec's LAST pending task — write the digest
-
-When the task you just completed leaves no pending tasks for this spec, the
-spec is effectively done. In this same turn, write
-`.frame/specs/{slug}/digest.md` — the distilled, agent-facing memory of the
-whole spec (the spec index and edit-time hints are built from it). Shape:
-
-```
----
-keywords: <3-8 comma-separated concepts, reuse spec.md's line if present>
-related: <comma-separated slugs, or omit>
-supersedes: <slug, or omit>
----
-<≤15 lines: what was done · why this path won (name the rejected
-alternatives) · the result · rules established for future work>
-
-Chain: spec.md → plan.md → tasks.md → outcome.md
-```
-
-Write it from `outcome.md`'s actuals, not `plan.md`'s intent — deviations
-are exactly what the digest must carry. Then suggest marking the spec
-`"done"` in `status.json` as usual.
-
 ## Stop conditions
 
 These bind every mode too — a mode may add its own, none may drop these.
@@ -440,5 +455,6 @@ These bind every mode too — a mode may add its own, none may drop these.
 - Task is ambiguous → ask one focused clarifying question, do nothing else.
 - Plan is materially out of date (file paths gone, approach contradicts current code)
   → flag it, do nothing else, do not implement.
-- No pending tasks remain → say the spec is fully implemented, and set the spec
-  phase to `"done"`.
+- No pending tasks remain → run the digest step from the shared core if
+  `digest.md` is not there yet, say the spec is fully implemented, and set the
+  spec phase to `"done"`.

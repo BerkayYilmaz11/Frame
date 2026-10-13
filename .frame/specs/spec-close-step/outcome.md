@@ -84,3 +84,19 @@ from `.frame/bin/`, and an installation without the helper withholds only the sc
 _Captured: 2026-10-13 · 3 file changes_
 
 ---
+## T07 — Digest step in the template's shared core, and the `{close_script_path}` token
+
+Rewrote `src/templates/commands/claude-code/spec.implement.md` so the digest is a four-step item in
+the shared core (write `digest.md`, run `node {close_script_path} {slug}`, fix what it names, phase
+to `done`) with its shape under a new `### The digest`, named it at the phase rule, the closing
+summary, the describe-your-own list and the stop condition, and removed the section at the end;
+`src/main/specManager.js` and `scripts/spec-command-hint.js` each gained a `closeScriptRel` that
+fills the token. Two sentences are not in `plan.md`: step 2 says the digest alone is the step when
+the script is not there (an older `.frame/bin/`), and the shape section says why the first sentence
+must stand alone within 280 characters. Files: the template, `src/main/specManager.js`,
+`scripts/spec-command-hint.js`, `test/codexTemplates.test.js`, `test/spec-command-hint.test.js`,
+`test/spec-close.test.js`.
+
+_Captured: 2026-10-13 · 6 file changes_
+
+---

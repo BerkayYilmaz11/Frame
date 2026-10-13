@@ -183,3 +183,72 @@ test('autonomous launch flags are Claude Code\'s and go nowhere else', () => {
   const claude = specManager.getImplementLaunchFlags(root, 'alpha', 'claude-code');
   assert.ok(claude.includes('--permission-mode'), 'Claude Code still gets its flags');
 });
+
+// ─── the digest step ──────────────────────────────────────
+//
+// The digest used to be a conditional section after the last mode, and the
+// three specs that ran the whole flow and still skipped it are why it moved.
+// What is pinned here is position, not wording: it sits in the shared core
+// that binds every mode, it is named wherever the flow says the phase goes to
+// `done`, and the old section is gone — for both CLIs, since the template is
+// one source.
+
+const section = (prompt, from, to) => {
+  const start = prompt.indexOf(from);
+  const end = prompt.indexOf(to, start + from.length);
+  assert.ok(start >= 0 && end > start, `expected "${from}" … "${to}" in the prompt`);
+  return prompt.slice(start, end);
+};
+
+for (const cli of ['claude-code', 'codex']) {
+  test(`${cli}: the digest step sits in the shared core, as numbered steps`, () => {
+    const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
+    const core = section(prompt, '## The shared core', '## Mode · Step by step');
+    assert.match(core, /\*\*The digest, when the spec's last task closes\.\*\*/);
+    assert.match(core, /\n1\. You write `\.frame\/specs\/alpha\/digest\.md`/);
+    assert.match(core, /\n2\. You run `node \.frame\/bin\/spec-close\.js alpha`/);
+    assert.match(core, /\n3\. You fix what it names and run it again/);
+    assert.match(core, /\n4\. The spec phase goes to `"done"`\./);
+    assert.match(core, /\n### The digest\n/);
+    assert.match(core, /\nChain: spec\.md → plan\.md → tasks\.md → outcome\.md\n/);
+  });
+
+  test(`${cli}: every place the phase goes to done names the digest`, () => {
+    const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
+    const blocks = prompt.split(/\n\s*\n/).filter((block) => block.includes('`"done"`'));
+    assert.equal(blocks.length, 4, 'the phase rule, the numbered step, the closing summary, the stop condition');
+    for (const block of blocks) {
+      assert.match(block, /digest/, `this block sends the phase to done without the digest:\n${block}`);
+    }
+    assert.match(section(prompt, '### A description governs', '### Saved flows are skills'),
+      /one outcome entry per task, the digest when the last task\s+closes, never push/);
+  });
+
+  test(`${cli}: the conditional section at the end is gone`, () => {
+    const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
+    assert.ok(!prompt.includes('LAST pending task'));
+    assert.equal(prompt.split('\n### The digest\n').length, 2, 'the shape is stated once');
+    assert.ok(prompt.indexOf('### The digest') < prompt.indexOf('## Mode · Step by step'), 'before the first mode, not after the last');
+  });
+}
+
+test('the close script token names the copy that is on disk', () => {
+  const render = (root) => specManager.getCommandPrompt(root, 'alpha', 'spec.implement', 'claude-code').prompt;
+  const touch = (root, rel) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), '');
+  };
+
+  // Neither on disk: the shipped location, which the next project open fills.
+  assert.match(render(mkProject()), /`node \.frame\/bin\/spec-close\.js alpha`/);
+
+  // Frame's own repository: the script under development, no shipped copy.
+  const dev = mkProject();
+  touch(dev, 'scripts/spec-close.js');
+  assert.match(render(dev), /`node scripts\/spec-close\.js alpha`/);
+
+  // Both: the shipped copy wins, as it does for every user project.
+  touch(dev, '.frame/bin/spec-close.js');
+  assert.match(render(dev), /`node \.frame\/bin\/spec-close\.js alpha`/);
+  assert.ok(!render(dev).includes('{close_script_path}'));
+});

@@ -232,6 +232,43 @@ test('the staged prompt is byte-identical to the one the button builds', () => {
   }
 });
 
+test('the close script token is filled the way specManager fills it', () => {
+  // {close_script_path} is the one token whose value depends on what is on
+  // disk in the project, so the byte-for-byte guard above — which runs on a
+  // project with neither copy — sees only one of its three answers.
+  const stage = (root) => {
+    fs.writeFileSync(path.join(root, '.frame', 'runtime', 'commands', 'claude-code', 'spec.implement.md'),
+      'run: node {close_script_path} {slug}\n');
+    const file = path.join(root, '.frame', 'runtime', 'prompts', 'alpha__spec.implement.md');
+    fs.rmSync(file, { force: true });
+    runHook({ session_id: 'tok', cwd: root, prompt: '/spec.implement alpha' });
+    return fs.readFileSync(file, 'utf8');
+  };
+  const touch = (root, rel) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), '');
+  };
+  const viaButton = (root) => specManager.getCommandPrompt(root, 'alpha', 'spec.implement', 'claude-code').prompt;
+
+  const root = mkProject([{ slug: 'alpha', title: 'Alpha', phase: 'tasks_generated' }]);
+  assert.equal(stage(root), 'run: node .frame/bin/spec-close.js alpha\n', 'neither copy: the shipped location');
+
+  touch(root, 'scripts/spec-close.js');
+  assert.equal(stage(root), 'run: node scripts/spec-close.js alpha\n', "Frame's own repository");
+
+  touch(root, '.frame/bin/spec-close.js');
+  assert.equal(stage(root), 'run: node .frame/bin/spec-close.js alpha\n', 'the shipped copy wins');
+
+  // And at each of the three, the button's renderer gives the same path.
+  for (const expected of ['.frame/bin/spec-close.js', 'scripts/spec-close.js']) {
+    const probe = mkProject([{ slug: 'alpha', title: 'Alpha', phase: 'tasks_generated' }]);
+    if (expected.startsWith('scripts/')) touch(probe, expected);
+    const staged = stage(probe);
+    assert.ok(staged.includes(`node ${expected} alpha`));
+    assert.ok(viaButton(probe).includes(`node ${expected} alpha`), 'specManager resolves the same copy');
+  }
+});
+
 // ─── it never breaks ──────────────────────────────────────
 
 test('the payload stays inlinable even with many candidates', () => {
