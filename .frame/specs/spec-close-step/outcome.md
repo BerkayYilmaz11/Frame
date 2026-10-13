@@ -100,3 +100,14 @@ must stand alone within 280 characters. Files: the template, `src/main/specManag
 _Captured: 2026-10-13 · 6 file changes_
 
 ---
+## T08 — Frame's own reference names the close script and the reminder
+
+Extended the `digest.md` paragraph of the Spec Knowledge Layer section in `.frame/docs/REFERENCE.md`:
+why the first sentence must stand alone within 280 characters, what `scripts/spec-close.js <slug>`
+reports and that it never writes the digest or sets a phase, which two hooks give the one-line
+reminder and when, and the two cases that are never announced. As `plan.md` D15 decided,
+`getReferenceTemplate()` is untouched, so user projects' reference still does not describe the digest.
+
+_Captured: 2026-10-13 · 1 file change_
+
+---

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:44:24.012Z",
+  "lastUpdated": "2026-10-13T14:46:40.024Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8618,13 +8618,13 @@
       "title": "Extend the digest paragraph of the Spec Knowledge Layer section in `.frame/docs/REFERENCE.md` with the close script and the reminder",
       "description": "",
       "source": "spec:spec-close-step:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-13T14:46:40.024Z",
+      "completedAt": "2026-10-13T14:46:40.024Z"
     },
     {
       "id": "task-spec-spec-close-step-T09",

@@ -335,7 +335,19 @@ never regenerate it** (extension of the meta-file rule).
 WORKER.md step): front-matter + ≤15 lines from *outcome actuals* (what, why
 this path won, result, rules established) + the chain line. It is the entry
 point, not the substitute: on a hit, read
-`spec.md → plan.md → tasks.md → outcome.md`.
+`spec.md → plan.md → tasks.md → outcome.md`. Every hint carries its first
+sentence, cut at 280 characters, so that sentence has to say what was done
+on its own. `node scripts/spec-close.js <slug>` checks it: the spec's task
+count, then `ok`, `missing` with the shape to write, or each named defect
+(no front-matter, no `keywords:` line, first sentence over 280 characters,
+no `Chain:` line) — `--json` for data, exit 0 unless `--strict`. The script
+never writes the digest and never sets a phase; `done` stays derived from
+task state. When a spec closes with no digest, the hooks say so in one line
+naming that command — `docs-hint.js pre-edit` on the next shell or edit
+call, `spec-hint.js prompt` on the next prompt — once per session, until
+the digest exists. Never announced: a spec closed before the reminder first
+ran in the project, and a spec run by orchestration (a
+`.frame/worktrees/<slug>` folder or a `frame/<slug>/…` branch).
 
 **Delivery.** Claude Code sessions get history injected by hooks
 (`scripts/spec-hint.js` via `.claude/settings.json`): PreToolUse on
