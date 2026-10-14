@@ -164,6 +164,21 @@ the task is committed, so the digest and the phase change go into the same
 commit as the task's code and outcome entry — never into a commit of their
 own. A mode that leaves its work uncommitted leaves them in that same change.
 
+**A fix after the last task.** When the user asks, after this spec's last
+task, for a fix to its work — a bug found while testing, a small correction to
+the plan — the fix carries its own record in its own commit:
+
+- an outcome entry in the shape below, headed `## Fix — <short title>`;
+- when the fix changes something the digest records — a rule, a choice, a
+  rejected alternative — the digest revised in the same commit: the statement
+  corrected in place, a `Revised <YYYY-MM-DD>: <what changed, and why>` line
+  added before the `Chain:` line, and `node {close_script_path} {slug}` run
+  again. A bug fixed within the recorded decisions leaves the digest as it is.
+
+Whether a fix changes a decision is your call; if you are not sure, ask the
+user. Larger rework is a new task on this spec, or a new spec with
+`supersedes:`.
+
 **Never push. Never touch `main`.** Commits are local, on the branch you are
 already on. A branch is cheap to throw away; a push is not.
 
@@ -183,7 +198,8 @@ _Captured: <ISO date> · <N> file change(s)_
 ---
 ```
 
-The trailing `---` keeps multiple entries readable.
+The trailing `---` keeps multiple entries readable. A fix after the last task
+uses the same shape under `## Fix — <short title>`.
 
 Style:
 

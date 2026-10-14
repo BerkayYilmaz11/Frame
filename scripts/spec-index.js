@@ -167,14 +167,16 @@ function firstSentence(text, cap) {
 }
 
 /**
- * Outcome sections: `## T<n> — title` … `_Captured: <date> …_`.
+ * Outcome sections: `## T<n> — title` … `_Captured: <date> …_`, and
+ * `## Fix — title` for a fix made after the spec's last task (its task is
+ * `Fix`), so a fixed file's history shows the fix.
  * Files come from the sentence after a "Files touched" marker when present,
  * else from any path-like backticked token in the section.
  */
 function parseOutcome(md) {
   if (!md) return [];
   const sections = [];
-  const re = /^## (T\d+)\s*[—–-]\s*(.+)$/gm;
+  const re = /^## (T\d+|Fix)\s*[—–-]\s*(.+)$/gm;
   let match; const marks = [];
   while ((match = re.exec(md)) !== null) marks.push({ task: match[1], title: match[2].trim(), start: match.index });
   for (let i = 0; i < marks.length; i++) {

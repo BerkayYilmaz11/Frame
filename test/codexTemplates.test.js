@@ -246,6 +246,17 @@ for (const cli of ['claude-code', 'codex']) {
     assert.ok(!/run the digest step/.test(closing), 'nothing is left for after the loop');
   });
 
+  test(`${cli}: a fix after the last task records itself, in the shared core`, () => {
+    const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
+    const core = section(prompt, '## The shared core', '## Mode · Step by step');
+    assert.match(core, /\*\*A fix after the last task\.\*\*/);
+    assert.match(core, /headed `## Fix — <short title>`/);
+    assert.match(core, /a `Revised <YYYY-MM-DD>: <what changed, and why>` line\s+added before the `Chain:` line, and `node \.frame\/bin\/spec-close\.js alpha` run\s+again/);
+    assert.match(core, /A bug fixed within the recorded decisions leaves the digest as it is\./);
+    assert.match(core, /if you are not sure, ask the\s+user/);
+    assert.match(core, /uses the same shape under `## Fix — <short title>`/);
+  });
+
   test(`${cli}: the conditional section at the end is gone`, () => {
     const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
     assert.ok(!prompt.includes('LAST pending task'));

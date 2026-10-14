@@ -342,12 +342,19 @@ count, then `ok`, `missing` with the shape to write, or each named defect
 (no front-matter, no `keywords:` line, first sentence over 280 characters,
 no `Chain:` line) — `--json` for data, exit 0 unless `--strict`. The script
 never writes the digest and never sets a phase; `done` stays derived from
-task state. When a spec closes with no digest, the hooks say so in one line
-naming that command — `docs-hint.js pre-edit` on the next shell or edit
-call, `spec-hint.js prompt` on the next prompt — once per session, until
-the digest exists. Never announced: a spec closed before the reminder first
-ran in the project, and a spec run by orchestration (a
-`.frame/worktrees/<slug>` folder or a `frame/<slug>/…` branch).
+task state. The digest rides in the last task's commit, never in one of its
+own. When a session completes a spec's last task and the digest is missing,
+the hooks tell that session in one line naming the command —
+`docs-hint.js pre-edit` on its next shell or edit call, `spec-hint.js
+prompt` on its next prompt — once. Another session is never told
+(`closed-earlier` in the activity record), nor is a spec run by
+orchestration (a `.frame/worktrees/<slug>` folder or a `frame/<slug>/…`
+branch). A fix after the last task — a bug found while testing, a small
+correction to the plan — carries its own record in its own commit: a
+`## Fix — <title>` entry in `outcome.md`, and, when it changes a decision
+the digest records, the digest corrected in place with a `Revised <date>:`
+line before the chain line. The edit-time history for a finished spec's file
+says so at the moment of the edit.
 
 **Delivery.** Claude Code sessions get history injected by hooks
 (`scripts/spec-hint.js` via `.claude/settings.json`): PreToolUse on

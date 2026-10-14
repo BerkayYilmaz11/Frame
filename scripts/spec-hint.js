@@ -207,6 +207,19 @@ function emit(eventName, context, ctx) {
 const RELAY_INSTRUCTION = 'If this history affects your work, relay it to the user in 1-2 sentences before changing the file ' +
   '(what was done here before, how it shapes your change); if it does not, stay silent about it. Do not repeat this for the same file.';
 
+/**
+ * How a fix to a finished spec's work records itself, said at the one moment
+ * that is certain to precede it: an edit to a file whose newest record is that
+ * spec. Test-time fixes used to reach the code and nothing else, so the next
+ * agent read a digest describing the work before the fix. Whether this edit
+ * is such a fix is the agent's call — the sentence is conditional on purpose.
+ */
+function fixInstruction(slug) {
+  return `If this edit fixes or adjusts the finished work of ${slug}, record it in the same commit: a "## Fix — <title>" entry ` +
+    `in .frame/specs/${slug}/outcome.md, and, if it changes a decision the digest records, the digest updated in place with a ` +
+    '"Revised <YYYY-MM-DD>: …" line before its Chain line. Ask the user if you are not sure whether it does.';
+}
+
 // ─── pre-edit mode ────────────────────────────────────────
 
 function formatEntry(r, full) {
@@ -269,8 +282,14 @@ function preEdit(input) {
       `\nFull history: node ${cli} --file ${rel}`;
   }
 
+  // The fix rule rides only on a finished spec's file, and not in signal mode,
+  // which is one pointer line by contract.
+  const newest = hist[hist.length - 1];
+  const fix = !signalMode && newest && newest.phase === 'done' && !(newest.flags && newest.flags.inflight)
+    ? `\n${fixInstruction(newest.slug)}` : '';
+
   note(root, 'hint.injected', { mode: 'pre-edit', path: rel, specs: specCount });
-  emit('PreToolUse', `Spec history for ${rel} (oldest first — the newest entry is the current truth):\n${body}\n${RELAY_INSTRUCTION}`, { root, mode: 'pre-edit' });
+  emit('PreToolUse', `Spec history for ${rel} (oldest first — the newest entry is the current truth):\n${body}\n${RELAY_INSTRUCTION}${fix}`, { root, mode: 'pre-edit' });
 }
 
 // ─── prompt mode ──────────────────────────────────────────

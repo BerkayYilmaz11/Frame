@@ -176,3 +176,17 @@ fixtures stayed true. Files: the helper, the registry, `PRIVACY.md`, the comment
 _Captured: 2026-10-14 · 11 file changes_
 
 ---
+## T12 — Fixes after close carry their own record
+
+Added a "fix after the last task" paragraph to the shared core of
+`src/templates/commands/claude-code/spec.implement.md`: the fix's own commit carries a `## Fix — <title>`
+outcome entry, and, when the fix changes a decision the digest records, the digest corrected in place with
+a `Revised <date>:` line and the close script run again; the agent asks when unsure. `scripts/spec-hint.js`
+pre-edit appends one conditional sentence saying the same when the newest record for the file is a finished
+spec (not for in-flight specs, not in signal mode), and `scripts/spec-index.js` reads `## Fix —` entries as
+records with task `Fix`. `.frame/docs/REFERENCE.md` now states the reminder's audience and the fix rule.
+Files: those four plus `test/codexTemplates.test.js`, `test/spec-hint.test.js`, `test/spec-index.test.js`.
+
+_Captured: 2026-10-14 · 7 file changes_
+
+---

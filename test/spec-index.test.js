@@ -86,6 +86,21 @@ test('parseOutcome yields per-task sections with files, dates, one-liners', () =
   assert.match(secs[0].line, /alpha cache/);
 });
 
+test('a fix after the last task is a record of its own, with its files and date', () => {
+  const md = [
+    '## T02 — Add the helper', '', 'Added it. Files touched: `src/a.js`.', '', '_Captured: 2026-10-01 · 1 file change_', '', '---',
+    '## Fix — Empty names greet a stranger', '', 'Found in testing: an empty string printed "Hello, !". Files touched: `src/a.js`, `test/a.test.js`.',
+    '', '_Captured: 2026-10-03 · 2 file changes_', '', '---', ''
+  ].join('\n');
+  const secs = parseOutcome(md);
+  assert.deepEqual(secs.map((s) => s.task), ['T02', 'Fix']);
+  assert.equal(secs[1].title, 'Empty names greet a stranger');
+  assert.deepEqual(secs[1].files, ['src/a.js', 'test/a.test.js']);
+  assert.equal(secs[1].date, '2026-10-03');
+  assert.match(secs[1].line, /^Found in testing/);
+  assert.deepEqual(parseOutcome('## Fixes — not a fix heading\n\nx\n').map((s) => s.task), [], 'only the exact word');
+});
+
 test('the digest line is the first sentence, across wrapped lines', () => {
   // Digests wrap near 75 columns; the first physical line used to be the
   // whole hint, and ended mid-sentence in 45 of this repo's 50 digests.

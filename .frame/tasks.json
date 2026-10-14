@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T12:43:36.662Z",
+  "lastUpdated": "2026-10-14T12:46:31.270Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8670,13 +8670,13 @@
       "title": "Fixes after close (D18–D20): add to the shared core of `src/templates/commands/claude-code/spec.implement.md` how a fix after the last task records itself — a `## Fix —` outcome entry in the fix's commit, and the digest revised with a `Revised <date>:` line when the fix changes a decision, asking the user when unsure; add the one-sentence fix rule to `scripts/spec-hint.js` pre-edit history when the file's newest record is a finished spec; read `## Fix —` entries as records in `scripts/spec-index.js`; extend the digest paragraph of `.frame/docs/REFERENCE.md` with the reminder's audience and the fix rule; cover them in `test/codexTemplates.test.js`, `test/spec-hint.test.js` and `test/spec-index.test.js`",
       "description": "",
       "source": "spec:spec-close-step:T12",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T12:35:46.279Z",
-      "updatedAt": "2026-10-14T12:35:46.279Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T12:46:31.270Z",
+      "completedAt": "2026-10-14T12:46:31.270Z"
     },
     {
       "id": "task-spec-spec-close-step-T13",

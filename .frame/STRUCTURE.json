@@ -19329,25 +19329,32 @@
             "ctx"
           ]
         },
+        "fixInstruction": {
+          "line": 217,
+          "params": [
+            "slug"
+          ],
+          "purpose": "How a fix to a finished spec's work records itself, said at the one moment"
+        },
         "formatEntry": {
-          "line": 212,
+          "line": 225,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 224,
+          "line": 237,
           "params": [
             "input"
           ]
         },
         "inlineBudget": {
-          "line": 283,
+          "line": 302,
           "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
         },
         "closeReminder": {
-          "line": 293,
+          "line": 312,
           "params": [
             "root",
             "input"
@@ -19355,7 +19362,7 @@
           "purpose": "The close reminder for this prompt, or null. The helper decides everything"
         },
         "freshTopics": {
-          "line": 308,
+          "line": 327,
           "params": [
             "root",
             "input"
@@ -19363,26 +19370,27 @@
           "purpose": "Specs related to this prompt that the session has not been shown, or null"
         },
         "topicBlock": {
-          "line": 348,
+          "line": 367,
           "params": [
             "index",
             "list"
           ]
         },
         "promptMode": {
-          "line": 358,
+          "line": 377,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 17554,
+      "sizeBytes": 18692,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "closeReminder": "53f0b45f5426931c",
+          "fixInstruction": "a23dee0cc920331c",
           "freshTopics": "0d2ec57657e79c1b",
           "inlineBudget": "493a88afee203081",
           "quiet": "3e8f4a1504407442",
@@ -19468,21 +19476,21 @@
           "purpose": "The first sentence of `text`, cut at a word boundary with \"…\" when it runs"
         },
         "parseOutcome": {
-          "line": 174,
+          "line": 176,
           "params": [
             "md"
           ],
-          "purpose": "Outcome sections: `## T<n> — title` … `_Captured: <date> …_`."
+          "purpose": "Outcome sections: `## T<n> — title` … `_Captured: <date> …_`, and"
         },
         "parseDigest": {
-          "line": 201,
+          "line": 203,
           "params": [
             "md"
           ],
           "purpose": "digest.md: front-matter + the first sentence of the body."
         },
         "lexicalKeywords": {
-          "line": 210,
+          "line": 212,
           "params": [
             "slug",
             "title"
@@ -19490,21 +19498,21 @@
           "purpose": "Fallback keywords when nothing is declared: title + slug tokens."
         },
         "gitExec": {
-          "line": 219,
+          "line": 221,
           "params": [
             "projectPath",
             "args"
           ]
         },
         "buildRenameMap": {
-          "line": 227,
+          "line": 229,
           "params": [
             "projectPath"
           ],
           "purpose": "One pass over history: rename chains old→final path."
         },
         "buildLastTouchMap": {
-          "line": 246,
+          "line": 248,
           "params": [
             "projectPath",
             "sinceIso"
@@ -19512,45 +19520,45 @@
           "purpose": "file → last commit date (ISO), one git call since the oldest spec close."
         },
         "build": {
-          "line": 263,
+          "line": 265,
           "params": [
             "projectPath"
           ]
         },
         "indexPath": {
-          "line": 408,
+          "line": 410,
           "params": [
             "projectPath"
           ]
         },
         "newestSourceMtime": {
-          "line": 412,
+          "line": 414,
           "params": [
             "root"
           ]
         },
         "writeIndex": {
-          "line": 428,
+          "line": 430,
           "params": [
             "projectPath"
           ]
         },
         "ensureFresh": {
-          "line": 441,
+          "line": 443,
           "params": [
             "projectPath"
           ],
           "purpose": "Rebuild only when the index is missing or older than the newest spec"
         },
         "catalogLines": {
-          "line": 455,
+          "line": 457,
           "params": [
             "index"
           ],
           "purpose": "One compact line per spec — the {spec_catalog} embed for spec.new."
         }
       },
-      "sizeBytes": 19372,
+      "sizeBytes": 19509,
       "extraction": {
         "status": "parsed"
       },
@@ -19566,7 +19574,7 @@
           "parseDigest": "4a83bd05f3efb5fc",
           "parseFootprint": "2cbd05b5ef6d5091",
           "parseFrontMatter": "ab7e13a321f1523c",
-          "parseOutcome": "0a8e749f98978b97"
+          "parseOutcome": "6fc70dbe35b0d7af"
         }
       }
     },
@@ -22883,7 +22891,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 22955,
+      "sizeBytes": 23876,
       "extraction": {
         "status": "parsed"
       },
@@ -23587,7 +23595,7 @@
           ]
         }
       },
-      "sizeBytes": 13984,
+      "sizeBytes": 14798,
       "extraction": {
         "status": "parsed"
       },
@@ -25806,20 +25814,20 @@
           ]
         },
         "withActivity": {
-          "line": 181,
+          "line": 209,
           "params": [
             "root",
             "fn"
           ]
         },
         "recordsFor": {
-          "line": 193,
+          "line": 221,
           "params": [
             "root"
           ]
         },
         "addClosed": {
-          "line": 363,
+          "line": 391,
           "params": [
             "root",
             "{ digest = false",
@@ -25828,7 +25836,7 @@
           "purpose": "Give a project a spec that `session` closed with no digest: the session's"
         },
         "wideIndex": {
-          "line": 378,
+          "line": 406,
           "params": [
             "slugs",
             "width"
@@ -25836,7 +25844,7 @@
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 25921,
+      "sizeBytes": 27776,
       "extraction": {
         "status": "parsed"
       },
@@ -25886,7 +25894,7 @@
           ]
         }
       },
-      "sizeBytes": 12413,
+      "sizeBytes": 13333,
       "extraction": {
         "status": "parsed"
       },
@@ -28800,6 +28808,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "0fd5ba1360a3fae0dd8815885606d75524e6a3c8211b95aff009b952743b1653"
+    "revision": "4bb9e426b2a701ca1c5cd03e58b09689c9e64871683dae89b4929b4aa48d6e1e"
   }
 }

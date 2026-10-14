@@ -92,6 +92,34 @@ test('pre-edit absolute paths resolve and signal mode swaps content for a pointe
 
 // ─── pre-edit: dedup ──────────────────────────────────────
 
+test('pre-edit on a finished spec\'s file says how a fix records itself', () => {
+  const root = mkProject(IDX_ONE);
+  const ctx = runHook('pre-edit', { session_id: 'fx1', cwd: root, tool_input: { file_path: 'src/main/a.js' } })
+    .hookSpecificOutput.additionalContext;
+  assert.match(ctx, /If this edit fixes or adjusts the finished work of perf-spec, record it in the same commit: a "## Fix — <title>" entry in \.frame\/specs\/perf-spec\/outcome\.md/);
+  assert.match(ctx, /"Revised <YYYY-MM-DD>: …" line before its Chain line\. Ask the user if you are not sure whether it does\.$/);
+  // On a file several specs touched, it names the newest — the current truth.
+  const many = runHook('pre-edit', { session_id: 'fx1', cwd: root, tool_input: { file_path: 'src/many.js' } })
+    .hookSpecificOutput.additionalContext;
+  assert.match(many, /finished work of s3,/);
+  assert.ok(many.length < 2000);
+});
+
+test('the fix sentence stays off a file whose newest spec is still in flight, and out of signal mode', () => {
+  const idx = JSON.parse(JSON.stringify(IDX_ONE));
+  idx.files['src/live.js'] = [
+    REC('perf-spec', { flags: { current: true } }),
+    REC('live-spec', { phase: 'implementing', line: 'in the footprint of in-flight spec "live-spec"', flags: { inflight: true } })
+  ];
+  const root = mkProject(idx);
+  const live = runHook('pre-edit', { session_id: 'fx2', cwd: root, tool_input: { file_path: 'src/live.js' } })
+    .hookSpecificOutput.additionalContext;
+  assert.ok(!live.includes('If this edit fixes'), 'the work is not finished yet');
+  const signal = runHook('pre-edit', { session_id: 'fx3', cwd: root, tool_input: { file_path: 'src/main/a.js' } },
+    { env: { FRAME_SPEC_HINT_MODE: 'signal' } }).hookSpecificOutput.additionalContext;
+  assert.ok(!signal.includes('If this edit fixes'), 'signal mode is one pointer line');
+});
+
 test('pre-edit injects once per file per session; new session injects again', () => {
   const root = mkProject(IDX_ONE);
   const input = { session_id: 'dedup', cwd: root, tool_input: { file_path: 'src/main/a.js' } };
