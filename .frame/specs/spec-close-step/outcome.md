@@ -270,3 +270,25 @@ reminder. Followup: two-turn sessions leave their transcripts under `~/.claude/p
 _Captured: 2026-10-14 · 2 file changes_
 
 ---
+## T19 — Main run: 130 headless sessions
+
+Ran by the user on `claude-opus-5-5`, $21.48 in total, in two commands (`natural` 10, every other kind 30).
+Every kind passed in full but `closing-turn`, where all 30 sessions received the reminder, 26 wrote the digest
+and ran the close script, and 4 relayed it and asked the user first, because the request had been only to run
+two commands — none treated the second turn's "Thanks." as consent. Codex was verified by payload fixtures only;
+no end-to-end Codex session was run.
+
+| kind | sessions | pass | digest ok | reminder fired | ran the close script | Fix entry | digest revised | median tool calls | cost |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| natural | 10 | 10 | 10 | 0 | 10 | 0 | 0 | 11.5 | $3.82 |
+| closing-turn | 30 | 26 | 26 | 30 | 26 | 0 | 0 | 7 | $7.94 |
+| earlier-close | 30 | 30 | 0 | 0 | 0 | 0 | 0 | 1 | $1.83 |
+| fix-bug | 30 | 30 | 30 | 0 | 0 | 30 | 0 | 4 | $3.64 |
+| fix-decision | 30 | 30 | 30 | 0 | 0 | 30 | 30 | 4 | $4.25 |
+
+Followup: the prompt-time fix sentence rides every topic match on a finished spec, false positives included — seen on this repo's own prompts during the run; narrowing it is open.
+Followup: the 30 two-turn sessions left their transcripts under `~/.claude/projects/`, one folder per fixture path.
+
+_Captured: 2026-10-14 · 0 file changes_
+
+---
