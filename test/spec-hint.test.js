@@ -371,7 +371,8 @@ test('a payload carrying a path but no tool name still works', () => {
 
 const DOCS_HINT = path.join(__dirname, '..', 'scripts', 'docs-hint.js');
 const events = require('../src/shared/activityEvents');
-const CLOSE_LINE = 'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me';
+const CLOSE_LINE = 'You completed the last task of spec "close-me" in this session and it has no digest yet. ' +
+  'Finish it: run node .frame/bin/spec-close.js close-me and write what it asks for.';
 const TOPIC_HEADER = 'Specs related to this request (from the project\'s spec archive):';
 const BUDGET = 1980; // Claude Code inlines 2000; the hook keeps docs-hint's margin
 

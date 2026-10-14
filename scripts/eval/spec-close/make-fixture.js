@@ -9,21 +9,28 @@
  *
  *   node scripts/eval/spec-close/make-fixture.js <kind> [--dir <path>]
  *
- * Three kinds, one per way a spec can end up closed without a digest:
+ * Five kinds, one per moment the close step has to get right:
  *
- *   natural         both tasks pending. The session implements the spec end
- *                   to end; the template's own digest step is what is under
- *                   test, with the reminder behind it.
- *   induced-prompt  both tasks completed an hour ago, outcome written, no
- *                   digest. The session is asked something unrelated; the
- *                   reminder arrives with the prompt.
- *   induced-turn    the last task still open, a script in the project closes
- *                   it. The session is asked to run that script and then one
- *                   more command; the reminder arrives on the second call.
+ *   natural        both tasks pending. The session implements the spec end
+ *                  to end; the template's digest step is under test, and the
+ *                  digest must land in the last task's commit.
+ *   closing-turn   the last task still open, a script in the project closes
+ *                  it. The session is asked to run that script and then one
+ *                  more command; it closed the spec, so the reminder reaches
+ *                  it on the second call.
+ *   earlier-close  both tasks completed an hour before the session, no
+ *                  digest. The session is asked something unrelated; it did
+ *                  not close the spec, so it must hear nothing.
+ *   fix-bug        a finished spec with its digest, and a bug in its code.
+ *                  The session is asked to fix it: a Fix entry, the digest
+ *                  left as it is.
+ *   fix-decision   a finished spec with its digest, and a request that
+ *                  contradicts a rule the digest records: a Fix entry, and
+ *                  the digest revised.
  *
- * The two induced kinds never show the session the implement template, so
- * whatever it learns about the digest it learns from the reminder and from
- * `spec-close.js` — which is the claim being tested.
+ * Only `natural` shows the session the implement template. The others learn
+ * what they owe from the hooks alone — the reminder, or the edit-time history
+ * of a finished spec's file — which is the claim being tested.
  *
  * Everything Frame-shaped comes from Frame's own code rather than a copy of
  * it: `.frame/bin/` from structureBootstrap.copyParserScripts, the command
@@ -48,7 +55,8 @@ const structureBootstrap = require(path.join(REPO, 'src', 'main', 'structureBoot
 const commandStaging = require(path.join(REPO, 'src', 'main', 'commandStaging'));
 const { SPEC_HINT_HOOKS } = require(path.join(REPO, 'src', 'shared', 'frameTemplates'));
 
-const KINDS = ['natural', 'induced-prompt', 'induced-turn'];
+const KINDS = ['natural', 'closing-turn', 'earlier-close', 'fix-bug', 'fix-decision'];
+const FINISHED = ['earlier-close', 'fix-bug', 'fix-decision']; // every task completed before the session
 const SLUG = 'greeting-helper';
 const TITLE = 'Greeting Helper';
 
@@ -140,6 +148,22 @@ test('greets a stranger when the name is empty', () => assert.equal(greet(''), '
 test('greets a stranger when there is no name', () => assert.equal(greet(), 'Hello, stranger!'));
 `;
 
+// fix-bug's planted bug: the comma the spec promises is missing.
+const GREET_JS_BUGGY = GREET_JS.replace('`Hello, ${', '`Hello ${');
+
+// The digest a finished fixture spec carries. Its rule about strangers is
+// what fix-decision is asked to overturn.
+const DIGEST_MD = `---
+keywords: greeting, greet, helper
+---
+Added a pure \`greet(name)\` helper in \`src/greet.js\`, with tests, so every greeting in the project reads the same.
+
+- Rule: an empty or missing name greets a \`stranger\` — never \`undefined\` or an empty slot.
+- Rejected: a configurable class — nothing asks for a second salutation.
+
+Chain: spec.md → plan.md → tasks.md → outcome.md
+`;
+
 const SMOKE_TEST_JS = `const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -180,12 +204,15 @@ fs.writeFileSync(file, JSON.stringify(data, null, 2));
 console.log('T02 completed');
 `;
 
-// What each kind's session is asked. Neither induced prompt mentions the
-// digest, the spec or the close script.
+// What each kind's session is asked. None but natural's mentions the
+// digest, the outcome, the spec or the close script.
 const PROMPTS = {
   natural: `/spec.implement ${SLUG}`,
-  'induced-prompt': 'What does src/greet.js export? Answer in one sentence.',
-  'induced-turn': 'Run `node tools/close-task.js`, then run `git status --short`, and tell me what each printed.'
+  'closing-turn': 'Run `node tools/close-task.js`, then run `git status --short`, and tell me what each printed.',
+  'earlier-close': 'What does src/greet.js export? Answer in one sentence.',
+  'fix-bug': 'While testing the greeting helper I found a bug: greet(\'Ada\') returns "Hello Ada!" — the comma is missing. Fix it.',
+  'fix-decision': 'While testing the greeting helper I realised greeting a stranger is wrong for us: an empty or missing name ' +
+    'should return "Hello, friend!" instead. Change it.'
 };
 
 function write(root, rel, content) {
@@ -197,15 +224,19 @@ function write(root, rel, content) {
 function taskStates(kind, now) {
   const closedAt = new Date(now - 60 * 60 * 1000).toISOString();
   if (kind === 'natural') return ['pending', 'pending'].map((status) => ({ status, completedAt: null }));
-  if (kind === 'induced-prompt') return [1, 2].map(() => ({ status: 'completed', completedAt: closedAt }));
+  if (FINISHED.includes(kind)) return [1, 2].map(() => ({ status: 'completed', completedAt: closedAt }));
   return [{ status: 'completed', completedAt: closedAt }, { status: 'in_progress', completedAt: null }];
 }
+
+const PHASES = {
+  natural: 'tasks_generated', 'closing-turn': 'implementing', 'earlier-close': 'done', 'fix-bug': 'done', 'fix-decision': 'done'
+};
 
 /**
  * Build one fixture. Returns what a runner needs: where it is, what to ask,
  * and where its hooks will record.
  *
- *   { kind, slug, base, root, activityHome, prompt }
+ *   { kind, slug, base, root, activityHome, prompt, digestBefore }
  *
  * `base` holds the repository (`root`) and the activity home side by side, so
  * removing `base` removes every trace of the fixture.
@@ -227,10 +258,10 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   write(root, 'src/index.js', '\'use strict\';\n\nmodule.exports = {};\n');
   write(root, 'test/smoke.test.js', SMOKE_TEST_JS);
   if (worked) {
-    write(root, 'src/greet.js', GREET_JS);
+    write(root, 'src/greet.js', kind === 'fix-bug' ? GREET_JS_BUGGY : GREET_JS);
     write(root, 'test/greet.test.js', GREET_TEST_JS);
   }
-  if (kind === 'induced-turn') write(root, 'tools/close-task.js', closeTaskScript());
+  if (kind === 'closing-turn') write(root, 'tools/close-task.js', closeTaskScript());
 
   // ── .frame/ ──
   write(root, '.frame/.gitignore', FRAME_GITIGNORE);
@@ -263,10 +294,12 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   write(root, `${specDir}/plan.md`, PLAN_MD);
   write(root, `${specDir}/tasks.md`, TASKS_MD);
   if (worked) write(root, `${specDir}/outcome.md`, OUTCOME_MD);
+  const digestBefore = kind.startsWith('fix-') ? DIGEST_MD : null;
+  if (digestBefore) write(root, `${specDir}/digest.md`, digestBefore);
   write(root, `${specDir}/status.json`, `${JSON.stringify({
     slug: SLUG,
     title: TITLE,
-    phase: { natural: 'tasks_generated', 'induced-prompt': 'done', 'induced-turn': 'implementing' }[kind],
+    phase: PHASES[kind],
     generated_task_ids: TASKS.map((t) => `task-spec-${SLUG}-T0${t.n}`),
     ai_tool: 'claude-code',
     created_at: created,
@@ -281,7 +314,13 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   write(root, '.claude/settings.json', `${JSON.stringify({ hooks: SPEC_HINT_HOOKS }, null, 2)}\n`);
 
   // ── a clean tree on the spec's own branch ──
-  const git = (...args) => execFileSync('git', args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+  // The commit is dated when the spec was created, before its tasks closed:
+  // the index flags a file changed after its spec closed as stale, and a
+  // fixture committed "now" would mark every finished file that way.
+  const git = (...args) => execFileSync('git', args, {
+    cwd: root, stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, GIT_AUTHOR_DATE: created, GIT_COMMITTER_DATE: created }
+  });
   git('init', '-q');
   git('checkout', '-q', '-b', 'main');
   git('add', '-A');
@@ -291,7 +330,14 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   git('config', 'user.name', 'Fixture Agent');
   git('config', 'user.email', 'agent@frame.invalid');
 
-  return { kind, slug: SLUG, base, root, activityHome, prompt: PROMPTS[kind] };
+  // The spec index, as Frame keeps it: the edit-time history of a finished
+  // spec's file is built from it, and it is where the fix rule reaches a
+  // session that never saw the implement template.
+  execFileSync(process.execPath, [path.join(root, '.frame', 'bin', 'spec-index.js'), '--force'], {
+    cwd: root, stdio: 'ignore', env: { ...process.env, FRAME_PROJECT_ROOT: root }
+  });
+
+  return { kind, slug: SLUG, base, root, activityHome, prompt: PROMPTS[kind], digestBefore };
 }
 
 if (require.main === module) {
@@ -307,4 +353,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { makeFixture, KINDS, SLUG, PROMPTS };
+module.exports = { makeFixture, KINDS, FINISHED, SLUG, PROMPTS, DIGEST_MD };

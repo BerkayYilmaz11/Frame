@@ -368,7 +368,8 @@ function rowsOf(root) {
 }
 
 const closeRows = (root) => rowsOf(root).filter((r) => r.mode === 'spec-close');
-const LINE = 'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me';
+const LINE = 'You completed the last task of spec "close-me" in this session and it has no digest yet. ' +
+  'Finish it: run node .frame/bin/spec-close.js close-me and write what it asks for.';
 const srcEdit = (root, session = 'a') =>
   ({ session_id: session, cwd: root, tool_name: 'Edit', tool_input: { file_path: path.join(root, 'src', 'index.js') } });
 const codexShell = (root, command) =>
@@ -417,7 +418,7 @@ test('a meta write keeps its own payload and carries no reminder — the next ca
   for (const input of [edit(root, 'tasks.json'), bash(root, 'echo "{}" > .frame/PROJECT_NOTES.md')]) {
     const ctx = ctxOf(runHook('pre-edit', input, { env }));
     assert.match(ctx, /^Frame's rules for writing /);
-    assert.ok(!ctx.includes('has every task completed'), 'the section is delivered alone');
+    assert.ok(!ctx.includes('You completed the last task'), 'the section is delivered alone');
   }
   assert.deepEqual(closeRows(root), [], 'a meta write does not consume the reminder');
   assert.equal(ctxOf(runHook('pre-edit', bash(root, 'git status'), { env })), LINE);
@@ -534,7 +535,7 @@ test('the reminder stays inside the inline limit at its widest', () => {
   assert.equal(runHook('pre-edit', bash(root, 'npm test'), { env: closeEnv(root) }), null);
   write('completed');
   const ctx = ctxOf(runHook('pre-edit', bash(root, 'ls'), { env: closeEnv(root) }));
-  assert.match(ctx, / and 2 more have every task completed but no digest — run for each: /);
+  assert.match(ctx, / and 2 more in this session and they have no digest yet\. Finish them: run node \S+ <slug> for each /);
   assert.ok(!ctx.includes('\n'), 'one line');
   assert.ok(ctx.length <= CAP, `${ctx.length} chars exceeds the ${CAP} cap`);
 });

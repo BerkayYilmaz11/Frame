@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T12:46:31.270Z",
+  "lastUpdated": "2026-10-14T12:53:32.516Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8683,13 +8683,13 @@
       "title": "Redefine the test run (D22): fixture kinds `natural`, `closing-turn`, `earlier-close`, `fix-bug` and `fix-decision` in `scripts/eval/spec-close/make-fixture.js`, each kind's pass rule in `scripts/eval/spec-close/run.js` (natural: digest ok and in the last task's commit; closing-turn: digest ok; earlier-close: no reminder and digest untouched; fix-bug: a Fix entry and the digest unchanged; fix-decision: a Fix entry and a digest with a Revised line), and each kind driven with no agent in `test/spec-close-fixture.test.js`",
       "description": "",
       "source": "spec:spec-close-step:T13",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T12:35:46.279Z",
-      "updatedAt": "2026-10-14T12:35:46.279Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T12:53:32.516Z",
+      "completedAt": "2026-10-14T12:53:32.516Z"
     },
     {
       "id": "task-spec-spec-close-step-T14",

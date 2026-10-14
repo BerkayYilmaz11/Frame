@@ -158,7 +158,7 @@ test('a second close item joins the list without anything around it changing', (
   try {
     closeIn(root, 's', open('a'), closed('a'));
     assert.deepEqual(missingItems(root, 'a'), ['cards']);
-    assert.match(reminder(root, 's', NOW).line, /but no decision cards — run:/);
+    assert.match(reminder(root, 's', NOW).line, /and it has no decision cards yet\. Finish it:/);
   } finally {
     CLOSE_ITEMS.pop();
   }
@@ -172,7 +172,8 @@ test('a spec this session closed with no digest gets the one-line reminder', () 
   const out = reminder(root, 's1', NOW);
   assert.deepEqual(out.slugs, ['close-me']);
   assert.equal(out.line,
-    'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me');
+    'You completed the last task of spec "close-me" in this session and it has no digest yet. ' +
+    'Finish it: run node .frame/bin/spec-close.js close-me and write what it asks for.');
   assert.ok(!out.line.includes('\n'), 'one line');
   assert.deepEqual(pending(root).map((s) => s.slug), ['close-me']);
 });
@@ -243,7 +244,7 @@ test('more than three are named three at a time, the rest counted', () => {
   const first = reminder(root, 's1', NOW);
   assert.deepEqual(first.slugs, ['e', 'd', 'c'], 'newest close first');
   assert.equal(first.more, 2);
-  assert.match(first.line, /^Specs "e", "d", "c" and 2 more have every task completed but no digest — run for each: node \S+ <slug>$/);
+  assert.match(first.line, /^You completed the last tasks of specs "e", "d", "c" and 2 more in this session and they have no digest yet\. Finish them: run node \S+ <slug> for each and write what it asks for\.$/);
   const second = reminder(root, 's1', NOW);
   assert.deepEqual(second.slugs, ['b', 'a'], 'the counted ones are named next');
   assert.equal(second.more, 0);

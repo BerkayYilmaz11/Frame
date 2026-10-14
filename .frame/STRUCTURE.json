@@ -17687,14 +17687,14 @@
       ],
       "functions": {
         "greet": {
-          "line": 127,
+          "line": 135,
           "params": [
             "name"
           ],
           "purpose": "A greeting for \\`name\\`, or for a stranger when there is none."
         },
         "write": {
-          "line": 191,
+          "line": 218,
           "params": [
             "root",
             "rel",
@@ -17702,14 +17702,14 @@
           ]
         },
         "taskStates": {
-          "line": 197,
+          "line": 224,
           "params": [
             "kind",
             "now"
           ]
         },
         "makeFixture": {
-          "line": 213,
+          "line": 244,
           "params": [
             "{ kind",
             "dir = null",
@@ -17718,7 +17718,7 @@
           "purpose": "Build one fixture. Returns what a runner needs: where it is, what to ask,"
         }
       },
-      "sizeBytes": 12006,
+      "sizeBytes": 14570,
       "extraction": {
         "status": "parsed"
       },
@@ -17738,25 +17738,28 @@
         "sessionEnv",
         "parseTranscript",
         "closeRows",
+        "judge",
         "summarize",
         "table",
+        "inspect",
         "DISALLOWED"
       ],
       "depends": [
         "fs",
         "path",
         "child_process",
-        "make-fixture"
+        "make-fixture",
+        "src/greet"
       ],
       "functions": {
         "parseArgs": {
-          "line": 73,
+          "line": 74,
           "params": [
             "argv"
           ]
         },
         "agentArgs": {
-          "line": 106,
+          "line": 107,
           "params": [
             "{ prompt",
             "settingsPath",
@@ -17766,7 +17769,7 @@
           "purpose": "The CLI arguments for one fixture session."
         },
         "sessionEnv": {
-          "line": 122,
+          "line": 123,
           "params": [
             "base",
             "fixture"
@@ -17774,50 +17777,65 @@
           "purpose": "The environment for one fixture session: the caller's, minus what binds it to the caller."
         },
         "parseTranscript": {
-          "line": 142,
+          "line": 143,
           "params": [
             "text"
           ],
           "purpose": "A stream-json transcript → the few facts the table needs. Tolerant of"
         },
         "closeRows": {
-          "line": 183,
+          "line": 184,
           "params": [
             "activityHome"
           ],
           "purpose": "The fixture's own activity rows that concern the close step."
         },
+        "judge": {
+          "line": 208,
+          "params": [
+            "kind",
+            "f"
+          ],
+          "purpose": "Whether one session did what its kind asks of it. `facts` is what"
+        },
         "summarize": {
-          "line": 203,
+          "line": 221,
           "params": [
             "{ id",
             "kind",
-            "verdict",
-            "defects",
+            "facts",
             "transcript",
             "rows",
             "timedOut",
             "exitCode }"
           ],
-          "purpose": "One session's row. `verdict` is spec-close.js's, run after the session."
+          "purpose": "One session's row. `facts` come from `inspect`, run after the session."
         },
         "table": {
-          "line": 230,
+          "line": 255,
           "params": [
             "results"
           ],
           "purpose": "Results → the markdown table recorded in the spec's outcome."
         },
         "runSession": {
-          "line": 255,
+          "line": 282,
           "params": [
             "fixture",
             "opts",
             "runDir"
           ]
         },
+        "digestWithCode": {
+          "line": 321,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Whether the commit that added the digest also carries code — the digest"
+        },
         "inspect": {
-          "line": 282,
+          "line": 333,
           "params": [
             "fixture",
             "runDir"
@@ -17825,7 +17843,7 @@
           "purpose": "What the fixture looks like after its session, read without changing it."
         },
         "pool": {
-          "line": 299,
+          "line": 372,
           "params": [
             "items",
             "size",
@@ -17833,19 +17851,26 @@
           ]
         },
         "main": {
-          "line": 313,
+          "line": 386,
           "params": [
             "argv"
           ]
         },
         "median": {
-          "line": 222,
+          "line": 247,
           "params": [
             "values"
           ]
+        },
+        "readOr": {
+          "line": 308,
+          "params": [
+            "file",
+            "fallback"
+          ]
         }
       },
-      "sizeBytes": 16970,
+      "sizeBytes": 20267,
       "extraction": {
         "status": "parsed"
       },
@@ -17853,10 +17878,12 @@
         "purposes": {
           "agentArgs": "0c1a50eb171b8b31",
           "closeRows": "c7d8e48a6ace2a80",
+          "digestWithCode": "caffb57186325a60",
           "inspect": "3f4ba67db26288f4",
+          "judge": "c1ace852cec3cce0",
           "parseTranscript": "bdcb3da86d5ef5b0",
           "sessionEnv": "8bc17c5c687a1f89",
-          "summarize": "0e166fedcdbe611a",
+          "summarize": "98e96a51636b1731",
           "table": "15e2e5c767ab65ea"
         }
       }
@@ -18956,15 +18983,16 @@
           ]
         },
         "reminderLine": {
-          "line": 391,
+          "line": 397,
           "params": [
             "root",
             "named",
             "more"
-          ]
+          ],
+          "purpose": "Worded as the session's own unfinished work, because it is: only the"
         },
         "reminder": {
-          "line": 414,
+          "line": 422,
           "params": [
             "root",
             "sessionId",
@@ -18973,7 +19001,7 @@
           "purpose": "What a hook should do about closed specs right now."
         }
       },
-      "sizeBytes": 19173,
+      "sizeBytes": 19644,
       "extraction": {
         "status": "parsed"
       },
@@ -18989,6 +19017,7 @@
           "pending": "de654e387f4b3df9",
           "readTasks": "b2a62548c72b1fa1",
           "reminder": "f3dc678226bb00a5",
+          "reminderLine": "e79ef51e448f2dd6",
           "sessionKey": "3ab5b382c4ceb8e1",
           "specStates": "fb57a90358e1598e",
           "specTaskCounts": "23893a21574aea54",
@@ -23742,7 +23771,7 @@
           "purpose": "Every activity row the hook wrote for this project, each checked against the registry."
         }
       },
-      "sizeBytes": 25741,
+      "sizeBytes": 25849,
       "extraction": {
         "status": "parsed"
       },
@@ -25557,7 +25586,10 @@
     "test/spec-close-fixture.test": {
       "file": "test/spec-close-fixture.test.js",
       "description": "Spec close step — fixture and runner tests.",
-      "exports": [],
+      "exports": [
+        "greet",
+        "${n || 'stranger'"
+      ],
       "depends": [
         "node:test",
         "node:assert/strict",
@@ -25570,21 +25602,21 @@
       ],
       "functions": {
         "withFixture": {
-          "line": 36,
+          "line": 37,
           "params": [
             "kind",
             "fn"
           ]
         },
         "envOf": {
-          "line": 46,
+          "line": 47,
           "params": [
             "fixture"
           ],
           "purpose": "The fixture's environment for anything run inside it: its own activity home, nobody else's root."
         },
         "hook": {
-          "line": 58,
+          "line": 59,
           "params": [
             "fixture",
             "event",
@@ -25594,13 +25626,26 @@
           "purpose": "Run one registered hook the way Claude Code would: the command string from"
         },
         "closeCheck": {
-          "line": 76,
+          "line": 80,
+          "params": [
+            "fixture"
+          ]
+        },
+        "appendFix": {
+          "line": 228,
+          "params": [
+            "fixture",
+            "title"
+          ]
+        },
+        "inspected": {
+          "line": 233,
           "params": [
             "fixture"
           ]
         }
       },
-      "sizeBytes": 15888,
+      "sizeBytes": 23302,
       "extraction": {
         "status": "parsed"
       },
@@ -25664,13 +25709,13 @@
           "purpose": "The session takes its first look with `before` on disk, then the tasks"
         },
         "gitInit": {
-          "line": 273,
+          "line": 274,
           "params": [
             "root"
           ]
         }
       },
-      "sizeBytes": 20768,
+      "sizeBytes": 20935,
       "extraction": {
         "status": "parsed"
       },
@@ -25827,7 +25872,7 @@
           ]
         },
         "addClosed": {
-          "line": 391,
+          "line": 392,
           "params": [
             "root",
             "{ digest = false",
@@ -25836,7 +25881,7 @@
           "purpose": "Give a project a spec that `session` closed with no digest: the session's"
         },
         "wideIndex": {
-          "line": 406,
+          "line": 407,
           "params": [
             "slugs",
             "width"
@@ -25844,7 +25889,7 @@
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 27776,
+      "sizeBytes": 27851,
       "extraction": {
         "status": "parsed"
       },
@@ -28808,6 +28853,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "4bb9e426b2a701ca1c5cd03e58b09689c9e64871683dae89b4929b4aa48d6e1e"
+    "revision": "4ae48e0313f1793a65fa2a2b159fa978b8ca3e55b60973e6d8e5253e03937ef6"
   }
 }

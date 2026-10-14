@@ -190,3 +190,18 @@ Files: those four plus `test/codexTemplates.test.js`, `test/spec-hint.test.js`, 
 _Captured: 2026-10-14 · 7 file changes_
 
 ---
+## T13 — The test run, redefined: five kinds and a pass rule each
+
+`scripts/eval/spec-close/make-fixture.js` now builds `natural`, `closing-turn`, `earlier-close`, `fix-bug`
+(a finished spec with a planted missing comma) and `fix-decision` (a finished spec whose digest records the
+`stranger` rule the prompt overturns); it builds the spec index as Frame keeps it and dates the base commit
+before the tasks closed, so finished files are not flagged stale. `scripts/eval/spec-close/run.js` reads facts
+off each fixture (close verdict, Fix entry, digest changed or revised, digest committed beside code, `npm test`,
+the greeting's behaviour) and `judge` turns them into a pass per kind; `test/spec-close-fixture.test.js` drives
+every kind with no agent and checks each rule both ways. Beyond `plan.md`: the reminder line now tells the
+session it closed the spec and to finish it — the ownership wording proposed with D16 but missed in T11, without
+which `closing-turn` would measure the pilot's informational line again (`scripts/spec-close-state.js` and four test files).
+
+_Captured: 2026-10-14 · 8 file changes_
+
+---

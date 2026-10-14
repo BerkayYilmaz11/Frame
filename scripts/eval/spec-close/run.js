@@ -8,7 +8,7 @@
  * not a product surface. It spends money: every session is a real model run.
  *
  *   node scripts/eval/spec-close/run.js --n 1                 # one session per kind (the pilot)
- *   node scripts/eval/spec-close/run.js --n 10 --kinds induced-prompt,induced-turn
+ *   node scripts/eval/spec-close/run.js --n 10 --kinds closing-turn,fix-decision
  *   node scripts/eval/spec-close/run.js --dry-run --n 2       # build fixtures, print the launch lines, run nothing
  *
  * Options:
@@ -16,7 +16,7 @@
  *   --kinds <a,b>            which kinds (default: all three)
  *   --concurrency <count>    sessions at a time (default 3)
  *   --budget-natural <usd>   --max-budget-usd for a natural session (default 4)
- *   --budget-induced <usd>   --max-budget-usd for an induced session (default 2)
+ *   --budget-other <usd>     --max-budget-usd for a session of any other kind (default 2)
  *   --timeout <seconds>      per session (default 900)
  *   --model <id>             passed to the CLI; default is the CLI's own default
  *   --agent <command>        the CLI binary (default: claude)
@@ -24,11 +24,14 @@
  *   --keep                   leave the fixtures on disk and print where they are
  *   --dry-run                no session is started
  *
- * What a pass is: after the session, `spec-close.js <slug> --json` on the
- * fixture says `ok` — the digest exists and has no named defect. Also read
- * off, because a pass alone does not say why: whether a reminder fired (the
- * hooks' rows in the fixture's own activity record), whether the session ran
- * the close script itself, and what the session cost.
+ * What a pass is depends on the kind (see `judge`): the digest `ok` and in
+ * the last task's commit (natural), the digest `ok` after the reminder
+ * (closing-turn), no reminder and the digest untouched (earlier-close), a Fix
+ * entry with the digest unchanged (fix-bug) or revised (fix-decision), the
+ * fix itself passing the project's tests. Also read off, because a pass alone
+ * does not say why: whether a reminder fired (the hooks' rows in the
+ * fixture's own activity record), whether the session ran the close script
+ * itself, and what the session cost.
  *
  * How a session is launched is how Frame launches an autonomous implement
  * run: the permission file src/templates/bin/implement-launch.js builds, and
@@ -39,9 +42,7 @@
  * own directory.
  *
  * What it can show, at the sizes it is run at: 10 passes out of 10 bound the
- * miss rate under roughly one in four; 30 out of 30 under one in ten. The
- * natural kind is a smoke test — it cannot tell the 95% the template already
- * reaches from 100%.
+ * miss rate under roughly one in four; 30 out of 30 under one in ten.
  */
 
 'use strict';
@@ -72,7 +73,7 @@ const PARENT_SESSION_VARS = [
 
 function parseArgs(argv) {
   const opts = {
-    n: null, kinds: [...KINDS], concurrency: 3, budgetNatural: 4, budgetInduced: 2,
+    n: null, kinds: [...KINDS], concurrency: 3, budgetNatural: 4, budgetOther: 2,
     timeout: 900, model: null, agent: 'claude', out: null, keep: false, dryRun: false
   };
   const value = (i) => {
@@ -86,7 +87,7 @@ function parseArgs(argv) {
     else if (a === '--n') opts.n = Number(value(i++));
     else if (a === '--concurrency') opts.concurrency = Number(value(i++));
     else if (a === '--budget-natural') opts.budgetNatural = Number(value(i++));
-    else if (a === '--budget-induced') opts.budgetInduced = Number(value(i++));
+    else if (a === '--budget-other') opts.budgetOther = Number(value(i++));
     else if (a === '--timeout') opts.timeout = Number(value(i++));
     else if (a === '--kinds') opts.kinds = value(i++).split(',').map((s) => s.trim()).filter(Boolean);
     else if (a === '--model') opts.model = value(i++);
@@ -96,7 +97,7 @@ function parseArgs(argv) {
   }
   if (!Number.isInteger(opts.n) || opts.n < 1) throw new Error('--n <count> is required: sessions per kind');
   for (const kind of opts.kinds) if (!KINDS.includes(kind)) throw new Error(`unknown kind "${kind}"`);
-  for (const key of ['concurrency', 'budgetNatural', 'budgetInduced', 'timeout']) {
+  for (const key of ['concurrency', 'budgetNatural', 'budgetOther', 'timeout']) {
     if (!(opts[key] > 0)) throw new Error(`--${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)} must be positive`);
   }
   return opts;
@@ -199,14 +200,38 @@ function closeRows(activityHome) {
   };
 }
 
-/** One session's row. `verdict` is spec-close.js's, run after the session. */
-function summarize({ id, kind, verdict, defects, transcript, rows, timedOut, exitCode }) {
+/**
+ * Whether one session did what its kind asks of it. `facts` is what
+ * `inspect` read off the fixture after the session; every rule is a plain
+ * conjunction, so a failed pass can be traced to the fact that sank it.
+ */
+function judge(kind, f) {
+  const all = (...conditions) => conditions.every((c) => c === true);
+  switch (kind) {
+    case 'natural': return all(f.verdict === 'ok', f.digestWithCode);
+    case 'closing-turn': return all(f.verdict === 'ok');
+    case 'earlier-close': return all(f.reminders === 0, f.verdict === 'missing');
+    case 'fix-bug': return all(f.fixEntry, f.digestChanged === false, f.verdict === 'ok', f.testsPass, f.behaviour);
+    case 'fix-decision': return all(f.fixEntry, f.revisedLine, f.verdict === 'ok', f.testsPass, f.behaviour);
+    default: return false;
+  }
+}
+
+/** One session's row. `facts` come from `inspect`, run after the session. */
+function summarize({ id, kind, facts, transcript, rows, timedOut, exitCode }) {
+  const { verdict, defects } = facts;
   return {
     id,
     kind,
-    pass: verdict === 'ok',
+    pass: judge(kind, { ...facts, reminders: rows.reminders }),
     verdict,
     defects,
+    fixEntry: facts.fixEntry === true,
+    digestChanged: facts.digestChanged === true,
+    revisedLine: facts.revisedLine === true,
+    digestWithCode: facts.digestWithCode === true,
+    testsPass: facts.testsPass === true,
+    behaviour: facts.behaviour === true,
     reminders: rows.reminders,
     quiet: rows.quiet,
     agentChecks: rows.checks,
@@ -229,8 +254,8 @@ const median = (values) => {
 /** Results → the markdown table recorded in the spec's outcome. */
 function table(results) {
   const lines = [
-    '| kind | sessions | digest ok | digest present | reminder fired | ran the close script | median tool calls | cost |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- |'
+    '| kind | sessions | pass | digest ok | reminder fired | ran the close script | Fix entry | digest revised | median tool calls | cost |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
   ];
   for (const kind of KINDS) {
     const rows = results.filter((r) => r.kind === kind);
@@ -240,9 +265,11 @@ function table(results) {
     lines.push([
       '', kind, rows.length,
       count((r) => r.pass),
-      count((r) => r.verdict === 'ok' || r.verdict === 'malformed'),
+      count((r) => r.verdict === 'ok'),
       count((r) => r.reminders > 0),
       count((r) => r.agentChecks.length > 0),
+      count((r) => r.fixEntry),
+      count((r) => r.revisedLine),
       median(rows.map((r) => r.toolCalls)) ?? '—',
       `$${cost.toFixed(2)}`, ''
     ].join(' | ').trim());
@@ -256,7 +283,7 @@ function runSession(fixture, opts, runDir) {
   return new Promise((resolve) => {
     const settingsPath = path.join(fixture.base, 'implement-permissions.json');
     fs.writeFileSync(settingsPath, `${JSON.stringify(launch.buildPermissions('npm test'), null, 2)}\n`);
-    const budget = fixture.kind === 'natural' ? opts.budgetNatural : opts.budgetInduced;
+    const budget = fixture.kind === 'natural' ? opts.budgetNatural : opts.budgetOther;
     const args = agentArgs({ prompt: fixture.prompt, settingsPath, budget, model: opts.model });
 
     const stdout = fs.createWriteStream(path.join(runDir, 'transcript.jsonl'));
@@ -278,9 +305,55 @@ function runSession(fixture, opts, runDir) {
   });
 }
 
+const readOr = (file, fallback) => { try { return fs.readFileSync(file, 'utf8'); } catch { return fallback; } };
+
+/** What each fix kind's code must do once the session is over. */
+const BEHAVIOUR = {
+  'fix-bug': ['Ada', 'Hello, Ada!'],
+  'fix-decision': ['', 'Hello, friend!']
+};
+
+/**
+ * Whether the commit that added the digest also carries code — the digest
+ * rode in a task's commit rather than one of its own. False when the digest
+ * was never committed.
+ */
+function digestWithCode(root, slug) {
+  try {
+    const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    const added = git('log', '--diff-filter=A', '--format=%H', '--', `.frame/specs/${slug}/digest.md`).split('\n').filter(Boolean).pop();
+    if (!added) return false;
+    return git('show', '--name-only', '--format=', added).split('\n').some((f) => f && !f.startsWith('.frame/'));
+  } catch {
+    return false;
+  }
+}
+
 /** What the fixture looks like after its session, read without changing it. */
 function inspect(fixture, runDir) {
   const rows = closeRows(fixture.activityHome);
+  const specDir = path.join(fixture.root, '.frame', 'specs', fixture.slug);
+  const digestNow = readOr(path.join(specDir, 'digest.md'), null);
+  const facts = {
+    fixEntry: /^## Fix\s*[—–-]/m.test(readOr(path.join(specDir, 'outcome.md'), '')),
+    digestChanged: digestNow !== fixture.digestBefore,
+    revisedLine: /^Revised \d{4}-\d{2}-\d{2}:/m.test(digestNow || ''),
+    digestWithCode: digestWithCode(fixture.root, fixture.slug),
+    testsPass: false,
+    behaviour: false
+  };
+  try {
+    execFileSync('npm', ['test'], { cwd: fixture.root, stdio: 'ignore', timeout: 120000 });
+    facts.testsPass = true;
+  } catch { /* the tests fail, or will not run */ }
+  if (BEHAVIOUR[fixture.kind]) {
+    const [input, expected] = BEHAVIOUR[fixture.kind];
+    try {
+      const got = execFileSync(process.execPath, ['-e', `process.stdout.write(require('./src/greet').greet(${JSON.stringify(input)}))`],
+        { cwd: fixture.root, encoding: 'utf8', timeout: 30000 });
+      facts.behaviour = got === expected;
+    } catch { /* it does not load */ }
+  }
   let check = { verdict: 'unreadable', defects: 0 };
   try {
     // Its own activity home: the measurement must not add a row to the record it is about to be judged by.
@@ -293,7 +366,7 @@ function inspect(fixture, runDir) {
   try {
     fs.copyFileSync(path.join(fixture.root, '.frame', 'specs', fixture.slug, 'digest.md'), path.join(runDir, 'digest.md'));
   } catch { /* no digest was written */ }
-  return { rows, verdict: check.verdict, defects: check.defects || 0 };
+  return { rows, facts: { ...facts, verdict: check.verdict, defects: check.defects || 0 } };
 }
 
 async function pool(items, size, worker) {
@@ -319,7 +392,7 @@ async function main(argv) {
   if (opts.dryRun) {
     for (const { kind, id } of plan) {
       const fixture = makeFixture({ kind });
-      const budget = kind === 'natural' ? opts.budgetNatural : opts.budgetInduced;
+      const budget = kind === 'natural' ? opts.budgetNatural : opts.budgetOther;
       const args = agentArgs({ prompt: fixture.prompt, settingsPath: path.join(fixture.base, 'implement-permissions.json'), budget, model: opts.model });
       process.stdout.write(`${id}\n  cwd: ${fixture.root}\n  ${opts.agent} ${args.map((a) => JSON.stringify(a)).join(' ')}\n`);
       if (!opts.keep) fs.rmSync(fixture.base, { recursive: true, force: true });
@@ -336,8 +409,8 @@ async function main(argv) {
     const fixture = makeFixture({ kind });
     const { exitCode, timedOut } = await runSession(fixture, opts, runDir);
     const transcript = parseTranscript(fs.readFileSync(path.join(runDir, 'transcript.jsonl'), 'utf8'));
-    const { rows, verdict, defects } = inspect(fixture, runDir);
-    const row = summarize({ id, kind, verdict, defects, transcript, rows, timedOut, exitCode });
+    const { rows, facts } = inspect(fixture, runDir);
+    const row = summarize({ id, kind, facts, transcript, rows, timedOut, exitCode });
     fs.writeFileSync(path.join(runDir, 'result.json'), `${JSON.stringify({ ...row, fixture: opts.keep ? fixture.base : null }, null, 2)}\n`);
     if (opts.keep) process.stdout.write(`  ${id}: fixture kept at ${fixture.base}\n`);
     else fs.rmSync(fixture.base, { recursive: true, force: true });
@@ -360,4 +433,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseArgs, agentArgs, sessionEnv, parseTranscript, closeRows, summarize, table, DISALLOWED };
+module.exports = { parseArgs, agentArgs, sessionEnv, parseTranscript, closeRows, judge, summarize, table, inspect, DISALLOWED };

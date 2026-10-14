@@ -388,15 +388,23 @@ function labelsOf(specs) {
   return ids.map((id) => (CLOSE_ITEMS.find((item) => item.id === id) || { label: id }).label).join(' or ');
 }
 
+/**
+ * Worded as the session's own unfinished work, because it is: only the
+ * session that closed the spec hears it. The first wording only reported the
+ * state ("has every task completed but no digest"), and in the pilot both
+ * sessions that received it relayed it to the user as somebody else's note.
+ */
 function reminderLine(root, named, more) {
   const cli = closeScriptPath(root);
   const what = labelsOf(named);
   if (named.length === 1 && !more) {
-    return `Spec "${named[0].slug}" has every task completed but no ${what} — run: node ${cli} ${named[0].slug}`;
+    return `You completed the last task of spec "${named[0].slug}" in this session and it has no ${what} yet. ` +
+      `Finish it: run node ${cli} ${named[0].slug} and write what it asks for.`;
   }
   const names = named.map((s) => `"${s.slug}"`).join(', ');
   const rest = more > 0 ? ` and ${more} more` : '';
-  return `Specs ${names}${rest} have every task completed but no ${what} — run for each: node ${cli} <slug>`;
+  return `You completed the last tasks of specs ${names}${rest} in this session and they have no ${what} yet. ` +
+    `Finish them: run node ${cli} <slug> for each and write what it asks for.`;
 }
 
 /**
