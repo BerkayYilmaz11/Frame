@@ -244,3 +244,17 @@ the edit-time one covers the edit tool only). Files: `scripts/spec-hint.js`, `te
 _Captured: 2026-10-14 · 3 file changes_
 
 ---
+## T17 — Third pilot: four kinds pass; closing-turn's single turn cannot reach the reminder
+
+Ran by the user, one `claude-opus-5-5` session per kind, $0.75 in total: `natural` (12 tool calls, digest
+`ok` in the last task's commit, close script run), `earlier-close` (silent), `fix-bug` (a `## Fix —` entry
+committed with the code, the agent stating no digest decision changed) and `fix-decision` (a Fix entry, the
+digest's rule corrected in place with a `Revised 2026-10-14:` line, all in one commit) passed. `closing-turn`
+failed without a fault in the product: the agent ran the closing script and `git status` as one shell call,
+so the only PreToolUse ran before the task closed, the turn ended, and a single-prompt headless session has no
+next prompt to carry the reminder — the path the product uses for exactly this case.
+Followup: give `closing-turn` a second turn (resume the same session with a short follow-up prompt), so it measures the next-prompt path.
+
+_Captured: 2026-10-14 · 0 file changes_
+
+---
