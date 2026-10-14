@@ -220,3 +220,15 @@ Followup: Frame's autonomous allowlist (`IMPLEMENT_ALLOW` in `specManager.js` an
 _Captured: 2026-10-14 · 0 file changes_
 
 ---
+## T15 — The close script in Frame's autonomous allowlist
+
+Added `Bash(node .frame/bin/spec-close.js *)` to `IMPLEMENT_ALLOW` in `src/main/specManager.js` and in the
+shipped `src/templates/bin/implement-launch.js`, so the digest step's command is allowed by a rule instead of
+by auto mode's classifier, which allowed it in one pilot session and blocked it in the next. Only the shipped
+path is allowed, not `scripts/spec-close.js`, which would match any project's own script of that name.
+`test/implementLaunch.test.js` now asserts the rule and that the app and the launcher build the same permission
+file — the two copies had no test holding them together before.
+
+_Captured: 2026-10-14 · 3 file changes_
+
+---

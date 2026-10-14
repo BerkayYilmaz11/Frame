@@ -5480,34 +5480,34 @@
           "purpose": "Which staged report asset a tool's prompt should name."
         },
         "resolveVerificationCommand": {
-          "line": 725,
+          "line": 734,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 740,
+          "line": 749,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 758,
+          "line": 767,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 782,
+          "line": 791,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 798,
+          "line": 807,
           "params": [
             "projectPath",
             "slug",
@@ -5516,21 +5516,21 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "specNewPromptFilename": {
-          "line": 819,
+          "line": 828,
           "params": [
             "date"
           ],
           "purpose": "A slug-less run has no stable name to key the prompt file on — `${slug}__`"
         },
         "uniquePromptFilename": {
-          "line": 824,
+          "line": 833,
           "params": [
             "promptsDir",
             "filename"
           ]
         },
         "buildSpecCommandFile": {
-          "line": 833,
+          "line": 842,
           "params": [
             "projectPath",
             "slug",
@@ -5540,32 +5540,32 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 877,
+          "line": 886,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 903,
+          "line": 912,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 922,
+          "line": 931,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "completedTaskIdsFromOutcome": {
-          "line": 936,
+          "line": 945,
           "params": [
             "content"
           ]
         },
         "initialTaskState": {
-          "line": 943,
+          "line": 952,
           "params": [
             "status",
             "outcomeIds",
@@ -5574,34 +5574,34 @@
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 951,
+          "line": 960,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 1036,
+          "line": 1045,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 1043,
+          "line": 1052,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1060,
+          "line": 1069,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1099,
+          "line": 1108,
           "params": [
             "projectPath",
             "slug",
@@ -5610,7 +5610,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1128,
+          "line": 1137,
           "params": [
             "projectPath",
             "query"
@@ -5618,7 +5618,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1149,
+          "line": 1158,
           "params": [
             "projectPath",
             "slug",
@@ -5626,14 +5626,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1173,
+          "line": 1182,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1190,
+          "line": 1199,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5642,54 +5642,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1305,
+          "line": 1314,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1405
+          "line": 1414
         },
         "markSpecNewLaunch": {
-          "line": 1458,
+          "line": 1467,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1464,
+          "line": 1473,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1480,
+          "line": 1489,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1491,
+          "line": 1500,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1519,
+          "line": 1528,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1543,
+          "line": 1552,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1547,
+          "line": 1556,
           "params": [
             "ipcMain"
           ]
@@ -5716,7 +5716,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 70597,
+      "sizeBytes": 71120,
       "extraction": {
         "status": "parsed"
       },
@@ -22638,7 +22638,7 @@
       ],
       "functions": {
         "interpolate": {
-          "line": 72,
+          "line": 75,
           "params": [
             "template",
             "vars"
@@ -22646,21 +22646,21 @@
           "purpose": "{key} → vars[key]; unknown placeholders are left intact (same contract as"
         },
         "resolveVerificationCommand": {
-          "line": 79,
+          "line": 82,
           "params": [
             "config"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildPermissions": {
-          "line": 91,
+          "line": 94,
           "params": [
             "verification"
           ],
           "purpose": "The implement-permissions.json body. When a verification command exists,"
         },
         "buildLaunchArgs": {
-          "line": 101,
+          "line": 104,
           "params": [
             "settingsAbsPath",
             "promptRelPath"
@@ -22668,7 +22668,7 @@
           "purpose": "The CLI launch line: the permission flags plus the short read-this-file"
         },
         "resolveRawTemplatePath": {
-          "line": 111,
+          "line": 114,
           "params": [
             "projectRoot",
             "existsFn = fs.existsSync"
@@ -22676,20 +22676,20 @@
           "purpose": "Raw template path: override → staged. `existsFn` is injectable for tests."
         },
         "findProjectRoot": {
-          "line": 123,
+          "line": 126,
           "params": [
             "startDir"
           ],
           "purpose": "Walk up from a starting dir to the nearest ancestor that holds a .frame/"
         },
         "readJson": {
-          "line": 133,
+          "line": 136,
           "params": [
             "absPath"
           ]
         },
         "recordAutonomousMode": {
-          "line": 143,
+          "line": 146,
           "params": [
             "projectRoot",
             "slug"
@@ -22697,25 +22697,25 @@
           "purpose": "Merge implement_mode: autonomous into the spec's status.json, preserving"
         },
         "writePermissions": {
-          "line": 153,
+          "line": 156,
           "params": [
             "projectRoot"
           ]
         },
         "fail": {
-          "line": 162,
+          "line": 165,
           "params": [
             "message"
           ]
         },
         "main": {
-          "line": 167,
+          "line": 170,
           "params": [
             "argv"
           ]
         }
       },
-      "sizeBytes": 8480,
+      "sizeBytes": 8655,
       "extraction": {
         "status": "parsed"
       },
@@ -24933,10 +24933,12 @@
         "node:test",
         "node:assert/strict",
         "path",
-        "src/templates/bin/implement-launch"
+        "src/templates/bin/implement-launch",
+        "node:module",
+        "src/main/specManager"
       ],
       "functions": {},
-      "sizeBytes": 5184,
+      "sizeBytes": 6615,
       "extraction": {
         "status": "parsed"
       },
@@ -28853,6 +28855,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "4ae48e0313f1793a65fa2a2b159fa978b8ca3e55b60973e6d8e5253e03937ef6"
+    "revision": "2eacf1bf6978fc32ba8ed5ffcb3463270477dde09e40396acb552210d2677079"
   }
 }

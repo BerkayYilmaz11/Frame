@@ -707,6 +707,14 @@ const IMPLEMENT_DENY = [
 // read a diff. `Edit` covers Write and NotebookEdit too — file permission
 // checks only match Edit() and Read() rules, so a Write() rule would be
 // accepted and then never consulted.
+//
+// And the close script the digest step runs on the last task. Left to auto
+// mode's classifier it was allowed in one pilot session and blocked in the
+// next, and a step the template requires cannot hang on that. Only the
+// shipped path: `scripts/spec-close.js` exists in Frame's own repository
+// alone, and allowing it everywhere would allow any project's script of that
+// name. src/templates/bin/implement-launch.js carries the same list; a test
+// keeps the two equal.
 const IMPLEMENT_ALLOW = [
   'Edit',
   'Read',
@@ -716,7 +724,8 @@ const IMPLEMENT_ALLOW = [
   'Bash(git diff*)',
   'Bash(git show *)',
   'Bash(git log *)',
-  'Bash(git rev-parse *)'
+  'Bash(git rev-parse *)',
+  'Bash(node .frame/bin/spec-close.js *)'
 ];
 
 // The project's own check, in descending order of what actually verifies a

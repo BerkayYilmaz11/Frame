@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T13:53:09.193Z",
+  "lastUpdated": "2026-10-14T13:54:32.439Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8709,13 +8709,13 @@
       "title": "Add `Bash(node .frame/bin/spec-close.js *)` to Frame's autonomous allowlist in both copies — `IMPLEMENT_ALLOW` in `src/main/specManager.js` and in `src/templates/bin/implement-launch.js` — and pin the two copies equal in `test/implementLaunch.test.js` (D23)",
       "description": "",
       "source": "spec:spec-close-step:T15",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T12:35:46.279Z",
-      "updatedAt": "2026-10-14T13:53:09.193Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T13:54:32.439Z",
+      "completedAt": "2026-10-14T13:54:32.439Z"
     },
     {
       "id": "task-spec-spec-close-step-T16",
