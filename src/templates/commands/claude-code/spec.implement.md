@@ -159,6 +159,11 @@ pending task for this spec is not finished until, in the same turn:
 3. You fix what it names and run it again, until it reports the digest `ok`.
 4. The spec phase goes to `"done"`.
 
+These steps are part of that last task, not a step after it. They come before
+the task is committed, so the digest and the phase change go into the same
+commit as the task's code and outcome entry — never into a commit of their
+own. A mode that leaves its work uncommitted leaves them in that same change.
+
 **Never push. Never touch `main`.** Commits are local, on the branch you are
 already on. A branch is cheap to throw away; a push is not.
 
@@ -222,7 +227,9 @@ Per task:
 
 1. Take the next task per the shared core and mark it `in_progress`.
 2. Make the smallest concrete change that satisfies it.
-3. Write the outcome entry and mark the task `completed`.
+3. Write the outcome entry and mark the task `completed`. If that leaves no
+   pending task for this spec, run the digest step from the shared core now,
+   so the digest is part of the change the user looks at and commits.
 4. **Close out** — two short paragraphs, in the reply, not in a file:
    - **What changed** — the actual edit, in terms of the code. Name the files.
    - **Why it changed that way** — the reasoning a reader could not recover
@@ -291,10 +298,11 @@ Per task, in this order:
    created it empty before the first task); append to its `tasks` array, using
    the shape documented at the top of the generator.
 5. Append the outcome entry.
-6. Mark the task `completed`.
+6. Mark the task `completed`. If that leaves no pending task for this spec,
+   run the digest step from the shared core now, before the commit.
 7. **One atomic commit** — code, outcome entry, report data and state files
-   together. A task is one commit; a reader should never have to assemble it
-   from three.
+   together, and on the last task the digest and the phase change with them. A
+   task is one commit; a reader should never have to assemble it from three.
 8. Read the new commit's short hash, write it into that task's report entry,
    regenerate the report, then `git commit --amend --no-edit` so the entry and
    its hash ride in the same commit they describe. The amend is safe precisely
@@ -386,10 +394,9 @@ which task, why, and what state the tree is in.
 
 ### Closing summary
 
-When no tasks remain: run the digest step from the shared core — write
-`digest.md`, run the close script, fix what it names — then the spec phase
-goes to `"done"`, and you state what shipped, which tasks are unverified, and
-the report's path.
+When no tasks remain, the last task's commit already carries the digest and
+the spec phase `"done"` — the digest step ran before it. You state what
+shipped, which tasks are unverified, and the report's path.
 
 ## Mode · Describe your own
 

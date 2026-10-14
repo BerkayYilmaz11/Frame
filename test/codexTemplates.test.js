@@ -224,6 +224,28 @@ for (const cli of ['claude-code', 'codex']) {
       /one outcome entry per task, the digest when the last task\s+closes, never push/);
   });
 
+  test(`${cli}: the digest rides in the last task's commit, never in one of its own`, () => {
+    // The pilot's natural run committed its last task and then the digest
+    // separately: the loop committed at its step 7, and the digest step sat in
+    // the closing summary that follows the loop. Each mode now runs it before
+    // the commit, and the closing summary only reports it.
+    const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
+    assert.match(section(prompt, '## The shared core', '## Mode · Step by step'),
+      /part of that last task, not a step after it[\s\S]*never into a commit of their\s+own/);
+    assert.match(section(prompt, '## Mode · Step by step', '## Mode · Guided'),
+      /\n3\. Write the outcome entry and mark the task `completed`\. If that leaves no\s+pending task for this spec, run the digest step from the shared core now/);
+
+    const loop = section(prompt, 'Per task, in this order:', '### When there is no check');
+    const digestAt = loop.indexOf('run the digest step from the shared core now, before the commit');
+    const commitAt = loop.indexOf('7. **One atomic commit**');
+    assert.ok(digestAt > 0 && commitAt > digestAt, 'the digest step comes before the commit in the loop');
+    assert.match(loop, /on the last task the digest and the phase change with them/);
+
+    const closing = section(prompt, '### Closing summary', '## Mode · Describe your own');
+    assert.match(closing, /the last task's commit already carries the digest/);
+    assert.ok(!/run the digest step/.test(closing), 'nothing is left for after the loop');
+  });
+
   test(`${cli}: the conditional section at the end is gone`, () => {
     const { prompt } = specManager.getCommandPrompt(mkProject(), 'alpha', 'spec.implement', cli);
     assert.ok(!prompt.includes('LAST pending task'));

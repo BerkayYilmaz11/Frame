@@ -145,3 +145,16 @@ Followup: every Claude Code prompt and tool-call row in the pilot is labelled `c
 _Captured: 2026-10-14 · 2 file changes_
 
 ---
+## T07 — Revision: the digest rides in the last task's commit
+
+The pilot's natural run committed its last task and then the digest in a commit of its own, because
+the guided/autonomous loop committed at step 7 while the digest step sat in the closing summary after
+the loop. At the user's request the template now runs the digest step before the last task's commit,
+in every mode: the shared core says the digest and the phase change go into that task's commit and
+never into one of their own, step 6 of the loop and step 3 of step-by-step run it, and the closing
+summary only reports it. Files: `src/templates/commands/claude-code/spec.implement.md`,
+`test/codexTemplates.test.js` (one case per CLI).
+
+_Captured: 2026-10-14 · 2 file changes_
+
+---
