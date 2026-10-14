@@ -17742,7 +17742,8 @@
         "summarize",
         "table",
         "inspect",
-        "DISALLOWED"
+        "DISALLOWED",
+        "FOLLOW_UP"
       ],
       "depends": [
         "fs",
@@ -17753,23 +17754,25 @@
       ],
       "functions": {
         "parseArgs": {
-          "line": 74,
+          "line": 81,
           "params": [
             "argv"
           ]
         },
         "agentArgs": {
-          "line": 107,
+          "line": 119,
           "params": [
             "{ prompt",
             "settingsPath",
             "budget",
-            "model }"
+            "model",
+            "persist = false",
+            "resume = null }"
           ],
-          "purpose": "The CLI arguments for one fixture session."
+          "purpose": "The CLI arguments for one turn of a fixture session. A session is not kept"
         },
         "sessionEnv": {
-          "line": 123,
+          "line": 136,
           "params": [
             "base",
             "fixture"
@@ -17777,21 +17780,21 @@
           "purpose": "The environment for one fixture session: the caller's, minus what binds it to the caller."
         },
         "parseTranscript": {
-          "line": 143,
+          "line": 156,
           "params": [
             "text"
           ],
           "purpose": "A stream-json transcript → the few facts the table needs. Tolerant of"
         },
         "closeRows": {
-          "line": 184,
+          "line": 203,
           "params": [
             "activityHome"
           ],
           "purpose": "The fixture's own activity rows that concern the close step."
         },
         "judge": {
-          "line": 208,
+          "line": 227,
           "params": [
             "kind",
             "f"
@@ -17799,7 +17802,7 @@
           "purpose": "Whether one session did what its kind asks of it. `facts` is what"
         },
         "summarize": {
-          "line": 221,
+          "line": 240,
           "params": [
             "{ id",
             "kind",
@@ -17812,22 +17815,34 @@
           "purpose": "One session's row. `facts` come from `inspect`, run after the session."
         },
         "table": {
-          "line": 255,
+          "line": 274,
           "params": [
             "results"
           ],
           "purpose": "Results → the markdown table recorded in the spec's outcome."
         },
+        "runTurn": {
+          "line": 301,
+          "params": [
+            "fixture",
+            "opts",
+            "runDir",
+            "{ prompt",
+            "resume = null",
+            "file = 'transcript.jsonl' }"
+          ]
+        },
         "runSession": {
-          "line": 282,
+          "line": 329,
           "params": [
             "fixture",
             "opts",
             "runDir"
-          ]
+          ],
+          "purpose": "One session: its prompt, and the follow-up turn when its kind has one."
         },
         "digestWithCode": {
-          "line": 321,
+          "line": 356,
           "params": [
             "root",
             "slug"
@@ -17835,7 +17850,7 @@
           "purpose": "Whether the commit that added the digest also carries code — the digest"
         },
         "inspect": {
-          "line": 333,
+          "line": 368,
           "params": [
             "fixture",
             "runDir"
@@ -17843,7 +17858,7 @@
           "purpose": "What the fixture looks like after its session, read without changing it."
         },
         "pool": {
-          "line": 372,
+          "line": 407,
           "params": [
             "items",
             "size",
@@ -17851,37 +17866,38 @@
           ]
         },
         "main": {
-          "line": 386,
+          "line": 421,
           "params": [
             "argv"
           ]
         },
         "median": {
-          "line": 247,
+          "line": 266,
           "params": [
             "values"
           ]
         },
         "readOr": {
-          "line": 308,
+          "line": 343,
           "params": [
             "file",
             "fallback"
           ]
         }
       },
-      "sizeBytes": 20267,
+      "sizeBytes": 22669,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
-          "agentArgs": "0c1a50eb171b8b31",
+          "agentArgs": "91956e3fa2a1c6a7",
           "closeRows": "c7d8e48a6ace2a80",
           "digestWithCode": "caffb57186325a60",
           "inspect": "3f4ba67db26288f4",
           "judge": "c1ace852cec3cce0",
           "parseTranscript": "bdcb3da86d5ef5b0",
+          "runSession": "cfcaf557a94ea7ba",
           "sessionEnv": "8bc17c5c687a1f89",
           "summarize": "98e96a51636b1731",
           "table": "15e2e5c767ab65ea"
@@ -25635,20 +25651,20 @@
           ]
         },
         "appendFix": {
-          "line": 228,
+          "line": 241,
           "params": [
             "fixture",
             "title"
           ]
         },
         "inspected": {
-          "line": 233,
+          "line": 246,
           "params": [
             "fixture"
           ]
         }
       },
-      "sizeBytes": 23302,
+      "sizeBytes": 25842,
       "extraction": {
         "status": "parsed"
       },
@@ -28856,6 +28872,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "dbb54d271af5d1f86f0b889361547378f5e0a5207833ab2b224fa0d3e6766b99"
+    "revision": "82fb9167fe5bc0602c6067f4c07dd06bccaaaa08d5a578b94572de94f04afc8a"
   }
 }

@@ -258,3 +258,15 @@ Followup: give `closing-turn` a second turn (resume the same session with a shor
 _Captured: 2026-10-14 · 0 file changes_
 
 ---
+## T18 — A second turn for closing-turn
+
+`scripts/eval/spec-close/run.js` now resumes a `closing-turn` session with "Thanks." (`FOLLOW_UP`), keeping only
+that kind's session on disk because `--resume` needs it and resuming keeps the id the helper keys on;
+`parseTranscript` adds cost, turns and time across the two streams and keeps the first session id, and the dry run
+prints both launch lines. `test/spec-close-fixture.test.js` covers the launch lines, the summed transcripts, and —
+with no agent — the third pilot's shape: the closing call is the turn's last, and the resumed prompt carries the
+reminder. Followup: two-turn sessions leave their transcripts under `~/.claude/projects/`, one folder per fixture path.
+
+_Captured: 2026-10-14 · 2 file changes_
+
+---

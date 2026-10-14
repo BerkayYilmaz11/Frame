@@ -69,6 +69,13 @@ const PARENT_SESSION_VARS = [
   'CLAUDE_CODE_SESSION_ID', 'CLAUDE_EFFORT', 'CLAUDE_PID'
 ];
 
+// A second prompt for the kinds whose claim lives in the next turn. A
+// closing-turn session may close its spec in the turn's last call, and the
+// product then speaks at the session's next prompt — which a single `-p` run
+// never sends. Neutral on purpose: a question such as "anything left?" would
+// steer the session toward the work and measure the question.
+const FOLLOW_UP = { 'closing-turn': 'Thanks.' };
+
 // ─── pure: arguments, environment ─────────────────────────
 
 function parseArgs(argv) {
@@ -103,18 +110,24 @@ function parseArgs(argv) {
   return opts;
 }
 
-/** The CLI arguments for one fixture session. */
-function agentArgs({ prompt, settingsPath, budget, model }) {
+/**
+ * The CLI arguments for one turn of a fixture session. A session is not kept
+ * on disk unless it has a follow-up turn: `--resume` needs the saved session,
+ * and resuming keeps its id, which is what lets the helper see the second
+ * turn as the session that closed the spec.
+ */
+function agentArgs({ prompt, settingsPath, budget, model, persist = false, resume = null }) {
   const args = [
     '-p', prompt,
     '--output-format', 'stream-json', '--verbose',
     '--max-budget-usd', String(budget),
     '--settings', settingsPath, '--permission-mode', 'auto',
     '--setting-sources', 'project',
-    '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
-    '--no-session-persistence',
-    '--disallowedTools', ...DISALLOWED
+    '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'
   ];
+  if (!persist) args.push('--no-session-persistence');
+  if (resume) args.push('--resume', resume);
+  args.push('--disallowedTools', ...DISALLOWED);
   if (model) args.push('--model', model);
   return args;
 }
@@ -142,14 +155,20 @@ function sessionEnv(base, fixture) {
  */
 function parseTranscript(text) {
   const out = {
-    model: null, costUsd: null, turns: null, durationMs: null, toolCalls: 0, tools: {},
+    model: null, sessionId: null, costUsd: null, turns: null, durationMs: null, toolCalls: 0, tools: {},
     resultSubtype: null, isError: null, ranCloseScript: 0, wroteDigest: 0
   };
+  // A two-turn session is two streams back to back: one init and one result
+  // per turn. Cost, turns and time add up; the last result says how it ended.
+  const add = (key, value) => { out[key] = (out[key] || 0) + value; };
   for (const raw of String(text || '').split('\n')) {
     if (!raw.trim()) continue;
     let ev;
     try { ev = JSON.parse(raw); } catch { continue; }
-    if (ev.type === 'system' && ev.subtype === 'init' && ev.model) out.model = ev.model;
+    if (ev.type === 'system' && ev.subtype === 'init') {
+      if (ev.model) out.model = ev.model;
+      if (ev.session_id && !out.sessionId) out.sessionId = ev.session_id;
+    }
     if (ev.type === 'assistant' && ev.message && Array.isArray(ev.message.content)) {
       for (const block of ev.message.content) {
         if (!block || block.type !== 'tool_use') continue;
@@ -163,9 +182,9 @@ function parseTranscript(text) {
     if (ev.type === 'result') {
       out.resultSubtype = ev.subtype || null;
       out.isError = ev.is_error === true;
-      if (typeof ev.total_cost_usd === 'number') out.costUsd = ev.total_cost_usd;
-      if (typeof ev.num_turns === 'number') out.turns = ev.num_turns;
-      if (typeof ev.duration_ms === 'number') out.durationMs = ev.duration_ms;
+      if (typeof ev.total_cost_usd === 'number') add('costUsd', ev.total_cost_usd);
+      if (typeof ev.num_turns === 'number') add('turns', ev.num_turns);
+      if (typeof ev.duration_ms === 'number') add('durationMs', ev.duration_ms);
     }
   }
   return out;
@@ -279,15 +298,16 @@ function table(results) {
 
 // ─── running ──────────────────────────────────────────────
 
-function runSession(fixture, opts, runDir) {
+function runTurn(fixture, opts, runDir, { prompt, resume = null, file = 'transcript.jsonl' }) {
   return new Promise((resolve) => {
     const settingsPath = path.join(fixture.base, 'implement-permissions.json');
     fs.writeFileSync(settingsPath, `${JSON.stringify(launch.buildPermissions('npm test'), null, 2)}\n`);
     const budget = fixture.kind === 'natural' ? opts.budgetNatural : opts.budgetOther;
-    const args = agentArgs({ prompt: fixture.prompt, settingsPath, budget, model: opts.model });
+    const persist = Boolean(FOLLOW_UP[fixture.kind]);
+    const args = agentArgs({ prompt, settingsPath, budget, model: opts.model, persist, resume });
 
-    const stdout = fs.createWriteStream(path.join(runDir, 'transcript.jsonl'));
-    const stderr = fs.createWriteStream(path.join(runDir, 'stderr.log'));
+    const stdout = fs.createWriteStream(path.join(runDir, file));
+    const stderr = fs.createWriteStream(path.join(runDir, file.replace(/^transcript/, 'stderr').replace(/\.jsonl$/, '.log')));
     const child = spawn(opts.agent, args, {
       cwd: fixture.root, env: sessionEnv(process.env, fixture), stdio: ['ignore', 'pipe', 'pipe']
     });
@@ -304,6 +324,21 @@ function runSession(fixture, opts, runDir) {
     child.on('close', (code) => finish(code));
   });
 }
+
+/** One session: its prompt, and the follow-up turn when its kind has one. */
+async function runSession(fixture, opts, runDir) {
+  const first = await runTurn(fixture, opts, runDir, { prompt: fixture.prompt });
+  const followUp = FOLLOW_UP[fixture.kind];
+  if (!followUp || first.timedOut) return first;
+  const { sessionId } = parseTranscript(fs.readFileSync(path.join(runDir, 'transcript.jsonl'), 'utf8'));
+  if (!sessionId) return first;
+  return runTurn(fixture, opts, runDir, { prompt: followUp, resume: sessionId, file: 'transcript-2.jsonl' });
+}
+
+/** Every turn's transcript of a run, back to back. */
+const transcriptsOf = (runDir) => ['transcript.jsonl', 'transcript-2.jsonl']
+  .map((file) => { try { return fs.readFileSync(path.join(runDir, file), 'utf8'); } catch { return ''; } })
+  .join('\n');
 
 const readOr = (file, fallback) => { try { return fs.readFileSync(file, 'utf8'); } catch { return fallback; } };
 
@@ -393,8 +428,14 @@ async function main(argv) {
     for (const { kind, id } of plan) {
       const fixture = makeFixture({ kind });
       const budget = kind === 'natural' ? opts.budgetNatural : opts.budgetOther;
-      const args = agentArgs({ prompt: fixture.prompt, settingsPath: path.join(fixture.base, 'implement-permissions.json'), budget, model: opts.model });
+      const settingsPath = path.join(fixture.base, 'implement-permissions.json');
+      const persist = Boolean(FOLLOW_UP[kind]);
+      const args = agentArgs({ prompt: fixture.prompt, settingsPath, budget, model: opts.model, persist });
       process.stdout.write(`${id}\n  cwd: ${fixture.root}\n  ${opts.agent} ${args.map((a) => JSON.stringify(a)).join(' ')}\n`);
+      if (FOLLOW_UP[kind]) {
+        const again = agentArgs({ prompt: FOLLOW_UP[kind], settingsPath, budget, model: opts.model, persist, resume: '<session id from turn 1>' });
+        process.stdout.write(`  then: ${opts.agent} ${again.map((a) => JSON.stringify(a)).join(' ')}\n`);
+      }
       if (!opts.keep) fs.rmSync(fixture.base, { recursive: true, force: true });
     }
     return 0;
@@ -408,7 +449,7 @@ async function main(argv) {
     fs.mkdirSync(runDir, { recursive: true });
     const fixture = makeFixture({ kind });
     const { exitCode, timedOut } = await runSession(fixture, opts, runDir);
-    const transcript = parseTranscript(fs.readFileSync(path.join(runDir, 'transcript.jsonl'), 'utf8'));
+    const transcript = parseTranscript(transcriptsOf(runDir));
     const { rows, facts } = inspect(fixture, runDir);
     const row = summarize({ id, kind, facts, transcript, rows, timedOut, exitCode });
     fs.writeFileSync(path.join(runDir, 'result.json'), `${JSON.stringify({ ...row, fixture: opts.keep ? fixture.base : null }, null, 2)}\n`);
@@ -433,4 +474,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseArgs, agentArgs, sessionEnv, parseTranscript, closeRows, judge, summarize, table, inspect, DISALLOWED };
+module.exports = { parseArgs, agentArgs, sessionEnv, parseTranscript, closeRows, judge, summarize, table, inspect, DISALLOWED, FOLLOW_UP };

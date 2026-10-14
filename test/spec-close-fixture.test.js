@@ -216,6 +216,19 @@ test('rows are read whatever path the hook resolved the project by', { skip }, (
   });
 });
 
+test('closing-turn: when the closing call is the turn\'s last, the next prompt carries the reminder', { skip }, () => {
+  // The third pilot's shape: both commands in one shell call, so the only
+  // PreToolUse runs before the task closes and the turn ends there.
+  withFixture('closing-turn', (fixture) => {
+    assert.ok(noReminder(prompt(fixture, 's', fixture.prompt)));
+    assert.equal(bash(fixture, 's', 'node tools/close-task.js; git status --short'), null, 'before the command runs');
+    execFileSync('node', ['tools/close-task.js'], { cwd: fixture.root });
+    // The second turn, resumed under the same session id.
+    assert.equal(prompt(fixture, 's', runner.FOLLOW_UP['closing-turn']), REMINDER);
+    assert.equal(runner.closeRows(fixture.activityHome).reminders, 1);
+  });
+});
+
 // ─── fixes after close ────────────────────────────────────
 
 const editGreet = (fixture, session) =>
@@ -356,6 +369,21 @@ test('a session is launched as Frame launches an autonomous run, capped and cut 
   assert.equal(runner.agentArgs({ prompt: 'x', settingsPath: 'p', budget: 1, model: 'some-model' }).slice(-2).join(' '), '--model some-model');
 });
 
+test('only closing-turn has a second turn, and only it keeps its session for --resume', () => {
+  assert.deepEqual(Object.keys(runner.FOLLOW_UP), ['closing-turn']);
+  assert.equal(runner.FOLLOW_UP['closing-turn'], 'Thanks.', 'neutral — not a question that steers toward the work');
+
+  const base = { prompt: 'p', settingsPath: '/tmp/p.json', budget: 2, model: null };
+  assert.ok(runner.agentArgs(base).includes('--no-session-persistence'), 'one-turn sessions leave nothing behind');
+  const kept = runner.agentArgs({ ...base, persist: true });
+  assert.ok(!kept.includes('--no-session-persistence'));
+  assert.ok(!kept.includes('--resume'));
+  const second = runner.agentArgs({ ...base, prompt: 'Thanks.', persist: true, resume: 'abc-123' });
+  assert.equal(second[second.indexOf('--resume') + 1], 'abc-123');
+  assert.equal(second[second.indexOf('-p') + 1], 'Thanks.');
+  assert.ok(!second.includes('--fork-session'), 'resuming keeps the session id the helper keys on');
+});
+
 test('a session inherits nothing that ties it to the session it was started from', () => {
   const env = runner.sessionEnv({
     PATH: '/usr/bin', HOME: '/home/u',
@@ -378,9 +406,19 @@ test('a transcript is read for cost, turns, tool calls and the two things a sess
   ];
   const text = `${lines.map((l) => JSON.stringify(l)).join('\n')}\nnot json at all\n`;
   assert.deepEqual(runner.parseTranscript(text), {
-    model: 'some-model', costUsd: 0.4321, turns: 4, durationMs: 61000, toolCalls: 3, tools: { Bash: 2, Write: 1 },
+    model: 'some-model', sessionId: 's', costUsd: 0.4321, turns: 4, durationMs: 61000, toolCalls: 3, tools: { Bash: 2, Write: 1 },
     resultSubtype: 'success', isError: false, ranCloseScript: 1, wroteDigest: 1
   });
+  // Two turns back to back: cost, turns and time add up; the first session id stays.
+  const second = [
+    { type: 'system', subtype: 'init', model: 'some-model', session_id: 's' },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash', input: { command: 'node .frame/bin/spec-close.js x' } }] } },
+    { type: 'result', subtype: 'success', is_error: false, total_cost_usd: 0.1, num_turns: 2, duration_ms: 9000 }
+  ].map((l) => JSON.stringify(l)).join('\n');
+  const both = runner.parseTranscript(`${text}\n${second}`);
+  assert.equal(both.sessionId, 's');
+  assert.equal(Math.round(both.costUsd * 1e4) / 1e4, 0.5321);
+  assert.deepEqual([both.turns, both.durationMs, both.toolCalls, both.ranCloseScript], [6, 70000, 4, 2]);
   assert.equal(runner.parseTranscript('').toolCalls, 0);
   assert.equal(runner.parseTranscript('{"type":"result","subtype":"error_max_budget_usd","is_error":true}').resultSubtype, 'error_max_budget_usd');
 });

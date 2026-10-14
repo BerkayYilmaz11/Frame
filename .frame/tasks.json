@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T14:48:52.114Z",
+  "lastUpdated": "2026-10-14T14:51:16.416Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8748,13 +8748,13 @@
       "title": "Give `closing-turn` a second turn (D25): in `scripts/eval/spec-close/run.js`, keep that kind's session on disk, resume it with \"Thanks.\" and read both turns' transcripts; cover the launch lines in `test/spec-close-fixture.test.js`, and the next-prompt path of a closing-turn fixture with no agent",
       "description": "",
       "source": "spec:spec-close-step:T18",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T13:53:09.193Z",
-      "updatedAt": "2026-10-14T14:48:52.114Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T14:51:16.416Z",
+      "completedAt": "2026-10-14T14:51:16.416Z"
     },
     {
       "id": "task-spec-spec-close-step-T19",
