@@ -128,3 +128,20 @@ Followup: Frame's autonomous allowlist (`IMPLEMENT_ALLOW`) does not name `spec-c
 _Captured: 2026-10-13 · 4 file changes_
 
 ---
+## T10 — Pilot: one session per kind, and the time the check adds to a hook
+
+Ran one headless session per kind on `claude-opus-5-5`, $0.50 in total: `natural` took 11 tool
+calls and $0.37 and ended with the digest `ok`, the close script run by the agent itself; `induced-prompt`
+(1 tool call, $0.07) and `induced-turn` (2 tool calls, $0.07) each received the reminder and left the
+digest missing, telling the user they had seen it and had not acted because it was outside the request.
+Measured on a copy of this repo's 628 KB `tasks.json`, 60 runs per condition, the hook takes 29.0 ms
+(median) without the helper, 30.0 ms on a cache hit (+1.0 ms, inside the 5 ms constraint) and 35.0 ms
+on a miss (+6.0 ms). The pilot's first table counted no reminders because `run.js` looked for the rows
+under the project path it held while the CLI hands hooks the resolved one (`/private/var` on macOS), so
+`closeRows` now reads every bucket of the fixture's own activity home; the pilot was re-tabulated from
+its transcripts with no new session, and `test/spec-close-fixture.test.js` gained the case.
+Followup: every Claude Code prompt and tool-call row in the pilot is labelled `codex-hook` — `toolVocabulary.cliOf` reads a field Claude Code now sends as a Codex signal, which also hands `docs-hint.js` and `spec-hint.js` Codex's 20 000-character inline cap in Claude Code sessions (`spec.md` lists `cliOf` as a separate task).
+
+_Captured: 2026-10-14 · 2 file changes_
+
+---

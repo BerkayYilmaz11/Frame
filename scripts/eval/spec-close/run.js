@@ -53,7 +53,6 @@ const { spawn, execFileSync } = require('child_process');
 const REPO = path.join(__dirname, '..', '..', '..');
 const { makeFixture, KINDS } = require('./make-fixture');
 const launch = require(path.join(REPO, 'src', 'templates', 'bin', 'implement-launch.js'));
-const activityLog = require(path.join(REPO, 'scripts', 'activity-log'));
 
 // A headless session cannot be asked "are you sure". These are refused
 // outright, on top of the deny list Frame's own permission file carries.
@@ -171,13 +170,27 @@ function parseTranscript(text) {
   return out;
 }
 
-/** The fixture's own activity rows that concern the close step. */
-function closeRows(activityHome, root) {
+/**
+ * The fixture's own activity rows that concern the close step.
+ *
+ * Every bucket in the home is read, not the one this process would key the
+ * project by. The home belongs to one fixture, and the key is a hash of the
+ * path the *hook* resolved: on macOS the temp directory is a symlink
+ * (/var → /private/var) and the CLI hands its hooks the resolved path, so the
+ * same project lands under a key this process never computes. The pilot read
+ * zero reminders off three sessions that had each received one.
+ */
+function closeRows(activityHome) {
   let rows = [];
-  try {
-    rows = fs.readFileSync(path.join(activityHome, activityLog.projectKey(root), 'activity.jsonl'), 'utf8')
-      .split('\n').filter(Boolean).map((line) => { try { return JSON.parse(line); } catch { return null; } }).filter(Boolean);
-  } catch { /* nothing recorded */ }
+  let buckets = [];
+  try { buckets = fs.readdirSync(activityHome); } catch { /* nothing recorded */ }
+  for (const bucket of buckets) {
+    try {
+      rows = rows.concat(fs.readFileSync(path.join(activityHome, bucket, 'activity.jsonl'), 'utf8')
+        .split('\n').filter(Boolean).map((line) => { try { return JSON.parse(line); } catch { return null; } }).filter(Boolean));
+    } catch { /* not a bucket */ }
+  }
+  rows.sort((a, b) => String(a.t).localeCompare(String(b.t)));
   const close = rows.filter((r) => r.mode === 'spec-close');
   return {
     reminders: close.filter((r) => r.ev === 'hint.injected').length,
@@ -267,7 +280,7 @@ function runSession(fixture, opts, runDir) {
 
 /** What the fixture looks like after its session, read without changing it. */
 function inspect(fixture, runDir) {
-  const rows = closeRows(fixture.activityHome, fixture.root);
+  const rows = closeRows(fixture.activityHome);
   let check = { verdict: 'unreadable', defects: 0 };
   try {
     // Its own activity home: the measurement must not add a row to the record it is about to be judged by.

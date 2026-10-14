@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-13",
+  "lastUpdated": "2026-10-14",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -17750,13 +17750,13 @@
       ],
       "functions": {
         "parseArgs": {
-          "line": 74,
+          "line": 73,
           "params": [
             "argv"
           ]
         },
         "agentArgs": {
-          "line": 107,
+          "line": 106,
           "params": [
             "{ prompt",
             "settingsPath",
@@ -17766,7 +17766,7 @@
           "purpose": "The CLI arguments for one fixture session."
         },
         "sessionEnv": {
-          "line": 123,
+          "line": 122,
           "params": [
             "base",
             "fixture"
@@ -17774,22 +17774,21 @@
           "purpose": "The environment for one fixture session: the caller's, minus what binds it to the caller."
         },
         "parseTranscript": {
-          "line": 143,
+          "line": 142,
           "params": [
             "text"
           ],
           "purpose": "A stream-json transcript → the few facts the table needs. Tolerant of"
         },
         "closeRows": {
-          "line": 175,
+          "line": 183,
           "params": [
-            "activityHome",
-            "root"
+            "activityHome"
           ],
           "purpose": "The fixture's own activity rows that concern the close step."
         },
         "summarize": {
-          "line": 190,
+          "line": 203,
           "params": [
             "{ id",
             "kind",
@@ -17803,14 +17802,14 @@
           "purpose": "One session's row. `verdict` is spec-close.js's, run after the session."
         },
         "table": {
-          "line": 217,
+          "line": 230,
           "params": [
             "results"
           ],
           "purpose": "Results → the markdown table recorded in the spec's outcome."
         },
         "runSession": {
-          "line": 242,
+          "line": 255,
           "params": [
             "fixture",
             "opts",
@@ -17818,7 +17817,7 @@
           ]
         },
         "inspect": {
-          "line": 269,
+          "line": 282,
           "params": [
             "fixture",
             "runDir"
@@ -17826,7 +17825,7 @@
           "purpose": "What the fixture looks like after its session, read without changing it."
         },
         "pool": {
-          "line": 286,
+          "line": 299,
           "params": [
             "items",
             "size",
@@ -17834,19 +17833,19 @@
           ]
         },
         "main": {
-          "line": 300,
+          "line": 313,
           "params": [
             "argv"
           ]
         },
         "median": {
-          "line": 209,
+          "line": 222,
           "params": [
             "values"
           ]
         }
       },
-      "sizeBytes": 16410,
+      "sizeBytes": 16970,
       "extraction": {
         "status": "parsed"
       },
@@ -25577,7 +25576,7 @@
           ]
         }
       },
-      "sizeBytes": 15079,
+      "sizeBytes": 15866,
       "extraction": {
         "status": "parsed"
       },
@@ -28773,6 +28772,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "afbf256f7848e0d0030134f13022973b4ab1457e4865cffe2edc78edd4108e9c"
+    "revision": "30b7afaae0be430e22ff5d07012a9040e3d5b6e32203cf87f99563000074c007"
   }
 }

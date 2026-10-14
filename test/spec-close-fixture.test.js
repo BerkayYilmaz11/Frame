@@ -141,7 +141,7 @@ test('natural: nothing is said until both tasks close, then the next tool call s
     writeDigest(fixture);
     assert.equal(bash(fixture, 'another', 'git status'), null, 'absent once the digest is written');
     assert.equal(closeCheck(fixture).verdict, 'ok');
-    assert.deepEqual(runner.closeRows(fixture.activityHome, fixture.root).reminders, 1);
+    assert.deepEqual(runner.closeRows(fixture.activityHome).reminders, 1);
   });
 });
 
@@ -161,7 +161,7 @@ test('induced-prompt: the unrelated prompt carries the reminder, once', { skip }
     assert.equal(prompt(fixture, 'another', fixture.prompt), null, 'absent once the digest is written');
     assert.equal(closeCheck(fixture).verdict, 'ok');
 
-    const rows = runner.closeRows(fixture.activityHome, fixture.root);
+    const rows = runner.closeRows(fixture.activityHome);
     assert.equal(rows.reminders, 1);
     assert.deepEqual(rows.quiet, ['session-dedup']);
   });
@@ -184,7 +184,25 @@ test('induced-turn: the call that closes the task is silent; the next one carrie
     writeDigest(fixture);
     assert.equal(bash(fixture, 'another', 'git status --short'), null, 'absent once the digest is written');
     assert.equal(closeCheck(fixture).verdict, 'ok');
-    assert.equal(runner.closeRows(fixture.activityHome, fixture.root).reminders, 1);
+    assert.equal(runner.closeRows(fixture.activityHome).reminders, 1);
+  });
+});
+
+test('rows are read whatever path the hook resolved the project by', { skip }, () => {
+  // The pilot's first table read zero reminders off three sessions that had
+  // each received one: the CLI hands hooks the resolved path (/private/var/…
+  // on macOS, where the temp directory is a symlink), and the rows were filed
+  // under that path's key while the runner looked under its own.
+  withFixture('induced-prompt', (fixture) => {
+    const elsewhere = { ...fixture, root: `${fixture.root}-as-the-hook-saw-it` };
+    fs.symlinkSync(fixture.root, elsewhere.root);
+    try {
+      assert.equal(prompt(elsewhere, 's', fixture.prompt), REMINDER);
+      const rows = runner.closeRows(fixture.activityHome);
+      assert.equal(rows.reminders, 1);
+    } finally {
+      fs.rmSync(elsewhere.root, { force: true });
+    }
   });
 });
 

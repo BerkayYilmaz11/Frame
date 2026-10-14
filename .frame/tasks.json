@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-13T14:53:51.435Z",
+  "lastUpdated": "2026-10-14T10:39:33.715Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8644,13 +8644,13 @@
       "title": "Run the pilot — one headless session per fixture kind — and record in the outcome its cost, tool calls and results, and the hook time measured with and without the cache against the 5 ms constraint; then stop and report to the user, who picks N for the main run",
       "description": "",
       "source": "spec:spec-close-step:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-13T13:51:50.162Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T10:39:33.715Z",
+      "completedAt": "2026-10-14T10:39:33.715Z"
     },
     {
       "id": "task-spec-spec-close-step-T11",
