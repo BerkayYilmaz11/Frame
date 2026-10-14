@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T13:54:32.439Z",
+  "lastUpdated": "2026-10-14T13:56:29.645Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8722,13 +8722,13 @@
       "title": "In `scripts/spec-hint.js` prompt mode, when the related specs it names include a finished spec, add the fix-rule sentence for those specs to the payload, within D8's budget rule; cover it in `test/spec-hint.test.js` (D24)",
       "description": "",
       "source": "spec:spec-close-step:T16",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T13:53:09.193Z",
-      "updatedAt": "2026-10-14T13:53:09.193Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T13:56:29.645Z",
+      "completedAt": "2026-10-14T13:56:29.645Z"
     },
     {
       "id": "task-spec-spec-close-step-T17",

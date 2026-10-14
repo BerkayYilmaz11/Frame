@@ -353,8 +353,9 @@ branch). A fix after the last task — a bug found while testing, a small
 correction to the plan — carries its own record in its own commit: a
 `## Fix — <title>` entry in `outcome.md`, and, when it changes a decision
 the digest records, the digest corrected in place with a `Revised <date>:`
-line before the chain line. The edit-time history for a finished spec's file
-says so at the moment of the edit.
+line before the chain line. The prompt-time hint says so when it names a
+finished spec, and the edit-time history for a finished spec's file says so
+again at the moment of an edit made with the edit tool.
 
 **Delivery.** Claude Code sessions get history injected by hooks
 (`scripts/spec-hint.js` via `.claude/settings.json`): PreToolUse on

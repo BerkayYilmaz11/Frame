@@ -445,14 +445,17 @@ test('once the digest exists the prompt payload is exactly the related specs', (
 });
 
 test('over the inline limit, related specs are dropped from the end and come back later', () => {
-  const root = addClosed(mkProject(wideIndex(['spec-one', 'spec-two', 'spec-three'], 700)));
+  // 500-character lines: two fit beside the reminder and the fix sentence for
+  // the finished specs they name, three do not.
+  const root = addClosed(mkProject(wideIndex(['spec-one', 'spec-two', 'spec-three'], 500)));
   const first = ctxOf(runHook('prompt', prompt(root, 'telemetry')));
   assert.ok(first.startsWith(`${CLOSE_LINE}\n\n${TOPIC_HEADER}`));
   assert.ok(first.length <= BUDGET, `${first.length} chars exceeds ${BUDGET}`);
   assert.match(first, /- spec-one \(done\)/);
   assert.match(first, /- spec-two \(done\)/);
-  assert.ok(!first.includes('spec-three'), 'the last line gave way');
-  assert.match(first, /let the user know which prior decisions apply\.$/, 'the block is still whole');
+  assert.ok(!first.includes('spec-three'), 'the last line gave way, and is not named in the fix sentence either');
+  assert.match(first, /finished work of spec-one or spec-two, record it/, 'the fix sentence names what was sent');
+  assert.match(first, /Ask the user if you are not sure whether it does\.$/, 'the block is still whole');
 
   // The dropped spec was not marked as shown: the next prompt delivers it,
   // and only it — the reminder and the two sent lines are not repeated.
@@ -484,6 +487,21 @@ test('Codex inlines more, so nothing is dropped there', () => {
   assert.ok(ctx.startsWith(CLOSE_LINE));
   for (const slug of ['spec-one', 'spec-two', 'spec-three']) assert.ok(ctx.includes(`- ${slug} (done)`));
   assert.ok(ctx.length > 2000);
+});
+
+test('a prompt naming a finished spec carries the fix rule for it', () => {
+  const ctx = ctxOf(runHook('prompt', prompt(mkProject(IDX_ONE), 'telemetry polling')));
+  assert.ok(ctx.startsWith(TOPIC_HEADER));
+  assert.match(ctx, /\nIf this request fixes or adjusts the finished work of perf-spec, record it in the same commit: a "## Fix — <title>" entry in \.frame\/specs\/perf-spec\/outcome\.md, and, if it changes a decision the digest records, the digest updated in place with a "Revised <YYYY-MM-DD>: …" line before its Chain line\. Ask the user if you are not sure whether it does\.$/);
+});
+
+test('an in-flight spec carries no fix rule; several finished ones are named together', () => {
+  const idx = wideIndex(['done-a', 'live-b', 'done-c'], 40);
+  idx.topics['live-b'].phase = 'implementing';
+  const ctx = ctxOf(runHook('prompt', prompt(mkProject(idx), 'telemetry')));
+  assert.match(ctx, /- live-b \(implementing\)/);
+  assert.match(ctx, /finished work of done-a or done-c, record it in the same commit: a "## Fix — <title>" entry in the outcome\.md of the spec it touches/);
+  assert.ok(!/finished work of[^.]*live-b/.test(ctx));
 });
 
 test('a prompt in a session that started after the close carries no reminder', () => {

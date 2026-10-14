@@ -19359,31 +19359,32 @@
           ]
         },
         "fixInstruction": {
-          "line": 217,
+          "line": 219,
           "params": [
-            "slug"
+            "slugs",
+            "subject = 'edit'"
           ],
-          "purpose": "How a fix to a finished spec's work records itself, said at the one moment"
+          "purpose": "How a fix to a finished spec's work records itself. Test-time fixes used to"
         },
         "formatEntry": {
-          "line": 225,
+          "line": 231,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 237,
+          "line": 243,
           "params": [
             "input"
           ]
         },
         "inlineBudget": {
-          "line": 302,
+          "line": 308,
           "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
         },
         "closeReminder": {
-          "line": 312,
+          "line": 318,
           "params": [
             "root",
             "input"
@@ -19391,7 +19392,7 @@
           "purpose": "The close reminder for this prompt, or null. The helper decides everything"
         },
         "freshTopics": {
-          "line": 327,
+          "line": 333,
           "params": [
             "root",
             "input"
@@ -19399,27 +19400,27 @@
           "purpose": "Specs related to this prompt that the session has not been shown, or null"
         },
         "topicBlock": {
-          "line": 367,
+          "line": 373,
           "params": [
             "index",
             "list"
           ]
         },
         "promptMode": {
-          "line": 377,
+          "line": 388,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 18692,
+      "sizeBytes": 19369,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "closeReminder": "53f0b45f5426931c",
-          "fixInstruction": "a23dee0cc920331c",
+          "fixInstruction": "3025d4b48f1ea9b4",
           "freshTopics": "0d2ec57657e79c1b",
           "inlineBudget": "493a88afee203081",
           "quiet": "3e8f4a1504407442",
@@ -25891,7 +25892,7 @@
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 27851,
+      "sizeBytes": 29293,
       "extraction": {
         "status": "parsed"
       },
@@ -28855,6 +28856,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2eacf1bf6978fc32ba8ed5ffcb3463270477dde09e40396acb552210d2677079"
+    "revision": "dbb54d271af5d1f86f0b889361547378f5e0a5207833ab2b224fa0d3e6766b99"
   }
 }

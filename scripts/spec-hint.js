@@ -208,16 +208,22 @@ const RELAY_INSTRUCTION = 'If this history affects your work, relay it to the us
   '(what was done here before, how it shapes your change); if it does not, stay silent about it. Do not repeat this for the same file.';
 
 /**
- * How a fix to a finished spec's work records itself, said at the one moment
- * that is certain to precede it: an edit to a file whose newest record is that
- * spec. Test-time fixes used to reach the code and nothing else, so the next
- * agent read a digest describing the work before the fix. Whether this edit
- * is such a fix is the agent's call — the sentence is conditional on purpose.
+ * How a fix to a finished spec's work records itself. Test-time fixes used to
+ * reach the code and nothing else, so the next agent read a digest describing
+ * the work before the fix. Said at two moments: the prompt that asks for the
+ * fix, when it names a finished spec, and an edit to a file whose newest
+ * record is one — the second alone missed every fix made through the shell,
+ * because this hook is registered on Edit and Write only. Whether a change is
+ * such a fix is the agent's call; the sentence is conditional on purpose.
  */
-function fixInstruction(slug) {
-  return `If this edit fixes or adjusts the finished work of ${slug}, record it in the same commit: a "## Fix — <title>" entry ` +
-    `in .frame/specs/${slug}/outcome.md, and, if it changes a decision the digest records, the digest updated in place with a ` +
-    '"Revised <YYYY-MM-DD>: …" line before its Chain line. Ask the user if you are not sure whether it does.';
+function fixInstruction(slugs, subject = 'edit') {
+  const list = [].concat(slugs);
+  const where = list.length === 1
+    ? `.frame/specs/${list[0]}/outcome.md`
+    : 'the outcome.md of the spec it touches';
+  return `If this ${subject} fixes or adjusts the finished work of ${list.join(' or ')}, record it in the same commit: ` +
+    `a "## Fix — <title>" entry in ${where}, and, if it changes a decision the digest records, the digest updated in ` +
+    'place with a "Revised <YYYY-MM-DD>: …" line before its Chain line. Ask the user if you are not sure whether it does.';
 }
 
 // ─── pre-edit mode ────────────────────────────────────────
@@ -286,7 +292,7 @@ function preEdit(input) {
   // which is one pointer line by contract.
   const newest = hist[hist.length - 1];
   const fix = !signalMode && newest && newest.phase === 'done' && !(newest.flags && newest.flags.inflight)
-    ? `\n${fixInstruction(newest.slug)}` : '';
+    ? `\n${fixInstruction(newest.slug, 'edit')}` : '';
 
   note(root, 'hint.injected', { mode: 'pre-edit', path: rel, specs: specCount });
   emit('PreToolUse', `Spec history for ${rel} (oldest first — the newest entry is the current truth):\n${body}\n${RELAY_INSTRUCTION}${fix}`, { root, mode: 'pre-edit' });
@@ -370,8 +376,13 @@ function topicBlock(index, list) {
     const sup = t.supersedes ? ` (supersedes ${t.supersedes})` : '';
     return `- ${slug} (${t.phase})${sup} — ${t.digestLine || t.title} → .frame/specs/${slug}/`;
   });
+  // Only the finished ones among the specs actually sent: a spec dropped for
+  // the budget is not named, and an in-flight spec's work is not done yet.
+  const finished = list.map(({ slug }) => slug).filter((slug) => index.topics[slug].phase === 'done');
+  const fix = finished.length ? `\n${fixInstruction(finished, 'request')}` : '';
   return `Specs related to this request (from the project's spec archive):\n${lines.join('\n')}\n` +
-    'If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working, and let the user know which prior decisions apply.';
+    'If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working, and let the user know which prior decisions apply.' +
+    fix;
 }
 
 function promptMode(input) {

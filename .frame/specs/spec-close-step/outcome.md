@@ -232,3 +232,15 @@ file — the two copies had no test holding them together before.
 _Captured: 2026-10-14 · 3 file changes_
 
 ---
+## T16 — The fix rule at the prompt
+
+`scripts/spec-hint.js` prompt mode now ends its related-specs block with the fix sentence when the specs it
+sends include finished ones, naming only those (one path when one, "the outcome.md of the spec it touches"
+when several); `fixInstruction` takes the subject — "this request" at the prompt, "this edit" at an edit — and
+the pre-edit wording is unchanged. The sentence sits inside the block D8's budget rule measures, so a spec
+dropped for room is not named either. Also brought `.frame/docs/REFERENCE.md` in line (both channels, and that
+the edit-time one covers the edit tool only). Files: `scripts/spec-hint.js`, `test/spec-hint.test.js`, REFERENCE.md.
+
+_Captured: 2026-10-14 · 3 file changes_
+
+---
