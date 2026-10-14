@@ -47,16 +47,10 @@ const REPO = path.join(__dirname, '..', '..', '..');
 const structureBootstrap = require(path.join(REPO, 'src', 'main', 'structureBootstrap'));
 const commandStaging = require(path.join(REPO, 'src', 'main', 'commandStaging'));
 const { SPEC_HINT_HOOKS } = require(path.join(REPO, 'src', 'shared', 'frameTemplates'));
-const closeState = require(path.join(REPO, 'scripts', 'spec-close-state'));
 
 const KINDS = ['natural', 'induced-prompt', 'induced-turn'];
 const SLUG = 'greeting-helper';
 const TITLE = 'Greeting Helper';
-
-// Reminders "started" here in the induced kinds, so a spec closed today is
-// after the baseline. The natural kind gets no state file: its baseline is
-// the session's first hook run, as in a project that has just adopted Frame.
-const BACKDATED_BASELINE = '2026-01-01T00:00:00.000Z';
 
 // Frame's managed ignore block, as it writes it into a project's .frame/.
 const FRAME_GITIGNORE = [
@@ -286,12 +280,6 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   commandStaging.stageCommandFiles(root);
   write(root, '.claude/settings.json', `${JSON.stringify({ hooks: SPEC_HINT_HOOKS }, null, 2)}\n`);
 
-  if (kind !== 'natural') {
-    write(root, closeState.STATE_REL, JSON.stringify({
-      version: closeState.STATE_VERSION, baseline: BACKDATED_BASELINE, tasks: { mtimeMs: 0, size: 0 }, closed: []
-    }));
-  }
-
   // ── a clean tree on the spec's own branch ──
   const git = (...args) => execFileSync('git', args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
   git('init', '-q');
@@ -319,4 +307,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { makeFixture, KINDS, SLUG, PROMPTS, BACKDATED_BASELINE };
+module.exports = { makeFixture, KINDS, SLUG, PROMPTS };

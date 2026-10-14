@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12288,
+      "sizeBytes": 12278,
       "extraction": {
         "status": "parsed"
       },
@@ -17145,7 +17145,7 @@
           "purpose": "CLI: print one section, or list them. The manual escape hatch."
         }
       },
-      "sizeBytes": 18115,
+      "sizeBytes": 18111,
       "extraction": {
         "status": "parsed"
       },
@@ -17687,14 +17687,14 @@
       ],
       "functions": {
         "greet": {
-          "line": 133,
+          "line": 127,
           "params": [
             "name"
           ],
           "purpose": "A greeting for \\`name\\`, or for a stranger when there is none."
         },
         "write": {
-          "line": 197,
+          "line": 191,
           "params": [
             "root",
             "rel",
@@ -17702,14 +17702,14 @@
           ]
         },
         "taskStates": {
-          "line": 203,
+          "line": 197,
           "params": [
             "kind",
             "now"
           ]
         },
         "makeFixture": {
-          "line": 219,
+          "line": 213,
           "params": [
             "{ kind",
             "dir = null",
@@ -17718,7 +17718,7 @@
           "purpose": "Build one fixture. Returns what a runner needs: where it is, what to ask,"
         }
       },
-      "sizeBytes": 12599,
+      "sizeBytes": 12006,
       "extraction": {
         "status": "parsed"
       },
@@ -18787,32 +18787,32 @@
       ],
       "functions": {
         "toPosix": {
-          "line": 70,
+          "line": 74,
           "params": [
             "p"
           ]
         },
         "readJson": {
-          "line": 72,
+          "line": 76,
           "params": [
             "p"
           ]
         },
         "tasksPath": {
-          "line": 76,
+          "line": 80,
           "params": [
             "root"
           ]
         },
         "specDir": {
-          "line": 77,
+          "line": 81,
           "params": [
             "root",
             "slug"
           ]
         },
         "missingItems": {
-          "line": 93,
+          "line": 97,
           "params": [
             "root",
             "slug"
@@ -18820,56 +18820,62 @@
           "purpose": "Ids of the close items this spec still lacks."
         },
         "timeOf": {
-          "line": 113,
+          "line": 117,
           "params": [
             "value"
           ],
           "purpose": "A timestamp as milliseconds, or null. A date with no time counts as the end"
         },
         "readTasks": {
-          "line": 120,
+          "line": 124,
           "params": [
             "root"
           ],
           "purpose": "tasks.json → its task list, or null when it cannot be read as one."
         },
         "specTaskCounts": {
-          "line": 127,
+          "line": 131,
           "params": [
             "tasks"
           ],
           "purpose": "Task list → Map of slug → { total, completed, latest } for spec tasks."
         },
-        "closedSpecs": {
-          "line": 155,
+        "specStates": {
+          "line": 159,
           "params": [
             "root"
           ],
-          "purpose": "Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot"
+          "purpose": "`{ closed: [{ slug, closedAt }], open: [slug] }`, or null when tasks.json"
+        },
+        "closedSpecs": {
+          "line": 181,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot be read."
         },
         "writeState": {
-          "line": 183,
+          "line": 196,
           "params": [
             "root",
             "state"
           ]
         },
         "closeState": {
-          "line": 203,
+          "line": 216,
           "params": [
-            "root",
-            "now = Date.now("
+            "root"
           ],
-          "purpose": "`{ baseline, closed, unreadable, hit }` for this project, or null when it"
+          "purpose": "`{ closed, open, unreadable, hit }` for this project, or null when it has"
         },
         "insideGitRepo": {
-          "line": 233,
+          "line": 244,
           "params": [
             "root"
           ]
         },
         "isOrchestrated": {
-          "line": 257,
+          "line": 268,
           "params": [
             "root",
             "slug"
@@ -18877,38 +18883,29 @@
           "purpose": "Whether a spec is run by Frame's orchestration: true, false, or null when"
         },
         "openSpecs": {
-          "line": 275,
+          "line": 286,
           "params": [
             "root",
             "state"
           ],
           "purpose": "Closed specs with at least one missing item, newest close first."
         },
-        "timeReason": {
-          "line": 290,
-          "params": [
-            "spec",
-            "baseline"
-          ],
-          "purpose": "Why a spec that is owed something is not announced, without asking git."
-        },
         "orchestrationReason": {
-          "line": 297,
+          "line": 300,
           "params": [
             "root",
             "slug"
           ]
         },
         "pending": {
-          "line": 308,
+          "line": 311,
           "params": [
-            "root",
-            "now = Date.now("
+            "root"
           ],
-          "purpose": "Closed, after the baseline, something missing, not run by orchestration —"
+          "purpose": "Closed, something missing, not run by orchestration — each as"
         },
         "sessionKey": {
-          "line": 327,
+          "line": 334,
           "params": [
             "sessionId",
             "now = Date.now("
@@ -18916,28 +18913,28 @@
           "purpose": "A host that sends no session id still gets at most one reminder a day."
         },
         "sessionFile": {
-          "line": 332,
+          "line": 339,
           "params": [
             "root",
             "key"
           ]
         },
         "loadSession": {
-          "line": 336,
+          "line": 343,
           "params": [
             "root",
             "key"
           ]
         },
         "cleanupSessions": {
-          "line": 345,
+          "line": 353,
           "params": [
             "root",
             "now"
           ]
         },
         "saveSession": {
-          "line": 357,
+          "line": 365,
           "params": [
             "root",
             "key",
@@ -18946,20 +18943,20 @@
           ]
         },
         "closeScriptPath": {
-          "line": 369,
+          "line": 377,
           "params": [
             "root"
           ],
           "purpose": "The close script, as a path an agent can run from the project root."
         },
         "labelsOf": {
-          "line": 378,
+          "line": 386,
           "params": [
             "specs"
           ]
         },
         "reminderLine": {
-          "line": 383,
+          "line": 391,
           "params": [
             "root",
             "named",
@@ -18967,7 +18964,7 @@
           ]
         },
         "reminder": {
-          "line": 406,
+          "line": 414,
           "params": [
             "root",
             "sessionId",
@@ -18976,7 +18973,7 @@
           "purpose": "What a hook should do about closed specs right now."
         }
       },
-      "sizeBytes": 18274,
+      "sizeBytes": 19173,
       "extraction": {
         "status": "parsed"
       },
@@ -18984,18 +18981,18 @@
         "description": "31fd80bb4a098694",
         "purposes": {
           "closeScriptPath": "eb55c527830baae1",
-          "closeState": "2a7dbc7cff204910",
-          "closedSpecs": "f77dc4293baf183b",
+          "closeState": "fe9a2a8efe637cbf",
+          "closedSpecs": "f2aa09861c3b114b",
           "isOrchestrated": "9eb319e04d59282d",
           "missingItems": "265b8c8c40498710",
           "openSpecs": "2a0f20095011198c",
-          "pending": "d1106efac627412d",
+          "pending": "de654e387f4b3df9",
           "readTasks": "b2a62548c72b1fa1",
           "reminder": "f3dc678226bb00a5",
           "sessionKey": "3ab5b382c4ceb8e1",
+          "specStates": "fb57a90358e1598e",
           "specTaskCounts": "23893a21574aea54",
-          "timeOf": "964231ab15f867b1",
-          "timeReason": "31f0258d6ae62824"
+          "timeOf": "964231ab15f867b1"
         }
       }
     },
@@ -19379,7 +19376,7 @@
           ]
         }
       },
-      "sizeBytes": 17558,
+      "sizeBytes": 17554,
       "extraction": {
         "status": "parsed"
       },
@@ -21775,32 +21772,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 477,
+          "line": 475,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 481,
+          "line": 479,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 485,
+          "line": 483,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 489,
+          "line": 487,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 512,
+          "line": 510,
           "params": [
             "name",
             "fields"
@@ -21808,7 +21805,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 529,
+          "line": 527,
           "params": [
             "name",
             "fields"
@@ -21816,7 +21813,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 550,
+          "line": 548,
           "params": [
             "name",
             "fields"
@@ -21824,7 +21821,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 25547,
+      "sizeBytes": 25394,
       "extraction": {
         "status": "parsed"
       },
@@ -23324,7 +23321,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 14872,
+      "sizeBytes": 15085,
       "extraction": {
         "status": "parsed"
       },
@@ -23702,32 +23699,51 @@
             "reference = REFERENCE"
           ]
         },
-        "mkClosed": {
-          "line": 317,
+        "mkClosable": {
+          "line": 325,
           "params": [
-            "{ slug = 'close-me'",
-            "completedAt = '2026-02-01T10",
+            "{ slug = SLUG",
             "digest = false",
+            "preClosed = false",
             "tasksRaw = null } = {}"
           ],
-          "purpose": "A project where reminders started on 2026-01-01 and `slug` closed after"
+          "purpose": "A project holding `slug`, its last task still open unless `preClosed`."
+        },
+        "closeAll": {
+          "line": 336,
+          "params": [
+            "root",
+            "slug = SLUG"
+          ],
+          "purpose": "Complete the spec's last task, the way a shell script would."
+        },
+        "closedBy": {
+          "line": 348,
+          "params": [
+            "root",
+            "firstLook",
+            "opts = {}"
+          ],
+          "purpose": "The session's first look, with the spec still open — then the session closes it."
         },
         "rowsOf": {
-          "line": 335,
+          "line": 354,
           "params": [
             "root"
           ],
           "purpose": "Every activity row the hook wrote for this project, each checked against the registry."
         }
       },
-      "sizeBytes": 24522,
+      "sizeBytes": 25741,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "7cf6097a8e5aec5b",
         "purposes": {
-          "mkClosed": "77e8b8d1e53e93fc",
+          "closeAll": "506474a93dcd1f0e",
+          "closedBy": "cfddeda123aa0af1",
+          "mkClosable": "db119b3b11c9e5f4",
           "rowsOf": "2b5937aa7baca604"
         }
       }
@@ -25576,7 +25592,7 @@
           ]
         }
       },
-      "sizeBytes": 15866,
+      "sizeBytes": 15888,
       "extraction": {
         "status": "parsed"
       },
@@ -25603,7 +25619,7 @@
       ],
       "functions": {
         "writeTasks": {
-          "line": 41,
+          "line": 42,
           "params": [
             "root",
             "tasks",
@@ -25612,7 +25628,7 @@
           "purpose": "Write tasks.json with an mtime no earlier write shared."
         },
         "mkSpec": {
-          "line": 50,
+          "line": 51,
           "params": [
             "root",
             "slug",
@@ -25621,29 +25637,40 @@
           ]
         },
         "mkProject": {
-          "line": 59,
+          "line": 60,
           "params": [
             "{ specs = []",
-            "tasks = []",
-            "baseline = true } = {}"
+            "tasks = [] } = {}"
           ],
-          "purpose": "A project whose baseline is T0, holding the given specs and tasks."
+          "purpose": "A project holding the given specs and tasks."
+        },
+        "closeIn": {
+          "line": 72,
+          "params": [
+            "root",
+            "session",
+            "before",
+            "after",
+            "now = NOW"
+          ],
+          "purpose": "The session takes its first look with `before` on disk, then the tasks"
         },
         "gitInit": {
-          "line": 248,
+          "line": 273,
           "params": [
             "root"
           ]
         }
       },
-      "sizeBytes": 18534,
+      "sizeBytes": 20768,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "24c240c9101ebaa5",
         "purposes": {
-          "mkProject": "c1fd4333a7aaf9e4",
+          "closeIn": "eb2b6dd3e560218c",
+          "mkProject": "8494b5262d8ec57c",
           "writeTasks": "3de6815b184f2a3c"
         }
       }
@@ -25792,15 +25819,16 @@
           ]
         },
         "addClosed": {
-          "line": 351,
+          "line": 363,
           "params": [
             "root",
-            "{ digest = false } = {}"
+            "{ digest = false",
+            "session = 'p1' } = {}"
           ],
-          "purpose": "Give a project a spec that closed after reminders started, with no digest."
+          "purpose": "Give a project a spec that `session` closed with no digest: the session's"
         },
         "wideIndex": {
-          "line": 365,
+          "line": 378,
           "params": [
             "slugs",
             "width"
@@ -25808,14 +25836,14 @@
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 25101,
+      "sizeBytes": 25921,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "68fc601a032f6611",
         "purposes": {
-          "addClosed": "52b4ef65691ca189",
+          "addClosed": "5cceb150c8ba49c1",
           "wideIndex": "42801f3b44956247"
         }
       }
@@ -28772,6 +28800,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "577ff69b9d9fa7721b7eeb04b5d011f8f939cfdebba14efb3ba8f56bb7e55b26"
+    "revision": "0fd5ba1360a3fae0dd8815885606d75524e6a3c8211b95aff009b952743b1653"
   }
 }

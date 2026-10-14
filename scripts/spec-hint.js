@@ -286,7 +286,7 @@ function inlineBudget() {
 
 /**
  * The close reminder for this prompt, or null. The helper decides everything
- * — closed, after the baseline, not orchestrated, not yet said this session,
+ * — closed by this session, not orchestrated, not yet said this session,
  * which includes "docs-hint.js already said it on a tool call"; this records
  * what it reports and hands back the line.
  */

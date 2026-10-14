@@ -357,7 +357,7 @@ function metaTargetOf(toolName, input) {
 /**
  * The same-turn close reminder. An agent closes a spec's last task through a
  * shell command, and the next thing it does is another shell or edit call —
- * this one. The helper owns every decision (closed, after the baseline, not
+ * this one. The helper owns every decision (closed by this session, not
  * orchestrated, not yet said this session); this only says the line and
  * records what the helper reports. No candidate means no output and no row,
  * which is every call in a project with nothing owed.

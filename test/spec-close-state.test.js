@@ -8,8 +8,10 @@
  * of speaking — a reminder that fires when it should not is worse than one
  * that never fires.
  *
- * Time is passed in rather than read: the baseline, the per-day session key
- * and the seven-day cleanup are all functions of `now`.
+ * The rule under test: a reminder goes only to the session that closed the
+ * spec. Most cases therefore start the same way — the session takes its first
+ * look while the spec is still open, then the spec's tasks are completed —
+ * which is `closeIn` below.
  */
 
 const { test } = require('node:test');
@@ -25,16 +27,15 @@ const {
   closedSpecs, closeState, isOrchestrated, missingItems, pending, reminder, sessionKey
 } = closeStateLib;
 
-const T0 = Date.parse('2026-01-01T00:00:00Z'); // the baseline every project starts from
-const BEFORE = '2025-12-01T10:00:00Z';
-const AFTER = '2026-02-01T10:00:00Z';
-const LATER = Date.parse('2026-03-01T00:00:00Z');
+const AT = '2026-02-01T10:00:00Z';
+const NOW = Date.parse('2026-03-01T00:00:00Z');
 
 const task = (slug, n, status, completedAt = null) => ({
   id: `task-spec-${slug}-T0${n}`, title: `t${n}`, source: `spec:${slug}:T0${n}`, status, completedAt
 });
 
-const closed = (slug, at = AFTER) => [task(slug, 1, 'completed', at), task(slug, 2, 'completed', at)];
+const closed = (slug, at = AT) => [task(slug, 1, 'completed', at), task(slug, 2, 'completed', at)];
+const open = (slug) => [task(slug, 1, 'completed', AT), task(slug, 2, 'in_progress')];
 
 let tick = 0;
 /** Write tasks.json with an mtime no earlier write shared. */
@@ -55,34 +56,41 @@ function mkSpec(root, slug, { digest = false, status = null } = {}) {
   return dir;
 }
 
-/** A project whose baseline is T0, holding the given specs and tasks. */
-function mkProject({ specs = [], tasks = [], baseline = true } = {}) {
+/** A project holding the given specs and tasks. */
+function mkProject({ specs = [], tasks = [] } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-specclose-'));
   fs.mkdirSync(path.join(root, '.frame'), { recursive: true });
-  if (baseline) {
-    writeTasks(root, []);
-    closeState(root, T0);
-  }
   for (const slug of specs) mkSpec(root, slug);
   writeTasks(root, tasks);
   return root;
 }
 
+/**
+ * The session takes its first look with `before` on disk, then the tasks
+ * become `after` — the session closed whatever `after` closes.
+ */
+function closeIn(root, session, before, after, now = NOW) {
+  writeTasks(root, before);
+  reminder(root, session, now);
+  writeTasks(root, after);
+}
+
 const readState = (root) => JSON.parse(fs.readFileSync(path.join(root, STATE_REL), 'utf8'));
 
-// ─── closed specs ─────────────────────────────────────────
+// ─── closed and open specs ────────────────────────────────
 
 test('a spec is closed when it has spec tasks and all of them are completed', () => {
   const root = mkProject({
     specs: ['done-spec', 'half-spec', 'idle-spec'],
     tasks: [
       ...closed('done-spec'),
-      task('half-spec', 1, 'completed', AFTER), task('half-spec', 2, 'in_progress'),
+      task('half-spec', 1, 'completed', AT), task('half-spec', 2, 'in_progress'),
       task('idle-spec', 1, 'pending'),
-      { id: 'plain', title: 'not a spec task', status: 'completed', completedAt: AFTER }
+      { id: 'plain', title: 'not a spec task', status: 'completed', completedAt: AT }
     ]
   });
   assert.deepEqual(closedSpecs(root).map((s) => s.slug), ['done-spec']);
+  assert.deepEqual(closeState(root).open, ['half-spec', 'idle-spec'], 'the rest are open, and cached as such');
 });
 
 test('a spec with no tasks in tasks.json is not closed, whatever its folder holds', () => {
@@ -91,9 +99,10 @@ test('a spec with no tasks in tasks.json is not closed, whatever its folder hold
 });
 
 test('completed tasks whose spec folder is gone do not make a closed spec', () => {
-  const root = mkProject({ specs: [], tasks: closed('deleted-spec') });
+  const root = mkProject({ specs: [], tasks: [] });
+  closeIn(root, 's', open('deleted-spec'), closed('deleted-spec'));
   assert.deepEqual(closedSpecs(root), []);
-  assert.equal(reminder(root, 's', LATER), null);
+  assert.equal(reminder(root, 's', NOW), null);
 });
 
 test('the close time is the latest completedAt among the spec tasks', () => {
@@ -119,8 +128,8 @@ test('a slug that is not a plain folder name is never read as a spec', () => {
   const root = mkProject({ specs: ['ok'], tasks: [] });
   fs.mkdirSync(path.join(root, 'outside'), { recursive: true });
   writeTasks(root, [
-    { id: 'x', source: 'spec:../../outside:T01', status: 'completed', completedAt: AFTER },
-    { id: 'y', source: 'spec:-rf:T01', status: 'completed', completedAt: AFTER }
+    { id: 'x', source: 'spec:../../outside:T01', status: 'completed', completedAt: AT },
+    { id: 'y', source: 'spec:-rf:T01', status: 'completed', completedAt: AT }
   ]);
   assert.deepEqual(closedSpecs(root), []);
   assert.equal(isOrchestrated(root, '../../outside'), null);
@@ -143,106 +152,122 @@ test('the digest is the one close item, missing until digest.md exists', () => {
 });
 
 test('a second close item joins the list without anything around it changing', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
   mkSpec(root, 'a', { digest: true });
   CLOSE_ITEMS.push({ id: 'cards', label: 'decision cards', missing: () => true });
   try {
+    closeIn(root, 's', open('a'), closed('a'));
     assert.deepEqual(missingItems(root, 'a'), ['cards']);
-    assert.match(reminder(root, 's', LATER).line, /but no decision cards — run:/);
+    assert.match(reminder(root, 's', NOW).line, /but no decision cards — run:/);
   } finally {
     CLOSE_ITEMS.pop();
   }
 });
 
-// ─── the reminder ─────────────────────────────────────────
+// ─── the session that closed it ───────────────────────────
 
-test('a spec closed after the baseline with no digest gets the one-line reminder', () => {
-  const root = mkProject({ specs: ['close-me'], tasks: closed('close-me') });
-  const out = reminder(root, 's1', LATER);
+test('a spec this session closed with no digest gets the one-line reminder', () => {
+  const root = mkProject({ specs: ['close-me'] });
+  closeIn(root, 's1', open('close-me'), closed('close-me'));
+  const out = reminder(root, 's1', NOW);
   assert.deepEqual(out.slugs, ['close-me']);
   assert.equal(out.line,
     'Spec "close-me" has every task completed but no digest — run: node .frame/bin/spec-close.js close-me');
   assert.ok(!out.line.includes('\n'), 'one line');
-  assert.deepEqual(pending(root, LATER).map((s) => s.slug), ['close-me']);
+  assert.deepEqual(pending(root).map((s) => s.slug), ['close-me']);
 });
 
 test('once the digest exists there is nothing to say and nothing to record', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
   mkSpec(root, 'a', { digest: true });
-  assert.equal(reminder(root, 's1', LATER), null);
-  assert.deepEqual(pending(root, LATER), []);
+  closeIn(root, 's1', open('a'), closed('a'));
+  assert.equal(reminder(root, 's1', NOW), null);
+  assert.deepEqual(pending(root), []);
 });
 
 test('a digest written after the reminder is seen without tasks.json changing', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
-  assert.ok(reminder(root, 's1', LATER).line);
+  const root = mkProject({ specs: ['a'] });
+  closeIn(root, 's1', open('a'), closed('a'));
+  assert.ok(reminder(root, 's1', NOW).line);
   mkSpec(root, 'a', { digest: true });
-  assert.equal(reminder(root, 's2', LATER), null);
+  assert.equal(reminder(root, 's1', NOW), null);
 });
 
 test('a spec is announced once per session, then recorded as session-dedup once', () => {
+  const root = mkProject({ specs: ['a'] });
+  closeIn(root, 's1', open('a'), closed('a'));
+  assert.ok(reminder(root, 's1', NOW).line);
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'session-dedup', reasons: ['session-dedup'] });
+  assert.equal(reminder(root, 's1', NOW), null, 'the quiet reason is not recorded per call');
+});
+
+test('a spec already closed when a session starts is never announced to it', () => {
+  // Another session closed it — or this one did, and a new conversation began.
+  const root = mkProject({ specs: ['a'] });
+  closeIn(root, 's1', open('a'), closed('a'));
+  assert.ok(reminder(root, 's1', NOW).line, 'the closing session hears it');
+  assert.deepEqual(reminder(root, 's2', NOW), { quiet: 'closed-earlier', reasons: ['closed-earlier'] });
+  assert.equal(reminder(root, 's2', NOW), null, 'recorded once, not per call');
+  assert.deepEqual(pending(root).map((s) => s.slug), ['a'], 'still owed — spec-close.js shows it');
+});
+
+test('in a project with old specs missing digests, a new session hears none of them', () => {
+  const root = mkProject({ specs: ['old-one', 'old-two'], tasks: [...closed('old-one'), ...closed('old-two')] });
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'closed-earlier', reasons: ['closed-earlier'] });
+  assert.equal(reminder(root, 's1', NOW), null);
+});
+
+test('a spec created and closed inside one session is that session\'s own', () => {
+  // Its tasks did not exist at the session's first look, so it was open at no
+  // first look either — which is why the session notes what was closed, not
+  // what was open.
+  const root = mkProject({ specs: ['fresh'] });
+  closeIn(root, 's1', [], closed('fresh'));
+  assert.deepEqual(reminder(root, 's1', NOW).slugs, ['fresh']);
+});
+
+test('a spec reopened and closed again in the session is the session\'s own', () => {
   const root = mkProject({ specs: ['a'], tasks: closed('a') });
-  assert.ok(reminder(root, 's1', LATER).line);
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'session-dedup', reasons: ['session-dedup'] });
-  assert.equal(reminder(root, 's1', LATER), null, 'the quiet reason is not recorded per call');
-  assert.ok(reminder(root, 's2', LATER).line, 'a new session hears it again');
-});
-
-test('a spec closed before the baseline is never announced', () => {
-  const root = mkProject({ specs: ['old'], tasks: closed('old', BEFORE) });
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'before-baseline', reasons: ['before-baseline'] });
-  assert.equal(reminder(root, 's1', LATER), null);
-  assert.deepEqual(pending(root, LATER), []);
-});
-
-test('the first run sets the baseline, so everything already closed stays quiet', () => {
-  const root = mkProject({ specs: ['old'], tasks: closed('old', AFTER), baseline: false });
-  assert.equal(reminder(root, 's1', LATER).quiet, 'before-baseline');
-  assert.equal(readState(root).baseline, new Date(LATER).toISOString());
-  // …and the baseline does not move on a later run.
-  closeState(root, LATER + 5000);
-  assert.equal(readState(root).baseline, new Date(LATER).toISOString());
-});
-
-test('a closed spec with no close time is skipped, with its own reason', () => {
-  const root = mkProject({ specs: ['timeless'], tasks: [task('timeless', 1, 'completed')] });
-  assert.deepEqual(closedSpecs(root), [{ slug: 'timeless', closedAt: null }]);
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'no-close-time', reasons: ['no-close-time'] });
+  assert.equal(reminder(root, 's1', NOW).quiet, 'closed-earlier');
+  // A fix task is added to it, then completed.
+  writeTasks(root, [...closed('a'), task('a', 3, 'pending')]);
+  assert.equal(reminder(root, 's1', NOW), null, 'open again: nothing owed');
+  writeTasks(root, [...closed('a'), task('a', 3, 'completed', AT)]);
+  assert.deepEqual(reminder(root, 's1', NOW).slugs, ['a']);
 });
 
 test('more than three are named three at a time, the rest counted', () => {
   const slugs = ['a', 'b', 'c', 'd', 'e'];
-  const root = mkProject({
-    specs: slugs,
-    tasks: slugs.flatMap((slug, i) => closed(slug, `2026-02-0${i + 1}T10:00:00Z`))
-  });
-  const first = reminder(root, 's1', LATER);
+  const root = mkProject({ specs: slugs });
+  closeIn(root, 's1', slugs.flatMap(open), slugs.flatMap((slug, i) => closed(slug, `2026-02-0${i + 1}T10:00:00Z`)));
+  const first = reminder(root, 's1', NOW);
   assert.deepEqual(first.slugs, ['e', 'd', 'c'], 'newest close first');
   assert.equal(first.more, 2);
   assert.match(first.line, /^Specs "e", "d", "c" and 2 more have every task completed but no digest — run for each: node \S+ <slug>$/);
-  const second = reminder(root, 's1', LATER);
+  const second = reminder(root, 's1', NOW);
   assert.deepEqual(second.slugs, ['b', 'a'], 'the counted ones are named next');
   assert.equal(second.more, 0);
 });
 
 test('a result can announce one spec and record why another is withheld', () => {
-  const root = mkProject({
-    specs: ['old', 'new'],
-    tasks: [...closed('old', BEFORE), ...closed('new', AFTER)]
-  });
-  const out = reminder(root, 's1', LATER);
+  const root = mkProject({ specs: ['old', 'new'], tasks: [...closed('old'), ...open('new')] });
+  // The first look already finds "old" closed, and says so once.
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'closed-earlier', reasons: ['closed-earlier'] });
+  writeTasks(root, [...closed('old'), ...closed('new')]);
+  const out = reminder(root, 's1', NOW);
   assert.deepEqual(out.slugs, ['new']);
-  assert.deepEqual(out.reasons, ['before-baseline']);
+  assert.deepEqual(out.reasons, [], 'the reason was recorded at the first look');
 });
 
 // ─── orchestration ────────────────────────────────────────
 
 test('a spec with a worktree folder is orchestrated and never announced', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
   fs.mkdirSync(path.join(root, '.frame', 'worktrees', 'a'), { recursive: true });
+  closeIn(root, 's1', open('a'), closed('a'));
   assert.equal(isOrchestrated(root, 'a'), true);
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'orchestrated', reasons: ['orchestrated'] });
-  assert.deepEqual(pending(root, LATER), []);
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'orchestrated', reasons: ['orchestrated'] });
+  assert.deepEqual(pending(root), []);
 });
 
 function gitInit(root) {
@@ -253,32 +278,34 @@ function gitInit(root) {
 }
 
 test('a spec with a frame/<slug>/ branch is orchestrated; its neighbour is not', () => {
-  const root = mkProject({ specs: ['a', 'ab'], tasks: [...closed('a'), ...closed('ab')] });
+  const root = mkProject({ specs: ['a', 'ab'] });
   const git = gitInit(root);
   git('branch', 'frame/a/work');
+  closeIn(root, 's1', [...open('a'), ...open('ab')], [...closed('a'), ...closed('ab')]);
   assert.equal(isOrchestrated(root, 'a'), true);
   assert.equal(isOrchestrated(root, 'ab'), false, 'a prefix of another slug is not a match');
-  const out = reminder(root, 's1', LATER);
+  const out = reminder(root, 's1', NOW);
   assert.deepEqual(out.slugs, ['ab']);
   assert.deepEqual(out.reasons, ['orchestrated']);
 });
 
 test('git is asked once per candidate per session', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
   const git = gitInit(root);
   git('branch', 'frame/a/integration');
-  assert.equal(reminder(root, 's1', LATER).quiet, 'orchestrated');
+  closeIn(root, 's1', open('a'), closed('a'));
+  assert.equal(reminder(root, 's1', NOW).quiet, 'orchestrated');
   // The branch goes away; the session already has its answer and keeps it.
   git('branch', '-D', 'frame/a/integration');
-  assert.equal(reminder(root, 's1', LATER), null);
-  assert.ok(reminder(root, 's2', LATER).line, 'a new session asks again');
+  assert.equal(reminder(root, 's1', NOW), null);
 });
 
 test('when git will not answer the spec stays quiet, with its own reason', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
   fs.writeFileSync(path.join(root, '.git'), 'gitdir: /nowhere/at/all\n'); // a repository git cannot open
+  closeIn(root, 's1', open('a'), closed('a'));
   assert.equal(isOrchestrated(root, 'a'), null);
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'git-unavailable', reasons: ['git-unavailable'] });
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'git-unavailable', reasons: ['git-unavailable'] });
 });
 
 // ─── tasks.json that cannot be read ───────────────────────
@@ -286,22 +313,23 @@ test('when git will not answer the spec stays quiet, with its own reason', () =>
 test('no tasks.json means nothing to say and no state written', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-specclose-'));
   fs.mkdirSync(path.join(root, '.frame'), { recursive: true });
-  assert.equal(closeState(root, T0), null);
-  assert.equal(reminder(root, 's1', LATER), null);
+  assert.equal(closeState(root), null);
+  assert.equal(reminder(root, 's1', NOW), null);
   assert.ok(!fs.existsSync(path.join(root, STATE_REL)));
 });
 
 test('an unreadable tasks.json is recorded once per change of the file, not per call', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'] });
+  closeIn(root, 's1', open('a'), closed('a'));
   writeTasks(root, null, { raw: '{ "tasks": [ truncated' });
   assert.equal(closedSpecs(root), null);
-  assert.deepEqual(reminder(root, 's1', LATER), { quiet: 'no-index', reasons: ['no-index'] });
-  assert.equal(reminder(root, 's1', LATER), null);
-  assert.equal(reminder(root, 's2', LATER), null);
-  assert.deepEqual(pending(root, LATER), []);
-  // Repaired: the next call reads it again.
+  assert.deepEqual(reminder(root, 's1', NOW), { quiet: 'no-index', reasons: ['no-index'] });
+  assert.equal(reminder(root, 's1', NOW), null);
+  assert.equal(reminder(root, 's2', NOW), null);
+  assert.deepEqual(pending(root), []);
+  // Repaired: the next call reads it again, and the closing session still hears it.
   writeTasks(root, closed('a'));
-  assert.ok(reminder(root, 's1', LATER).line);
+  assert.ok(reminder(root, 's1', NOW).line);
 });
 
 test('a tasks.json with no task list is unreadable, not empty', () => {
@@ -315,7 +343,7 @@ test('a tasks.json with no task list is unreadable, not empty', () => {
 test('a cache hit does not re-read tasks.json', () => {
   const root = mkProject({ specs: ['a'], tasks: closed('a') });
   const file = path.join(root, '.frame', 'tasks.json');
-  assert.equal(closeState(root, LATER).hit, false);
+  assert.equal(closeState(root).hit, false);
 
   // Same size, same mtime, different content: if the helper read the file it
   // would find no closed spec.
@@ -326,48 +354,62 @@ test('a cache hit does not re-read tasks.json', () => {
   fs.writeFileSync(file, reopened);
   fs.utimesSync(file, stat.atime, stat.mtime);
 
-  const state = closeState(root, LATER);
+  const state = closeState(root);
   assert.equal(state.hit, true);
   assert.deepEqual(state.closed.map((s) => s.slug), ['a']);
   assert.deepEqual(closedSpecs(root), [], 'a fresh read sees the new content');
 });
 
-test('a changed mtime or size is a miss and the list is rebuilt', () => {
-  const root = mkProject({ specs: ['a', 'b'], tasks: closed('a') });
-  assert.deepEqual(closeState(root, LATER).closed.map((s) => s.slug), ['a']);
+test('a changed mtime or size is a miss and the lists are rebuilt', () => {
+  const root = mkProject({ specs: ['a', 'b'], tasks: [...closed('a'), ...open('b')] });
+  assert.deepEqual(closeState(root).closed.map((s) => s.slug), ['a']);
   writeTasks(root, [...closed('a'), ...closed('b')]);
-  const state = closeState(root, LATER);
+  const state = closeState(root);
   assert.equal(state.hit, false);
   assert.deepEqual(state.closed.map((s) => s.slug), ['a', 'b']);
-  assert.equal(closeState(root, LATER).hit, true);
+  assert.deepEqual(state.open, []);
+  assert.equal(closeState(root).hit, true);
 });
 
-test('a corrupt state file costs a re-read and a new baseline, never an exception', () => {
+test('a corrupt state file costs a re-read, never an exception', () => {
   const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  closeState(root);
   fs.writeFileSync(path.join(root, STATE_REL), '{ not json');
-  const state = closeState(root, LATER);
+  assert.equal(closeState(root).hit, false);
+});
+
+test('a state file from the first design, with a baseline, is not trusted', () => {
+  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const stat = fs.statSync(path.join(root, '.frame', 'tasks.json'));
+  fs.mkdirSync(path.dirname(path.join(root, STATE_REL)), { recursive: true });
+  fs.writeFileSync(path.join(root, STATE_REL), JSON.stringify({
+    version: 1, baseline: '2026-01-01T00:00:00.000Z', tasks: { mtimeMs: stat.mtimeMs, size: stat.size }, closed: []
+  }));
+  const state = closeState(root);
   assert.equal(state.hit, false);
-  assert.equal(state.baseline, new Date(LATER).toISOString());
+  assert.deepEqual(state.closed.map((s) => s.slug), ['a']);
+  assert.equal(readState(root).baseline, undefined, 'the baseline is gone');
 });
 
 // ─── session keys and cleanup ─────────────────────────────
 
-test('without a session id the reminder is keyed by calendar day', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+test('without a session id the day is the session', () => {
+  const root = mkProject({ specs: ['a'] });
   const day1 = Date.parse('2026-03-01T09:00:00Z');
   assert.equal(sessionKey(undefined, day1), 'day-2026-03-01');
+  closeIn(root, undefined, open('a'), closed('a'), day1);
   assert.ok(reminder(root, undefined, day1).line);
   assert.equal(reminder(root, undefined, day1 + 3600e3).quiet, 'session-dedup', 'same day: once');
-  assert.ok(reminder(root, undefined, day1 + 24 * 3600e3).line, 'next day: again');
+  assert.equal(reminder(root, undefined, day1 + 24 * 3600e3).quiet, 'closed-earlier', 'next day: closed before it began');
 });
 
 test('a session id is made safe for a file name', () => {
-  assert.equal(sessionKey('../../etc/passwd', T0), '______etc_passwd');
-  assert.equal(sessionKey('a'.repeat(200), T0).length, 80);
+  assert.equal(sessionKey('../../etc/passwd', NOW), '______etc_passwd');
+  assert.equal(sessionKey('a'.repeat(200), NOW).length, 80);
 });
 
 test('session files older than seven days are removed when one is written', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  const root = mkProject({ specs: ['a'], tasks: open('a') });
   const dir = path.join(root, SESSIONS_REL);
   fs.mkdirSync(dir, { recursive: true });
   const stale = path.join(dir, 'old-session.json');
@@ -384,16 +426,18 @@ test('session files older than seven days are removed when one is written', () =
 
 test('a root that does not exist is nothing to say', () => {
   const nowhere = path.join(os.tmpdir(), 'frame-specclose-missing', 'x');
-  assert.equal(reminder(nowhere, 's1', LATER), null);
-  assert.deepEqual(pending(nowhere, LATER), []);
+  assert.equal(reminder(nowhere, 's1', NOW), null);
+  assert.deepEqual(pending(nowhere), []);
   assert.equal(closedSpecs(nowhere), null);
 });
 
-test('a read-only runtime directory degrades to quiet, not to an exception', () => {
-  const root = mkProject({ specs: ['a'], tasks: closed('a'), baseline: false });
+test('a runtime directory that cannot be written degrades to quiet, not to an exception', () => {
+  const root = mkProject({ specs: ['a'] });
   // A file where the state directory should be: nothing under it can be written.
   fs.mkdirSync(path.join(root, '.frame', 'runtime'), { recursive: true });
   fs.writeFileSync(path.join(root, '.frame', 'runtime', 'spec-close'), 'in the way');
-  const out = reminder(root, 's1', LATER);
-  assert.equal(out.quiet, 'before-baseline', 'a baseline that cannot be kept is "now" every time');
+  closeIn(root, 's1', open('a'), closed('a'));
+  // With no session file every call is a first look, so the close reads as
+  // earlier than the session: silence, never a wrong reminder.
+  assert.equal(reminder(root, 's1', NOW).quiet, 'closed-earlier');
 });

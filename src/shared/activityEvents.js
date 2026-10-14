@@ -58,8 +58,7 @@ const HINT_REASONS = [
   'ambiguous-weak', // search: only path or description words matched — CLI evidence, not a hint (STR-03)
   'already-looked-up', // search: find-module already answered this in the session (STR-03b)
   'orchestrated', // spec-close: an orchestration run owns the spec — its digest lives on the integration branch
-  'before-baseline', // spec-close: the spec closed before reminders started in this project
-  'no-close-time', // spec-close: no completedAt and no last_phase_at to place it against the baseline
+  'closed-earlier', // spec-close: the spec was already closed when this session started — not its work
   'git-unavailable' // spec-close: git would not say whether orchestration owns the spec
 ];
 
@@ -407,8 +406,7 @@ const SPEC_COMMAND_REASON_TEXT = {
 // And for the close reminder, where "no index" is tasks.json itself.
 const SPEC_CLOSE_REASON_TEXT = {
   orchestrated: 'an orchestration run owns the spec',
-  'before-baseline': 'the spec closed before reminders started in this project',
-  'no-close-time': 'the spec records no close time',
+  'closed-earlier': 'the spec was closed before this session started',
   'git-unavailable': 'git could not say whether orchestration owns the spec',
   'session-dedup': 'already said this session',
   'no-index': 'tasks.json could not be read'

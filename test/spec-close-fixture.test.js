@@ -147,23 +147,20 @@ test('natural: nothing is said until both tasks close, then the next tool call s
 
 // ─── induced, prompt path ─────────────────────────────────
 
-test('induced-prompt: the unrelated prompt carries the reminder, once', { skip }, () => {
+test('induced-prompt: a session that did not close the spec is not told about it', { skip }, () => {
+  // The spec closed an hour before this session began: under D16 that is
+  // someone else's unfinished work, and the conversation stays clean.
   withFixture('induced-prompt', (fixture) => {
-    assert.equal(closeCheck(fixture).verdict, 'missing');
+    assert.equal(closeCheck(fixture).verdict, 'missing', 'still owed — the close script says so');
     assert.ok(!/digest|spec|close/i.test(fixture.prompt), 'the prompt gives nothing away');
 
-    assert.equal(prompt(fixture, 's', fixture.prompt), REMINDER);
-    assert.equal(hook(fixture, 'UserPromptSubmit', 'spec-command-hint.js prompt', { session_id: 's', prompt: fixture.prompt }), null,
-      'the other prompt hook has nothing to add');
-    assert.equal(bash(fixture, 's', 'cat src/greet.js'), null, 'not repeated on the tool call that follows');
-
-    writeDigest(fixture);
-    assert.equal(prompt(fixture, 'another', fixture.prompt), null, 'absent once the digest is written');
-    assert.equal(closeCheck(fixture).verdict, 'ok');
+    assert.equal(prompt(fixture, 's', fixture.prompt), null);
+    assert.equal(hook(fixture, 'UserPromptSubmit', 'spec-command-hint.js prompt', { session_id: 's', prompt: fixture.prompt }), null);
+    assert.equal(bash(fixture, 's', 'cat src/greet.js'), null);
 
     const rows = runner.closeRows(fixture.activityHome);
-    assert.equal(rows.reminders, 1);
-    assert.deepEqual(rows.quiet, ['session-dedup']);
+    assert.equal(rows.reminders, 0);
+    assert.deepEqual(rows.quiet, ['closed-earlier'], 'why it stayed quiet is recorded, once');
   });
 });
 
@@ -197,9 +194,9 @@ test('rows are read whatever path the hook resolved the project by', { skip }, (
     const elsewhere = { ...fixture, root: `${fixture.root}-as-the-hook-saw-it` };
     fs.symlinkSync(fixture.root, elsewhere.root);
     try {
-      assert.equal(prompt(elsewhere, 's', fixture.prompt), REMINDER);
+      assert.equal(prompt(elsewhere, 's', fixture.prompt), null);
       const rows = runner.closeRows(fixture.activityHome);
-      assert.equal(rows.reminders, 1);
+      assert.deepEqual(rows.quiet, ['closed-earlier'], 'the row filed under the other path is still found');
     } finally {
       fs.rmSync(elsewhere.root, { force: true });
     }

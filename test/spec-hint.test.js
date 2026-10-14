@@ -347,17 +347,30 @@ const CLOSE_LINE = 'Spec "close-me" has every task completed but no digest — r
 const TOPIC_HEADER = 'Specs related to this request (from the project\'s spec archive):';
 const BUDGET = 1980; // Claude Code inlines 2000; the hook keeps docs-hint's margin
 
-/** Give a project a spec that closed after reminders started, with no digest. */
-function addClosed(root, { digest = false } = {}) {
+const closeMeTasks = (last) => JSON.stringify({
+  tasks: [1, 2].map((n) => ({
+    id: `t${n}`, source: `spec:close-me:T0${n}`, status: n === 1 ? 'completed' : last,
+    completedAt: n === 1 || last === 'completed' ? '2026-02-01T10:00:00Z' : null
+  }))
+});
+
+let bump = 0;
+/**
+ * Give a project a spec that `session` closed with no digest: the session's
+ * first prompt arrives while the last task is open — a prompt with nothing to
+ * search, so no related spec is spent on it — and then the task completes.
+ */
+function addClosed(root, { digest = false, session = 'p1' } = {}) {
   const frame = path.join(root, '.frame');
   fs.mkdirSync(path.join(frame, 'specs', 'close-me'), { recursive: true });
   if (digest) fs.writeFileSync(path.join(frame, 'specs', 'close-me', 'digest.md'), '---\nkeywords: a\n---\nDone.\n');
-  fs.mkdirSync(path.join(frame, 'runtime', 'spec-close'), { recursive: true });
-  fs.writeFileSync(path.join(frame, 'runtime', 'spec-close', 'state.json'),
-    JSON.stringify({ version: 1, baseline: '2026-01-01T00:00:00.000Z', tasks: { mtimeMs: 0, size: 0 }, closed: [] }));
-  fs.writeFileSync(path.join(frame, 'tasks.json'), JSON.stringify({
-    tasks: [1, 2].map((n) => ({ id: `t${n}`, source: `spec:close-me:T0${n}`, status: 'completed', completedAt: '2026-02-01T10:00:00Z' }))
-  }));
+  const file = path.join(frame, 'tasks.json');
+  fs.writeFileSync(file, closeMeTasks('in_progress'));
+  assert.equal(runHook('prompt', { session_id: session, cwd: root, prompt: 'ok' }), null, 'nothing owed at the first look');
+  fs.writeFileSync(file, closeMeTasks('completed'));
+  bump += 1;
+  const at = new Date(Date.now() + bump * 1000);
+  fs.utimesSync(file, at, at);
   return root;
 }
 
@@ -444,8 +457,15 @@ test('Codex inlines more, so nothing is dropped there', () => {
   assert.ok(ctx.length > 2000);
 });
 
-test('a reminder the docs hook already gave on a tool call is not repeated at the prompt', () => {
+test('a prompt in a session that started after the close carries no reminder', () => {
   const root = addClosed(mkProject(IDX_ONE));
+  assert.equal(ctxOf(runHook('prompt', prompt(root, 'ok'))), CLOSE_LINE, 'the closing session hears it');
+  assert.equal(runHook('prompt', prompt(root, 'ok', 'later')), null);
+  assert.ok(ctxOf(runHook('prompt', prompt(root, 'telemetry polling', 'later'))).startsWith(TOPIC_HEADER), 'related specs only');
+});
+
+test('a reminder the docs hook already gave on a tool call is not repeated at the prompt', () => {
+  const root = addClosed(mkProject(IDX_ONE), { session: 'same' });
   const tool = execFileSync('node', [DOCS_HINT, 'pre-edit'], {
     input: JSON.stringify({ session_id: 'same', cwd: root, tool_name: 'Bash', tool_input: { command: 'git status' } }),
     encoding: 'utf8'
@@ -459,7 +479,7 @@ test('a reminder the docs hook already gave on a tool call is not repeated at th
 });
 
 test('and one given at the prompt is not repeated on the next tool call', () => {
-  const root = addClosed(mkProject(null));
+  const root = addClosed(mkProject(null), { session: 'same' });
   assert.equal(ctxOf(runHook('prompt', prompt(root, 'ok', 'same'))), CLOSE_LINE);
   const tool = execFileSync('node', [DOCS_HINT, 'pre-edit'], {
     input: JSON.stringify({ session_id: 'same', cwd: root, tool_name: 'Bash', tool_input: { command: 'git status' } }),

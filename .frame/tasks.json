@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T12:35:46.279Z",
+  "lastUpdated": "2026-10-14T12:43:36.662Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8657,13 +8657,13 @@
       "title": "In `scripts/spec-close-state.js`, note in the session file which specs are still open at the session's first hook run and announce only a spec that was open then and is closed now with an item missing; record `closed-earlier` for a spec already closed when the session started, and drop the baseline (D16, D21); in `src/shared/activityEvents.js` add `closed-earlier` and remove `before-baseline` and `no-close-time`, updating `PRIVACY.md` in the same commit; update `test/spec-close-state.test.js`, `test/docs-hint.test.js`, `test/spec-hint.test.js`, `test/activityEvents.test.js` and `test/spec-close-fixture.test.js`",
       "description": "",
       "source": "spec:spec-close-step:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-13T13:51:50.162Z",
-      "updatedAt": "2026-10-14T12:35:46.279Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T12:43:36.662Z",
+      "completedAt": "2026-10-14T12:43:36.662Z"
     },
     {
       "id": "task-spec-spec-close-step-T12",

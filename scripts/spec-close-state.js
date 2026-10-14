@@ -20,21 +20,24 @@
  *
  * What a caller gets:
  *   closedSpecs(root)            every closed spec, read fresh
- *   closeState(root, now)        the same list behind an mtime-and-size cache,
- *                                plus this project's baseline
+ *   closeState(root)             closed and open specs behind an
+ *                                mtime-and-size cache
  *   CLOSE_ITEMS                  what closing owes — one item today, a list
  *                                so the next one is an entry, not a rewrite
- *   pending(root, now)           closed · after the baseline · something
- *                                missing · not run by orchestration
+ *   pending(root)                closed · something missing · not run by
+ *                                orchestration
  *   reminder(root, session, now) the one line a hook should say, the reasons
  *                                it is staying quiet, or null
  *
- * The baseline is the first time this module ran in a project. A spec closed
- * before it is never announced: a project that adopts this has old specs
- * without digests, and announcing all of them at once would teach every agent
- * to ignore the line. A spec closed after it is announced once per session
- * until its digest exists — no expiry, because a skipped digest that ages out
- * in silence is the failure this exists to end.
+ * Who hears it: only the session that closed the spec. At a session's first
+ * hook run the helper notes which specs are already closed; a spec missing an
+ * item that was not among them was closed by this session — its own
+ * unfinished work — and is announced to it once. A spec already closed when
+ * the session started is never announced in a conversation. The first design
+ * told every session in the project, every day, until the digest existed; in
+ * the pilot that reached a session asked what a file exports, which relayed
+ * the line and declined to act on it, correctly. `spec-close.js` still shows
+ * any spec on demand.
  *
  * Hard contract (same as the hooks that call it): never throw, never write
  * to stdout. Every failure is "nothing to say". A wrong reminder is worse
@@ -49,7 +52,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const STATE_VERSION = 1;
+// 2: no baseline; open specs are cached beside closed ones.
+const STATE_VERSION = 2;
 const STATE_REL = path.join('.frame', 'runtime', 'spec-close', 'state.json');
 const SESSIONS_REL = path.join('.frame', 'runtime', 'spec-close', 'sessions');
 
@@ -107,8 +111,8 @@ function missingItems(root, slug) {
 /**
  * A timestamp as milliseconds, or null. A date with no time counts as the end
  * of that day: an agent that writes `2026-10-13` closed the task some time on
- * the 13th, and reading it as midnight would put a same-day close before a
- * baseline taken that morning.
+ * the 13th, and reading it as midnight would order it before every other
+ * close that day.
  */
 function timeOf(value) {
   if (typeof value !== 'string' || !value) return null;
@@ -143,39 +147,48 @@ function specTaskCounts(tasks) {
 }
 
 /**
- * Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot
- * be read. `closedAt` is the latest `completedAt` among the spec's tasks,
- * then `status.json`'s `last_phase_at`, then null — a spec with no close time
- * cannot be placed against the baseline and is never announced.
+ * `{ closed: [{ slug, closedAt }], open: [slug] }`, or null when tasks.json
+ * cannot be read. `closedAt` is the latest `completedAt` among the spec's
+ * tasks, then `status.json`'s `last_phase_at`, then null; it only orders a
+ * reminder that names several specs, newest first.
  *
  * A spec whose folder is gone is not a spec: its tasks outlive it in
  * tasks.json, and asking for a digest in a folder that does not exist would
  * be asking forever.
  */
-function closedSpecs(root) {
+function specStates(root) {
   const tasks = readTasks(root);
   if (!tasks) return null;
-  const out = [];
+  const closed = [];
+  const open = [];
   for (const [slug, counts] of specTaskCounts(tasks)) {
-    if (counts.completed !== counts.total) continue;
+    if (counts.completed !== counts.total) {
+      open.push(slug);
+      continue;
+    }
     if (!fs.existsSync(specDir(root, slug))) continue;
     let at = counts.latest;
     if (at === null) {
       const status = readJson(path.join(specDir(root, slug), 'status.json'));
       at = status ? timeOf(status.last_phase_at) : null;
     }
-    out.push({ slug, closedAt: at === null ? null : new Date(at).toISOString() });
+    closed.push({ slug, closedAt: at === null ? null : new Date(at).toISOString() });
   }
-  return out;
+  return { closed, open };
 }
 
-// ─── baseline + cache ─────────────────────────────────────
+/** Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot be read. */
+function closedSpecs(root) {
+  const states = specStates(root);
+  return states ? states.closed : null;
+}
+
+// ─── cache ────────────────────────────────────────────────
 //
-// `state.json` holds two things with different lifetimes. The baseline is
-// written once and kept. The closed list is a cache of the read above, valid
-// while tasks.json keeps the same mtime and size — parsing a 617 KB tasks.json
-// measured 11 ms, against a hook process that takes 44 ms in total, and a
-// hook runs on every shell and edit call.
+// `state.json` caches the read above, valid while tasks.json keeps the same
+// mtime and size — parsing a 617 KB tasks.json measured 11 ms, against a hook
+// process that takes 44 ms in total, and a hook runs on every shell and edit
+// call.
 //
 // Digest presence is deliberately *not* cached: writing digest.md does not
 // touch tasks.json, and it is exactly the change that has to be seen at once.
@@ -185,22 +198,22 @@ function writeState(root, state) {
     const file = path.join(root, STATE_REL);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     // Two hooks can run at once; a rename never leaves a half-written file
-    // for the other to read as "no baseline yet".
+    // for the other to read as no cache at all.
     const tmp = `${file}.${process.pid}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(state));
     fs.renameSync(tmp, file);
   } catch {
-    /* a state that cannot be kept costs a re-read, and a baseline of "now" */
+    /* a state that cannot be kept costs a re-read */
   }
 }
 
 /**
- * `{ baseline, closed, unreadable, hit }` for this project, or null when it
- * has no tasks.json at all. `hit` says the closed list came from the cache;
- * a caller records an unreadable file only on a miss, so a broken tasks.json
- * is one row, not one per tool call.
+ * `{ closed, open, unreadable, hit }` for this project, or null when it has
+ * no tasks.json at all. `hit` says the lists came from the cache; a caller
+ * records an unreadable file only on a miss, so a broken tasks.json is one
+ * row, not one per tool call.
  */
-function closeState(root, now = Date.now()) {
+function closeState(root) {
   let stat;
   try {
     stat = fs.statSync(tasksPath(root));
@@ -208,24 +221,22 @@ function closeState(root, now = Date.now()) {
     return null;
   }
   const prev = readJson(path.join(root, STATE_REL));
-  const kept = prev && prev.version === STATE_VERSION && timeOf(prev.baseline) !== null;
-  const baseline = kept ? prev.baseline : new Date(now).toISOString();
-
-  if (kept && prev.tasks && prev.tasks.mtimeMs === stat.mtimeMs && prev.tasks.size === stat.size
-    && Array.isArray(prev.closed)) {
-    return { baseline, closed: prev.closed, unreadable: prev.unreadable === true, hit: true };
+  if (prev && prev.version === STATE_VERSION && prev.tasks
+    && prev.tasks.mtimeMs === stat.mtimeMs && prev.tasks.size === stat.size
+    && Array.isArray(prev.closed) && Array.isArray(prev.open)) {
+    return { closed: prev.closed, open: prev.open, unreadable: prev.unreadable === true, hit: true };
   }
 
-  const closed = closedSpecs(root);
+  const states = specStates(root);
   const state = {
     version: STATE_VERSION,
-    baseline,
     tasks: { mtimeMs: stat.mtimeMs, size: stat.size },
-    closed: closed || [],
-    unreadable: closed === null
+    closed: states ? states.closed : [],
+    open: states ? states.open : [],
+    unreadable: states === null
   };
   writeState(root, state);
-  return { baseline, closed: state.closed, unreadable: state.unreadable, hit: false };
+  return { closed: state.closed, open: state.open, unreadable: state.unreadable, hit: false };
 }
 
 // ─── orchestration ────────────────────────────────────────
@@ -286,14 +297,6 @@ function openSpecs(root, state) {
   return out.sort((a, b) => (timeOf(b.closedAt) || 0) - (timeOf(a.closedAt) || 0));
 }
 
-/** Why a spec that is owed something is not announced, without asking git. */
-function timeReason(spec, baseline) {
-  const at = timeOf(spec.closedAt);
-  if (at === null) return 'no-close-time';
-  if (at <= timeOf(baseline)) return 'before-baseline';
-  return null;
-}
-
 function orchestrationReason(root, slug) {
   const verdict = isOrchestrated(root, slug);
   if (verdict === null) return 'git-unavailable';
@@ -301,16 +304,15 @@ function orchestrationReason(root, slug) {
 }
 
 /**
- * Closed, after the baseline, something missing, not run by orchestration —
- * each as `{ slug, closedAt, missing }`. No session, no dedup: this is the
- * state, where `reminder` is what to say about it.
+ * Closed, something missing, not run by orchestration — each as
+ * `{ slug, closedAt, missing }`. No session, no dedup: this is the state,
+ * where `reminder` is what to say about it in one session.
  */
-function pending(root, now = Date.now()) {
+function pending(root) {
   try {
-    const state = closeState(root, now);
+    const state = closeState(root);
     if (!state || state.unreadable) return [];
-    return openSpecs(root, state)
-      .filter((spec) => !timeReason(spec, state.baseline) && !orchestrationReason(root, spec.slug));
+    return openSpecs(root, state).filter((spec) => !orchestrationReason(root, spec.slug));
   } catch {
     return [];
   }
@@ -318,10 +320,15 @@ function pending(root, now = Date.now()) {
 
 // ─── session dedup ────────────────────────────────────────
 //
-// One file per session: which specs were announced, which quiet reasons were
-// already recorded, and what git said about a candidate. The last two exist
-// for the same reason — a hook runs on every shell and edit call, and neither
-// an activity row nor a 40 ms git process is worth repeating for each one.
+// One file per session: which specs were already closed when the session
+// started, which were announced, which quiet reasons were already recorded,
+// and what git said about a candidate. The last two exist for the same reason
+// — a hook runs on every shell and edit call, and neither an activity row nor
+// a 40 ms git process is worth repeating for each one.
+//
+// "Already closed at the start" rather than "open at the start": a spec whose
+// tasks are generated and completed inside one session was open at no first
+// look, and it is still that session's own work.
 
 /** A host that sends no session id still gets at most one reminder a day. */
 function sessionKey(sessionId, now = Date.now()) {
@@ -336,6 +343,7 @@ function sessionFile(root, key) {
 function loadSession(root, key) {
   const st = readJson(sessionFile(root, key)) || {};
   return {
+    closedAtStart: Array.isArray(st.closedAtStart) ? st.closedAtStart : null,
     announced: Array.isArray(st.announced) ? st.announced : [],
     noted: Array.isArray(st.noted) ? st.noted : [],
     git: st.git && typeof st.git === 'object' && !Array.isArray(st.git) ? st.git : {}
@@ -400,26 +408,40 @@ function reminderLine(root, named, more) {
  *
  * `reasons` holds only the quiet reasons this session has not recorded yet,
  * so a caller can write one activity row per entry without burying the log:
- * a spec closed before the baseline would otherwise add a row to every tool
+ * a spec closed before the session would otherwise add a row to every tool
  * call for as long as it has no digest.
  */
 function reminder(root, sessionId, now = Date.now()) {
   try {
-    const state = closeState(root, now);
+    const state = closeState(root);
     if (!state) return null;
     if (state.unreadable) return state.hit ? null : { quiet: 'no-index', reasons: ['no-index'] };
-
-    const open = openSpecs(root, state);
-    if (!open.length) return null;
 
     const key = sessionKey(sessionId, now);
     const session = loadSession(root, key);
     let dirty = false;
+    if (!session.closedAtStart) {
+      // This session's first look: whatever is closed now, it did not close.
+      session.closedAtStart = state.closed.map((s) => s.slug);
+      dirty = true;
+    } else {
+      // A spec reopened during the session — a task added to it — and closed
+      // again is this session's work after all.
+      const reopened = session.closedAtStart.filter((slug) => state.open.includes(slug));
+      if (reopened.length) {
+        session.closedAtStart = session.closedAtStart.filter((slug) => !reopened.includes(slug));
+        dirty = true;
+      }
+    }
+
+    const open = openSpecs(root, state);
     const fresh = [];
     const reasons = new Set();
 
     for (const spec of open) {
-      let reason = session.announced.includes(spec.slug) ? 'session-dedup' : timeReason(spec, state.baseline);
+      let reason = null;
+      if (session.announced.includes(spec.slug)) reason = 'session-dedup';
+      else if (session.closedAtStart.includes(spec.slug)) reason = 'closed-earlier';
       if (!reason) {
         if (Object.prototype.hasOwnProperty.call(session.git, spec.slug)) {
           reason = session.git[spec.slug] || null;

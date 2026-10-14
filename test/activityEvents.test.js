@@ -68,9 +68,9 @@ test('the guard events are classified as suppressions, not actions', () => {
 test('every spec-hint quiet path has its own reason code', () => {
   // eleven quiet returns in spec-hint.js, plus module-hint's `map-dirty` (STR-02)
   // and `map-incomplete`, `index-oversize`, `ambiguous-weak` (STR-03), `already-looked-up` (STR-03b),
-  // plus the close reminder's `orchestrated`, `before-baseline`, `no-close-time`, `git-unavailable`
-  assert.equal(events.HINT_REASONS.length, 20, 'one code per quiet return in the hint hooks');
-  assert.equal(new Set(events.HINT_REASONS).size, 20, 'codes are distinct');
+  // plus the close reminder's `orchestrated`, `closed-earlier`, `git-unavailable`
+  assert.equal(events.HINT_REASONS.length, 19, 'one code per quiet return in the hint hooks');
+  assert.equal(new Set(events.HINT_REASONS).size, 19, 'codes are distinct');
   for (const reason of events.HINT_REASONS) {
     const out = events.validateEvent('hint.quiet', { reason });
     assert.equal(out.reason, reason, `${reason} must pass the enum`);
@@ -215,7 +215,7 @@ test('a close reminder says how many specs it named', () => {
 });
 
 test('every reason a close reminder is withheld reads as its own sentence', () => {
-  const reasons = ['orchestrated', 'before-baseline', 'no-close-time', 'git-unavailable', 'session-dedup', 'no-index'];
+  const reasons = ['orchestrated', 'closed-earlier', 'git-unavailable', 'session-dedup', 'no-index'];
   const labels = reasons.map((reason) => events.formatLabel('hint.quiet', { mode: 'spec-close', reason }));
   assert.equal(new Set(labels).size, reasons.length, 'each reason reads differently');
   for (const [i, label] of labels.entries()) {
@@ -225,6 +225,10 @@ test('every reason a close reminder is withheld reads as its own sentence', () =
   // "no index" means tasks.json here, not the spec index.
   assert.match(events.formatLabel('hint.quiet', { mode: 'spec-close', reason: 'no-index' }), /tasks\.json could not be read/);
   assert.match(events.formatLabel('hint.quiet', { mode: 'pre-edit', reason: 'no-index' }), /no spec index yet/);
+  // The first design's two reasons never shipped and are gone.
+  for (const gone of ['before-baseline', 'no-close-time']) {
+    assert.deepEqual(events.validateEvent('hint.quiet', { mode: 'spec-close', reason: gone }), { mode: 'spec-close' });
+  }
 });
 
 test('a close check carries a slug, a verdict and a count — nothing of the digest', () => {

@@ -158,3 +158,21 @@ summary only reports it. Files: `src/templates/commands/claude-code/spec.impleme
 _Captured: 2026-10-14 · 2 file changes_
 
 ---
+## T11 — The reminder goes only to the session that closed the spec
+
+Reworked `scripts/spec-close-state.js` so a session's first hook run notes which specs are already
+closed; a spec missing an item that was not among them is announced to that session once, and one
+that was is recorded as `closed-earlier` and never reaches the conversation. The project baseline and
+the close-time gate are gone (state file version 2, which also caches the open specs).
+`src/shared/activityEvents.js` and `PRIVACY.md` now list `closed-earlier` in place of the unshipped
+`before-baseline` and `no-close-time`. Departed from `plan.md` D16 in mechanism, not intent: the
+session notes what was *closed* at its start rather than what was open, because a spec whose tasks are
+generated and completed inside one session was open at no first look, and a spec seen open again
+mid-session (a task added to it) leaves that list so its next close counts as the session's. Also
+removed the backdated baseline from `scripts/eval/spec-close/make-fixture.js`, a T13 file, so the
+fixtures stayed true. Files: the helper, the registry, `PRIVACY.md`, the comments in
+`scripts/docs-hint.js` and `scripts/spec-hint.js`, and five test files.
+
+_Captured: 2026-10-14 · 11 file changes_
+
+---
