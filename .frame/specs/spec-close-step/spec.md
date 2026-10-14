@@ -44,9 +44,16 @@ format, so cards join it later instead of replacing it.
    place it says the phase goes to `done`; the section at the end is removed.
    The hooks that already run (`docs-hint.js pre-edit` before shell and edit
    calls, `spec-hint.js prompt`) emit a one-line reminder naming the command
-   when a recently closed spec has missing items.
+   when a spec closed in the current session has missing items — never in a
+   session that did not close it. The digest rides in the last task's commit,
+   never in one of its own.
 4. **Record** — every reminder, every reason for staying quiet and every
    script verdict lands in the activity log.
+5. **Fixes after close** — a fix to a closed spec's work (a bug found while
+   testing, a small correction to the plan) carries its own record in its own
+   commit: an outcome entry, and a revised digest when the fix changes a
+   decision the digest records. The agent making the fix is told so at the
+   moment it is about to change a finished spec's file.
 
 ## Constraints
 
@@ -80,16 +87,24 @@ format, so cards join it later instead of replacing it.
 
 ## Success Criteria
 
-- When every task of a spec is completed, its digest is absent and it closed
-  inside the window, then the next shell or edit tool call in a Claude Code or
-  Codex session receives the one-line reminder.
-- When that turn ends without another tool call, then the next user prompt
-  carries the reminder — with or without a topic match, inside the limit.
+- When a session completes a spec's last task and its digest is absent, then
+  that session's next shell or edit tool call, in Claude Code or Codex,
+  receives the one-line reminder.
+- When that turn ends without another tool call, then the session's next user
+  prompt carries the reminder — with or without a topic match, inside the limit.
 - When a spec has been announced in a session, then it is not announced again
   in that session.
 - When the digest exists, then no reminder appears in any mode.
 - When the spec is run by an orchestration worker, or closed before the
-  window, then no reminder appears.
+  session started, then no reminder appears in that session.
+- When a spec is implemented through the template in any mode, then the
+  digest and the phase change are in the last task's commit and no commit
+  carries the digest alone.
+- When an agent is about to edit a file whose newest spec record is a finished
+  spec, then the history it is shown says how a fix records itself.
+- When a fix changes a decision the digest records, then the fix's commit
+  carries an outcome entry and the revised digest; when it is a bug fix within
+  the decisions, then it carries an outcome entry and the digest is unchanged.
 - When `spec-close.js <slug>` meets an overlong first sentence, missing
   front-matter or a missing chain line, then it names that defect; when the
   digest is well-formed, it says so in one line.
