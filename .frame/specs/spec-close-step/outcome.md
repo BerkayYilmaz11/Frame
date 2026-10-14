@@ -205,3 +205,18 @@ which `closing-turn` would measure the pilot's informational line again (`script
 _Captured: 2026-10-14 · 8 file changes_
 
 ---
+## T14 — Second pilot: one session per kind
+
+Ran by the user, one `claude-opus-5-5` session per kind, $0.74 in total: `natural` passed (14 tool calls,
+$0.40; digest `ok` inside T02's commit, close script run by the agent) and `earlier-close` passed (no reminder,
+digest untouched); `closing-turn` failed because auto mode's permission classifier blocked
+`node .frame/bin/spec-close.js` after the reminder sent the agent to run it — the agent took the line as its
+own work this time, unlike the first pilot; `fix-bug` and `fix-decision` fixed the code correctly (tests pass)
+but wrote no Fix entry, because both edited through `sed -i` in the shell, so `spec-hint.js pre-edit` (registered
+on Edit and Write only) never fired, while the prompt-time hint naming the finished spec did. In `fix-decision`
+the agent noticed unprompted that the digest now contradicted the code and asked the user whether to revise it.
+Followup: Frame's autonomous allowlist (`IMPLEMENT_ALLOW` in `specManager.js` and `implement-launch.js`) needs `spec-close.js`; and the fix rule needs a channel that does not depend on which edit tool runs — the prompt-time hint for a finished spec is the one that fired.
+
+_Captured: 2026-10-14 · 0 file changes_
+
+---

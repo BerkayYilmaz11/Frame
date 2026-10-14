@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T12:53:32.516Z",
+  "lastUpdated": "2026-10-14T13:41:36.228Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8696,13 +8696,13 @@
       "title": "Run the second pilot — one session per fixture kind, started by the user — record its cost, tool calls and results in the outcome, then stop and report to the user, who picks N for the main run",
       "description": "",
       "source": "spec:spec-close-step:T14",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T12:35:46.279Z",
-      "updatedAt": "2026-10-14T12:35:46.279Z",
-      "completedAt": null
+      "updatedAt": "2026-10-14T13:41:36.228Z",
+      "completedAt": "2026-10-14T13:41:36.228Z"
     },
     {
       "id": "task-spec-spec-close-step-T15",
