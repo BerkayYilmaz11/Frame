@@ -158,6 +158,36 @@ Decisions (all asked):
   still `ok`. Sessions are started by the user: the permission layer refuses
   them to the agent, as it did for the pilot.
 
+### Revision — 2026-10-14, after the second pilot
+
+The second pilot (T14) passed `natural` (the digest inside T02's commit) and
+`earlier-close` (silent), and failed three kinds on two causes:
+
+- `closing-turn`: the session took the reminder as its own work and ran the
+  close script, and auto mode's permission classifier blocked it — the same
+  command it had allowed in `natural`.
+- `fix-bug`, `fix-decision`: both fixed the code correctly through `sed -i` in
+  the shell, so `spec-hint.js pre-edit` (Edit and Write only) never ran and
+  the fix rule never reached them; the prompt-time hint naming the finished
+  spec did run in both.
+
+Decisions (asked):
+
+- **D23 · The close script is in Frame's autonomous allowlist.**
+  `Bash(node .frame/bin/spec-close.js *)` joins `IMPLEMENT_ALLOW` in both
+  copies — `src/main/specManager.js` and the shipped
+  `src/templates/bin/implement-launch.js` — and a test pins the two copies
+  equal. A step the template requires must not depend on a classifier's mood.
+  Only the shipped path: `scripts/spec-close.js` exists in Frame's own
+  repository alone, and allowing it everywhere would allow a project's own
+  script of that name.
+- **D24 · The fix rule also rides the prompt-time hint.** When
+  `spec-hint.js prompt` names a finished spec among its related specs, the
+  payload gains the fix sentence for those specs. A fix request is a prompt
+  before it is an edit, and this channel does not depend on which tool makes
+  the edit. The edit-time sentence stays. The added sentence counts toward
+  D8's budget like the topic lines it accompanies.
+
 Not this spec: Claude Code's prompt and tool-call rows are labelled
 `codex-hook` because `toolVocabulary.cliOf` reads a field Claude Code now
 sends as a Codex signal, which also hands both hooks Codex's inline cap in
@@ -237,9 +267,13 @@ scripts/spec-close.js      scripts/docs-hint.js pre-edit   (next shell/edit call
   path.
 - `scripts/spec-hint.js` — **Modified.** Prompt-time reminder, with the budget
   rule of D8; the fix sentence in the pre-edit history of a finished spec's
-  file (D19).
+  file (D19) and beside a finished spec in the prompt-time hint (D24).
 - `scripts/spec-command-hint.js` — **Modified.** Fill `{close_script_path}`.
-- `src/main/specManager.js` — **Modified.** Fill `{close_script_path}`.
+- `src/main/specManager.js` — **Modified.** Fill `{close_script_path}`; the
+  close script in `IMPLEMENT_ALLOW` (D23).
+- `src/templates/bin/implement-launch.js` — **Modified.** The close script in
+  its copy of `IMPLEMENT_ALLOW` (D23).
+- `test/implementLaunch.test.js` — **Modified.** The two allowlists stay equal.
 - `src/templates/commands/claude-code/spec.implement.md` — **Modified.** The
   digest step in the shared core and at each `done` statement; end section
   removed.
@@ -296,6 +330,8 @@ scripts/spec-close.js      scripts/docs-hint.js pre-edit   (next shell/edit call
 - test/metaPathGuard.test.js
 - test/spec-index.test.js
 - .frame/docs/REFERENCE.md
+- src/templates/bin/implement-launch.js
+- test/implementLaunch.test.js
 
 ## Dependencies
 
@@ -362,6 +398,12 @@ None.
     their pass rules in `run.js`, each kind driven with no agent in
     `test/spec-close-fixture.test.js`.
 14. **Second pilot.** One session per kind, started by the user. Record the
+    results; **stop and report**.
+15. **The close script in the allowlist (D23).** Both copies of
+    `IMPLEMENT_ALLOW`, and a test that keeps them equal.
+16. **The fix rule at the prompt (D24).** The sentence beside a finished spec
+    in `spec-hint.js prompt`, within D8's budget; tests.
+17. **Third pilot.** One session per kind, started by the user. Record the
     results; **stop and report**; the user picks N.
-15. **Main run.** The N the user chose, per kind. Record the table in the
+18. **Main run.** The N the user chose, per kind. Record the table in the
     outcome, and state there that Codex was verified by fixtures only.

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T13:41:36.228Z",
+  "lastUpdated": "2026-10-14T13:53:09.193Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8706,7 +8706,7 @@
     },
     {
       "id": "task-spec-spec-close-step-T15",
-      "title": "Run the main test run with the N the user chose per fixture kind, record the result table in the outcome, and state there that Codex was verified by payload fixtures only and no end-to-end Codex session was run",
+      "title": "Add `Bash(node .frame/bin/spec-close.js *)` to Frame's autonomous allowlist in both copies — `IMPLEMENT_ALLOW` in `src/main/specManager.js` and in `src/templates/bin/implement-launch.js` — and pin the two copies equal in `test/implementLaunch.test.js` (D23)",
       "description": "",
       "source": "spec:spec-close-step:T15",
       "status": "pending",
@@ -8714,12 +8714,51 @@
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T12:35:46.279Z",
-      "updatedAt": "2026-10-14T12:35:46.279Z",
+      "updatedAt": "2026-10-14T13:53:09.193Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-spec-close-step-T16",
+      "title": "In `scripts/spec-hint.js` prompt mode, when the related specs it names include a finished spec, add the fix-rule sentence for those specs to the payload, within D8's budget rule; cover it in `test/spec-hint.test.js` (D24)",
+      "description": "",
+      "source": "spec:spec-close-step:T16",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: spec-close-step",
+      "createdAt": "2026-10-14T13:53:09.193Z",
+      "updatedAt": "2026-10-14T13:53:09.193Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-spec-close-step-T17",
+      "title": "Run the third pilot — one session per fixture kind, started by the user — record its cost, tool calls and results in the outcome, then stop and report to the user, who picks N for the main run",
+      "description": "",
+      "source": "spec:spec-close-step:T17",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: spec-close-step",
+      "createdAt": "2026-10-14T13:53:09.193Z",
+      "updatedAt": "2026-10-14T13:53:09.193Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-spec-close-step-T18",
+      "title": "Run the main test run with the N the user chose per fixture kind, record the result table in the outcome, and state there that Codex was verified by payload fixtures only and no end-to-end Codex session was run",
+      "description": "",
+      "source": "spec:spec-close-step:T18",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: spec-close-step",
+      "createdAt": "2026-10-14T13:53:09.193Z",
+      "updatedAt": "2026-10-14T13:53:09.193Z",
       "completedAt": null
     }
   ],
   "metadata": {
-    "totalCreated": 636,
+    "totalCreated": 639,
     "totalCompleted": 29
   },
   "categories": {
