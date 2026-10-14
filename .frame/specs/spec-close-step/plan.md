@@ -188,6 +188,20 @@ Decisions (asked):
   the edit. The edit-time sentence stays. The added sentence counts toward
   D8's budget like the topic lines it accompanies.
 
+### Revision — 2026-10-14, after the third pilot
+
+Four kinds passed. `closing-turn` could not: its agent ran the closing script
+and `git status` as one shell call, so the only PreToolUse ran before the task
+closed and the turn ended there. The product covers that case at the
+session's next prompt, which a single-prompt headless session never sends.
+
+- **D25 · `closing-turn` has two turns (asked).** The session is resumed with
+  a neutral "Thanks." — not a question that would steer it toward the work —
+  and passes when the digest is `ok` after the second turn. Only this kind
+  keeps its session on disk, since `--resume` needs it.
+- **D26 · N for the main run (asked).** `natural` 10 — it passed all three
+  pilots and costs four times the others; every other kind 30.
+
 Not this spec: Claude Code's prompt and tool-call rows are labelled
 `codex-hook` because `toolVocabulary.cliOf` reads a field Claude Code now
 sends as a Codex signal, which also hands both hooks Codex's inline cap in
@@ -405,5 +419,9 @@ None.
     in `spec-hint.js prompt`, within D8's budget; tests.
 17. **Third pilot.** One session per kind, started by the user. Record the
     results; **stop and report**; the user picks N.
-18. **Main run.** The N the user chose, per kind. Record the table in the
-    outcome, and state there that Codex was verified by fixtures only.
+18. **A second turn for `closing-turn` (D25).** In `run.js`, resume the
+    session with "Thanks." and read both turns; tests for the launch lines and
+    for the next-prompt path with no agent.
+19. **Main run (D26).** `natural` 10, every other kind 30, started by the
+    user. Record the table in the outcome, and state there that Codex was
+    verified by fixtures only.

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-14T14:07:39.957Z",
+  "lastUpdated": "2026-10-14T14:48:52.114Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8745,7 +8745,7 @@
     },
     {
       "id": "task-spec-spec-close-step-T18",
-      "title": "Run the main test run with the N the user chose per fixture kind, record the result table in the outcome, and state there that Codex was verified by payload fixtures only and no end-to-end Codex session was run",
+      "title": "Give `closing-turn` a second turn (D25): in `scripts/eval/spec-close/run.js`, keep that kind's session on disk, resume it with \"Thanks.\" and read both turns' transcripts; cover the launch lines in `test/spec-close-fixture.test.js`, and the next-prompt path of a closing-turn fixture with no agent",
       "description": "",
       "source": "spec:spec-close-step:T18",
       "status": "pending",
@@ -8753,12 +8753,25 @@
       "category": "feature",
       "context": "From spec: spec-close-step",
       "createdAt": "2026-10-14T13:53:09.193Z",
-      "updatedAt": "2026-10-14T13:53:09.193Z",
+      "updatedAt": "2026-10-14T14:48:52.114Z",
+      "completedAt": null
+    },
+    {
+      "id": "task-spec-spec-close-step-T19",
+      "title": "Run the main test run (D26) — `natural` 10 sessions, every other kind 30, started by the user — record the result table in the outcome, and state there that Codex was verified by payload fixtures only and no end-to-end Codex session was run",
+      "description": "",
+      "source": "spec:spec-close-step:T19",
+      "status": "pending",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: spec-close-step",
+      "createdAt": "2026-10-14T14:48:52.114Z",
+      "updatedAt": "2026-10-14T14:48:52.114Z",
       "completedAt": null
     }
   ],
   "metadata": {
-    "totalCreated": 639,
+    "totalCreated": 640,
     "totalCompleted": 29
   },
   "categories": {
