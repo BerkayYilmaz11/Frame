@@ -498,13 +498,45 @@
 /* A spec task's spec and number, in the tile foot: it sits among the other
    tasks, so this is what says it belongs to a spec and has no Play. */
 .tasks-tile-spec {
+  display: inline-flex;
   min-width: 0;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--accent-primary);
   white-space: nowrap;
+}
+
+.tasks-tile-spec-slug {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.tasks-tile-spec-num {
+  flex-shrink: 0;
+  white-space: pre;
+}
+
+/* The foot shares its row with the spec label, so the date keeps its
+   width and stays on one line. */
+.tasks-tile .specs-card-foot {
+  gap: var(--space-sm);
+}
+
+.tasks-tile .specs-card-time {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* The badge row's "SPEC" chip, in the priority badge's frame. */
+.tasks-tile-spec-chip {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
 }
 
 .tasks-tile-priority {

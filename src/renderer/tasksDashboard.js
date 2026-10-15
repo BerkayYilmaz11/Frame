@@ -501,6 +501,13 @@ function renderTile(task, { playable = false } = {}) {
   const liveDot = require('./agentDispatch').taskStatusDotHtml(task.id);
   if (liveDot) badges.insertAdjacentHTML('afterbegin', liveDot);
 
+  if (isSpecTask(task)) {
+    const chip = document.createElement('span');
+    chip.className = 'tasks-tile-spec-chip';
+    chip.textContent = 'SPEC';
+    badges.appendChild(chip);
+  }
+
   const priority = document.createElement('span');
   priority.className = `tasks-tile-priority priority-${task.priority || 'medium'}`;
   priority.textContent = (task.priority || 'medium').toUpperCase();
@@ -534,11 +541,18 @@ function renderTile(task, { playable = false } = {}) {
   foot.className = 'specs-card-foot';
   if (isSpecTask(task)) {
     // A spec task sits among the others: its spec and number say why it has
-    // no Play.
+    // no Play. A long slug truncates; the number always shows.
+    const slug = specSlugOf(task);
     const label = document.createElement('span');
     label.className = 'tasks-tile-spec';
-    label.textContent = `${specSlugOf(task)} · ${String(task.source).split(':').pop()}`;
-    label.title = 'Part of a spec — run it from the spec';
+    label.title = `Part of ${slug} — run it from the spec`;
+    const slugEl = document.createElement('span');
+    slugEl.className = 'tasks-tile-spec-slug';
+    slugEl.textContent = slug;
+    const numEl = document.createElement('span');
+    numEl.className = 'tasks-tile-spec-num';
+    numEl.textContent = ` · ${String(task.source).split(':').pop()}`;
+    label.append(slugEl, numEl);
     foot.appendChild(label);
   }
   const date = document.createElement('span');
