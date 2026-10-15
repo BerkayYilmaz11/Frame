@@ -856,7 +856,7 @@
       </div>
     </div>
 
-    <!-- Tasks Dashboard (Kanban) -->
+    <!-- Tasks Dashboard (Specs-style grid of task tiles) -->
     <div id="tasks-dashboard" class="tasks-dashboard">
       <div class="view-header">
         <div class="view-header-title">
@@ -864,6 +864,29 @@
           <h2>Tasks</h2>
         </div>
         <div class="view-header-actions tasks-dashboard-actions">
+          <button id="tasks-dashboard-add" class="primary-btn" tabindex="-1" title="New task">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Task</span>
+          </button>
+          <button id="tasks-dashboard-close" class="tasks-dashboard-btn-icon" tabindex="-1" title="Close dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="specs-dashboard-toolbar tasks-dashboard-toolbar">
+        <div id="tasks-dashboard-filters" class="specs-dashboard-filters"></div>
+        <div class="tasks-dashboard-toolbar-actions">
+          <label id="tasks-dashboard-spec-toggle" class="tasks-dashboard-spec-toggle" title="List the tasks that belong to specs with the others" hidden>
+            <input type="checkbox" tabindex="-1">
+            <span>Include spec tasks</span>
+            <span class="specs-filter-count">0</span>
+          </label>
           <div class="tasks-dashboard-filter-wrap">
             <button id="tasks-dashboard-filter-btn" class="tasks-dashboard-toolbar-btn" tabindex="-1" title="Filter tasks">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -985,48 +1008,10 @@
               </div>
             </div>
           </div>
-          <button id="tasks-dashboard-add" class="primary-btn" tabindex="-1" title="New task">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>New Task</span>
-          </button>
-          <button id="tasks-dashboard-close" class="tasks-dashboard-btn-icon" tabindex="-1" title="Close dashboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
         </div>
       </div>
       <div class="tasks-dashboard-body">
-        <div class="tasks-dashboard-columns">
-          <div class="tasks-dashboard-column" data-column="pending">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-pending"></span>
-              <span class="tasks-dashboard-column-title">Pending</span>
-              <span class="tasks-dashboard-column-count" data-count-for="pending">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="pending"></div>
-          </div>
-          <div class="tasks-dashboard-column" data-column="in_progress">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-in-progress"></span>
-              <span class="tasks-dashboard-column-title">In Progress</span>
-              <span class="tasks-dashboard-column-count" data-count-for="in_progress">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="in_progress"></div>
-          </div>
-          <div class="tasks-dashboard-column" data-column="completed">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-completed"></span>
-              <span class="tasks-dashboard-column-title">Completed</span>
-              <span class="tasks-dashboard-column-count" data-count-for="completed">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="completed"></div>
-          </div>
-        </div>
+        <div id="tasks-dashboard-list" class="tasks-dashboard-list"></div>
         <aside id="tasks-dashboard-detail" class="tasks-dashboard-detail">
           <form id="tasks-dashboard-form" class="tasks-dashboard-form" style="display:none;">
             <div class="tasks-dashboard-form-header">
@@ -1044,8 +1029,8 @@
                 <input type="text" id="tasks-dashboard-form-title" placeholder="What needs to be done?" autocomplete="off" required>
               </div>
               <div class="tasks-dashboard-form-group">
-                <label for="tasks-dashboard-form-description">Description</label>
-                <textarea id="tasks-dashboard-form-description" placeholder="Add more detail (optional)"></textarea>
+                <label for="tasks-dashboard-form-request">Request</label>
+                <textarea id="tasks-dashboard-form-request" placeholder="What you want, in your own words (optional). Play has the agent turn it into a description and acceptance criteria."></textarea>
               </div>
               <div class="tasks-dashboard-form-row">
                 <div class="tasks-dashboard-form-group">
@@ -1092,6 +1077,7 @@
           <div class="tasks-dashboard-detail-header">
             <div class="tasks-dashboard-detail-status-pill"></div>
             <div class="tasks-dashboard-detail-header-actions">
+              <div class="tasks-dashboard-detail-actions"></div>
               <button class="tasks-dashboard-detail-delete" tabindex="-1" title="Delete task">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"/>

@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-12",
+  "lastUpdated": "2026-10-15",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -242,7 +242,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 42926,
+      "sizeBytes": 43043,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93933,
+      "sizeBytes": 93430,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5551,35 +5551,50 @@
             "slug"
           ]
         },
+        "completedTaskIdsFromOutcome": {
+          "line": 916,
+          "params": [
+            "content"
+          ]
+        },
+        "initialTaskState": {
+          "line": 923,
+          "params": [
+            "status",
+            "outcomeIds",
+            "taskId",
+            "now"
+          ]
+        },
         "syncTasksFromMarkdown": {
-          "line": 907,
+          "line": 931,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 987,
+          "line": 1016,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 994,
+          "line": 1023,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1011,
+          "line": 1040,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1050,
+          "line": 1079,
           "params": [
             "projectPath",
             "slug",
@@ -5588,7 +5603,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1079,
+          "line": 1108,
           "params": [
             "projectPath",
             "query"
@@ -5596,7 +5611,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1100,
+          "line": 1129,
           "params": [
             "projectPath",
             "slug",
@@ -5604,14 +5619,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1124,
+          "line": 1153,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1141,
+          "line": 1170,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5620,54 +5635,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1256,
+          "line": 1285,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1356
+          "line": 1385
         },
         "markSpecNewLaunch": {
-          "line": 1409,
+          "line": 1438,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1415,
+          "line": 1444,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1431,
+          "line": 1460,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1442,
+          "line": 1471,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1470,
+          "line": 1499,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1494,
+          "line": 1523,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1498,
+          "line": 1527,
           "params": [
             "ipcMain"
           ]
@@ -5694,7 +5709,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 68199,
+      "sizeBytes": 69592,
       "extraction": {
         "status": "parsed"
       },
@@ -6071,7 +6086,7 @@
           ]
         },
         "updateTask": {
-          "line": 223,
+          "line": 228,
           "params": [
             "projectPath",
             "taskId",
@@ -6079,57 +6094,57 @@
           ]
         },
         "deleteTask": {
-          "line": 252,
+          "line": 257,
           "params": [
             "projectPath",
             "taskId"
           ]
         },
         "reorderTasks": {
-          "line": 271,
+          "line": 278,
           "params": [
             "projectPath",
             "order"
           ],
-          "purpose": "Reorder tasks (used by the Kanban dashboard for drag-and-drop). The renderer"
+          "purpose": "Reorder tasks. The renderer sends an ordered list of { id, status? }"
         },
         "startWatching": {
-          "line": 329,
+          "line": 336,
           "params": [
             "projectPath"
           ]
         },
         "onMetaFileChange": {
-          "line": 378,
+          "line": 385,
           "params": [
             "listener"
           ]
         },
         "notifyMetaChange": {
-          "line": 382,
+          "line": 389,
           "params": [
             "projectPath",
             "filename"
           ]
         },
         "restartWatching": {
-          "line": 397,
+          "line": 404,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-arm the watcher on the project's current meta directory. Migration moves"
         },
         "stopWatching": {
-          "line": 402
+          "line": 409
         },
         "setupIPC": {
-          "line": 412,
+          "line": 419,
           "params": [
             "ipcMain"
           ]
         },
         "getLastSelfWriteAt": {
-          "line": 472,
+          "line": 479,
           "purpose": "Timestamp of this module's last tasks.json write — exported so other"
         }
       },
@@ -6147,7 +6162,7 @@
           "TASK_UPDATED"
         ]
       },
-      "sizeBytes": 16046,
+      "sizeBytes": 16370,
       "extraction": {
         "status": "parsed"
       },
@@ -6158,7 +6173,7 @@
           "getLastSelfWriteAt": "edca8f7c4c625263",
           "getTasksFilePath": "bf37f0ba6f662615",
           "loadTasks": "75961e36b0aa0c5e",
-          "reorderTasks": "8233e26b366334e7",
+          "reorderTasks": "fad1821f6ffe5090",
           "restartWatching": "a3e83c31810d67bd",
           "sendTasksFileError": "9369701346948a50"
         }
@@ -6595,7 +6610,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3820,
+      "sizeBytes": 4019,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -9822,7 +9837,7 @@
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35177,
+      "sizeBytes": 35362,
       "extraction": {
         "status": "parsed"
       },
@@ -10916,26 +10931,26 @@
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 559,
+          "line": 563,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 585,
+          "line": 602,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 611,
+          "line": 628,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1015,
+          "line": 1032,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1040,
+          "line": 1057,
           "params": [
             "err"
           ],
@@ -10955,7 +10970,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 37953,
+      "sizeBytes": 38783,
       "extraction": {
         "status": "parsed"
       },
@@ -15205,7 +15220,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 35709,
+      "sizeBytes": 36511,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15547,6 +15562,105 @@
         }
       }
     },
+    "renderer/tasks/listModel": {
+      "file": "src/renderer/tasks/listModel.js",
+      "description": "Tasks screen list model — what the grid lists for a given scope, status,",
+      "exports": [
+        "SCOPES",
+        "SECTIONS",
+        "ACTIVE_STATUSES",
+        "specSlugOf",
+        "isSpecTask",
+        "buildListModel"
+      ],
+      "depends": [
+        "../shared/doneWindow"
+      ],
+      "functions": {
+        "specSlugOf": {
+          "line": 58,
+          "params": [
+            "task"
+          ],
+          "purpose": "The spec slug of a `spec:<slug>:T##` task, or null for any other task."
+        },
+        "comparatorFor": {
+          "line": 68,
+          "params": [
+            "sortMode",
+            "indexOf"
+          ]
+        },
+        "buildListModel": {
+          "line": 85,
+          "params": [
+            "{\n  tasks = []",
+            "scope = 'active'",
+            "status = null",
+            "showSpecTasks = false",
+            "matches = ("
+          ]
+        }
+      },
+      "sizeBytes": 5865,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "1391c3dbf559e60b",
+        "purposes": {
+          "specSlugOf": "c8e2c83507042e80"
+        }
+      }
+    },
+    "renderer/tasks/runPrompt": {
+      "file": "src/renderer/tasks/runPrompt.js",
+      "description": "Task run prompt — what Play hands the agent, and whether the task is",
+      "exports": [
+        "READY_FIELDS",
+        "isSpecTask",
+        "missingFields",
+        "buildTaskPrompt"
+      ],
+      "depends": [
+        "listModel"
+      ],
+      "functions": {
+        "missingFields": {
+          "line": 27,
+          "params": [
+            "task"
+          ],
+          "purpose": "The readiness fields this task still lacks; always [] for a spec task."
+        },
+        "formatStep": {
+          "line": 32,
+          "params": [
+            "task",
+            "missing"
+          ]
+        },
+        "buildTaskPrompt": {
+          "line": 52,
+          "params": [
+            "task",
+            "opts = {}"
+          ],
+          "purpose": "Build the task prompt that gets injected into the AI CLI. A task missing"
+        }
+      },
+      "sizeBytes": 4178,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "92c1eacd599ba2cf",
+        "purposes": {
+          "buildTaskPrompt": "3be35129f2a0f17b",
+          "missingFields": "72708aa38392c272"
+        }
+      }
+    },
     "renderer/tasksDashboard": {
       "file": "src/renderer/tasksDashboard.js",
       "description": "Tasks Dashboard Module",
@@ -15572,131 +15686,190 @@
         "shared/ipcChannels",
         "state",
         "doneWindow",
-        "shared/doneWindow",
+        "tasks/listModel",
         "agentDispatch",
         "taskInfoModal",
+        "specsDashboard",
+        "tasksPanel",
         "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 80
+          "line": 111
         },
         "flatten": {
-          "line": 152,
+          "line": 184,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 172,
+          "line": 204,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 176,
+          "line": 208,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 185
+          "line": 217
         },
         "_load": {
-          "line": 198
+          "line": 230
         },
         "show": {
-          "line": 218
+          "line": 251
         },
         "hide": {
-          "line": 228
+          "line": 261
         },
         "toggle": {
-          "line": 241
+          "line": 274
+        },
+        "listModel": {
+          "line": 282
         },
         "render": {
-          "line": 249
+          "line": 295
         },
-        "renderCard": {
-          "line": 350,
+        "renderToolbar": {
+          "line": 312,
           "params": [
-            "task"
+            "model"
+          ],
+          "purpose": "The scope segments, Active's status chips and the spec-tasks checkbox,"
+        },
+        "renderList": {
+          "line": 364,
+          "params": [
+            "model"
           ]
         },
-        "setupDropTargets": {
-          "line": 401
+        "openSpec": {
+          "line": 417,
+          "params": [
+            "slug"
+          ],
+          "purpose": "Leave for the Specs screen with this spec in its drawer — the pair"
         },
-        "onDragStart": {
+        "sectionHeader": {
+          "line": 424,
+          "params": [
+            "id",
+            "label",
+            "count"
+          ]
+        },
+        "appendSection": {
           "line": 440,
           "params": [
-            "e",
+            "id",
+            "label",
+            "count"
+          ],
+          "purpose": "A section heading plus its grid; returns the grid for the tiles."
+        },
+        "emptyState": {
+          "line": 454,
+          "params": [
+            "message",
+            "heading"
+          ]
+        },
+        "renderOlderTile": {
+          "line": 469,
+          "params": [
+            "count"
+          ],
+          "purpose": "The ghost tile closing Completed: \"N older done tasks · Show\"."
+        },
+        "renderTile": {
+          "line": 490,
+          "params": [
+            "task",
+            "{ playable = false } = {}"
+          ],
+          "purpose": "One task tile. `playable` puts the Play button on it — pending non-spec"
+        },
+        "renderPlayButton": {
+          "line": 576,
+          "params": [
+            "task"
+          ],
+          "purpose": "Play starts the task through the shared run flow (run modal → Agent"
+        },
+        "startTask": {
+          "line": 591,
+          "params": [
             "task"
           ]
         },
-        "onDragEnd": {
-          "line": 452
-        },
-        "getCardAfterY": {
-          "line": 466,
-          "params": [
-            "container",
-            "y"
-          ],
-          "purpose": "Find the card the dragged item should be inserted *before*, based on"
-        },
-        "commitOrder": {
-          "line": 485,
-          "purpose": "Read the current DOM order across all three columns and send the new order"
-        },
         "syncAside": {
-          "line": 512,
+          "line": 607,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 538,
+          "line": 633,
           "params": [
             "taskId",
             "{ instant = false } = {}"
           ],
-          "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the board"
+          "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the list"
         },
         "clearSelection": {
-          "line": 563,
+          "line": 658,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 574,
-          "purpose": "Leaving the board: no selection, no half-typed form waiting on return."
+          "line": 669,
+          "purpose": "Leaving the screen: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 585
+          "line": 680
         },
         "setupForm": {
-          "line": 589
+          "line": 684
         },
         "showForm": {
-          "line": 603
+          "line": 698
         },
         "hideForm": {
-          "line": 618
+          "line": 713
         },
         "requestDeleteSelected": {
-          "line": 626
+          "line": 721
         },
         "submitForm": {
-          "line": 644
+          "line": 740
         },
         "renderDetail": {
-          "line": 662,
+          "line": 762,
           "params": [
             "task"
           ]
         },
+        "renderDetailActions": {
+          "line": 845,
+          "params": [
+            "task"
+          ]
+        },
+        "runDetailAction": {
+          "line": 880,
+          "params": [
+            "taskId",
+            "action"
+          ]
+        },
         "appendMetaPill": {
-          "line": 720,
+          "line": 895,
           "params": [
             "container",
             "text",
@@ -15704,7 +15877,7 @@
           ]
         },
         "setSection": {
-          "line": 727,
+          "line": 902,
           "params": [
             "textEl",
             "sectionEl",
@@ -15712,72 +15885,65 @@
           ]
         },
         "formatDate": {
-          "line": 738,
+          "line": 913,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 752
+          "line": 927
         },
         "filterMatches": {
-          "line": 756,
+          "line": 931,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 762
+          "line": 937
         },
         "isFilterPopoverOpen": {
-          "line": 800
+          "line": 975
         },
         "toggleFilterPopover": {
-          "line": 804
+          "line": 979
         },
         "openFilterPopover": {
-          "line": 810
+          "line": 985
         },
         "closeFilterPopover": {
-          "line": 816
+          "line": 991
         },
         "clearFilters": {
-          "line": 822
+          "line": 997
         },
         "updateFilterUI": {
-          "line": 834
-        },
-        "compareTasks": {
-          "line": 851,
-          "params": [
-            "a",
-            "b"
-          ]
+          "line": 1009
         },
         "setupSort": {
-          "line": 867
+          "line": 1026
         },
         "isSortPopoverOpen": {
-          "line": 912
+          "line": 1071
         },
         "toggleSortPopover": {
-          "line": 916
+          "line": 1075
         },
         "openSortPopover": {
-          "line": 922
+          "line": 1081
         },
         "closeSortPopover": {
-          "line": 928
+          "line": 1087
         },
         "resetSort": {
-          "line": 934
+          "line": 1093
         },
         "updateSortUI": {
-          "line": 947
+          "line": 1106
         },
         "commitSortToFile": {
-          "line": 972,
-          "purpose": "Commit the current sorted view to tasks.json. Per-column sorted order is"
+          "line": 1133,
+          "purpose": "Commit the current sorted view to tasks.json. Ids only (tasks-list-view"
         }
       },
       "ipc": {
@@ -15787,25 +15953,29 @@
         ],
         "emits": [
           "LOAD_TASKS",
-          "REORDER_TASKS",
           "DELETE_TASK",
           "ADD_TASK",
+          "UPDATE_TASK",
           "REORDER_TASKS"
         ]
       },
-      "sizeBytes": 35122,
+      "sizeBytes": 41731,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "12497e4df514f84f",
         "purposes": {
+          "appendSection": "ba75f6e450a21a04",
           "clearSelection": "61ad7ecd9504c904",
-          "commitOrder": "d395095b7a271a2f",
-          "commitSortToFile": "d25054166477573e",
-          "getCardAfterY": "b6329b3059989325",
-          "resetAside": "289613595300e5f9",
-          "selectTask": "d955b16b95fc2ec3",
+          "commitSortToFile": "beff6f45e6520cc2",
+          "openSpec": "5b89bd4a75cabfa5",
+          "renderOlderTile": "430fa30a4a4f14f7",
+          "renderPlayButton": "df7b9dbe108a97fb",
+          "renderTile": "1e3f0bb6063b9fc4",
+          "renderToolbar": "e44131d971d4d088",
+          "resetAside": "7dde6f0750e05609",
+          "selectTask": "f3a10ec266d4ef67",
           "syncAside": "c0c3dd8532f563e0"
         }
       }
@@ -15830,6 +16000,7 @@
         "state",
         "htmlUtils",
         "notify",
+        "tasks/runPrompt",
         "tasksDashboard",
         "taskInfoModal",
         "taskRunModal",
@@ -15838,57 +16009,57 @@
       ],
       "functions": {
         "init": {
-          "line": 25,
+          "line": 26,
           "purpose": "Initialize tasks panel"
         },
         "setupEventListeners": {
-          "line": 41,
+          "line": 42,
           "purpose": "Setup event listeners"
         },
         "setupIPCListeners": {
-          "line": 83,
+          "line": 84,
           "purpose": "Setup IPC listeners"
         },
         "loadTasks": {
-          "line": 109,
+          "line": 110,
           "purpose": "Load tasks for current project"
         },
         "show": {
-          "line": 120,
+          "line": 121,
           "purpose": "Show tasks panel. If there's no active project, surface an info modal"
         },
         "hide": {
-          "line": 137,
+          "line": 138,
           "purpose": "Hide tasks panel"
         },
         "toggle": {
-          "line": 147,
+          "line": 148,
           "purpose": "Toggle tasks panel visibility"
         },
         "setFilter": {
-          "line": 158,
+          "line": 159,
           "params": [
             "filter"
           ],
           "purpose": "Set filter"
         },
         "getFilteredTasks": {
-          "line": 172,
+          "line": 173,
           "purpose": "Get filtered tasks"
         },
         "render": {
-          "line": 197,
+          "line": 198,
           "purpose": "Render tasks list"
         },
         "renderTaskItem": {
-          "line": 243,
+          "line": 244,
           "params": [
             "task"
           ],
           "purpose": "Render single task item"
         },
         "handleTaskAction": {
-          "line": 321,
+          "line": 322,
           "params": [
             "taskId",
             "action"
@@ -15896,22 +16067,22 @@
           "purpose": "Handle task action buttons"
         },
         "openRunFlow": {
-          "line": 372,
+          "line": 373,
           "params": [
             "task"
           ],
           "purpose": "Open the run-config modal for a task and dispatch it on confirm."
         },
         "buildTaskPrompt": {
-          "line": 399,
+          "line": 396,
           "params": [
             "task",
             "opts = {}"
           ],
-          "purpose": "Build the task prompt that gets injected into the AI CLI. If the user"
+          "purpose": "Build the task prompt that gets injected into the AI CLI. The builder"
         },
         "runTaskWithOptions": {
-          "line": 433,
+          "line": 410,
           "params": [
             "task",
             "opts = {}"
@@ -15919,65 +16090,65 @@
           "purpose": "Send the task to an agent. Always a new Frame: agentDispatch creates"
         },
         "setClaudeRunning": {
-          "line": 450,
+          "line": 427,
           "params": [
             "running"
           ],
           "purpose": "Mark Claude Code as running (called from external modules)"
         },
         "isClaudeRunning": {
-          "line": 457,
+          "line": 434,
           "purpose": "Check if Claude Code is marked as running"
         },
         "deleteTask": {
-          "line": 466,
+          "line": 443,
           "params": [
             "taskId"
           ],
           "purpose": "Delete task — opens the shared confirm modal first; only dispatches the IPC"
         },
         "showAddTaskModal": {
-          "line": 483,
+          "line": 460,
           "purpose": "Show add task modal"
         },
         "showEditTaskModal": {
-          "line": 502,
+          "line": 479,
           "params": [
             "taskId"
           ],
           "purpose": "Show edit task modal"
         },
         "hideTaskModal": {
-          "line": 528,
+          "line": 505,
           "purpose": "Hide task modal"
         },
         "handleTaskFormSubmit": {
-          "line": 538,
+          "line": 515,
           "params": [
             "e"
           ],
           "purpose": "Handle task form submit"
         },
         "setupModalListeners": {
-          "line": 576,
+          "line": 553,
           "purpose": "Setup modal event listeners"
         },
         "renderSourceChip": {
-          "line": 621,
+          "line": 598,
           "params": [
             "source"
           ],
           "purpose": "Render a small attribution chip for tasks that came from a Frame spec."
         },
         "formatDate": {
-          "line": 632,
+          "line": 609,
           "params": [
             "isoString"
           ],
           "purpose": "Format date for display"
         },
         "initWhenReady": {
-          "line": 649,
+          "line": 626,
           "purpose": "Initialize when DOM is ready"
         }
       },
@@ -15996,14 +16167,14 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 20065,
+      "sizeBytes": 18712,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "e80d4cae198ccc1a",
         "purposes": {
-          "buildTaskPrompt": "70d8297d7fc57e69",
+          "buildTaskPrompt": "3ae4d861da0b2242",
           "deleteTask": "5a3589b857f473e9",
           "formatDate": "86ad95f477ee3175",
           "getFilteredTasks": "267b560d8bc60a98",
@@ -16584,7 +16755,7 @@
           "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
         }
       },
-      "sizeBytes": 9784,
+      "sizeBytes": 9836,
       "extraction": {
         "status": "parsed"
       },
@@ -21872,7 +22043,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12794,
+      "sizeBytes": 12872,
       "extraction": {
         "status": "parsed"
       },
@@ -24817,13 +24988,25 @@
         "src/main/frameProject",
         "src/shared/frameTemplates"
       ],
-      "functions": {},
-      "sizeBytes": 9230,
+      "functions": {
+        "runNoOp": {
+          "line": 58,
+          "params": [
+            "command",
+            "opts"
+          ],
+          "purpose": "Run a hook command that is expected to do nothing. A no-op exits without"
+        }
+      },
+      "sizeBytes": 9698,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "4467a520941da104"
+        "description": "4467a520941da104",
+        "purposes": {
+          "runNoOp": "5cfbbc00e4d6e82a"
+        }
       }
     },
     "test/sessionRestoreStore.test": {
@@ -25206,9 +25389,15 @@
         },
         "readSpecTasks": {
           "line": 84
+        },
+        "setStatus": {
+          "line": 284,
+          "params": [
+            "fields"
+          ]
         }
       },
-      "sizeBytes": 11622,
+      "sizeBytes": 14445,
       "extraction": {
         "status": "parsed"
       },
@@ -25807,6 +25996,63 @@
         "description": "b73f1eabbda70741"
       }
     },
+    "test/taskRunPrompt.test": {
+      "file": "test/taskRunPrompt.test.js",
+      "description": "The task run prompt (tasks-list-view spec, T02 / S12 / S15).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/tasks/runPrompt"
+      ],
+      "functions": {
+        "legacyBuildTaskPrompt": {
+          "line": 18,
+          "params": [
+            "task",
+            "opts = {}"
+          ],
+          "purpose": "The builder as it stood in tasksPanel.js before this spec, kept verbatim"
+        }
+      },
+      "sizeBytes": 6767,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "18e0ee5c775fc519",
+        "purposes": {
+          "legacyBuildTaskPrompt": "adce84951ed10b22"
+        }
+      }
+    },
+    "test/tasksListModel.test": {
+      "file": "test/tasksListModel.test.js",
+      "description": "The Tasks screen list model (tasks-list-view spec, T01 / S15).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/tasks/listModel",
+        "src/shared/doneWindow"
+      ],
+      "functions": {
+        "fixture": {
+          "line": 27,
+          "purpose": "Interleaved on purpose so file order is observable everywhere."
+        }
+      },
+      "sizeBytes": 13988,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "07bf47a2789625f8",
+        "purposes": {
+          "fixture": "421d78394089028d"
+        }
+      }
+    },
     "test/tasksManager.test": {
       "file": "test/tasksManager.test.js",
       "description": "tasksManager corruption-recovery tests (T02): corrupt tasks.json must no",
@@ -25828,7 +26074,7 @@
           ]
         }
       },
-      "sizeBytes": 4186,
+      "sizeBytes": 6276,
       "extraction": {
         "status": "parsed"
       },
@@ -26850,6 +27096,20 @@
         "direction": "",
         "description": ""
       }
+    },
+    "downloaded": {
+      "UPDATE_DOWNLOADED": {
+        "name": "update-downloaded",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "install": {
+      "INSTALL_UPDATE": {
+        "name": "install-update",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -27254,6 +27514,18 @@
         "description": "IPC Channel Constants"
       }
     ],
+    "list": [
+      {
+        "module": "renderer/tasks/listModel",
+        "file": "src/renderer/tasks/listModel.js",
+        "description": "Tasks screen list model — what the grid lists for a given scope, status,"
+      },
+      {
+        "module": "templates/sample-project/src/ui/components/TaskList",
+        "file": "src/templates/sample-project/src/ui/components/TaskList.jsx",
+        "description": "TaskList — renders the user's tasks with status filters"
+      }
+    ],
     "menu": [
       {
         "module": "main/menu",
@@ -27320,6 +27592,11 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      },
+      {
+        "module": "renderer/tasks/listModel",
+        "file": "src/renderer/tasks/listModel.js",
+        "description": "Tasks screen list model — what the grid lists for a given scope, status,"
       }
     ],
     "onboarding": [
@@ -27826,7 +28103,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 301,
+        "parsed": 307,
         "unsupported": 84,
         "partial": 0
       }
@@ -27873,9 +28150,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 473,
-      "traversedDirectories": 80,
-      "eligibleFiles": 385,
+      "visitedEntries": 480,
+      "traversedDirectories": 81,
+      "eligibleFiles": 391,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27892,7 +28169,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 385,
+      "indexedFiles": 391,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27900,6 +28177,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f572aecba93fd955cf0066179faf19ce574c95d4860282a3e3b2dd8f709f281a"
+    "revision": "8d08e366cfa2922eac8a11f6a5f0263bdaac3f9dce029a67891543701846e235"
   }
 }

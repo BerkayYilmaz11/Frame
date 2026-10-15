@@ -204,6 +204,11 @@ function addTask(projectPath, task) {
     id: generateTaskId(),
     title: task.title || 'Untitled Task',
     description: task.description || '',
+    // The New Task form's request text, kept exactly as typed
+    // (tasks-list-view spec, D14). A blank request records none.
+    ...(typeof task.userRequest === 'string' && task.userRequest.trim()
+      ? { userRequest: task.userRequest }
+      : {}),
     status: 'pending',
     priority: task.priority || 'medium',
     category: task.category || 'feature',
@@ -261,12 +266,14 @@ function deleteTask(projectPath, taskId) {
 }
 
 /**
- * Reorder tasks (used by the Kanban dashboard for drag-and-drop). The renderer
- * sends an ordered list of { id, status } describing the new arrangement.
- * The backend rebuilds tasks.json so array position reflects column order, and
- * each task's status is updated to its new column. Tasks not present in the
- * order list are appended at the end (defensive — should not happen in normal
- * flow but keeps any concurrent additions from being dropped).
+ * Reorder tasks. The renderer sends an ordered list of { id, status? }
+ * describing the new arrangement, and the backend rebuilds tasks.json so
+ * array position follows it. An entry that carries a valid status moves the
+ * task to it; an entry with no status keeps the task's own, so an order
+ * write that sends ids only can never change a status.
+ * Tasks not present in the order list are appended at the end (defensive —
+ * should not happen in normal flow but keeps any concurrent additions from
+ * being dropped).
  */
 function reorderTasks(projectPath, order) {
   const tasksData = loadTasks(projectPath);
