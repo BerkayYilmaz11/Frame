@@ -549,10 +549,12 @@ function renderTile(task, { playable = false } = {}) {
   title.textContent = task.title || 'Untitled';
   tile.appendChild(title);
 
-  if (task.description) {
+  // Until the agent writes a description, the tile shows the request.
+  const bodyText = task.description || task.userRequest;
+  if (bodyText) {
     const body = document.createElement('div');
     body.className = 'tasks-tile-body';
-    body.textContent = task.description;
+    body.textContent = bodyText;
     tile.appendChild(body);
   }
 
@@ -747,12 +749,16 @@ function submitForm() {
   const title = detailFormEl.querySelector('#tasks-dashboard-form-title').value.trim();
   if (!title) return;
 
+  // The form maps to the tasks.json schema: the request is the user's own
+  // words, kept exactly as typed (userRequest). No description or acceptance
+  // criteria — Play has the agent write them, with the code in view.
+  const request = detailFormEl.querySelector('#tasks-dashboard-form-request').value;
   const task = {
     title,
-    description: detailFormEl.querySelector('#tasks-dashboard-form-description').value.trim(),
     priority: detailFormEl.querySelector('#tasks-dashboard-form-priority').value,
     category: detailFormEl.querySelector('#tasks-dashboard-form-category').value
   };
+  if (request.trim()) task.userRequest = request;
 
   ipcRenderer.send(IPC.ADD_TASK, { projectPath, task });
   hideForm();

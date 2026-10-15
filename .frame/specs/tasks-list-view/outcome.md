@@ -42,3 +42,10 @@ Added the "Spec tasks n" chip after the scope segments. It is present only while
 _Captured: 2026-10-15 · 2 file change(s)_
 
 ---
+## T07 — New Task maps to the schema
+
+Replaced the New Task form's Description textarea with Request (`index.html`). `submitForm` now sends `userRequest` untrimmed when it is not blank, and never sends `description`. A tile shows `userRequest` until the task has a description. The saved task still has `description: ''`, because `addTask` defaults it. The plan left that alone, and readiness treats it as missing. The retired side panel's own task modal keeps its Description field; it is out of scope.
+
+_Captured: 2026-10-15 · 2 file change(s)_
+
+---

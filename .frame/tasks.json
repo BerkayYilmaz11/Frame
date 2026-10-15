@@ -8575,13 +8575,13 @@
       "title": "Replace the New Task form's Description with a Request field sent as `userRequest` exactly as typed, and show the request on a tile until the task has a description",
       "description": "",
       "source": "spec:tasks-list-view:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:38:48.322Z",
+      "completedAt": "2026-10-15T13:38:48.322Z"
     },
     {
       "id": "task-spec-tasks-list-view-T08",
