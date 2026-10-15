@@ -249,6 +249,18 @@ function reportAssetRel(root, tool, file) {
   return own;
 }
 
+/**
+ * The close script the implement flow's digest step runs, resolved exactly as
+ * specManager's closeScriptRel does: the shipped copy, then Frame's own
+ * `scripts/`, then the shipped location named anyway.
+ */
+function closeScriptRel(root) {
+  const shipped = '.frame/bin/spec-close.js';
+  if (fs.existsSync(path.join(root, shipped))) return shipped;
+  const dev = 'scripts/spec-close.js';
+  return fs.existsSync(path.join(root, dev)) ? dev : shipped;
+}
+
 function interpolate(template, vars) {
   if (!template) return '';
   return template.replace(/\{(\w+)\}/g, (m, key) => (vars[key] != null ? String(vars[key]) : m));
@@ -293,6 +305,7 @@ function buildPrompt(root, slug, command, tool) {
     description: '',
     report_template_path: reportAssetRel(root, tool, 'plan-report-template.html'),
     report_generator_path: reportAssetRel(root, tool, 'build-implement-report.mjs'),
+    close_script_path: closeScriptRel(root),
     spec_catalog: command === 'spec.new' ? specCatalog(root) : ''
   });
 }

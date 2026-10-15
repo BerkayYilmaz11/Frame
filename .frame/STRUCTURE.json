@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-13",
+  "lastUpdated": "2026-10-15",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11723,
+      "sizeBytes": 12278,
       "extraction": {
         "status": "parsed"
       },
@@ -5453,8 +5453,15 @@
             "vars"
           ]
         },
+        "closeScriptRel": {
+          "line": 565,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Where the close script is for this project, project-relative — the command"
+        },
         "getCommandPrompt": {
-          "line": 560,
+          "line": 578,
           "params": [
             "projectPath",
             "slug",
@@ -5464,7 +5471,7 @@
           ]
         },
         "reportAssetRel": {
-          "line": 638,
+          "line": 658,
           "params": [
             "projectPath",
             "tool",
@@ -5473,34 +5480,34 @@
           "purpose": "Which staged report asset a tool's prompt should name."
         },
         "resolveVerificationCommand": {
-          "line": 705,
+          "line": 734,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 720,
+          "line": 749,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 738,
+          "line": 767,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 762,
+          "line": 791,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 778,
+          "line": 807,
           "params": [
             "projectPath",
             "slug",
@@ -5509,21 +5516,21 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "specNewPromptFilename": {
-          "line": 799,
+          "line": 828,
           "params": [
             "date"
           ],
           "purpose": "A slug-less run has no stable name to key the prompt file on — `${slug}__`"
         },
         "uniquePromptFilename": {
-          "line": 804,
+          "line": 833,
           "params": [
             "promptsDir",
             "filename"
           ]
         },
         "buildSpecCommandFile": {
-          "line": 813,
+          "line": 842,
           "params": [
             "projectPath",
             "slug",
@@ -5533,32 +5540,32 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 857,
+          "line": 886,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 883,
+          "line": 912,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 902,
+          "line": 931,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "completedTaskIdsFromOutcome": {
-          "line": 916,
+          "line": 945,
           "params": [
             "content"
           ]
         },
         "initialTaskState": {
-          "line": 923,
+          "line": 952,
           "params": [
             "status",
             "outcomeIds",
@@ -5567,34 +5574,34 @@
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 931,
+          "line": 960,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 1016,
+          "line": 1045,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 1023,
+          "line": 1052,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1040,
+          "line": 1069,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1079,
+          "line": 1108,
           "params": [
             "projectPath",
             "slug",
@@ -5603,7 +5610,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1108,
+          "line": 1137,
           "params": [
             "projectPath",
             "query"
@@ -5611,7 +5618,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1129,
+          "line": 1158,
           "params": [
             "projectPath",
             "slug",
@@ -5619,14 +5626,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1153,
+          "line": 1182,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1170,
+          "line": 1199,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5635,54 +5642,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1285,
+          "line": 1314,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1385
+          "line": 1414
         },
         "markSpecNewLaunch": {
-          "line": 1438,
+          "line": 1467,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1444,
+          "line": 1473,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1460,
+          "line": 1489,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1471,
+          "line": 1500,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1499,
+          "line": 1528,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1523,
+          "line": 1552,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1527,
+          "line": 1556,
           "params": [
             "ipcMain"
           ]
@@ -5709,7 +5716,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 69592,
+      "sizeBytes": 71120,
       "extraction": {
         "status": "parsed"
       },
@@ -5717,6 +5724,7 @@
         "description": "548bca758bc986dd",
         "purposes": {
           "buildSpecCatalog": "c0e0dc84b1debf77",
+          "closeScriptRel": "9c2cba05cf628d46",
           "getImplementLaunchFlags": "c96e947927709160",
           "indexStamp": "759797531edafff5",
           "interpolateValues": "72397f6a1df7e05f",
@@ -5761,7 +5769,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 94,
+          "line": 99,
           "params": [
             "fsImpl",
             "src",
@@ -5770,7 +5778,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 127,
+          "line": 132,
           "params": [
             "projectPath",
             "options = {}"
@@ -5778,61 +5786,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 208,
+          "line": 213,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 219,
+          "line": 224,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 253,
+          "line": 258,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 294,
+          "line": 299,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 314,
+          "line": 319,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 389,
+          "line": 394,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 409,
+          "line": 414,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 422,
+          "line": 427,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 434,
+          "line": 439,
           "params": [
             "envelope",
             "code"
@@ -5840,7 +5848,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 493,
+          "line": 498,
           "params": [
             "projectPath",
             "options = {}"
@@ -5848,7 +5856,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 611,
+          "line": 616,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5856,7 +5864,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 26943,
+      "sizeBytes": 27244,
       "extraction": {
         "status": "parsed"
       },
@@ -6610,7 +6618,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4019,
+      "sizeBytes": 4087,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16997,46 +17005,47 @@
         "fs",
         "path",
         "activity-log",
-        "toolVocabulary"
+        "toolVocabulary",
+        "spec-close-state"
       ],
       "functions": {
         "capFor": {
-          "line": 69,
+          "line": 76,
           "params": [
             "payload"
           ],
           "purpose": "The cap for the CLI this payload came from. Claude Code inlines 2 000"
         },
         "readStdin": {
-          "line": 111
+          "line": 118
         },
         "resolveRoot": {
-          "line": 115,
+          "line": 122,
           "params": [
             "hookCwd"
           ]
         },
         "referencePath": {
-          "line": 124,
+          "line": 131,
           "params": [
             "root"
           ]
         },
         "cliPath": {
-          "line": 128,
+          "line": 135,
           "params": [
             "root"
           ]
         },
         "parseSections": {
-          "line": 140,
+          "line": 147,
           "params": [
             "text"
           ],
           "purpose": "REFERENCE.md → [{ title, body, subs: [{ title, body }] }], in file order."
         },
         "renderSection": {
-          "line": 171,
+          "line": 178,
           "params": [
             "section",
             "subsetTitles"
@@ -17044,7 +17053,7 @@
           "purpose": "One section, or only the named subsections of it, as markdown."
         },
         "capped": {
-          "line": 188,
+          "line": 195,
           "params": [
             "root",
             "preamble",
@@ -17054,17 +17063,17 @@
           "purpose": "Compose the payload and keep it under CAP. Over-length degrades to a"
         },
         "setHookCli": {
-          "line": 227,
+          "line": 244,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 231
+          "line": 248
         },
         "note": {
-          "line": 235,
+          "line": 252,
           "params": [
             "root",
             "ev",
@@ -17073,54 +17082,62 @@
           ]
         },
         "emit": {
-          "line": 250,
+          "line": 267,
           "params": [
             "eventName",
             "context"
           ]
         },
         "loadSections": {
-          "line": 258,
+          "line": 275,
           "params": [
             "root"
           ]
         },
         "sessionStart": {
-          "line": 269,
+          "line": 286,
           "params": [
             "input"
           ]
         },
         "writeTargets": {
-          "line": 293,
+          "line": 310,
           "params": [
             "cmd"
           ],
           "purpose": "Every path a shell command would actually write to: redirect destinations,"
         },
         "sectionForPath": {
-          "line": 310,
+          "line": 327,
           "params": [
             "p"
           ],
           "purpose": "One path → the meta file it is, or null. The `.frame/` requirement is the"
         },
         "metaTargetOf": {
-          "line": 318,
+          "line": 335,
           "params": [
             "toolName",
             "input"
           ],
           "purpose": "The meta file this write targets, or null."
         },
+        "closeReminder": {
+          "line": 365,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "The same-turn close reminder. An agent closes a spec's last task through a"
+        },
         "preEdit": {
-          "line": 340,
+          "line": 375,
           "params": [
             "input"
           ]
         },
         "sectionCli": {
-          "line": 358,
+          "line": 393,
           "params": [
             "root",
             "name"
@@ -17128,7 +17145,7 @@
           "purpose": "CLI: print one section, or list them. The manual escape hatch."
         }
       },
-      "sizeBytes": 16534,
+      "sizeBytes": 18111,
       "extraction": {
         "status": "parsed"
       },
@@ -17136,6 +17153,7 @@
         "purposes": {
           "capFor": "c346ef29e91448a4",
           "capped": "5704334cf6752807",
+          "closeReminder": "c6d5f278abbc85da",
           "metaTargetOf": "d6a15510bcb3879e",
           "parseSections": "89349ae4dda49ea0",
           "renderSection": "cd5686e4ce121b6d",
@@ -17648,6 +17666,241 @@
           "lookupsOf": "5693a0ed1e190393",
           "paired": "49da72b4b2b66533",
           "searchTerm": "500eea52ef3966a7"
+        }
+      }
+    },
+    "scripts/eval/spec-close/make-fixture": {
+      "file": "scripts/eval/spec-close/make-fixture.js",
+      "description": "",
+      "exports": [
+        "greet"
+      ],
+      "depends": [
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "node:test",
+        "node:assert/strict",
+        "src/greet",
+        "src/index"
+      ],
+      "functions": {
+        "greet": {
+          "line": 135,
+          "params": [
+            "name"
+          ],
+          "purpose": "A greeting for \\`name\\`, or for a stranger when there is none."
+        },
+        "write": {
+          "line": 218,
+          "params": [
+            "root",
+            "rel",
+            "content"
+          ]
+        },
+        "taskStates": {
+          "line": 224,
+          "params": [
+            "kind",
+            "now"
+          ]
+        },
+        "makeFixture": {
+          "line": 244,
+          "params": [
+            "{ kind",
+            "dir = null",
+            "now = Date.now("
+          ],
+          "purpose": "Build one fixture. Returns what a runner needs: where it is, what to ask,"
+        }
+      },
+      "sizeBytes": 14570,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "greet": "2fcd7e9bb126b07e",
+          "makeFixture": "063d1a3dcb408e3a"
+        }
+      }
+    },
+    "scripts/eval/spec-close/run": {
+      "file": "scripts/eval/spec-close/run.js",
+      "description": "",
+      "exports": [
+        "parseArgs",
+        "agentArgs",
+        "sessionEnv",
+        "parseTranscript",
+        "closeRows",
+        "judge",
+        "summarize",
+        "table",
+        "inspect",
+        "DISALLOWED",
+        "FOLLOW_UP"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process",
+        "make-fixture",
+        "src/greet"
+      ],
+      "functions": {
+        "parseArgs": {
+          "line": 81,
+          "params": [
+            "argv"
+          ]
+        },
+        "agentArgs": {
+          "line": 119,
+          "params": [
+            "{ prompt",
+            "settingsPath",
+            "budget",
+            "model",
+            "persist = false",
+            "resume = null }"
+          ],
+          "purpose": "The CLI arguments for one turn of a fixture session. A session is not kept"
+        },
+        "sessionEnv": {
+          "line": 136,
+          "params": [
+            "base",
+            "fixture"
+          ],
+          "purpose": "The environment for one fixture session: the caller's, minus what binds it to the caller."
+        },
+        "parseTranscript": {
+          "line": 156,
+          "params": [
+            "text"
+          ],
+          "purpose": "A stream-json transcript → the few facts the table needs. Tolerant of"
+        },
+        "closeRows": {
+          "line": 203,
+          "params": [
+            "activityHome"
+          ],
+          "purpose": "The fixture's own activity rows that concern the close step."
+        },
+        "judge": {
+          "line": 227,
+          "params": [
+            "kind",
+            "f"
+          ],
+          "purpose": "Whether one session did what its kind asks of it. `facts` is what"
+        },
+        "summarize": {
+          "line": 240,
+          "params": [
+            "{ id",
+            "kind",
+            "facts",
+            "transcript",
+            "rows",
+            "timedOut",
+            "exitCode }"
+          ],
+          "purpose": "One session's row. `facts` come from `inspect`, run after the session."
+        },
+        "table": {
+          "line": 274,
+          "params": [
+            "results"
+          ],
+          "purpose": "Results → the markdown table recorded in the spec's outcome."
+        },
+        "runTurn": {
+          "line": 301,
+          "params": [
+            "fixture",
+            "opts",
+            "runDir",
+            "{ prompt",
+            "resume = null",
+            "file = 'transcript.jsonl' }"
+          ]
+        },
+        "runSession": {
+          "line": 329,
+          "params": [
+            "fixture",
+            "opts",
+            "runDir"
+          ],
+          "purpose": "One session: its prompt, and the follow-up turn when its kind has one."
+        },
+        "digestWithCode": {
+          "line": 356,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Whether the commit that added the digest also carries code — the digest"
+        },
+        "inspect": {
+          "line": 368,
+          "params": [
+            "fixture",
+            "runDir"
+          ],
+          "purpose": "What the fixture looks like after its session, read without changing it."
+        },
+        "pool": {
+          "line": 411,
+          "params": [
+            "items",
+            "size",
+            "worker"
+          ]
+        },
+        "main": {
+          "line": 425,
+          "params": [
+            "argv"
+          ]
+        },
+        "median": {
+          "line": 266,
+          "params": [
+            "values"
+          ]
+        },
+        "readOr": {
+          "line": 343,
+          "params": [
+            "file",
+            "fallback"
+          ]
+        }
+      },
+      "sizeBytes": 22928,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "agentArgs": "91956e3fa2a1c6a7",
+          "closeRows": "c7d8e48a6ace2a80",
+          "digestWithCode": "caffb57186325a60",
+          "inspect": "3f4ba67db26288f4",
+          "judge": "c1ace852cec3cce0",
+          "parseTranscript": "bdcb3da86d5ef5b0",
+          "runSession": "cfcaf557a94ea7ba",
+          "sessionEnv": "8bc17c5c687a1f89",
+          "summarize": "98e96a51636b1731",
+          "table": "15e2e5c767ab65ea"
         }
       }
     },
@@ -18452,6 +18705,342 @@
         "description": "32ac7921fd767895"
       }
     },
+    "scripts/spec-close": {
+      "file": "scripts/spec-close.js",
+      "description": "",
+      "exports": [
+        "DIGEST_SHAPE",
+        "CHAIN_LINE",
+        "DIGEST_LINE_CAP",
+        "ITEM_CHECKS",
+        "digestDefects",
+        "checkSpec",
+        "textReport"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "spec-close-state",
+        "spec-index",
+        "activity-log"
+      ],
+      "functions": {
+        "toPosix": {
+          "line": 71,
+          "params": [
+            "p"
+          ]
+        },
+        "resolveRoot": {
+          "line": 73
+        },
+        "specDir": {
+          "line": 82,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "digestDefects": {
+          "line": 91,
+          "params": [
+            "md"
+          ],
+          "purpose": "Named defects of one digest, in the order a reader would fix them."
+        },
+        "checkSpec": {
+          "line": 146,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Everything this script knows about one spec, as data. Pure apart from"
+        },
+        "selfCommand": {
+          "line": 191,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "taskLine": {
+          "line": 195,
+          "params": [
+            "result"
+          ]
+        },
+        "textReport": {
+          "line": 202,
+          "params": [
+            "root",
+            "result"
+          ]
+        },
+        "record": {
+          "line": 230,
+          "params": [
+            "root",
+            "result"
+          ]
+        },
+        "main": {
+          "line": 248,
+          "params": [
+            "argv"
+          ]
+        }
+      },
+      "sizeBytes": 11676,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "checkSpec": "94a5a95ab78e5f38",
+          "digestDefects": "0fe97d9cb34d80e7"
+        }
+      }
+    },
+    "scripts/spec-close-state": {
+      "file": "scripts/spec-close-state.js",
+      "description": "Spec close state — what a closed spec still owes.",
+      "exports": [
+        "STATE_VERSION",
+        "SLUG_RE",
+        "STATE_REL",
+        "SESSIONS_REL",
+        "SESSION_TTL_MS",
+        "MAX_NAMED",
+        "CLOSE_ITEMS",
+        "missingItems",
+        "readTasks",
+        "specTaskCounts",
+        "closedSpecs",
+        "closeState",
+        "isOrchestrated",
+        "pending",
+        "sessionKey",
+        "closeScriptPath",
+        "reminder"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "child_process"
+      ],
+      "functions": {
+        "toPosix": {
+          "line": 74,
+          "params": [
+            "p"
+          ]
+        },
+        "readJson": {
+          "line": 76,
+          "params": [
+            "p"
+          ]
+        },
+        "tasksPath": {
+          "line": 80,
+          "params": [
+            "root"
+          ]
+        },
+        "specDir": {
+          "line": 81,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "missingItems": {
+          "line": 97,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Ids of the close items this spec still lacks."
+        },
+        "timeOf": {
+          "line": 117,
+          "params": [
+            "value"
+          ],
+          "purpose": "A timestamp as milliseconds, or null. A date with no time counts as the end"
+        },
+        "readTasks": {
+          "line": 124,
+          "params": [
+            "root"
+          ],
+          "purpose": "tasks.json → its task list, or null when it cannot be read as one."
+        },
+        "specTaskCounts": {
+          "line": 131,
+          "params": [
+            "tasks"
+          ],
+          "purpose": "Task list → Map of slug → { total, completed, latest } for spec tasks."
+        },
+        "specStates": {
+          "line": 159,
+          "params": [
+            "root"
+          ],
+          "purpose": "`{ closed: [{ slug, closedAt }], open: [slug] }`, or null when tasks.json"
+        },
+        "closedSpecs": {
+          "line": 181,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot be read."
+        },
+        "writeState": {
+          "line": 196,
+          "params": [
+            "root",
+            "state"
+          ]
+        },
+        "closeState": {
+          "line": 216,
+          "params": [
+            "root"
+          ],
+          "purpose": "`{ closed, open, unreadable, hit }` for this project, or null when it has"
+        },
+        "insideGitRepo": {
+          "line": 244,
+          "params": [
+            "root"
+          ]
+        },
+        "isOrchestrated": {
+          "line": 268,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Whether a spec is run by Frame's orchestration: true, false, or null when"
+        },
+        "openSpecs": {
+          "line": 286,
+          "params": [
+            "root",
+            "state"
+          ],
+          "purpose": "Closed specs with at least one missing item, newest close first."
+        },
+        "orchestrationReason": {
+          "line": 300,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "pending": {
+          "line": 311,
+          "params": [
+            "root"
+          ],
+          "purpose": "Closed, something missing, not run by orchestration — each as"
+        },
+        "sessionKey": {
+          "line": 334,
+          "params": [
+            "sessionId",
+            "now = Date.now("
+          ],
+          "purpose": "A host that sends no session id still gets at most one reminder a day."
+        },
+        "sessionFile": {
+          "line": 339,
+          "params": [
+            "root",
+            "key"
+          ]
+        },
+        "loadSession": {
+          "line": 343,
+          "params": [
+            "root",
+            "key"
+          ]
+        },
+        "cleanupSessions": {
+          "line": 353,
+          "params": [
+            "root",
+            "now"
+          ]
+        },
+        "saveSession": {
+          "line": 365,
+          "params": [
+            "root",
+            "key",
+            "session",
+            "now"
+          ]
+        },
+        "closeScriptPath": {
+          "line": 377,
+          "params": [
+            "root"
+          ],
+          "purpose": "The close script, as a path an agent can run from the project root."
+        },
+        "labelsOf": {
+          "line": 386,
+          "params": [
+            "specs"
+          ]
+        },
+        "reminderLine": {
+          "line": 397,
+          "params": [
+            "root",
+            "named",
+            "more"
+          ],
+          "purpose": "Worded as the session's own unfinished work, because it is: only the"
+        },
+        "reminder": {
+          "line": 422,
+          "params": [
+            "root",
+            "sessionId",
+            "now = Date.now("
+          ],
+          "purpose": "What a hook should do about closed specs right now."
+        }
+      },
+      "sizeBytes": 19644,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "31fd80bb4a098694",
+        "purposes": {
+          "closeScriptPath": "eb55c527830baae1",
+          "closeState": "fe9a2a8efe637cbf",
+          "closedSpecs": "f2aa09861c3b114b",
+          "isOrchestrated": "9eb319e04d59282d",
+          "missingItems": "265b8c8c40498710",
+          "openSpecs": "2a0f20095011198c",
+          "pending": "de654e387f4b3df9",
+          "readTasks": "b2a62548c72b1fa1",
+          "reminder": "f3dc678226bb00a5",
+          "reminderLine": "e79ef51e448f2dd6",
+          "sessionKey": "3ab5b382c4ceb8e1",
+          "specStates": "fb57a90358e1598e",
+          "specTaskCounts": "23893a21574aea54",
+          "timeOf": "964231ab15f867b1"
+        }
+      }
+    },
     "scripts/spec-command-hint": {
       "file": "scripts/spec-command-hint.js",
       "description": "",
@@ -18548,28 +19137,35 @@
           ],
           "purpose": "Report assets resolve like templatePath and end at the base tool: only"
         },
+        "closeScriptRel": {
+          "line": 257,
+          "params": [
+            "root"
+          ],
+          "purpose": "The close script the implement flow's digest step runs, resolved exactly as"
+        },
         "interpolate": {
-          "line": 252,
+          "line": 264,
           "params": [
             "template",
             "vars"
           ]
         },
         "catalogLines": {
-          "line": 258,
+          "line": 270,
           "params": [
             "index"
           ],
           "purpose": "Six-line copy of spec-index.js's formatter — see the header note."
         },
         "specCatalog": {
-          "line": 265,
+          "line": 277,
           "params": [
             "root"
           ]
         },
         "buildPrompt": {
-          "line": 272,
+          "line": 284,
           "params": [
             "root",
             "slug",
@@ -18578,13 +19174,13 @@
           ]
         },
         "promptMode": {
-          "line": 302,
+          "line": 315,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 16391,
+      "sizeBytes": 16896,
       "extraction": {
         "status": "parsed"
       },
@@ -18592,6 +19188,7 @@
         "purposes": {
           "candidates": "f513fc5d43d8cbb8",
           "catalogLines": "a8e2caeefaa868f1",
+          "closeScriptRel": "5d0b92db45c7cf6a",
           "commandOf": "069e914f97632a46",
           "namedSlug": "782912f88bd3875d",
           "reportAssetRel": "38cbe8bc969f5efc",
@@ -18670,64 +19267,65 @@
         "fs",
         "path",
         "activity-log",
-        "toolVocabulary"
+        "toolVocabulary",
+        "spec-close-state"
       ],
       "functions": {
         "toPosix": {
-          "line": 43,
+          "line": 47,
           "params": [
             "p"
           ]
         },
         "fold": {
-          "line": 45,
+          "line": 49,
           "params": [
             "s"
           ]
         },
         "tokenize": {
-          "line": 54,
+          "line": 58,
           "params": [
             "s"
           ]
         },
         "readStdin": {
-          "line": 58
+          "line": 62
         },
         "readJson": {
-          "line": 62,
+          "line": 66,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 68,
+          "line": 72,
           "params": [
             "hookCwd"
           ]
         },
         "contextCliPath": {
-          "line": 77,
+          "line": 81,
           "params": [
             "root"
           ]
         },
         "stateFile": {
-          "line": 85,
+          "line": 89,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "loadState": {
-          "line": 90,
+          "line": 94,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "saveState": {
-          "line": 95,
+          "line": 99,
           "params": [
             "root",
             "sessionId",
@@ -18735,23 +19333,23 @@
           ]
         },
         "cleanupState": {
-          "line": 103,
+          "line": 107,
           "params": [
             "root"
           ]
         },
         "setHookCli": {
-          "line": 155,
+          "line": 168,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 159
+          "line": 172
         },
         "note": {
-          "line": 163,
+          "line": 176,
           "params": [
             "root",
             "ev",
@@ -18759,7 +19357,7 @@
           ]
         },
         "quiet": {
-          "line": 178,
+          "line": 191,
           "params": [
             "root",
             "mode",
@@ -18769,39 +19367,78 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 184,
+          "line": 197,
           "params": [
             "eventName",
             "context",
             "ctx"
           ]
         },
+        "fixInstruction": {
+          "line": 219,
+          "params": [
+            "slugs",
+            "subject = 'edit'"
+          ],
+          "purpose": "How a fix to a finished spec's work records itself. Test-time fixes used to"
+        },
         "formatEntry": {
-          "line": 199,
+          "line": 231,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 211,
+          "line": 243,
           "params": [
             "input"
           ]
         },
+        "inlineBudget": {
+          "line": 308,
+          "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
+        },
+        "closeReminder": {
+          "line": 318,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "The close reminder for this prompt, or null. The helper decides everything"
+        },
+        "freshTopics": {
+          "line": 333,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "Specs related to this prompt that the session has not been shown, or null"
+        },
+        "topicBlock": {
+          "line": 373,
+          "params": [
+            "index",
+            "list"
+          ]
+        },
         "promptMode": {
-          "line": 265,
+          "line": 388,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 14710,
+      "sizeBytes": 19369,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
+          "closeReminder": "53f0b45f5426931c",
+          "fixInstruction": "3025d4b48f1ea9b4",
+          "freshTopics": "0d2ec57657e79c1b",
+          "inlineBudget": "493a88afee203081",
           "quiet": "3e8f4a1504407442",
           "setHookCli": "c07ecdee8595a6cf"
         }
@@ -18819,7 +19456,10 @@
         "parseFrontMatter",
         "parseFootprint",
         "parseOutcome",
-        "parseDigest"
+        "parseDigest",
+        "not a copy of them.\n  firstSentence",
+        "firstParagraph",
+        "DIGEST_LINE_CAP"
       ],
       "depends": [
         "spec-index",
@@ -18882,21 +19522,21 @@
           "purpose": "The first sentence of `text`, cut at a word boundary with \"…\" when it runs"
         },
         "parseOutcome": {
-          "line": 174,
+          "line": 176,
           "params": [
             "md"
           ],
-          "purpose": "Outcome sections: `## T<n> — title` … `_Captured: <date> …_`."
+          "purpose": "Outcome sections: `## T<n> — title` … `_Captured: <date> …_`, and"
         },
         "parseDigest": {
-          "line": 201,
+          "line": 203,
           "params": [
             "md"
           ],
           "purpose": "digest.md: front-matter + the first sentence of the body."
         },
         "lexicalKeywords": {
-          "line": 210,
+          "line": 212,
           "params": [
             "slug",
             "title"
@@ -18904,21 +19544,21 @@
           "purpose": "Fallback keywords when nothing is declared: title + slug tokens."
         },
         "gitExec": {
-          "line": 219,
+          "line": 221,
           "params": [
             "projectPath",
             "args"
           ]
         },
         "buildRenameMap": {
-          "line": 227,
+          "line": 229,
           "params": [
             "projectPath"
           ],
           "purpose": "One pass over history: rename chains old→final path."
         },
         "buildLastTouchMap": {
-          "line": 246,
+          "line": 248,
           "params": [
             "projectPath",
             "sinceIso"
@@ -18926,45 +19566,45 @@
           "purpose": "file → last commit date (ISO), one git call since the oldest spec close."
         },
         "build": {
-          "line": 263,
+          "line": 265,
           "params": [
             "projectPath"
           ]
         },
         "indexPath": {
-          "line": 408,
+          "line": 410,
           "params": [
             "projectPath"
           ]
         },
         "newestSourceMtime": {
-          "line": 412,
+          "line": 414,
           "params": [
             "root"
           ]
         },
         "writeIndex": {
-          "line": 428,
+          "line": 430,
           "params": [
             "projectPath"
           ]
         },
         "ensureFresh": {
-          "line": 441,
+          "line": 443,
           "params": [
             "projectPath"
           ],
           "purpose": "Rebuild only when the index is missing or older than the newest spec"
         },
         "catalogLines": {
-          "line": 455,
+          "line": 457,
           "params": [
             "index"
           ],
           "purpose": "One compact line per spec — the {spec_catalog} embed for spec.new."
         }
       },
-      "sizeBytes": 19173,
+      "sizeBytes": 19509,
       "extraction": {
         "status": "parsed"
       },
@@ -18980,7 +19620,7 @@
           "parseDigest": "4a83bd05f3efb5fc",
           "parseFootprint": "2cbd05b5ef6d5091",
           "parseFrontMatter": "ab7e13a321f1523c",
-          "parseOutcome": "0a8e749f98978b97"
+          "parseOutcome": "6fc70dbe35b0d7af"
         }
       }
     },
@@ -21171,6 +21811,8 @@
         "WATCHERS",
         "POLLERS",
         "HINT_REASONS",
+        "HINT_MODES",
+        "CLOSE_VERDICTS",
         "LIFECYCLE_REASONS",
         "MISSED_BOUND_REASONS",
         "HOSTS",
@@ -21184,32 +21826,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 429,
+          "line": 475,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 433,
+          "line": 479,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 437,
+          "line": 483,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 441,
+          "line": 487,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 464,
+          "line": 510,
           "params": [
             "name",
             "fields"
@@ -21217,7 +21859,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 481,
+          "line": 527,
           "params": [
             "name",
             "fields"
@@ -21225,7 +21867,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 502,
+          "line": 548,
           "params": [
             "name",
             "fields"
@@ -21233,7 +21875,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 22912,
+      "sizeBytes": 25394,
       "extraction": {
         "status": "parsed"
       },
@@ -22013,7 +22655,7 @@
       ],
       "functions": {
         "interpolate": {
-          "line": 72,
+          "line": 75,
           "params": [
             "template",
             "vars"
@@ -22021,21 +22663,21 @@
           "purpose": "{key} → vars[key]; unknown placeholders are left intact (same contract as"
         },
         "resolveVerificationCommand": {
-          "line": 79,
+          "line": 82,
           "params": [
             "config"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildPermissions": {
-          "line": 91,
+          "line": 94,
           "params": [
             "verification"
           ],
           "purpose": "The implement-permissions.json body. When a verification command exists,"
         },
         "buildLaunchArgs": {
-          "line": 101,
+          "line": 104,
           "params": [
             "settingsAbsPath",
             "promptRelPath"
@@ -22043,7 +22685,7 @@
           "purpose": "The CLI launch line: the permission flags plus the short read-this-file"
         },
         "resolveRawTemplatePath": {
-          "line": 111,
+          "line": 114,
           "params": [
             "projectRoot",
             "existsFn = fs.existsSync"
@@ -22051,20 +22693,20 @@
           "purpose": "Raw template path: override → staged. `existsFn` is injectable for tests."
         },
         "findProjectRoot": {
-          "line": 123,
+          "line": 126,
           "params": [
             "startDir"
           ],
           "purpose": "Walk up from a starting dir to the nearest ancestor that holds a .frame/"
         },
         "readJson": {
-          "line": 133,
+          "line": 136,
           "params": [
             "absPath"
           ]
         },
         "recordAutonomousMode": {
-          "line": 143,
+          "line": 146,
           "params": [
             "projectRoot",
             "slug"
@@ -22072,25 +22714,25 @@
           "purpose": "Merge implement_mode: autonomous into the spec's status.json, preserving"
         },
         "writePermissions": {
-          "line": 153,
+          "line": 156,
           "params": [
             "projectRoot"
           ]
         },
         "fail": {
-          "line": 162,
+          "line": 165,
           "params": [
             "message"
           ]
         },
         "main": {
-          "line": 167,
+          "line": 170,
           "params": [
             "argv"
           ]
         }
       },
-      "sizeBytes": 8480,
+      "sizeBytes": 8655,
       "extraction": {
         "status": "parsed"
       },
@@ -22295,7 +22937,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 21630,
+      "sizeBytes": 23876,
       "extraction": {
         "status": "parsed"
       },
@@ -22733,7 +23375,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 11202,
+      "sizeBytes": 15085,
       "extraction": {
         "status": "parsed"
       },
@@ -22989,9 +23631,17 @@
         "mkProject": {
           "line": 44,
           "purpose": "A project with one spec, so getCommandPrompt has a status.json to read."
+        },
+        "section": {
+          "line": 196,
+          "params": [
+            "prompt",
+            "from",
+            "to"
+          ]
         }
       },
-      "sizeBytes": 8560,
+      "sizeBytes": 14798,
       "extraction": {
         "status": "parsed"
       },
@@ -23081,7 +23731,9 @@
         "fs",
         "os",
         "path",
-        "child_process"
+        "child_process",
+        "scripts/activity-log",
+        "src/shared/activityEvents"
       ],
       "functions": {
         "runHook": {
@@ -23089,22 +23741,65 @@
           "params": [
             "mode",
             "input",
-            "{ raw = null } = {}"
+            "{ raw = null",
+            "env = {}",
+            "args = []",
+            "hook = HOOK } = {}"
           ]
         },
         "mkProject": {
-          "line": 68,
+          "line": 69,
           "params": [
             "reference = REFERENCE"
           ]
+        },
+        "mkClosable": {
+          "line": 325,
+          "params": [
+            "{ slug = SLUG",
+            "digest = false",
+            "preClosed = false",
+            "tasksRaw = null } = {}"
+          ],
+          "purpose": "A project holding `slug`, its last task still open unless `preClosed`."
+        },
+        "closeAll": {
+          "line": 336,
+          "params": [
+            "root",
+            "slug = SLUG"
+          ],
+          "purpose": "Complete the spec's last task, the way a shell script would."
+        },
+        "closedBy": {
+          "line": 348,
+          "params": [
+            "root",
+            "firstLook",
+            "opts = {}"
+          ],
+          "purpose": "The session's first look, with the spec still open — then the session closes it."
+        },
+        "rowsOf": {
+          "line": 354,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every activity row the hook wrote for this project, each checked against the registry."
         }
       },
-      "sizeBytes": 13653,
+      "sizeBytes": 25849,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "7cf6097a8e5aec5b"
+        "description": "7cf6097a8e5aec5b",
+        "purposes": {
+          "closeAll": "506474a93dcd1f0e",
+          "closedBy": "cfddeda123aa0af1",
+          "mkClosable": "db119b3b11c9e5f4",
+          "rowsOf": "2b5937aa7baca604"
+        }
       }
     },
     "test/docsHealth.test": {
@@ -24255,10 +24950,12 @@
         "node:test",
         "node:assert/strict",
         "path",
-        "src/templates/bin/implement-launch"
+        "src/templates/bin/implement-launch",
+        "node:module",
+        "src/main/specManager"
       ],
       "functions": {},
-      "sizeBytes": 5184,
+      "sizeBytes": 6615,
       "extraction": {
         "status": "parsed"
       },
@@ -24438,11 +25135,11 @@
           "purpose": "Lines in `relFile` that build a path with a `specs` segment, as `file:line`."
         },
         "expectedSegments": {
-          "line": 102,
+          "line": 104,
           "purpose": "The segments frameStore puts between a project and its specs: ['.frame', 'specs']."
         },
         "joinArguments": {
-          "line": 112,
+          "line": 114,
           "params": [
             "line",
             "from"
@@ -24450,14 +25147,14 @@
           "purpose": "The arguments of the `path.join(` call starting at `from`, as a flat list."
         },
         "specPathJoins": {
-          "line": 132,
+          "line": 134,
           "params": [
             "relFile"
           ],
           "purpose": "Every spec-path join in `relFile`, with its segments resolved where we can."
         }
       },
-      "sizeBytes": 6975,
+      "sizeBytes": 7057,
       "extraction": {
         "status": "parsed"
       },
@@ -24905,6 +25602,207 @@
         "description": "134639e22914d629"
       }
     },
+    "test/spec-close-fixture.test": {
+      "file": "test/spec-close-fixture.test.js",
+      "description": "Spec close step — fixture and runner tests.",
+      "exports": [
+        "greet",
+        "${n || 'stranger'"
+      ],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "path",
+        "child_process",
+        "scripts/eval/spec-close/make-fixture",
+        "scripts/eval/spec-close/run",
+        "src/shared/frameTemplates"
+      ],
+      "functions": {
+        "withFixture": {
+          "line": 37,
+          "params": [
+            "kind",
+            "fn"
+          ]
+        },
+        "envOf": {
+          "line": 47,
+          "params": [
+            "fixture"
+          ],
+          "purpose": "The fixture's environment for anything run inside it: its own activity home, nobody else's root."
+        },
+        "hook": {
+          "line": 59,
+          "params": [
+            "fixture",
+            "event",
+            "script",
+            "payload"
+          ],
+          "purpose": "Run one registered hook the way Claude Code would: the command string from"
+        },
+        "closeCheck": {
+          "line": 80,
+          "params": [
+            "fixture"
+          ]
+        },
+        "appendFix": {
+          "line": 241,
+          "params": [
+            "fixture",
+            "title"
+          ]
+        },
+        "inspected": {
+          "line": 246,
+          "params": [
+            "fixture"
+          ]
+        }
+      },
+      "sizeBytes": 25842,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "01eee78c43692144",
+        "purposes": {
+          "envOf": "77a2d52e47a88a90",
+          "hook": "90fb94588feabdbf"
+        }
+      }
+    },
+    "test/spec-close-state.test": {
+      "file": "test/spec-close-state.test.js",
+      "description": "Spec close state — helper tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/spec-close-state"
+      ],
+      "functions": {
+        "writeTasks": {
+          "line": 42,
+          "params": [
+            "root",
+            "tasks",
+            "{ raw = null } = {}"
+          ],
+          "purpose": "Write tasks.json with an mtime no earlier write shared."
+        },
+        "mkSpec": {
+          "line": 51,
+          "params": [
+            "root",
+            "slug",
+            "{ digest = false",
+            "status = null } = {}"
+          ]
+        },
+        "mkProject": {
+          "line": 60,
+          "params": [
+            "{ specs = []",
+            "tasks = [] } = {}"
+          ],
+          "purpose": "A project holding the given specs and tasks."
+        },
+        "closeIn": {
+          "line": 72,
+          "params": [
+            "root",
+            "session",
+            "before",
+            "after",
+            "now = NOW"
+          ],
+          "purpose": "The session takes its first look with `before` on disk, then the tasks"
+        },
+        "gitInit": {
+          "line": 274,
+          "params": [
+            "root"
+          ]
+        }
+      },
+      "sizeBytes": 20935,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "24c240c9101ebaa5",
+        "purposes": {
+          "closeIn": "eb2b6dd3e560218c",
+          "mkProject": "8494b5262d8ec57c",
+          "writeTasks": "3de6815b184f2a3c"
+        }
+      }
+    },
+    "test/spec-close.test": {
+      "file": "test/spec-close.test.js",
+      "description": "Spec close step — close script tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/spec-close",
+        "scripts/spec-index",
+        "src/shared/activityEvents",
+        "scripts/activity-log",
+        "src/main/structureBootstrap"
+      ],
+      "functions": {
+        "mkProject": {
+          "line": 48,
+          "params": [
+            "{ slug = 'a-spec'",
+            "statuses = ['completed'",
+            "'completed']",
+            "digest = null",
+            "tasksRaw = null } = {}"
+          ],
+          "purpose": "A project with one spec. `digest` is the file's text, or null for none."
+        },
+        "run": {
+          "line": 59,
+          "params": [
+            "root",
+            "args"
+          ]
+        },
+        "snapshot": {
+          "line": 74,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every file under the project, with its content — the activity home aside."
+        }
+      },
+      "sizeBytes": 19410,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "04eb4c5e40bc2520",
+        "purposes": {
+          "mkProject": "b3984d82c4aeb33e",
+          "snapshot": "d1ea210d6033143c"
+        }
+      }
+    },
     "test/spec-command-hint.test": {
       "file": "test/spec-command-hint.test.js",
       "description": "Spec command hook script tests.",
@@ -24938,7 +25836,7 @@
           "purpose": "A project with one spec in `phase`, and the command templates staged."
         }
       },
-      "sizeBytes": 13396,
+      "sizeBytes": 15425,
       "extraction": {
         "status": "parsed"
       },
@@ -24960,7 +25858,8 @@
         "os",
         "path",
         "child_process",
-        "scripts/activity-log"
+        "scripts/activity-log",
+        "src/shared/activityEvents"
       ],
       "functions": {
         "runHook": {
@@ -24979,25 +25878,46 @@
           ]
         },
         "withActivity": {
-          "line": 181,
+          "line": 209,
           "params": [
             "root",
             "fn"
           ]
         },
         "recordsFor": {
-          "line": 193,
+          "line": 221,
           "params": [
             "root"
           ]
+        },
+        "addClosed": {
+          "line": 392,
+          "params": [
+            "root",
+            "{ digest = false",
+            "session = 'p1' } = {}"
+          ],
+          "purpose": "Give a project a spec that `session` closed with no digest: the session's"
+        },
+        "wideIndex": {
+          "line": 407,
+          "params": [
+            "slugs",
+            "width"
+          ],
+          "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 15900,
+      "sizeBytes": 29293,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "68fc601a032f6611"
+        "description": "68fc601a032f6611",
+        "purposes": {
+          "addClosed": "5cceb150c8ba49c1",
+          "wideIndex": "42801f3b44956247"
+        }
       }
     },
     "test/spec-index.test": {
@@ -25038,7 +25958,7 @@
           ]
         }
       },
-      "sizeBytes": 12413,
+      "sizeBytes": 13333,
       "extraction": {
         "status": "parsed"
       },
@@ -27878,7 +28798,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 303,
+        "parsed": 310,
         "unsupported": 84,
         "partial": 0
       }
@@ -27925,9 +28845,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 475,
-      "traversedDirectories": 80,
-      "eligibleFiles": 387,
+      "visitedEntries": 483,
+      "traversedDirectories": 81,
+      "eligibleFiles": 394,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27944,7 +28864,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 387,
+      "indexedFiles": 394,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27952,6 +28872,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "7da2e5b2b85fd6a2f059de6d479f00b6f35b17b92c456584fe7fbeb3cb9cff6f"
+    "revision": "d95ef7c70d54d5006410f3504a0d89051e069dd9e0f37a4ac3e9cb5d22d37add"
   }
 }

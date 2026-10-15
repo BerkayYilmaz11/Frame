@@ -11,7 +11,11 @@
  *              spec history at the moment of intent (never on Grep/Read:
  *              exploration must stay injection-free).
  *   prompt     UserPromptSubmit hook — score the user's prompt against the
- *              topic catalog, surface up to 3 related specs.
+ *              topic catalog, surface up to 3 related specs. Also where a
+ *              spec that closed without its digest is announced when the
+ *              turn that closed it made no further tool call
+ *              (spec-close-state.js decides; docs-hint.js covers the
+ *              same-turn case).
  *
  * Hard contract (from the spec):
  *   - NEVER block, NEVER break: any failure → exit 0, empty output.
@@ -143,6 +147,15 @@ try {
   /* older generation — the inline fallback below is the old behaviour */
 }
 
+// What a closed spec still owes. Guarded like the two above: a `.frame/bin/`
+// that predates spec-close-state.js surfaces related specs exactly as before.
+let closeState = null;
+try {
+  closeState = require('./spec-close-state');
+} catch {
+  /* older generation — no reminder */
+}
+
 /**
  * Which host this record came from. The activity registry keeps one value per
  * CLI so "Codex hooks are installed but nothing has ever run" is answerable
@@ -193,6 +206,25 @@ function emit(eventName, context, ctx) {
 
 const RELAY_INSTRUCTION = 'If this history affects your work, relay it to the user in 1-2 sentences before changing the file ' +
   '(what was done here before, how it shapes your change); if it does not, stay silent about it. Do not repeat this for the same file.';
+
+/**
+ * How a fix to a finished spec's work records itself. Test-time fixes used to
+ * reach the code and nothing else, so the next agent read a digest describing
+ * the work before the fix. Said at two moments: the prompt that asks for the
+ * fix, when it names a finished spec, and an edit to a file whose newest
+ * record is one — the second alone missed every fix made through the shell,
+ * because this hook is registered on Edit and Write only. Whether a change is
+ * such a fix is the agent's call; the sentence is conditional on purpose.
+ */
+function fixInstruction(slugs, subject = 'edit') {
+  const list = [].concat(slugs);
+  const where = list.length === 1
+    ? `.frame/specs/${list[0]}/outcome.md`
+    : 'the outcome.md of the spec it touches';
+  return `If this ${subject} fixes or adjusts the finished work of ${list.join(' or ')}, record it in the same commit: ` +
+    `a "## Fix — <title>" entry in ${where}, and, if it changes a decision the digest records, the digest updated in ` +
+    'place with a "Revised <YYYY-MM-DD>: …" line before its Chain line. Ask the user if you are not sure whether it does.';
+}
 
 // ─── pre-edit mode ────────────────────────────────────────
 
@@ -256,19 +288,54 @@ function preEdit(input) {
       `\nFull history: node ${cli} --file ${rel}`;
   }
 
+  // The fix rule rides only on a finished spec's file, and not in signal mode,
+  // which is one pointer line by contract.
+  const newest = hist[hist.length - 1];
+  const fix = !signalMode && newest && newest.phase === 'done' && !(newest.flags && newest.flags.inflight)
+    ? `\n${fixInstruction(newest.slug, 'edit')}` : '';
+
   note(root, 'hint.injected', { mode: 'pre-edit', path: rel, specs: specCount });
-  emit('PreToolUse', `Spec history for ${rel} (oldest first — the newest entry is the current truth):\n${body}\n${RELAY_INSTRUCTION}`, { root, mode: 'pre-edit' });
+  emit('PreToolUse', `Spec history for ${rel} (oldest first — the newest entry is the current truth):\n${body}\n${RELAY_INSTRUCTION}${fix}`, { root, mode: 'pre-edit' });
 }
 
 // ─── prompt mode ──────────────────────────────────────────
 
-function promptMode(input) {
-  const root = resolveRoot(input.cwd);
+/**
+ * How much this host inlines, less the margin docs-hint.js keeps. Only the
+ * combined payload is held to it: related specs alone are sent as they
+ * always were.
+ */
+function inlineBudget() {
+  return (vocab ? vocab.inlineCap(hookCli) : 2000) - 20;
+}
+
+/**
+ * The close reminder for this prompt, or null. The helper decides everything
+ * — closed by this session, not orchestrated, not yet said this session,
+ * which includes "docs-hint.js already said it on a tool call"; this records
+ * what it reports and hands back the line.
+ */
+function closeReminder(root, input) {
+  if (!closeState) return null;
+  const out = closeState.reminder(root, input.session_id);
+  if (!out) return null;
+  for (const reason of out.reasons || []) quiet(root, 'spec-close', reason);
+  if (!out.line) return null;
+  note(root, 'hint.injected', { mode: 'spec-close', specs: out.slugs.length });
+  return out.line;
+}
+
+/**
+ * Specs related to this prompt that the session has not been shown, or null
+ * with the reason already recorded. Nothing is marked as shown here: only
+ * the lines that are actually sent are, and that is the caller's to know.
+ */
+function freshTopics(root, input) {
   const index = readJson(path.join(root, '.frame', 'index', 'spec-index.json'));
-  if (!index || !index.topics) return quiet(root, 'prompt', 'no-topics');
+  if (!index || !index.topics) return quiet(root, 'prompt', 'no-topics') || null;
 
   const words = tokenize(input.prompt || '');
-  if (!words.length) return quiet(root, 'prompt', 'no-words');
+  if (!words.length) return quiet(root, 'prompt', 'no-words') || null;
 
   // Document frequency per token → rare matches count double, so a single
   // specific word ("telemetry") clears the threshold while a generic one
@@ -294,27 +361,61 @@ function promptMode(input) {
     }
     if (score >= 2) scored.push({ slug, score });
   }
-  if (!scored.length) return quiet(root, 'prompt', 'no-match');
+  if (!scored.length) return quiet(root, 'prompt', 'no-match') || null;
   scored.sort((a, b) => b.score - a.score);
 
-  const sessionId = input.session_id;
-  const state = loadState(root, sessionId);
+  const state = loadState(root, input.session_id);
   const fresh = scored.filter(s => !state.topics.includes(s.slug)).slice(0, MAX_TOPIC_HITS);
-  if (!fresh.length) return quiet(root, 'prompt', 'no-stale-free-match');
-  cleanupState(root);
-  state.topics.push(...fresh.map(s => s.slug));
-  saveState(root, sessionId, state);
+  if (!fresh.length) return quiet(root, 'prompt', 'no-stale-free-match') || null;
+  return { index, state, fresh };
+}
 
-  const lines = fresh.map(({ slug }) => {
+function topicBlock(index, list) {
+  const lines = list.map(({ slug }) => {
     const t = index.topics[slug];
     const sup = t.supersedes ? ` (supersedes ${t.supersedes})` : '';
     return `- ${slug} (${t.phase})${sup} — ${t.digestLine || t.title} → .frame/specs/${slug}/`;
   });
-  note(root, 'hint.injected', { mode: 'prompt', specs: fresh.length });
-  emit('UserPromptSubmit',
-    `Specs related to this request (from the project's spec archive):\n${lines.join('\n')}\n` +
-    'If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working, and let the user know which prior decisions apply.',
-    { root, mode: 'prompt' });
+  // Only the finished ones among the specs actually sent: a spec dropped for
+  // the budget is not named, and an in-flight spec's work is not done yet.
+  const finished = list.map(({ slug }) => slug).filter((slug) => index.topics[slug].phase === 'done');
+  const fix = finished.length ? `\n${fixInstruction(finished, 'request')}` : '';
+  return `Specs related to this request (from the project's spec archive):\n${lines.join('\n')}\n` +
+    'If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working, and let the user know which prior decisions apply.' +
+    fix;
+}
+
+function promptMode(input) {
+  const root = resolveRoot(input.cwd);
+  // Owed whatever the prompt is about, so it is asked before any of the
+  // topic paths can return — a prompt with no searchable word still gets it.
+  const reminder = closeReminder(root, input);
+  const topics = freshTopics(root, input);
+  if (!topics) {
+    if (reminder) emit('UserPromptSubmit', reminder, { root, mode: 'prompt' });
+    return;
+  }
+
+  // The reminder goes first and whole. If the two together would pass what
+  // the host inlines, related specs are dropped from the end — and left
+  // unmarked, so they come back on a later prompt instead of being lost.
+  const { index, state, fresh } = topics;
+  let sent = fresh;
+  if (reminder) {
+    const budget = inlineBudget();
+    while (sent.length && `${reminder}\n\n${topicBlock(index, sent)}`.length > budget) sent = sent.slice(0, -1);
+    if (!sent.length) {
+      quiet(root, 'prompt', 'no-context');
+      return emit('UserPromptSubmit', reminder, { root, mode: 'prompt' });
+    }
+  }
+
+  cleanupState(root);
+  state.topics.push(...sent.map(s => s.slug));
+  saveState(root, input.session_id, state);
+  note(root, 'hint.injected', { mode: 'prompt', specs: sent.length });
+  const block = topicBlock(index, sent);
+  emit('UserPromptSubmit', reminder ? `${reminder}\n\n${block}` : block, { root, mode: 'prompt' });
 }
 
 // ─── main (never break) ───────────────────────────────────
