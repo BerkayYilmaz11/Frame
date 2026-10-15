@@ -49,3 +49,10 @@ Replaced the New Task form's Description textarea with Request (`index.html`). `
 _Captured: 2026-10-15 · 2 file change(s)_
 
 ---
+## T08 — Rewrite the texts that describe the Kanban
+
+Rewrote the tour's Tasks step, the guide's "Plan and tasks" sentence and capability entry 04.01 to describe the grid, Play on a pending task, and spec tasks hidden until revealed. Beyond the three texts plan.md named, two more in the same files made the same Kanban claim and changed with them: the guide's "Specs & tasks boards" item ("every task, spec-generated or added by hand") and the capabilities diagram's "kanban state" label for tasks.json. Tour and guide tests still pass, including the tour's two-sentence limit.
+
+_Captured: 2026-10-15 · 3 file change(s)_
+
+---

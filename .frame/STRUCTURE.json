@@ -242,7 +242,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 42926,
+      "sizeBytes": 43004,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -9837,7 +9837,7 @@
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35177,
+      "sizeBytes": 35324,
       "extraction": {
         "status": "parsed"
       },
@@ -16767,7 +16767,7 @@
           "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
         }
       },
-      "sizeBytes": 9784,
+      "sizeBytes": 9836,
       "extraction": {
         "status": "parsed"
       },
@@ -28177,6 +28177,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "07a87146fd40b6a123f58abf0c48d95b06e7dd210213f789ea4c6edf79e10fcb"
+    "revision": "46bd9fdd8cceee15cd46b50e22da4acb1a7d11c3aab83827529b07e176c2506c"
   }
 }

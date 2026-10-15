@@ -8588,13 +8588,13 @@
       "title": "Rewrite the texts that describe the Kanban: the tour's Tasks step in `src/renderer/tour/tourSteps.js`, the \"Plan and tasks\" sentence in `src/renderer/guide/guideContent.js`, and the Tasks dashboard entry in `docs/capabilities/index.html`",
       "description": "",
       "source": "spec:tasks-list-view:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:40:37.223Z",
+      "completedAt": "2026-10-15T13:40:37.223Z"
     }
   ],
   "metadata": {
