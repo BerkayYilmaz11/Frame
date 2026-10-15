@@ -8536,13 +8536,13 @@
       "title": "Replace the Kanban with the Specs-style grid in `index.html`, `src/renderer/tasksDashboard.js` and `tasks-dashboard.css`: scope toolbar with counts, Filter and Sort moved to the toolbar's right, In progress / Pending / Completed tile sections from `buildListModel`, the older-done ghost tile, no drag code, id-only Permanent Save, export surface unchanged",
       "description": "",
       "source": "spec:tasks-list-view:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:32:13.489Z",
+      "completedAt": "2026-10-15T13:32:13.489Z"
     },
     {
       "id": "task-spec-tasks-list-view-T05",

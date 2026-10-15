@@ -1,4 +1,4 @@
-/* ==================== TASKS DASHBOARD (KANBAN) ==================== */
+/* ==================== TASKS DASHBOARD ==================== */
 
 .tasks-dashboard {
   position: fixed;
@@ -29,11 +29,20 @@
 
 /* ---------- Header ---------- */
 /* The shared .view-header (view-header.css); only the right-hand controls
-   are the board's own. */
+   are the screen's own. */
 .tasks-dashboard-actions {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+/* The toolbar's right side: Filter and Sort. The toolbar itself is the
+   Specs one (.specs-dashboard-toolbar), scope segments on the left. */
+.tasks-dashboard-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
 }
 
 /* Filter wrapper — anchors the popover relative to the button */
@@ -42,8 +51,8 @@
   display: inline-block;
 }
 
-/* Toolbar buttons (Filter, future Sort) — secondary look next to the
-   accented New Task primary CTA. */
+/* Filter and Sort, on the right of the toolbar where Specs has its
+   search. */
 .tasks-dashboard-toolbar-btn {
   display: inline-flex;
   align-items: center;
@@ -133,6 +142,13 @@
 
 .tasks-dashboard-popover[hidden] {
   display: none;
+}
+
+/* The buttons sit at the toolbar's right edge, so the popover opens
+   leftward from it instead of running off the window. */
+.tasks-dashboard-toolbar-actions .tasks-dashboard-popover {
+  left: auto;
+  right: 0;
 }
 
 .tasks-dashboard-popover-section h5 {
@@ -348,47 +364,6 @@
   background: var(--accent-subtle);
 }
 
-/* Filtered-out cards stay in DOM (so reorder commits remain correct) but
-   disappear visually. */
-.tasks-dashboard-card.filtered-out {
-  display: none;
-}
-
-/* Completed cards outside the project's done window stay in the DOM (the
-   reorder reads full DOM order) but hide until the column is revealed. */
-.tasks-dashboard-cards:not(.show-older) .tasks-dashboard-card.done-older {
-  display: none;
-}
-
-/* The reveal at the foot of Completed: "Show N older" / "Hide older". Sits
-   in the column-empty idiom so it reads as part of the column, not a card. */
-.tasks-dashboard-column-more {
-  flex-shrink: 0;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-tertiary);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast),
-              background var(--transition-fast);
-}
-
-.tasks-dashboard-column-more:hover {
-  color: var(--text-primary);
-  border-color: var(--border-default);
-  background: var(--bg-tertiary);
-}
-
-.tasks-dashboard-column-more:focus-visible {
-  outline: 1px solid var(--accent-primary);
-  outline-offset: 1px;
-}
-
 .tasks-dashboard-btn-icon {
   background: transparent;
   border: 1px solid var(--border-subtle);
@@ -417,172 +392,67 @@
   overflow: hidden;
 }
 
-.tasks-dashboard-columns {
+/* The scrolling list of sections. Same padding and side gutter as the
+   Specs grid, so the two screens line up. */
+.tasks-dashboard-list {
   flex: 1;
   min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-md);
+  overflow-y: auto;
   /* 8px side gutter — the same edge the Terminals grid keeps. */
-  padding: var(--space-md) 8px;
-  overflow: auto;
-}
-
-.tasks-dashboard-column {
+  padding: var(--space-xl) 8px;
   display: flex;
   flex-direction: column;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  min-height: 0;
-  overflow: hidden;
+  gap: var(--space-xl);
 }
 
-.tasks-dashboard-column-header {
-  flex-shrink: 0;
+/* ---------- Sections ---------- */
+/* A heading and a grid — not a card, so the tiles never sit inside one. */
+.tasks-dashboard-section-header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-tertiary);
+  margin-bottom: var(--space-md);
 }
 
-.tasks-dashboard-column-dot {
+.tasks-dashboard-section-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.tasks-dashboard-column-dot.status-pending { background: var(--text-tertiary); }
-.tasks-dashboard-column-dot.status-in-progress { background: var(--info); box-shadow: 0 0 8px rgba(166, 192, 240, 0.5); }
-.tasks-dashboard-column-dot.status-completed { background: var(--success); }
+.tasks-dashboard-section-dot.status-pending { background: var(--text-tertiary); }
+.tasks-dashboard-section-dot.status-in-progress { background: var(--info); box-shadow: 0 0 8px rgba(166, 192, 240, 0.5); }
+.tasks-dashboard-section-dot.status-completed { background: var(--success); }
 
-.tasks-dashboard-column-title {
-  flex: 1;
-  font-size: 12px;
+.tasks-dashboard-section-title {
+  margin: 0;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
-/* Same pill as the Home card header count (.home-card-count), so the
-   column headers and the Home widgets read as one system. */
-.tasks-dashboard-column-count {
-  font-size: 11px;
-  color: var(--accent-primary);
-  background: var(--accent-subtle);
-  border-radius: 99px;
-  padding: 0 8px;
-  line-height: 16px;
+/* The Specs grid's track, per section. */
+.tasks-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+  align-content: start;
 }
 
-/* ---------- Cards container ---------- */
-.tasks-dashboard-cards {
-  flex: 1;
-  padding: var(--space-md);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  transition: background var(--transition-fast);
-}
-
-.tasks-dashboard-cards.drag-over {
-  background: var(--accent-glow);
-  outline: 1px dashed var(--accent-primary);
-  outline-offset: -4px;
-  border-radius: var(--radius-md);
-}
-
-.tasks-dashboard-column-empty {
-  color: var(--text-muted);
-  font-size: 11px;
-  text-align: center;
-  padding: var(--space-xl) var(--space-md);
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-md);
-  font-style: italic;
-}
-
-/* ---------- Card ---------- */
-.tasks-dashboard-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
-  cursor: grab;
-  transition: all var(--transition-fast);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  position: relative;
-}
-
-.tasks-dashboard-card::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 0;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--text-muted);
-}
-
-.tasks-dashboard-card.priority-high::before { background: var(--error); }
-.tasks-dashboard-card.priority-medium::before { background: var(--warning); }
-.tasks-dashboard-card.priority-low::before { background: var(--success); }
-
-/* No hover transform: a card that lifts under the cursor slips out from
-   under it at the edges and re-enters — an oscillating hover (jitter). */
-.tasks-dashboard-card:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-md);
-}
-
-.tasks-dashboard-card.selected {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px var(--accent-primary), var(--shadow-md);
-}
-
-.tasks-dashboard-card.dragging {
-  opacity: 0.45;
-  cursor: grabbing;
-  transform: rotate(-1deg);
-}
-
-.tasks-dashboard-card-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.tasks-dashboard-card-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tasks-dashboard-card-meta {
+/* ---------- Tile ---------- */
+/* The frame is .specs-card (panels.css); these are the task's own parts. */
+.tasks-tile-badges {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 2px;
+  min-width: 0;
 }
 
-.tasks-dashboard-card-priority {
+.tasks-tile-priority {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -590,11 +460,11 @@
   border-radius: 3px;
 }
 
-.tasks-dashboard-card-priority.priority-high { background: var(--error-subtle); color: var(--error); }
-.tasks-dashboard-card-priority.priority-medium { background: rgba(229, 205, 142, 0.15); color: var(--warning); }
-.tasks-dashboard-card-priority.priority-low { background: var(--success-subtle); color: var(--success); }
+.tasks-tile-priority.priority-high { background: var(--error-subtle); color: var(--error); }
+.tasks-tile-priority.priority-medium { background: rgba(229, 205, 142, 0.15); color: var(--warning); }
+.tasks-tile-priority.priority-low { background: var(--success-subtle); color: var(--success); }
 
-.tasks-dashboard-card-category {
+.tasks-tile-category {
   font-size: 10px;
   color: var(--text-tertiary);
   background: var(--bg-hover);
@@ -603,18 +473,24 @@
   text-transform: capitalize;
 }
 
-.tasks-dashboard-card-date {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-left: auto;
+.tasks-tile-body {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 /* ---------- Right aside (New Task form) ---------- */
 /* On demand only: the aside is out of layout unless the New Task form is
-   open, so the board's default state gives all three columns the full
-   width (tasks-detail-on-demand spec). Task details live in the full-page
+   open, so by default the list gets the full width
+   (tasks-detail-on-demand spec). Task details live in the full-page
    drawer below, not here.
-   Fluid width when open: scales with the viewport so cards keep room when
+   Fluid width when open: scales with the viewport so tiles keep room when
    the window is narrow. Floor (220px) is the minimum that still renders
    meta + buttons sensibly; ceiling (380px) matches the previous fixed
    width on roomy screens. */
@@ -633,10 +509,11 @@
 }
 
 /* ---------- Task detail drawer ---------- */
-/* A full-page panel that slides in from the right over the whole board
-   (header, columns and aside) when a card is selected. Same motion as the
-   specs dashboard drawer: always in the DOM, parked off-screen, so opening
-   and closing animate; the columns underneath keep their scroll position. */
+/* A full-page panel that slides in from the right over the whole screen
+   (header, toolbar, list and aside) when a tile is selected. Same motion as
+   the specs dashboard drawer: always in the DOM, parked off-screen, so
+   opening and closing animate; the list underneath keeps its scroll
+   position. */
 .tasks-dashboard-task-drawer {
   position: absolute;
   inset: 0;
@@ -883,7 +760,7 @@
 /* ---------- Inline form (right aside) ---------- */
 /* The form is intentionally roomier than the side-panel modal — this is the
    primary "create" surface from the dashboard. Fluid clamp() so it still
-   scales down with the window and never starves the columns. */
+   scales down with the window and never starves the list. */
 .tasks-dashboard-detail:has(.tasks-dashboard-form:not([style*="display:none"])),
 .tasks-dashboard-detail:has(.tasks-dashboard-form:not([style*="display: none"])) {
   width: clamp(280px, 32vw, 460px);

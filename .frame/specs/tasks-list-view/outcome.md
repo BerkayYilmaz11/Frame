@@ -21,3 +21,10 @@ _Captured: 2026-10-15 · 3 file change(s)_
 _Captured: 2026-10-15 · 2 file change(s)_
 
 ---
+## T04 — Replace the Kanban with the Specs-style grid
+
+Rebuilt the Tasks markup in `index.html`: a toolbar with the scope segments, Filter and Sort moved to its right, and a list container in place of the three columns. `tasksDashboard.js` now renders sections of `.specs-card` tiles and the `.specs-card-older` ghost tile from `buildListModel`; all drag code, `commitOrder` and the column lookups are deleted, and the export surface is unchanged. Permanent Save sends ids only. Beyond the plan, it keeps spec tasks in their file slots and fills the remaining slots with the sorted non-spec tasks, so a sort never reorders a spec's T01…Tn. Section tracks are a task-only `.tasks-dashboard-grid` with the Specs template, because `.specs-dashboard-grid` is itself a full-height scroll container and cannot repeat per section.
+
+_Captured: 2026-10-15 · 3 file change(s)_
+
+---
