@@ -63,3 +63,10 @@ Overturned D4 after review: `listModel.js` drops `specGroups`, and included spec
 _Captured: 2026-10-15 · 7 file change(s)_
 
 ---
+## T10 — In progress / Pending status chips under Active
+
+`buildListModel` now takes `status`, narrows Active to that one section (ignored in All and Done), and returns `status:in_progress` / `status:pending` counts that do not move with the pick, while `specTasks` follows it. `tasksDashboard.js` shows the two chips after the scope segments only while Active is picked, with the Specs phase-chip markup; a second click clears the pick, any scope pick resets it, and an empty pick says "Nothing in progress." or "Nothing pending.". `tasks-dashboard.css` inks them like the section dots, and `test/tasksListModel.test.js` extends the S10 sweep to each status.
+
+_Captured: 2026-10-15 · 4 file change(s)_
+
+---

@@ -8614,12 +8614,13 @@
       "title": "Add In progress / Pending status chips under Active: `buildListModel` takes `status` and returns per-status counts, `tasksDashboard.js` renders the chips after the scope segments while Active is picked, reset on any scope pick",
       "description": "",
       "source": "spec:tasks-list-view:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T15:15:58.466Z",
-      "updatedAt": "2026-10-15T15:15:58.466Z"
+      "updatedAt": "2026-10-15T15:22:24.048Z",
+      "completedAt": "2026-10-15T15:22:24.048Z"
     }
   ],
   "metadata": {

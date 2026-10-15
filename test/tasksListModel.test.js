@@ -5,14 +5,15 @@
  * Pinned: each scope's sections and the unknown-status fallback, spec tasks
  * hidden by default and, when revealed, listed in their status sections in
  * file order (T09), the completed window in `all` / `done` with `showOlder`
- * and window 0, the filter narrowing before counts, stable sort, and counts
- * that equal what each scope lists with and without the reveal (S10).
+ * and window 0, the status chips narrowing Active only (T10 / D18), the
+ * filter narrowing before counts, stable sort, and counts that equal what
+ * each scope and status lists with and without the reveal (S10).
  */
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
-const { SCOPES, SECTIONS, specSlugOf, isSpecTask, buildListModel } = require('../src/renderer/tasks/listModel');
+const { SCOPES, SECTIONS, ACTIVE_STATUSES, specSlugOf, isSpecTask, buildListModel } = require('../src/renderer/tasks/listModel');
 const { DAY_MS } = require('../src/shared/doneWindow');
 
 const NOW = Date.parse('2026-10-15T12:00:00Z');
@@ -44,9 +45,10 @@ const ids = (list) => list.map(t => t.id);
 const section = (m, id) => m.sections.find(s => s.id === id);
 const listed = (m) => m.sections.reduce((n, s) => n + s.tasks.length, 0);
 
-test('exports the three scopes and three sections', () => {
+test('exports the three scopes, three sections and the two Active statuses', () => {
   assert.deepEqual(SCOPES, ['all', 'active', 'done']);
   assert.deepEqual(SECTIONS.map(s => s.id), ['in_progress', 'pending', 'completed']);
+  assert.deepEqual(ACTIVE_STATUSES, ['in_progress', 'pending']);
 });
 
 test('spec tasks are told apart by source, slug is the second field', () => {
@@ -79,6 +81,44 @@ test('done: completed only; all: the three sections', () => {
 
   const all = buildListModel({ tasks: fixture(), scope: 'all', now: NOW });
   assert.deepEqual(all.sections.map(s => s.id), ['in_progress', 'pending', 'completed']);
+});
+
+test('a status narrows Active to that one section', () => {
+  const inProgress = buildListModel({ tasks: fixture(), status: 'in_progress', now: NOW });
+  assert.equal(inProgress.status, 'in_progress');
+  assert.deepEqual(inProgress.sections.map(s => s.id), ['in_progress']);
+  assert.deepEqual(ids(section(inProgress, 'in_progress').tasks), ['i1']);
+
+  const pending = buildListModel({ tasks: fixture(), status: 'pending', showSpecTasks: true, now: NOW });
+  assert.deepEqual(pending.sections.map(s => s.id), ['pending']);
+  assert.deepEqual(ids(section(pending, 'pending').tasks), ['p1', 'alpha-T01', 'p2', 'odd', 'p3', 'alpha-T03']);
+});
+
+test('a status is ignored outside Active, and an unknown one everywhere', () => {
+  for (const scope of ['all', 'done']) {
+    const m = buildListModel({ tasks: fixture(), scope, status: 'pending', now: NOW });
+    assert.equal(m.status, null, scope);
+    assert.deepEqual(m.sections.map(s => s.id), buildListModel({ tasks: fixture(), scope, now: NOW }).sections.map(s => s.id));
+  }
+  for (const status of ['completed', 'blocked', '']) {
+    const m = buildListModel({ tasks: fixture(), status, now: NOW });
+    assert.equal(m.status, null, status);
+    assert.deepEqual(m.sections.map(s => s.id), ['in_progress', 'pending']);
+  }
+});
+
+test('per-status counts stay put whichever status is picked; the spec-task count follows it', () => {
+  for (const status of [null, ...ACTIVE_STATUSES]) {
+    const m = buildListModel({ tasks: fixture(), status, now: NOW });
+    assert.equal(m.counts['status:in_progress'], 1, String(status));
+    assert.equal(m.counts['status:pending'], 4, String(status));
+    assert.equal(m.counts.active, 5, String(status));
+  }
+  assert.equal(buildListModel({ tasks: fixture(), status: 'in_progress', now: NOW }).counts.specTasks, 1);
+  assert.equal(buildListModel({ tasks: fixture(), status: 'pending', now: NOW }).counts.specTasks, 2);
+  const revealed = buildListModel({ tasks: fixture(), showSpecTasks: true, now: NOW });
+  assert.equal(revealed.counts['status:in_progress'], 2);
+  assert.equal(revealed.counts['status:pending'], 6);
 });
 
 test('an unknown scope falls back to active', () => {
@@ -203,7 +243,10 @@ test('the default sort keeps file order', () => {
 
 test('counts without the reveal leave spec tasks out and say how many the scope would add', () => {
   const m = buildListModel({ tasks: fixture(), scope: 'active', windowDays: 7, now: NOW });
-  assert.deepEqual(m.counts, { all: 6, active: 5, done: 1, doneTotal: 2, specTasks: 3 });
+  assert.deepEqual(m.counts, {
+    all: 6, active: 5, done: 1, doneTotal: 2, specTasks: 3,
+    'status:in_progress': 1, 'status:pending': 4
+  });
   const done = buildListModel({ tasks: fixture(), scope: 'done', windowDays: 7, now: NOW });
   assert.equal(done.counts.specTasks, 1);
   const all = buildListModel({ tasks: fixture(), scope: 'all', windowDays: 7, now: NOW });
@@ -212,7 +255,10 @@ test('counts without the reveal leave spec tasks out and say how many the scope 
 
 test('counts with the reveal include spec tasks under the same window', () => {
   const m = buildListModel({ tasks: fixture(), scope: 'active', windowDays: 7, showSpecTasks: true, now: NOW });
-  assert.deepEqual(m.counts, { all: 10, active: 8, done: 2, doneTotal: 4, specTasks: 3 });
+  assert.deepEqual(m.counts, {
+    all: 10, active: 8, done: 2, doneTotal: 4, specTasks: 3,
+    'status:in_progress': 2, 'status:pending': 6
+  });
 });
 
 test('S10 · each scope count equals what that scope lists, with and without the reveal', () => {
@@ -227,6 +273,10 @@ test('S10 · each scope count equals what that scope lists, with and without the
           assert.equal(listed(m), counts[scope], `${scope} spec=${showSpecTasks} window=${windowDays} older=${showOlder}`);
           // The segment counts are the same whichever segment is selected.
           assert.deepEqual(scopeCounts(m.counts), scopeCounts(counts));
+        }
+        for (const status of ACTIVE_STATUSES) {
+          const m = buildListModel({ ...opts, status });
+          assert.equal(listed(m), counts[`status:${status}`], `${status} spec=${showSpecTasks}`);
         }
       }
     }

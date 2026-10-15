@@ -1,6 +1,6 @@
 /**
- * Tasks screen list model — what the grid lists for a given scope, filter,
- * sort, done window and spec-tasks reveal.
+ * Tasks screen list model — what the grid lists for a given scope, status,
+ * filter, sort, done window and spec-tasks reveal.
  *
  * Pure by design (tasks-list-view spec, D11), like `specs/filterModel.js`:
  * a function over the task list, so the scope × section × spec reveal ×
@@ -16,7 +16,9 @@
  * - `matches` (the category/priority filter) narrows the pool before
  *   anything is counted.
  * - sections per scope: `active` → in_progress, pending; `done` →
- *   completed; `all` → all three. Completed tasks — spec tasks included —
+ *   completed; `all` → all three. `status` (`in_progress` | `pending`)
+ *   narrows Active to that one section, like the Specs phase chips (D18);
+ *   outside Active it is ignored. Completed tasks — spec tasks included —
  *   older than `windowDays` are dropped and reported as `olderCount`,
  *   unless `windowDays` is 0 or `showOlder`. Active is never windowed. Age
  *   is read from `completedAt || updatedAt`.
@@ -24,8 +26,10 @@
  *   section, stable on file order.
  * - `counts` answer "what will I see if I click": spec tasks enter `all`,
  *   `active` and `done` only while revealed, and `done` follows the window.
- *   `doneTotal` is the unwindowed done count; `specTasks` is how many spec
- *   tasks the current scope would list if revealed.
+ *   `doneTotal` is the unwindowed done count; `status:in_progress` and
+ *   `status:pending` count each Active section and do not move with
+ *   `status`; `specTasks` is how many spec tasks the current scope and
+ *   status would list if revealed.
  */
 
 const { partitionDone } = require('../../shared/doneWindow');
@@ -43,6 +47,9 @@ const SECTIONS_BY_SCOPE = Object.freeze({
   active: ['in_progress', 'pending'],
   done: ['completed']
 });
+
+// The sections a status chip can narrow Active to.
+const ACTIVE_STATUSES = Object.freeze(SECTIONS_BY_SCOPE.active);
 
 const STATUSES = SECTIONS.map(s => s.id);
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -78,6 +85,7 @@ function comparatorFor(sortMode, indexOf) {
 function buildListModel({
   tasks = [],
   scope = 'active',
+  status = null,
   showSpecTasks = false,
   matches = () => true,
   sortMode = 'default',
@@ -86,6 +94,7 @@ function buildListModel({
   now = Date.now()
 } = {}) {
   const effectiveScope = SCOPES.includes(scope) ? scope : 'active';
+  const effectiveStatus = effectiveScope === 'active' && ACTIVE_STATUSES.includes(status) ? status : null;
   const pool = tasks.filter(t => t && matches(t));
   const indexOf = new Map(pool.map((t, i) => [t, i]));
 
@@ -98,12 +107,15 @@ function buildListModel({
   const hidden = new Set(older);
 
   const inScope = (task) => {
-    const status = statusOf(task);
-    if (status === 'completed') return effectiveScope !== 'active' && !hidden.has(task);
-    return effectiveScope !== 'done';
+    const taskStatus = statusOf(task);
+    if (taskStatus === 'completed') return effectiveScope !== 'active' && !hidden.has(task);
+    return effectiveScope !== 'done' && (!effectiveStatus || taskStatus === effectiveStatus);
   };
 
-  const counts = { all: 0, active: 0, done: 0, doneTotal: 0, specTasks: 0 };
+  const counts = {
+    all: 0, active: 0, done: 0, doneTotal: 0, specTasks: 0,
+    'status:in_progress': 0, 'status:pending': 0
+  };
   for (const task of pool) {
     const spec = isSpecTask(task);
     const done = statusOf(task) === 'completed';
@@ -115,12 +127,14 @@ function buildListModel({
     } else {
       counts.active++;
       counts.all++;
+      counts[`status:${statusOf(task)}`]++;
     }
   }
 
   const compare = comparatorFor(sortMode, indexOf);
   const listable = (task) => showSpecTasks || !isSpecTask(task);
-  const sections = SECTIONS_BY_SCOPE[effectiveScope].map((id) => {
+  const sectionIds = SECTIONS_BY_SCOPE[effectiveScope].filter(id => !effectiveStatus || id === effectiveStatus);
+  const sections = sectionIds.map((id) => {
     const list = pool.filter(t => listable(t) && statusOf(t) === id && inScope(t));
     if (compare) list.sort(compare);
     return { id, tasks: list };
@@ -130,7 +144,7 @@ function buildListModel({
     ? 0
     : older.filter(t => showSpecTasks || !isSpecTask(t)).length;
 
-  return { scope: effectiveScope, sections, olderCount, counts };
+  return { scope: effectiveScope, status: effectiveStatus, sections, olderCount, counts };
 }
 
-module.exports = { SCOPES, SECTIONS, specSlugOf, isSpecTask, buildListModel };
+module.exports = { SCOPES, SECTIONS, ACTIVE_STATUSES, specSlugOf, isSpecTask, buildListModel };

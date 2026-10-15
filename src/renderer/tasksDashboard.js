@@ -5,7 +5,9 @@
  * view header (title, New Task, close), a toolbar with the All / Active /
  * Done scope and its counts on the left and Filter / Sort on the right, and
  * a list of task tiles in the Specs grid. Active lists In progress above
- * Pending; Done lists Completed under the project's done window, older ones
+ * Pending, and its In progress / Pending chips narrow it to one of the two
+ * (as the Specs phase chips do); Done lists Completed under the project's
+ * done window, older ones
  * behind the "Show" ghost tile. Nothing is draggable: a task changes status
  * through Play, its drawer actions, or the agent closing it.
  *
@@ -36,7 +38,7 @@ const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const doneWindow = require('./doneWindow');
-const { SECTIONS, isSpecTask, specSlugOf, buildListModel } = require('./tasks/listModel');
+const { SECTIONS, ACTIVE_STATUSES, isSpecTask, specSlugOf, buildListModel } = require('./tasks/listModel');
 
 const STATUS_LABELS = {
   pending: 'Pending',
@@ -52,6 +54,11 @@ const SCOPE_FILTERS = [
 
 const SECTION_LABELS = Object.fromEntries(SECTIONS.map(s => [s.id, s.label]));
 
+const EMPTY_STATUS = {
+  in_progress: 'Nothing in progress.',
+  pending: 'Nothing pending.'
+};
+
 let isVisible = false;
 let tasks = [];
 let selectedTaskId = null;
@@ -61,6 +68,9 @@ let specToggleEl = null;     // toolbar: the "Include spec tasks" checkbox label
 let listEl = null;           // the sections of tiles
 // Opens on Active, as Specs does; the user can pick All or Done.
 let scope = 'active';
+// In progress or Pending: narrows Active only; cleared by any scope pick,
+// like the Specs phase chips.
+let statusFilter = null;
 // Completed tasks older than the project's done window hide behind the
 // "Show" ghost tile (boards-done-window spec). The reveal is session state
 // on the open project: it survives TASKS_DATA re-renders and resets on a
@@ -273,6 +283,7 @@ function listModel() {
   return buildListModel({
     tasks,
     scope,
+    status: statusFilter,
     showSpecTasks,
     matches: filterMatches,
     sortMode: sort.mode,
@@ -293,9 +304,10 @@ function render() {
 }
 
 /**
- * The scope segments and the spec-tasks checkbox, painted from the same
- * model the list is painted from so each count answers "what will I see if
- * I click this". A scope pick resets the older-done reveal, as on Specs.
+ * The scope segments, Active's status chips and the spec-tasks checkbox,
+ * painted from the same model the list is painted from so each count
+ * answers "what will I see if I click this". A scope pick resets the status
+ * chip and the older-done reveal, as on Specs.
  */
 function renderToolbar(model) {
   if (!filtersEl) return;
@@ -311,11 +323,31 @@ function renderToolbar(model) {
     return `<button type="button" class="specs-filter-seg${on ? ' active' : ''}" data-scope="${f.id}" aria-pressed="${on}" tabindex="-1"${title}>${f.label}${count(counts[f.id])}</button>`;
   }).join('');
 
-  filtersEl.innerHTML = `<div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>`;
+  let chips = '';
+  if (scope === 'active') {
+    chips = ACTIVE_STATUSES.map(id => {
+      const on = statusFilter === id;
+      const n = counts[`status:${id}`] || 0;
+      return `<button type="button" class="specs-filter-chip status-${id.replace('_', '-')}${on ? ' active' : ''}${n ? '' : ' is-empty'}" data-status="${id}" aria-pressed="${on}" tabindex="-1"><span class="specs-filter-dot" aria-hidden="true"></span>${SECTION_LABELS[id]}${count(n)}</button>`;
+    }).join('');
+  }
+
+  filtersEl.innerHTML = `
+    <div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>
+    ${chips ? `<span class="specs-filter-divider" aria-hidden="true"></span>
+    <div class="specs-filter-phases" role="group" aria-label="Status">${chips}</div>` : ''}
+  `;
   filtersEl.querySelectorAll('[data-scope]').forEach(btn => {
     btn.addEventListener('click', () => {
       scope = btn.dataset.scope;
+      statusFilter = null;
       showOlderDone = false;
+      render();
+    });
+  });
+  filtersEl.querySelectorAll('[data-status]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      statusFilter = statusFilter === btn.dataset.status ? null : btn.dataset.status;
       render();
     });
   });
@@ -366,6 +398,8 @@ function renderList(model) {
     listEl.appendChild(empty);
   } else if (isFilterActive()) {
     listEl.appendChild(emptyState('No tasks match the active filter.'));
+  } else if (model.status) {
+    listEl.appendChild(emptyState(EMPTY_STATUS[model.status]));
   } else if (scope === 'done') {
     listEl.appendChild(emptyState('No completed tasks.'));
   } else if (scope === 'active') {

@@ -45,6 +45,18 @@
   flex-shrink: 0;
 }
 
+/* Active's status chips are the Specs phase chips (panels.css), inked
+   like the section dots they narrow to. */
+.specs-filter-chip.status-in-progress {
+  --phase-ink: var(--info);
+  --phase-wash: rgba(166, 192, 240, 0.15);
+}
+
+.specs-filter-chip.status-pending {
+  --phase-ink: var(--text-secondary);
+  --phase-wash: var(--bg-hover);
+}
+
 /* "Include spec tasks": a plain checkbox, not a chip, because it is a
    setting on the whole list rather than a narrowing filter. */
 .tasks-dashboard-spec-toggle {
