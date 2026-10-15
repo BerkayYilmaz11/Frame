@@ -8601,12 +8601,13 @@
       "title": "Replace the \"Spec tasks\" chip and section with an \"Include spec tasks\" checkbox: included spec tasks join the status sections in `listModel.js` (no `specGroups`), a spec tile carries a `<slug> · T##` label and no Play, and the guide, tour and capability texts name the checkbox",
       "description": "",
       "source": "spec:tasks-list-view:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T15:15:58.466Z",
-      "updatedAt": "2026-10-15T15:15:58.466Z"
+      "updatedAt": "2026-10-15T15:19:38.399Z",
+      "completedAt": "2026-10-15T15:19:38.399Z"
     },
     {
       "id": "task-spec-tasks-list-view-T10",

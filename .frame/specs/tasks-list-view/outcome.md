@@ -56,3 +56,10 @@ Rewrote the tour's Tasks step, the guide's "Plan and tasks" sentence and capabil
 _Captured: 2026-10-15 · 3 file change(s)_
 
 ---
+## T09 — Spec tasks join the status sections behind an "Include spec tasks" checkbox
+
+Overturned D4 after review: `listModel.js` drops `specGroups`, and included spec tasks now sit in the In progress / Pending / Completed sections under the same scope, window and sort rules. `tasksDashboard.js` replaces the "Spec tasks" chip and bottom section with an "Include spec tasks n" checkbox on the toolbar's right (`index.html`, `tasks-dashboard.css`). A spec tile shows `<slug> · T##` in its foot instead of its number and status pill, and keeps no Play. The guide sentence and capability entry 04.01 name the checkbox; the tour step already said only "hidden until you show them", so it stays.
+
+_Captured: 2026-10-15 · 7 file change(s)_
+
+---

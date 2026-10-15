@@ -45,6 +45,37 @@
   flex-shrink: 0;
 }
 
+/* "Include spec tasks": a plain checkbox, not a chip, because it is a
+   setting on the whole list rather than a narrowing filter. */
+.tasks-dashboard-spec-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tasks-dashboard-spec-toggle[hidden] {
+  display: none;
+}
+
+.tasks-dashboard-spec-toggle:hover {
+  color: var(--text-primary);
+}
+
+.tasks-dashboard-spec-toggle input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
 /* Filter wrapper — anchors the popover relative to the button */
 .tasks-dashboard-filter-wrap {
   position: relative;
@@ -424,7 +455,6 @@
 .tasks-dashboard-section-dot.status-pending { background: var(--text-tertiary); }
 .tasks-dashboard-section-dot.status-in-progress { background: var(--info); box-shadow: 0 0 8px rgba(166, 192, 240, 0.5); }
 .tasks-dashboard-section-dot.status-completed { background: var(--success); }
-.tasks-dashboard-section-dot.status-spec { background: var(--accent-primary); }
 
 .tasks-dashboard-section-title {
   margin: 0;
@@ -443,61 +473,6 @@
   align-content: start;
 }
 
-/* ---------- Spec tasks (revealed) ---------- */
-/* The toolbar chip that reveals them borrows the Specs phase-chip frame. */
-.tasks-filter-spec-chip {
-  --phase-ink: var(--accent-primary);
-  --phase-wash: var(--accent-subtle);
-}
-
-/* One group per spec inside the Spec tasks section: slug + Open spec,
-   then the spec's tiles in T order. */
-.tasks-dashboard-spec-group + .tasks-dashboard-spec-group {
-  margin-top: var(--space-lg);
-}
-
-.tasks-dashboard-spec-group-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-  min-width: 0;
-}
-
-.tasks-dashboard-spec-group-slug {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tasks-dashboard-spec-link {
-  flex-shrink: 0;
-  padding: 0 8px;
-  border: none;
-  border-radius: 99px;
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 18px;
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.tasks-dashboard-spec-link:hover {
-  background: var(--accent-primary);
-  color: var(--bg-deep);
-}
-
-.tasks-dashboard-spec-link:focus-visible {
-  outline: 1px solid var(--accent-primary);
-  outline-offset: 1px;
-}
-
 /* ---------- Tile ---------- */
 /* The frame is .specs-card (panels.css); these are the task's own parts. */
 .tasks-tile-badges {
@@ -508,25 +483,17 @@
   min-width: 0;
 }
 
-/* A spec tile's number in its spec and its status — it sits outside the
-   status sections, so it has to say which one it is in. */
-.tasks-tile-num {
+/* A spec task's spec and number, in the tile foot: it sits among the other
+   tasks, so this is what says it belongs to a spec and has no Play. */
+.tasks-tile-spec {
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--accent-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.tasks-tile-status {
-  font-size: 10px;
-  padding: 4px 8px;
-  border-radius: 3px;
-  background: var(--bg-hover);
-  color: var(--text-tertiary);
-}
-
-.tasks-tile-status.status-in-progress { background: rgba(166, 192, 240, 0.15); color: var(--info); }
-.tasks-tile-status.status-completed { background: var(--success-subtle); color: var(--success); }
 
 .tasks-tile-priority {
   font-size: 9px;

@@ -9,9 +9,9 @@
  *
  * Rules:
  * - a spec task is one whose `source` starts with `spec:`; its slug is the
- *   second `:` field. Spec tasks never enter the status sections — they are
- *   listed only while revealed, in `specGroups`, grouped by slug in
- *   first-appearance order, each group in file order (D4).
+ *   second `:` field. Spec tasks are listed only while revealed, and then in
+ *   the status sections like any other task, under the same scope, window
+ *   and sort rules (D4 as amended by T09).
  * - an unknown status counts as `pending`.
  * - `matches` (the category/priority filter) narrows the pool before
  *   anything is counted.
@@ -21,7 +21,7 @@
  *   unless `windowDays` is 0 or `showOlder`. Active is never windowed. Age
  *   is read from `completedAt || updatedAt`.
  * - `sortMode` (`default` | `category` | `priority`) sorts inside each
- *   section, stable on file order. Spec groups keep file order.
+ *   section, stable on file order.
  * - `counts` answer "what will I see if I click": spec tasks enter `all`,
  *   `active` and `done` only while revealed, and `done` follows the window.
  *   `doneTotal` is the unwindowed done count; `specTasks` is how many spec
@@ -119,31 +119,18 @@ function buildListModel({
   }
 
   const compare = comparatorFor(sortMode, indexOf);
+  const listable = (task) => showSpecTasks || !isSpecTask(task);
   const sections = SECTIONS_BY_SCOPE[effectiveScope].map((id) => {
-    const list = pool.filter(t => !isSpecTask(t) && statusOf(t) === id && inScope(t));
+    const list = pool.filter(t => listable(t) && statusOf(t) === id && inScope(t));
     if (compare) list.sort(compare);
     return { id, tasks: list };
   });
-
-  const specGroups = [];
-  if (showSpecTasks) {
-    const bySlug = new Map();
-    for (const task of pool) {
-      if (!isSpecTask(task) || !inScope(task)) continue;
-      const slug = specSlugOf(task);
-      if (!bySlug.has(slug)) {
-        bySlug.set(slug, { slug, tasks: [] });
-        specGroups.push(bySlug.get(slug));
-      }
-      bySlug.get(slug).tasks.push(task);
-    }
-  }
 
   const olderCount = effectiveScope === 'active'
     ? 0
     : older.filter(t => showSpecTasks || !isSpecTask(t)).length;
 
-  return { scope: effectiveScope, sections, specGroups, olderCount, counts };
+  return { scope: effectiveScope, sections, olderCount, counts };
 }
 
 module.exports = { SCOPES, SECTIONS, specSlugOf, isSpecTask, buildListModel };

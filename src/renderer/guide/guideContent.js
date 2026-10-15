@@ -317,7 +317,7 @@ const CHAPTERS = [
         sketch: { kind: 'specFlow', focus: 'plan,tasks' },
         blocks: [
           { p: 'Generate Plan sends the agent back to the code: it checks every claim the spec makes, asks you the decisions that are genuinely yours, and writes `plan.md` together with a visual plan report you can open from the spec\'s page.' },
-          { p: 'Break into Tasks turns the plan into `tasks.md`. Frame imports those tasks by itself and the spec\'s page tracks them as the agent completes them; the Tasks Dashboard keeps them hidden until you press its Spec tasks chip, which lists them under their spec.' }
+          { p: 'Break into Tasks turns the plan into `tasks.md`. Frame imports those tasks by itself and the spec\'s page tracks them as the agent completes them; the Tasks Dashboard keeps them hidden until you tick its Include spec tasks box, which lists them with your own tasks, each labelled with its spec.' }
         ],
         actions: [
           { id: 'panel.toggleTasksDashboard', label: 'Open the Tasks Dashboard' }

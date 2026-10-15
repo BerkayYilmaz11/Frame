@@ -3,10 +3,10 @@
  *
  * Pure by design: requiring it must not reach `electron` or the DOM.
  * Pinned: each scope's sections and the unknown-status fallback, spec tasks
- * hidden by default and grouped by slug in file order when revealed, the
- * completed window in `all` / `done` with `showOlder` and window 0, the
- * filter narrowing before counts, stable sort, and counts that equal what
- * each scope lists with and without the reveal (S10).
+ * hidden by default and, when revealed, listed in their status sections in
+ * file order (T09), the completed window in `all` / `done` with `showOlder`
+ * and window 0, the filter narrowing before counts, stable sort, and counts
+ * that equal what each scope lists with and without the reveal (S10).
  */
 
 const { test } = require('node:test');
@@ -42,8 +42,7 @@ function fixture() {
 
 const ids = (list) => list.map(t => t.id);
 const section = (m, id) => m.sections.find(s => s.id === id);
-const listed = (m) => m.sections.reduce((n, s) => n + s.tasks.length, 0)
-  + m.specGroups.reduce((n, g) => n + g.tasks.length, 0);
+const listed = (m) => m.sections.reduce((n, s) => n + s.tasks.length, 0);
 
 test('exports the three scopes and three sections', () => {
   assert.deepEqual(SCOPES, ['all', 'active', 'done']);
@@ -87,33 +86,28 @@ test('an unknown scope falls back to active', () => {
   assert.equal(m.scope, 'active');
 });
 
-test('spec tasks are hidden by default: no section lists them, no group', () => {
+test('spec tasks are hidden by default: no section lists them', () => {
   for (const scope of SCOPES) {
     const m = buildListModel({ tasks: fixture(), scope, now: NOW });
-    assert.deepEqual(m.specGroups, []);
+    assert.equal(m.specGroups, undefined);
     for (const s of m.sections) assert.ok(s.tasks.every(t => !isSpecTask(t)), `${scope}/${s.id}`);
   }
 });
 
-test('revealed spec tasks are grouped by slug in first-appearance order, file order inside', () => {
+test('revealed spec tasks join the section of their status, in file order with the others', () => {
   const m = buildListModel({ tasks: fixture(), scope: 'all', showSpecTasks: true, windowDays: 0, now: NOW });
-  assert.deepEqual(m.specGroups.map(g => g.slug), ['beta', 'alpha']);
-  assert.deepEqual(ids(m.specGroups[0].tasks), ['beta-T01', 'beta-T02']);
-  assert.deepEqual(ids(m.specGroups[1].tasks), ['alpha-T01', 'alpha-T02', 'alpha-T03']);
-  for (const s of m.sections) assert.ok(s.tasks.every(t => !isSpecTask(t)));
+  assert.deepEqual(m.sections.map(s => s.id), ['in_progress', 'pending', 'completed']);
+  assert.deepEqual(ids(section(m, 'in_progress').tasks), ['i1', 'beta-T02']);
+  assert.deepEqual(ids(section(m, 'pending').tasks), ['p1', 'alpha-T01', 'p2', 'odd', 'p3', 'alpha-T03']);
+  assert.deepEqual(ids(section(m, 'completed').tasks), ['beta-T01', 'c-old', 'c-new', 'alpha-T02']);
 });
 
 test('revealed spec tasks follow the scope', () => {
   const active = buildListModel({ tasks: fixture(), showSpecTasks: true, now: NOW });
-  assert.deepEqual(active.specGroups.map(g => [g.slug, ids(g.tasks)]), [
-    ['alpha', ['alpha-T01', 'alpha-T03']],
-    ['beta', ['beta-T02']]
-  ]);
+  assert.deepEqual(ids(section(active, 'in_progress').tasks), ['i1', 'beta-T02']);
+  assert.deepEqual(ids(section(active, 'pending').tasks), ['p1', 'alpha-T01', 'p2', 'odd', 'p3', 'alpha-T03']);
   const done = buildListModel({ tasks: fixture(), scope: 'done', showSpecTasks: true, now: NOW });
-  assert.deepEqual(done.specGroups.map(g => [g.slug, ids(g.tasks)]), [
-    ['beta', ['beta-T01']],
-    ['alpha', ['alpha-T02']]
-  ]);
+  assert.deepEqual(ids(section(done, 'completed').tasks), ['beta-T01', 'c-old', 'c-new', 'alpha-T02']);
 });
 
 test('the completed window drops older tasks into olderCount in all and done', () => {
@@ -145,7 +139,7 @@ test('the window applies to revealed spec tasks, and their older ones count only
   const hiddenSpec = buildListModel({ tasks: fixture(), scope: 'done', windowDays: 7, now: NOW });
   assert.equal(hiddenSpec.olderCount, 1);
   const shown = buildListModel({ tasks: fixture(), scope: 'done', windowDays: 7, showSpecTasks: true, now: NOW });
-  assert.deepEqual(shown.specGroups.map(g => [g.slug, ids(g.tasks)]), [['beta', ['beta-T01']]]);
+  assert.deepEqual(ids(section(shown, 'completed').tasks), ['beta-T01', 'c-new']);
   assert.equal(shown.olderCount, 2);
 });
 
@@ -170,7 +164,6 @@ test('the filter narrows the pool before anything is counted', () => {
   const m = buildListModel({ tasks: fixture(), matches, showSpecTasks: true, now: NOW });
   assert.deepEqual(ids(section(m, 'pending').tasks), ['p2', 'p3']);
   assert.deepEqual(section(m, 'in_progress').tasks, []);
-  assert.deepEqual(m.specGroups, []);
   assert.equal(m.counts.active, 2);
   assert.equal(m.counts.all, 2);
   assert.equal(m.counts.specTasks, 0);
@@ -193,13 +186,14 @@ test('sort by category is stable on file order inside a section', () => {
   assert.deepEqual(ids(section(m, 'pending').tasks), ['none', 'b1', 'f1', 'f2']);
 });
 
-test('sort leaves spec groups in file order', () => {
+test('revealed spec tasks sort with the others in their section', () => {
   const tasks = [
     spec('alpha', '01', 'pending', { priority: 'low' }),
+    task('p', 'pending', { priority: 'medium' }),
     spec('alpha', '02', 'pending', { priority: 'high' })
   ];
   const m = buildListModel({ tasks, sortMode: 'priority', showSpecTasks: true, now: NOW });
-  assert.deepEqual(ids(m.specGroups[0].tasks), ['alpha-T01', 'alpha-T02']);
+  assert.deepEqual(ids(section(m, 'pending').tasks), ['alpha-T02', 'p', 'alpha-T01']);
 });
 
 test('the default sort keeps file order', () => {

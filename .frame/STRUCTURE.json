@@ -242,7 +242,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 43004,
+      "sizeBytes": 43043,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93109,
+      "sizeBytes": 93430,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -9837,7 +9837,7 @@
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35324,
+      "sizeBytes": 35362,
       "extraction": {
         "status": "parsed"
       },
@@ -15220,7 +15220,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 36571,
+      "sizeBytes": 35537,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15600,7 +15600,7 @@
           ]
         }
       },
-      "sizeBytes": 5426,
+      "sizeBytes": 5052,
       "extraction": {
         "status": "parsed"
       },
@@ -15693,82 +15693,69 @@
       ],
       "functions": {
         "init": {
-          "line": 99
+          "line": 101
         },
         "flatten": {
-          "line": 166,
+          "line": 174,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 186,
+          "line": 194,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 190,
+          "line": 198,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 199
+          "line": 207
         },
         "_load": {
-          "line": 212
+          "line": 220
         },
         "show": {
-          "line": 233
+          "line": 241
         },
         "hide": {
-          "line": 243
+          "line": 251
         },
         "toggle": {
-          "line": 256
-        },
-        "listModel": {
           "line": 264
         },
+        "listModel": {
+          "line": 272
+        },
         "render": {
-          "line": 276
+          "line": 284
         },
         "renderToolbar": {
-          "line": 292,
+          "line": 300,
           "params": [
             "model"
           ],
-          "purpose": "The scope segments, painted from the same model the list is painted from"
+          "purpose": "The scope segments and the spec-tasks checkbox, painted from the same"
         },
         "renderList": {
-          "line": 327,
+          "line": 332,
           "params": [
             "model"
-          ]
-        },
-        "renderSpecSection": {
-          "line": 380,
-          "params": [
-            "groups"
-          ],
-          "purpose": "Revealed spec tasks: one section after the status sections, a group per"
-        },
-        "openSpecLink": {
-          "line": 412,
-          "params": [
-            "slug"
           ]
         },
         "openSpec": {
-          "line": 431,
+          "line": 383,
           "params": [
             "slug"
           ],
           "purpose": "Leave for the Specs screen with this spec in its drawer — the pair"
         },
         "sectionHeader": {
-          "line": 438,
+          "line": 390,
           "params": [
             "id",
             "label",
@@ -15776,7 +15763,7 @@
           ]
         },
         "appendSection": {
-          "line": 454,
+          "line": 406,
           "params": [
             "id",
             "label",
@@ -15785,21 +15772,21 @@
           "purpose": "A section heading plus its grid; returns the grid for the tiles."
         },
         "emptyState": {
-          "line": 468,
+          "line": 420,
           "params": [
             "message",
             "heading"
           ]
         },
         "renderOlderTile": {
-          "line": 483,
+          "line": 435,
           "params": [
             "count"
           ],
           "purpose": "The ghost tile closing Completed: \"N older done tasks · Show\"."
         },
         "renderTile": {
-          "line": 504,
+          "line": 456,
           "params": [
             "task",
             "{ playable = false } = {}"
@@ -15807,24 +15794,24 @@
           "purpose": "One task tile. `playable` puts the Play button on it — pending non-spec"
         },
         "renderPlayButton": {
-          "line": 581,
+          "line": 528,
           "params": [
             "task"
           ],
           "purpose": "Play starts the task through the shared run flow (run modal → Agent"
         },
         "startTask": {
-          "line": 596,
+          "line": 543,
           "params": [
             "task"
           ]
         },
         "syncAside": {
-          "line": 612,
+          "line": 559,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 638,
+          "line": 585,
           "params": [
             "taskId",
             "{ instant = false } = {}"
@@ -15832,55 +15819,55 @@
           "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the list"
         },
         "clearSelection": {
-          "line": 663,
+          "line": 610,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 674,
+          "line": 621,
           "purpose": "Leaving the screen: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 685
+          "line": 632
         },
         "setupForm": {
-          "line": 689
+          "line": 636
         },
         "showForm": {
-          "line": 703
+          "line": 650
         },
         "hideForm": {
-          "line": 718
+          "line": 665
         },
         "requestDeleteSelected": {
-          "line": 726
+          "line": 673
         },
         "submitForm": {
-          "line": 745
+          "line": 692
         },
         "renderDetail": {
-          "line": 767,
+          "line": 714,
           "params": [
             "task"
           ]
         },
         "renderDetailActions": {
-          "line": 850,
+          "line": 797,
           "params": [
             "task"
           ]
         },
         "runDetailAction": {
-          "line": 885,
+          "line": 832,
           "params": [
             "taskId",
             "action"
           ]
         },
         "appendMetaPill": {
-          "line": 900,
+          "line": 847,
           "params": [
             "container",
             "text",
@@ -15888,7 +15875,7 @@
           ]
         },
         "setSection": {
-          "line": 907,
+          "line": 854,
           "params": [
             "textEl",
             "sectionEl",
@@ -15896,64 +15883,64 @@
           ]
         },
         "formatDate": {
-          "line": 918,
+          "line": 865,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 932
+          "line": 879
         },
         "filterMatches": {
-          "line": 936,
+          "line": 883,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 942
+          "line": 889
         },
         "isFilterPopoverOpen": {
-          "line": 980
+          "line": 927
         },
         "toggleFilterPopover": {
-          "line": 984
+          "line": 931
         },
         "openFilterPopover": {
-          "line": 990
+          "line": 937
         },
         "closeFilterPopover": {
-          "line": 996
+          "line": 943
         },
         "clearFilters": {
-          "line": 1002
+          "line": 949
         },
         "updateFilterUI": {
-          "line": 1014
+          "line": 961
         },
         "setupSort": {
-          "line": 1031
+          "line": 978
         },
         "isSortPopoverOpen": {
-          "line": 1076
+          "line": 1023
         },
         "toggleSortPopover": {
-          "line": 1080
+          "line": 1027
         },
         "openSortPopover": {
-          "line": 1086
+          "line": 1033
         },
         "closeSortPopover": {
-          "line": 1092
+          "line": 1039
         },
         "resetSort": {
-          "line": 1098
+          "line": 1045
         },
         "updateSortUI": {
-          "line": 1111
+          "line": 1058
         },
         "commitSortToFile": {
-          "line": 1138,
+          "line": 1085,
           "purpose": "Commit the current sorted view to tasks.json. Ids only (tasks-list-view"
         }
       },
@@ -15970,7 +15957,7 @@
           "REORDER_TASKS"
         ]
       },
-      "sizeBytes": 41893,
+      "sizeBytes": 39803,
       "extraction": {
         "status": "parsed"
       },
@@ -15983,9 +15970,8 @@
           "openSpec": "5b89bd4a75cabfa5",
           "renderOlderTile": "430fa30a4a4f14f7",
           "renderPlayButton": "df7b9dbe108a97fb",
-          "renderSpecSection": "a086a713c0060009",
           "renderTile": "1e3f0bb6063b9fc4",
-          "renderToolbar": "aa535f74454d05a5",
+          "renderToolbar": "8f413684ac5ee01b",
           "resetAside": "7dde6f0750e05609",
           "selectTask": "f3a10ec266d4ef67",
           "syncAside": "c0c3dd8532f563e0"
@@ -26042,7 +26028,7 @@
           "purpose": "Interleaved on purpose so file order is observable everywhere."
         }
       },
-      "sizeBytes": 11312,
+      "sizeBytes": 11380,
       "extraction": {
         "status": "parsed"
       },
@@ -28177,6 +28163,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "46bd9fdd8cceee15cd46b50e22da4acb1a7d11c3aab83827529b07e176c2506c"
+    "revision": "8ffb2058eb47046788d9509f3331cd2aeba30cc56284845c1ec5aa7115d62996"
   }
 }
