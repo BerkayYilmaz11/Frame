@@ -7,3 +7,10 @@ Added `src/renderer/tasks/listModel.js` (`buildListModel`, plus `isSpecTask` and
 _Captured: 2026-10-15 · 2 file change(s)_
 
 ---
+## T02 — Move the run prompt into the pure runPrompt.js
+
+Added `src/renderer/tasks/runPrompt.js` (`missingFields`, `buildTaskPrompt`, `isSpecTask` re-exported from `listModel.js`) and made `tasksPanel.buildTaskPrompt` a one-line delegate; fixed its stale "Kanban" comment. The "Before starting" steps are now built from a list numbered First/Then, so a ready task's prompt is byte-identical to the old builder plus the criteria line (pinned in `test/taskRunPrompt.test.js` against a verbatim copy of the old function). Beyond the plan's wording, the format step tells the agent to read the task's `tasks.json` entry, because that is where a form-created task's `userRequest` is: the prompt itself still carries no request text.
+
+_Captured: 2026-10-15 · 3 file change(s)_
+
+---

@@ -8510,13 +8510,13 @@
       "title": "Move the run prompt into the pure `src/renderer/tasks/runPrompt.js` (`isSpecTask`, `missingFields`, `buildTaskPrompt` with the format step and the acceptance criteria, spec tasks exempt, branch steps unchanged), make `tasksPanel.buildTaskPrompt` delegate to it, and add `test/taskRunPrompt.test.js`",
       "description": "",
       "source": "spec:tasks-list-view:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:23:33.354Z",
+      "completedAt": "2026-10-15T13:23:33.354Z"
     },
     {
       "id": "task-spec-tasks-list-view-T03",
