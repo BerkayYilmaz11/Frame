@@ -12,7 +12,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 // frameProject reaches Electron and analytics transitively; CI runs with no
 // node_modules on purpose, so both are stubbed the way codexHookInstall does.
@@ -51,6 +51,16 @@ const readSettings = (file) => JSON.parse(fs.readFileSync(settingsPath(file), 'u
 const commandsIn = (settings) => Object.values(settings.hooks || {})
   .flat().flatMap((e) => (e.hooks || []).map((h) => h.command));
 
+// Run a hook command that is expected to do nothing. A no-op exits without
+// reading stdin, so writing the payload races its exit: when sh wins, the
+// write fails with EPIPE. Nothing read and exit 0 is exactly the behaviour
+// under test, so EPIPE is not a failure; any other spawn error is.
+function runNoOp(command, opts) {
+  const res = spawnSync('sh', ['-c', command], { input: '{}', ...opts });
+  if (res.error && res.error.code !== 'EPIPE') throw res.error;
+  assert.equal(res.status, 0, String(res.stderr));
+}
+
 // ─── the command itself ───────────────────────────────────
 
 test('the command writes the payload as <terminal>.<tool>.<pid>.json', () => {
@@ -73,7 +83,7 @@ test('outside a Frame terminal the command does nothing and exits 0', () => {
   const env = { ...process.env };
   delete env.FRAME_SESSION_DIR;
   delete env.FRAME_TERMINAL_ID;
-  execFileSync('sh', ['-c', CLAUDE_COMMAND], { input: '{}', env, cwd: projectDir });
+  runNoOp(CLAUDE_COMMAND, { env, cwd: projectDir });
   assert.deepEqual(fs.readdirSync(projectDir), []);
 });
 
@@ -176,7 +186,7 @@ test('codex: the command is a no-op outside a Frame project', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-reports-'));
   try {
     const env = { ...process.env, FRAME_SESSION_DIR: dir, FRAME_TERMINAL_ID: 'term-2' };
-    execFileSync('sh', ['-c', CODEX_COMMAND], { input: '{}', env, cwd: projectDir });
+    runNoOp(CODEX_COMMAND, { env, cwd: projectDir });
     assert.deepEqual(fs.readdirSync(dir), [], 'no .frame/ in cwd → nothing written');
 
     fs.mkdirSync(path.join(projectDir, '.frame'));

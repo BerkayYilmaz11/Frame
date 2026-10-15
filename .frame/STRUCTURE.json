@@ -24988,13 +24988,25 @@
         "src/main/frameProject",
         "src/shared/frameTemplates"
       ],
-      "functions": {},
-      "sizeBytes": 9230,
+      "functions": {
+        "runNoOp": {
+          "line": 58,
+          "params": [
+            "command",
+            "opts"
+          ],
+          "purpose": "Run a hook command that is expected to do nothing. A no-op exits without"
+        }
+      },
+      "sizeBytes": 9698,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "4467a520941da104"
+        "description": "4467a520941da104",
+        "purposes": {
+          "runNoOp": "5cfbbc00e4d6e82a"
+        }
       }
     },
     "test/sessionRestoreStore.test": {
@@ -28165,6 +28177,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "d23f8b8c6de728493613c3ab1395b7424576ef075f8c22d9f103f69f7bdc4031"
+    "revision": "8d08e366cfa2922eac8a11f6a5f0263bdaac3f9dce029a67891543701846e235"
   }
 }
