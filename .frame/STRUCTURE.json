@@ -15562,6 +15562,55 @@
         }
       }
     },
+    "renderer/tasks/listModel": {
+      "file": "src/renderer/tasks/listModel.js",
+      "description": "Tasks screen list model — what the grid lists for a given scope, filter,",
+      "exports": [
+        "SCOPES",
+        "SECTIONS",
+        "specSlugOf",
+        "isSpecTask",
+        "buildListModel"
+      ],
+      "depends": [
+        "../shared/doneWindow"
+      ],
+      "functions": {
+        "specSlugOf": {
+          "line": 51,
+          "params": [
+            "task"
+          ],
+          "purpose": "The spec slug of a `spec:<slug>:T##` task, or null for any other task."
+        },
+        "comparatorFor": {
+          "line": 61,
+          "params": [
+            "sortMode",
+            "indexOf"
+          ]
+        },
+        "buildListModel": {
+          "line": 78,
+          "params": [
+            "{\n  tasks = []",
+            "scope = 'active'",
+            "showSpecTasks = false",
+            "matches = ("
+          ]
+        }
+      },
+      "sizeBytes": 5426,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "11a357d8a2a02f17",
+        "purposes": {
+          "specSlugOf": "c8e2c83507042e80"
+        }
+      }
+    },
     "renderer/tasksDashboard": {
       "file": "src/renderer/tasksDashboard.js",
       "description": "Tasks Dashboard Module",
@@ -25828,6 +25877,33 @@
         "description": "b73f1eabbda70741"
       }
     },
+    "test/tasksListModel.test": {
+      "file": "test/tasksListModel.test.js",
+      "description": "The Tasks screen list model (tasks-list-view spec, T01 / S15).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/tasks/listModel",
+        "src/shared/doneWindow"
+      ],
+      "functions": {
+        "fixture": {
+          "line": 26,
+          "purpose": "Interleaved on purpose so file order is observable everywhere."
+        }
+      },
+      "sizeBytes": 11312,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "07bf47a2789625f8",
+        "purposes": {
+          "fixture": "421d78394089028d"
+        }
+      }
+    },
     "test/tasksManager.test": {
       "file": "test/tasksManager.test.js",
       "description": "tasksManager corruption-recovery tests (T02): corrupt tasks.json must no",
@@ -27289,6 +27365,18 @@
         "description": "IPC Channel Constants"
       }
     ],
+    "list": [
+      {
+        "module": "renderer/tasks/listModel",
+        "file": "src/renderer/tasks/listModel.js",
+        "description": "Tasks screen list model — what the grid lists for a given scope, filter,"
+      },
+      {
+        "module": "templates/sample-project/src/ui/components/TaskList",
+        "file": "src/templates/sample-project/src/ui/components/TaskList.jsx",
+        "description": "TaskList — renders the user's tasks with status filters"
+      }
+    ],
     "menu": [
       {
         "module": "main/menu",
@@ -27355,6 +27443,11 @@
         "module": "renderer/statusBar/branchPickerModel",
         "file": "src/renderer/statusBar/branchPickerModel.js",
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
+      },
+      {
+        "module": "renderer/tasks/listModel",
+        "file": "src/renderer/tasks/listModel.js",
+        "description": "Tasks screen list model — what the grid lists for a given scope, filter,"
       }
     ],
     "onboarding": [
@@ -27861,7 +27954,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 303,
+        "parsed": 305,
         "unsupported": 84,
         "partial": 0
       }
@@ -27908,9 +28001,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 475,
-      "traversedDirectories": 80,
-      "eligibleFiles": 387,
+      "visitedEntries": 478,
+      "traversedDirectories": 81,
+      "eligibleFiles": 389,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27927,7 +28020,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 387,
+      "indexedFiles": 389,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27935,6 +28028,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "3a663e1e58e83b945efc3389e82f9952e05860fbbb459ac9fd91fb765ee42d6f"
+    "revision": "28c1323b0097972dba371e9cf5a83ace59c70c0df0d5c72df6fc05544f934484"
   }
 }

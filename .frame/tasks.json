@@ -8497,13 +8497,13 @@
       "title": "Add the pure list model `src/renderer/tasks/listModel.js` (`buildListModel`: scope sections with the unknown-status fallback, spec tasks hidden or revealed and grouped by slug, completed done window, category/priority filter, stable sort, counts) with `test/tasksListModel.test.js`",
       "description": "",
       "source": "spec:tasks-list-view:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:20:11.859Z",
+      "completedAt": "2026-10-15T13:20:11.859Z"
     },
     {
       "id": "task-spec-tasks-list-view-T02",
