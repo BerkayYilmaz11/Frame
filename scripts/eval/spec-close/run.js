@@ -378,7 +378,11 @@ function inspect(fixture, runDir) {
     behaviour: false
   };
   try {
-    execFileSync('npm', ['test'], { cwd: fixture.root, stdio: 'ignore', timeout: 120000 });
+    // Never the outer runner's NODE_TEST_CONTEXT: inherited under `node --test`, it makes the
+    // fixture's own runner report to a parent and exit 0 on failing tests (Node 20.19).
+    const env = { ...process.env };
+    delete env.NODE_TEST_CONTEXT;
+    execFileSync('npm', ['test'], { cwd: fixture.root, env, stdio: 'ignore', timeout: 120000 });
     facts.testsPass = true;
   } catch { /* the tests fail, or will not run */ }
   if (BEHAVIOUR[fixture.kind]) {

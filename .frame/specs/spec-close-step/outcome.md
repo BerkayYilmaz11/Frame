@@ -292,3 +292,18 @@ Followup: the 30 two-turn sessions left their transcripts under `~/.claude/proje
 _Captured: 2026-10-14 · 0 file changes_
 
 ---
+## Fix — The fixture's `npm test` ignores the outer test runner
+
+CI on Node 20.19 failed `fix-bug` in `test/spec-close-fixture.test.js`: "the planted bug fails the tests" got a
+pass. `inspect` in `scripts/eval/spec-close/run.js` ran the fixture's `npm test` with the inherited
+`NODE_TEST_CONTEXT`, which `node --test` sets on every test file it runs; the fixture's own runner then took
+itself for a child reporting to a parent and exited 0 on a failing test. Node 20.5.1, where the suite was run
+locally, exits 1 either way, so it never showed. `inspect` now drops the variable for that call only. A
+headless run from the shell never had it, so the main run's numbers stand. Within the recorded decisions; the
+digest is unchanged.
+Followup: the fixture's `node --test test/` is a directory argument, which Node 21 and later read as a module
+path, so `fix-bug` and `fix-decision` fail on those versions; CI runs Node 20.
+
+_Captured: 2026-10-15 · 2 file changes_
+
+---

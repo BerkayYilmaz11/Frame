@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-14",
+  "lastUpdated": "2026-10-15",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -17858,7 +17858,7 @@
           "purpose": "What the fixture looks like after its session, read without changing it."
         },
         "pool": {
-          "line": 407,
+          "line": 411,
           "params": [
             "items",
             "size",
@@ -17866,7 +17866,7 @@
           ]
         },
         "main": {
-          "line": 421,
+          "line": 425,
           "params": [
             "argv"
           ]
@@ -17885,7 +17885,7 @@
           ]
         }
       },
-      "sizeBytes": 22669,
+      "sizeBytes": 22928,
       "extraction": {
         "status": "parsed"
       },
@@ -28872,6 +28872,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "82fb9167fe5bc0602c6067f4c07dd06bccaaaa08d5a578b94572de94f04afc8a"
+    "revision": "d95ef7c70d54d5006410f3504a0d89051e069dd9e0f37a4ac3e9cb5d22d37add"
   }
 }
