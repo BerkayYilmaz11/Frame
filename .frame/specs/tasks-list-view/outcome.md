@@ -14,3 +14,10 @@ Added `src/renderer/tasks/runPrompt.js` (`missingFields`, `buildTaskPrompt`, `is
 _Captured: 2026-10-15 · 3 file change(s)_
 
 ---
+## T03 — Make addTask keep the request
+
+`tasksManager.addTask` now copies a non-blank string `userRequest` verbatim, whitespace included. A blank or non-string request records no field. Extended `test/tasksManager.test.js` with the verbatim, blank/absent/wrong-type, and id-only `reorderTasks` cases; the last checks that status, `updatedAt` and `completedAt` all survive. Also rewrote `reorderTasks`' doc comment, which described Kanban drag-and-drop, to say what an entry without a status does. No code change there.
+
+_Captured: 2026-10-15 · 2 file change(s)_
+
+---

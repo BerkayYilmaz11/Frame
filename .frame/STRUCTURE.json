@@ -6086,7 +6086,7 @@
           ]
         },
         "updateTask": {
-          "line": 223,
+          "line": 228,
           "params": [
             "projectPath",
             "taskId",
@@ -6094,57 +6094,57 @@
           ]
         },
         "deleteTask": {
-          "line": 252,
+          "line": 257,
           "params": [
             "projectPath",
             "taskId"
           ]
         },
         "reorderTasks": {
-          "line": 271,
+          "line": 278,
           "params": [
             "projectPath",
             "order"
           ],
-          "purpose": "Reorder tasks (used by the Kanban dashboard for drag-and-drop). The renderer"
+          "purpose": "Reorder tasks. The renderer sends an ordered list of { id, status? }"
         },
         "startWatching": {
-          "line": 329,
+          "line": 336,
           "params": [
             "projectPath"
           ]
         },
         "onMetaFileChange": {
-          "line": 378,
+          "line": 385,
           "params": [
             "listener"
           ]
         },
         "notifyMetaChange": {
-          "line": 382,
+          "line": 389,
           "params": [
             "projectPath",
             "filename"
           ]
         },
         "restartWatching": {
-          "line": 397,
+          "line": 404,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-arm the watcher on the project's current meta directory. Migration moves"
         },
         "stopWatching": {
-          "line": 402
+          "line": 409
         },
         "setupIPC": {
-          "line": 412,
+          "line": 419,
           "params": [
             "ipcMain"
           ]
         },
         "getLastSelfWriteAt": {
-          "line": 472,
+          "line": 479,
           "purpose": "Timestamp of this module's last tasks.json write — exported so other"
         }
       },
@@ -6162,7 +6162,7 @@
           "TASK_UPDATED"
         ]
       },
-      "sizeBytes": 16046,
+      "sizeBytes": 16370,
       "extraction": {
         "status": "parsed"
       },
@@ -6173,7 +6173,7 @@
           "getLastSelfWriteAt": "edca8f7c4c625263",
           "getTasksFilePath": "bf37f0ba6f662615",
           "loadTasks": "75961e36b0aa0c5e",
-          "reorderTasks": "8233e26b366334e7",
+          "reorderTasks": "fad1821f6ffe5090",
           "restartWatching": "a3e83c31810d67bd",
           "sendTasksFileError": "9369701346948a50"
         }
@@ -26004,7 +26004,7 @@
           ]
         }
       },
-      "sizeBytes": 4186,
+      "sizeBytes": 6276,
       "extraction": {
         "status": "parsed"
       },
@@ -28107,6 +28107,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ecbb1d8fa418a581285dfc1e82cfda9b44ad2a8eef2ad2e29055c68a4f9a2cdd"
+    "revision": "f0a827a2ce7d7ba6a78cdc0f6347eb8d71e7baf17de6dd321acf55b50402e85c"
   }
 }

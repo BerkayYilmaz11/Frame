@@ -8523,13 +8523,13 @@
       "title": "Make `tasksManager.addTask` keep a non-blank `userRequest`, and extend `test/tasksManager.test.js` for it and for `reorderTasks` with id-only entries leaving every status untouched",
       "description": "",
       "source": "spec:tasks-list-view:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:25:12.763Z",
+      "completedAt": "2026-10-15T13:25:12.763Z"
     },
     {
       "id": "task-spec-tasks-list-view-T04",
