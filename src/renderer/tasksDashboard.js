@@ -68,6 +68,7 @@ let detailEl = null;         // right aside — hosts the New Task form
 let drawerEl = null;         // full-page task detail drawer
 let detailContentEl = null;  // detail body inside the drawer
 let detailFormEl = null;
+let detailActionsEl = null;  // status actions in the drawer header
 
 /**
  * Dashboard-only filter state. Empty set on a dimension means "no filter on
@@ -98,6 +99,7 @@ function init() {
   drawerEl = document.getElementById('tasks-dashboard-task-drawer');
   detailContentEl = drawerEl.querySelector('.tasks-dashboard-detail-content');
   detailFormEl = document.getElementById('tasks-dashboard-form');
+  detailActionsEl = drawerEl.querySelector('.tasks-dashboard-detail-actions');
   filtersEl = document.getElementById('tasks-dashboard-filters');
   listEl = document.getElementById('tasks-dashboard-list');
 
@@ -318,7 +320,7 @@ function renderList(model) {
     listed += section.tasks.length;
 
     const grid = appendSection(section.id, SECTION_LABELS[section.id], section.tasks.length);
-    for (const task of section.tasks) grid.appendChild(renderTile(task));
+    for (const task of section.tasks) grid.appendChild(renderTile(task, { playable: section.id === 'pending' }));
     if (isCompleted && section.tasks.length === 0) {
       // Everything done is outside the window: the tile is the whole section.
       grid.appendChild(emptyState(`Nothing completed in the last ${days} days.`));
@@ -407,7 +409,11 @@ function renderOlderTile(count) {
   return tile;
 }
 
-function renderTile(task) {
+/**
+ * One task tile. `playable` puts the Play button on it — pending non-spec
+ * tasks only; an in-progress task shows its lane activity dot instead.
+ */
+function renderTile(task, { playable = false } = {}) {
   const tile = document.createElement('div');
   tile.className = `specs-card tasks-tile priority-${task.priority || 'medium'}`;
   tile.dataset.taskId = task.id;
@@ -433,6 +439,7 @@ function renderTile(task) {
     badges.appendChild(cat);
   }
   top.appendChild(badges);
+  if (playable) top.appendChild(renderPlayButton(task));
   tile.appendChild(top);
 
   const title = document.createElement('div');
@@ -458,6 +465,33 @@ function renderTile(task) {
   tile.addEventListener('click', () => selectTask(task.id));
 
   return tile;
+}
+
+const PLAY_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+
+/**
+ * Play starts the task through the shared run flow (run modal → Agent
+ * Dispatch into a new Frame); the task turns in_progress only after the
+ * dispatch succeeds. It never selects the tile.
+ */
+function renderPlayButton(task) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tasks-tile-play';
+  btn.tabIndex = -1;
+  btn.title = 'Start this task in a new Frame';
+  btn.setAttribute('aria-label', `Start ${task.title || 'task'}`);
+  btn.innerHTML = PLAY_ICON;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    startTask(task);
+  });
+  return btn;
+}
+
+function startTask(task) {
+  // Lazy-required: tasksPanel lazy-requires this module too.
+  require('./tasksPanel').openRunFlow(task);
 }
 
 /* ---------- Right aside (form) + detail drawer ---------- */
@@ -632,6 +666,8 @@ function renderDetail(task) {
 
   detailContentEl.querySelector('.tasks-dashboard-detail-title').textContent = task.title || 'Untitled';
 
+  renderDetailActions(task);
+
   const meta = detailContentEl.querySelector('.tasks-dashboard-detail-meta');
   meta.innerHTML = '';
   appendMetaPill(meta, `Priority: ${task.priority || 'medium'}`, `priority-${task.priority || 'medium'}`);
@@ -677,6 +713,62 @@ function renderDetail(task) {
   if (inlineHost && inlineHost.drawerOpened) {
     inlineHost.drawerOpened({ id: task.id, title: task.title || 'Untitled' });
   }
+}
+
+/**
+ * The drawer's status actions for a non-spec task, the same set the task
+ * tab and the Specs task rows offer: pending → Play + Mark complete;
+ * in progress → Mark complete + Back to pending; completed → Reopen. Only
+ * Play starts an agent; the rest just set the status. A spec task gets none
+ * of them — its status belongs to its spec's implement run.
+ */
+const DETAIL_ACTIONS = {
+  pending: [
+    { action: 'start', label: 'Play', icon: PLAY_ICON, primary: true },
+    { action: 'complete', label: 'Mark complete' }
+  ],
+  in_progress: [
+    { action: 'complete', label: 'Mark complete', primary: true },
+    { action: 'pause', label: 'Back to pending' }
+  ],
+  completed: [
+    { action: 'reopen', label: 'Reopen' }
+  ]
+};
+
+const ACTION_STATUS = { complete: 'completed', pause: 'pending', reopen: 'pending' };
+
+function renderDetailActions(task) {
+  if (!detailActionsEl) return;
+  detailActionsEl.innerHTML = '';
+  if (isSpecTask(task)) return;
+
+  const actions = DETAIL_ACTIONS[task.status] || DETAIL_ACTIONS.pending;
+  for (const def of actions) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `tasks-dashboard-detail-action${def.primary ? ' primary' : ''}`;
+    btn.tabIndex = -1;
+    btn.innerHTML = def.icon || '';
+    btn.appendChild(document.createTextNode(def.label));
+    btn.addEventListener('click', () => runDetailAction(task.id, def.action));
+    detailActionsEl.appendChild(btn);
+  }
+}
+
+function runDetailAction(taskId, action) {
+  const task = tasks.find(t => t.id === taskId);
+  const projectPath = state.getProjectPath();
+  if (!task || !projectPath || isSpecTask(task)) return;
+
+  if (action === 'start') {
+    startTask(task);
+    return;
+  }
+  const status = ACTION_STATUS[action];
+  if (!status) return;
+  ipcRenderer.send(IPC.UPDATE_TASK, { projectPath, taskId, updates: { status } });
+  // The TASKS_DATA push re-renders the list, and the drawer with it.
 }
 
 function appendMetaPill(container, text, cls) {

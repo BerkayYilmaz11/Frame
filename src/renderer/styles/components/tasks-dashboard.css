@@ -485,6 +485,40 @@
   word-break: break-word;
 }
 
+/* Play on a pending tile: starts the task through the run modal. Always
+   visible — it is the tile's one action — and quiet until hovered, like
+   Home's run button. */
+.tasks-tile-play {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.tasks-tile:hover .tasks-tile-play {
+  color: var(--text-secondary);
+}
+
+.tasks-tile-play:hover {
+  color: var(--accent-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  background: var(--accent-subtle);
+}
+
+.tasks-tile-play:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
 /* ---------- Right aside (New Task form) ---------- */
 /* On demand only: the aside is out of layout unless the New Task form is
    open, so by default the list gets the full width
@@ -630,6 +664,54 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+}
+
+/* Status actions of a non-spec task, left of Delete. */
+.tasks-dashboard-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.tasks-dashboard-detail-actions:empty {
+  display: none;
+}
+
+.tasks-dashboard-detail-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tasks-dashboard-detail-action:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tasks-dashboard-detail-action.primary {
+  background: var(--accent-subtle);
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  color: var(--accent-primary);
+}
+
+.tasks-dashboard-detail-action.primary:hover {
+  border-color: var(--accent-primary);
+}
+
+.tasks-dashboard-detail-action:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
 }
 
 .tasks-dashboard-detail-delete {

@@ -28,3 +28,10 @@ Rebuilt the Tasks markup in `index.html`: a toolbar with the scope segments, Fil
 _Captured: 2026-10-15 · 3 file change(s)_
 
 ---
+## T05 — Play and drawer status actions
+
+Added the Play button to pending non-spec tiles; it calls `tasksPanel.openRunFlow` without selecting the tile. Added a drawer action slot (`index.html`) left of Delete, filled per status as D9 lists: Play → `openRunFlow`, and Mark complete, Back to pending and Reopen → `UPDATE_TASK { status }`. The action handler re-reads the task and refuses spec tasks, so a spec task opened from the top-bar chip already shows no actions before T06 adds its read-only drawer. A task with an unknown status gets the pending set, matching the section it is listed in.
+
+_Captured: 2026-10-15 · 3 file change(s)_
+
+---

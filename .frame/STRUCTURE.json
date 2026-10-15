@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 92967,
+      "sizeBytes": 93032,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15220,7 +15220,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 32482,
+      "sizeBytes": 34546,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15687,66 +15687,67 @@
         "tasks/listModel",
         "agentDispatch",
         "taskInfoModal",
+        "tasksPanel",
         "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 93
+          "line": 94
         },
         "flatten": {
-          "line": 159,
+          "line": 161,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 179,
+          "line": 181,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 183,
+          "line": 185,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 192
+          "line": 194
         },
         "_load": {
-          "line": 205
+          "line": 207
         },
         "show": {
-          "line": 225
+          "line": 227
         },
         "hide": {
-          "line": 235
+          "line": 237
         },
         "toggle": {
-          "line": 248
+          "line": 250
         },
         "listModel": {
-          "line": 256
+          "line": 258
         },
         "render": {
-          "line": 267
+          "line": 269
         },
         "renderToolbar": {
-          "line": 283,
+          "line": 285,
           "params": [
             "model"
           ],
           "purpose": "The scope segments, painted from the same model the list is painted from"
         },
         "renderList": {
-          "line": 307,
+          "line": 309,
           "params": [
             "model"
           ]
         },
         "appendSection": {
-          "line": 352,
+          "line": 354,
           "params": [
             "id",
             "label",
@@ -15755,31 +15756,46 @@
           "purpose": "A section heading plus its grid; returns the grid for the tiles."
         },
         "emptyState": {
-          "line": 378,
+          "line": 380,
           "params": [
             "message",
             "heading"
           ]
         },
         "renderOlderTile": {
-          "line": 393,
+          "line": 395,
           "params": [
             "count"
           ],
           "purpose": "The ghost tile closing Completed: \"N older done tasks · Show\"."
         },
         "renderTile": {
-          "line": 410,
+          "line": 416,
+          "params": [
+            "task",
+            "{ playable = false } = {}"
+          ],
+          "purpose": "One task tile. `playable` puts the Play button on it — pending non-spec"
+        },
+        "renderPlayButton": {
+          "line": 477,
+          "params": [
+            "task"
+          ],
+          "purpose": "Play starts the task through the shared run flow (run modal → Agent"
+        },
+        "startTask": {
+          "line": 492,
           "params": [
             "task"
           ]
         },
         "syncAside": {
-          "line": 474,
+          "line": 508,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 500,
+          "line": 534,
           "params": [
             "taskId",
             "{ instant = false } = {}"
@@ -15787,42 +15803,55 @@
           "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the list"
         },
         "clearSelection": {
-          "line": 525,
+          "line": 559,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 536,
+          "line": 570,
           "purpose": "Leaving the screen: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 547
+          "line": 581
         },
         "setupForm": {
-          "line": 551
+          "line": 585
         },
         "showForm": {
-          "line": 565
+          "line": 599
         },
         "hideForm": {
-          "line": 580
+          "line": 614
         },
         "requestDeleteSelected": {
-          "line": 588
+          "line": 622
         },
         "submitForm": {
-          "line": 606
+          "line": 640
         },
         "renderDetail": {
-          "line": 624,
+          "line": 658,
           "params": [
             "task"
           ]
         },
+        "renderDetailActions": {
+          "line": 741,
+          "params": [
+            "task"
+          ]
+        },
+        "runDetailAction": {
+          "line": 759,
+          "params": [
+            "taskId",
+            "action"
+          ]
+        },
         "appendMetaPill": {
-          "line": 682,
+          "line": 774,
           "params": [
             "container",
             "text",
@@ -15830,7 +15859,7 @@
           ]
         },
         "setSection": {
-          "line": 689,
+          "line": 781,
           "params": [
             "textEl",
             "sectionEl",
@@ -15838,64 +15867,64 @@
           ]
         },
         "formatDate": {
-          "line": 700,
+          "line": 792,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 714
+          "line": 806
         },
         "filterMatches": {
-          "line": 718,
+          "line": 810,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 724
+          "line": 816
         },
         "isFilterPopoverOpen": {
-          "line": 762
+          "line": 854
         },
         "toggleFilterPopover": {
-          "line": 766
-        },
-        "openFilterPopover": {
-          "line": 772
-        },
-        "closeFilterPopover": {
-          "line": 778
-        },
-        "clearFilters": {
-          "line": 784
-        },
-        "updateFilterUI": {
-          "line": 796
-        },
-        "setupSort": {
-          "line": 813
-        },
-        "isSortPopoverOpen": {
           "line": 858
         },
+        "openFilterPopover": {
+          "line": 864
+        },
+        "closeFilterPopover": {
+          "line": 870
+        },
+        "clearFilters": {
+          "line": 876
+        },
+        "updateFilterUI": {
+          "line": 888
+        },
+        "setupSort": {
+          "line": 905
+        },
+        "isSortPopoverOpen": {
+          "line": 950
+        },
         "toggleSortPopover": {
-          "line": 862
+          "line": 954
         },
         "openSortPopover": {
-          "line": 868
+          "line": 960
         },
         "closeSortPopover": {
-          "line": 874
+          "line": 966
         },
         "resetSort": {
-          "line": 880
+          "line": 972
         },
         "updateSortUI": {
-          "line": 893
+          "line": 985
         },
         "commitSortToFile": {
-          "line": 920,
+          "line": 1012,
           "purpose": "Commit the current sorted view to tasks.json. Ids only (tasks-list-view"
         }
       },
@@ -15908,10 +15937,11 @@
           "LOAD_TASKS",
           "DELETE_TASK",
           "ADD_TASK",
+          "UPDATE_TASK",
           "REORDER_TASKS"
         ]
       },
-      "sizeBytes": 33229,
+      "sizeBytes": 36628,
       "extraction": {
         "status": "parsed"
       },
@@ -15922,6 +15952,8 @@
           "clearSelection": "61ad7ecd9504c904",
           "commitSortToFile": "beff6f45e6520cc2",
           "renderOlderTile": "430fa30a4a4f14f7",
+          "renderPlayButton": "df7b9dbe108a97fb",
+          "renderTile": "1e3f0bb6063b9fc4",
           "renderToolbar": "aa535f74454d05a5",
           "resetAside": "7dde6f0750e05609",
           "selectTask": "f3a10ec266d4ef67",
@@ -28114,6 +28146,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "0933a6a93684186f0184c4e7ca9ec9207c8971227ec6715853f581f16f880742"
+    "revision": "c54f75791531365473be2c1f4b791d01fa596948bbb70ee75ca3b81f74e46c54"
   }
 }
