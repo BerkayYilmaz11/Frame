@@ -14,8 +14,9 @@ Business (asked):
   paths that drift).
 - **D2 — Clicking a revealed spec task → read-only drawer.** The task's drawer
   opens with no status buttons and an "Open spec" link; the group heading links
-  to the spec too. Rejected: jumping straight to the spec (the task's own body
-  would have no place on this screen).
+  to the spec too (until T09, which drops the groups; the drawer link stays).
+  Rejected: jumping straight to the spec (the task's own body would have no
+  place on this screen).
 
 Business (decided silently):
 
@@ -26,6 +27,13 @@ Business (decided silently):
   window. They sit in one section after the status sections, grouped by spec
   in first-appearance order, each group in file (T) order. This is what makes
   S10's counts well defined.
+  **Overturned 2026-10-15 (T09), after review of the shipped screen:** the
+  separate section read as a second list hung under the main one. Revealed
+  spec tasks now join the status sections like any other task (same scope,
+  window and sort rules), each tile labelled `<slug> · T##`; the reveal is an
+  "Include spec tasks" checkbox instead of the chip. Rejected on the way: one
+  summary tile per spec in Completed (changes the screen's structure more than
+  the problem needs).
 - **D5 — Filter and Sort move from the header to the toolbar's right side**,
   where Specs has its search, so the header is title, New Task and close (G1).
   Both keep their behaviour; the filter narrows spec tasks too.
@@ -85,6 +93,15 @@ Technical (decided silently):
   `specsDashboard.openSpec(slug, { instant: true })`, the pair
   `multiTerminalUI.enterSpecDrawer` already uses (`multiTerminalUI.js:378-391`).
 
+Added after review (2026-10-15):
+
+- **D18 — Status chips under Active (T10)** mirror the Specs phase chips
+  (`specsDashboard.js` `renderToolbar`, `filterModel.js`): shown only while
+  Active is picked, one at a time, a second click clears it, any scope pick
+  resets it. `status` narrows only in Active and is ignored elsewhere. The
+  scope counts do not move with it; each chip counts its own section, and the
+  spec-tasks count follows it. Session state, never persisted.
+
 ### Data shapes
 
 `listModel.buildListModel(input)`, pure:
@@ -97,6 +114,17 @@ output: { scope,
           specGroups: [{ slug, tasks }],          // [] unless showSpecTasks
           olderCount,                             // completed past the window, all/done only
           counts: { all, active, done, doneTotal, specTasks } }
+```
+
+After T09 and T10 (D4 overturned, D18):
+
+```
+input:  { …, status = null }                      // 'in_progress' | 'pending', Active only
+output: { scope, status,                          // status: the effective one, null outside Active
+          sections,                               // spec tasks inside while showSpecTasks
+          olderCount,
+          counts: { all, active, done, doneTotal, specTasks,
+                    'status:in_progress', 'status:pending' } }
 ```
 
 Rules:
@@ -140,6 +168,11 @@ list          In progress ─ tiles (activity dot)
               Pending     ─ tiles (▶ Play)
               Completed   ─ tiles … [N older done tasks · Show]   (all/done)
               Spec tasks  ─ <slug> · Open spec ─ tiles (read-only)  (revealed)
+
+after T09/T10:
+toolbar       [All n | Active n | Done n] │ (In progress n) (Pending n)   ☐ Include spec tasks n  [Filter] [Sort]
+                                            └ chips only while Active
+list          In progress / Pending / Completed ─ tiles; a spec tile reads "<slug> · T##", no Play
 aside         New Task form (only while open)
 drawer        task detail + status actions (non-spec) / Open spec (spec)
 ```
@@ -241,3 +274,22 @@ None.
    no `description`. A tile shows `userRequest` when `description` is empty.
 8. **Texts.** Rewrite the tour's Tasks step, the guide sentence and the
    capability entry to describe the grid, Play and hidden spec tasks.
+
+Added after review (2026-10-15):
+
+9. **Spec tasks join the status sections (D4 overturned).**
+   - Model: while `showSpecTasks`, spec tasks enter the status sections under
+     the same scope, window and sort rules; `specGroups` goes away. Counts are
+     unchanged.
+   - Toolbar: an "Include spec tasks" checkbox with the spec-task count
+     replaces the chip, on the toolbar's right before Filter, present only
+     while the project has spec tasks.
+   - List: drop the Spec tasks section; a spec tile carries a `<slug> · T##`
+     label instead of its status pill, and still no Play. The drawer stays
+     read-only with "Open spec".
+   - Texts that name the chip or the section (guide sentence, tour step,
+     capability entry) say "Include spec tasks".
+10. **Status chips under Active (D18).** `buildListModel` takes `status` and
+    returns the per-status counts; the toolbar shows *In progress n* and
+    *Pending n* chips after the scope segments while Active is picked; an
+    empty pick says so.

@@ -40,17 +40,19 @@ The Tasks screen follows the Specs screen's structure instead of a Kanban:
   existing detail drawer on click.
 - **Tasks are tiles in the Specs grid** (`repeat(auto-fill, minmax(280px, 1fr))`).
 - **Active shows two sections:** *In progress* first, then *Pending*. Done
-  shows completed tasks under the project's done window.
+  shows completed tasks under the project's done window. While Active is
+  picked, an *In progress* and a *Pending* chip with counts narrow it to one
+  of the two, as the Specs screen's phase chips narrow its Active.
 - **A Play button on every pending task** starts it through the existing run
   flow. In-progress tasks show their lane activity dot instead.
 - **Status buttons in the drawer of a non-spec task,** the same set as the
   Specs screen's task rows: pending → Play and Mark complete; in progress →
   Mark complete and Back to pending; completed → Reopen. The agent still
   closes the task itself at the end of a run, as the run prompt asks today.
-- **Spec tasks are hidden by default.** A toolbar control shows their count
-  and reveals them on demand. Revealed spec tasks sit in their own section,
-  grouped under each spec with a link to it, and carry no Play or status
-  control.
+- **Spec tasks are hidden by default.** An "Include spec tasks" checkbox in
+  the toolbar shows their count and includes them on demand. Included spec
+  tasks are listed in the status sections with the other tasks, each tile
+  labelled with its spec and number, and carry no Play or status control.
 - **No drag and drop** anywhere on the screen.
 - **New Task stays a quick form, mapped to the schema:** a title, the request
   text (saved verbatim as `userRequest`), priority and category. No agent runs
@@ -97,9 +99,12 @@ The Tasks screen follows the Specs screen's structure instead of a Kanban:
 - When Tasks opens, then no status columns render and no item is draggable.
 - When the project has spec tasks, then none is listed by default and the
   toolbar shows a control with their count.
-- When the user reveals spec tasks, then they appear in their own section,
-  grouped under their spec with a link to it, with no Play or status control;
-  when they hide them, or reopen the project, they are hidden again.
+- When the user includes spec tasks, then they appear in the status section
+  of their status, labelled with their spec, with no Play or status control;
+  when they clear the checkbox, or reopen the project, they are hidden again.
+- When Active is picked and the user picks its *In progress* or *Pending*
+  chip, then only that section is listed; picking the chip again, or another
+  scope, lists both again.
 - When the user presses Play on a pending task and the dispatch succeeds, then
   the task moves to *In progress*; when the run modal is cancelled or the
   dispatch fails, then the task stays *Pending*.
@@ -114,8 +119,9 @@ The Tasks screen follows the Specs screen's structure instead of a Kanban:
   status.
 - When Done is selected, then tasks completed inside the done window are
   listed and older ones sit behind "Show N older".
-- When the scope control shows its counts, then each count equals the number of
-  items that scope lists with the spec-tasks control in its current state.
+- When the scope control and the status chips show their counts, then each
+  count equals the number of items that control lists with the spec-tasks
+  checkbox in its current state.
 - When the user creates a task with New Task, then it is saved as `pending`
   with the request text in `userRequest` exactly as typed, the chosen priority
   and category, and no `description` or `acceptanceCriteria`.
