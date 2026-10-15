@@ -1,0 +1,10 @@
+# Tasks — Tasks List View
+
+- T01 · Add the pure list model `src/renderer/tasks/listModel.js` (`buildListModel`: scope sections with the unknown-status fallback, spec tasks hidden or revealed and grouped by slug, completed done window, category/priority filter, stable sort, counts) with `test/tasksListModel.test.js`
+- T02 · Move the run prompt into the pure `src/renderer/tasks/runPrompt.js` (`isSpecTask`, `missingFields`, `buildTaskPrompt` with the format step and the acceptance criteria, spec tasks exempt, branch steps unchanged), make `tasksPanel.buildTaskPrompt` delegate to it, and add `test/taskRunPrompt.test.js`
+- T03 · Make `tasksManager.addTask` keep a non-blank `userRequest`, and extend `test/tasksManager.test.js` for it and for `reorderTasks` with id-only entries leaving every status untouched
+- T04 · Replace the Kanban with the Specs-style grid in `index.html`, `src/renderer/tasksDashboard.js` and `tasks-dashboard.css`: scope toolbar with counts, Filter and Sort moved to the toolbar's right, In progress / Pending / Completed tile sections from `buildListModel`, the older-done ghost tile, no drag code, id-only Permanent Save, export surface unchanged
+- T05 · Add a Play button to pending non-spec tiles and the drawer's status actions (Play, Mark complete, Back to pending, Reopen) wired to `openRunFlow` and `UPDATE_TASK`
+- T06 · Add the "Spec tasks n" toolbar chip that reveals spec tasks in their own section grouped by spec with "Open spec" links, reset on project change, and open a spec task's drawer read-only (no actions, no Delete) with an "Open spec" link
+- T07 · Replace the New Task form's Description with a Request field sent as `userRequest` exactly as typed, and show the request on a tile until the task has a description
+- T08 · Rewrite the texts that describe the Kanban: the tour's Tasks step in `src/renderer/tour/tourSteps.js`, the "Plan and tasks" sentence in `src/renderer/guide/guideContent.js`, and the Tasks dashboard entry in `docs/capabilities/index.html`

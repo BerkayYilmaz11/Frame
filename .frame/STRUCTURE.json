@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-12",
+  "lastUpdated": "2026-10-15",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93933,
+      "sizeBytes": 94177,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -5551,35 +5551,50 @@
             "slug"
           ]
         },
+        "completedTaskIdsFromOutcome": {
+          "line": 916,
+          "params": [
+            "content"
+          ]
+        },
+        "initialTaskState": {
+          "line": 923,
+          "params": [
+            "status",
+            "outcomeIds",
+            "taskId",
+            "now"
+          ]
+        },
         "syncTasksFromMarkdown": {
-          "line": 907,
+          "line": 931,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 987,
+          "line": 1016,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 994,
+          "line": 1023,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1011,
+          "line": 1040,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1050,
+          "line": 1079,
           "params": [
             "projectPath",
             "slug",
@@ -5588,7 +5603,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1079,
+          "line": 1108,
           "params": [
             "projectPath",
             "query"
@@ -5596,7 +5611,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1100,
+          "line": 1129,
           "params": [
             "projectPath",
             "slug",
@@ -5604,14 +5619,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1124,
+          "line": 1153,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1141,
+          "line": 1170,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5620,54 +5635,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1256,
+          "line": 1285,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1356
+          "line": 1385
         },
         "markSpecNewLaunch": {
-          "line": 1409,
+          "line": 1438,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1415,
+          "line": 1444,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1431,
+          "line": 1460,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1442,
+          "line": 1471,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1470,
+          "line": 1499,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1494,
+          "line": 1523,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1498,
+          "line": 1527,
           "params": [
             "ipcMain"
           ]
@@ -5694,7 +5709,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 68199,
+      "sizeBytes": 69592,
       "extraction": {
         "status": "parsed"
       },
@@ -6595,7 +6610,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3820,
+      "sizeBytes": 4019,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -10916,26 +10931,26 @@
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 559,
+          "line": 563,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 585,
+          "line": 602,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 611,
+          "line": 628,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1015,
+          "line": 1032,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1040,
+          "line": 1057,
           "params": [
             "err"
           ],
@@ -10955,7 +10970,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 37953,
+      "sizeBytes": 38783,
       "extraction": {
         "status": "parsed"
       },
@@ -21872,7 +21887,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12794,
+      "sizeBytes": 12872,
       "extraction": {
         "status": "parsed"
       },
@@ -25206,9 +25221,15 @@
         },
         "readSpecTasks": {
           "line": 84
+        },
+        "setStatus": {
+          "line": 284,
+          "params": [
+            "fields"
+          ]
         }
       },
-      "sizeBytes": 11622,
+      "sizeBytes": 14445,
       "extraction": {
         "status": "parsed"
       },
@@ -26850,6 +26871,20 @@
         "direction": "",
         "description": ""
       }
+    },
+    "downloaded": {
+      "UPDATE_DOWNLOADED": {
+        "name": "update-downloaded",
+        "direction": "",
+        "description": ""
+      }
+    },
+    "install": {
+      "INSTALL_UPDATE": {
+        "name": "install-update",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -27826,7 +27861,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 301,
+        "parsed": 303,
         "unsupported": 84,
         "partial": 0
       }
@@ -27873,9 +27908,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 473,
+      "visitedEntries": 475,
       "traversedDirectories": 80,
-      "eligibleFiles": 385,
+      "eligibleFiles": 387,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -27892,7 +27927,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 385,
+      "indexedFiles": 387,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -27900,6 +27935,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f572aecba93fd955cf0066179faf19ce574c95d4860282a3e3b2dd8f709f281a"
+    "revision": "3a663e1e58e83b945efc3389e82f9952e05860fbbb459ac9fd91fb765ee42d6f"
   }
 }
