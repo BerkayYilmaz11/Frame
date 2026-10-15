@@ -35,3 +35,10 @@ Added the Play button to pending non-spec tiles; it calls `tasksPanel.openRunFlo
 _Captured: 2026-10-15 · 3 file change(s)_
 
 ---
+## T06 — Spec tasks on demand
+
+Added the "Spec tasks n" chip after the scope segments. It is present only while the project has spec tasks, and it toggles a per-project `showSpecTasks` flag that resets on project change. Revealed spec tasks render in a "Spec tasks" section, grouped by slug with an "Open spec" link. A spec task's drawer is read-only: no actions, Delete hidden and refused, an "Open spec" button (`specsDashboard.show()` + `openSpec(slug, { instant: true })`, D17). Beyond the plan, spec tiles show their T number and a status pill, since they sit outside the status sections. Groups are headed by slug, not title, because this screen does not load spec data.
+
+_Captured: 2026-10-15 · 2 file change(s)_
+
+---

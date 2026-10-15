@@ -11,8 +11,9 @@
  *
  * What the list shows comes from the pure `tasks/listModel.js`; this module
  * only renders it. Spec tasks (`source: spec:…`) are owned by their spec —
- * its phase is derived from them — so the list keeps them out of the status
- * sections.
+ * its phase is derived from them — so they are hidden by default; the
+ * toolbar's "Spec tasks" chip reveals them in a section of their own,
+ * grouped by spec, read-only: no Play, no status action, no Delete.
  *
  * Clicking a tile slides a full-page detail drawer in from the right over
  * the list (same motion as the specs dashboard) with the full task body
@@ -34,7 +35,7 @@ const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const doneWindow = require('./doneWindow');
-const { SECTIONS, isSpecTask, buildListModel } = require('./tasks/listModel');
+const { SECTIONS, isSpecTask, specSlugOf, buildListModel } = require('./tasks/listModel');
 
 const STATUS_LABELS = {
   pending: 'Pending',
@@ -63,6 +64,10 @@ let scope = 'active';
 // on the open project: it survives TASKS_DATA re-renders and resets on a
 // scope pick and when the project changes.
 let showOlderDone = false;
+// Spec tasks are hidden until the toolbar chip reveals them. Session state
+// on the open project, like the older-done reveal: never persisted, reset
+// when the project changes (and so on reopening the project).
+let showSpecTasks = false;
 let loadedProjectPath = null;
 let detailEl = null;         // right aside — hosts the New Task form
 let drawerEl = null;         // full-page task detail drawer
@@ -217,6 +222,7 @@ function _load() {
   }
   if (projectPath !== loadedProjectPath) {
     showOlderDone = false;
+    showSpecTasks = false;
     loadedProjectPath = projectPath;
   }
   isVisible = true;
@@ -259,6 +265,7 @@ function listModel() {
   return buildListModel({
     tasks,
     scope,
+    showSpecTasks,
     matches: filterMatches,
     sortMode: sort.mode,
     windowDays: doneWindow.get().tasks,
@@ -296,13 +303,24 @@ function renderToolbar(model) {
     return `<button type="button" class="specs-filter-seg${on ? ' active' : ''}" data-scope="${f.id}" aria-pressed="${on}" tabindex="-1"${title}>${f.label}${count(counts[f.id])}</button>`;
   }).join('');
 
-  filtersEl.innerHTML = `<div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>`;
+  // The spec-tasks chip shows how many spec tasks the current scope would
+  // add, and only exists while the project has any.
+  const specChip = tasks.some(isSpecTask)
+    ? `<span class="specs-filter-divider" aria-hidden="true"></span>
+       <button type="button" class="specs-filter-chip tasks-filter-spec-chip${showSpecTasks ? ' active' : ''}${counts.specTasks ? '' : ' is-empty'}" data-spec-tasks aria-pressed="${showSpecTasks}" tabindex="-1" title="${showSpecTasks ? 'Hide' : 'Show'} the tasks that belong to specs"><span class="specs-filter-dot" aria-hidden="true"></span>Spec tasks${count(counts.specTasks)}</button>`
+    : '';
+
+  filtersEl.innerHTML = `<div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>${specChip}`;
   filtersEl.querySelectorAll('[data-scope]').forEach(btn => {
     btn.addEventListener('click', () => {
       scope = btn.dataset.scope;
       showOlderDone = false;
       render();
     });
+  });
+  filtersEl.querySelector('[data-spec-tasks]')?.addEventListener('click', () => {
+    showSpecTasks = !showSpecTasks;
+    render();
   });
 }
 
@@ -328,6 +346,10 @@ function renderList(model) {
     if (older > 0) grid.appendChild(renderOlderTile(older));
   }
 
+  if (model.specGroups.length > 0) {
+    listed += renderSpecSection(model.specGroups);
+  }
+
   if (listed > 0 || model.olderCount > 0) return;
 
   if (tasks.length === 0) {
@@ -350,12 +372,70 @@ function renderList(model) {
   }
 }
 
-/** A section heading plus its grid; returns the grid for the tiles. */
-function appendSection(id, label, count) {
+/**
+ * Revealed spec tasks: one section after the status sections, a group per
+ * spec (first-appearance order, tasks in T order), each headed by its slug
+ * and an "Open spec" link. Tiles are read-only. Returns how many it listed.
+ */
+function renderSpecSection(groups) {
+  const total = groups.reduce((n, g) => n + g.tasks.length, 0);
   const section = document.createElement('section');
-  section.className = 'tasks-dashboard-section';
-  section.dataset.section = id;
+  section.className = 'tasks-dashboard-section tasks-dashboard-spec-section';
+  section.dataset.section = 'spec';
+  section.appendChild(sectionHeader('spec', 'Spec tasks', total));
 
+  for (const group of groups) {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'tasks-dashboard-spec-group';
+    groupEl.dataset.slug = group.slug;
+
+    const heading = document.createElement('div');
+    heading.className = 'tasks-dashboard-spec-group-header';
+    const slug = document.createElement('span');
+    slug.className = 'tasks-dashboard-spec-group-slug';
+    slug.textContent = group.slug;
+    heading.appendChild(slug);
+    heading.appendChild(openSpecLink(group.slug));
+    groupEl.appendChild(heading);
+
+    const grid = document.createElement('div');
+    grid.className = 'tasks-dashboard-grid';
+    for (const task of group.tasks) grid.appendChild(renderTile(task));
+    groupEl.appendChild(grid);
+    section.appendChild(groupEl);
+  }
+
+  listEl.appendChild(section);
+  return total;
+}
+
+function openSpecLink(slug) {
+  const link = document.createElement('button');
+  link.type = 'button';
+  link.className = 'tasks-dashboard-spec-link';
+  link.tabIndex = -1;
+  link.textContent = 'Open spec';
+  link.title = `Open ${slug} in Specs`;
+  link.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSpec(slug);
+  });
+  return link;
+}
+
+/**
+ * Leave for the Specs screen with this spec in its drawer — the pair
+ * multiTerminalUI.enterSpecDrawer uses: show() mounts the grid in the same
+ * frame, so the drawer opens instantly over it.
+ */
+function openSpec(slug) {
+  if (!slug) return;
+  const specsDashboard = require('./specsDashboard');
+  specsDashboard.show();
+  specsDashboard.openSpec(slug, { instant: true });
+}
+
+function sectionHeader(id, label, count) {
   const header = document.createElement('div');
   header.className = 'tasks-dashboard-section-header';
   header.innerHTML = `<span class="tasks-dashboard-section-dot status-${id.replace('_', '-')}" aria-hidden="true"></span>`;
@@ -367,7 +447,15 @@ function appendSection(id, label, count) {
   countEl.className = 'specs-filter-count';
   countEl.textContent = String(count);
   header.appendChild(countEl);
-  section.appendChild(header);
+  return header;
+}
+
+/** A section heading plus its grid; returns the grid for the tiles. */
+function appendSection(id, label, count) {
+  const section = document.createElement('section');
+  section.className = 'tasks-dashboard-section';
+  section.dataset.section = id;
+  section.appendChild(sectionHeader(id, label, count));
 
   const grid = document.createElement('div');
   grid.className = 'tasks-dashboard-grid';
@@ -426,6 +514,20 @@ function renderTile(task, { playable = false } = {}) {
   // Live agent working on this task → pulsing activity dot
   const liveDot = require('./agentDispatch').taskStatusDotHtml(task.id);
   if (liveDot) badges.insertAdjacentHTML('afterbegin', liveDot);
+
+  if (isSpecTask(task)) {
+    // A spec tile sits outside the status sections, so it says its own
+    // status, next to its number in the spec.
+    const num = document.createElement('span');
+    num.className = 'tasks-tile-num';
+    num.textContent = String(task.source).split(':').pop();
+    badges.appendChild(num);
+    const status = SECTION_LABELS[task.status] ? task.status : 'pending';
+    const pill = document.createElement('span');
+    pill.className = `tasks-tile-status status-${status.replace('_', '-')}`;
+    pill.textContent = SECTION_LABELS[status];
+    badges.appendChild(pill);
+  }
 
   const priority = document.createElement('span');
   priority.className = `tasks-tile-priority priority-${task.priority || 'medium'}`;
@@ -624,6 +726,7 @@ function requestDeleteSelected() {
   const projectPath = state.getProjectPath();
   if (!projectPath) return;
   const task = tasks.find(t => t.id === selectedTaskId);
+  if (task && isSpecTask(task)) return;
   const confirmModal = require('./taskConfirmModal');
   const idToDelete = selectedTaskId;
   confirmModal.open({
@@ -741,7 +844,24 @@ const ACTION_STATUS = { complete: 'completed', pause: 'pending', reopen: 'pendin
 function renderDetailActions(task) {
   if (!detailActionsEl) return;
   detailActionsEl.innerHTML = '';
-  if (isSpecTask(task)) return;
+  // A deleted spec task is re-imported on the next spec sync, so Delete
+  // could only confuse; the way to act on one is its spec.
+  const deleteBtn = drawerEl && drawerEl.querySelector('.tasks-dashboard-detail-delete');
+  if (deleteBtn) deleteBtn.style.display = isSpecTask(task) ? 'none' : '';
+  if (isSpecTask(task)) {
+    const slug = specSlugOf(task);
+    if (slug) {
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.className = 'tasks-dashboard-detail-action';
+      link.tabIndex = -1;
+      link.textContent = 'Open spec';
+      link.title = `Open ${slug} in Specs`;
+      link.addEventListener('click', () => openSpec(slug));
+      detailActionsEl.appendChild(link);
+    }
+    return;
+  }
 
   const actions = DETAIL_ACTIONS[task.status] || DETAIL_ACTIONS.pending;
   for (const def of actions) {

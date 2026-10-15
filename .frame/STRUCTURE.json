@@ -15220,7 +15220,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 34546,
+      "sizeBytes": 36571,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15687,67 +15687,96 @@
         "tasks/listModel",
         "agentDispatch",
         "taskInfoModal",
+        "specsDashboard",
         "tasksPanel",
         "taskConfirmModal"
       ],
       "functions": {
         "init": {
-          "line": 94
+          "line": 99
         },
         "flatten": {
-          "line": 161,
+          "line": 166,
           "params": [
             "data"
           ]
         },
         "setInlineHost": {
-          "line": 181,
+          "line": 186,
           "params": [
             "host"
           ]
         },
         "mountInline": {
-          "line": 185,
+          "line": 190,
           "params": [
             "container"
           ]
         },
         "notifyDetached": {
-          "line": 194
+          "line": 199
         },
         "_load": {
-          "line": 207
+          "line": 212
         },
         "show": {
-          "line": 227
+          "line": 233
         },
         "hide": {
-          "line": 237
+          "line": 243
         },
         "toggle": {
-          "line": 250
+          "line": 256
         },
         "listModel": {
-          "line": 258
+          "line": 264
         },
         "render": {
-          "line": 269
+          "line": 276
         },
         "renderToolbar": {
-          "line": 285,
+          "line": 292,
           "params": [
             "model"
           ],
           "purpose": "The scope segments, painted from the same model the list is painted from"
         },
         "renderList": {
-          "line": 309,
+          "line": 327,
           "params": [
             "model"
           ]
         },
+        "renderSpecSection": {
+          "line": 380,
+          "params": [
+            "groups"
+          ],
+          "purpose": "Revealed spec tasks: one section after the status sections, a group per"
+        },
+        "openSpecLink": {
+          "line": 412,
+          "params": [
+            "slug"
+          ]
+        },
+        "openSpec": {
+          "line": 431,
+          "params": [
+            "slug"
+          ],
+          "purpose": "Leave for the Specs screen with this spec in its drawer — the pair"
+        },
+        "sectionHeader": {
+          "line": 438,
+          "params": [
+            "id",
+            "label",
+            "count"
+          ]
+        },
         "appendSection": {
-          "line": 354,
+          "line": 454,
           "params": [
             "id",
             "label",
@@ -15756,21 +15785,21 @@
           "purpose": "A section heading plus its grid; returns the grid for the tiles."
         },
         "emptyState": {
-          "line": 380,
+          "line": 468,
           "params": [
             "message",
             "heading"
           ]
         },
         "renderOlderTile": {
-          "line": 395,
+          "line": 483,
           "params": [
             "count"
           ],
           "purpose": "The ghost tile closing Completed: \"N older done tasks · Show\"."
         },
         "renderTile": {
-          "line": 416,
+          "line": 504,
           "params": [
             "task",
             "{ playable = false } = {}"
@@ -15778,24 +15807,24 @@
           "purpose": "One task tile. `playable` puts the Play button on it — pending non-spec"
         },
         "renderPlayButton": {
-          "line": 477,
+          "line": 579,
           "params": [
             "task"
           ],
           "purpose": "Play starts the task through the shared run flow (run modal → Agent"
         },
         "startTask": {
-          "line": 492,
+          "line": 594,
           "params": [
             "task"
           ]
         },
         "syncAside": {
-          "line": 508,
+          "line": 610,
           "purpose": "Single owner of the aside's and the drawer's visibility. The aside exists"
         },
         "selectTask": {
-          "line": 534,
+          "line": 636,
           "params": [
             "taskId",
             "{ instant = false } = {}"
@@ -15803,55 +15832,55 @@
           "purpose": "Open a task in the drawer. `instant` is the top-bar chip path: the list"
         },
         "clearSelection": {
-          "line": 559,
+          "line": 661,
           "params": [
             "{ notify = true } = {}"
           ],
           "purpose": "Close the drawer. `notify: false` is for the host-driven teardown"
         },
         "resetAside": {
-          "line": 570,
+          "line": 672,
           "purpose": "Leaving the screen: no selection, no half-typed form waiting on return."
         },
         "isFormOpen": {
-          "line": 581
+          "line": 683
         },
         "setupForm": {
-          "line": 585
+          "line": 687
         },
         "showForm": {
-          "line": 599
+          "line": 701
         },
         "hideForm": {
-          "line": 614
+          "line": 716
         },
         "requestDeleteSelected": {
-          "line": 622
+          "line": 724
         },
         "submitForm": {
-          "line": 640
+          "line": 743
         },
         "renderDetail": {
-          "line": 658,
+          "line": 761,
           "params": [
             "task"
           ]
         },
         "renderDetailActions": {
-          "line": 741,
+          "line": 844,
           "params": [
             "task"
           ]
         },
         "runDetailAction": {
-          "line": 759,
+          "line": 879,
           "params": [
             "taskId",
             "action"
           ]
         },
         "appendMetaPill": {
-          "line": 774,
+          "line": 894,
           "params": [
             "container",
             "text",
@@ -15859,7 +15888,7 @@
           ]
         },
         "setSection": {
-          "line": 781,
+          "line": 901,
           "params": [
             "textEl",
             "sectionEl",
@@ -15867,64 +15896,64 @@
           ]
         },
         "formatDate": {
-          "line": 792,
+          "line": 912,
           "params": [
             "isoString"
           ]
         },
         "isFilterActive": {
-          "line": 806
+          "line": 926
         },
         "filterMatches": {
-          "line": 810,
+          "line": 930,
           "params": [
             "task"
           ]
         },
         "setupFilter": {
-          "line": 816
+          "line": 936
         },
         "isFilterPopoverOpen": {
-          "line": 854
+          "line": 974
         },
         "toggleFilterPopover": {
-          "line": 858
+          "line": 978
         },
         "openFilterPopover": {
-          "line": 864
+          "line": 984
         },
         "closeFilterPopover": {
-          "line": 870
+          "line": 990
         },
         "clearFilters": {
-          "line": 876
+          "line": 996
         },
         "updateFilterUI": {
-          "line": 888
+          "line": 1008
         },
         "setupSort": {
-          "line": 905
+          "line": 1025
         },
         "isSortPopoverOpen": {
-          "line": 950
+          "line": 1070
         },
         "toggleSortPopover": {
-          "line": 954
+          "line": 1074
         },
         "openSortPopover": {
-          "line": 960
+          "line": 1080
         },
         "closeSortPopover": {
-          "line": 966
+          "line": 1086
         },
         "resetSort": {
-          "line": 972
+          "line": 1092
         },
         "updateSortUI": {
-          "line": 985
+          "line": 1105
         },
         "commitSortToFile": {
-          "line": 1012,
+          "line": 1132,
           "purpose": "Commit the current sorted view to tasks.json. Ids only (tasks-list-view"
         }
       },
@@ -15941,7 +15970,7 @@
           "REORDER_TASKS"
         ]
       },
-      "sizeBytes": 36628,
+      "sizeBytes": 41516,
       "extraction": {
         "status": "parsed"
       },
@@ -15951,8 +15980,10 @@
           "appendSection": "ba75f6e450a21a04",
           "clearSelection": "61ad7ecd9504c904",
           "commitSortToFile": "beff6f45e6520cc2",
+          "openSpec": "5b89bd4a75cabfa5",
           "renderOlderTile": "430fa30a4a4f14f7",
           "renderPlayButton": "df7b9dbe108a97fb",
+          "renderSpecSection": "a086a713c0060009",
           "renderTile": "1e3f0bb6063b9fc4",
           "renderToolbar": "aa535f74454d05a5",
           "resetAside": "7dde6f0750e05609",
@@ -28146,6 +28177,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c54f75791531365473be2c1f4b791d01fa596948bbb70ee75ca3b81f74e46c54"
+    "revision": "500054da43a5dd86e81f35dfc7d254e2833dd48f78a653ae78e9ada66d4c1bba"
   }
 }

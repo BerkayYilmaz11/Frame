@@ -8562,13 +8562,13 @@
       "title": "Add the \"Spec tasks n\" toolbar chip that reveals spec tasks in their own section grouped by spec with \"Open spec\" links, reset on project change, and open a spec task's drawer read-only (no actions, no Delete) with an \"Open spec\" link",
       "description": "",
       "source": "spec:tasks-list-view:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: tasks-list-view",
       "createdAt": "2026-10-15T12:17:27.417Z",
-      "updatedAt": "2026-10-15T12:17:27.417Z",
-      "completedAt": null
+      "updatedAt": "2026-10-15T13:37:21.653Z",
+      "completedAt": "2026-10-15T13:37:21.653Z"
     },
     {
       "id": "task-spec-tasks-list-view-T07",
