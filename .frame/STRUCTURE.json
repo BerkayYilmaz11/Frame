@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-15",
+  "lastUpdated": "2026-10-19",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93430,
+      "sizeBytes": 94092,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -1177,6 +1177,126 @@
           "startPolling": "5bc5aa72234dfa06",
           "stopPolling": "0d19d67e735c0800",
           "tokenSourceAvailable": "d52eadf660c95df1"
+        }
+      }
+    },
+    "main/codexSessionsManager": {
+      "file": "src/main/codexSessionsManager.js",
+      "description": "Codex Sessions Manager Module",
+      "exports": [
+        "setupIPC",
+        "getSessionsForProject"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "os",
+        "readline",
+        "shared/ipcChannels"
+      ],
+      "functions": {
+        "sessionsDir": {
+          "line": 26,
+          "purpose": "Where Codex keeps its data. `CODEX_HOME` is how Codex itself allows"
+        },
+        "userPromptText": {
+          "line": 50,
+          "params": [
+            "payload"
+          ],
+          "purpose": "The user's own words in a `response_item` message."
+        },
+        "isSubagentMeta": {
+          "line": 66,
+          "params": [
+            "payload"
+          ],
+          "purpose": "A subagent's thread (spawned by another Codex session) is part of its"
+        },
+        "applyRecord": {
+          "line": 72,
+          "params": [
+            "session",
+            "record"
+          ],
+          "purpose": "Fold one rollout record into the session being built."
+        },
+        "emptySession": {
+          "line": 100,
+          "params": [
+            "file"
+          ]
+        },
+        "foldRecords": {
+          "line": 122,
+          "params": [
+            "file",
+            "start",
+            "session",
+            "metaOnly"
+          ],
+          "purpose": "Stream the bytes of a rollout from `start` and fold them into `session`."
+        },
+        "belongsTo": {
+          "line": 143,
+          "params": [
+            "cwd",
+            "projectPath"
+          ]
+        },
+        "scanRollout": {
+          "line": 156,
+          "params": [
+            "file",
+            "stat",
+            "projectPath"
+          ],
+          "purpose": "Read one rollout into a session record for `projectPath`, or null when it"
+        },
+        "listRollouts": {
+          "line": 197,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every rollout file under sessions/YYYY/MM/DD/."
+        },
+        "getSessionsForProject": {
+          "line": 224,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Get Codex sessions for a given project path."
+        },
+        "setupIPC": {
+          "line": 280,
+          "params": [
+            "ipcMain"
+          ],
+          "purpose": "Setup IPC handlers"
+        }
+      },
+      "ipc": {
+        "listens": [
+          "LOAD_CODEX_SESSIONS"
+        ],
+        "emits": []
+      },
+      "sizeBytes": 9742,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "738b8285cf1892e8",
+        "purposes": {
+          "applyRecord": "eb50c2c42ffd01f1",
+          "foldRecords": "8b4f129caf327bc8",
+          "getSessionsForProject": "61928beae66b5d75",
+          "isSubagentMeta": "d5ed530f0a7ad598",
+          "listRollouts": "b815f183c2967bc8",
+          "scanRollout": "b548f99b27f1e1d7",
+          "sessionsDir": "41d14c29fc552d24",
+          "setupIPC": "b41c7437e6910eb5",
+          "userPromptText": "79ac10826fdcdb7f"
         }
       }
     },
@@ -3342,6 +3462,7 @@
         "gitBranchesManager",
         "aiToolManager",
         "claudeSessionsManager",
+        "codexSessionsManager",
         "updateChecker",
         "userSettings",
         "uiZoom",
@@ -3355,26 +3476,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 59,
+          "line": 60,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 77,
+          "line": 78,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 178
+          "line": 179
         },
         "setupAllIPC": {
-          "line": 208,
+          "line": 209,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 301,
+          "line": 303,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 349,
+          "line": 351,
           "params": [
             "window"
           ],
@@ -3397,7 +3518,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 15724,
+      "sizeBytes": 15830,
       "extraction": {
         "status": "parsed"
       },
@@ -12962,6 +13083,7 @@
         "isVisible"
       ],
       "depends": [
+        "fs",
         "electron",
         "shared/ipcChannels",
         "state",
@@ -12970,50 +13092,61 @@
       ],
       "functions": {
         "init": {
-          "line": 34
+          "line": 62
+        },
+        "selectTool": {
+          "line": 85,
+          "params": [
+            "tool"
+          ]
+        },
+        "paintTabs": {
+          "line": 94,
+          "purpose": "Active state and per-tab counts."
         },
         "show": {
-          "line": 48,
+          "line": 107,
           "purpose": "Show the panel and (re)load the list — the host calls this on mount."
         },
         "hide": {
-          "line": 55
+          "line": 114
         },
         "loadSessions": {
-          "line": 64,
-          "purpose": "Load sessions from Claude data"
+          "line": 123,
+          "purpose": "Load both lists — the tab counts need both, whichever tab is showing."
         },
         "refreshSessions": {
-          "line": 90,
+          "line": 154,
           "purpose": "Refresh sessions with spinner animation"
         },
         "renderSessions": {
-          "line": 110,
+          "line": 174,
           "purpose": "Render sessions list"
         },
         "renderSessionItem": {
-          "line": 144,
+          "line": 207,
           "params": [
             "session"
           ],
           "purpose": "Render a single session item"
         },
         "renderSessionsEmpty": {
-          "line": 173,
+          "line": 236,
           "params": [
             "message"
           ],
           "purpose": "Render sessions empty state"
         },
         "resumeSession": {
-          "line": 201,
+          "line": 264,
           "params": [
-            "sessionId"
+            "tool",
+            "session"
           ],
           "purpose": "Resume a session in a terminal of its own."
         },
         "formatRelativeTime": {
-          "line": 213,
+          "line": 288,
           "params": [
             "dateString"
           ],
@@ -13026,7 +13159,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 7860,
+      "sizeBytes": 10774,
       "extraction": {
         "status": "parsed"
       },
@@ -13034,7 +13167,8 @@
         "description": "b3c96035ef5a3323",
         "purposes": {
           "formatRelativeTime": "ee085883c2f543c8",
-          "loadSessions": "750c8d33eeb07a5a",
+          "loadSessions": "e93f1bc7614cdedb",
+          "paintTabs": "ad10f2ad76d8abbe",
           "refreshSessions": "d528e670c3a21451",
           "renderSessionItem": "ef0608d6445d3ff4",
           "renderSessions": "7b286b93c62d574a",
@@ -15112,7 +15246,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 104208,
+      "sizeBytes": 104389,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -22043,7 +22177,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12872,
+      "sizeBytes": 12918,
       "extraction": {
         "status": "parsed"
       },
@@ -23107,6 +23241,61 @@
           "installedHome": "43943ab64dae6671",
           "withActivity": "ca3a7d14d8ec5e6c"
         }
+      }
+    },
+    "test/codexSessions.test": {
+      "file": "test/codexSessions.test.js",
+      "description": "Codex sessions tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "src/main/codexSessionsManager"
+      ],
+      "functions": {
+        "uuid": {
+          "line": 38
+        },
+        "meta": {
+          "line": 43,
+          "params": [
+            "id",
+            "cwd",
+            "extra = {}"
+          ]
+        },
+        "userMsg": {
+          "line": 60,
+          "params": [
+            "text",
+            "timestamp = '2026-09-20T15"
+          ]
+        },
+        "assistantMsg": {
+          "line": 68,
+          "params": [
+            "text",
+            "timestamp = '2026-09-20T15"
+          ]
+        },
+        "writeRollout": {
+          "line": 76,
+          "params": [
+            "id",
+            "records",
+            "day = '2026/09/20'"
+          ]
+        }
+      },
+      "sizeBytes": 7051,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "b79edcd3a1e0dbdf"
       }
     },
     "test/codexTemplates.test": {
@@ -26974,6 +27163,11 @@
         "name": "codex-hooks-untrusted",
         "direction": "",
         "description": ""
+      },
+      "LOAD_CODEX_SESSIONS": {
+        "name": "load-codex-sessions",
+        "direction": "",
+        "description": ""
       }
     },
     "app": {
@@ -27526,6 +27720,18 @@
         "description": "TaskList — renders the user's tasks with status filters"
       }
     ],
+    "manager": [
+      {
+        "module": "main/codexSessionsManager",
+        "file": "src/main/codexSessionsManager.js",
+        "description": "Codex Sessions Manager Module"
+      },
+      {
+        "module": "main/pluginsManager",
+        "file": "src/main/pluginsManager.js",
+        "description": "Plugins Manager Module"
+      }
+    ],
     "menu": [
       {
         "module": "main/menu",
@@ -27825,6 +28031,11 @@
     ],
     "sessions": [
       {
+        "module": "main/codexSessionsManager",
+        "file": "src/main/codexSessionsManager.js",
+        "description": "Codex Sessions Manager Module"
+      },
+      {
         "module": "renderer/home/widgets/lastSessions",
         "file": "src/renderer/home/widgets/lastSessions.js",
         "description": "Last Sessions widget."
@@ -28103,7 +28314,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 307,
+        "parsed": 309,
         "unsupported": 84,
         "partial": 0
       }
@@ -28150,9 +28361,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 480,
+      "visitedEntries": 482,
       "traversedDirectories": 81,
-      "eligibleFiles": 391,
+      "eligibleFiles": 393,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -28169,7 +28380,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 391,
+      "indexedFiles": 393,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -28177,6 +28388,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8d08e366cfa2922eac8a11f6a5f0263bdaac3f9dce029a67891543701846e235"
+    "revision": "48266d62ac0bda3f34d7f1450807249dcf556d2b1493e23a121b72e7a132b27a"
   }
 }

@@ -1,7 +1,8 @@
 /**
  * Sessions Panel
  *
- * The project's Claude Code transcripts, each one click from being resumed.
+ * The project's Claude Code and Codex sessions, each one click from being
+ * resumed — one tab per CLI.
  * Reached from the sidebar's Context → Sessions row, the palette's "Go to
  * Sessions" and Home's Last Sessions card; hosted in the center by
  * `multiTerminalUI` the way the Claude panel used to be (`PANEL_REGISTRY`).
@@ -11,22 +12,49 @@
  * the project knows about its own history, like Specs and Tasks — while
  * plugins are a Claude Code setting. So Sessions became a Context row of its
  * own and Plugins moved behind the sidebar rail's foot button for now
- * (feedbackPanel.js). Nothing about the data changed: the list still comes
- * from `LOAD_CLAUDE_SESSIONS` (sessions-from-transcripts spec).
+ * (feedbackPanel.js). The Claude list comes from `LOAD_CLAUDE_SESSIONS`
+ * (sessions-from-transcripts spec), the Codex list from
+ * `LOAD_CODEX_SESSIONS` (codexSessionsManager.js); both arrive in the same
+ * `{ sessions, reason }` shape.
  *
  * Host contract, the same as every center-hosted panel: `show()` adds
  * `.visible` and loads, `hide()` drops `.visible` — which is what the host's
  * MutationObserver watches to route back to the terminals view.
  */
 
+const fs = require('fs');
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 
+// Per CLI: the IPC that lists its sessions and how its empty states read.
+const TOOLS = {
+  claude: {
+    channel: IPC.LOAD_CLAUDE_SESSIONS,
+    footer: 'Claude Code sessions will appear here',
+    reasons: {
+      'no-claude-dir': 'Claude Code has no session history on this machine yet',
+      'no-project-sessions': 'No Claude Code sessions recorded for this project yet',
+      'read-error': 'Could not read Claude session data — check ~/.claude/projects'
+    }
+  },
+  codex: {
+    channel: IPC.LOAD_CODEX_SESSIONS,
+    footer: 'Codex sessions will appear here',
+    reasons: {
+      'no-codex-dir': 'Codex has no session history on this machine yet',
+      'no-project-sessions': 'No Codex sessions recorded for this project yet',
+      'read-error': 'Could not read Codex session data — check ~/.codex/sessions'
+    }
+  }
+};
+const TAB_KEY = 'frame-sessions-tab';
+
 let isVisible = false;
-let sessionsData = [];
-let sessionsReason = null;
+let activeTool = 'claude';
+// { claude: { sessions, reason }, codex: { sessions, reason } }
+let lists = { claude: { sessions: [], reason: null }, codex: { sessions: [], reason: null } };
 
 let panelElement = null;
 let contentElement = null;
@@ -42,6 +70,37 @@ function init() {
 
   const refreshBtn = document.getElementById('sessions-refresh-btn');
   if (refreshBtn) refreshBtn.addEventListener('click', refreshSessions);
+
+  try {
+    const saved = localStorage.getItem(TAB_KEY);
+    if (TOOLS[saved]) activeTool = saved;
+  } catch (_) { /* non-fatal */ }
+
+  document.querySelectorAll('#sessions-tabs .sessions-tab').forEach((tab) => {
+    tab.addEventListener('click', () => selectTool(tab.dataset.tool));
+  });
+  paintTabs();
+}
+
+function selectTool(tool) {
+  if (!TOOLS[tool] || tool === activeTool) return;
+  activeTool = tool;
+  try { localStorage.setItem(TAB_KEY, tool); } catch (_) { /* non-fatal */ }
+  paintTabs();
+  renderSessions();
+}
+
+/** Active state and per-tab counts. */
+function paintTabs() {
+  document.querySelectorAll('#sessions-tabs .sessions-tab').forEach((tab) => {
+    const on = tab.dataset.tool === activeTool;
+    tab.classList.toggle('active', on);
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    const n = lists[tab.dataset.tool].sessions.length;
+    tab.classList.toggle('is-empty', n === 0);
+    const countEl = tab.querySelector('[data-count-for]');
+    if (countEl) countEl.textContent = n > 0 ? String(n) : '';
+  });
 }
 
 /** Show the panel and (re)load the list — the host calls this on mount. */
@@ -59,29 +118,34 @@ function hide() {
 }
 
 /**
- * Load sessions from Claude data
+ * Load both lists — the tab counts need both, whichever tab is showing.
  */
 async function loadSessions() {
   const projectPath = state.getProjectPath();
 
   if (!projectPath) {
-    sessionsData = [];
+    lists = { claude: { sessions: [], reason: null }, codex: { sessions: [], reason: null } };
+    paintTabs();
     renderSessionsEmpty('No project selected');
     return;
   }
 
-  try {
-    const result = await ipcRenderer.invoke(IPC.LOAD_CLAUDE_SESSIONS, projectPath);
-    // Main returns { sessions, reason }; tolerate the legacy plain array too
-    sessionsData = Array.isArray(result) ? result : (result.sessions || []);
-    sessionsReason = Array.isArray(result) ? null : result.reason;
-    renderSessions();
-  } catch (err) {
-    console.error('Error loading sessions:', err);
-    sessionsData = [];
-    sessionsReason = null;
-    renderSessionsEmpty('Failed to load sessions');
-  }
+  const load = async (tool) => {
+    try {
+      const result = await ipcRenderer.invoke(TOOLS[tool].channel, projectPath);
+      // Main returns { sessions, reason }; tolerate a plain array too
+      if (Array.isArray(result)) return { sessions: result, reason: null };
+      return { sessions: result.sessions || [], reason: result.reason || null };
+    } catch (err) {
+      console.error(`Error loading ${tool} sessions:`, err);
+      return { sessions: [], reason: 'load-failed' };
+    }
+  };
+
+  const [claude, codex] = await Promise.all([load('claude'), load('codex')]);
+  lists = { claude, codex };
+  paintTabs();
+  renderSessions();
 }
 
 /**
@@ -109,31 +173,30 @@ async function refreshSessions() {
  */
 function renderSessions() {
   if (!contentElement) return;
+  const { sessions, reason } = lists[activeTool];
 
   // Update count
   const countEl = document.getElementById('sessions-count');
   if (countEl) {
-    countEl.textContent = `${sessionsData.length} session${sessionsData.length !== 1 ? 's' : ''}`;
+    countEl.textContent = `${sessions.length} session${sessions.length !== 1 ? 's' : ''}`;
   }
 
-  if (sessionsData.length === 0) {
+  if (sessions.length === 0) {
     // Say WHY it's empty — an unexplained empty panel reads as broken
-    const reasonMessages = {
-      'no-claude-dir': 'Claude Code has no session history on this machine yet',
-      'no-project-sessions': 'No Claude Code sessions recorded for this project yet',
-      'read-error': 'Could not read Claude session data — check ~/.claude/projects'
-    };
-    renderSessionsEmpty(reasonMessages[sessionsReason] || 'No sessions found for this project');
+    const message = reason === 'load-failed'
+      ? 'Failed to load sessions'
+      : (TOOLS[activeTool].reasons[reason] || 'No sessions found for this project');
+    renderSessionsEmpty(message);
     return;
   }
 
-  contentElement.innerHTML = sessionsData.map(session => renderSessionItem(session)).join('');
+  contentElement.innerHTML = sessions.map(session => renderSessionItem(session)).join('');
 
   // Add click listeners
   contentElement.querySelectorAll('.session-item').forEach(el => {
     el.addEventListener('click', () => {
-      const sessionId = el.dataset.sessionId;
-      resumeSession(sessionId);
+      const session = sessions.find(s => s.sessionId === el.dataset.sessionId);
+      if (session) resumeSession(activeTool, session);
     });
   });
 }
@@ -184,7 +247,7 @@ function renderSessionsEmpty(message) {
         </svg>
       </div>
       <p>${escapeHtml(message)}</p>
-      <span>Claude Code sessions will appear here</span>
+      <span>${escapeHtml(TOOLS[activeTool].footer)}</span>
     </div>
   `;
 }
@@ -198,13 +261,25 @@ function renderSessionsEmpty(message) {
  * (sessions-from-transcripts spec). `hide()` drops `.visible`, which is how
  * the host routes back to the terminals view — so the new lane is on screen.
  */
-function resumeSession(sessionId) {
+function resumeSession(tool, session) {
   hide();
   // No session id, no transcript, nothing about the work — only that the
   // resume path was used at all, which is what says the feature earns its
   // place.
   ipcRenderer.send(IPC.ANALYTICS_TRACK, 'session_resumed');
-  require('./agentDispatch').resumeClaudeSession(sessionId);
+  const agentDispatch = require('./agentDispatch');
+  if (tool === 'codex') {
+    const projectPath = state.getProjectPath();
+    if (!projectPath) return;
+    // A Codex session started in a folder inside the project (a worktree)
+    // resumes in that folder — unless the folder is gone since.
+    const cwd = session.cwd && session.cwd !== projectPath && fs.existsSync(session.cwd)
+      ? session.cwd
+      : null;
+    agentDispatch.resumeAgentSession('codex', session.sessionId, { projectPath, cwd, focus: true });
+    return;
+  }
+  agentDispatch.resumeClaudeSession(session.sessionId);
 }
 
 /**
