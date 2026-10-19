@@ -594,6 +594,11 @@
           </button>
         </div>
       </div>
+      <!-- One list per CLI: Claude Code transcripts and Codex rollouts. -->
+      <div id="sessions-tabs" class="sessions-tabs" role="tablist" aria-label="Session source">
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab active" role="tab" data-tool="claude" aria-selected="true" tabindex="-1">Claude Code<span class="specs-filter-count" data-count-for="claude"></span></button>
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab" role="tab" data-tool="codex" aria-selected="false" tabindex="-1">Codex<span class="specs-filter-count" data-count-for="codex"></span></button>
+      </div>
       <div id="sessions-content">
         <!-- Sessions will be populated here -->
       </div>
