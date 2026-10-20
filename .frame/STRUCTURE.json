@@ -21863,7 +21863,7 @@
           "purpose": "Which CLI a tool name belongs to, or null when it is shared or unknown."
         },
         "cliOf": {
-          "line": 146,
+          "line": 152,
           "params": [
             "payload",
             "explicit"
@@ -21871,7 +21871,7 @@
           "purpose": "Which CLI produced a hook payload."
         },
         "editPaths": {
-          "line": 156,
+          "line": 162,
           "params": [
             "toolName",
             "toolInput",
@@ -21880,7 +21880,7 @@
           "purpose": "Files an edit tool call would write, or [] when it is not an edit."
         },
         "searchPattern": {
-          "line": 169,
+          "line": 175,
           "params": [
             "toolName",
             "toolInput",
@@ -21889,7 +21889,7 @@
           "purpose": "The pattern a search tool call is looking for, or null."
         },
         "shellCommand": {
-          "line": 182,
+          "line": 188,
           "params": [
             "toolName",
             "toolInput"
@@ -21897,7 +21897,7 @@
           "purpose": "The command a shell tool call would run, or null."
         },
         "matcherFor": {
-          "line": 193,
+          "line": 199,
           "params": [
             "cli",
             "roles"
@@ -21905,21 +21905,21 @@
           "purpose": "The `matcher` string for a hook that should fire on these roles under one"
         },
         "inlineCap": {
-          "line": 202,
+          "line": 208,
           "params": [
             "cli"
           ],
           "purpose": "How much additionalContext this CLI inlines before it truncates."
         },
         "dialect": {
-          "line": 250,
+          "line": 256,
           "params": [
             "cli"
           ],
           "purpose": "Phrase values for one CLI, falling back to Claude Code's."
         }
       },
-      "sizeBytes": 10006,
+      "sizeBytes": 10352,
       "extraction": {
         "status": "parsed"
       },
@@ -27236,7 +27236,7 @@
         "scripts/toolVocabulary"
       ],
       "functions": {},
-      "sizeBytes": 7426,
+      "sizeBytes": 8706,
       "extraction": {
         "status": "parsed"
       },
@@ -29325,6 +29325,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "6e88afe2e6cdaafea30381cd5284aaa72cb41860c7753fbca00ed146864311c8"
+    "revision": "887169e62a2393dc7deacf3dd51d142fa6e3cad5515f17d6d00285a2fa41b7b3"
   }
 }
