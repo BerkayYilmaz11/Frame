@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-20T08:57:12.115Z",
+  "lastUpdated": "2026-10-20T09:08:28.185Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8936,13 +8936,13 @@
       "userRequest": "User said: \"Sonra bu branch üzerinden bu 2. adımın branchini açıp bu işleri planlayalım\" — then chose \"Üç task\" and, for the digest hint, \"Yalnız hook satırı\".",
       "acceptanceCriteria": "- node scripts/spec-close.js <slug> reports the digest ok for all nine.\n- Each first sentence states a decision, not a summary of the work.\n- After an index rebuild the nine show their digest line instead of the title.\n- No digest states something that is not in the spec's outcome, commits or notes.",
       "notes": "Step 2 of the decision-memory roadmap; the measurement in steps 3 and 5 compares a card against a spec's line, and a spec without a digest has no line to compare. Listed as a separate task in spec-close-step's Out of Scope.",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "docs",
       "context": "2026-10-20 — decision-memory roadmap, step 2; branch fix/spec-channel-leftovers under the umbrella feat/decision-memory",
       "createdAt": "2026-10-20T08:38:29Z",
-      "updatedAt": "2026-10-20T08:38:29Z",
-      "completedAt": null
+      "updatedAt": "2026-10-20T09:08:28Z",
+      "completedAt": "2026-10-20T09:08:28Z"
     }
   ],
   "metadata": {
