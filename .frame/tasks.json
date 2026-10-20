@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-20T08:45:02.511Z",
+  "lastUpdated": "2026-10-20T08:57:12.115Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8921,13 +8921,13 @@
       "userRequest": "User said: \"Sonra bu branch üzerinden bu 2. adımın branchini açıp bu işleri planlayalım\" — then chose \"Üç task\" and, for the digest hint, \"Yalnız hook satırı\".",
       "acceptanceCriteria": "- The prompt-time block names digest.md before the spec chain.\n- A listed spec without a digest does not send the agent to a missing file without saying so.\n- The block's size limits and dedup behave as before.\n- npm test passes.",
       "notes": "Step 2 of the decision-memory roadmap. The user chose the hook line only (2026-10-20); the templates were considered and left out because they reach every project's AGENTS.md. Listed as a separate task in spec-close-step's Out of Scope.",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "fix",
       "context": "2026-10-20 — decision-memory roadmap, step 2; branch fix/spec-channel-leftovers under the umbrella feat/decision-memory",
       "createdAt": "2026-10-20T08:38:29Z",
-      "updatedAt": "2026-10-20T08:38:29Z",
-      "completedAt": null
+      "updatedAt": "2026-10-20T08:57:12Z",
+      "completedAt": "2026-10-20T08:57:12Z"
     },
     {
       "id": "task-write-missing-spec-digests",

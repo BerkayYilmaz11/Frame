@@ -338,7 +338,29 @@ test('a payload larger than the pipe buffer arrives whole', () => {
   const out = runHook('prompt', { session_id: 'big', cwd: root, prompt: 'telemetry' });
   const ctx = out.hookSpecificOutput.additionalContext;
   assert.ok(Buffer.byteLength(ctx, 'utf8') > 12 * 1024, `expected the whole payload, got ${ctx.length} chars`);
-  assert.match(ctx, /read the spec chain/); // the tail survived the write
+  assert.match(ctx, /prior decisions apply/); // the tail survived the write
+});
+
+test('the prompt block sends the agent to digest.md before the spec chain', () => {
+  const root = mkProject({
+    version: 1,
+    generatedAt: 'x',
+    root: 'x',
+    topics: {
+      'perf-spec': {
+        title: 'Performance work', phase: 'done', keywords: ['telemetry'],
+        declared: true, related: [], supersedes: null, digestLine: 'Kept telemetry local.', paths: []
+      }
+    },
+    files: {}
+  });
+
+  const out = runHook('prompt', { session_id: 'digest-first', cwd: root, prompt: 'telemetry' });
+  const ctx = out.hookSpecificOutput.additionalContext;
+  const digest = ctx.indexOf('digest.md');
+  assert.ok(digest > -1, 'the block names digest.md');
+  assert.ok(digest < ctx.indexOf('spec.md → plan.md'), 'digest.md comes before the chain');
+  assert.match(ctx, /where it has one/); // an in-flight spec has no digest yet
 });
 
 test('a Codex apply_patch gets the patched file\'s spec history', () => {

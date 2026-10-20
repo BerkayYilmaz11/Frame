@@ -19719,7 +19719,7 @@
           ]
         }
       },
-      "sizeBytes": 19369,
+      "sizeBytes": 19430,
       "extraction": {
         "status": "parsed"
       },
@@ -26248,7 +26248,7 @@
           ]
         },
         "addClosed": {
-          "line": 392,
+          "line": 414,
           "params": [
             "root",
             "{ digest = false",
@@ -26257,7 +26257,7 @@
           "purpose": "Give a project a spec that `session` closed with no digest: the session's"
         },
         "wideIndex": {
-          "line": 407,
+          "line": 429,
           "params": [
             "slugs",
             "width"
@@ -26265,7 +26265,7 @@
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
         }
       },
-      "sizeBytes": 29293,
+      "sizeBytes": 30137,
       "extraction": {
         "status": "parsed"
       },
@@ -29325,6 +29325,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "887169e62a2393dc7deacf3dd51d142fa6e3cad5515f17d6d00285a2fa41b7b3"
+    "revision": "ef91293e147d922aa3e382f5b9fdf208e2c76e52951d4ddcfe93ffe3bff06f8a"
   }
 }
