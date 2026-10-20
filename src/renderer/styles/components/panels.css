@@ -1138,6 +1138,14 @@
   animation: spin 1s linear infinite;
 }
 
+/* Claude Code | Codex — the specs filter chips, as tabs. */
+.sessions-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) 8px 0;
+}
+
 #sessions-content {
   flex: 1;
   overflow-y: auto;

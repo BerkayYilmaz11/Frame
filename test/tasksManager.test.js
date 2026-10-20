@@ -102,3 +102,48 @@ test('an unmigrated project keeps reading and writing its root tasks.json', () =
   assert.equal(onDisk.tasks.length, 2, 'the root file is the one that changed');
   assert.ok(!fs.existsSync(tasksPath), 'no second copy appears under .frame/');
 });
+
+test('addTask keeps a non-blank userRequest exactly as typed', () => {
+  writeTasksFile([]);
+  const request = '  Make the list faster.\nKeep the order.  ';
+  const added = tasksManager.addTask(projectDir, {
+    title: 'Speed', userRequest: request, priority: 'high', category: 'fix'
+  });
+  assert.equal(added.userRequest, request);
+  assert.equal(added.status, 'pending');
+  assert.equal(added.priority, 'high');
+  assert.equal(added.category, 'fix');
+  assert.equal(added.description, '');
+  assert.ok(!('acceptanceCriteria' in added));
+
+  const onDisk = JSON.parse(fs.readFileSync(tasksPath, 'utf8'));
+  assert.equal(onDisk.tasks[0].userRequest, request);
+});
+
+test('addTask records no userRequest when none, or a blank one, is given', () => {
+  writeTasksFile([]);
+  const none = tasksManager.addTask(projectDir, { title: 'A' });
+  const blank = tasksManager.addTask(projectDir, { title: 'B', userRequest: ' \n ' });
+  const wrongType = tasksManager.addTask(projectDir, { title: 'C', userRequest: 42 });
+  for (const t of [none, blank, wrongType]) assert.ok(!('userRequest' in t), t.title);
+});
+
+test('reorderTasks with id-only entries reorders and leaves every status untouched', () => {
+  const tasks = [
+    { id: 'p', title: 'P', status: 'pending', updatedAt: '2026-10-01T00:00:00Z', completedAt: null },
+    { id: 'i', title: 'I', status: 'in_progress', updatedAt: '2026-10-02T00:00:00Z', completedAt: null },
+    { id: 'c', title: 'C', status: 'completed', updatedAt: '2026-10-03T00:00:00Z', completedAt: '2026-10-03T00:00:00Z' }
+  ];
+  writeTasksFile(tasks);
+
+  assert.ok(tasksManager.reorderTasks(projectDir, [{ id: 'c' }, { id: 'p' }, { id: 'i' }]));
+
+  const onDisk = JSON.parse(fs.readFileSync(tasksPath, 'utf8'));
+  assert.deepEqual(onDisk.tasks.map(t => t.id), ['c', 'p', 'i']);
+  for (const before of tasks) {
+    const after = onDisk.tasks.find(t => t.id === before.id);
+    assert.equal(after.status, before.status, before.id);
+    assert.equal(after.updatedAt, before.updatedAt, before.id);
+    assert.equal(after.completedAt, before.completedAt, before.id);
+  }
+});

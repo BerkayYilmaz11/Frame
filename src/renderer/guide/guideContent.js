@@ -317,7 +317,7 @@ const CHAPTERS = [
         sketch: { kind: 'specFlow', focus: 'plan,tasks' },
         blocks: [
           { p: 'Generate Plan sends the agent back to the code: it checks every claim the spec makes, asks you the decisions that are genuinely yours, and writes `plan.md` together with a visual plan report you can open from the spec\'s page.' },
-          { p: 'Break into Tasks turns the plan into `tasks.md`. Frame imports those tasks into the Tasks board by itself, so progress shows up there as the agent completes them.' }
+          { p: 'Break into Tasks turns the plan into `tasks.md`. Frame imports those tasks by itself and the spec\'s page tracks them as the agent completes them; the Tasks Dashboard keeps them hidden until you tick its Include spec tasks box, which lists them with your own tasks, each labelled with its spec.' }
         ],
         actions: [
           { id: 'panel.toggleTasksDashboard', label: 'Open the Tasks Dashboard' }
@@ -347,7 +347,7 @@ const CHAPTERS = [
             'Specs Dashboard {kbd:panel.toggleSpecsDashboard} — every spec as a card, filtered by phase. Open one to read its spec, plan, tasks and outcome, and to press its next step.',
             'A spec can also open as its own tab in the top bar, with the project\'s other specs in a rail beside it.',
             'Reports — View Plan Report and View Implementation Report open the generated reports inside Frame.',
-            'Tasks Dashboard {kbd:panel.toggleTasksDashboard} — every task, spec-generated or added by hand, by status.'
+            'Tasks Dashboard {kbd:panel.toggleTasksDashboard} — your tasks by status, with Play on each pending one. Spec-generated tasks stay hidden until you reveal them.'
           ] },
           { p: 'Finished specs and tasks drop off the boards after a while; Project Settings › Boards sets how long.' }
         ],
