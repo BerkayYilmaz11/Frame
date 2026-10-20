@@ -381,7 +381,7 @@ function topicBlock(index, list) {
   const finished = list.map(({ slug }) => slug).filter((slug) => index.topics[slug].phase === 'done');
   const fix = finished.length ? `\n${fixInstruction(finished, 'request')}` : '';
   return `Specs related to this request (from the project's spec archive):\n${lines.join('\n')}\n` +
-    'If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working, and let the user know which prior decisions apply.' +
+    'If relevant, read each spec\'s digest.md before working where it has one, and its chain (spec.md → plan.md → outcome.md) when you need the detail; let the user know which prior decisions apply.' +
     fix;
 }
 

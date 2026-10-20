@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-15T12:17:27.417Z",
+  "lastUpdated": "2026-10-20T09:08:28.185Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8898,10 +8898,55 @@
       "createdAt": "2026-10-15T15:15:58.466Z",
       "updatedAt": "2026-10-15T15:22:24.048Z",
       "completedAt": "2026-10-15T15:22:24.048Z"
+    },
+    {
+      "id": "task-cliof-claude-code-payloads",
+      "title": "Recognise Claude Code hook payloads in cliOf",
+      "description": "scripts/toolVocabulary.js cliOf treats a payload carrying turn_id, permission_mode or model as Codex. Claude Code now sends permission_mode, so every Claude Code hook row is labelled codex-hook and docs-hint/spec-hint apply Codex's 20,000-character inline cap instead of Claude Code's 2,000 (INLINE_CAP). Frame's Codex hooks already pass codex explicitly (frameTemplates.js codexHook), so the inference only runs for Claude Code hooks and hand-installed ones. First capture one real payload per hook event from each CLI to confirm which field only Codex sends, then narrow the Codex signal to that field. Files: scripts/toolVocabulary.js, test/toolVocabulary.test.js (the permission_mode → Codex assertion flips), and the hint tests' Codex fixtures if they rely on the dropped fields.",
+      "userRequest": "User said: \"Sonra bu branch üzerinden bu 2. adımın branchini açıp bu işleri planlayalım\" — then chose \"Üç task\" and, for the digest hint, \"Yalnız hook satırı\".",
+      "acceptanceCriteria": "- Captured Claude Code payloads (prompt, pre-edit, session-start) resolve to claude-code; captured Codex payloads resolve to codex.\n- In a Claude Code session the hints use the 2,000-character cap and the activity rows are labelled as Claude Code.\n- An explicit CLI argument still wins over the payload.\n- npm test passes.",
+      "notes": "Step 2 of the decision-memory roadmap as renumbered in the doc \"Decisions Katmanı Önerisi\" (2026-10-15); listed as a separate task in spec-close-step's Out of Scope, needed to read reminder records per CLI. Not done here: passing claude-code explicitly in Frame's Claude hook commands — sturdier, but it changes the hook command strings frameProject matches as its own, and existing installs keep the old ones. Codex is not installed on the user's machine (2026-10-20), so Codex payloads cannot be captured here: the Codex side is checked against the payloads codex-parity recorded and the existing fixtures only.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "2026-10-20 — decision-memory roadmap, step 2; branch fix/spec-channel-leftovers under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-20T08:38:29Z",
+      "updatedAt": "2026-10-20T08:45:02Z",
+      "completedAt": "2026-10-20T08:45:02Z"
+    },
+    {
+      "id": "task-spec-hint-points-at-digest",
+      "title": "Point the prompt-time spec hint at digest.md",
+      "description": "scripts/spec-hint.js topicBlock ends the prompt-time block with \"If relevant, read the spec chain (spec.md → plan.md → outcome.md) before working…\". The digest, which holds a spec's decisions in a few lines, is not named. Reword the sentence so the agent reads digest.md first and goes on to the chain only when it needs the depth, worded so a spec without a digest (an in-flight one) still reads naturally; the rest of the sentence stays. Only this hook line changes: the AGENTS.md and CLAUDE.md templates and spec.implement.md keep their chain line. Files: scripts/spec-hint.js, test/spec-hint.test.js.",
+      "userRequest": "User said: \"Sonra bu branch üzerinden bu 2. adımın branchini açıp bu işleri planlayalım\" — then chose \"Üç task\" and, for the digest hint, \"Yalnız hook satırı\".",
+      "acceptanceCriteria": "- The prompt-time block names digest.md before the spec chain.\n- A listed spec without a digest does not send the agent to a missing file without saying so.\n- The block's size limits and dedup behave as before.\n- npm test passes.",
+      "notes": "Step 2 of the decision-memory roadmap. The user chose the hook line only (2026-10-20); the templates were considered and left out because they reach every project's AGENTS.md. Listed as a separate task in spec-close-step's Out of Scope.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "2026-10-20 — decision-memory roadmap, step 2; branch fix/spec-channel-leftovers under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-20T08:38:29Z",
+      "updatedAt": "2026-10-20T08:57:12Z",
+      "completedAt": "2026-10-20T08:57:12Z"
+    },
+    {
+      "id": "task-write-missing-spec-digests",
+      "title": "Write the nine missing spec digests",
+      "description": "Nine done specs have no digest.md, so their hint line falls back to the title: cli-spec-command-parity, codex-parity, deep-spec-tasks, first-run-onboarding-screen, github-view-tree-layout, implement-modes, implement-modes-v2, status-bar-notice-tray, test-aware-planning. Write each in the shape spec-close.js checks (front-matter with keywords, related and supersedes where they apply; a first sentence of at most 280 characters stating the decision; bullets for decisions, rejected options, result and rules; the Chain: line), from what was built rather than from the plan. Three have no outcome.md (codex-parity, deep-spec-tasks, test-aware-planning): take their actuals from their commits, measurements.md where present, and PROJECT_NOTES entries. Files: .frame/specs/<slug>/digest.md for the nine.",
+      "userRequest": "User said: \"Sonra bu branch üzerinden bu 2. adımın branchini açıp bu işleri planlayalım\" — then chose \"Üç task\" and, for the digest hint, \"Yalnız hook satırı\".",
+      "acceptanceCriteria": "- node scripts/spec-close.js <slug> reports the digest ok for all nine.\n- Each first sentence states a decision, not a summary of the work.\n- After an index rebuild the nine show their digest line instead of the title.\n- No digest states something that is not in the spec's outcome, commits or notes.",
+      "notes": "Step 2 of the decision-memory roadmap; the measurement in steps 3 and 5 compares a card against a spec's line, and a spec without a digest has no line to compare. Listed as a separate task in spec-close-step's Out of Scope.",
+      "status": "completed",
+      "priority": "medium",
+      "category": "docs",
+      "context": "2026-10-20 — decision-memory roadmap, step 2; branch fix/spec-channel-leftovers under the umbrella feat/decision-memory",
+      "createdAt": "2026-10-20T08:38:29Z",
+      "updatedAt": "2026-10-20T09:08:28Z",
+      "completedAt": "2026-10-20T09:08:28Z"
     }
   ],
   "metadata": {
-    "totalCreated": 650,
+    "totalCreated": 653,
     "totalCompleted": 29
   },
   "categories": {
