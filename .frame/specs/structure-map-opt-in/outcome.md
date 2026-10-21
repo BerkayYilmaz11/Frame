@@ -12,3 +12,10 @@ Added `STRUCTURE_ENTRIES` / `STRUCTURE_HELPERS` to `src/main/structureBootstrap.
 _Captured: 2026-10-22 · 3 file change(s)_
 
 ---
+## T03 — Hint hooks follow the opt-in
+
+Added `hintHooksFor` to `src/shared/frameTemplates.js` and made `installSpecHintHook` and `installCodexHintHook` in `src/main/frameProject.js` install its result for `structureEnabled(projectPath)`; the full template sets still drive recognition, upgrade and removal. Tests in `test/sessionHookInstall.test.js` (off → no module-hint, opt-in → present, removal clears all; removal deletes an emptied settings file, so the assertion allows that) and `test/codexHookInstall.test.js` (added only for an opted-in project, never removed by an off one).
+
+_Captured: 2026-10-22 · 4 file change(s)_
+
+---

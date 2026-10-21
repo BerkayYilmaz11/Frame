@@ -1097,6 +1097,22 @@ const CODEX_HINT_HOOKS = {
   ]
 };
 
+/**
+ * The hint hooks a project should get. The full sets above stay as they are —
+ * they also identify Frame's own entries for upgrade and removal — but a
+ * project without the module map (scripts/structure-switch.js) gets no
+ * module-hint entry: it would point at a tool the project does not have.
+ */
+function hintHooksFor(template, { structureMap = false } = {}) {
+  if (structureMap) return template;
+  const out = {};
+  for (const [eventName, entries] of Object.entries(template)) {
+    const kept = entries.filter((entry) => !entry.hooks.some((hook) => /\bmodule-hint\.js\b/.test(hook.command)));
+    if (kept.length) out[eventName] = kept;
+  }
+  return out;
+}
+
 // Forms Frame installed before: the unguarded pre-overlay commands, and the
 // `&&` guard that exited 1 when the file was missing. Removal matches these
 // too, so an upgrade takes Frame's older entries out cleanly; nothing else
@@ -1362,6 +1378,7 @@ module.exports = {
   FRAME_GITIGNORE_MARKER_END,
   SPEC_HINT_HOOKS,
   CODEX_HINT_HOOKS,
+  hintHooksFor,
   LEGACY_SPEC_HINT_COMMANDS,
   SESSION_REPORT_HOOKS,
   CODEX_SESSION_REPORT_HOOKS,

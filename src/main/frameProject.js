@@ -610,9 +610,10 @@ function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   }
 
   let added = 0;
-  for (const eventName of Object.keys(templates.SPEC_HINT_HOOKS)) {
+  const wanted = templates.hintHooksFor(templates.SPEC_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(settings.hooks[eventName]) ? settings.hooks[eventName] : [];
-    for (const entry of templates.SPEC_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
@@ -745,9 +746,12 @@ function installCodexHintHook(projectPath, { enabled = true, home = null } = {})
 
   config.hooks = config.hooks || {};
   let added = 0;
-  for (const eventName of Object.keys(templates.CODEX_HINT_HOOKS)) {
+  // hooks.json is global: the module-hint entry is added for a project with
+  // the map and never taken out for one without (another project may use it).
+  const wanted = templates.hintHooksFor(templates.CODEX_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(config.hooks[eventName]) ? config.hooks[eventName] : [];
-    for (const entry of templates.CODEX_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
