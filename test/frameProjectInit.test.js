@@ -754,6 +754,33 @@ test('init writes no STRUCTURE.json for a project that has not opted into the ma
   });
 });
 
+test('a project without the map ends init with no trace of it', async () => {
+  // Every file init writes, read back: none may name the map or its tools.
+  const MAP = /STRUCTURE\.json|find-module|module-hint|module map/;
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+  });
+  const bin = path.join(projectDir, FRAME_DIR, 'bin');
+  const binFiles = fs.readdirSync(bin);
+  assert.ok(binFiles.includes('check-freshness.js'), 'the shared tools are there');
+  for (const name of binFiles) {
+    assert.ok(!/^(update-structure|structure-|find-module|module-hint|fsSafe|intent-map)|^lang$/.test(name), `.frame/bin/${name}`);
+  }
+  assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+
+  const written = [
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.AGENTS),
+    path.join(projectDir, FRAME_DIR, 'docs', 'REFERENCE.md'),
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.QUICKSTART),
+    path.join(projectDir, ...CLAUDE_RULE_PATH.split('/')),
+    path.join(projectDir, '.claude', 'settings.json')
+  ];
+  for (const file of written) {
+    assert.ok(fs.existsSync(file), `${path.relative(projectDir, file)} written`);
+    assert.ok(!MAP.test(fs.readFileSync(file, 'utf8')), `${path.relative(projectDir, file)} names the map`);
+  }
+});
+
 test('re-init of an opted-in project keeps the opt-in and writes the map', async () => {
   await withoutStructureOverride(async () => {
     fs.mkdirSync(path.join(projectDir, FRAME_DIR), { recursive: true });

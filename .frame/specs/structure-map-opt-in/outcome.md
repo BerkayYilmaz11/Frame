@@ -26,3 +26,10 @@ Added a `structureMap` option (default off) to `getReferenceTemplate` and `getQu
 _Captured: 2026-10-22 · 3 file change(s)_
 
 ---
+## T05 — End-to-end test: an off init leaves no trace
+
+Added "a project without the map ends init with no trace of it" to `test/frameProjectInit.test.js`: a real `runProjectInit` without the opt-in, then checks of `.frame/bin`, STRUCTURE.json's absence, and the text of AGENTS.md, REFERENCE.md, QUICKSTART.md, `.claude/rules/frame.md` and `.claude/settings.json`. Test only; no source change was needed.
+
+_Captured: 2026-10-22 · 1 file change(s)_
+
+---
