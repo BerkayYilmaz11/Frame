@@ -11135,24 +11135,24 @@
           "purpose": "electron-log's renderer entry forwards to the main process's file"
         },
         "bump": {
-          "line": 75,
+          "line": 88,
           "params": [
             "direction",
             "channel"
           ]
         },
         "classifyInput": {
-          "line": 83,
+          "line": 96,
           "params": [
             "args"
           ],
           "purpose": "Tally the escape sequences in one stdin payload. Never throws."
         },
         "init": {
-          "line": 96
+          "line": 110
         }
       },
-      "sizeBytes": 6206,
+      "sizeBytes": 7040,
       "extraction": {
         "status": "parsed"
       },
@@ -28393,6 +28393,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "5ce7e3c0ff3bcf1911f380e0909530579404d6ab10da9f7e907b0a97c3c597d1"
+    "revision": "cc6246bc37db1314cedd55af0cb16220c0aee03c8a922a326b16d3dfb97300f4"
   }
 }

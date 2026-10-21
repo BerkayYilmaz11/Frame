@@ -55,6 +55,18 @@ const TERMINAL_CHANNELS = new Set([IPC.TERMINAL_INPUT_ID, IPC.TERMINAL_OUTPUT_ID
 const TERMINAL_THRESHOLD = 1500;  // per window (~300/s)
 
 /**
+ * The cursor-position exchange is left out of the storm decision entirely.
+ * Since Claude Code 2.1.270 the `ESC[?6n` ⇄ `ESC[?…R` loop runs while the
+ * CLI sits idle too, at ~53 msg/s each way per open lane — so four idle
+ * lanes crossed TERMINAL_THRESHOLD with nothing wrong in Frame, and the
+ * rate scales with how many agents are open rather than with any fault
+ * (agent-ready-never-quiet-terminal spec). A stdin message that is nothing
+ * but cursor reports is a reply; it and the output flush that asked are
+ * discounted as a pair. They still appear in the logged breakdown.
+ */
+const CURSOR_REPORT_ONLY = /^(?:\x1b\[\??\d+;\d+R)+$/;
+
+/**
  * What the stdin traffic actually was. The first investigation of this
  * warning cost an afternoon because the report named the channel but not
  * the payload — and the answer (95% cursor-position replies) was only
@@ -70,6 +82,7 @@ let counts = {};
 let total = 0;
 let terminalTotal = 0;
 let inputShapes = {};
+let cursorReplies = 0;
 let lastWarnAt = 0;
 
 function bump(direction, channel) {
@@ -84,6 +97,7 @@ function classifyInput(args) {
   try {
     const data = args && args[0] && args[0].data;
     if (typeof data !== 'string' || data.indexOf('\x1b') === -1) return;
+    if (CURSOR_REPORT_ONLY.test(data)) cursorReplies++;
     let matched = 0;
     for (const [name, re] of INPUT_SHAPES) {
       const n = (data.match(re) || []).length;
@@ -117,7 +131,8 @@ function init() {
     // Frame's own channels keep the original bar — that is what caught the
     // 2026-08-20 feedback loop. Terminal I/O has to clear its own.
     const frameTotal = total - terminalTotal;
-    const isStorm = frameTotal > THRESHOLD || terminalTotal > TERMINAL_THRESHOLD;
+    const terminalExcess = Math.max(0, terminalTotal - 2 * cursorReplies);
+    const isStorm = frameTotal > THRESHOLD || terminalExcess > TERMINAL_THRESHOLD;
     if (total > THRESHOLD) {
       const top = Object.entries(counts)
         .sort((a, b) => b[1] - a[1])
@@ -149,6 +164,7 @@ function init() {
     total = 0;
     terminalTotal = 0;
     inputShapes = {};
+    cursorReplies = 0;
   }, WINDOW_MS);
 }
 
