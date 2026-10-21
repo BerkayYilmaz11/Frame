@@ -277,6 +277,43 @@ function trackAppStarted() {
 }
 
 /**
+ * The one event an opt-out sends: that it happened, and nothing else.
+ *
+ * Sent while analytics is still on, immediately before setEnabled flips it,
+ * so it is the last thing this install sends. Deliberately not track(): the
+ * install id is being deleted in the same breath, so it must not ride along,
+ * and neither do the session id or the person properties. PostHog requires
+ * a distinct id, so the event gets a fresh random one used exactly once and
+ * creates no person; geo lookup is off for it. The result is a count of
+ * opt-outs that cannot be joined to anything the install sent before.
+ */
+function trackOptOut() {
+  const name = 'analytics_disabled';
+  if (analyticsEvents.validateEvent(name) === null) return;
+  const gate = rateLimiter.check(Date.now());
+  if (gate.notice) console.warn('Analytics:', gate.notice);
+  if (!gate.allowed) return;
+  if (aptabaseInitialized) {
+    try {
+      aptabase.trackEvent(name);
+    } catch (err) {
+      console.error('Analytics: Aptabase trackEvent failed', err);
+    }
+  }
+  if (!client) return;
+  try {
+    client.capture({
+      distinctId: randomUUID(),
+      event: name,
+      properties: { $process_person_profile: false },
+      disableGeoip: true
+    });
+  } catch (err) {
+    console.error('Analytics: PostHog capture failed', err);
+  }
+}
+
+/**
  * Toggle analytics from Settings. Persists the new state, then re-resolves
  * the install id so the toggle takes effect on disk immediately.
  *
@@ -288,6 +325,7 @@ function trackAppStarted() {
  */
 function setEnabled(enabled) {
   const value = enabled === true;
+  if (!value && isEnabled()) trackOptOut();
   userSettings.set(ENABLED_KEY, value);
   installId = null;
   identified = false;
