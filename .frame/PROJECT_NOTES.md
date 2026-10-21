@@ -3706,3 +3706,17 @@ Decisions taken with the user:
 - "Last active project" is saved explicitly. Mid-implementation a conflict surfaced with the existing Default-project setting ("Frame opens it every time it launches"); the user chose: open the last project **only when it has sessions to resume**, otherwise the default as before. The setting's text now states the exception.
 
 Measured (measurements.md): both CLIs pass the env to the hook; `$PPID` is the CLI and its pgid equals the terminal's tpgid, while a CLI nested in a session's Bash tool sits in another group — that check filters nested reports.
+
+### [2026-10-22] Opt-out now sends one `analytics_disabled` event
+
+Context: the user suspected Aptabase was broken because very few events arrive. Checked in-session: the app key is valid, the SDK delivers end to end in Electron 28, and PostHog failures (offline, 500) never block Aptabase — `track()` sends to Aptabase first in its own try, and no unhandled rejections occur. The likelier explanation is a small install base (v2.8.2 arm64 .dmg ≈ 84 downloads, mac arm64 only since 2.8.0) and a v2.8.2 registry dominated by `app_started`. One real coupling found and left as-is: `captureException` shares the event rate limiter, so an exception storm with error reporting on silences usage events for the rest of that session.
+
+User's request (Turkish, verbatim): "acaba ayarlardan kapatılan yeri de mi track etsek, en azından kaç kişinin telemetry verilerini kapattığını da görürüz" — then "tamam, uygula".
+
+This overturns, explicitly, the earlier decision that switching analytics off sends nothing ("Switching analytics *off* deliberately never arrives… correct behaviour for an opt-out", analyticsEvents.js; PRIVACY.md "no event"). The user was shown that decision and the PRIVACY.md promise before approving.
+
+Shape chosen:
+- `analytics.trackOptOut()` sends `analytics_disabled` from `setEnabled(false)` only when analytics was on, before the setting flips — not through `track()`.
+- No install id, no session id, no person properties. PostHog gets a fresh random distinct id used once, `$process_person_profile: false`, `disableGeoip: true`. Aptabase gets the bare event. So it counts opt-outs, not unique users, and cannot be joined to the install's earlier events.
+- Renderer order swapped in frameSettingsModal.js: `ANALYTICS_SET_ENABLED` before `SET_USER_SETTING`, because setEnabled must read the pre-toggle state.
+- Disclosure changed, so the notice card text says so and `NOTICE_VERSION` went 3 → 4 (card reappears once for everyone). PRIVACY.md lists the event and its exceptions.

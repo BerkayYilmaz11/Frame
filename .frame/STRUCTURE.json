@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-19",
+  "lastUpdated": "2026-10-21",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11723,
+      "sizeBytes": 12254,
       "extraction": {
         "status": "parsed"
       },
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94092,
+      "sizeBytes": 94173,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -768,31 +768,35 @@
           "line": 275,
           "purpose": "Anonymous event marking this launch."
         },
+        "trackOptOut": {
+          "line": 290,
+          "purpose": "The one event an opt-out sends: that it happened, and nothing else."
+        },
         "setEnabled": {
-          "line": 289,
+          "line": 326,
           "params": [
             "enabled"
           ],
           "purpose": "Toggle analytics from Settings. Persists the new state, then re-resolves"
         },
         "migrateLegacySettings": {
-          "line": 308,
+          "line": 346,
           "purpose": "Copy settings forward from the names this feature used when it was called"
         },
         "enforceFailClosed": {
-          "line": 332,
+          "line": 370,
           "purpose": "Make a failed settings load's fail-closed state stick. Called right after"
         },
         "isEnabled": {
-          "line": 343,
+          "line": 381,
           "purpose": "Effective enabled state. Default ON when the setting has never been"
         },
         "shutdown": {
-          "line": 359,
+          "line": 397,
           "purpose": "Flush the batcher and close the client, for the quit path."
         }
       },
-      "sizeBytes": 14849,
+      "sizeBytes": 16206,
       "extraction": {
         "status": "parsed"
       },
@@ -812,7 +816,8 @@
           "shutdown": "6db4121e4d7045c2",
           "startActiveTimer": "1132af442a4b3b3b",
           "track": "2e86b64f1eda064b",
-          "trackAppStarted": "9c37f94c9015aeb9"
+          "trackAppStarted": "9c37f94c9015aeb9",
+          "trackOptOut": "eb06f4d5d9f0936d"
         }
       }
     },
@@ -842,14 +847,14 @@
       ],
       "functions": {
         "normalizeTool": {
-          "line": 90,
+          "line": 94,
           "params": [
             "id"
           ],
           "purpose": "Collapse a tool id to the fixed dashboard enum. User-defined custom tool"
         },
         "validateEvent": {
-          "line": 105,
+          "line": 109,
           "params": [
             "name",
             "props"
@@ -857,7 +862,7 @@
           "purpose": "Validate an (event, props) pair against the registry."
         },
         "effectiveEnabled": {
-          "line": 143,
+          "line": 147,
           "params": [
             "{ value",
             "loadFailed }"
@@ -865,7 +870,7 @@
           "purpose": "Effective analytics state from the persisted setting plus settings-load"
         },
         "shouldShowNotice": {
-          "line": 173,
+          "line": 177,
           "params": [
             "{ storedVersion",
             "legacyShown",
@@ -874,33 +879,33 @@
           "purpose": "Whether the disclosure notice should be shown."
         },
         "stripAbsolutePaths": {
-          "line": 201,
+          "line": 205,
           "params": [
             "text"
           ]
         },
         "sanitizeException": {
-          "line": 217,
+          "line": 221,
           "params": [
             "err"
           ],
           "purpose": "Make an exception safe to send."
         },
         "createActiveTimer": {
-          "line": 242,
+          "line": 246,
           "params": [
             "options"
           ]
         },
         "planLegacyMigration": {
-          "line": 285,
+          "line": 289,
           "params": [
             "snapshot"
           ],
           "purpose": "What the rename owes this install."
         },
         "resolveInstallId": {
-          "line": 327,
+          "line": 331,
           "params": [
             "{ stored",
             "enabled }",
@@ -909,21 +914,21 @@
           "purpose": "Decide this launch's install id from what is stored and whether analytics"
         },
         "createRateLimiter": {
-          "line": 358,
+          "line": 362,
           "params": [
             "options"
           ],
           "purpose": "A rolling-window limiter. `check(now)` decides one event and returns"
         },
         "stampedSince": {
-          "line": 418,
+          "line": 422,
           "params": [
             "stamp",
             "since"
           ]
         },
         "diffSpecLifecycle": {
-          "line": 437,
+          "line": 441,
           "params": [
             "previous",
             "specs",
@@ -932,7 +937,7 @@
           "purpose": "Compare one push of a project's specs with this run's earlier looks at it."
         },
         "renameSpecLifecycle": {
-          "line": 476,
+          "line": 480,
           "params": [
             "state",
             "oldSlug",
@@ -941,7 +946,7 @@
           "purpose": "Carry a renamed spec's history to its new slug, so the rename does not read"
         }
       },
-      "sizeBytes": 21026,
+      "sizeBytes": 21274,
       "extraction": {
         "status": "parsed"
       },
@@ -9086,16 +9091,16 @@
           "line": 53
         },
         "initAboutSection": {
-          "line": 139
+          "line": 141
         },
         "runCheck": {
-          "line": 232,
+          "line": 234,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 272,
+          "line": 274,
           "params": [
             "{ checked",
             "found",
@@ -9107,39 +9112,39 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 306,
+          "line": 308,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 323
+          "line": 325
         },
         "hideSidebarDot": {
-          "line": 327
+          "line": 329
         },
         "formatRelative": {
-          "line": 333,
+          "line": 335,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 349,
+          "line": 351,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 372
+          "line": 374
         },
         "syncErrorReportingAvailability": {
-          "line": 388,
+          "line": 390,
           "params": [
             "analyticsOn"
           ],
           "purpose": "Error reporting is gated on analytics in main (analytics.captureException"
         },
         "syncToggleFromSettings": {
-          "line": 395
+          "line": 397
         }
       },
       "ipc": {
@@ -9156,7 +9161,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 15724,
+      "sizeBytes": 15877,
       "extraction": {
         "status": "parsed"
       },
@@ -23055,13 +23060,13 @@
       ],
       "functions": {
         "seed": {
-          "line": 418,
+          "line": 423,
           "params": [
             "specs"
           ]
         }
       },
-      "sizeBytes": 21440,
+      "sizeBytes": 21674,
       "extraction": {
         "status": "parsed"
       },
@@ -28388,6 +28393,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "48266d62ac0bda3f34d7f1450807249dcf556d2b1493e23a121b72e7a132b27a"
+    "revision": "5ce7e3c0ff3bcf1911f380e0909530579404d6ab10da9f7e907b0a97c3c597d1"
   }
 }

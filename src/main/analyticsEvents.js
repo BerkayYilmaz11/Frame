@@ -53,9 +53,13 @@ const EVENTS = {
   task_completed: {},
   // Which setting was touched, never its value — the value of the one that
   // matters most is already carried by the opt-out itself. Switching
-  // analytics *off* deliberately never arrives: track() is gated on the new
-  // state, which is the correct behaviour for an opt-out.
+  // analytics *off* never arrives here: track() is gated on the new state.
+  // The opt-out is counted by analytics_disabled instead.
   settings_changed: { setting: ['analytics', 'error_reporting', 'crash_dumps', 'ui_zoom'] },
+  // Sent once, just before analytics turns off, by analytics.trackOptOut —
+  // never through track(). It carries no install id, no session id and no
+  // location, so it counts opt-outs without tying one to an install.
+  analytics_disabled: {},
   // The one numeric property in the registry. `active_seconds` counts only
   // the time a window was actually on screen — for a tool that sits open in
   // the background all day, wall-clock "app was running" would report eight
@@ -156,7 +160,7 @@ function effectiveEnabled({ value, loadFailed }) {
 // Bump NOTICE_VERSION only when the disclosure itself changes. It is not a
 // release counter, and a bump interrupts every user exactly once.
 
-const NOTICE_VERSION = 3;
+const NOTICE_VERSION = 4;
 
 /**
  * Whether the disclosure notice should be shown.
