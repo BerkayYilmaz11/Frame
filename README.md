@@ -60,7 +60,6 @@ Frame brings a consistent structure to every project you work on. When you initi
 | File | Purpose |
 |------|---------|
 | `.frame/AGENTS.md` | Project rules and instructions — AI reads this automatically |
-| `.frame/STRUCTURE.json` | Module map with intentIndex for fast file lookup |
 | `.frame/PROJECT_NOTES.md` | Architectural decisions and context that persist across sessions |
 | `.frame/tasks.json` | Task tracking with status, context, and acceptance criteria |
 | `.claude/rules/frame.md` | Two lines pointing Claude Code at `.frame/AGENTS.md` |
@@ -93,7 +92,6 @@ Frame's approach: **use git commits as the single reliable boundary.**
 
 When you commit, something real happened. It's intentional, it's deterministic, and it's a natural checkpoint you're already making. Frame builds its entire context system around this moment:
 
-- **`.frame/STRUCTURE.json`** — auto-updated via pre-commit hook, always reflects the current architecture
 - **`.frame/tasks.json`** — task state syncs at commit time
 - **`.frame/PROJECT_NOTES.md`** — the right moment to capture what changed and why
 
@@ -121,18 +119,6 @@ Two principles shaped this:
 
 - **Files over databases.** Markdown is canonical. Any AI tool can read it without Frame, any teammate can grep it, git versions it, PRs review it.
 - **On, but never forced.** New projects start with spec-driven dev enabled, so the specs your AI writes show up in the Specs panel from the first session. It isn't every project's shape — one switch in Settings → Workflow turns it off (your specs stay on disk). Existing `tasks.json` workflows are untouched either way.
-
-### Fast File Lookup
-
-Instead of scanning the entire codebase, Frame's `intentIndex` maps concepts to files:
-
-```bash
-node scripts/find-module.js github    # → githubManager.js + githubPanel.js
-node scripts/find-module.js terminal  # → all terminal-related files
-node scripts/find-module.js --list    # → all features and their files
-```
-
-This means AI agents spend zero time searching — they go directly to the right file.
 
 ### Multi-AI Support
 
@@ -164,8 +150,6 @@ the context your work produces outlives any single tool, including Frame.
 - **Plugins Panel** — browse, enable/disable, and install Claude Code plugins
 
 ### Context & Architecture
-- **`.frame/STRUCTURE.json`** — auto-updated on every commit via pre-commit hooks
-- **Overview Panel** — visual structure map of your project's modules
 - **Session Notes** — automatic prompts to save important decisions to PROJECT_NOTES.md
 - **Prompt History** — all terminal input logged with timestamps
 
@@ -180,7 +164,6 @@ the context your work produces outlives any single tool, including Frame.
 
 - **120+ IPC channels** powering real-time bidirectional communication between renderer and main process
 - **40+ modules** across main and renderer processes
-- **Pre-commit hooks** for automatic `.frame/STRUCTURE.json` updates
 - **Transport layer abstraction** — architecture designed for Electron IPC → WebSocket migration (web platform coming)
 
 ---
@@ -224,7 +207,7 @@ Pre-built binaries available on the [releases page](https://github.com/kaanozhan
 ### Basic Workflow
 
 1. **Select a project** — click "Select Project Folder" or choose from recent projects
-2. **Initialize Frame** — click "Initialize Frame Project" to create `.frame/` (AGENTS.md, STRUCTURE.json, PROJECT_NOTES.md, tasks.json) and the `.claude/rules/frame.md` pointer, and choose whether Frame's files are shared with the repo or kept local to you
+2. **Initialize Frame** — click "Initialize Frame Project" to create `.frame/` (AGENTS.md, PROJECT_NOTES.md, tasks.json) and the `.claude/rules/frame.md` pointer, and choose whether Frame's files are shared with the repo or kept local to you
 3. **Start an AI session** — click "Start Claude Code" (or your chosen tool) — it launches in your project directory with full context
 4. **Work** — tasks are tracked, decisions are saved, context persists
 
@@ -258,7 +241,7 @@ Pre-built binaries available on the [releases page](https://github.com/kaanozhan
 │              Renderer (Browser)                  │
 │                                                  │
 │  Multi-Terminal Grid · Sidebar · Task Panel      │
-│  GitHub Panel · Structure Map · AI Selector      │
+│  GitHub Panel · AI Selector                      │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -268,16 +251,13 @@ Pre-built binaries available on the [releases page](https://github.com/kaanozhan
 
 ### Done
 - [x] Terminal-first IDE with multi-terminal grid (up to 9)
-- [x] Frame project structure (`.frame/`: AGENTS.md, STRUCTURE.json, tasks.json, PROJECT_NOTES.md)
+- [x] Frame project structure (`.frame/`: AGENTS.md, tasks.json, PROJECT_NOTES.md)
 - [x] Multi-AI support — Claude Code, Codex CLI, Gemini CLI
 - [x] Automatic context injection via wrapper scripts
 - [x] Task panel with AI integration
 - [x] GitHub panel — issues, PRs, branches
 - [x] Git branches and worktrees panel
-- [x] `.frame/STRUCTURE.json` intentIndex for fast file lookup
 - [x] Plugins panel
-- [x] Overview / structure map panel
-- [x] Pre-commit hooks for automatic structure updates
 - [x] Spec-driven development — spec / plan / tasks / outcome markdown workflow with auto-import to tasks.json
 - [x] Light / dark theme
 

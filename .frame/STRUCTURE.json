@@ -108,7 +108,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 14798,
+      "sizeBytes": 13764,
       "extraction": {
         "status": "parsed"
       },
@@ -28469,6 +28469,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8807ca94727c899280e19628fb1e6c87c388cf8f325df59e76718e21ca143472"
+    "revision": "1b14681a106a5cd5eb38c74af51f1eceb740160fafd8589d4261b60de85febe1"
   }
 }
