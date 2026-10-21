@@ -252,6 +252,11 @@ test('every registry prop is a fixed enum or a declared number — never free-fo
   }
 });
 
+test('analytics_disabled is registered and carries nothing but its name', () => {
+  assert.deepEqual(EVENTS.analytics_disabled, {});
+  assert.deepEqual(validateEvent('analytics_disabled', { setting: 'analytics', id: 'x' }), {});
+});
+
 test('a numeric prop takes a number in range and refuses everything else', () => {
   assert.deepEqual(validateEvent('app_session_ended', { active_seconds: 1830.7 }), { active_seconds: 1831 });
   assert.deepEqual(validateEvent('app_session_ended', { active_seconds: 0 }), { active_seconds: 0 });

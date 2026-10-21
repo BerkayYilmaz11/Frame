@@ -34,6 +34,7 @@ const projectInsights = require('./projectInsights');
 const gitBranchesManager = require('./gitBranchesManager');
 const aiToolManager = require('./aiToolManager');
 const claudeSessionsManager = require('./claudeSessionsManager');
+const codexSessionsManager = require('./codexSessionsManager');
 const updateChecker = require('./updateChecker');
 const userSettings = require('./userSettings');
 const uiZoom = require('./uiZoom');
@@ -226,6 +227,7 @@ function setupAllIPC() {
   projectInsights.setupIPC(ipcMain);
   gitBranchesManager.setupIPC(ipcMain);
   claudeSessionsManager.setupIPC(ipcMain);
+  codexSessionsManager.setupIPC(ipcMain);
   updateChecker.setupIPC();
 
   // User settings (renderer-side preferences persisted to userData JSON)

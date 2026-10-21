@@ -107,6 +107,7 @@ const IPC = {
   // Claude Sessions
   LOAD_CLAUDE_SESSIONS: 'load-claude-sessions',
   REFRESH_CLAUDE_SESSIONS: 'refresh-claude-sessions',
+  LOAD_CODEX_SESSIONS: 'load-codex-sessions',
 
   // GitHub Panel
   LOAD_GITHUB_ISSUES: 'load-github-issues',

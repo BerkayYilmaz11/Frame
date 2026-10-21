@@ -35,7 +35,8 @@
     <p class="analytics-notice-text">
       Frame sends a random ID for this install, your app version, OS, and the country
       your request came from, so we can count active users and see which features get
-      used. No code, file paths or prompts. Turning this off in Settings deletes the ID.
+      used. No code, file paths or prompts. Turning this off in Settings deletes the ID
+      and sends one last anonymous count that it was turned off — then nothing.
     </p>
     <div class="analytics-notice-actions">
       <a href="#" id="analytics-notice-settings-link" class="analytics-notice-link">Manage in Settings</a>
@@ -593,6 +594,11 @@
             </svg>
           </button>
         </div>
+      </div>
+      <!-- One list per CLI: Claude Code transcripts and Codex rollouts. -->
+      <div id="sessions-tabs" class="sessions-tabs" role="tablist" aria-label="Session source">
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab active" role="tab" data-tool="claude" aria-selected="true" tabindex="-1">Claude Code<span class="specs-filter-count" data-count-for="claude"></span></button>
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab" role="tab" data-tool="codex" aria-selected="false" tabindex="-1">Codex<span class="specs-filter-count" data-count-for="codex"></span></button>
       </div>
       <div id="sessions-content">
         <!-- Sessions will be populated here -->

@@ -30,6 +30,7 @@ The complete event list:
 | `task_completed` | — | a task was marked done (never its title, id, or project) |
 | `app_session_ended` | `active_seconds`: a number, capped at one day | how long Frame was actually on screen this session — only time a window was visible counts, so leaving it open in the background adds nothing |
 | `settings_changed` | `setting`: `analytics` / `error_reporting` / `crash_dumps` / `ui_zoom` | which setting was touched — never the value it was set to |
+| `analytics_disabled` | — | analytics was switched off — sent once, at the moment you switch it off, and then nothing more. Unlike every other event it carries **no install ID, no session ID and no location**, so it counts opt-outs without being linkable to anything your install sent before |
 | `feedback_submitted` | `channel`: `github_issue` / `github_discussion` / `email` | which route carried an in-app feedback report — never its title, description, or the diagnostics shown in the form |
 | `error_occurred` | `category`: a fixed list of failure types (e.g. `agent_cli_not_found`, `orch_merge_failed`) | what breaks in the wild — counts only, never error messages, stack traces, or file paths |
 
@@ -53,7 +54,7 @@ Each event is tagged with the **country and region** it came from, worked out fr
 - We use it to see which parts of the world Frame is used in, so documentation, defaults and support hours can follow real usage rather than guesswork.
 - It is **country and region level** — the same granularity a weather site infers. No city-block accuracy, no GPS, no street address.
 - **The IP address itself is not stored.** PostHog resolves it to a location on arrival and discards it; it is never written to the event, and we never see it.
-- Turning analytics off stops this like everything else — no event, no location.
+- Turning analytics off stops this like everything else. The one `analytics_disabled` event sent at that moment carries no location.
 
 ## What we do **not** collect
 
@@ -69,7 +70,7 @@ Each event is tagged with the **country and region** it came from, worked out fr
 
 ## How to opt out
 
-Open **Settings** (`Cmd+,` on macOS, `Ctrl+,` on Windows/Linux) and toggle **"Send anonymous usage stats"** off. The setting takes effect immediately and persists across launches, and switching it off deletes the install ID at the same moment.
+Open **Settings** (`Cmd+,` on macOS, `Ctrl+,` on Windows/Linux) and toggle **"Send anonymous usage stats"** off. The setting takes effect immediately and persists across launches, and switching it off deletes the install ID at the same moment. At that moment Frame sends a single `analytics_disabled` event — with no install ID, session ID or location — so we can count how many people opt out; after it, nothing is sent.
 
 Your opt-out is durable: if the settings file on disk is ever corrupted beyond repair, analytics **fails closed** — Frame records it as switched off, nothing is sent, and no install ID is kept. Corruption can never silently re-enable analytics.
 

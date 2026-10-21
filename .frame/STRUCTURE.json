@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11723,
+      "sizeBytes": 12254,
       "extraction": {
         "status": "parsed"
       },
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93430,
+      "sizeBytes": 94173,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -768,31 +768,35 @@
           "line": 275,
           "purpose": "Anonymous event marking this launch."
         },
+        "trackOptOut": {
+          "line": 290,
+          "purpose": "The one event an opt-out sends: that it happened, and nothing else."
+        },
         "setEnabled": {
-          "line": 289,
+          "line": 326,
           "params": [
             "enabled"
           ],
           "purpose": "Toggle analytics from Settings. Persists the new state, then re-resolves"
         },
         "migrateLegacySettings": {
-          "line": 308,
+          "line": 346,
           "purpose": "Copy settings forward from the names this feature used when it was called"
         },
         "enforceFailClosed": {
-          "line": 332,
+          "line": 370,
           "purpose": "Make a failed settings load's fail-closed state stick. Called right after"
         },
         "isEnabled": {
-          "line": 343,
+          "line": 381,
           "purpose": "Effective enabled state. Default ON when the setting has never been"
         },
         "shutdown": {
-          "line": 359,
+          "line": 397,
           "purpose": "Flush the batcher and close the client, for the quit path."
         }
       },
-      "sizeBytes": 14849,
+      "sizeBytes": 16206,
       "extraction": {
         "status": "parsed"
       },
@@ -812,7 +816,8 @@
           "shutdown": "6db4121e4d7045c2",
           "startActiveTimer": "1132af442a4b3b3b",
           "track": "2e86b64f1eda064b",
-          "trackAppStarted": "9c37f94c9015aeb9"
+          "trackAppStarted": "9c37f94c9015aeb9",
+          "trackOptOut": "eb06f4d5d9f0936d"
         }
       }
     },
@@ -842,14 +847,14 @@
       ],
       "functions": {
         "normalizeTool": {
-          "line": 90,
+          "line": 94,
           "params": [
             "id"
           ],
           "purpose": "Collapse a tool id to the fixed dashboard enum. User-defined custom tool"
         },
         "validateEvent": {
-          "line": 105,
+          "line": 109,
           "params": [
             "name",
             "props"
@@ -857,7 +862,7 @@
           "purpose": "Validate an (event, props) pair against the registry."
         },
         "effectiveEnabled": {
-          "line": 143,
+          "line": 147,
           "params": [
             "{ value",
             "loadFailed }"
@@ -865,7 +870,7 @@
           "purpose": "Effective analytics state from the persisted setting plus settings-load"
         },
         "shouldShowNotice": {
-          "line": 173,
+          "line": 177,
           "params": [
             "{ storedVersion",
             "legacyShown",
@@ -874,33 +879,33 @@
           "purpose": "Whether the disclosure notice should be shown."
         },
         "stripAbsolutePaths": {
-          "line": 201,
+          "line": 205,
           "params": [
             "text"
           ]
         },
         "sanitizeException": {
-          "line": 217,
+          "line": 221,
           "params": [
             "err"
           ],
           "purpose": "Make an exception safe to send."
         },
         "createActiveTimer": {
-          "line": 242,
+          "line": 246,
           "params": [
             "options"
           ]
         },
         "planLegacyMigration": {
-          "line": 285,
+          "line": 289,
           "params": [
             "snapshot"
           ],
           "purpose": "What the rename owes this install."
         },
         "resolveInstallId": {
-          "line": 327,
+          "line": 331,
           "params": [
             "{ stored",
             "enabled }",
@@ -909,21 +914,21 @@
           "purpose": "Decide this launch's install id from what is stored and whether analytics"
         },
         "createRateLimiter": {
-          "line": 358,
+          "line": 362,
           "params": [
             "options"
           ],
           "purpose": "A rolling-window limiter. `check(now)` decides one event and returns"
         },
         "stampedSince": {
-          "line": 418,
+          "line": 422,
           "params": [
             "stamp",
             "since"
           ]
         },
         "diffSpecLifecycle": {
-          "line": 437,
+          "line": 441,
           "params": [
             "previous",
             "specs",
@@ -932,7 +937,7 @@
           "purpose": "Compare one push of a project's specs with this run's earlier looks at it."
         },
         "renameSpecLifecycle": {
-          "line": 476,
+          "line": 480,
           "params": [
             "state",
             "oldSlug",
@@ -941,7 +946,7 @@
           "purpose": "Carry a renamed spec's history to its new slug, so the rename does not read"
         }
       },
-      "sizeBytes": 21026,
+      "sizeBytes": 21274,
       "extraction": {
         "status": "parsed"
       },
@@ -1177,6 +1182,126 @@
           "startPolling": "5bc5aa72234dfa06",
           "stopPolling": "0d19d67e735c0800",
           "tokenSourceAvailable": "d52eadf660c95df1"
+        }
+      }
+    },
+    "main/codexSessionsManager": {
+      "file": "src/main/codexSessionsManager.js",
+      "description": "Codex Sessions Manager Module",
+      "exports": [
+        "setupIPC",
+        "getSessionsForProject"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "os",
+        "readline",
+        "shared/ipcChannels"
+      ],
+      "functions": {
+        "sessionsDir": {
+          "line": 26,
+          "purpose": "Where Codex keeps its data. `CODEX_HOME` is how Codex itself allows"
+        },
+        "userPromptText": {
+          "line": 50,
+          "params": [
+            "payload"
+          ],
+          "purpose": "The user's own words in a `response_item` message."
+        },
+        "isSubagentMeta": {
+          "line": 66,
+          "params": [
+            "payload"
+          ],
+          "purpose": "A subagent's thread (spawned by another Codex session) is part of its"
+        },
+        "applyRecord": {
+          "line": 72,
+          "params": [
+            "session",
+            "record"
+          ],
+          "purpose": "Fold one rollout record into the session being built."
+        },
+        "emptySession": {
+          "line": 100,
+          "params": [
+            "file"
+          ]
+        },
+        "foldRecords": {
+          "line": 122,
+          "params": [
+            "file",
+            "start",
+            "session",
+            "metaOnly"
+          ],
+          "purpose": "Stream the bytes of a rollout from `start` and fold them into `session`."
+        },
+        "belongsTo": {
+          "line": 143,
+          "params": [
+            "cwd",
+            "projectPath"
+          ]
+        },
+        "scanRollout": {
+          "line": 156,
+          "params": [
+            "file",
+            "stat",
+            "projectPath"
+          ],
+          "purpose": "Read one rollout into a session record for `projectPath`, or null when it"
+        },
+        "listRollouts": {
+          "line": 197,
+          "params": [
+            "root"
+          ],
+          "purpose": "Every rollout file under sessions/YYYY/MM/DD/."
+        },
+        "getSessionsForProject": {
+          "line": 224,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Get Codex sessions for a given project path."
+        },
+        "setupIPC": {
+          "line": 280,
+          "params": [
+            "ipcMain"
+          ],
+          "purpose": "Setup IPC handlers"
+        }
+      },
+      "ipc": {
+        "listens": [
+          "LOAD_CODEX_SESSIONS"
+        ],
+        "emits": []
+      },
+      "sizeBytes": 9742,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "738b8285cf1892e8",
+        "purposes": {
+          "applyRecord": "eb50c2c42ffd01f1",
+          "foldRecords": "8b4f129caf327bc8",
+          "getSessionsForProject": "61928beae66b5d75",
+          "isSubagentMeta": "d5ed530f0a7ad598",
+          "listRollouts": "b815f183c2967bc8",
+          "scanRollout": "b548f99b27f1e1d7",
+          "sessionsDir": "41d14c29fc552d24",
+          "setupIPC": "b41c7437e6910eb5",
+          "userPromptText": "79ac10826fdcdb7f"
         }
       }
     },
@@ -3342,6 +3467,7 @@
         "gitBranchesManager",
         "aiToolManager",
         "claudeSessionsManager",
+        "codexSessionsManager",
         "updateChecker",
         "userSettings",
         "uiZoom",
@@ -3355,26 +3481,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 59,
+          "line": 60,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 77,
+          "line": 78,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 178
+          "line": 179
         },
         "setupAllIPC": {
-          "line": 208,
+          "line": 209,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 301,
+          "line": 303,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 349,
+          "line": 351,
           "params": [
             "window"
           ],
@@ -3397,7 +3523,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 15724,
+      "sizeBytes": 15830,
       "extraction": {
         "status": "parsed"
       },
@@ -8965,16 +9091,16 @@
           "line": 53
         },
         "initAboutSection": {
-          "line": 139
+          "line": 141
         },
         "runCheck": {
-          "line": 232,
+          "line": 234,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 272,
+          "line": 274,
           "params": [
             "{ checked",
             "found",
@@ -8986,39 +9112,39 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 306,
+          "line": 308,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 323
+          "line": 325
         },
         "hideSidebarDot": {
-          "line": 327
+          "line": 329
         },
         "formatRelative": {
-          "line": 333,
+          "line": 335,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 349,
+          "line": 351,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 372
+          "line": 374
         },
         "syncErrorReportingAvailability": {
-          "line": 388,
+          "line": 390,
           "params": [
             "analyticsOn"
           ],
           "purpose": "Error reporting is gated on analytics in main (analytics.captureException"
         },
         "syncToggleFromSettings": {
-          "line": 395
+          "line": 397
         }
       },
       "ipc": {
@@ -9035,7 +9161,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 15724,
+      "sizeBytes": 15877,
       "extraction": {
         "status": "parsed"
       },
@@ -12962,6 +13088,7 @@
         "isVisible"
       ],
       "depends": [
+        "fs",
         "electron",
         "shared/ipcChannels",
         "state",
@@ -12970,50 +13097,61 @@
       ],
       "functions": {
         "init": {
-          "line": 34
+          "line": 62
+        },
+        "selectTool": {
+          "line": 85,
+          "params": [
+            "tool"
+          ]
+        },
+        "paintTabs": {
+          "line": 94,
+          "purpose": "Active state and per-tab counts."
         },
         "show": {
-          "line": 48,
+          "line": 107,
           "purpose": "Show the panel and (re)load the list — the host calls this on mount."
         },
         "hide": {
-          "line": 55
+          "line": 114
         },
         "loadSessions": {
-          "line": 64,
-          "purpose": "Load sessions from Claude data"
+          "line": 123,
+          "purpose": "Load both lists — the tab counts need both, whichever tab is showing."
         },
         "refreshSessions": {
-          "line": 90,
+          "line": 154,
           "purpose": "Refresh sessions with spinner animation"
         },
         "renderSessions": {
-          "line": 110,
+          "line": 174,
           "purpose": "Render sessions list"
         },
         "renderSessionItem": {
-          "line": 144,
+          "line": 207,
           "params": [
             "session"
           ],
           "purpose": "Render a single session item"
         },
         "renderSessionsEmpty": {
-          "line": 173,
+          "line": 236,
           "params": [
             "message"
           ],
           "purpose": "Render sessions empty state"
         },
         "resumeSession": {
-          "line": 201,
+          "line": 264,
           "params": [
-            "sessionId"
+            "tool",
+            "session"
           ],
           "purpose": "Resume a session in a terminal of its own."
         },
         "formatRelativeTime": {
-          "line": 213,
+          "line": 288,
           "params": [
             "dateString"
           ],
@@ -13026,7 +13164,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 7860,
+      "sizeBytes": 10774,
       "extraction": {
         "status": "parsed"
       },
@@ -13034,7 +13172,8 @@
         "description": "b3c96035ef5a3323",
         "purposes": {
           "formatRelativeTime": "ee085883c2f543c8",
-          "loadSessions": "750c8d33eeb07a5a",
+          "loadSessions": "e93f1bc7614cdedb",
+          "paintTabs": "ad10f2ad76d8abbe",
           "refreshSessions": "d528e670c3a21451",
           "renderSessionItem": "ef0608d6445d3ff4",
           "renderSessions": "7b286b93c62d574a",
@@ -15112,7 +15251,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 104208,
+      "sizeBytes": 104389,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -22043,7 +22182,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12872,
+      "sizeBytes": 12918,
       "extraction": {
         "status": "parsed"
       },
@@ -22921,13 +23060,13 @@
       ],
       "functions": {
         "seed": {
-          "line": 418,
+          "line": 423,
           "params": [
             "specs"
           ]
         }
       },
-      "sizeBytes": 21440,
+      "sizeBytes": 21674,
       "extraction": {
         "status": "parsed"
       },
@@ -23107,6 +23246,61 @@
           "installedHome": "43943ab64dae6671",
           "withActivity": "ca3a7d14d8ec5e6c"
         }
+      }
+    },
+    "test/codexSessions.test": {
+      "file": "test/codexSessions.test.js",
+      "description": "Codex sessions tests.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "src/main/codexSessionsManager"
+      ],
+      "functions": {
+        "uuid": {
+          "line": 38
+        },
+        "meta": {
+          "line": 43,
+          "params": [
+            "id",
+            "cwd",
+            "extra = {}"
+          ]
+        },
+        "userMsg": {
+          "line": 60,
+          "params": [
+            "text",
+            "timestamp = '2026-09-20T15"
+          ]
+        },
+        "assistantMsg": {
+          "line": 68,
+          "params": [
+            "text",
+            "timestamp = '2026-09-20T15"
+          ]
+        },
+        "writeRollout": {
+          "line": 76,
+          "params": [
+            "id",
+            "records",
+            "day = '2026/09/20'"
+          ]
+        }
+      },
+      "sizeBytes": 7051,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "b79edcd3a1e0dbdf"
       }
     },
     "test/codexTemplates.test": {
@@ -26974,6 +27168,11 @@
         "name": "codex-hooks-untrusted",
         "direction": "",
         "description": ""
+      },
+      "LOAD_CODEX_SESSIONS": {
+        "name": "load-codex-sessions",
+        "direction": "",
+        "description": ""
       }
     },
     "app": {
@@ -27526,6 +27725,18 @@
         "description": "TaskList — renders the user's tasks with status filters"
       }
     ],
+    "manager": [
+      {
+        "module": "main/codexSessionsManager",
+        "file": "src/main/codexSessionsManager.js",
+        "description": "Codex Sessions Manager Module"
+      },
+      {
+        "module": "main/pluginsManager",
+        "file": "src/main/pluginsManager.js",
+        "description": "Plugins Manager Module"
+      }
+    ],
     "menu": [
       {
         "module": "main/menu",
@@ -27825,6 +28036,11 @@
     ],
     "sessions": [
       {
+        "module": "main/codexSessionsManager",
+        "file": "src/main/codexSessionsManager.js",
+        "description": "Codex Sessions Manager Module"
+      },
+      {
         "module": "renderer/home/widgets/lastSessions",
         "file": "src/renderer/home/widgets/lastSessions.js",
         "description": "Last Sessions widget."
@@ -28103,7 +28319,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 307,
+        "parsed": 309,
         "unsupported": 84,
         "partial": 0
       }
@@ -28150,9 +28366,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 480,
+      "visitedEntries": 482,
       "traversedDirectories": 81,
-      "eligibleFiles": 391,
+      "eligibleFiles": 393,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -28169,7 +28385,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 391,
+      "indexedFiles": 393,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -28177,6 +28393,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "d595a10e92f5c197cc0d23c9a1d1fc90f6d71a04e9c498da7baed4b2eb153634"
+    "revision": "cc6246bc37db1314cedd55af0cb16220c0aee03c8a922a326b16d3dfb97300f4"
   }
 }
