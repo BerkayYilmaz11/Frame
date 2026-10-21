@@ -267,7 +267,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(docsDirPath, { recursive: true });
   await createFileIfNotExists(
     path.join(docsDirPath, 'REFERENCE.md'),
-    templates.getReferenceTemplate(name)
+    templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/specs/ — Spec-Driven Development is on for new projects, so the
@@ -297,7 +297,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
 
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.QUICKSTART),
-    templates.getQuickstartTemplate(name, detectedProject)
+    templates.getQuickstartTemplate(name, detectedProject, { structureMap: structureEnabled(projectPath) })
   );
 
   // .claude/rules/frame.md — what Claude Code loads at session start. The
@@ -1132,7 +1132,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   fs.mkdirSync(docsDir, { recursive: true });
   const referencePath = path.join(docsDir, 'REFERENCE.md');
   if (!fs.existsSync(referencePath)) {
-    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name), 'utf8');
+    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) }), 'utf8');
   }
 
   // Make sure AGENTS.md has the Spec-Driven Development section so AI

@@ -2246,7 +2246,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 76213,
+      "sizeBytes": 76360,
       "extraction": {
         "status": "parsed"
       },
@@ -22057,12 +22057,13 @@
         "getReferenceTemplate": {
           "line": 461,
           "params": [
-            "projectName"
+            "projectName",
+            "options"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 734,
+          "line": 737,
           "params": [
             "projectName",
             "project"
@@ -22070,46 +22071,47 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 762,
+          "line": 765,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 782,
+          "line": 785,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 828,
+          "line": 831,
           "params": [
             "projectName",
-            "project"
+            "project",
+            "options"
           ],
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 911,
+          "line": 918,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 954,
+          "line": 961,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 969
+          "line": 976
         },
         "hintHooksFor": {
-          "line": 1106,
+          "line": 1113,
           "params": [
             "template",
             "{ structureMap = false } = {}"
@@ -22117,7 +22119,7 @@
           "purpose": "The hint hooks a project should get. The full sets above stay as they are —"
         },
         "sessionReportCommand": {
-          "line": 1142,
+          "line": 1149,
           "params": [
             "tool",
             "guard = ''"
@@ -22125,7 +22127,7 @@
           "purpose": "Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the"
         },
         "getGenericWrapperTemplate": {
-          "line": 1177,
+          "line": 1184,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -22133,38 +22135,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1223
+          "line": 1230
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1260,
+          "line": 1267,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1289,
+          "line": 1296,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1308,
+          "line": 1315,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1320,
+          "line": 1327,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1340
+          "line": 1347
         },
         "getOrchBinScripts": {
-          "line": 1358,
+          "line": 1365,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 58926,
+      "sizeBytes": 59621,
       "extraction": {
         "status": "parsed"
       },
@@ -25087,7 +25089,7 @@
           ]
         }
       },
-      "sizeBytes": 31719,
+      "sizeBytes": 33100,
       "extraction": {
         "status": "parsed"
       },
@@ -28491,6 +28493,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2103b6eca49e52682d1177b5f050fce4857b7eb83c217c9b7d043fc1e2098472"
+    "revision": "841ada8d7f6a4f2af917c0173acad822f10bc71bfce293cf2902194e837dce2f"
   }
 }

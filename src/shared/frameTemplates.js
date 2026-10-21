@@ -458,12 +458,15 @@ edit this file, never the copy; delete the copy to detach.
  * it is about to write a Frame meta file. Written to .frame/docs/ on init
  * and on the spec-driven upgrade path. Tool-agnostic.
  */
-function getReferenceTemplate(projectName) {
+function getReferenceTemplate(projectName, options) {
+  // The module map is opt-in per project (scripts/structure-switch.js):
+  // without it, nothing here describes STRUCTURE.json.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   return `# ${projectName} — Frame Reference
 
 Read the relevant section of this file **before writing a Frame meta file**
-(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`, \`.frame/STRUCTURE.json\`,
+(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`,${structureMap ? ' \`.frame/STRUCTURE.json\`,' : ''}
 \`.frame/QUICKSTART.md\`). The always-on orientation lives in
 \`.frame/AGENTS.md\`; this file is loaded on demand.
 
@@ -582,7 +585,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## STRUCTURE.json Rules
+${structureMap ? `## STRUCTURE.json Rules
 
 **This file is the map of the codebase.** Frame generates it; you enrich it.
 
@@ -705,7 +708,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## QUICKSTART.md Rules
+` : ''}## QUICKSTART.md Rules
 
 ### When to Update?
 - When installation steps change
@@ -718,7 +721,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 1. **Language:** Write documentation in English (except code examples)
 2. **Date Format:** ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
-3. **After Commit:** Check \`.frame/tasks.json\` and \`.frame/STRUCTURE.json\`
+3. **After Commit:** Check \`.frame/tasks.json\`${structureMap ? ' and \`.frame/STRUCTURE.json\`' : ''}
 4. **Session Start:** Review pending tasks in \`.frame/tasks.json\`
 
 ---
@@ -825,7 +828,9 @@ function getTasksTemplate(projectName) {
 /**
  * QUICKSTART.md template
  */
-function getQuickstartTemplate(projectName, project) {
+function getQuickstartTemplate(projectName, project, options) {
+  // Same opt-in as getAgentsTemplate / getReferenceTemplate.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   const p = project || {};
   const cmds = p.commands || {};
@@ -878,8 +883,7 @@ ${cmds.test || todo}
 
 | File | Purpose |
 |------|---------|
-| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |
-| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
+${structureMap ? '| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |\n' : ''}| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
 | \`.frame/tasks.json\` | Task tracking |
 | \`.frame/QUICKSTART.md\` | This file |
 
@@ -891,13 +895,16 @@ ${tree}
 
 ## For AI Assistants
 
-1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
+${structureMap ? `1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
    \`generation.inventory.coverage\` is not \`complete\`, the map is missing files;
    rebuild it with \`node .frame/bin/update-structure.js --full\`
 2. **Then**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
 3. **Check**: \`.frame/tasks.json\` for pending tasks
 4. **Follow**: Existing code patterns and conventions
-5. **Update**: These files as you make changes
+5. **Update**: These files as you make changes` : `1. **First**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
+2. **Check**: \`.frame/tasks.json\` for pending tasks
+3. **Follow**: Existing code patterns and conventions
+4. **Update**: These files as you make changes`}
 
 ## Quick Context
 

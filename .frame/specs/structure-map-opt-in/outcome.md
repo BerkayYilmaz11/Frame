@@ -19,3 +19,10 @@ Added `hintHooksFor` to `src/shared/frameTemplates.js` and made `installSpecHint
 _Captured: 2026-10-22 · 4 file change(s)_
 
 ---
+## T04 — REFERENCE and QUICKSTART templates follow the opt-in
+
+Added a `structureMap` option (default off) to `getReferenceTemplate` and `getQuickstartTemplate` in `src/shared/frameTemplates.js` and passed `structureEnabled(projectPath)` from the three write sites in `src/main/frameProject.js`; opted-in output was diffed against the previous version and is byte-identical. Four existing tests in `test/projectAgnostic.test.js` that read the STRUCTURE section now ask for the opted-in template, and a new test covers both shapes.
+
+_Captured: 2026-10-22 · 3 file change(s)_
+
+---
