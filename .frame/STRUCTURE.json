@@ -22743,7 +22743,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11236,
+      "sizeBytes": 10726,
       "extraction": {
         "status": "parsed"
       },
@@ -22769,7 +22769,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1040,
+      "sizeBytes": 971,
       "extraction": {
         "status": "parsed"
       },
@@ -24195,20 +24195,20 @@
           "purpose": "Every file in the tree → sha256, excluding paths Frame is allowed to own."
         },
         "fakeWorkers": {
-          "line": 672,
+          "line": 677,
           "purpose": "A fake `--supervised` child that records what the supervisor sends."
         },
         "resetWorkers": {
-          "line": 697
+          "line": 702
         },
         "withoutStructureOverride": {
-          "line": 740,
+          "line": 745,
           "params": [
             "fn"
           ]
         }
       },
-      "sizeBytes": 39974,
+      "sizeBytes": 40384,
       "extraction": {
         "status": "parsed"
       },
@@ -28522,6 +28522,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c49e7acd72b42ec65f7cb4c42d0248468340b1d30336151515f7b74f145b85a4"
+    "revision": "e28aa60c6d1aadcb35099ef01ea634ff7a26a2e1a4b3fdf3921cc7daa57cdd37"
   }
 }

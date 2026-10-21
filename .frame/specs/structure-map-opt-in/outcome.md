@@ -47,3 +47,10 @@ Removed STRUCTURE.json from `index.html` (two spotlight cards, init modal) and c
 _Captured: 2026-10-22 · 5 file change(s)_
 
 ---
+## T08 — Sample project in line with the off templates
+
+Deleted `src/templates/sample-project/.frame/STRUCTURE.json`, removed the "STRUCTURE.json Rules" section and the STRUCTURE half of General Rule 3 from the sample's `.frame/AGENTS.md` and `.claude/rules/frame.md` (kept byte-for-byte in sync below the generated header), and removed the map from its `README.md`. Updated the sample assertion in `test/frameProjectInit.test.js` to expect three meta files, no map, and no mention of it.
+
+_Captured: 2026-10-22 · 5 file change(s)_
+
+---

@@ -345,10 +345,15 @@ test('the sample project ships the new layout with no legacy fingerprint', () =>
   assert.match(config.projectId, /^[0-9a-f-]{36}$/);
   assert.equal(config.settings.gitSharing, 'repo');
 
-  // The sample ships four of the five (it never carried a QUICKSTART), and
-  // none of them may sit at its root.
-  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.STRUCTURE, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
+  // The sample ships three of the five (it never carried a QUICKSTART, and
+  // the module map is opt-in, which the sample is not), and none of them may
+  // sit at its root.
+  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
     assert.ok(fs.existsSync(path.join(sampleDir, FRAME_DIR, name)), `.frame/${name} present`);
+  }
+  assert.ok(!fs.existsSync(path.join(sampleDir, FRAME_DIR, FRAME_FILES.STRUCTURE)), 'no module map');
+  for (const file of [path.join(FRAME_DIR, FRAME_FILES.AGENTS), path.join(...CLAUDE_RULE_PATH.split('/')), 'README.md']) {
+    assert.ok(!/STRUCTURE\.json|module map|structure map/.test(fs.readFileSync(path.join(sampleDir, file), 'utf8')), `${file} names the map`);
   }
   for (const name of Object.values(FRAME_FILES)) {
     assert.ok(!fs.existsSync(path.join(sampleDir, name)), `${name} not at the sample's root`);
