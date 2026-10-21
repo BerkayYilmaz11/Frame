@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-15",
+  "lastUpdated": "2026-10-21",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -11009,24 +11009,24 @@
           "purpose": "electron-log's renderer entry forwards to the main process's file"
         },
         "bump": {
-          "line": 75,
+          "line": 88,
           "params": [
             "direction",
             "channel"
           ]
         },
         "classifyInput": {
-          "line": 83,
+          "line": 96,
           "params": [
             "args"
           ],
           "purpose": "Tally the escape sequences in one stdin payload. Never throws."
         },
         "init": {
-          "line": 96
+          "line": 110
         }
       },
-      "sizeBytes": 6206,
+      "sizeBytes": 7040,
       "extraction": {
         "status": "parsed"
       },
@@ -28177,6 +28177,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8d08e366cfa2922eac8a11f6a5f0263bdaac3f9dce029a67891543701846e235"
+    "revision": "d595a10e92f5c197cc0d23c9a1d1fc90f6d71a04e9c498da7baed4b2eb153634"
   }
 }
