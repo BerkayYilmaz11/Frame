@@ -1,7 +1,7 @@
 {
   "slug": "structure-map-opt-in",
   "title": "Structure map opt-in — invisible to new users",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-structure-map-opt-in-T01",
     "task-spec-structure-map-opt-in-T02",
@@ -14,7 +14,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-10-21T21:00:00Z",
-  "updated_at": "2026-10-21T22:42:06.306Z",
-  "last_phase_at": "2026-10-21T22:42:06.306Z",
+  "updated_at": "2026-10-21T22:57:12Z",
+  "last_phase_at": "2026-10-21T22:57:12Z",
   "implement_mode": "guided"
 }
