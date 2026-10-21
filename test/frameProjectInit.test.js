@@ -734,3 +734,33 @@ test('a fresh init writes the working view and, while untracked, the map file to
   assert.ok(fs.existsSync(working));
   assert.equal(fs.readFileSync(mapPath(projectDir), 'utf8'), fs.readFileSync(working, 'utf8'));
 });
+
+// ─── the module map is opt-in (structure-switch.js) ───────
+
+async function withoutStructureOverride(fn) {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try { return await fn(); } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+}
+
+test('init writes no STRUCTURE.json for a project that has not opted into the map', async () => {
+  await withoutStructureOverride(async () => {
+    const config = await frameProject.runProjectInit(projectDir, 'demo');
+    assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+    assert.equal(config._structureBootstrap.initialScan.status, 'skipped-disabled');
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.TASKS)), 'the other meta files still appear');
+  });
+});
+
+test('re-init of an opted-in project keeps the opt-in and writes the map', async () => {
+  await withoutStructureOverride(async () => {
+    fs.mkdirSync(path.join(projectDir, FRAME_DIR), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), JSON.stringify({ settings: { structureMap: true } }));
+    await frameProject.runProjectInit(projectDir, 'demo');
+    const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), 'utf8'));
+    assert.equal(config.settings.structureMap, true);
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+  });
+});

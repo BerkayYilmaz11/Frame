@@ -656,7 +656,7 @@ test('cli: --full and file updates publish lookup.json; a failed index never fai
 });
 
 test('templates: a find-module answer is enough to open the file; grep is for searching inside it (STR-03b)', () => {
-  const agents = templates.getAgentsTemplate('demo');
+  const agents = templates.getAgentsTemplate('demo', { structureMap: true });
   assert.match(agents, /find-module\.js <keyword> +# concept, file name or function → files/);
   assert.match(agents, /Its answer is enough to open the file — a function answer comes with its\nline\. Use grep to search inside a file, not to find it again\./);
   const reference = templates.getReferenceTemplate('demo');
@@ -665,4 +665,14 @@ test('templates: a find-module answer is enough to open the file; grep is for se
     assert.ok(section.includes(needle), `reference mentions ${needle}`);
   }
   assert.deepEqual(require('../src/shared/docsHealth').namedPaths(section), ['.frame/config.json']);
+});
+
+test('templates: AGENTS.md names STRUCTURE.json and find-module only when the project has the map', () => {
+  const off = templates.getAgentsTemplate('demo', { specDriven: true });
+  assert.ok(!/STRUCTURE|find-module/.test(off), 'no pointer at a map the project does not have');
+  assert.match(off, /1\. \*\*`\.frame\/PROJECT_NOTES\.md`\*\*/);
+  assert.match(off, /2\. \*\*`\.frame\/tasks\.json`\*\*/);
+  const on = templates.getAgentsTemplate('demo', { specDriven: true, structureMap: true });
+  assert.match(on, /1\. \*\*`\.frame\/STRUCTURE\.json`\*\*/);
+  assert.match(on, /"STRUCTURE\.json Rules"/);
 });

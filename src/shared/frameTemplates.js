@@ -354,6 +354,9 @@ ${record}`;
 function getAgentsTemplate(projectName, options) {
   const opts = options || {};
   const specDriven = opts.specDriven === true;
+  // The module map is opt-in per project (scripts/structure-switch.js); a
+  // project without it gets no STRUCTURE.json, so nothing here points at one.
+  const structureMap = opts.structureMap === true;
   const date = getDateString();
   return `# ${projectName} - Frame Project
 
@@ -380,7 +383,7 @@ implemented without approval.
 
 **Read these at the start of each session:**
 
-1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
+${structureMap ? `1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
    last commit, plus your prose edits; \`find-module.js\` and hints use Frame's
    live view of the working tree)
 2. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
@@ -394,7 +397,8 @@ node .frame/bin/find-module.js --list      # all features
 \`\`\`
 
 Its answer is enough to open the file — a function answer comes with its
-line. Use grep to search inside a file, not to find it again.
+line. Use grep to search inside a file, not to find it again.` : `1. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
+2. **\`.frame/tasks.json\`** — pending tasks`}
 
 **Spec history** — before working a topic or changing a file, check what
 earlier specs did there and why (Claude Code sessions also get this injected
@@ -410,7 +414,7 @@ before working — respect recorded decisions or overturn them explicitly,
 never silently.
 
 **Freshness** — \`node .frame/bin/check-freshness.js\` reports when this
-context is likely to mislead (phantom modules, stale STRUCTURE/notes, stuck
+context is likely to mislead (${structureMap ? 'phantom modules, stale STRUCTURE/notes' : 'stale notes'}, stuck
 tasks). Trust its warnings over stale entries.
 
 ${specDriven ? `---
@@ -425,8 +429,7 @@ ${renderSpecCoreSection()}
 | ---------------------------- | ------------------------------------ |
 | \`.frame/tasks.json\`          | "Task Management" (schema + rules)   |
 | \`.frame/PROJECT_NOTES.md\`    | "PROJECT_NOTES.md Rules"             |
-| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |
-| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
+${structureMap ? '| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |\n' : ''}| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
 
 Quick reminders that always apply:
 - Task work: \`status: "in_progress"\` when starting, \`"completed"\` +

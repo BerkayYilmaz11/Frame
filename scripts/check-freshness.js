@@ -15,6 +15,7 @@ const path = require('path');
 const { execSync, spawnSync } = require('child_process');
 // Ownership, freshness and generation status: the shared read contract.
 const structureRead = require('./structure-read');
+const { structureEnabled } = require('./structure-switch');
 
 const STARTED_AT = Date.now();
 
@@ -282,14 +283,16 @@ function checkQuickstartStaleness() {
   }
 }
 
-// Run all checks
-const structure = readJSON('STRUCTURE.json');
+// Run all checks. A project that has not opted into the map (structure-switch.js)
+// keeps whatever map it has on purpose — its staleness is not news.
+const mapEnabled = structureEnabled(ROOT_DIR);
+const structure = mapEnabled ? readJSON('STRUCTURE.json') : null;
 if (structure) {
   checkPhantomModules(structure);
   if (!checkStructureFreshness()) checkStructureDrift(structure);
   checkStructureGeneration(structure);
 }
-checkCommitIntegration();
+if (mapEnabled) checkCommitIntegration();
 checkNotesStaleness();
 checkStuckTasks();
 checkQuickstartStaleness();

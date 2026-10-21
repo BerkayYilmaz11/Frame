@@ -225,7 +225,7 @@ test('the hook never loads builder or state code, directly or through a helper',
   };
   walk(HOOK);
   const local = [...seen].map((f) => path.basename(f)).sort();
-  assert.deepEqual(local, ['activity-log.js', 'module-hint.js', 'redact.js', 'structure-read.js', 'structure-retrieval.js', 'toolVocabulary.js']);
+  assert.deepEqual(local, ['activity-log.js', 'module-hint.js', 'redact.js', 'structure-read.js', 'structure-retrieval.js', 'structure-switch.js', 'toolVocabulary.js']);
   assert.ok(!local.some((f) => /structure-(discovery|generation|state|snapshot|lifecycle|commit)|update-structure/.test(f)), local.join(', '));
   for (const banned of ['child_process', 'http', 'https', 'dgram', 'tls', 'worker_threads']) {
     assert.ok(!builtins.has(banned), `${banned} in the closure`);

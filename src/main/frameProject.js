@@ -24,6 +24,7 @@ const docsHealth = require('../shared/docsHealth');
 const perfMonitor = require('./perfMonitor');
 const activityLog = require('./activityLog');
 const detector = require('../../scripts/detect-project');
+const { structureEnabled } = require('../../scripts/structure-switch');
 
 let mainWindow = null;
 
@@ -116,7 +117,7 @@ async function showInitializeConfirmation(projectPath) {
   let message = 'This will create the following files in your project:\n\n';
   message += '  • .frame/ (everything Frame writes lives here)\n';
   message += '  • .frame/AGENTS.md (AI instructions)\n';
-  message += '  • .frame/STRUCTURE.json (module map)\n';
+  if (structureEnabled(projectPath)) message += '  • .frame/STRUCTURE.json (module map)\n';
   message += '  • .frame/PROJECT_NOTES.md (session notes)\n';
   message += '  • .frame/tasks.json (task tracking)\n';
   message += '  • .frame/QUICKSTART.md (getting started)\n';
@@ -257,7 +258,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   // template sets features.specDriven), so the section ships with the file.
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.AGENTS),
-    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject })
+    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject, structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/docs/REFERENCE.md — the reference-on-demand companion to the lean
@@ -276,7 +277,10 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(specsDirPath, { recursive: true });
   await createFileIfNotExists(path.join(specsDirPath, '.gitkeep'), '');
 
-  const structureWasCreated = await createFileIfNotExists(
+  // The module map is opt-in (scripts/structure-switch.js): a project that
+  // has not opted in gets no STRUCTURE.json at all. Read after config.json
+  // above, so a re-init of an opted-in project keeps its map.
+  const structureWasCreated = structureEnabled(projectPath) && await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.STRUCTURE),
     templates.getStructureTemplate(name, detectedProject)
   );
@@ -1139,7 +1143,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   if (!existing) {
     frameStore.writeAgents(
       projectPath,
-      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null })
+      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null, structureMap: structureEnabled(projectPath) })
     );
   } else if (!existing.includes('Spec-Driven Development')) {
     // Append the short core section (marker-wrapped, stamped current) — the

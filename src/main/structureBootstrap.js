@@ -33,6 +33,7 @@ const { execFile, spawn } = require('child_process');
 const { promisify } = require('util');
 
 const execFileAsync = promisify(execFile);
+const { structureEnabled, PAUSED_MESSAGE } = require('../../scripts/structure-switch');
 const { FRAME_DIR, FRAME_BIN_DIR } = require('../shared/frameConstants');
 const {
   getStructureHookSnippet,
@@ -49,7 +50,7 @@ const SCRIPTS_SOURCE_DIR = path.join(__dirname, '..', '..', 'scripts');
 // activated after everything it requires is in place, so an interrupted
 // refresh leaves the previous entry runnable with the helpers it knew.
 const HELPER_FILES = [
-  'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
+  'structure-switch.js', 'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
   'structure-read.js', 'structure-commit.js', 'structure-retrieval.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
 ];
@@ -63,7 +64,7 @@ const ENTRY_FILES = [
 const FS_SAFE_SOURCE = path.join(__dirname, 'fsSafe.js');
 // What update-structure.js cannot run without.
 const PARSER_REQUIRES = [
-  'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
+  'structure-switch.js', 'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
   'structure-commit.js', 'fsSafe.js',
   'lang/javascript.js', 'lang/python.js', 'lang/go.js', 'lang/rust.js', 'lang/markdown.js'
@@ -76,8 +77,8 @@ const ENTRY_REQUIRES = {
   'structure-lifecycle.js': LIFECYCLE_REQUIRES,
   // Readers of the freshness contract (STR-02).
   'find-module.js': ['structure-read.js', 'structure-retrieval.js'],
-  'check-freshness.js': ['structure-read.js'],
-  'module-hint.js': ['structure-read.js', 'structure-retrieval.js']
+  'check-freshness.js': ['structure-read.js', 'structure-switch.js'],
+  'module-hint.js': ['structure-read.js', 'structure-retrieval.js', 'structure-switch.js']
 };
 // Historical name list, kept for readers of this module's exports.
 const PARSER_FILES = [...ENTRY_FILES, 'intent-map.json', ...HELPER_FILES];
@@ -617,6 +618,11 @@ async function bootstrapStructure(projectPath, structureWasCreated) {
 
   const staged = stageParserScripts(projectPath);
   summary.copied = staged.copied;
+  // Not opted in: the tools ship (so opting in needs no re-init), nothing else runs.
+  if (!structureEnabled(projectPath)) {
+    summary.initialScan = { status: 'skipped-disabled', verified: false, message: PAUSED_MESSAGE, repairCommand: REPAIR_COMMAND };
+    return summary;
+  }
   summary.hook = await installPreCommitHook(projectPath);
 
   const parserPresent = fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, 'update-structure.js'));
