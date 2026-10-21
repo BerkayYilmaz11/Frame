@@ -94,7 +94,7 @@ test('off: the module-hint hook stays silent', () => {
   assert.equal(r.stdout.trim(), '');
 });
 
-test('off: init ships the tools but installs no hook and runs no scan', async () => {
+test('off: init ships only the shared tools, installs no hook and runs no scan', async () => {
   const saved = process.env.FRAME_STRUCTURE;
   delete process.env.FRAME_STRUCTURE;
   try {
@@ -102,8 +102,8 @@ test('off: init ships the tools but installs no hook and runs no scan', async ()
     const summary = await bootstrapStructure(project, true);
     assert.equal(summary.hook, null);
     assert.equal(summary.initialScan.status, 'skipped-disabled');
-    assert.ok(fs.existsSync(path.join(project, '.frame', 'bin', 'structure-switch.js')));
-    assert.ok(fs.existsSync(path.join(project, '.frame', 'bin', 'update-structure.js')));
+    assert.ok(!fs.existsSync(path.join(project, '.frame', 'bin', 'update-structure.js')), 'no structure tools');
+    assert.ok(fs.existsSync(path.join(project, '.frame', 'bin', 'check-freshness.js')), 'the shared tools still ship');
     assert.ok(!fs.existsSync(path.join(project, '.frame', 'STRUCTURE.json')));
   } finally {
     if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;

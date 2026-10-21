@@ -5889,7 +5889,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 94,
+          "line": 105,
           "params": [
             "fsImpl",
             "src",
@@ -5898,7 +5898,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 127,
+          "line": 145,
           "params": [
             "projectPath",
             "options = {}"
@@ -5906,61 +5906,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 208,
+          "line": 233,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 219,
+          "line": 244,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 253,
+          "line": 278,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 294,
+          "line": 319,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 314,
+          "line": 339,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 389,
+          "line": 414,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 409,
+          "line": 434,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 422,
+          "line": 447,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 434,
+          "line": 459,
           "params": [
             "envelope",
             "code"
@@ -5968,7 +5968,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 493,
+          "line": 518,
           "params": [
             "projectPath",
             "options = {}"
@@ -5976,7 +5976,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 611,
+          "line": 636,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5984,7 +5984,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 27334,
+      "sizeBytes": 28997,
       "extraction": {
         "status": "parsed"
       },
@@ -25722,11 +25722,11 @@
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
         "previousTemplate": {
-          "line": 391,
+          "line": 430,
           "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
         },
         "gitInit": {
-          "line": 405,
+          "line": 444,
           "params": [
             "dir"
           ]
@@ -25739,7 +25739,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 22486,
+      "sizeBytes": 24451,
       "extraction": {
         "status": "parsed"
       },
@@ -26264,7 +26264,7 @@
           ]
         }
       },
-      "sizeBytes": 6310,
+      "sizeBytes": 6372,
       "extraction": {
         "status": "parsed"
       },
@@ -28475,6 +28475,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "3c15025956fe3bedc87c0803dc774e8c68fb0a262ca21950444ec28b657c1d6e"
+    "revision": "bf01db40b6b7ff3fdae70066f86c0c86dc41342aa69462bc75fcaea95d2859a7"
   }
 }
