@@ -5889,7 +5889,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 95,
+          "line": 94,
           "params": [
             "fsImpl",
             "src",
@@ -5898,7 +5898,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 128,
+          "line": 127,
           "params": [
             "projectPath",
             "options = {}"
@@ -5906,61 +5906,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 209,
+          "line": 208,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 220,
+          "line": 219,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 254,
+          "line": 253,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 295,
+          "line": 294,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 315,
+          "line": 314,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 390,
+          "line": 389,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 410,
+          "line": 409,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 423,
+          "line": 422,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 435,
+          "line": 434,
           "params": [
             "envelope",
             "code"
@@ -5968,7 +5968,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 494,
+          "line": 493,
           "params": [
             "projectPath",
             "options = {}"
@@ -5976,7 +5976,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 612,
+          "line": 611,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5984,7 +5984,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 27404,
+      "sizeBytes": 27334,
       "extraction": {
         "status": "parsed"
       },
@@ -17051,100 +17051,105 @@
         "fs",
         "path",
         "child_process",
-        "structure-read",
-        "structure-switch",
         "crypto",
         "activity-log"
       ],
       "functions": {
+        "optionalRequire": {
+          "line": 19,
+          "params": [
+            "name"
+          ],
+          "purpose": "Ownership, freshness and generation status: the shared read contract."
+        },
         "resolveProjectRoot": {
-          "line": 27,
+          "line": 32,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "resolveMetaPath": {
-          "line": 45,
+          "line": 50,
           "params": [
             "name"
           ],
           "purpose": "Where a meta file lives: `.frame/<name>` for a migrated project, the root"
         },
         "repairCommand": {
-          "line": 53,
+          "line": 58,
           "params": [
             "root"
           ]
         },
         "warn": {
-          "line": 65,
+          "line": 70,
           "params": [
             "check",
             "message"
           ]
         },
         "git": {
-          "line": 69,
+          "line": 74,
           "params": [
             "cmd"
           ]
         },
         "readJSON": {
-          "line": 81,
+          "line": 86,
           "params": [
             "name"
           ]
         },
         "checkPhantomModules": {
-          "line": 94,
+          "line": 99,
           "params": [
             "structure"
           ],
           "purpose": "1. Phantom modules — STRUCTURE.json entries whose file is missing on disk"
         },
         "confirmContentDrift": {
-          "line": 107,
+          "line": 112,
           "purpose": "Ask update-structure.js --check whether a regen would actually change"
         },
         "checkStructureDrift": {
-          "line": 132,
+          "line": 137,
           "params": [
             "structure"
           ],
           "purpose": "2. STRUCTURE drift — the date heuristic (lastUpdated older than the last"
         },
         "checkStructureGeneration": {
-          "line": 150,
+          "line": 155,
           "params": [
             "structure"
           ],
           "purpose": "2b. Generation status — a partial or unverified map, or a latest scan that"
         },
         "checkStructureFreshness": {
-          "line": 164
+          "line": 169
         },
         "readText": {
-          "line": 187,
+          "line": 192,
           "params": [
             "file"
           ],
           "purpose": "2d. Commit integration (STR-02b) — a last `--staged` run that did not"
         },
         "checkCommitIntegration": {
-          "line": 195
+          "line": 200
         },
         "checkNotesStaleness": {
-          "line": 234,
+          "line": 239,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 252,
+          "line": 257,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 273,
+          "line": 278,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 12693,
+      "sizeBytes": 13009,
       "extraction": {
         "status": "parsed"
       },
@@ -17157,6 +17162,7 @@
           "checkStructureGeneration": "0348ebab53cef17e",
           "checkStuckTasks": "1f5e1836816e0dbd",
           "confirmContentDrift": "c2c5c559d55b8faf",
+          "optionalRequire": "6c59ca1cb1909044",
           "readText": "874a7e71c64e872b",
           "resolveMetaPath": "246df3924894a319",
           "resolveProjectRoot": "bdaf2016db7ccaef"
@@ -25716,11 +25722,11 @@
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
         "previousTemplate": {
-          "line": 388,
+          "line": 391,
           "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
         },
         "gitInit": {
-          "line": 402,
+          "line": 405,
           "params": [
             "dir"
           ]
@@ -25733,7 +25739,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 22322,
+      "sizeBytes": 22486,
       "extraction": {
         "status": "parsed"
       },
@@ -26258,7 +26264,7 @@
           ]
         }
       },
-      "sizeBytes": 5471,
+      "sizeBytes": 6310,
       "extraction": {
         "status": "parsed"
       },
@@ -28469,6 +28475,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1b14681a106a5cd5eb38c74af51f1eceb740160fafd8589d4261b60de85febe1"
+    "revision": "3c15025956fe3bedc87c0803dc774e8c68fb0a262ca21950444ec28b657c1d6e"
   }
 }

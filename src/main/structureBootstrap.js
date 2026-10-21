@@ -77,7 +77,6 @@ const ENTRY_REQUIRES = {
   'structure-lifecycle.js': LIFECYCLE_REQUIRES,
   // Readers of the freshness contract (STR-02).
   'find-module.js': ['structure-read.js', 'structure-retrieval.js'],
-  'check-freshness.js': ['structure-read.js', 'structure-switch.js'],
   'module-hint.js': ['structure-read.js', 'structure-retrieval.js', 'structure-switch.js']
 };
 // Historical name list, kept for readers of this module's exports.

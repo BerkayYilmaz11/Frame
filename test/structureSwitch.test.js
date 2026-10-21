@@ -126,3 +126,17 @@ test('off: the app attaches no lifecycle worker', () => {
     if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
   }
 });
+
+test('check-freshness copied without the structure helpers runs its other checks', () => {
+  // A lean .frame/bin: the script and the activity helpers it always had, no
+  // structure-read or structure-switch.
+  const bin = path.join(project, '.frame', 'bin');
+  fs.mkdirSync(bin, { recursive: true });
+  for (const file of ['check-freshness.js', 'activity-log.js', 'redact.js']) {
+    fs.copyFileSync(path.join(REPO_ROOT, 'scripts', file), path.join(bin, file));
+  }
+  fs.writeFileSync(path.join(project, '.frame', 'STRUCTURE.json'), JSON.stringify({ modules: { 'a/b': { file: 'src/missing.js' } } }));
+  const r = spawnSync('node', [path.join(bin, 'check-freshness.js')], { env: offEnv(), encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(!/structure|phantom/i.test(r.stdout + r.stderr), r.stdout + r.stderr);
+});

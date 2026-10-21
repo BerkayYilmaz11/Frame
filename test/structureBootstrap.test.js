@@ -372,8 +372,11 @@ test('freshness readers are activated only after the read contract they import',
   try {
     fs.rmSync(path.join(source, 'structure-read.js'));
     const report = stageParserScripts(project, { sourceDir: source });
-    assert.deepEqual(report.unavailable.sort(), ['check-freshness.js', 'find-module.js', 'module-hint.js', 'structure-lifecycle.js']);
+    assert.deepEqual(report.unavailable.sort(), ['find-module.js', 'module-hint.js', 'structure-lifecycle.js']);
     assert.ok(fs.existsSync(bin('update-structure.js')), 'the parser itself does not need it');
+    // check-freshness runs without it (its STRUCTURE checks switch off), so a
+    // missing read contract never holds it back.
+    assert.ok(fs.existsSync(bin('check-freshness.js')));
   } finally {
     fs.rmSync(source, { recursive: true, force: true });
   }
