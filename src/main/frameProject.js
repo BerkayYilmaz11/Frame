@@ -1626,6 +1626,9 @@ async function openProjectLayout(projectPath, hooks = {}) {
   // the running Frame — a clone, a linked worktree, a teammate's commit.
   // Both stagers are copy-if-changed, so an up-to-date project is read,
   // compared and left alone. Non-fatal, all of it.
+  // Whether this checkout had the module map's parser before the refresh: if
+  // it appears now, the project has just opted into the map (below).
+  const hadParser = fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, 'update-structure.js'));
   try {
     structureBootstrap.copyParserScripts(projectPath);
   } catch (err) {
@@ -1638,6 +1641,17 @@ async function openProjectLayout(projectPath, hooks = {}) {
     await structureBootstrap.upgradeStructureHook(projectPath);
   } catch (err) {
     console.warn('[frame] could not check the pre-commit hook (non-fatal):', err.message);
+  }
+  // A project that opted into the module map after init gets its hook on the
+  // open where its parser first arrives — once, so an open still never puts
+  // back a hook the user removed (STR-02b).
+  if (!hadParser) {
+    try {
+      const hook = await structureBootstrap.ensureStructureHook(projectPath);
+      if (hook.manualInstructions) console.log(`[frame] ${hook.message}\n${hook.manualInstructions}`);
+    } catch (err) {
+      console.warn('[frame] could not install the pre-commit hook (non-fatal):', err.message);
+    }
   }
   try {
     commandStaging.stageCommandFiles(projectPath);

@@ -671,7 +671,20 @@ async function bootstrapStructure(projectPath, structureWasCreated) {
   return summary;
 }
 
+/**
+ * Install the pre-commit hook for a project that opted into the module map
+ * after init (init installs it only when the map is on). The same rules as
+ * init: only a vanilla .git/hooks gets a file — Husky, lefthook, core.hooksPath
+ * and custom hooks get instructions back, and a current Frame hook is left as
+ * it is. A project without the map is not touched.
+ */
+async function ensureStructureHook(projectPath) {
+  if (!structureEnabled(projectPath)) return { status: 'disabled' };
+  return installPreCommitHook(projectPath);
+}
+
 module.exports = {
+  ensureStructureHook,
   bootstrapStructure,
   copyParserScripts,
   stageParserScripts,

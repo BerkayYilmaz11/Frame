@@ -33,3 +33,10 @@ Added "a project without the map ends init with no trace of it" to `test/framePr
 _Captured: 2026-10-22 · 1 file change(s)_
 
 ---
+## T06 — Opting in later: the hook arrives on reopen
+
+Added `ensureStructureHook` to `src/main/structureBootstrap.js` (opt-in check, then `installPreCommitHook`) and called it from the open path in `src/main/frameProject.js` — **only on the open where `.frame/bin/update-structure.js` first appears**, not on every open as plan.md said. Divergence: every-open install broke STR-02b's recorded rule "an open never installs a hook that is not there" (caught by `test/frameProjectOpen.test.js`); keying it to the parser's arrival gives an opting-in project its hook once while a hook the user deleted stays deleted. Tests: opt-in reopen stages tools, writes the hook, attaches the worker, and a later reopen after deleting the hook does not restore it; off reopen installs nothing; Husky untouched.
+
+_Captured: 2026-10-22 · 3 file change(s)_
+
+---

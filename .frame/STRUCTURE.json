@@ -2206,7 +2206,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1700,
+          "line": 1714,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2214,7 +2214,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1722,
+          "line": 1736,
           "params": [
             "ipcMain"
           ],
@@ -2246,7 +2246,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 76360,
+      "sizeBytes": 77154,
       "extraction": {
         "status": "parsed"
       },
@@ -5866,6 +5866,7 @@
       "file": "src/main/structureBootstrap.js",
       "description": "Structure Bootstrap",
       "exports": [
+        "ensureStructureHook",
         "bootstrapStructure",
         "copyParserScripts",
         "stageParserScripts",
@@ -5982,9 +5983,16 @@
             "structureWasCreated"
           ],
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
+        },
+        "ensureStructureHook": {
+          "line": 681,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Install the pre-commit hook for a project that opted into the module map"
         }
       },
-      "sizeBytes": 28997,
+      "sizeBytes": 29560,
       "extraction": {
         "status": "parsed"
       },
@@ -5993,6 +6001,7 @@
         "purposes": {
           "bootstrapStructure": "723773900dfeea80",
           "detectHookSetup": "7139e135de5fdc39",
+          "ensureStructureHook": "3d069cf1bd8338e4",
           "hookLocation": "89a1589ed4e6559e",
           "installPreCommitHook": "748f5e3e8d88f1b5",
           "parseEnvelope": "b20189a62e13bc20",
@@ -24277,9 +24286,27 @@
         },
         "resetWorkers": {
           "line": 337
+        },
+        "withoutStructureOverride": {
+          "line": 485,
+          "params": [
+            "fn"
+          ]
+        },
+        "freshRepo": {
+          "line": 493,
+          "params": [
+            "prefix"
+          ]
+        },
+        "optIn": {
+          "line": 500,
+          "params": [
+            "dir"
+          ]
         }
       },
-      "sizeBytes": 21313,
+      "sizeBytes": 24614,
       "extraction": {
         "status": "parsed"
       },
@@ -28493,6 +28520,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "d7035b8c7531f761831ca2ae555bf7e67ac7fe9b591750b09e78ce5f9df73c52"
+    "revision": "d61c92bfe548ee64daa0ea782d5a7312a97b154189eb1c8e2403b5fc84863796"
   }
 }
