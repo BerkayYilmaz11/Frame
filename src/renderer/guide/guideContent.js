@@ -78,7 +78,7 @@ const CHAPTERS = [
           { p: 'You bring your own agent. Sign in to the CLI with your own subscription or API key, the way you would in any terminal. Frame never calls a model itself and never sees your credentials.' },
           { p: 'What Frame adds around the agent:' },
           { list: [
-            'Project context that survives sessions — a module map, decisions, tasks and a spec archive the agent reads at the start of every session.',
+            'Project context that survives sessions — decisions, tasks and a spec archive the agent reads at the start of every session.',
             'A spec-driven workflow: describe the work, plan it, break it into tasks, implement it.',
             'Visibility across every terminal and every project — which agent is working, which one is waiting for you.'
           ] },
@@ -128,7 +128,6 @@ const CHAPTERS = [
           { p: 'When you open a folder Frame has not set up yet, it offers to initialize it. Initializing writes Frame\'s context files so every agent session starts oriented — and everything Frame writes lives in one folder, `.frame/`:' },
           { list: [
             '`AGENTS.md` — the project\'s always-on rules for agents, with the details in `docs/REFERENCE.md`.',
-            '`STRUCTURE.json` — a module map, so an agent finds the right file without searching.',
             '`PROJECT_NOTES.md` — decisions and the context behind them.',
             '`tasks.json` and `specs/` — tracked work and the spec archive.',
             '`bin/` — the small scripts the hooks run.'
@@ -390,11 +389,10 @@ const CHAPTERS = [
           { p: 'An agent session starts from zero. Frame\'s answer is a set of plain files in `.frame/` that every session reads, so the project\'s memory lives in the project rather than in any one conversation:' },
           { list: [
             '`AGENTS.md` — how to work in this project. Claude Code loads it at every session start through `.claude/rules/frame.md`.',
-            '`STRUCTURE.json` — where things are, so the agent opens the right file instead of searching.',
             '`PROJECT_NOTES.md` — decisions and why they were made.',
             '`tasks.json` and `specs/` — what is planned, in progress and done, and what earlier specs decided.'
           ] },
-          { p: 'For Claude Code, hooks go a step further: before the agent edits a file, it is shown which earlier specs changed that file and why. The git pre-commit hook keeps `STRUCTURE.json` current, so commit often.' }
+          { p: 'For Claude Code, hooks go a step further: before the agent edits a file, it is shown which earlier specs changed that file and why.' }
         ]
       },
       {
@@ -438,7 +436,7 @@ const CHAPTERS = [
         title: 'Activity',
         sketch: { kind: 'dockTabs', focus: 'activity' },
         blocks: [
-          { p: 'Activity {kbd:dock.activity} shows the work Frame does on its own: file watchers syncing tasks and specs, hooks handing context to the agent, the module map being refreshed, recoveries from a damaged file.' },
+          { p: 'Activity {kbd:dock.activity} shows the work Frame does on its own: file watchers syncing tasks and specs, hooks handing context to the agent, recoveries from a damaged file.' },
           { p: 'Work a guard deliberately skipped is listed too, drawn muted — so when something did not happen, you can see that Frame decided not to.' }
         ],
         actions: [

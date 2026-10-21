@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94173,
+      "sizeBytes": 93948,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -2246,7 +2246,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 77154,
+      "sizeBytes": 77143,
       "extraction": {
         "status": "parsed"
       },
@@ -9947,35 +9947,35 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 615,
+          "line": 613,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 630,
+          "line": 628,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 646,
+          "line": 644,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 656,
+          "line": 654,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35362,
+      "sizeBytes": 35031,
       "extraction": {
         "status": "parsed"
       },
@@ -10053,14 +10053,14 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 636,
+          "line": 634,
           "params": [
             "kind",
             "focus"
           ]
         }
       },
-      "sizeBytes": 35617,
+      "sizeBytes": 35391,
       "extraction": {
         "status": "parsed"
       },
@@ -24605,7 +24605,9 @@
       "depends": [
         "node:test",
         "node:assert/strict",
-        "src/renderer/guide/guideContent"
+        "src/renderer/guide/guideContent",
+        "fs",
+        "path"
       ],
       "functions": {
         "fixture": {
@@ -24619,7 +24621,7 @@
           ]
         }
       },
-      "sizeBytes": 7879,
+      "sizeBytes": 8487,
       "extraction": {
         "status": "parsed"
       },
@@ -28520,6 +28522,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "d61c92bfe548ee64daa0ea782d5a7312a97b154189eb1c8e2403b5fc84863796"
+    "revision": "c49e7acd72b42ec65f7cb4c42d0248468340b1d30336151515f7b74f145b85a4"
   }
 }

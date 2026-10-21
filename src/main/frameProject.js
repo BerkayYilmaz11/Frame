@@ -121,7 +121,7 @@ async function showInitializeConfirmation(projectPath) {
   message += '  • .frame/PROJECT_NOTES.md (session notes)\n';
   message += '  • .frame/tasks.json (task tracking)\n';
   message += '  • .frame/QUICKSTART.md (getting started)\n';
-  message += "  • .frame/bin/ (Frame's parser and helper scripts)\n";
+  message += "  • .frame/bin/ (Frame's helper scripts)\n";
   message += '  • .claude/rules/frame.md (a synced copy of .frame/AGENTS.md for Claude Code)\n';
   message += '\nNothing is added to your project root, and no existing file is read, moved or replaced.\n';
 

@@ -40,3 +40,10 @@ Added `ensureStructureHook` to `src/main/structureBootstrap.js` (opt-in check, t
 _Captured: 2026-10-22 · 3 file change(s)_
 
 ---
+## T07 — App UI no longer presents the map
+
+Removed STRUCTURE.json from `index.html` (two spotlight cards, init modal) and changed "parser and helper scripts" to "helper scripts" there and in the init confirmation in `src/main/frameProject.js`; removed the map from `src/renderer/guide/guideContent.js` and `guideSketches.js` (the chip became `AGENTS.md`). Went slightly past plan.md's list: three more Guide phrases ("a module map" in the overview, the pre-commit sentence, "the module map being refreshed" in Activity) surfaced on grep and were removed. Added a no-map check over every Guide page and the sketches file to `test/guideContent.test.js`.
+
+_Captured: 2026-10-22 · 5 file change(s)_
+
+---
