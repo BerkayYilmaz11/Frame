@@ -479,3 +479,78 @@ test('an open replaces an unmodified earlier Frame hook and never touches a cust
   await frameProject.openProjectLayout(projectDir);
   assert.ok(!fs.existsSync(hook), 'an open never installs a hook that is not there');
 });
+
+// ─── the module map is opt-in (structure-map-opt-in) ──────
+
+async function withoutStructureOverride(fn) {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try { return await fn(); } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+}
+
+function freshRepo(prefix) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  git(dir, ['init', '-q']);
+  fs.writeFileSync(path.join(dir, 'a.js'), '// A\n');
+  return dir;
+}
+
+function optIn(dir) {
+  const file = path.join(dir, FRAME_DIR, 'config.json');
+  const config = JSON.parse(fs.readFileSync(file, 'utf8'));
+  config.settings = { ...config.settings, structureMap: true };
+  fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\n');
+}
+
+test('opting in after init: a reopen stages the tools, installs the hook and starts the worker', async (t) => {
+  const spawned = fakeWorkers();
+  t.after(resetWorkers);
+  projectDir = freshRepo('frame-optin-');
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+    assert.ok(!fs.existsSync(path.join(projectDir, '.git', 'hooks', 'pre-commit')), 'no hook without the map');
+    assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, 'bin', 'update-structure.js')));
+    assert.equal(spawned.length, 0, 'no worker without the map');
+
+    optIn(projectDir);
+    await frameProject.openProjectLayout(projectDir);
+  });
+  assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, 'bin', 'update-structure.js')), 'tools staged');
+  assert.match(fs.readFileSync(path.join(projectDir, '.git', 'hooks', 'pre-commit'), 'utf8'), /update-structure\.js/);
+  assert.equal(spawned.length, 1, 'the worker attached');
+
+  // Only on the open that brought the parser: a hook removed afterwards stays removed.
+  fs.rmSync(path.join(projectDir, '.git', 'hooks', 'pre-commit'));
+  await withoutStructureOverride(() => frameProject.openProjectLayout(projectDir));
+  assert.ok(!fs.existsSync(path.join(projectDir, '.git', 'hooks', 'pre-commit')));
+});
+
+test('a reopen of a project without the map installs nothing', async (t) => {
+  const spawned = fakeWorkers();
+  t.after(resetWorkers);
+  projectDir = freshRepo('frame-off-open-');
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+    await frameProject.openProjectLayout(projectDir);
+  });
+  assert.ok(!fs.existsSync(path.join(projectDir, '.git', 'hooks', 'pre-commit')));
+  assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, 'bin', 'update-structure.js')));
+  assert.equal(spawned.length, 0);
+});
+
+test('opting in with Husky: the reopen leaves .husky/pre-commit as it was', async (t) => {
+  fakeWorkers();
+  t.after(resetWorkers);
+  projectDir = freshRepo('frame-optin-husky-');
+  fs.mkdirSync(path.join(projectDir, '.husky'));
+  fs.writeFileSync(path.join(projectDir, '.husky', 'pre-commit'), 'npm test\n');
+  git(projectDir, ['config', 'core.hooksPath', '.husky']);
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+    optIn(projectDir);
+    await frameProject.openProjectLayout(projectDir);
+  });
+  assert.equal(fs.readFileSync(path.join(projectDir, '.husky', 'pre-commit'), 'utf8'), 'npm test\n');
+});

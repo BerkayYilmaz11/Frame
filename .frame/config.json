@@ -6,6 +6,7 @@
   "initializedBy": "Frame",
   "settings": {
     "autoUpdateStructure": true,
+    "structureMap": true,
     "autoUpdateNotes": false,
     "taskRecognition": true,
     "gitSharing": "repo"

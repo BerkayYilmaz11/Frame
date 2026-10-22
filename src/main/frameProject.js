@@ -24,6 +24,7 @@ const docsHealth = require('../shared/docsHealth');
 const perfMonitor = require('./perfMonitor');
 const activityLog = require('./activityLog');
 const detector = require('../../scripts/detect-project');
+const { structureEnabled } = require('../../scripts/structure-switch');
 
 let mainWindow = null;
 
@@ -116,11 +117,11 @@ async function showInitializeConfirmation(projectPath) {
   let message = 'This will create the following files in your project:\n\n';
   message += '  • .frame/ (everything Frame writes lives here)\n';
   message += '  • .frame/AGENTS.md (AI instructions)\n';
-  message += '  • .frame/STRUCTURE.json (module map)\n';
+  if (structureEnabled(projectPath)) message += '  • .frame/STRUCTURE.json (module map)\n';
   message += '  • .frame/PROJECT_NOTES.md (session notes)\n';
   message += '  • .frame/tasks.json (task tracking)\n';
   message += '  • .frame/QUICKSTART.md (getting started)\n';
-  message += "  • .frame/bin/ (Frame's parser and helper scripts)\n";
+  message += "  • .frame/bin/ (Frame's helper scripts)\n";
   message += '  • .claude/rules/frame.md (a synced copy of .frame/AGENTS.md for Claude Code)\n';
   message += '\nNothing is added to your project root, and no existing file is read, moved or replaced.\n';
 
@@ -257,7 +258,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   // template sets features.specDriven), so the section ships with the file.
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.AGENTS),
-    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject })
+    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject, structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/docs/REFERENCE.md — the reference-on-demand companion to the lean
@@ -266,7 +267,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(docsDirPath, { recursive: true });
   await createFileIfNotExists(
     path.join(docsDirPath, 'REFERENCE.md'),
-    templates.getReferenceTemplate(name)
+    templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/specs/ — Spec-Driven Development is on for new projects, so the
@@ -276,7 +277,10 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(specsDirPath, { recursive: true });
   await createFileIfNotExists(path.join(specsDirPath, '.gitkeep'), '');
 
-  const structureWasCreated = await createFileIfNotExists(
+  // The module map is opt-in (scripts/structure-switch.js): a project that
+  // has not opted in gets no STRUCTURE.json at all. Read after config.json
+  // above, so a re-init of an opted-in project keeps its map.
+  const structureWasCreated = structureEnabled(projectPath) && await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.STRUCTURE),
     templates.getStructureTemplate(name, detectedProject)
   );
@@ -293,7 +297,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
 
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.QUICKSTART),
-    templates.getQuickstartTemplate(name, detectedProject)
+    templates.getQuickstartTemplate(name, detectedProject, { structureMap: structureEnabled(projectPath) })
   );
 
   // .claude/rules/frame.md — what Claude Code loads at session start. The
@@ -606,9 +610,10 @@ function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   }
 
   let added = 0;
-  for (const eventName of Object.keys(templates.SPEC_HINT_HOOKS)) {
+  const wanted = templates.hintHooksFor(templates.SPEC_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(settings.hooks[eventName]) ? settings.hooks[eventName] : [];
-    for (const entry of templates.SPEC_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
@@ -741,9 +746,12 @@ function installCodexHintHook(projectPath, { enabled = true, home = null } = {})
 
   config.hooks = config.hooks || {};
   let added = 0;
-  for (const eventName of Object.keys(templates.CODEX_HINT_HOOKS)) {
+  // hooks.json is global: the module-hint entry is added for a project with
+  // the map and never taken out for one without (another project may use it).
+  const wanted = templates.hintHooksFor(templates.CODEX_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(config.hooks[eventName]) ? config.hooks[eventName] : [];
-    for (const entry of templates.CODEX_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
@@ -1124,7 +1132,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   fs.mkdirSync(docsDir, { recursive: true });
   const referencePath = path.join(docsDir, 'REFERENCE.md');
   if (!fs.existsSync(referencePath)) {
-    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name), 'utf8');
+    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) }), 'utf8');
   }
 
   // Make sure AGENTS.md has the Spec-Driven Development section so AI
@@ -1139,7 +1147,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   if (!existing) {
     frameStore.writeAgents(
       projectPath,
-      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null })
+      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null, structureMap: structureEnabled(projectPath) })
     );
   } else if (!existing.includes('Spec-Driven Development')) {
     // Append the short core section (marker-wrapped, stamped current) — the
@@ -1618,6 +1626,9 @@ async function openProjectLayout(projectPath, hooks = {}) {
   // the running Frame — a clone, a linked worktree, a teammate's commit.
   // Both stagers are copy-if-changed, so an up-to-date project is read,
   // compared and left alone. Non-fatal, all of it.
+  // Whether this checkout had the module map's parser before the refresh: if
+  // it appears now, the project has just opted into the map (below).
+  const hadParser = fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, 'update-structure.js'));
   try {
     structureBootstrap.copyParserScripts(projectPath);
   } catch (err) {
@@ -1630,6 +1641,17 @@ async function openProjectLayout(projectPath, hooks = {}) {
     await structureBootstrap.upgradeStructureHook(projectPath);
   } catch (err) {
     console.warn('[frame] could not check the pre-commit hook (non-fatal):', err.message);
+  }
+  // A project that opted into the module map after init gets its hook on the
+  // open where its parser first arrives — once, so an open still never puts
+  // back a hook the user removed (STR-02b).
+  if (!hadParser) {
+    try {
+      const hook = await structureBootstrap.ensureStructureHook(projectPath);
+      if (hook.manualInstructions) console.log(`[frame] ${hook.message}\n${hook.manualInstructions}`);
+    } catch (err) {
+      console.warn('[frame] could not install the pre-commit hook (non-fatal):', err.message);
+    }
   }
   try {
     commandStaging.stageCommandFiles(projectPath);

@@ -354,6 +354,9 @@ ${record}`;
 function getAgentsTemplate(projectName, options) {
   const opts = options || {};
   const specDriven = opts.specDriven === true;
+  // The module map is opt-in per project (scripts/structure-switch.js); a
+  // project without it gets no STRUCTURE.json, so nothing here points at one.
+  const structureMap = opts.structureMap === true;
   const date = getDateString();
   return `# ${projectName} - Frame Project
 
@@ -380,7 +383,7 @@ implemented without approval.
 
 **Read these at the start of each session:**
 
-1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
+${structureMap ? `1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
    last commit, plus your prose edits; \`find-module.js\` and hints use Frame's
    live view of the working tree)
 2. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
@@ -394,7 +397,8 @@ node .frame/bin/find-module.js --list      # all features
 \`\`\`
 
 Its answer is enough to open the file — a function answer comes with its
-line. Use grep to search inside a file, not to find it again.
+line. Use grep to search inside a file, not to find it again.` : `1. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
+2. **\`.frame/tasks.json\`** — pending tasks`}
 
 **Spec history** — before working a topic or changing a file, check what
 earlier specs did there and why (Claude Code sessions also get this injected
@@ -410,7 +414,7 @@ before working — respect recorded decisions or overturn them explicitly,
 never silently.
 
 **Freshness** — \`node .frame/bin/check-freshness.js\` reports when this
-context is likely to mislead (phantom modules, stale STRUCTURE/notes, stuck
+context is likely to mislead (${structureMap ? 'phantom modules, stale STRUCTURE/notes' : 'stale notes'}, stuck
 tasks). Trust its warnings over stale entries.
 
 ${specDriven ? `---
@@ -425,8 +429,7 @@ ${renderSpecCoreSection()}
 | ---------------------------- | ------------------------------------ |
 | \`.frame/tasks.json\`          | "Task Management" (schema + rules)   |
 | \`.frame/PROJECT_NOTES.md\`    | "PROJECT_NOTES.md Rules"             |
-| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |
-| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
+${structureMap ? '| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |\n' : ''}| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
 
 Quick reminders that always apply:
 - Task work: \`status: "in_progress"\` when starting, \`"completed"\` +
@@ -455,12 +458,15 @@ edit this file, never the copy; delete the copy to detach.
  * it is about to write a Frame meta file. Written to .frame/docs/ on init
  * and on the spec-driven upgrade path. Tool-agnostic.
  */
-function getReferenceTemplate(projectName) {
+function getReferenceTemplate(projectName, options) {
+  // The module map is opt-in per project (scripts/structure-switch.js):
+  // without it, nothing here describes STRUCTURE.json.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   return `# ${projectName} — Frame Reference
 
 Read the relevant section of this file **before writing a Frame meta file**
-(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`, \`.frame/STRUCTURE.json\`,
+(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`,${structureMap ? ' \`.frame/STRUCTURE.json\`,' : ''}
 \`.frame/QUICKSTART.md\`). The always-on orientation lives in
 \`.frame/AGENTS.md\`; this file is loaded on demand.
 
@@ -579,7 +585,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## STRUCTURE.json Rules
+${structureMap ? `## STRUCTURE.json Rules
 
 **This file is the map of the codebase.** Frame generates it; you enrich it.
 
@@ -702,7 +708,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## QUICKSTART.md Rules
+` : ''}## QUICKSTART.md Rules
 
 ### When to Update?
 - When installation steps change
@@ -715,7 +721,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 1. **Language:** Write documentation in English (except code examples)
 2. **Date Format:** ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
-3. **After Commit:** Check \`.frame/tasks.json\` and \`.frame/STRUCTURE.json\`
+3. **After Commit:** Check \`.frame/tasks.json\`${structureMap ? ' and \`.frame/STRUCTURE.json\`' : ''}
 4. **Session Start:** Review pending tasks in \`.frame/tasks.json\`
 
 ---
@@ -822,7 +828,9 @@ function getTasksTemplate(projectName) {
 /**
  * QUICKSTART.md template
  */
-function getQuickstartTemplate(projectName, project) {
+function getQuickstartTemplate(projectName, project, options) {
+  // Same opt-in as getAgentsTemplate / getReferenceTemplate.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   const p = project || {};
   const cmds = p.commands || {};
@@ -875,8 +883,7 @@ ${cmds.test || todo}
 
 | File | Purpose |
 |------|---------|
-| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |
-| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
+${structureMap ? '| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |\n' : ''}| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
 | \`.frame/tasks.json\` | Task tracking |
 | \`.frame/QUICKSTART.md\` | This file |
 
@@ -888,13 +895,16 @@ ${tree}
 
 ## For AI Assistants
 
-1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
+${structureMap ? `1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
    \`generation.inventory.coverage\` is not \`complete\`, the map is missing files;
    rebuild it with \`node .frame/bin/update-structure.js --full\`
 2. **Then**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
 3. **Check**: \`.frame/tasks.json\` for pending tasks
 4. **Follow**: Existing code patterns and conventions
-5. **Update**: These files as you make changes
+5. **Update**: These files as you make changes` : `1. **First**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
+2. **Check**: \`.frame/tasks.json\` for pending tasks
+3. **Follow**: Existing code patterns and conventions
+4. **Update**: These files as you make changes`}
 
 ## Quick Context
 
@@ -1093,6 +1103,22 @@ const CODEX_HINT_HOOKS = {
     { hooks: [codexHook('docs-hint.js', 'session-start')] }
   ]
 };
+
+/**
+ * The hint hooks a project should get. The full sets above stay as they are —
+ * they also identify Frame's own entries for upgrade and removal — but a
+ * project without the module map (scripts/structure-switch.js) gets no
+ * module-hint entry: it would point at a tool the project does not have.
+ */
+function hintHooksFor(template, { structureMap = false } = {}) {
+  if (structureMap) return template;
+  const out = {};
+  for (const [eventName, entries] of Object.entries(template)) {
+    const kept = entries.filter((entry) => !entry.hooks.some((hook) => /\bmodule-hint\.js\b/.test(hook.command)));
+    if (kept.length) out[eventName] = kept;
+  }
+  return out;
+}
 
 // Forms Frame installed before: the unguarded pre-overlay commands, and the
 // `&&` guard that exited 1 when the file was missing. Removal matches these
@@ -1359,6 +1385,7 @@ module.exports = {
   FRAME_GITIGNORE_MARKER_END,
   SPEC_HINT_HOOKS,
   CODEX_HINT_HOOKS,
+  hintHooksFor,
   LEGACY_SPEC_HINT_COMMANDS,
   SESSION_REPORT_HOOKS,
   CODEX_SESSION_REPORT_HOOKS,

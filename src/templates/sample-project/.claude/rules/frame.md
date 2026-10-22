@@ -204,37 +204,11 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## STRUCTURE.json Rules
-
-**This file is the map of the codebase.**
-
-### When to Update?
-- When a new file/folder is created
-- When a file/folder is deleted or moved
-- When module dependencies change
-- When an important architectural pattern is discovered (architectureNotes)
-
-### Format
-```json
-{
-  "modules": {
-    "moduleName": {
-      "path": "src/module",
-      "purpose": "What this module does",
-      "depends": ["otherModule"]
-    }
-  },
-  "architectureNotes": {}
-}
-```
-
----
-
 ## General Rules
 
 1. **Language:** Write documentation in English (except code examples)
 2. **Date Format:** ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
-3. **After Commit:** Check .frame/tasks.json and .frame/STRUCTURE.json
+3. **After Commit:** Check .frame/tasks.json
 4. **Session Start:** Review pending tasks in .frame/tasks.json
 
 ---

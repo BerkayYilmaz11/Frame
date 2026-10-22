@@ -683,3 +683,10 @@ test('a mid-run failure returns a truthful partial receipt', () => {
   assert.equal(receipt.moved.length, 5, 'and the receipt names what got through');
   assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, 'tasks.json')));
 });
+
+test('an already-upgraded document with the module map reports nothing to review either', () => {
+  const current = templates.getAgentsTemplate('demo', { structureMap: true });
+  const upgraded = layoutMigration.upgradeAgentsText(current);
+  assert.deepEqual(upgraded.review, []);
+  assert.equal(upgraded.text, current);
+});
