@@ -53,3 +53,10 @@ _Captured: 2026-10-23 · 6 file change(s)_
 _Captured: 2026-10-23 · 9 file change(s)_
 
 ---
+## T08 — The Decision cards view
+
+Added the "Decision cards" Context view: the pure `src/renderer/decisions/cardsModel.js` builds rows newest first, searches every word across decision, why, keywords and files, labels each source, and marks a notes source whose heading is gone as "story not found". `decisionCardsPanel.js` renders it with `decision-cards.css`; a card expands to its why, id, relation, keywords and files, a spec story opens through `specSection.open`, and a notes story expands its PROJECT_NOTES.md entry in place. Wired the Context nav row, `PANEL_REGISTRY.decisionCards`, the `index.html` container, the palette's "Go to Decision cards" and a `decisionCards.open` command that toggles the view like Sessions; the dock Decisions tab is untouched. The channel and handler had already landed in T07, and the view lists only current cards; the DOM host has no test harness (D10) and was not checked in a running app.
+
+_Captured: 2026-10-23 · 10 file change(s)_
+
+---

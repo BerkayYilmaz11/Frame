@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T14:19:40.615Z",
+  "lastUpdated": "2026-10-23T14:24:11.750Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9040,13 +9040,13 @@
       "title": "Add the \"Decision cards\" view: `LOAD_DECISION_CARDS` in `src/shared/ipcChannels.js` with its `src/main/projectInsights.js` handler returning cards and notes, the pure `src/renderer/decisions/cardsModel.js` (rows newest first, search over decision, why, keywords and files, source labels, \"story not found\" for an unresolved notes source), `src/renderer/decisionCardsPanel.js` with `styles/components/decision-cards.css` and its `main.css` import, the Context nav row in `projectListUI.js`, the `PANEL_REGISTRY` entry, the `index.html` container, the palette entry and the `decisionCards.open` command, leaving the dock Decisions tab untouched; cover the model in `test/decisionCardsModel.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T14:24:11.750Z",
+      "completedAt": "2026-10-23T14:24:11.750Z"
     },
     {
       "id": "task-spec-decision-cards-core-T09",

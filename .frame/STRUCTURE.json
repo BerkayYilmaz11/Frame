@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 94092,
+      "sizeBytes": 95262,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -7828,6 +7828,180 @@
         }
       }
     },
+    "renderer/decisionCardsPanel": {
+      "file": "src/renderer/decisionCardsPanel.js",
+      "description": "Decision Cards Panel (decision-cards-core T08)",
+      "exports": [
+        "init",
+        "show",
+        "hide"
+      ],
+      "depends": [
+        "electron",
+        "marked",
+        "shared/ipcChannels",
+        "state",
+        "htmlUtils",
+        "decisions/cardsModel",
+        "specSection"
+      ],
+      "functions": {
+        "init": {
+          "line": 36
+        },
+        "show": {
+          "line": 59,
+          "purpose": "Show the panel and (re)read the cards — the host calls this on mount."
+        },
+        "hide": {
+          "line": 65
+        },
+        "load": {
+          "line": 70
+        },
+        "render": {
+          "line": 88
+        },
+        "setCount": {
+          "line": 116,
+          "params": [
+            "model"
+          ]
+        },
+        "renderRow": {
+          "line": 124,
+          "params": [
+            "row"
+          ]
+        },
+        "renderBody": {
+          "line": 142,
+          "params": [
+            "row",
+            "relation"
+          ]
+        },
+        "renderStory": {
+          "line": 161,
+          "params": [
+            "row"
+          ]
+        },
+        "onClick": {
+          "line": 181,
+          "params": [
+            "e"
+          ]
+        },
+        "repaintRow": {
+          "line": 203,
+          "params": [
+            "id"
+          ],
+          "purpose": "Repaint one card: a full repaint would scroll the reader away from it."
+        },
+        "renderEmpty": {
+          "line": 209,
+          "params": [
+            "title",
+            "message"
+          ]
+        },
+        "renderMarkdown": {
+          "line": 221,
+          "params": [
+            "md"
+          ]
+        }
+      },
+      "sizeBytes": 8727,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "954e36869608bf33",
+        "purposes": {
+          "repaintRow": "46fc397bd33903d8",
+          "show": "72dbdb735905de80"
+        }
+      }
+    },
+    "renderer/decisions/cardsModel": {
+      "file": "src/renderer/decisions/cardsModel.js",
+      "description": "Decision cards view — the pure row model (decision-cards-core T08).",
+      "exports": [
+        "buildModel",
+        "rowOf",
+        "storyOf",
+        "matchesQuery",
+        "fold"
+      ],
+      "depends": [],
+      "functions": {
+        "fold": {
+          "line": 25,
+          "params": [
+            "s"
+          ],
+          "purpose": "Lowercased, accents and Turkish letters folded, spacing collapsed."
+        },
+        "storyOf": {
+          "line": 38,
+          "params": [
+            "card",
+            "notes"
+          ],
+          "purpose": "Where a card's story is, for the view:"
+        },
+        "rowOf": {
+          "line": 60,
+          "params": [
+            "card",
+            "notes"
+          ],
+          "purpose": "One card as a row."
+        },
+        "matchesQuery": {
+          "line": 79,
+          "params": [
+            "row",
+            "query"
+          ],
+          "purpose": "Whether a row matches the search: every word of the query appears in the"
+        },
+        "newerFirst": {
+          "line": 87,
+          "params": [
+            "a",
+            "b"
+          ],
+          "purpose": "Newest first; a later line breaks a same-date tie, being written later."
+        },
+        "buildModel": {
+          "line": 96,
+          "params": [
+            "data",
+            "{ query = '' } = {}"
+          ],
+          "purpose": "The whole view: `{ rows, total, shown, query }`. `rows` are the visible"
+        }
+      },
+      "sizeBytes": 3959,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "7d52e6deb001e4a3",
+        "purposes": {
+          "buildModel": "e83f5934168c23c5",
+          "fold": "6f6a23e973adadc1",
+          "matchesQuery": "4bda59ca8488231b",
+          "newerFirst": "426d077a9d057acd",
+          "rowOf": "935b121bc8050a8f",
+          "storyOf": "70745dddf8b4870e"
+        }
+      }
+    },
     "renderer/decisionsView": {
       "file": "src/renderer/decisionsView.js",
       "description": "Decisions View Module",
@@ -11065,6 +11239,7 @@
         "taskRunModal",
         "pluginsPanel",
         "sessionsPanel",
+        "decisionCardsPanel",
         "githubPanel",
         "notify",
         "promptsPanel",
@@ -11115,38 +11290,38 @@
       ],
       "functions": {
         "init": {
-          "line": 65,
+          "line": 66,
           "purpose": "Initialize all modules"
         },
         "setupButtonHandlers": {
-          "line": 324,
+          "line": 326,
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 432,
+          "line": 434,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 563,
+          "line": 565,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 602,
+          "line": 604,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 628,
+          "line": 630,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1032,
+          "line": 1041,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1057,
+          "line": 1066,
           "params": [
             "err"
           ],
@@ -11166,7 +11341,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 38783,
+      "sizeBytes": 39138,
       "extraction": {
         "status": "parsed"
       },
@@ -11527,6 +11702,7 @@
         "notify",
         "terminalChipNotice",
         "sessionsPanel",
+        "decisionCardsPanel",
         "specsDashboard",
         "tasksDashboard",
         "projectListUI"
@@ -11538,7 +11714,7 @@
           "SESSION_RESTORE_SET_LAST_PROJECT"
         ]
       },
-      "sizeBytes": 35201,
+      "sizeBytes": 35380,
       "extraction": {
         "status": "parsed"
       },
@@ -12058,7 +12234,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 4162,
+      "sizeBytes": 4246,
       "extraction": {
         "status": "parsed"
       },
@@ -12390,32 +12566,32 @@
           "purpose": "Snapshot of the workspace projects (switcher menu, file panels). Copy so"
         },
         "loadCollapsedGroups": {
-          "line": 337
+          "line": 340
         },
         "saveCollapsedGroups": {
-          "line": 346,
+          "line": 349,
           "params": [
             "state"
           ]
         },
         "buildWorkspaceNav": {
-          "line": 354
+          "line": 357
         },
         "revealNavItem": {
-          "line": 423,
+          "line": 426,
           "params": [
             "view"
           ],
           "purpose": "Make a nav row reachable without changing the user's saved layout: expand"
         },
         "placeWorkspaceNav": {
-          "line": 436
+          "line": 439
         },
         "refreshWorkspaceNav": {
-          "line": 448
+          "line": 451
         },
         "updateWorkspaceNav": {
-          "line": 524,
+          "line": 527,
           "purpose": "Called by multiTerminalUI on every manager state change so the Terminals"
         }
       },
@@ -12433,7 +12609,7 @@
           "REMOVE_PROJECT_FROM_WORKSPACE"
         ]
       },
-      "sizeBytes": 20596,
+      "sizeBytes": 20897,
       "extraction": {
         "status": "parsed"
       },
@@ -15171,6 +15347,18 @@
         "reason": "no-extractor"
       }
     },
+    "renderer/styles/components/decision-cards.css": {
+      "file": "src/renderer/styles/components/decision-cards.css",
+      "description": "",
+      "exports": [],
+      "depends": [],
+      "functions": {},
+      "sizeBytes": 4956,
+      "extraction": {
+        "status": "unsupported",
+        "reason": "no-extractor"
+      }
+    },
     "renderer/styles/components/decisions-view.css": {
       "file": "src/renderer/styles/components/decisions-view.css",
       "description": "",
@@ -15525,7 +15713,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 3518,
+      "sizeBytes": 3632,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -24753,6 +24941,24 @@
         "description": "aac9230f4886e953"
       }
     },
+    "test/decisionCardsModel.test": {
+      "file": "test/decisionCardsModel.test.js",
+      "description": "Decision cards view — the pure row model (decision-cards-core T08).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/decisions/cardsModel"
+      ],
+      "functions": {},
+      "sizeBytes": 4543,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "7d52e6deb001e4a3"
+      }
+    },
     "test/detectProject.test": {
       "file": "test/detectProject.test.js",
       "description": "detect-project tests (T01): manifest-driven stack detection must produce",
@@ -29175,6 +29381,18 @@
         "description": "Branch picker list model — pure (status-bar-branch-picker spec, D5 / C12)."
       }
     ],
+    "cards": [
+      {
+        "module": "renderer/decisionCardsPanel",
+        "file": "src/renderer/decisionCardsPanel.js",
+        "description": "Decision Cards Panel (decision-cards-core T08)"
+      },
+      {
+        "module": "renderer/decisions/cardsModel",
+        "file": "src/renderer/decisions/cardsModel.js",
+        "description": "Decision cards view — the pure row model (decision-cards-core T08)."
+      }
+    ],
     "claude-sessions": [
       {
         "module": "main/claudeSessionsManager",
@@ -29585,6 +29803,11 @@
     ],
     "model": [
       {
+        "module": "renderer/decisions/cardsModel",
+        "file": "src/renderer/decisions/cardsModel.js",
+        "description": "Decision cards view — the pure row model (decision-cards-core T08)."
+      },
+      {
         "module": "renderer/specs/filterModel",
         "file": "src/renderer/specs/filterModel.js",
         "description": "Specs dashboard filter model — what the grid shows for a given scope,"
@@ -29644,6 +29867,11 @@
         "module": "renderer/activityPanel",
         "file": "src/renderer/activityPanel.js",
         "description": "Activity Panel"
+      },
+      {
+        "module": "renderer/decisionCardsPanel",
+        "file": "src/renderer/decisionCardsPanel.js",
+        "description": "Decision Cards Panel (decision-cards-core T08)"
       },
       {
         "module": "renderer/feedbackPanel",
@@ -30109,8 +30337,8 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 321,
-        "unsupported": 84,
+        "parsed": 324,
+        "unsupported": 85,
         "partial": 0
       }
     },
@@ -30156,9 +30384,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 495,
-      "traversedDirectories": 82,
-      "eligibleFiles": 405,
+      "visitedEntries": 500,
+      "traversedDirectories": 83,
+      "eligibleFiles": 409,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -30175,7 +30403,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 405,
+      "indexedFiles": 409,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -30183,6 +30411,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c26a35509480e98936a92a18bb6211ce83519880124b45d9501827a6cd2f9c45"
+    "revision": "88c337828059cab6c8a2ef69f4399f7d60dbd4c25a7d65684e0ba5bb0949c0db"
   }
 }
