@@ -971,6 +971,19 @@ function getFrameGitignoreBlock() {
   return `${FRAME_GITIGNORE_MARKER_START}\n${entries.join('\n')}\n${FRAME_GITIGNORE_MARKER_END}\n`;
 }
 
+// `.frame/.gitattributes`, written in repo mode only. Decision cards are one
+// JSON object per line and never edited in place, so a union merge — keep
+// both sides' added lines — is always the right answer, and two branches that
+// each record a card merge without a conflict. Lives inside .frame/ because a
+// project's root files are the user's (migration-consent-scope).
+const FRAME_GITATTRIBUTES_FILE = '.gitattributes';
+const FRAME_GITATTRIBUTES_MARKER_START = '# managed by Frame — merge rules; edit outside this block';
+const FRAME_GITATTRIBUTES_MARKER_END = '# end managed by Frame';
+
+function getFrameGitattributesBlock() {
+  return `${FRAME_GITATTRIBUTES_MARKER_START}\ndecisions.jsonl merge=union\n${FRAME_GITATTRIBUTES_MARKER_END}\n`;
+}
+
 /**
  * Spec-knowledge hook entries for a user project. The command is guarded so a
  * clone without `.frame/bin/` (sharing mode `local`, or a teammate who hasn't
@@ -1357,6 +1370,10 @@ module.exports = {
   getFrameGitignoreBlock,
   FRAME_GITIGNORE_MARKER_START,
   FRAME_GITIGNORE_MARKER_END,
+  FRAME_GITATTRIBUTES_FILE,
+  FRAME_GITATTRIBUTES_MARKER_START,
+  FRAME_GITATTRIBUTES_MARKER_END,
+  getFrameGitattributesBlock,
   SPEC_HINT_HOOKS,
   CODEX_HINT_HOOKS,
   LEGACY_SPEC_HINT_COMMANDS,

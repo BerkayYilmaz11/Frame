@@ -14,3 +14,10 @@ Added `scripts/decision.js` with `add` (assigns the UTC date and the D11 id, che
 _Captured: 2026-10-23 · 13 file change(s)_
 
 ---
+## T03 — Union merge for the card file
+
+`gitSharing.setMode` now calls a new `ensureFrameGitattributes`, which writes a managed `decisions.jsonl merge=union` block into `.frame/.gitattributes` in repo mode with the same marker surgery as the `.gitignore` block; the file name, markers and block live in `frameTemplates.js`. Local mode writes nothing and also leaves a block written earlier in place, because removing it would be a write in a mode meant not to touch the file. `test/gitSharing.test.js` covers the block, user lines surviving, local mode, a real two-branch merge with no conflict, and the same merge conflicting without the block.
+
+_Captured: 2026-10-23 · 3 file change(s)_
+
+---

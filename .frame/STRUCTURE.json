@@ -3074,6 +3074,7 @@
         "reconcile",
         "hookFileFor",
         "ensureFrameGitignore",
+        "ensureFrameGitattributes",
         "MODES",
         "DEFAULT_MODE"
       ],
@@ -3088,55 +3089,63 @@
       ],
       "functions": {
         "init": {
-          "line": 35,
+          "line": 40,
           "params": [
             "{ activityLog"
           ],
           "purpose": "Wired from index.js so mode changes land in the activity record."
         },
         "record": {
-          "line": 39,
+          "line": 44,
           "params": [
             "event",
             "fields"
           ]
         },
         "normalizeMode": {
-          "line": 47,
+          "line": 52,
           "params": [
             "mode"
           ]
         },
         "getMode": {
-          "line": 52,
+          "line": 57,
           "params": [
             "projectPath"
           ],
           "purpose": "The mode a project is in (defaulting to `repo` for configs written before it)."
         },
         "hookFileFor": {
-          "line": 58,
+          "line": 63,
           "params": [
             "mode"
           ],
           "purpose": "Which Claude settings file this mode's hook entries belong in."
         },
         "ensureFrameGitignore": {
-          "line": 68,
+          "line": 73,
           "params": [
             "projectPath"
           ],
           "purpose": "Write (or refresh) the managed block in `.frame/.gitignore`. Lines the user"
         },
+        "ensureFrameGitattributes": {
+          "line": 106,
+          "params": [
+            "projectPath",
+            "mode = getMode(projectPath"
+          ],
+          "purpose": "Write (or refresh) the managed block in `.frame/.gitattributes` — in repo"
+        },
         "getState": {
-          "line": 98,
+          "line": 133,
           "params": [
             "projectPath"
           ],
           "purpose": "What the UI needs to render the control: the current mode, whether `.frame/`"
         },
         "setMode": {
-          "line": 118,
+          "line": 153,
           "params": [
             "projectPath",
             "requestedMode"
@@ -3144,20 +3153,21 @@
           "purpose": "Apply a mode: store it, move Frame's hook entries to the file that mode"
         },
         "reconcile": {
-          "line": 175,
+          "line": 211,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-apply the stored mode. Called on project open and after migration: the"
         }
       },
-      "sizeBytes": 7450,
+      "sizeBytes": 9035,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "f12906081269971a",
         "purposes": {
+          "ensureFrameGitattributes": "f86fd9f79636792c",
           "ensureFrameGitignore": "d226f4fb60b81633",
           "getMode": "54c338e1d57047a2",
           "getState": "69e6776b3565ef17",
@@ -23019,6 +23029,10 @@
         "getFrameGitignoreBlock",
         "FRAME_GITIGNORE_MARKER_START",
         "FRAME_GITIGNORE_MARKER_END",
+        "FRAME_GITATTRIBUTES_FILE",
+        "FRAME_GITATTRIBUTES_MARKER_START",
+        "FRAME_GITATTRIBUTES_MARKER_END",
+        "getFrameGitattributesBlock",
         "SPEC_HINT_HOOKS",
         "CODEX_HINT_HOOKS",
         "LEGACY_SPEC_HINT_COMMANDS",
@@ -23135,8 +23149,11 @@
         "getFrameGitignoreBlock": {
           "line": 966
         },
+        "getFrameGitattributesBlock": {
+          "line": 983
+        },
         "sessionReportCommand": {
-          "line": 1123,
+          "line": 1136,
           "params": [
             "tool",
             "guard = ''"
@@ -23144,7 +23161,7 @@
           "purpose": "Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the"
         },
         "getGenericWrapperTemplate": {
-          "line": 1158,
+          "line": 1171,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -23152,38 +23169,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1204
+          "line": 1217
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1241,
+          "line": 1254,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1270,
+          "line": 1283,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1289,
+          "line": 1302,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1301,
+          "line": 1314,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1321
+          "line": 1334
         },
         "getOrchBinScripts": {
-          "line": 1339,
+          "line": 1352,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 57811,
+      "sizeBytes": 58698,
       "extraction": {
         "status": "parsed"
       },
@@ -25660,14 +25677,24 @@
           "params": [
             "file"
           ]
+        },
+        "attributesFile": {
+          "line": 207
+        },
+        "mergeTwoCardBranches": {
+          "line": 237,
+          "purpose": "Two branches that each append one card to a committed card file, merged."
         }
       },
-      "sizeBytes": 8988,
+      "sizeBytes": 12206,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "d85681307214f445"
+        "description": "d85681307214f445",
+        "purposes": {
+          "mergeTwoCardBranches": "4daab35caefb1f76"
+        }
       }
     },
     "test/gitStatusWatcher.test": {
@@ -29856,6 +29883,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "b401bb3daff6d46c04dc38c932584e63a486c6c9aca46a8d83167004a98ee1e8"
+    "revision": "8372525f653e872ae7180b0409d312f10b609f2f091b151db00f1b0f9794c0f5"
   }
 }

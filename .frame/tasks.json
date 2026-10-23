@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T10:24:00.774Z",
+  "lastUpdated": "2026-10-23T10:26:17.949Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8975,13 +8975,13 @@
       "title": "Write a `.frame/.gitattributes` managed block holding `decisions.jsonl merge=union` from `src/main/gitSharing.js` in repo mode only, with the block template in `src/shared/frameTemplates.js`; cover the block, local mode writing nothing, and a real merge of two branches that each append a card without a conflict in `test/gitSharing.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T10:26:17.949Z",
+      "completedAt": "2026-10-23T10:26:17.949Z"
     },
     {
       "id": "task-spec-decision-cards-core-T04",
