@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T10:26:17.949Z",
+  "lastUpdated": "2026-10-23T10:32:44.219Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8988,13 +8988,13 @@
       "title": "Add the `frame:managed:decision-section` block — `DECISION_BLOCK_NAME` in `src/shared/docsManagedBlock.js`; in `src/shared/frameTemplates.js` a REFERENCE \"Decision Cards\" section (when to ask, one question naming any related card from `decision.js related`, the story entry plus card via `decision.js add`, the card's JSON shape as the fallback, precedence over the older \"add without asking\" line) and a three-line AGENTS pointer — append and upgrade it through the descriptors in `frameProject.upgradeSpecDocs`, and deliver the section from `scripts/docs-hint.js` on writes to `decisions.jsonl`; cover it in `test/specDocsUpgrade.test.js`, `test/docsManagedBlock.test.js` and `test/docs-hint.test.js` (cap included)",
       "description": "",
       "source": "spec:decision-cards-core:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T10:32:44.219Z",
+      "completedAt": "2026-10-23T10:32:44.219Z"
     },
     {
       "id": "task-spec-decision-cards-core-T05",

@@ -21,3 +21,12 @@ _Captured: 2026-10-23 · 13 file change(s)_
 _Captured: 2026-10-23 · 3 file change(s)_
 
 ---
+## T04 — The decision-section instruction block
+
+Added `frame:managed:decision-section` v1: a REFERENCE "Decision Cards (decisions.jsonl)" section (when to ask, one question naming the card from `decision.js related`, story plus `decision.js add`, the card's fields, the hand-append fallback, precedence over "You can add without asking the user") and a heading plus three-line AGENTS pointer, appended on open by `upgradeSpecDocs` after each document's spec section, the pointer only once REFERENCE carries the block. Beyond the plan: the decision blocks are classified separately and kept out of the docs-health report, so the UI popover stays about the spec section and a hand-written "Decision Cards" section is left alone without one; the prose never names `.frame/decisions.jsonl` as a path, because docsHealth reports every named `.frame/` path that is missing; new projects get the block on first open rather than in the init templates; and `docs-hint` delivers only the "On a yes" and "The card" subsections on a hand write (1428 characters). Existing upgrade tests now compare documents with the decision block stripped, and the "current" fixtures carry both blocks.
+
+Followup: the docs-health popover cannot report an unmatched "Decision Cards" section; it is left alone silently.
+
+_Captured: 2026-10-23 · 7 file change(s)_
+
+---

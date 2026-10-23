@@ -2119,21 +2119,27 @@
           ],
           "purpose": "The spec-section descriptors, in the order they must be settled: the target"
         },
+        "decisionDocDescriptors": {
+          "line": 1236,
+          "params": [
+            "projectPath"
+          ]
+        },
         "readTextOrNull": {
-          "line": 1231,
+          "line": 1257,
           "params": [
             "file"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 1245,
+          "line": 1271,
           "params": [
             "projectPath"
           ],
           "purpose": "Upgrade the Frame-managed sections and report what could not be settled."
         },
         "appendSpecSection": {
-          "line": 1328,
+          "line": 1367,
           "params": [
             "projectPath",
             "rel"
@@ -2141,14 +2147,14 @@
           "purpose": "Append the managed spec section to a document the pass deliberately refused"
         },
         "docsHealthFor": {
-          "line": 1367,
+          "line": 1406,
           "params": [
             "projectPath"
           ],
           "purpose": "The report on its own, without running the repair pass — what the UI asks"
         },
         "recordDocsActivity": {
-          "line": 1389,
+          "line": 1428,
           "params": [
             "written",
             "appended",
@@ -2157,20 +2163,20 @@
           "purpose": "Put the pass's result on the record. This is the half that was missing when"
         },
         "detachThenRemoveFrame": {
-          "line": 1428,
+          "line": 1467,
           "params": [
             "projectPath"
           ],
           "purpose": "Remove Frame after its lifecycle worker has stopped, so no child is still"
         },
         "removeFrame": {
-          "line": 1437,
+          "line": 1476,
           "params": [
             "projectPath"
           ]
         },
         "dropEmptySettingsFile": {
-          "line": 1491,
+          "line": 1530,
           "params": [
             "projectPath",
             "file"
@@ -2178,21 +2184,21 @@
           "purpose": "Delete a Claude settings file that now parses to `{}` — Frame wrote it to"
         },
         "isFrameOwnedHookResidue": {
-          "line": 1517,
+          "line": 1556,
           "params": [
             "text"
           ],
           "purpose": "What Frame's own pre-commit file looks like once its managed block is gone:"
         },
         "removeHookSnippet": {
-          "line": 1533,
+          "line": 1572,
           "params": [
             "projectPath"
           ],
           "purpose": "Strip Frame's marker-wrapped block from whichever pre-commit hook carries"
         },
         "openProjectLayout": {
-          "line": 1585,
+          "line": 1624,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2200,7 +2206,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1692,
+          "line": 1731,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2208,7 +2214,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1714,
+          "line": 1753,
           "params": [
             "ipcMain"
           ],
@@ -2240,7 +2246,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 75455,
+      "sizeBytes": 77270,
       "extraction": {
         "status": "parsed"
       },
@@ -17730,35 +17736,35 @@
           "purpose": "The cap for the CLI this payload came from. Claude Code inlines 2 000"
         },
         "readStdin": {
-          "line": 118
+          "line": 123
         },
         "resolveRoot": {
-          "line": 122,
+          "line": 127,
           "params": [
             "hookCwd"
           ]
         },
         "referencePath": {
-          "line": 131,
+          "line": 136,
           "params": [
             "root"
           ]
         },
         "cliPath": {
-          "line": 135,
+          "line": 140,
           "params": [
             "root"
           ]
         },
         "parseSections": {
-          "line": 147,
+          "line": 152,
           "params": [
             "text"
           ],
           "purpose": "REFERENCE.md → [{ title, body, subs: [{ title, body }] }], in file order."
         },
         "renderSection": {
-          "line": 178,
+          "line": 183,
           "params": [
             "section",
             "subsetTitles"
@@ -17766,7 +17772,7 @@
           "purpose": "One section, or only the named subsections of it, as markdown."
         },
         "capped": {
-          "line": 195,
+          "line": 200,
           "params": [
             "root",
             "preamble",
@@ -17776,17 +17782,17 @@
           "purpose": "Compose the payload and keep it under CAP. Over-length degrades to a"
         },
         "setHookCli": {
-          "line": 244,
+          "line": 249,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 248
+          "line": 253
         },
         "note": {
-          "line": 252,
+          "line": 257,
           "params": [
             "root",
             "ev",
@@ -17795,40 +17801,40 @@
           ]
         },
         "emit": {
-          "line": 267,
+          "line": 272,
           "params": [
             "eventName",
             "context"
           ]
         },
         "loadSections": {
-          "line": 275,
+          "line": 280,
           "params": [
             "root"
           ]
         },
         "sessionStart": {
-          "line": 286,
+          "line": 291,
           "params": [
             "input"
           ]
         },
         "writeTargets": {
-          "line": 310,
+          "line": 315,
           "params": [
             "cmd"
           ],
           "purpose": "Every path a shell command would actually write to: redirect destinations,"
         },
         "sectionForPath": {
-          "line": 327,
+          "line": 332,
           "params": [
             "p"
           ],
           "purpose": "One path → the meta file it is, or null. The `.frame/` requirement is the"
         },
         "metaTargetOf": {
-          "line": 335,
+          "line": 340,
           "params": [
             "toolName",
             "input"
@@ -17836,7 +17842,7 @@
           "purpose": "The meta file this write targets, or null."
         },
         "closeReminder": {
-          "line": 365,
+          "line": 370,
           "params": [
             "root",
             "input"
@@ -17844,13 +17850,13 @@
           "purpose": "The same-turn close reminder. An agent closes a spec's last task through a"
         },
         "preEdit": {
-          "line": 375,
+          "line": 380,
           "params": [
             "input"
           ]
         },
         "sectionCli": {
-          "line": 393,
+          "line": 398,
           "params": [
             "root",
             "name"
@@ -17858,7 +17864,7 @@
           "purpose": "CLI: print one section, or list them. The manual escape hatch."
         }
       },
-      "sizeBytes": 18111,
+      "sizeBytes": 18480,
       "extraction": {
         "status": "parsed"
       },
@@ -22697,43 +22703,44 @@
         "renderBlock",
         "BLOCK_NAME",
         "SPEC_BLOCK_NAME",
+        "DECISION_BLOCK_NAME",
         "END_MARKER"
       ],
       "depends": [],
       "functions": {
         "escapeRe": {
-          "line": 39,
+          "line": 43,
           "params": [
             "text"
           ]
         },
         "beginMarkerRe": {
-          "line": 43,
-          "params": [
-            "blockName"
-          ]
-        },
-        "endMarkerRe": {
           "line": 47,
           "params": [
             "blockName"
           ]
         },
-        "beginMarker": {
+        "endMarkerRe": {
           "line": 51,
+          "params": [
+            "blockName"
+          ]
+        },
+        "beginMarker": {
+          "line": 55,
           "params": [
             "version",
             "blockName"
           ]
         },
         "endMarker": {
-          "line": 55,
+          "line": 59,
           "params": [
             "blockName"
           ]
         },
         "renderBlock": {
-          "line": 64,
+          "line": 68,
           "params": [
             "body",
             "version",
@@ -22742,7 +22749,7 @@
           "purpose": "Wrap a section body in stamped markers — the canonical emitted form."
         },
         "findBlock": {
-          "line": 75,
+          "line": 79,
           "params": [
             "text",
             "blockName = SPEC_BLOCK_NAME"
@@ -22750,14 +22757,14 @@
           "purpose": "Locate the managed block. Returns { start, end, version } — start/end are"
         },
         "normalize": {
-          "line": 94,
+          "line": 98,
           "params": [
             "text"
           ],
           "purpose": "Whitespace-normalized comparison basis. The shipped legacy sections were"
         },
         "findLegacySpan": {
-          "line": 105,
+          "line": 109,
           "params": [
             "text",
             "matcher"
@@ -22765,7 +22772,7 @@
           "purpose": "Find the heading-bounded span of a legacy section that passes the"
         },
         "firstFooterIndex": {
-          "line": 149,
+          "line": 153,
           "params": [
             "text",
             "footerMarker"
@@ -22773,7 +22780,7 @@
           "purpose": "Where a new block goes in a document that has none: before the trailing"
         },
         "appendBlock": {
-          "line": 172,
+          "line": 176,
           "params": [
             "text",
             "options"
@@ -22781,7 +22788,7 @@
           "purpose": "Add a managed block to a document that carries none, rewriting nothing:"
         },
         "upgradeDoc": {
-          "line": 210,
+          "line": 214,
           "params": [
             "text",
             "options"
@@ -22789,7 +22796,7 @@
           "purpose": "Compute the upgraded document text, or null when nothing may change."
         }
       },
-      "sizeBytes": 10300,
+      "sizeBytes": 10616,
       "extraction": {
         "status": "parsed"
       },
@@ -23043,6 +23050,9 @@
         "renderSpecSection",
         "renderSpecCoreSection",
         "SPEC_SECTION_VERSION",
+        "DECISION_SECTION",
+        "DECISION_CORE_SECTION",
+        "DECISION_SECTION_VERSION",
         "LEGACY_SPEC_DRIVEN_SECTION",
         "LEGACY_SPEC_DRIVEN_SECTION_V0",
         "LEGACY_SPEC_DRIVEN_CORE_SECTION",
@@ -23075,35 +23085,35 @@
           "purpose": "Get current ISO timestamp"
         },
         "renderSpecSection": {
-          "line": 300,
+          "line": 370,
           "purpose": "The spec sections as actually emitted into docs: wrapped in managed-block"
         },
         "renderSpecCoreSection": {
-          "line": 304
+          "line": 374
         },
         "formatProjectFacts": {
-          "line": 325,
+          "line": 395,
           "params": [
             "project"
           ],
           "purpose": "Render the Project Facts section for AGENTS.md from the detected project"
         },
         "getAgentsTemplate": {
-          "line": 354,
+          "line": 424,
           "params": [
             "projectName",
             "options"
           ]
         },
         "getReferenceTemplate": {
-          "line": 458,
+          "line": 528,
           "params": [
             "projectName"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 731,
+          "line": 801,
           "params": [
             "projectName",
             "project"
@@ -23111,21 +23121,21 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 759,
+          "line": 829,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 779,
+          "line": 849,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 825,
+          "line": 895,
           "params": [
             "projectName",
             "project"
@@ -23133,27 +23143,27 @@
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 908,
+          "line": 978,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 951,
+          "line": 1021,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 966
+          "line": 1036
         },
         "getFrameGitattributesBlock": {
-          "line": 983
+          "line": 1053
         },
         "sessionReportCommand": {
-          "line": 1136,
+          "line": 1206,
           "params": [
             "tool",
             "guard = ''"
@@ -23161,7 +23171,7 @@
           "purpose": "Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the"
         },
         "getGenericWrapperTemplate": {
-          "line": 1171,
+          "line": 1241,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -23169,38 +23179,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1217
+          "line": 1287
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1254,
+          "line": 1324,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1283,
+          "line": 1353,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1302,
+          "line": 1372,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1314,
+          "line": 1384,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1334
+          "line": 1404
         },
         "getOrchBinScripts": {
-          "line": 1352,
+          "line": 1422,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 58698,
+      "sizeBytes": 62895,
       "extraction": {
         "status": "parsed"
       },
@@ -24618,7 +24628,9 @@
         "path",
         "child_process",
         "scripts/activity-log",
-        "src/shared/activityEvents"
+        "src/shared/activityEvents",
+        "src/shared/frameTemplates",
+        "src/shared/docsManagedBlock"
       ],
       "functions": {
         "runHook": {
@@ -24671,9 +24683,13 @@
             "root"
           ],
           "purpose": "Every activity row the hook wrote for this project, each checked against the registry."
+        },
+        "referenceWithDecisions": {
+          "line": 549,
+          "purpose": "The repo's REFERENCE.md as a project gets it on open: the decision block appended."
         }
       },
-      "sizeBytes": 25849,
+      "sizeBytes": 28536,
       "extraction": {
         "status": "parsed"
       },
@@ -24683,6 +24699,7 @@
           "closeAll": "506474a93dcd1f0e",
           "closedBy": "cfddeda123aa0af1",
           "mkClosable": "db119b3b11c9e5f4",
+          "referenceWithDecisions": "bf0295f2ba8389de",
           "rowsOf": "2b5937aa7baca604"
         }
       }
@@ -24717,7 +24734,7 @@
         "src/shared/frameTemplates"
       ],
       "functions": {},
-      "sizeBytes": 12953,
+      "sizeBytes": 14387,
       "extraction": {
         "status": "parsed"
       },
@@ -26905,14 +26922,14 @@
           ]
         },
         "open": {
-          "line": 246,
+          "line": 269,
           "params": [
             "dir"
           ],
           "purpose": "Simulates the project-open sequence: artifacts before docs. This is the"
         }
       },
-      "sizeBytes": 15082,
+      "sizeBytes": 20357,
       "extraction": {
         "status": "parsed"
       },
@@ -29883,6 +29900,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8372525f653e872ae7180b0409d312f10b609f2f091b151db00f1b0f9794c0f5"
+    "revision": "6405595170ea340b6e04a477a3acf01092e2a85a227da61fbe0cafa049c6c01d"
   }
 }

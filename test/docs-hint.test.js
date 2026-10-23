@@ -539,3 +539,59 @@ test('the reminder stays inside the inline limit at its widest', () => {
   assert.ok(!ctx.includes('\n'), 'one line');
   assert.ok(ctx.length <= CAP, `${ctx.length} chars exceeds the ${CAP} cap`);
 });
+
+// ─── The card file (decision-cards-core T04) ──────────────
+
+const templates = require('../src/shared/frameTemplates');
+const managedBlock = require('../src/shared/docsManagedBlock');
+
+/** The repo's REFERENCE.md as a project gets it on open: the decision block appended. */
+function referenceWithDecisions() {
+  const real = fs.readFileSync(path.join(REPO, '.frame', 'docs', 'REFERENCE.md'), 'utf8');
+  if (managedBlock.findBlock(real, managedBlock.DECISION_BLOCK_NAME)) return real;
+  return managedBlock.appendBlock(real, {
+    body: templates.DECISION_SECTION,
+    version: templates.DECISION_SECTION_VERSION,
+    blockName: managedBlock.DECISION_BLOCK_NAME,
+    footerMarker: '*This file was automatically created by Frame.'
+  });
+}
+
+test('writing the card file by hand gets the yes rule and the card shape, not the conversation half', () => {
+  const root = mkProject(referenceWithDecisions());
+  const ctx = ctxOf(runHook('pre-edit', edit(root, 'decisions.jsonl')));
+  assert.match(ctx, /^Frame's rules for writing decisions\.jsonl — follow them:/);
+  assert.match(ctx, /### On a yes/);
+  assert.match(ctx, /### The card/);
+  assert.match(ctx, /<YYYYMMDD>-<6 lowercase hex>/);
+  assert.doesNotMatch(ctx, /### When to ask/);
+  assert.doesNotMatch(ctx, /### The one question/);
+});
+
+test('an append with >> into the card file counts as a write', () => {
+  const root = mkProject(referenceWithDecisions());
+  const out = runHook('pre-edit', bash(root, `echo '{"id":"x"}' >> .frame/decisions.jsonl`));
+  assert.match(ctxOf(out), /### The card/);
+});
+
+test('running decision.js is not a hand write to the card file', () => {
+  const root = mkProject(referenceWithDecisions());
+  assert.equal(runHook('pre-edit', bash(root, `node .frame/bin/decision.js add '{"decision":"x"}'`)), null);
+});
+
+test('a reference without the decision rules stays quiet on a card write', () => {
+  const root = mkProject();
+  assert.equal(runHook('pre-edit', edit(root, 'decisions.jsonl')), null);
+});
+
+test('the card-file payload from the shipped section stays inlinable for both hosts', () => {
+  const root = mkProject(referenceWithDecisions());
+  const claude = ctxOf(runHook('pre-edit', edit(root, 'decisions.jsonl')));
+  assert.ok(claude.length <= CAP, `${claude.length} chars exceeds the ${CAP} cap`);
+  assert.ok(!claude.includes('[trimmed'), 'trimmed — it no longer arrives whole');
+  const codex = ctxOf(runHook('pre-edit', {
+    session_id: 'a', cwd: root, tool_name: 'apply_patch',
+    tool_input: { command: `*** Begin Patch\n*** Add File: ${path.join(root, '.frame', 'decisions.jsonl')}\n+{}\n*** End Patch` }
+  }));
+  assert.equal(codex, claude);
+});
