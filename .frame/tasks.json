@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T10:08:24.147Z",
+  "lastUpdated": "2026-10-23T10:17:39.458Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8949,13 +8949,13 @@
       "title": "Add `scripts/decision-cards.js` (parse skipping malformed or torn lines, dedup by id, card validation, the current set with superseded cards dropped, file and token matching, delivery and catalog line rendering), `frameStore.decisionsPath()` with `FRAME_FILES.DECISIONS`, `decisions.jsonl` in `FRAME_FILE_CLASSES.data` and `ORCH_META_FILES`, and a `decisions.jsonl` literal guard plus helper mirror in `test/metaPathGuard.test.js`; cover it in `test/decisionCards.test.js` (missing file included) and `test/frameStore.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T10:17:39.458Z",
+      "completedAt": "2026-10-23T10:17:39.458Z"
     },
     {
       "id": "task-spec-decision-cards-core-T02",

@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-20",
+  "lastUpdated": "2026-10-23",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -2292,6 +2292,7 @@
         "resolvePath",
         "specsRoot",
         "resolveSpecDir",
+        "decisionsPath",
         "setupIPC",
         "metaDir",
         "isLegacyLayout",
@@ -2383,15 +2384,22 @@
           ],
           "purpose": "One spec's folder: `<project>/.frame/specs/<slug>`."
         },
+        "decisionsPath": {
+          "line": 145,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The project's decision cards: `<project>/.frame/decisions.jsonl`."
+        },
         "readText": {
-          "line": 139,
+          "line": 151,
           "params": [
             "projectPath",
             "name"
           ]
         },
         "writeText": {
-          "line": 147,
+          "line": 159,
           "params": [
             "projectPath",
             "name",
@@ -2399,48 +2407,48 @@
           ]
         },
         "getTasks": {
-          "line": 160,
+          "line": 172,
           "params": [
             "projectPath"
           ],
           "purpose": "tasks.json, with fsSafe's corruption recovery. Returns the recovery record"
         },
         "saveTasks": {
-          "line": 164,
+          "line": 176,
           "params": [
             "projectPath",
             "data"
           ]
         },
         "getStructure": {
-          "line": 174,
+          "line": 186,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's module map parsed, or null when it is missing or"
         },
         "workingViewPath": {
-          "line": 193,
+          "line": 205,
           "params": [
             "projectPath"
           ],
           "purpose": "Where the structure lifecycle keeps the working-tree view (STR-02c)."
         },
         "saveStructure": {
-          "line": 197,
+          "line": 209,
           "params": [
             "projectPath",
             "structure"
           ]
         },
         "readNotes": {
-          "line": 201,
+          "line": 213,
           "params": [
             "projectPath"
           ]
         },
         "appendNote": {
-          "line": 209,
+          "line": 221,
           "params": [
             "projectPath",
             "text"
@@ -2448,40 +2456,40 @@
           "purpose": "Append an entry to PROJECT_NOTES.md, keeping one blank line between it and"
         },
         "readQuickstart": {
-          "line": 218,
+          "line": 230,
           "params": [
             "projectPath"
           ]
         },
         "readAgents": {
-          "line": 222,
+          "line": 234,
           "params": [
             "projectPath"
           ]
         },
         "writeAgents": {
-          "line": 226,
+          "line": 238,
           "params": [
             "projectPath",
             "text"
           ]
         },
         "getProjectId": {
-          "line": 233,
+          "line": 245,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's stable id, or null if it has none yet."
         },
         "ensureProjectId": {
-          "line": 245,
+          "line": 257,
           "params": [
             "projectPath"
           ],
           "purpose": "Stamp a UUID into `.frame/config.json` once and return it; a project that"
         },
         "setupIPC": {
-          "line": 262,
+          "line": 274,
           "params": [
             "ipcMain"
           ],
@@ -2494,7 +2502,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 10669,
+      "sizeBytes": 11334,
       "extraction": {
         "status": "parsed"
       },
@@ -2502,6 +2510,7 @@
         "description": "49656e0cd38ce1d6",
         "purposes": {
           "appendNote": "4638b55e22918626",
+          "decisionsPath": "2f914fcfff9f7702",
           "ensureProjectId": "ba7dbfded94437a3",
           "getProjectId": "425bd0bcce18a16f",
           "getStructure": "6b39658e89876cb1",
@@ -17162,6 +17171,256 @@
         }
       }
     },
+    "scripts/decision-cards": {
+      "file": "scripts/decision-cards.js",
+      "description": "Decision cards — the shared reader for `.frame/decisions.jsonl`.",
+      "exports": [
+        "LIMITS",
+        "MATCH_THRESHOLD",
+        "ID_RE",
+        "cardsPath",
+        "normalizeRel",
+        "parseSource",
+        "isRealDate",
+        "sentenceCount",
+        "validateCard",
+        "parseCards",
+        "currentCards",
+        "readCards",
+        "isSpecCard",
+        "specLessCards",
+        "cardsForSpec",
+        "tokenize",
+        "cardTokens",
+        "cardsForFile",
+        "scoreCards",
+        "relatedCards",
+        "clip",
+        "storyPointer",
+        "renderCard",
+        "catalogLines"
+      ],
+      "depends": [
+        "fs",
+        "path"
+      ],
+      "functions": {
+        "cardsPath": {
+          "line": 58,
+          "params": [
+            "root"
+          ],
+          "purpose": "Where a project keeps its cards. Mirrors frameStore.decisionsPath()."
+        },
+        "toPosix": {
+          "line": 62,
+          "params": [
+            "p"
+          ]
+        },
+        "normalizeRel": {
+          "line": 65,
+          "params": [
+            "p"
+          ],
+          "purpose": "Project-relative, posix, no leading `./` — the form `files` holds."
+        },
+        "parseSource": {
+          "line": 74,
+          "params": [
+            "source"
+          ],
+          "purpose": "What a source points at, or null when it has neither accepted form:"
+        },
+        "isRealDate": {
+          "line": 83,
+          "params": [
+            "s"
+          ]
+        },
+        "sentenceCount": {
+          "line": 96,
+          "params": [
+            "text"
+          ],
+          "purpose": "How many sentences `text` holds. A period ends a sentence only before"
+        },
+        "validateCard": {
+          "line": 123,
+          "params": [
+            "card"
+          ],
+          "purpose": "Everything wrong with `card`'s shape, as readable defects; empty when it is"
+        },
+        "normalizeCard": {
+          "line": 182,
+          "params": [
+            "card"
+          ],
+          "purpose": "The card as the rest of Frame reads it: trimmed, posix files, null relations."
+        },
+        "parseCards": {
+          "line": 203,
+          "params": [
+            "text"
+          ],
+          "purpose": "Every well-formed card in `text`, in file order, plus every line that was"
+        },
+        "currentCards": {
+          "line": 236,
+          "params": [
+            "cards"
+          ],
+          "purpose": "Cards no other card supersedes. A chain A ← B ← C leaves C."
+        },
+        "readCards": {
+          "line": 246,
+          "params": [
+            "root"
+          ],
+          "purpose": "The project's cards, read now. Never throws: no file reads as"
+        },
+        "isSpecCard": {
+          "line": 257,
+          "params": [
+            "card"
+          ]
+        },
+        "specLessCards": {
+          "line": 263,
+          "params": [
+            "cards"
+          ],
+          "purpose": "The cards a hook may deliver: current and spec-less."
+        },
+        "cardsForSpec": {
+          "line": 268,
+          "params": [
+            "cards",
+            "slug"
+          ],
+          "purpose": "Current cards whose story is spec `slug`."
+        },
+        "fold": {
+          "line": 277,
+          "params": [
+            "s"
+          ]
+        },
+        "tokenize": {
+          "line": 286,
+          "params": [
+            "s"
+          ]
+        },
+        "cardTokens": {
+          "line": 291,
+          "params": [
+            "card"
+          ],
+          "purpose": "The words a card answers to: its keywords, its decision, its files' names."
+        },
+        "newerFirst": {
+          "line": 300,
+          "params": [
+            "a",
+            "b"
+          ],
+          "purpose": "Newest first; file order breaks a tie, later lines being newer."
+        },
+        "cardsForFile": {
+          "line": 306,
+          "params": [
+            "cards",
+            "rel"
+          ],
+          "purpose": "Cards listing `rel` among their files, newest first."
+        },
+        "scoreCards": {
+          "line": 317,
+          "params": [
+            "cards",
+            "query",
+            "opts = {}"
+          ],
+          "purpose": "Score `cards` against a bag of words: a shared token counts 2 when it is"
+        },
+        "relatedCards": {
+          "line": 353,
+          "params": [
+            "cards",
+            "{ files = []",
+            "keywords = [] } = {}"
+          ],
+          "purpose": "Cards that share a file or a keyword with a decision about to be recorded,"
+        },
+        "clip": {
+          "line": 374,
+          "params": [
+            "s",
+            "cap"
+          ],
+          "purpose": "`s` cut at a word boundary with \"…\" when it runs past `cap`."
+        },
+        "storyPointer": {
+          "line": 383,
+          "params": [
+            "card"
+          ],
+          "purpose": "Where the card's story is told, as an agent would go and read it."
+        },
+        "relationMark": {
+          "line": 390,
+          "params": [
+            "card"
+          ]
+        },
+        "renderCard": {
+          "line": 401,
+          "params": [
+            "card",
+            "{ full = true } = {}"
+          ],
+          "purpose": "One card as a hook or the CLI prints it. Full: the decision, its why and"
+        },
+        "catalogLines": {
+          "line": 412,
+          "params": [
+            "cards"
+          ],
+          "purpose": "Catalog lines for /spec.new, in the spec catalog's own shape"
+        }
+      },
+      "sizeBytes": 16522,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "5c12662e23fd1f4f",
+        "purposes": {
+          "cardTokens": "508288ae93c3d4d8",
+          "cardsForFile": "782c462dfb782876",
+          "cardsForSpec": "6e1cc34874502a31",
+          "cardsPath": "cdf08ec41f85d774",
+          "catalogLines": "29fae1ca6ca069fd",
+          "clip": "fc17db4fd46d75e8",
+          "currentCards": "f755f4214a4bf876",
+          "newerFirst": "c7d4ca113081a028",
+          "normalizeCard": "3ba911c1aadb8798",
+          "normalizeRel": "04f01133fef0ee95",
+          "parseCards": "508f42adc36b881c",
+          "parseSource": "75b264a17d14da4f",
+          "readCards": "815fa336ed251032",
+          "relatedCards": "4c61942e68a18e87",
+          "renderCard": "eaa84273029de4d6",
+          "scoreCards": "bbc7242de6fc63b9",
+          "sentenceCount": "645299acfdb7cb76",
+          "specLessCards": "e9a7aad63fe6ead8",
+          "storyPointer": "b16825b04b437036",
+          "validateCard": "0671209218a9954b"
+        }
+      }
+    },
     "scripts/detect-project": {
       "file": "scripts/detect-project.js",
       "description": "",
@@ -22581,7 +22840,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 5392,
+      "sizeBytes": 5541,
       "extraction": {
         "status": "parsed"
       },
@@ -24016,6 +24275,40 @@
         "description": "a0ee2f5a72dd524f"
       }
     },
+    "test/decisionCards.test": {
+      "file": "test/decisionCards.test.js",
+      "description": "Decision cards reader (decision-cards-core T01).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "scripts/decision-cards"
+      ],
+      "functions": {
+        "card": {
+          "line": 31,
+          "params": [
+            "over = {}"
+          ]
+        },
+        "writeCards": {
+          "line": 46,
+          "params": [
+            "lines"
+          ]
+        }
+      },
+      "sizeBytes": 13011,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "aac9230f4886e953"
+      }
+    },
     "test/detectProject.test": {
       "file": "test/detectProject.test.js",
       "description": "detect-project tests (T01): manifest-driven stack detection must produce",
@@ -24983,7 +25276,7 @@
           ]
         }
       },
-      "sizeBytes": 10822,
+      "sizeBytes": 11274,
       "extraction": {
         "status": "parsed"
       },
@@ -25497,15 +25790,23 @@
             "relFile"
           ],
           "purpose": "Every spec-path join in `relFile`, with its segments resolved where we can."
+        },
+        "decisionPathLines": {
+          "line": 184,
+          "params": [
+            "relFile"
+          ],
+          "purpose": "Lines in `relFile` that build a path ending in the card file."
         }
       },
-      "sizeBytes": 7057,
+      "sizeBytes": 9570,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "f7209289e40e427b",
         "purposes": {
+          "decisionPathLines": "38833cc62b2faf57",
           "expectedSegments": "51c778ceb33565e7",
           "joinArguments": "71266266515500b4",
           "jsFilesUnder": "79cf5b6b6fac3594",
@@ -29251,7 +29552,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 316,
+        "parsed": 318,
         "unsupported": 84,
         "partial": 0
       }
@@ -29298,9 +29599,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 490,
+      "visitedEntries": 492,
       "traversedDirectories": 82,
-      "eligibleFiles": 400,
+      "eligibleFiles": 402,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -29317,7 +29618,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 400,
+      "indexedFiles": 402,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -29325,6 +29626,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ef91293e147d922aa3e382f5b9fdf208e2c76e52951d4ddcfe93ffe3bff06f8a"
+    "revision": "59d9cef32d650bc856413f724fb704836abb05283b9217e590ebf1bba1505ecc"
   }
 }
