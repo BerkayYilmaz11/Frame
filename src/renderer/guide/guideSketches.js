@@ -110,7 +110,7 @@ const KINDS = {
           <div class="gs-pane">${terminalLines('codex', [58, 66])}${chip('waiting for input', { dot: 'warn' })}</div>
         </div>
         <div class="gs-agents-context">
-          ${chip('STRUCTURE.json')}${chip('PROJECT_NOTES.md')}${chip('tasks.json')}${chip('specs/')}
+          ${chip('AGENTS.md')}${chip('PROJECT_NOTES.md')}${chip('tasks.json')}${chip('specs/')}
         </div>`)}
     `);
   },
@@ -196,7 +196,6 @@ const KINDS = {
       { depth: 0, dir: true, name: 'my-project/', tags: [] },
       { depth: 1, dir: true, name: '.frame/', tags: ['frame'], note: 'everything Frame writes' },
       { depth: 2, name: 'AGENTS.md', tags: ['frame', 'context'], note: 'rules for agents' },
-      { depth: 2, name: 'STRUCTURE.json', tags: ['frame', 'context'], note: 'module map' },
       { depth: 2, name: 'PROJECT_NOTES.md', tags: ['frame', 'context'], note: 'decisions' },
       { depth: 2, name: 'tasks.json', tags: ['frame', 'context'], note: 'tasks' },
       { depth: 2, dir: true, name: 'specs/', tags: ['frame', 'context'], note: 'spec archive' },
@@ -473,7 +472,6 @@ const KINDS = {
       activity: `
         <div class="gs-dock-row">${chip('tasks', { cls: 'gs-chip-tiny' })}${label('tasks.json synced from specs/add-retry')}</div>
         <div class="gs-dock-row">${chip('hooks', { cls: 'gs-chip-tiny' })}${label('spec history shown before an edit')}</div>
-        <div class="gs-dock-row">${chip('structure', { cls: 'gs-chip-tiny' })}${label('STRUCTURE.json updated on commit')}</div>
         <div class="gs-dock-row gs-dock-row-muted">${chip('watchers', { cls: 'gs-chip-tiny' })}${label('skipped: Frame’s own write')}</div>`
     };
     return frame('dockTabs', focused, `

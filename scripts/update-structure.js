@@ -31,6 +31,7 @@ const path = require('path');
 const discovery = require('./structure-discovery');
 const generation = require('./structure-generation');
 const state = require('./structure-state');
+const { structureEnabled, PAUSED_MESSAGE } = require('./structure-switch');
 
 const RESULT_SCHEMA = 'frame.structure.result/1';
 const HUMAN_DIAGNOSTIC_LINES = 5;
@@ -408,6 +409,12 @@ function main() {
     warn(`✗ ${args.error}`);
     emit({ schema: RESULT_SCHEMA, command: 'invalid', exitCode: 2, state: 'failed', reason: 'usage', message: args.error });
     process.exitCode = 2;
+    return;
+  }
+
+  if (!structureEnabled(ROOT_DIR)) {
+    say(PAUSED_MESSAGE);
+    emit({ schema: RESULT_SCHEMA, command: args.command, exitCode: 0, state: 'skipped', reason: 'paused', message: PAUSED_MESSAGE });
     return;
   }
 

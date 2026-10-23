@@ -3721,6 +3721,25 @@ Shape chosen:
 - Renderer order swapped in frameSettingsModal.js: `ANALYTICS_SET_ENABLED` before `SET_USER_SETTING`, because setEnabled must read the pre-toggle state.
 - Disclosure changed, so the notice card text says so and `NOTICE_VERSION` went 3 → 4 (card reappears once for everyone). PRIVACY.md lists the event and its exceptions.
 
+### [2026-10-22] STRUCTURE.json maintenance is opt-in per project — only Frame's repo opts in
+
+User's request (Turkish, verbatim): "bizim dosya bulma için devasa bir yapımız ve pipeline ımız var, ama çok fayda alıyoruz gibi durmuyor ve structure.json çok baş ağrıtıyor birden fazla kişinin pr attığı durumlarda. kodun durmasını ama mekanızmanın çalışmasını kesmek istiyorum geçici olarak."
+
+Trigger: PR #179 (a one-file watchdog fix) conflicted on `.frame/STRUCTURE.json` because the pre-commit hook re-stages the map on every commit.
+
+First iteration (same session): one global `STRUCTURE_ENABLED = false` constant stopping everything, file left tracked and frozen. The user then asked "peki sadece frame in reposunda çalışması için ne yapabiliriz?" and clarified: "frame i kullanan ama frame e katkı yapmayan bütün kullanıcılar bu yapıyı kullanmasın false olsun, sadece bizim repomuzda true olsun". So the switch became a per-project opt-in, default off.
+
+Shape:
+- `scripts/structure-switch.js` → `structureEnabled(projectRoot)`: true only when that project's `.frame/config.json` has `settings.structureMap: true`; missing/unreadable config → off. `FRAME_STRUCTURE=on` forces it on for one process (the test script sets it; `test/structureSwitch.test.js` covers the off path). Ships to `.frame/bin/` as a helper.
+- Not `settings.autoUpdateStructure`: init writes it as `true` into every project and nothing ever read it, so reusing it would have left everyone on.
+- Frame's own `.frame/config.json` sets `structureMap: true`.
+- When off, init does not create `.frame/STRUCTURE.json` at all (user follow-up: "initialize ederken dosya da oluşturuluyor, o da oluşmamalı") and the init confirmation dialog no longer lists it; the check runs after `config.json` is written, so re-init of an opted-in project keeps its map.
+- When off: `update-structure.js` (pre-commit `--staged`, `npm run structure`, init's scan) emits `{ state: 'skipped', reason: 'paused' }` and writes nothing; `structureLifecycle.attach` returns null; `structure-lifecycle.js` exits; `bootstrapStructure` still stages the tools but installs no hook and runs no scan (`initialScan.status: 'skipped-disabled'`, no notice); `module-hint.js` stays silent; `check-freshness.js` skips its STRUCTURE checks. Readers (`find-module.js`, the Structure view) still read whatever map exists.
+- AGENTS.md template (user follow-up: "evet agents.md şablonunu da düzelt"): `getAgentsTemplate(name, { structureMap })` drops the STRUCTURE.json navigation item, the find-module "Fast file lookup" block, the STRUCTURE row of the meta-file table and "phantom modules, stale STRUCTURE" from the freshness line when the map is off; the remaining items renumber (1. notes, 2. tasks). Opted-in output is byte-identical to before. `frameProject` passes `structureEnabled(projectPath)` at both write sites. Existing AGENTS.md files are never rewritten, so projects initialized earlier keep their STRUCTURE lines.
+- `layoutMigration.lineNeedsReview` learned two cases so the off template is not reported as user edits: a renumbered navigation item, and a document that never names STRUCTURE.json.
+- Still mentioning the map regardless: the REFERENCE.md and QUICKSTART.md templates.
+- The lifecycle decision is taken when a project is opened; hooks and scripts read the config on every run.
+
 ### [2026-10-22] Project switcher back in the sidebar, above Work
 
 User's request (Turkish, verbatim): "project seçimi şu an yukarıda sağda, onu soldan ikinci panele, work menü item ının üstüne geri yerleştirmek istiyorum".

@@ -3,8 +3,8 @@
 A small team task manager — Node.js + Express + PostgreSQL + React.
 
 > This is a **sample project** that ships with Frame. It's a fictional
-> codebase used to demonstrate Frame's spec-driven workflow, task panel,
-> structure map, and project notes on a realistic scale. None of this
+> codebase used to demonstrate Frame's spec-driven workflow, task panel
+> and project notes on a realistic scale. None of this
 > code runs.
 
 ## Stack
@@ -23,7 +23,6 @@ Try these to see how Frame organizes the work:
   show their source.
 - **Specs panel** — 3 specs in different phases: `done`, `implementing`,
   `planned`. Click around to see the lifecycle.
-- **Overview / Structure** — module map of `src/`.
 - **Project Notes** — architectural decisions captured at the moment
   they were made.
 

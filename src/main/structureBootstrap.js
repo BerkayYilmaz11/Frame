@@ -33,6 +33,7 @@ const { execFile, spawn } = require('child_process');
 const { promisify } = require('util');
 
 const execFileAsync = promisify(execFile);
+const { structureEnabled, PAUSED_MESSAGE } = require('../../scripts/structure-switch');
 const { FRAME_DIR, FRAME_BIN_DIR } = require('../shared/frameConstants');
 const {
   getStructureHookSnippet,
@@ -49,7 +50,7 @@ const SCRIPTS_SOURCE_DIR = path.join(__dirname, '..', '..', 'scripts');
 // activated after everything it requires is in place, so an interrupted
 // refresh leaves the previous entry runnable with the helpers it knew.
 const HELPER_FILES = [
-  'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
+  'structure-switch.js', 'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
   'structure-read.js', 'structure-commit.js', 'structure-retrieval.js', 'toolVocabulary.js', 'redact.js', 'activity-log.js'
 ];
@@ -63,7 +64,7 @@ const ENTRY_FILES = [
 const FS_SAFE_SOURCE = path.join(__dirname, 'fsSafe.js');
 // What update-structure.js cannot run without.
 const PARSER_REQUIRES = [
-  'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
+  'structure-switch.js', 'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
   'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
   'structure-commit.js', 'fsSafe.js',
   'lang/javascript.js', 'lang/python.js', 'lang/go.js', 'lang/rust.js', 'lang/markdown.js'
@@ -76,9 +77,19 @@ const ENTRY_REQUIRES = {
   'structure-lifecycle.js': LIFECYCLE_REQUIRES,
   // Readers of the freshness contract (STR-02).
   'find-module.js': ['structure-read.js', 'structure-retrieval.js'],
-  'check-freshness.js': ['structure-read.js'],
-  'module-hint.js': ['structure-read.js', 'structure-retrieval.js']
+  'module-hint.js': ['structure-read.js', 'structure-retrieval.js', 'structure-switch.js']
 };
+// The module map's own files (scripts/structure-switch.js: opt-in per
+// project). A project without the map gets none of them — fsSafe.js and the
+// lang/ extractors included, since only the parser uses them — unless its bin
+// already has a parser (see stageParserScripts). Everything else is shared.
+const STRUCTURE_ENTRIES = ['update-structure.js', 'structure-lifecycle.js', 'find-module.js', 'module-hint.js'];
+const STRUCTURE_HELPERS = [
+  'structure-switch.js', 'structure-ignore.js', 'structure-ignore.LICENSE', 'structure-discovery.js',
+  'structure-generation.js', 'structure-state.js', 'structure-snapshot.js',
+  'structure-read.js', 'structure-commit.js', 'structure-retrieval.js', 'fsSafe.js'
+];
+const isStructureFile = (rel) => STRUCTURE_ENTRIES.includes(rel) || STRUCTURE_HELPERS.includes(rel) || rel.startsWith('lang/');
 // Historical name list, kept for readers of this module's exports.
 const PARSER_FILES = [...ENTRY_FILES, 'intent-map.json', ...HELPER_FILES];
 
@@ -117,6 +128,13 @@ function stageFile(fsImpl, src, dst) {
  * `git status`. It never runs the parser: refreshing tools must not rebuild
  * or invalidate the map.
  *
+ * Without the module map (`structureEnabled`) only the shared tools are
+ * staged and intent-map.json is not seeded. The exception is a bin that
+ * already holds update-structure.js — a project initialized before the map
+ * became opt-in: its pre-commit hook still runs that parser, so the full set
+ * is refreshed and the hook picks up the copy that stands down.
+ * `options.structureMap` overrides the decision (tests).
+ *
  * Returns { copied, failed, unavailable }:
  *   copied       names written this run (the historical return value)
  *   failed       [{ file, error }] for files that could not be staged
@@ -131,6 +149,11 @@ function stageParserScripts(projectPath, options = {}) {
   const binDir = path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR);
   const report = { copied: [], failed: [], unavailable: [] };
   fsImpl.mkdirSync(binDir, { recursive: true });
+  const withMap = options.structureMap !== undefined
+    ? options.structureMap
+    : structureEnabled(projectPath) || fsImpl.existsSync(path.join(binDir, 'update-structure.js'));
+  const staged = (rel) => withMap || !isStructureFile(rel);
+  const entries = ENTRY_FILES.filter(staged);
 
   const sources = new Map();
   for (const file of HELPER_FILES) sources.set(file, path.join(sourceDir, file));
@@ -142,9 +165,11 @@ function stageParserScripts(projectPath, options = {}) {
   } catch (_) { /* preflight reports the missing extractors */ }
   for (const file of langFiles) sources.set(`lang/${file}`, path.join(langSrcDir, file));
 
+  for (const rel of [...sources.keys()]) if (!staged(rel)) sources.delete(rel);
+
   // Preflight: every required source asset must exist before anything the
   // parser depends on is replaced.
-  const required = [...new Set(Object.values(ENTRY_REQUIRES).flat())];
+  const required = [...new Set(entries.flatMap((entry) => ENTRY_REQUIRES[entry] || []))];
   const missing = required.filter((rel) => !sources.has(rel) || !fsImpl.existsSync(sources.get(rel)));
   for (const rel of missing) {
     console.warn(`[frame] bundled asset missing: ${rel}`);
@@ -172,7 +197,7 @@ function stageParserScripts(projectPath, options = {}) {
   // 2. Curation: agent-editable per project — seeded once, never overwritten
   // (Frame's own curation would list modules the project doesn't have).
   const intentMap = path.join(binDir, 'intent-map.json');
-  if (!fsImpl.existsSync(intentMap)) {
+  if (withMap && !fsImpl.existsSync(intentMap)) {
     try {
       fsImpl.writeFileSync(intentMap, JSON.stringify(INTENT_MAP_SEED, null, 2) + '\n');
       report.copied.push('intent-map.json');
@@ -183,7 +208,7 @@ function stageParserScripts(projectPath, options = {}) {
   }
 
   // 3. Entry scripts, last.
-  for (const file of ENTRY_FILES) {
+  for (const file of entries) {
     if (!ready(file)) {
       report.unavailable.push(file);
       continue;
@@ -617,6 +642,11 @@ async function bootstrapStructure(projectPath, structureWasCreated) {
 
   const staged = stageParserScripts(projectPath);
   summary.copied = staged.copied;
+  // Not opted in: the tools ship (so opting in needs no re-init), nothing else runs.
+  if (!structureEnabled(projectPath)) {
+    summary.initialScan = { status: 'skipped-disabled', verified: false, message: PAUSED_MESSAGE, repairCommand: REPAIR_COMMAND };
+    return summary;
+  }
   summary.hook = await installPreCommitHook(projectPath);
 
   const parserPresent = fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, 'update-structure.js'));
@@ -641,7 +671,20 @@ async function bootstrapStructure(projectPath, structureWasCreated) {
   return summary;
 }
 
+/**
+ * Install the pre-commit hook for a project that opted into the module map
+ * after init (init installs it only when the map is on). The same rules as
+ * init: only a vanilla .git/hooks gets a file — Husky, lefthook, core.hooksPath
+ * and custom hooks get instructions back, and a current Frame hook is left as
+ * it is. A project without the map is not touched.
+ */
+async function ensureStructureHook(projectPath) {
+  if (!structureEnabled(projectPath)) return { status: 'disabled' };
+  return installPreCommitHook(projectPath);
+}
+
 module.exports = {
+  ensureStructureHook,
   bootstrapStructure,
   copyParserScripts,
   stageParserScripts,

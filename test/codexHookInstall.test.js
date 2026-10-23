@@ -182,3 +182,30 @@ test('install then remove returns the file to exactly what it was', () => {
   frameProject.removeCodexHintHook({ home });
   assert.equal(fs.readFileSync(path.join(home, 'hooks.json'), 'utf8'), original);
 });
+
+// ─── the module map is opt-in (structure-map-opt-in) ──────
+
+test('the global file gains module-hint only for a project with the map, and never loses it', () => {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  const off = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-cxoff-'));
+  const on = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-cxon-'));
+  fs.mkdirSync(path.join(on, '.frame'));
+  fs.writeFileSync(path.join(on, '.frame', 'config.json'), JSON.stringify({ settings: { structureMap: true } }));
+  try {
+    const home = mkHome();
+    frameProject.installCodexHintHook(off, { home });
+    assert.ok(!commandsIn(home).some((c) => c.includes('module-hint.js')), 'none for a project without the map');
+    assert.ok(commandsIn(home).length > 0, 'the other hints still land');
+
+    frameProject.installCodexHintHook(on, { home });
+    assert.ok(commandsIn(home).some((c) => c.includes('module-hint.js')), 'added for the opted-in project');
+
+    frameProject.installCodexHintHook(off, { home });
+    assert.ok(commandsIn(home).some((c) => c.includes('module-hint.js')), 'an off project never takes it out');
+  } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+    fs.rmSync(off, { recursive: true, force: true });
+    fs.rmSync(on, { recursive: true, force: true });
+  }
+});
