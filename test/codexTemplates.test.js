@@ -287,6 +287,29 @@ test('the card writer token names the copy that is on disk, for both CLIs', () =
   }
 });
 
+test('the /spec.new catalog lists spec-less cards after the specs, and nothing more without a card file', () => {
+  const root = mkProject();
+  const catalogOf = () => {
+    const { prompt } = specManager.getCommandPrompt(root, null, 'spec.new', 'claude-code', 'a description');
+    return prompt.slice(prompt.indexOf('## Spec catalog'), prompt.indexOf('## Task'));
+  };
+  const plain = catalogOf();
+  assert.ok(!/\n- card /.test(plain), 'no card lines in the catalog');
+  assert.match(plain, /Lines starting `- card <id>` after the specs are decisions recorded outside any spec/);
+
+  const line = (over) => JSON.stringify({
+    date: '2026-10-14', decision: 'Card files merge with the union driver.', why: 'A reason.', keywords: ['union merge'],
+    files: [], supersedes: null, extends: null, source: 'notes:2026-10-14 Union merge', ...over
+  });
+  fs.writeFileSync(path.join(root, '.frame', 'decisions.jsonl'),
+    [line({ id: '20261014-aaaaaa' }), line({ id: '20261015-bbbbbb', source: 'spec:alpha', decision: 'A spec card.' })].join('\n') + '\n');
+  const withCards = catalogOf();
+  const specLine = withCards.indexOf('- alpha');
+  const cardLine = withCards.indexOf('- card 20261014-aaaaaa · Card files merge with the union driver. · union merge');
+  assert.ok(specLine >= 0 && cardLine > specLine, 'the card follows the specs');
+  assert.ok(!withCards.includes('A spec card.'), 'a spec card is already its spec\'s line');
+});
+
 test('the close script token names the copy that is on disk', () => {
   const render = (root) => specManager.getCommandPrompt(root, 'alpha', 'spec.implement', 'claude-code').prompt;
   const touch = (root, rel) => {

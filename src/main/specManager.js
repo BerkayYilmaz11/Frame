@@ -177,6 +177,7 @@ function writeStatus(projectPath, slug, status) {
 // Same bundled-scripts location contract as structureBootstrap.
 
 const specIndexLib = require(path.join(__dirname, '..', '..', 'scripts', 'spec-index.js'));
+const decisionCardsLib = require(path.join(__dirname, '..', '..', 'scripts', 'decision-cards.js'));
 const vocabulary = require('../../scripts/toolVocabulary');
 
 /** mtime of the derived index, or 0 — used to tell a rebuild from a no-op. */
@@ -218,6 +219,30 @@ function scheduleIndexRefresh(projectPath) {
  * refresh warms it for the next dispatch.
  */
 function buildSpecCatalog(projectPath) {
+  const specs = specCatalogText(projectPath);
+  const cards = cardCatalogLines(projectPath);
+  if (!cards.length) return specs;
+  return specs ? `${specs}\n${cards.join('\n')}` : cards.join('\n');
+}
+
+/**
+ * The current spec-less decision cards as catalog lines, after the specs
+ * (decision-cards-core D17): `/spec.new` weighs a decision recorded outside
+ * any spec the way it weighs a related spec. Spec cards are left out — their
+ * spec is already a line above. No card file, no lines, so the catalog is
+ * exactly what it was.
+ */
+function cardCatalogLines(projectPath) {
+  try {
+    const text = fs.readFileSync(frameStore.decisionsPath(projectPath), 'utf8');
+    const current = decisionCardsLib.currentCards(decisionCardsLib.parseCards(text).cards);
+    return decisionCardsLib.catalogLines(decisionCardsLib.specLessCards(current));
+  } catch (_) {
+    return [];
+  }
+}
+
+function specCatalogText(projectPath) {
   scheduleIndexRefresh(projectPath);
   try {
     const idx = JSON.parse(fs.readFileSync(

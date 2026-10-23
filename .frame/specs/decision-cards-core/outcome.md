@@ -46,3 +46,10 @@ _Captured: 2026-10-23 · 13 file change(s)_
 _Captured: 2026-10-23 · 6 file change(s)_
 
 ---
+## T07 — Cards in the /spec.new catalog and in task runs
+
+`specManager.buildSpecCatalog` appends the current spec-less cards as `- card <id> · decision · keywords` lines after the specs, and `spec.new.md` gained one sentence saying how to weigh them; with no card file the catalog is unchanged. `buildTaskPrompt` takes `opts.cards` and adds at most two as one sentence after the task's own text, keeping the prompt on one line, and `tasksPanel.runTaskWithOptions` fills them through a never-failing lookup. Diverged from the sequencing: `LOAD_DECISION_CARDS` and its `projectInsights.loadDecisionCards` handler (returning `{ exists, cards, notes, malformed }`) landed here rather than in T08, with an `opts.match` that returns `matches` (at most two strong spec-less cards with their story pointer), because the renderer reads no files and the task run needed the cards now; the main process reads the file through `frameStore.decisionsPath()`.
+
+_Captured: 2026-10-23 · 9 file change(s)_
+
+---

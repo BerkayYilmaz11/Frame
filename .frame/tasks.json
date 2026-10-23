@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T14:15:11.519Z",
+  "lastUpdated": "2026-10-23T14:19:40.615Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9027,13 +9027,13 @@
       "title": "Append current spec-less cards to the `/spec.new` catalog in `specManager.buildSpecCatalog` with a one-line note in `src/templates/commands/claude-code/spec.new.md`, and pass up to 2 matched cards into `buildTaskPrompt`'s `opts.cards` from `tasksPanel.runTaskWithOptions`; cover it in `test/taskRunPrompt.test.js` and the `catalogLines` cases in `test/decisionCards.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T14:19:40.615Z",
+      "completedAt": "2026-10-23T14:19:40.615Z"
     },
     {
       "id": "task-spec-decision-cards-core-T08",

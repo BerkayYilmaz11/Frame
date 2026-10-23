@@ -257,3 +257,22 @@ test('catalog lines follow the spec catalog shape, newest first', () => {
   ]);
   assert.deepEqual(cards.catalogLines([]), []);
 });
+
+// ─── the /spec.new catalog (decision-cards-core T07) ──────
+
+test('catalog lines clip a long decision and cap the keywords at eight', () => {
+  const long = card({ decision: `${'word '.repeat(60).trim()}.`, keywords: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] });
+  const [line] = cards.catalogLines([long]);
+  assert.match(line, /^- card 20261014-3fa9c1 · (word ){20,}word… · a, b, c, d, e, f, g, h$/);
+  assert.ok(line.length < 200);
+});
+
+test('the catalog takes the current spec-less cards, a superseded one never', () => {
+  writeCards([
+    card({ id: '20261001-aaaaaa', date: '2026-10-01', source: 'notes:2026-10-01 Old rule' }),
+    card({ id: '20261002-bbbbbb', date: '2026-10-02', source: 'notes:2026-10-02 New rule', supersedes: '20261001-aaaaaa' }),
+    card({ id: '20261003-cccccc', date: '2026-10-03' })
+  ]);
+  const lines = cards.catalogLines(cards.specLessCards(cards.readCards(root).current));
+  assert.deepEqual(lines.map((l) => l.slice(0, 22)), ['- card 20261002-bbbbbb']);
+});

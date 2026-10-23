@@ -4540,31 +4540,42 @@
       "exports": [
         "init",
         "loadDecisions",
+        "loadDecisionCards",
         "getFileGitHistory",
         "setupIPC"
       ],
       "depends": [
+        "fs",
+        "path",
         "child_process",
         "frameStore",
         "shared/ipcChannels"
       ],
       "functions": {
         "init": {
-          "line": 19,
+          "line": 27,
           "params": [
             "window"
           ],
           "purpose": "Initialize overview manager"
         },
         "loadDecisions": {
-          "line": 31,
+          "line": 39,
           "params": [
             "projectPath"
           ],
           "purpose": "Load every decision recorded in PROJECT_NOTES.md."
         },
+        "loadDecisionCards": {
+          "line": 107,
+          "params": [
+            "projectPath",
+            "opts = {}"
+          ],
+          "purpose": "The project's decision cards, read now: `{ exists, cards, notes, malformed }`."
+        },
         "getFileGitHistory": {
-          "line": 89,
+          "line": 132,
           "params": [
             "projectPath",
             "filePath"
@@ -4572,7 +4583,7 @@
           "purpose": "Get file git history (contributors, commits, blame)"
         },
         "getFileCommits": {
-          "line": 126,
+          "line": 169,
           "params": [
             "projectPath",
             "filePath"
@@ -4580,7 +4591,7 @@
           "purpose": "Get recent commits for a file"
         },
         "getFileContributors": {
-          "line": 157,
+          "line": 200,
           "params": [
             "projectPath",
             "filePath"
@@ -4588,7 +4599,7 @@
           "purpose": "Get contributors for a file"
         },
         "getFileBlame": {
-          "line": 190,
+          "line": 233,
           "params": [
             "projectPath",
             "filePath"
@@ -4596,7 +4607,7 @@
           "purpose": "Get blame summary for a file (who wrote how many lines)"
         },
         "setupIPC": {
-          "line": 222,
+          "line": 265,
           "params": [
             "ipcMain"
           ],
@@ -4606,11 +4617,12 @@
       "ipc": {
         "listens": [
           "LOAD_DECISIONS",
+          "LOAD_DECISION_CARDS",
           "GET_FILE_GIT_HISTORY"
         ],
         "emits": []
       },
-      "sizeBytes": 6208,
+      "sizeBytes": 8399,
       "extraction": {
         "status": "parsed"
       },
@@ -4622,6 +4634,7 @@
           "getFileContributors": "e86b3f2317993412",
           "getFileGitHistory": "1c5df0bf5f7de76d",
           "init": "ff06efb3e2e3739c",
+          "loadDecisionCards": "c5129aae2e08baac",
           "loadDecisions": "ce3e996abfd950cb",
           "setupIPC": "b41c7437e6910eb5"
         }
@@ -5461,33 +5474,46 @@
           ]
         },
         "indexStamp": {
-          "line": 183,
+          "line": 184,
           "params": [
             "projectPath"
           ],
           "purpose": "mtime of the derived index, or 0 — used to tell a rebuild from a no-op."
         },
         "scheduleIndexRefresh": {
-          "line": 192,
+          "line": 193,
           "params": [
             "projectPath"
           ]
         },
         "buildSpecCatalog": {
-          "line": 220,
+          "line": 221,
           "params": [
             "projectPath"
           ],
           "purpose": "One line per non-excluded spec for the spec.new catalog embed. Reads the"
         },
+        "cardCatalogLines": {
+          "line": 235,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The current spec-less decision cards as catalog lines, after the specs"
+        },
+        "specCatalogText": {
+          "line": 245,
+          "params": [
+            "projectPath"
+          ]
+        },
         "listSpecs": {
-          "line": 240,
+          "line": 265,
           "params": [
             "projectPath"
           ]
         },
         "listSpecReports": {
-          "line": 339,
+          "line": 364,
           "params": [
             "projectPath",
             "slug"
@@ -5495,7 +5521,7 @@
           "purpose": "Which of a spec's two generated reports exist on disk, named as the viewer"
         },
         "looksLikeSpecFolder": {
-          "line": 348,
+          "line": 373,
           "params": [
             "projectPath",
             "folderName"
@@ -5503,7 +5529,7 @@
           "purpose": "A folder is a spec if it carries at least one of the chain's artifacts."
         },
         "malformedSpec": {
-          "line": 360,
+          "line": 385,
           "params": [
             "folderName",
             "status",
@@ -5512,7 +5538,7 @@
           "purpose": "A spec folder Frame cannot read as a spec, rendered as itself rather than"
         },
         "fileExists": {
-          "line": 380,
+          "line": 405,
           "params": [
             "projectPath",
             "slug",
@@ -5520,7 +5546,7 @@
           ]
         },
         "derivePhase": {
-          "line": 384,
+          "line": 409,
           "params": [
             "projectPath",
             "slug",
@@ -5530,7 +5556,7 @@
           ]
         },
         "recordedTaskCount": {
-          "line": 425,
+          "line": 450,
           "params": [
             "projectPath",
             "slug",
@@ -5538,14 +5564,14 @@
           ]
         },
         "collectSpecTasks": {
-          "line": 431,
+          "line": 456,
           "params": [
             "slug",
             "tasksData"
           ]
         },
         "countPhaseWrite": {
-          "line": 452,
+          "line": 477,
           "params": [
             "projectPath",
             "slug",
@@ -5554,7 +5580,7 @@
           ]
         },
         "reconcilePhase": {
-          "line": 460,
+          "line": 485,
           "params": [
             "projectPath",
             "slug",
@@ -5562,14 +5588,14 @@
           ]
         },
         "getDefaultTemplatePath": {
-          "line": 506,
+          "line": 531,
           "params": [
             "aiTool",
             "command"
           ]
         },
         "getOverrideTemplatePath": {
-          "line": 510,
+          "line": 535,
           "params": [
             "projectPath",
             "aiTool",
@@ -5577,7 +5603,7 @@
           ]
         },
         "loadCommandTemplate": {
-          "line": 530,
+          "line": 555,
           "params": [
             "projectPath",
             "aiTool",
@@ -5585,7 +5611,7 @@
           ]
         },
         "interpolateValues": {
-          "line": 539,
+          "line": 564,
           "params": [
             "obj",
             "vars"
@@ -5593,35 +5619,35 @@
           "purpose": "Run `interpolate` over each value of an object. One pass, no recursion."
         },
         "interpolate": {
-          "line": 547,
+          "line": 572,
           "params": [
             "template",
             "vars"
           ]
         },
         "closeScriptRel": {
-          "line": 565,
+          "line": 590,
           "params": [
             "projectPath"
           ],
           "purpose": "Where the close script is for this project, project-relative — the command"
         },
         "decisionScriptRel": {
-          "line": 570,
+          "line": 595,
           "params": [
             "projectPath"
           ],
           "purpose": "The card writer the close step runs, resolved the same way (decision-cards-core)."
         },
         "shippedScriptRel": {
-          "line": 574,
+          "line": 599,
           "params": [
             "projectPath",
             "file"
           ]
         },
         "getCommandPrompt": {
-          "line": 587,
+          "line": 612,
           "params": [
             "projectPath",
             "slug",
@@ -5631,7 +5657,7 @@
           ]
         },
         "reportAssetRel": {
-          "line": 669,
+          "line": 694,
           "params": [
             "projectPath",
             "tool",
@@ -5640,34 +5666,34 @@
           "purpose": "Which staged report asset a tool's prompt should name."
         },
         "resolveVerificationCommand": {
-          "line": 747,
+          "line": 772,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 762,
+          "line": 787,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 780,
+          "line": 805,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 804,
+          "line": 829,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 820,
+          "line": 845,
           "params": [
             "projectPath",
             "slug",
@@ -5676,21 +5702,21 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "specNewPromptFilename": {
-          "line": 841,
+          "line": 866,
           "params": [
             "date"
           ],
           "purpose": "A slug-less run has no stable name to key the prompt file on — `${slug}__`"
         },
         "uniquePromptFilename": {
-          "line": 846,
+          "line": 871,
           "params": [
             "promptsDir",
             "filename"
           ]
         },
         "buildSpecCommandFile": {
-          "line": 855,
+          "line": 880,
           "params": [
             "projectPath",
             "slug",
@@ -5700,32 +5726,32 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 899,
+          "line": 924,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 925,
+          "line": 950,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 944,
+          "line": 969,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "completedTaskIdsFromOutcome": {
-          "line": 958,
+          "line": 983,
           "params": [
             "content"
           ]
         },
         "initialTaskState": {
-          "line": 965,
+          "line": 990,
           "params": [
             "status",
             "outcomeIds",
@@ -5734,34 +5760,34 @@
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 973,
+          "line": 998,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 1058,
+          "line": 1083,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 1065,
+          "line": 1090,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1082,
+          "line": 1107,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1121,
+          "line": 1146,
           "params": [
             "projectPath",
             "slug",
@@ -5770,7 +5796,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1150,
+          "line": 1175,
           "params": [
             "projectPath",
             "query"
@@ -5778,7 +5804,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1171,
+          "line": 1196,
           "params": [
             "projectPath",
             "slug",
@@ -5786,14 +5812,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1195,
+          "line": 1220,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1212,
+          "line": 1237,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5802,54 +5828,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1327,
+          "line": 1352,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1427
+          "line": 1452
         },
         "markSpecNewLaunch": {
-          "line": 1480,
+          "line": 1505,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1486,
+          "line": 1511,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1502,
+          "line": 1527,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1513,
+          "line": 1538,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1541,
+          "line": 1566,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1565,
+          "line": 1590,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1569,
+          "line": 1594,
           "params": [
             "ipcMain"
           ]
@@ -5876,7 +5902,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 71667,
+      "sizeBytes": 72688,
       "extraction": {
         "status": "parsed"
       },
@@ -5884,6 +5910,7 @@
         "description": "548bca758bc986dd",
         "purposes": {
           "buildSpecCatalog": "c0e0dc84b1debf77",
+          "cardCatalogLines": "ee40aead8dbf673a",
           "closeScriptRel": "9c2cba05cf628d46",
           "decisionScriptRel": "09558f9b84c2c047",
           "getImplementLaunchFlags": "c96e947927709160",
@@ -15800,6 +15827,7 @@
       "description": "Task run prompt — what Play hands the agent, and whether the task is",
       "exports": [
         "READY_FIELDS",
+        "MAX_CARDS",
         "isSpecTask",
         "missingFields",
         "buildTaskPrompt"
@@ -15822,8 +15850,15 @@
             "missing"
           ]
         },
+        "cardsSegment": {
+          "line": 51,
+          "params": [
+            "cards"
+          ],
+          "purpose": "The recorded decisions that match this task, as one sentence — the prompt"
+        },
         "buildTaskPrompt": {
-          "line": 52,
+          "line": 72,
           "params": [
             "task",
             "opts = {}"
@@ -15831,7 +15866,7 @@
           "purpose": "Build the task prompt that gets injected into the AI CLI. A task missing"
         }
       },
-      "sizeBytes": 4178,
+      "sizeBytes": 5203,
       "extraction": {
         "status": "parsed"
       },
@@ -15839,6 +15874,7 @@
         "description": "92c1eacd599ba2cf",
         "purposes": {
           "buildTaskPrompt": "3be35129f2a0f17b",
+          "cardsSegment": "2cfd1f84e5170498",
           "missingFields": "72708aa38392c272"
         }
       }
@@ -16271,66 +16307,73 @@
           ],
           "purpose": "Send the task to an agent. Always a new Frame: agentDispatch creates"
         },
+        "matchedCards": {
+          "line": 429,
+          "params": [
+            "task"
+          ],
+          "purpose": "The recorded decisions that match this task (decision-cards-core D17),"
+        },
         "setClaudeRunning": {
-          "line": 427,
+          "line": 445,
           "params": [
             "running"
           ],
           "purpose": "Mark Claude Code as running (called from external modules)"
         },
         "isClaudeRunning": {
-          "line": 434,
+          "line": 452,
           "purpose": "Check if Claude Code is marked as running"
         },
         "deleteTask": {
-          "line": 443,
+          "line": 461,
           "params": [
             "taskId"
           ],
           "purpose": "Delete task — opens the shared confirm modal first; only dispatches the IPC"
         },
         "showAddTaskModal": {
-          "line": 460,
+          "line": 478,
           "purpose": "Show add task modal"
         },
         "showEditTaskModal": {
-          "line": 479,
+          "line": 497,
           "params": [
             "taskId"
           ],
           "purpose": "Show edit task modal"
         },
         "hideTaskModal": {
-          "line": 505,
+          "line": 523,
           "purpose": "Hide task modal"
         },
         "handleTaskFormSubmit": {
-          "line": 515,
+          "line": 533,
           "params": [
             "e"
           ],
           "purpose": "Handle task form submit"
         },
         "setupModalListeners": {
-          "line": 553,
+          "line": 571,
           "purpose": "Setup modal event listeners"
         },
         "renderSourceChip": {
-          "line": 598,
+          "line": 616,
           "params": [
             "source"
           ],
           "purpose": "Render a small attribution chip for tasks that came from a Frame spec."
         },
         "formatDate": {
-          "line": 609,
+          "line": 627,
           "params": [
             "isoString"
           ],
           "purpose": "Format date for display"
         },
         "initWhenReady": {
-          "line": 626,
+          "line": 644,
           "purpose": "Initialize when DOM is ready"
         }
       },
@@ -16349,7 +16392,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 18712,
+      "sizeBytes": 19352,
       "extraction": {
         "status": "parsed"
       },
@@ -16368,6 +16411,7 @@
           "initWhenReady": "4c04832df3e2467a",
           "isClaudeRunning": "152e6568a9a61ac0",
           "loadTasks": "18bd5168b3738abc",
+          "matchedCards": "192eace57ead7044",
           "openRunFlow": "35f4d5b92426ca43",
           "render": "4b6ddec5ceddac40",
           "renderSourceChip": "9af08c407d8854ff",
@@ -23421,7 +23465,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12918,
+      "sizeBytes": 13142,
       "extraction": {
         "status": "parsed"
       },
@@ -23826,7 +23870,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 5562,
+      "sizeBytes": 5771,
       "extraction": {
         "status": "parsed"
       },
@@ -24571,7 +24615,7 @@
           ]
         }
       },
-      "sizeBytes": 16264,
+      "sizeBytes": 17700,
       "extraction": {
         "status": "parsed"
       },
@@ -24701,7 +24745,7 @@
           ]
         }
       },
-      "sizeBytes": 13011,
+      "sizeBytes": 14031,
       "extraction": {
         "status": "parsed"
       },
@@ -27932,7 +27976,11 @@
       "depends": [
         "node:test",
         "node:assert/strict",
-        "src/renderer/tasks/runPrompt"
+        "src/renderer/tasks/runPrompt",
+        "fs",
+        "os",
+        "path",
+        "src/main/projectInsights"
       ],
       "functions": {
         "legacyBuildTaskPrompt": {
@@ -27944,7 +27992,7 @@
           "purpose": "The builder as it stood in tasksPanel.js before this spec, kept verbatim"
         }
       },
-      "sizeBytes": 6767,
+      "sizeBytes": 10835,
       "extraction": {
         "status": "parsed"
       },
@@ -29044,6 +29092,13 @@
         "direction": "",
         "description": ""
       }
+    },
+    "decision": {
+      "LOAD_DECISION_CARDS": {
+        "name": "load-decision-cards",
+        "direction": "",
+        "description": ""
+      }
     }
   },
   "dataFlow": [],
@@ -30128,6 +30183,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "b9da45d0e67bbe0e44c316ad2be3f17d6c8a9201bbcd51aa3d96f0dbfc92633f"
+    "revision": "c26a35509480e98936a92a18bb6211ce83519880124b45d9501827a6cd2f9c45"
   }
 }
