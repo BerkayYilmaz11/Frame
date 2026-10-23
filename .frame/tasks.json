@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T10:32:44.219Z",
+  "lastUpdated": "2026-10-23T12:28:55.906Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9001,13 +9001,13 @@
       "title": "Add the `cards` close item (no current card with `source: spec:<slug>`; not due when no `decision.js` exists) to `scripts/spec-close-state.js` and `ITEM_CHECKS.cards` with its own reader to `scripts/spec-close.js`, generalise the digest-only close wording in `src/shared/activityEvents.js` and `PRIVACY.md`, add the card step, a `### The cards` section and the superseding-card fix bullet to `src/templates/commands/claude-code/spec.implement.md`, and add the `{decision_script_path}` token to `specManager.getCommandPrompt` and `spec-command-hint.buildPrompt`; cover it in `test/spec-close-state.test.js`, `test/spec-close.test.js`, `test/spec-command-hint.test.js` and `test/codexTemplates.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T12:28:55.906Z",
+      "completedAt": "2026-10-23T12:28:55.906Z"
     },
     {
       "id": "task-spec-decision-cards-core-T06",

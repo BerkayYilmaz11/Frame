@@ -57,7 +57,7 @@ const HINT_REASONS = [
   'index-oversize', // search: the lookup index or map is above the hook's 2 MiB cap (STR-03)
   'ambiguous-weak', // search: only path or description words matched — CLI evidence, not a hint (STR-03)
   'already-looked-up', // search: find-module already answered this in the session (STR-03b)
-  'orchestrated', // spec-close: an orchestration run owns the spec — its digest lives on the integration branch
+  'orchestrated', // spec-close: an orchestration run owns the spec — its close items live on the integration branch
   'closed-earlier', // spec-close: the spec was already closed when this session started — not its work
   'git-unavailable' // spec-close: git would not say whether orchestration owns the spec
 ];
@@ -125,7 +125,7 @@ const EVENTS = {
     },
     label: (r) => {
       if (r.mode === 'spec-close') {
-        return `Reminded the agent that ${r.specs ?? 0} closed spec${r.specs === 1 ? '' : 's'} still ${r.specs === 1 ? 'needs' : 'need'} a digest`;
+        return `Reminded the agent that ${r.specs ?? 0} closed spec${r.specs === 1 ? '' : 's'} still ${r.specs === 1 ? 'owes' : 'owe'} close items`;
       }
       if (r.mode === 'session-start') {
         return `Frame project rules delivered at session start${r.bytes ? ` (${r.bytes} chars)` : ''}`;
@@ -200,16 +200,16 @@ const EVENTS = {
   // `spec-close.js` is run by an agent, not by Frame — but it is run because
   // a Frame hook asked for it, and its verdict is the only evidence that the
   // reminder led anywhere. Without this row "reminded" and "reminded, and the
-  // digest was checked" are the same line in the record.
+  // close items were checked" are the same line in the record.
   'spec.close_checked': {
     kind: 'action',
     fields: { host: enumOf(HOSTS), slug: SLUG, verdict: enumOf(CLOSE_VERDICTS), defects: COUNT },
     label: (r) => {
       const spec = `Spec ${r.slug || '?'}`;
       if (r.verdict === 'ok') return `${spec}: close check passed`;
-      if (r.verdict === 'missing') return `${spec}: close check found the digest missing`;
+      if (r.verdict === 'missing') return `${spec}: close check found a close item missing`;
       if (r.verdict === 'malformed') {
-        return `${spec}: close check named ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} in the digest`;
+        return `${spec}: close check named ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} in its close items`;
       }
       return `${spec}: close check ran`;
     }

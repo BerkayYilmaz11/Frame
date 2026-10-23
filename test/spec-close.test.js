@@ -415,3 +415,93 @@ test('a digest written exactly to the template shape passes the check', () => {
     .replace(/<≤15 lines:[\s\S]*?>/, 'Added a close step. It checks the digest.');
   assert.deepEqual(specClose.digestDefects(`${digest}\n`), []);
 });
+
+// ─── decision cards (decision-cards-core T05) ─────────────
+
+/** mkProject, plus the card writer Frame ships, which is what makes cards owed. */
+function mkCardProject(opts) {
+  const root = mkProject(opts);
+  fs.mkdirSync(path.join(root, '.frame', 'bin'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.frame', 'bin', 'decision.js'), '// stub\n');
+  return root;
+}
+
+const card = (over = {}) => JSON.stringify({
+  id: '20261014-aaaaaa', date: '2026-10-14', decision: 'A decision.', why: 'A reason.',
+  keywords: ['close'], files: [], source: 'spec:a-spec', supersedes: null, extends: null, ...over
+});
+
+const writeCards = (root, lines) => fs.writeFileSync(path.join(root, '.frame', 'decisions.jsonl'), `${lines.join('\n')}\n`);
+
+test('without decision.js the check reads exactly as before — no cards line', () => {
+  const root = mkProject({ digest: GOOD_DIGEST });
+  writeCards(root, [card()]);
+  const { stdout } = run(root, ['a-spec']);
+  assert.ok(!/cards/.test(stdout));
+  assert.deepEqual(JSON.parse(run(root, ['a-spec', '--json']).stdout).items.map((i) => i.id), ['digest']);
+});
+
+test('with decision.js a closed spec owes a card, and is told the command that writes one', () => {
+  const root = mkCardProject({ digest: GOOD_DIGEST });
+  const out = run(root, ['a-spec']);
+  assert.match(out.stdout, /^cards: missing — record at least one decision card for this spec/m);
+  assert.ok(out.stdout.includes(`\n${specClose.cardShape('.frame/bin/decision.js', 'a-spec')}\n`), 'the whole shape is printed');
+  assert.match(out.stdout, /Then run this again: node .*spec-close\.js a-spec/);
+  assert.equal(JSON.parse(run(root, ['a-spec', '--json']).stdout).verdict, 'missing');
+  assert.equal(run(root, ['a-spec', '--strict']).status, 1);
+  assert.equal(out.rows[0].verdict, 'missing');
+});
+
+test('a current card for the spec settles the item', () => {
+  const root = mkCardProject({ digest: GOOD_DIGEST });
+  writeCards(root, [card()]);
+  const { stdout, status } = run(root, ['a-spec', '--strict']);
+  assert.equal(status, 0);
+  assert.match(stdout, /^cards: ok — \.frame\/decisions\.jsonl$/m);
+});
+
+test('a card for another spec, or one superseded since, does not count', () => {
+  const root = mkCardProject({ digest: GOOD_DIGEST });
+  writeCards(root, [card({ source: 'spec:other' })]);
+  assert.match(run(root, ['a-spec']).stdout, /^cards: missing/m);
+  writeCards(root, [card(), card({ id: '20261015-bbbbbb', date: '2026-10-15', source: 'spec:other', supersedes: '20261014-aaaaaa' })]);
+  assert.match(run(root, ['a-spec']).stdout, /^cards: missing/m);
+});
+
+test('a skipped line that names the spec is reported, beside a good card or in place of one', () => {
+  const root = mkCardProject({ digest: GOOD_DIGEST });
+  writeCards(root, [card({ why: '' }), '{"id":"x","source":"spec:a-spec","decis']);
+  const missing = run(root, ['a-spec']);
+  assert.match(missing.stdout, /^cards: missing/m);
+  assert.match(missing.stdout, /line 1 of decisions\.jsonl was skipped — why is missing/);
+  assert.match(missing.stdout, /line 2 of decisions\.jsonl was skipped — not valid JSON/);
+
+  writeCards(root, [card(), card({ id: '20261016-cccccc', keywords: [] }), card({ id: '20261017-dddddd', source: 'spec:other', why: '' })]);
+  const result = JSON.parse(run(root, ['a-spec', '--json']).stdout);
+  assert.equal(result.verdict, 'malformed');
+  const cards = result.items.find((i) => i.id === 'cards');
+  assert.equal(cards.status, 'malformed');
+  assert.equal(cards.defects.length, 1, 'only the line that names this spec');
+  assert.match(cards.defects[0].message, /line 2 .* keywords holds 0/);
+});
+
+test("the template's card shape is the script's, character for character", () => {
+  const template = fs.readFileSync(TEMPLATE, 'utf8');
+  const heading = template.indexOf('\n### The cards\n');
+  assert.ok(heading >= 0, 'the template has a "### The cards" section');
+  const fence = template.slice(heading).match(/\n```\n([\s\S]*?)\n```\n/);
+  assert.ok(fence, 'the section carries one fenced shape');
+  assert.equal(fence[1], specClose.cardShape('{decision_script_path}', '{slug}'));
+});
+
+test('a card written exactly to the template shape is accepted by decision.js', () => {
+  const root = mkCardProject();
+  const shape = specClose.cardShape('decision.js', 'a-spec');
+  const json = shape.slice(shape.indexOf("'") + 1, shape.lastIndexOf("'"))
+    .replace('<one sentence, at most 280 characters>', 'A missing card never blocks done.')
+    .replace('<at most 3 sentences>', 'Done stays derived from task state.')
+    .replace('<1-8 concepts>', 'spec close')
+    .replace('<project-relative paths the decision governs>', 'scripts/spec-close.js');
+  const { prepare } = require('../scripts/decision');
+  assert.deepEqual(prepare(root, JSON.parse(json)).defects, []);
+});

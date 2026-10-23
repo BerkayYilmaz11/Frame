@@ -206,11 +206,15 @@ for (const cli of ['claude-code', 'codex']) {
     const core = section(prompt, '## The shared core', '## Mode · Step by step');
     assert.match(core, /\*\*The digest, when the spec's last task closes\.\*\*/);
     assert.match(core, /\n1\. You write `\.frame\/specs\/alpha\/digest\.md`/);
-    assert.match(core, /\n2\. You run `node \.frame\/bin\/spec-close\.js alpha`/);
-    assert.match(core, /\n3\. You fix what it names and run it again/);
-    assert.match(core, /\n4\. The spec phase goes to `"done"`\./);
+    assert.match(core, /\n2\. You record the spec's decision cards — at least one — with\s+`node \.frame\/bin\/decision\.js add`/);
+    assert.match(core, /\n3\. You run `node \.frame\/bin\/spec-close\.js alpha`/);
+    assert.match(core, /\n4\. You fix what it names and run it again, until it reports every item `ok`/);
+    assert.match(core, /\n5\. The spec phase goes to `"done"`\./);
     assert.match(core, /\n### The digest\n/);
     assert.match(core, /\nChain: spec\.md → plan\.md → tasks\.md → outcome\.md\n/);
+    assert.match(core, /\n### The cards\n/);
+    assert.match(core, /\n  "source": "spec:alpha",\n/);
+    assert.ok(core.indexOf('### The digest') < core.indexOf('### The cards'), 'the cards follow the digest');
   });
 
   test(`${cli}: every place the phase goes to done names the digest`, () => {
@@ -253,6 +257,7 @@ for (const cli of ['claude-code', 'codex']) {
     assert.match(core, /headed `## Fix — <short title>`/);
     assert.match(core, /a `Revised <YYYY-MM-DD>: <what changed, and why>` line\s+added before the `Chain:` line, and `node \.frame\/bin\/spec-close\.js alpha` run\s+again/);
     assert.match(core, /A bug fixed within the recorded decisions leaves the digest as it is\./);
+    assert.match(core, /when the fix overturns a decision one of this spec's cards records, a new\s+card that supersedes it, in the same commit: `node \.frame\/bin\/decision\.js add`/);
     assert.match(core, /if you are not sure, ask the\s+user/);
     assert.match(core, /uses the same shape under `## Fix — <short title>`/);
   });
@@ -264,6 +269,23 @@ for (const cli of ['claude-code', 'codex']) {
     assert.ok(prompt.indexOf('### The digest') < prompt.indexOf('## Mode · Step by step'), 'before the first mode, not after the last');
   });
 }
+
+test('the card writer token names the copy that is on disk, for both CLIs', () => {
+  const touch = (root, rel) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), '');
+  };
+  for (const cli of ['claude-code', 'codex']) {
+    const render = (root) => specManager.getCommandPrompt(root, 'alpha', 'spec.implement', cli).prompt;
+    assert.match(render(mkProject()), /`node \.frame\/bin\/decision\.js add`/, `${cli}: the shipped location`);
+    const dev = mkProject();
+    touch(dev, 'scripts/decision.js');
+    assert.match(render(dev), /`node scripts\/decision\.js add`/, `${cli}: Frame's own repository`);
+    touch(dev, '.frame/bin/decision.js');
+    assert.match(render(dev), /`node \.frame\/bin\/decision\.js add`/, `${cli}: the shipped copy wins`);
+    assert.ok(!render(dev).includes('{decision_script_path}'));
+  }
+});
 
 test('the close script token names the copy that is on disk', () => {
   const render = (root) => specManager.getCommandPrompt(root, 'alpha', 'spec.implement', 'claude-code').prompt;

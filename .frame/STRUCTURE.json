@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12636,
+      "sizeBytes": 12698,
       "extraction": {
         "status": "parsed"
       },
@@ -5606,8 +5606,22 @@
           ],
           "purpose": "Where the close script is for this project, project-relative — the command"
         },
+        "decisionScriptRel": {
+          "line": 570,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "The card writer the close step runs, resolved the same way (decision-cards-core)."
+        },
+        "shippedScriptRel": {
+          "line": 574,
+          "params": [
+            "projectPath",
+            "file"
+          ]
+        },
         "getCommandPrompt": {
-          "line": 578,
+          "line": 587,
           "params": [
             "projectPath",
             "slug",
@@ -5617,7 +5631,7 @@
           ]
         },
         "reportAssetRel": {
-          "line": 658,
+          "line": 669,
           "params": [
             "projectPath",
             "tool",
@@ -5626,34 +5640,34 @@
           "purpose": "Which staged report asset a tool's prompt should name."
         },
         "resolveVerificationCommand": {
-          "line": 736,
+          "line": 747,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 751,
+          "line": 762,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 769,
+          "line": 780,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 793,
+          "line": 804,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 809,
+          "line": 820,
           "params": [
             "projectPath",
             "slug",
@@ -5662,21 +5676,21 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "specNewPromptFilename": {
-          "line": 830,
+          "line": 841,
           "params": [
             "date"
           ],
           "purpose": "A slug-less run has no stable name to key the prompt file on — `${slug}__`"
         },
         "uniquePromptFilename": {
-          "line": 835,
+          "line": 846,
           "params": [
             "promptsDir",
             "filename"
           ]
         },
         "buildSpecCommandFile": {
-          "line": 844,
+          "line": 855,
           "params": [
             "projectPath",
             "slug",
@@ -5686,32 +5700,32 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 888,
+          "line": 899,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 914,
+          "line": 925,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 933,
+          "line": 944,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "completedTaskIdsFromOutcome": {
-          "line": 947,
+          "line": 958,
           "params": [
             "content"
           ]
         },
         "initialTaskState": {
-          "line": 954,
+          "line": 965,
           "params": [
             "status",
             "outcomeIds",
@@ -5720,34 +5734,34 @@
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 962,
+          "line": 973,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 1047,
+          "line": 1058,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 1054,
+          "line": 1065,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1071,
+          "line": 1082,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1110,
+          "line": 1121,
           "params": [
             "projectPath",
             "slug",
@@ -5756,7 +5770,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1139,
+          "line": 1150,
           "params": [
             "projectPath",
             "query"
@@ -5764,7 +5778,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1160,
+          "line": 1171,
           "params": [
             "projectPath",
             "slug",
@@ -5772,14 +5786,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1184,
+          "line": 1195,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1201,
+          "line": 1212,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5788,54 +5802,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1316,
+          "line": 1327,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1416
+          "line": 1427
         },
         "markSpecNewLaunch": {
-          "line": 1469,
+          "line": 1480,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1475,
+          "line": 1486,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1491,
+          "line": 1502,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1502,
+          "line": 1513,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1530,
+          "line": 1541,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1554,
+          "line": 1565,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1558,
+          "line": 1569,
           "params": [
             "ipcMain"
           ]
@@ -5862,7 +5876,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 71286,
+      "sizeBytes": 71667,
       "extraction": {
         "status": "parsed"
       },
@@ -5871,6 +5885,7 @@
         "purposes": {
           "buildSpecCatalog": "c0e0dc84b1debf77",
           "closeScriptRel": "9c2cba05cf628d46",
+          "decisionScriptRel": "09558f9b84c2c047",
           "getImplementLaunchFlags": "c96e947927709160",
           "indexStamp": "759797531edafff5",
           "interpolateValues": "72397f6a1df7e05f",
@@ -18406,14 +18421,14 @@
       ],
       "functions": {
         "greet": {
-          "line": 135,
+          "line": 137,
           "params": [
             "name"
           ],
           "purpose": "A greeting for \\`name\\`, or for a stranger when there is none."
         },
         "write": {
-          "line": 218,
+          "line": 235,
           "params": [
             "root",
             "rel",
@@ -18421,14 +18436,14 @@
           ]
         },
         "taskStates": {
-          "line": 224,
+          "line": 241,
           "params": [
             "kind",
             "now"
           ]
         },
         "makeFixture": {
-          "line": 244,
+          "line": 261,
           "params": [
             "{ kind",
             "dir = null",
@@ -18437,7 +18452,7 @@
           "purpose": "Build one fixture. Returns what a runner needs: where it is, what to ask,"
         }
       },
-      "sizeBytes": 14570,
+      "sizeBytes": 15389,
       "extraction": {
         "status": "parsed"
       },
@@ -19433,6 +19448,8 @@
         "DIGEST_LINE_CAP",
         "ITEM_CHECKS",
         "digestDefects",
+        "cardDefects",
+        "cardShape",
         "checkSpec",
         "textReport"
       ],
@@ -19441,34 +19458,58 @@
         "path",
         "spec-close-state",
         "spec-index",
+        "decision-cards",
         "activity-log"
       ],
       "functions": {
+        "cardShape": {
+          "line": 88,
+          "params": [
+            "cli",
+            "slug"
+          ],
+          "purpose": "The command that records one of the spec's cards, as the implement"
+        },
         "toPosix": {
-          "line": 71,
+          "line": 102,
           "params": [
             "p"
           ]
         },
+        "decisionScriptPath": {
+          "line": 105,
+          "params": [
+            "root"
+          ],
+          "purpose": "The card writer, as a path an agent can run from the project root."
+        },
         "resolveRoot": {
-          "line": 73
+          "line": 114
         },
         "specDir": {
-          "line": 82,
+          "line": 123,
           "params": [
             "root",
             "slug"
           ]
         },
         "digestDefects": {
-          "line": 91,
+          "line": 132,
           "params": [
             "md"
           ],
           "purpose": "Named defects of one digest, in the order a reader would fix them."
         },
+        "cardDefects": {
+          "line": 176,
+          "params": [
+            "root",
+            "slug"
+          ],
+          "purpose": "Lines of the card file that name this spec and that the reader skipped,"
+        },
         "checkSpec": {
-          "line": 146,
+          "line": 224,
           "params": [
             "root",
             "slug"
@@ -19476,46 +19517,49 @@
           "purpose": "Everything this script knows about one spec, as data. Pure apart from"
         },
         "selfCommand": {
-          "line": 191,
+          "line": 278,
           "params": [
             "root",
             "slug"
           ]
         },
         "taskLine": {
-          "line": 195,
+          "line": 282,
           "params": [
             "result"
           ]
         },
         "textReport": {
-          "line": 202,
+          "line": 289,
           "params": [
             "root",
             "result"
           ]
         },
         "record": {
-          "line": 230,
+          "line": 321,
           "params": [
             "root",
             "result"
           ]
         },
         "main": {
-          "line": 248,
+          "line": 339,
           "params": [
             "argv"
           ]
         }
       },
-      "sizeBytes": 11676,
+      "sizeBytes": 15876,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
+          "cardDefects": "b5591c31e37f19ce",
+          "cardShape": "ef816e957958d4b6",
           "checkSpec": "94a5a95ab78e5f38",
+          "decisionScriptPath": "292ed6a8f7cb88fc",
           "digestDefects": "0fe97d9cb34d80e7"
         }
       }
@@ -19531,6 +19575,8 @@
         "SESSION_TTL_MS",
         "MAX_NAMED",
         "CLOSE_ITEMS",
+        "isDue",
+        "cardsDue",
         "missingItems",
         "readTasks",
         "specTaskCounts",
@@ -19545,6 +19591,7 @@
       "depends": [
         "fs",
         "path",
+        "decision-cards",
         "child_process"
       ],
       "functions": {
@@ -19573,8 +19620,29 @@
             "slug"
           ]
         },
+        "cardsDue": {
+          "line": 104,
+          "params": [
+            "root"
+          ],
+          "purpose": "Cards are owed once the project can write them: a `decision.js` in"
+        },
+        "specsWithCards": {
+          "line": 115,
+          "params": [
+            "root"
+          ]
+        },
+        "isDue": {
+          "line": 146,
+          "params": [
+            "root",
+            "item"
+          ],
+          "purpose": "Whether `item` is owed in this project at all."
+        },
         "missingItems": {
-          "line": 97,
+          "line": 155,
           "params": [
             "root",
             "slug"
@@ -19582,62 +19650,62 @@
           "purpose": "Ids of the close items this spec still lacks."
         },
         "timeOf": {
-          "line": 117,
+          "line": 175,
           "params": [
             "value"
           ],
           "purpose": "A timestamp as milliseconds, or null. A date with no time counts as the end"
         },
         "readTasks": {
-          "line": 124,
+          "line": 182,
           "params": [
             "root"
           ],
           "purpose": "tasks.json → its task list, or null when it cannot be read as one."
         },
         "specTaskCounts": {
-          "line": 131,
+          "line": 189,
           "params": [
             "tasks"
           ],
           "purpose": "Task list → Map of slug → { total, completed, latest } for spec tasks."
         },
         "specStates": {
-          "line": 159,
+          "line": 217,
           "params": [
             "root"
           ],
           "purpose": "`{ closed: [{ slug, closedAt }], open: [slug] }`, or null when tasks.json"
         },
         "closedSpecs": {
-          "line": 181,
+          "line": 239,
           "params": [
             "root"
           ],
           "purpose": "Every closed spec as `{ slug, closedAt }`, or null when tasks.json cannot be read."
         },
         "writeState": {
-          "line": 196,
+          "line": 254,
           "params": [
             "root",
             "state"
           ]
         },
         "closeState": {
-          "line": 216,
+          "line": 274,
           "params": [
             "root"
           ],
           "purpose": "`{ closed, open, unreadable, hit }` for this project, or null when it has"
         },
         "insideGitRepo": {
-          "line": 244,
+          "line": 302,
           "params": [
             "root"
           ]
         },
         "isOrchestrated": {
-          "line": 268,
+          "line": 326,
           "params": [
             "root",
             "slug"
@@ -19645,7 +19713,7 @@
           "purpose": "Whether a spec is run by Frame's orchestration: true, false, or null when"
         },
         "openSpecs": {
-          "line": 286,
+          "line": 344,
           "params": [
             "root",
             "state"
@@ -19653,21 +19721,21 @@
           "purpose": "Closed specs with at least one missing item, newest close first."
         },
         "orchestrationReason": {
-          "line": 300,
+          "line": 358,
           "params": [
             "root",
             "slug"
           ]
         },
         "pending": {
-          "line": 311,
+          "line": 369,
           "params": [
             "root"
           ],
           "purpose": "Closed, something missing, not run by orchestration — each as"
         },
         "sessionKey": {
-          "line": 334,
+          "line": 392,
           "params": [
             "sessionId",
             "now = Date.now("
@@ -19675,28 +19743,28 @@
           "purpose": "A host that sends no session id still gets at most one reminder a day."
         },
         "sessionFile": {
-          "line": 339,
+          "line": 397,
           "params": [
             "root",
             "key"
           ]
         },
         "loadSession": {
-          "line": 343,
+          "line": 401,
           "params": [
             "root",
             "key"
           ]
         },
         "cleanupSessions": {
-          "line": 353,
+          "line": 411,
           "params": [
             "root",
             "now"
           ]
         },
         "saveSession": {
-          "line": 365,
+          "line": 423,
           "params": [
             "root",
             "key",
@@ -19705,20 +19773,20 @@
           ]
         },
         "closeScriptPath": {
-          "line": 377,
+          "line": 435,
           "params": [
             "root"
           ],
           "purpose": "The close script, as a path an agent can run from the project root."
         },
         "labelsOf": {
-          "line": 386,
+          "line": 444,
           "params": [
             "specs"
           ]
         },
         "reminderLine": {
-          "line": 397,
+          "line": 455,
           "params": [
             "root",
             "named",
@@ -19727,7 +19795,7 @@
           "purpose": "Worded as the session's own unfinished work, because it is: only the"
         },
         "reminder": {
-          "line": 422,
+          "line": 480,
           "params": [
             "root",
             "sessionId",
@@ -19736,16 +19804,18 @@
           "purpose": "What a hook should do about closed specs right now."
         }
       },
-      "sizeBytes": 19644,
+      "sizeBytes": 21769,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "31fd80bb4a098694",
         "purposes": {
+          "cardsDue": "063b2d4ca990a3b5",
           "closeScriptPath": "eb55c527830baae1",
           "closeState": "fe9a2a8efe637cbf",
           "closedSpecs": "f2aa09861c3b114b",
+          "isDue": "a22a04ca4d597058",
           "isOrchestrated": "9eb319e04d59282d",
           "missingItems": "265b8c8c40498710",
           "openSpecs": "2a0f20095011198c",
@@ -19863,28 +19933,42 @@
           ],
           "purpose": "The close script the implement flow's digest step runs, resolved exactly as"
         },
+        "decisionScriptRel": {
+          "line": 262,
+          "params": [
+            "root"
+          ],
+          "purpose": "The card writer the close step runs, resolved as specManager's decisionScriptRel does."
+        },
+        "shippedScriptRel": {
+          "line": 266,
+          "params": [
+            "root",
+            "file"
+          ]
+        },
         "interpolate": {
-          "line": 264,
+          "line": 273,
           "params": [
             "template",
             "vars"
           ]
         },
         "catalogLines": {
-          "line": 270,
+          "line": 279,
           "params": [
             "index"
           ],
           "purpose": "Six-line copy of spec-index.js's formatter — see the header note."
         },
         "specCatalog": {
-          "line": 277,
+          "line": 286,
           "params": [
             "root"
           ]
         },
         "buildPrompt": {
-          "line": 284,
+          "line": 293,
           "params": [
             "root",
             "slug",
@@ -19893,13 +19977,13 @@
           ]
         },
         "promptMode": {
-          "line": 315,
+          "line": 325,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 16896,
+      "sizeBytes": 17208,
       "extraction": {
         "status": "parsed"
       },
@@ -19909,6 +19993,7 @@
           "catalogLines": "a8e2caeefaa868f1",
           "closeScriptRel": "5d0b92db45c7cf6a",
           "commandOf": "069e914f97632a46",
+          "decisionScriptRel": "14a4a36f5ca2cf14",
           "namedSlug": "782912f88bd3875d",
           "reportAssetRel": "38cbe8bc969f5efc",
           "setHookCli": "c07ecdee8595a6cf"
@@ -22596,7 +22681,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 26870,
+      "sizeBytes": 26888,
       "extraction": {
         "status": "parsed"
       },
@@ -23669,7 +23754,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 23876,
+      "sizeBytes": 25456,
       "extraction": {
         "status": "parsed"
       },
@@ -24107,7 +24192,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 16888,
+      "sizeBytes": 16904,
       "extraction": {
         "status": "parsed"
       },
@@ -24428,7 +24513,7 @@
           ]
         }
       },
-      "sizeBytes": 14798,
+      "sizeBytes": 16264,
       "extraction": {
         "status": "parsed"
       },
@@ -26553,21 +26638,21 @@
       ],
       "functions": {
         "withFixture": {
-          "line": 37,
+          "line": 38,
           "params": [
             "kind",
             "fn"
           ]
         },
         "envOf": {
-          "line": 47,
+          "line": 48,
           "params": [
             "fixture"
           ],
           "purpose": "The fixture's environment for anything run inside it: its own activity home, nobody else's root."
         },
         "hook": {
-          "line": 59,
+          "line": 60,
           "params": [
             "fixture",
             "event",
@@ -26577,26 +26662,26 @@
           "purpose": "Run one registered hook the way Claude Code would: the command string from"
         },
         "closeCheck": {
-          "line": 80,
+          "line": 81,
           "params": [
             "fixture"
           ]
         },
         "appendFix": {
-          "line": 241,
+          "line": 258,
           "params": [
             "fixture",
             "title"
           ]
         },
         "inspected": {
-          "line": 246,
+          "line": 263,
           "params": [
             "fixture"
           ]
         }
       },
-      "sizeBytes": 25842,
+      "sizeBytes": 27214,
       "extraction": {
         "status": "parsed"
       },
@@ -26659,14 +26744,28 @@
           ],
           "purpose": "The session takes its first look with `before` on disk, then the tasks"
         },
+        "withCardTooling": {
+          "line": 158,
+          "params": [
+            "root"
+          ],
+          "purpose": "A project that can write cards: decision.js in .frame/bin/, as Frame ships it."
+        },
+        "writeCards": {
+          "line": 164,
+          "params": [
+            "root",
+            "cards"
+          ]
+        },
         "gitInit": {
-          "line": 274,
+          "line": 326,
           "params": [
             "root"
           ]
         }
       },
-      "sizeBytes": 20935,
+      "sizeBytes": 23500,
       "extraction": {
         "status": "parsed"
       },
@@ -26675,6 +26774,7 @@
         "purposes": {
           "closeIn": "eb2b6dd3e560218c",
           "mkProject": "8494b5262d8ec57c",
+          "withCardTooling": "588f99cee98d914a",
           "writeTasks": "3de6815b184f2a3c"
         }
       }
@@ -26694,7 +26794,8 @@
         "scripts/spec-index",
         "src/shared/activityEvents",
         "scripts/activity-log",
-        "src/main/structureBootstrap"
+        "src/main/structureBootstrap",
+        "scripts/decision"
       ],
       "functions": {
         "mkProject": {
@@ -26721,15 +26822,23 @@
             "root"
           ],
           "purpose": "Every file under the project, with its content — the activity home aside."
+        },
+        "mkCardProject": {
+          "line": 422,
+          "params": [
+            "opts"
+          ],
+          "purpose": "mkProject, plus the card writer Frame ships, which is what makes cards owed."
         }
       },
-      "sizeBytes": 19410,
+      "sizeBytes": 24233,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "04eb4c5e40bc2520",
         "purposes": {
+          "mkCardProject": "eabebc8be0539278",
           "mkProject": "b3984d82c4aeb33e",
           "snapshot": "d1ea210d6033143c"
         }
@@ -29900,6 +30009,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "6405595170ea340b6e04a477a3acf01092e2a85a227da61fbe0cafa049c6c01d"
+    "revision": "6a605f3b691a91f5d75aa605215865291d49be5ca7cf22d6d8c30ec7abeb58d7"
   }
 }

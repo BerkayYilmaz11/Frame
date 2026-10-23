@@ -563,9 +563,18 @@ function interpolate(template, vars) {
  * the next project open is better than no path.
  */
 function closeScriptRel(projectPath) {
-  const shipped = path.posix.join(FRAME_DIR.replace(/\\/g, '/'), FRAME_BIN_DIR, CLOSE_SCRIPT_FILE);
+  return shippedScriptRel(projectPath, CLOSE_SCRIPT_FILE);
+}
+
+/** The card writer the close step runs, resolved the same way (decision-cards-core). */
+function decisionScriptRel(projectPath) {
+  return shippedScriptRel(projectPath, DECISION_SCRIPT_FILE);
+}
+
+function shippedScriptRel(projectPath, file) {
+  const shipped = path.posix.join(FRAME_DIR.replace(/\\/g, '/'), FRAME_BIN_DIR, file);
   if (fs.existsSync(path.join(projectPath, shipped))) return shipped;
-  const dev = path.posix.join('scripts', CLOSE_SCRIPT_FILE);
+  const dev = path.posix.join('scripts', file);
   return fs.existsSync(path.join(projectPath, dev)) ? dev : shipped;
 }
 
@@ -605,6 +614,7 @@ function getCommandPrompt(projectPath, slug, command, aiTool, description) {
     report_template_path: reportAssetRel(projectPath, tool, REPORT_TEMPLATE_FILE),
     report_generator_path: reportAssetRel(projectPath, tool, REPORT_GENERATOR_FILE),
     close_script_path: closeScriptRel(projectPath),
+    decision_script_path: decisionScriptRel(projectPath),
     // Full spec catalog only where it's consumed (spec.new's relatedness
     // evaluation and slug disambiguation) — other templates carry no
     // {spec_catalog} token.
@@ -632,6 +642,7 @@ const RUNTIME_PROMPTS_DIR = path.join(FRAME_DIR, 'runtime', 'prompts');
 const REPORT_TEMPLATE_FILE = 'plan-report-template.html';
 const REPORT_GENERATOR_FILE = 'build-implement-report.mjs';
 const CLOSE_SCRIPT_FILE = 'spec-close.js';
+const DECISION_SCRIPT_FILE = 'decision.js';
 
 // The report assets the agent reads live beside the command templates they
 // belong to, under .frame/runtime/commands/<tool>/ — the location

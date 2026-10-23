@@ -30,3 +30,12 @@ Followup: the docs-health popover cannot report an unmatched "Decision Cards" se
 _Captured: 2026-10-23 · 7 file change(s)_
 
 ---
+## T05 — Cards as a close item
+
+`spec-close-state.js` gained the `cards` item (missing while no current card has `source: spec:<slug>`), owed only when `decision.js` exists in `.frame/bin/` or `scripts/`. `spec-close.js` gained `ITEM_CHECKS.cards`, whose own reader names the card-file lines it skipped that belong to the spec, and a `cardShape` the template's new `### The cards` section repeats character for character; the template's close step now records the cards before running the check, and a fix that overturns a card writes a superseding one. Also added `{decision_script_path}` to both prompt builders and made the close wording in `activityEvents.js` and `PRIVACY.md` say "close items". Beyond the plan: when cards are not owed, the item is left out of `spec-close.js`'s report entirely, so such a project's output is byte-identical; card presence is memoized per card-file state because the reminder checks every closed spec on every hook call; older closed specs in a project with `decision.js` now count as missing cards, which only adds one `closed-earlier` quiet row per session; and, with the user's approval, the eval fixture's `fix-*` specs carry a card and `test/spec-close-fixture.test.js` writes one through `decision.js` next to its digest.
+
+Followup: the fix-decision eval does not yet check for a superseding card.
+
+_Captured: 2026-10-23 · 13 file change(s)_
+
+---

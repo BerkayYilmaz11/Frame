@@ -209,9 +209,9 @@ test('the close reminder is a mode on both hint events', () => {
 
 test('a close reminder says how many specs it named', () => {
   assert.equal(events.formatLabel('hint.injected', { mode: 'spec-close', specs: 1 }),
-    'Reminded the agent that 1 closed spec still needs a digest');
+    'Reminded the agent that 1 closed spec still owes close items');
   assert.equal(events.formatLabel('hint.injected', { mode: 'spec-close', specs: 3 }),
-    'Reminded the agent that 3 closed specs still need a digest');
+    'Reminded the agent that 3 closed specs still owe close items');
 });
 
 test('every reason a close reminder is withheld reads as its own sentence', () => {
@@ -243,9 +243,9 @@ test('a close check carries a slug, a verdict and a count — nothing of the dig
 
 test('a close check label says what was found', () => {
   assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'ok' }), 'Spec a: close check passed');
-  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'missing' }), 'Spec a: close check found the digest missing');
-  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'malformed', defects: 1 }), 'Spec a: close check named 1 defect in the digest');
-  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'malformed', defects: 3 }), 'Spec a: close check named 3 defects in the digest');
+  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'missing' }), 'Spec a: close check found a close item missing');
+  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'malformed', defects: 1 }), 'Spec a: close check named 1 defect in its close items');
+  assert.equal(events.formatLabel('spec.close_checked', { slug: 'a', verdict: 'malformed', defects: 3 }), 'Spec a: close check named 3 defects in its close items');
   assert.equal(events.formatLabel('spec.close_checked', {}), 'Spec ?: close check ran');
 });
 

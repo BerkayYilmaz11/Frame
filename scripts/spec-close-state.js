@@ -22,8 +22,8 @@
  *   closedSpecs(root)            every closed spec, read fresh
  *   closeState(root)             closed and open specs behind an
  *                                mtime-and-size cache
- *   CLOSE_ITEMS                  what closing owes — one item today, a list
- *                                so the next one is an entry, not a rewrite
+ *   CLOSE_ITEMS                  what closing owes: the digest, and decision
+ *                                cards once the project has decision.js
  *   pending(root)                closed · something missing · not run by
  *                                orchestration
  *   reminder(root, session, now) the one line a hook should say, the reasons
@@ -83,22 +83,80 @@ function specDir(root, slug) { return path.join(root, '.frame', 'specs', slug); 
 // ─── close items ──────────────────────────────────────────
 //
 // What a closed spec owes. Each item has an id, the word a reminder uses for
-// it, and a `missing()` test that reads disk. Decision cards join here.
+// it, and a `missing()` test that reads disk. An item may also have `due()`:
+// false means the project cannot produce it yet, so nothing is owed.
+
+// The card reader. Guarded like every sibling the hooks read: a `.frame/bin/`
+// that predates decision-cards.js owes a digest only, exactly as before.
+let cards = null;
+try {
+  cards = require('./decision-cards');
+} catch {
+  /* older generation — no cards item */
+}
+
+/**
+ * Cards are owed once the project can write them: a `decision.js` in
+ * `.frame/bin/`, or in `scripts/` for Frame's own repository, where the
+ * script is developed and `.frame/bin/` is whatever the installed app wrote.
+ * Without it every hint, reminder and check stays exactly as it was.
+ */
+function cardsDue(root) {
+  if (!cards) return false;
+  return fs.existsSync(path.join(root, '.frame', 'bin', 'decision.js'))
+    || fs.existsSync(path.join(root, 'scripts', 'decision.js'));
+}
+
+// The slugs that have a current card, read once per file state. A hook asks
+// for every closed spec on every call — ninety in this repository — and a
+// re-read per spec would parse the card file ninety times.
+let cardMemo = null;
+
+function specsWithCards(root) {
+  let stat = null;
+  try { stat = fs.statSync(cards.cardsPath(root)); } catch { /* no card file */ }
+  const key = `${root}\0${stat ? `${stat.mtimeMs}:${stat.size}` : 'none'}`;
+  if (cardMemo && cardMemo.key === key) return cardMemo.slugs;
+  const slugs = new Set();
+  for (const card of stat ? cards.readCards(root).current : []) {
+    const src = cards.parseSource(card.source);
+    if (src && src.kind === 'spec') slugs.add(src.slug);
+  }
+  cardMemo = { key, slugs };
+  return slugs;
+}
 
 const CLOSE_ITEMS = [
   {
     id: 'digest',
     label: 'digest',
     missing: (root, slug) => !fs.existsSync(path.join(specDir(root, slug), 'digest.md'))
+  },
+  {
+    // Missing: no current card has `source: spec:<slug>`. Every closing spec
+    // writes at least one (decision-cards-core D4); `done` is never held back.
+    id: 'cards',
+    label: 'decision cards',
+    due: cardsDue,
+    missing: (root, slug) => cardsDue(root) && !specsWithCards(root).has(slug)
   }
 ];
+
+/** Whether `item` is owed in this project at all. */
+function isDue(root, item) {
+  try {
+    return !item.due || item.due(root) === true;
+  } catch {
+    return false;
+  }
+}
 
 /** Ids of the close items this spec still lacks. */
 function missingItems(root, slug) {
   const out = [];
   for (const item of CLOSE_ITEMS) {
     try {
-      if (item.missing(root, slug)) out.push(item.id);
+      if (isDue(root, item) && item.missing(root, slug)) out.push(item.id);
     } catch {
       /* an item that cannot be tested is not reported as missing */
     }
@@ -495,6 +553,8 @@ module.exports = {
   SESSION_TTL_MS,
   MAX_NAMED,
   CLOSE_ITEMS,
+  isDue,
+  cardsDue,
   missingItems,
   readTasks,
   specTaskCounts,
