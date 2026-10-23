@@ -3739,3 +3739,11 @@ Shape:
 - `layoutMigration.lineNeedsReview` learned two cases so the off template is not reported as user edits: a renumbered navigation item, and a document that never names STRUCTURE.json.
 - Still mentioning the map regardless: the REFERENCE.md and QUICKSTART.md templates.
 - The lifecycle decision is taken when a project is opened; hooks and scripts read the config on every run.
+
+### [2026-10-22] Project switcher back in the sidebar, above Work
+
+User's request (Turkish, verbatim): "project seçimi şu an yukarıda sağda, onu soldan ikinci panele, work menü item ının üstüne geri yerleştirmek istiyorum".
+
+History: sidebar-project-section put the switcher above the rail-and-panel split; shell-chrome-app-header-collapsible-panels D1 (2026-09-14) moved it into the app header's center so it stayed reachable with the sidebar collapsed; bfdb629 later moved it to the header's right, beside the Agent picker. This explicitly overturns D1: the switcher is now the first child of `.sidebar-panel`, above Work (and above the Files / Changes / GitHub views — index.js already keeps it visible on every tab). Accepted consequence: with the sidebar collapsed (⌘B) the switcher is out of sight.
+
+Changed: `index.html` markup moved out of `.lane-bar-launcher`; switcher CSS moved from `app-header.css` to `project-section.css` (full panel width, 28px); the header's `:not()` button selectors dropped the switcher classes; the tour's switcher step points right; the Guide text and shell sketch show it atop the sidebar (region renamed `sidebar-switcher`).

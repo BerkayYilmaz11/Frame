@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-10-21",
+  "lastUpdated": "2026-10-23",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 93948,
+      "sizeBytes": 94121,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -9975,7 +9975,7 @@
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35031,
+      "sizeBytes": 35030,
       "extraction": {
         "status": "parsed"
       },
@@ -10060,7 +10060,7 @@
           ]
         }
       },
-      "sizeBytes": 35391,
+      "sizeBytes": 35392,
       "extraction": {
         "status": "parsed"
       },
@@ -11108,7 +11108,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 38783,
+      "sizeBytes": 38779,
       "extraction": {
         "status": "parsed"
       },
@@ -15071,7 +15071,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 13599,
+      "sizeBytes": 9955,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15203,7 +15203,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 34666,
+      "sizeBytes": 34925,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15275,7 +15275,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1869,
+      "sizeBytes": 5277,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -16906,7 +16906,7 @@
           "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
         }
       },
-      "sizeBytes": 9836,
+      "sizeBytes": 9835,
       "extraction": {
         "status": "parsed"
       },
@@ -28522,6 +28522,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "e28aa60c6d1aadcb35099ef01ea634ff7a26a2e1a4b3fdf3921cc7daa57cdd37"
+    "revision": "4098d30de66746721c76e982e2ba4e648a5e8256e018dc903adf04d08afa2e0a"
   }
 }

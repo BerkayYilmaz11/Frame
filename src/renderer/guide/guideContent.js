@@ -98,7 +98,7 @@ const CHAPTERS = [
       {
         id: 'start.open',
         title: 'Open a project',
-        sketch: { kind: 'shell', focus: 'header-switcher' },
+        sketch: { kind: 'shell', focus: 'sidebar-switcher' },
         blocks: [
           { p: 'Everything in Frame happens inside a project. There are four ways in:' },
           { list: [
@@ -107,7 +107,7 @@ const CHAPTERS = [
             'Clone a repository from GitHub by its URL.',
             'Try the sample project — a small fictional codebase with specs, tasks and notes already filled in.'
           ] },
-          { p: 'The project switcher in the middle of the header shows the current project; its menu lists your other projects and ends with “+ Add a project…”. The Welcome screen that greets you when Frame starts has all four too.' }
+          { p: 'The project switcher at the top of the sidebar shows the current project; its menu lists your other projects and ends with “+ Add a project…”. The Welcome screen that greets you when Frame starts has all four too.' }
         ],
         actions: [
           { id: 'project.add', label: 'Add a project' },
