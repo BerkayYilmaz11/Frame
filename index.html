@@ -111,8 +111,8 @@
        markup on purpose — it exists before any script runs, so nothing in
        it flashes at boot and every module that binds by id finds its
        element at DOMContentLoaded. Left: Frame's mark. Right: the
-       project and agent pickers with Start, the window-level controls and
-       the layout toggles. appHeader.js wires the behavior. -->
+       agent picker with Start, the window-level controls and the layout
+       toggles. appHeader.js wires the behavior. -->
   <header id="app-header">
     <div class="app-header-left">
       <!-- Frame's mark (assets/frame-mark.svg): the four corner brackets that
@@ -135,20 +135,6 @@
            stale. The options below are a placeholder: aiToolSelector
            repopulates from the real tool list. -->
       <div class="lane-bar-launcher">
-        <!-- Current-project switcher: the one project selector, directly left
-             of the agent picker and drawn the same way (a small uppercase
-             label, then the value), so the header reads "Project · Agent ·
-             Start". index.js binds it by id. -->
-        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
-          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-            <span class="sidebar-current-project-label">Project</span>
-            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
-        </div>
         <!-- The select is wrapped in a label so the visible control (label
              text, agent name, chevron) is one styled box while the native
              <select> stays the interactive element underneath — clicking
@@ -284,6 +270,22 @@
       </nav>
 
       <div class="sidebar-panel">
+        <!-- Current-project switcher: the one project selector, at the top of
+             the panel above Work (and above whatever view the rail picked), so
+             everything below it reads as "this project's". Moved back from
+             the app header on 2026-10-22 at the user's request, overturning
+             shell-chrome-app-header-collapsible-panels D1: with the sidebar
+             collapsed (⌘B) it is out of sight. index.js binds it by id. -->
+        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+            <span class="sidebar-current-project-label">Project</span>
+            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+        </div>
         <!-- Projects view (default) — the workspace panel for the selected
              project (project-dropdown spec): selection lives in the
              current-project switcher above, which also carries "+ Add a

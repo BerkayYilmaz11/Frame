@@ -116,7 +116,7 @@ const KINDS = {
   },
 
   /**
-   * The whole window. Regions: header-switcher, header-agent, header-start,
+   * The whole window. Regions: sidebar-switcher, header-agent, header-start,
    * header-theme, rail-views, rail-foot, rail-guide, sidebar-nav, center,
    * dock, statusbar-left, statusbar-right.
    */
@@ -127,7 +127,6 @@ const KINDS = {
     const header = `
       <div class="gs-shell-header">
         <span class="gs-mark"></span>
-        ${region('header-switcher', focused, 'gs-switcher', `${label('my-project')}${icon(ChevronDown, 10)}`)}
         <div class="gs-header-right">
           ${region('header-agent', focused, 'gs-agent-picker', `${label('Agent', 'gs-dim')}${label('Claude Code')}${icon(ChevronDown, 10)}`)}
           ${region('header-start', focused, 'gs-start', `${icon(Play, 10)}${label('Start')}`)}
@@ -151,6 +150,7 @@ const KINDS = {
       </div>`;
 
     const sidebar = region('sidebar-nav', focused, 'gs-sidebar', `
+      ${region('sidebar-switcher', focused, 'gs-switcher', `${label('my-project')}${icon(ChevronDown, 10)}`)}
       <div class="gs-nav-group">${label('WORK', 'gs-eyebrow')}</div>
       ${navRow('Terminals')}
       <div class="gs-nav-group">${label('CONTEXT', 'gs-eyebrow')}</div>
@@ -485,7 +485,7 @@ const KINDS = {
         <div class="gs-dock-list">${bodies[active]}</div>`)}`);
   },
 
-  /** Several projects. Regions: switcher (header + its menu), others (status bar popover). */
+  /** Several projects. Regions: switcher (sidebar + its menu), others (status bar popover). */
   multiProject(focused) {
     const proj = (name, badge, current) => `<div class="gs-proj-row${current ? ' gs-proj-current' : ''}">${icon(Folder, 10)}${label(name)}${badge || ''}</div>`;
     const agentRow = (name, state, dot) => `<div class="gs-proj-row">${icon(Bot, 10)}${label(name)}${chip(state, { dot, cls: 'gs-chip-tiny' })}</div>`;

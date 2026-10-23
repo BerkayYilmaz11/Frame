@@ -3720,3 +3720,11 @@ Shape chosen:
 - No install id, no session id, no person properties. PostHog gets a fresh random distinct id used once, `$process_person_profile: false`, `disableGeoip: true`. Aptabase gets the bare event. So it counts opt-outs, not unique users, and cannot be joined to the install's earlier events.
 - Renderer order swapped in frameSettingsModal.js: `ANALYTICS_SET_ENABLED` before `SET_USER_SETTING`, because setEnabled must read the pre-toggle state.
 - Disclosure changed, so the notice card text says so and `NOTICE_VERSION` went 3 → 4 (card reappears once for everyone). PRIVACY.md lists the event and its exceptions.
+
+### [2026-10-22] Project switcher back in the sidebar, above Work
+
+User's request (Turkish, verbatim): "project seçimi şu an yukarıda sağda, onu soldan ikinci panele, work menü item ının üstüne geri yerleştirmek istiyorum".
+
+History: sidebar-project-section put the switcher above the rail-and-panel split; shell-chrome-app-header-collapsible-panels D1 (2026-09-14) moved it into the app header's center so it stayed reachable with the sidebar collapsed; bfdb629 later moved it to the header's right, beside the Agent picker. This explicitly overturns D1: the switcher is now the first child of `.sidebar-panel`, above Work (and above the Files / Changes / GitHub views — index.js already keeps it visible on every tab). Accepted consequence: with the sidebar collapsed (⌘B) the switcher is out of sight.
+
+Changed: `index.html` markup moved out of `.lane-bar-launcher`; switcher CSS moved from `app-header.css` to `project-section.css` (full panel width, 28px); the header's `:not()` button selectors dropped the switcher classes; the tour's switcher step points right; the Guide text and shell sketch show it atop the sidebar (region renamed `sidebar-switcher`).

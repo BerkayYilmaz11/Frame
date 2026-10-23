@@ -63,3 +63,154 @@
   color: var(--error);
   background: var(--bg-hover);
 }
+
+/* ─── Current-project switcher ─── */
+/* The one project selector, the first row of the sidebar panel, above Work
+   (moved back from the app header, 2026-10-22). Drawn like the header's
+   agent picker — a small uppercase "Project" label, then the project's name
+   and a chevron on one box — at the panel's full width. */
+.sidebar-current-project-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.sidebar-current-project {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px 0 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.sidebar-current-project:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.sidebar-current-project[aria-expanded="true"] {
+  border-color: var(--accent-primary);
+}
+
+/* Same label as .ai-tool-picker-label, so the two pickers pair up. */
+.sidebar-current-project-label {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+.sidebar-current-project-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-current-project-caret {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-current-project[aria-expanded="true"] .sidebar-current-project-caret {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu of projects to switch to. */
+.sidebar-project-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 320px;
+  z-index: 50;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-project-menu[hidden] {
+  display: none;
+}
+
+.sidebar-project-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px var(--space-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-project-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-project-menu-item.active {
+  color: var(--accent-primary);
+}
+
+.sidebar-project-menu-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-project-menu-item-check {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.sidebar-project-menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border-subtle);
+}
+
+.sidebar-project-menu-add {
+  color: var(--text-tertiary);
+}
+
+.sidebar-project-menu-empty {
+  padding: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
