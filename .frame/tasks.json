@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T14:24:11.750Z",
+  "lastUpdated": "2026-10-23T14:30:15.274Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9053,13 +9053,13 @@
       "title": "Deliver at most 2 strongly matching spec-less cards from `scripts/spec-hint.js` prompt mode (score ≥ 3 on the rare/common weights, once per card per session, trimmed before topics and the close reminder under `inlineBudget()`, `decision-prompt` mode); cover threshold, cap, dedup, budget trimming, a Codex payload and no-card identity in `test/spec-hint.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T14:30:15.274Z",
+      "completedAt": "2026-10-23T14:30:15.274Z"
     }
   ],
   "metadata": {

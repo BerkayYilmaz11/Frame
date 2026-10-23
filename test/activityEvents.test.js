@@ -288,3 +288,13 @@ test('an edit-time card delivery is a hint mode of its own, with a card count', 
     'Recorded decisions delivered for src/a.js (3 cards)');
   assert.equal(events.formatLabel('hint.quiet', { mode: 'decision-edit', reason: 'no-context' }).length > 0, true);
 });
+
+test('a prompt-time card delivery is a hint mode of its own, with a card count', () => {
+  assert.ok(events.HINT_MODES.includes('decision-prompt'));
+  assert.deepEqual(events.validateEvent('hint.injected', { host: 'claude-hook', mode: 'decision-prompt', cards: 2 }),
+    { host: 'claude-hook', mode: 'decision-prompt', cards: 2 });
+  assert.equal(events.formatLabel('hint.injected', { mode: 'decision-prompt', cards: 1 }), 'Surfaced 1 recorded decision for this request');
+  assert.equal(events.formatLabel('hint.injected', { mode: 'decision-prompt', cards: 2 }), 'Surfaced 2 recorded decisions for this request');
+  assert.deepEqual(events.validateEvent('hint.quiet', { host: 'claude-hook', mode: 'decision-prompt', reason: 'no-context' }),
+    { host: 'claude-hook', mode: 'decision-prompt', reason: 'no-context' });
+});

@@ -65,10 +65,10 @@ const HINT_REASONS = [
 // The hint hooks' modes. One list for both events: a mode that can speak can
 // also stay quiet, and a mode declared on only one of them drops the other
 // half of its record without a trace.
-// `decision-edit` is spec-hint's card delivery before an edit
-// (decision-cards-core): a mode of its own, so cards and spec history can be
-// counted apart.
-const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close', 'decision-edit'];
+// `decision-edit` and `decision-prompt` are spec-hint's card deliveries
+// before an edit and on a prompt (decision-cards-core): modes of their own,
+// so cards and spec history can be counted apart.
+const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close', 'decision-edit', 'decision-prompt'];
 
 const HOSTS = ['app', 'claude-hook', 'codex-hook', 'git-precommit', 'orch-bus', 'cli'];
 
@@ -127,6 +127,9 @@ const EVENTS = {
       path: PATH, specs: COUNT, concept: SLUG, modules: COUNT, bytes: COUNT, cards: COUNT
     },
     label: (r) => {
+      if (r.mode === 'decision-prompt') {
+        return `Surfaced ${r.cards ?? 0} recorded decision${r.cards === 1 ? '' : 's'} for this request`;
+      }
       if (r.mode === 'decision-edit') {
         return `Recorded decision${r.cards === 1 ? '' : 's'} delivered for ${r.path || 'a file'}` +
           `${r.cards ? ` (${r.cards} card${r.cards === 1 ? '' : 's'})` : ''}`;

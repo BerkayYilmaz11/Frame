@@ -60,3 +60,10 @@ Added the "Decision cards" Context view: the pure `src/renderer/decisions/cardsM
 _Captured: 2026-10-23 · 10 file change(s)_
 
 ---
+## T09 — Cards at prompt time
+
+`spec-hint.js` prompt mode now sends at most two current spec-less cards that score 3 or more against the prompt (document frequency over every current card), skipping any card the session was already shown at edit or prompt time, and records a `decision-prompt` injection (`activityEvents.js` gained the mode). A prompt with no matching card takes the old path unchanged; with cards, `promptWithCards` sends the close reminder and related specs exactly as before and fits the cards into what is left under `inlineBudget()`, in full or one line each, leaving a card that does not fit unmarked for a later prompt. The pre-edit card block now shares the fitting code (`fitCards`, `cardLines`), and `test/spec-hint.test.js` pins threshold, cap, dedup across modes, both trimming paths, a Codex payload and byte-identical no-card prompts against `8ce2aa8`.
+
+_Captured: 2026-10-23 · 3 file change(s)_
+
+---

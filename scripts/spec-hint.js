@@ -8,10 +8,12 @@
  *
  * Modes (argv[2]):
  *   pre-edit   PreToolUse hook for Edit/Write — inject the target file's
- *              spec history at the moment of intent (never on Grep/Read:
- *              exploration must stay injection-free).
+ *              spec history, then its spec-less decision cards, at the
+ *              moment of intent (never on Grep/Read: exploration must stay
+ *              injection-free).
  *   prompt     UserPromptSubmit hook — score the user's prompt against the
- *              topic catalog, surface up to 3 related specs. Also where a
+ *              topic catalog, surface up to 3 related specs, and up to 2
+ *              strongly matching decision cards recorded outside any spec. Also where a
  *              spec that closed without its digest is announced when the
  *              turn that closed it made no further tool call
  *              (spec-close-state.js decides; docs-hint.js covers the
@@ -346,17 +348,29 @@ const CARD_RELAY = 'These are decisions recorded for this file. Respect them; to
  */
 function cardBlock(root, rel, cards, signalMode, used) {
   const cli = decisionCliPath(root);
-  const render = (list, full) => {
-    if (signalMode) {
-      return `This file has ${list.length} recorded decision card(s). Before editing, run: node ${cli} related --files ${rel}`;
-    }
-    const lines = full
-      ? list.map((c) => decisionCards.renderCard(c))
-      : [...list.map((c) => decisionCards.renderCard(c, { full: false })), `Full cards: node ${cli} list`];
-    return `Recorded decisions for ${rel} (newest first):\n${lines.join('\n')}\n${CARD_RELAY}`;
-  };
-  // Depth gives way before cards do: every card that fits as one line beats
-  // fewer cards in full.
+  if (signalMode) {
+    return fitCards(cards, used, (list) =>
+      `This file has ${list.length} recorded decision card(s). Before editing, run: node ${cli} related --files ${rel}`);
+  }
+  return fitCards(cards, used, (list, full) =>
+    `Recorded decisions for ${rel} (newest first):\n${cardLines(cli, list, full)}\n${CARD_RELAY}`);
+}
+
+/** Cards as lines: in full, or one line each plus the command that prints them whole. */
+function cardLines(cli, list, full) {
+  return (full
+    ? list.map((c) => decisionCards.renderCard(c))
+    : [...list.map((c) => decisionCards.renderCard(c, { full: false })), `Full cards: node ${cli} list`]
+  ).join('\n');
+}
+
+/**
+ * The most of `cards` that `render(list, full)` fits into what the host
+ * inlines, less `used`: `{ sent, text }`, or null when not even one card
+ * fits. Depth gives way before cards do — every card as one line beats fewer
+ * cards in full — and a card left out is the caller's to leave unmarked.
+ */
+function fitCards(cards, used, render) {
   const budget = inlineBudget() - used;
   for (let n = cards.length; n >= 1; n -= 1) {
     const sent = cards.slice(0, n);
@@ -480,12 +494,41 @@ function topicBlock(index, list) {
     fix;
 }
 
+// A prompt hears at most this many recorded decisions (decision-cards-core D5).
+const MAX_PROMPT_CARDS = 2;
+
+const PROMPT_CARD_RELAY = 'If one of these decisions bears on this request, respect it — or tell the user before overturning it, ' +
+  'and record a card that supersedes it; if none does, stay silent about them.';
+
+/**
+ * The spec-less cards this prompt matches strongly — score 3 or more on the
+ * same rare/common weights as specs, the document frequency taken over every
+ * current card — that this session has not been shown, best first, at most
+ * two. Empty for a project with no card file, which is what keeps its
+ * prompts on the path below byte for byte.
+ */
+function promptCards(root, input) {
+  if (!decisionCards) return [];
+  try {
+    const { current } = decisionCards.readCards(root);
+    if (!current.length) return [];
+    const hits = decisionCards.scoreCards(decisionCards.specLessCards(current), input.prompt || '', { corpus: current });
+    if (!hits.length) return [];
+    const seen = loadState(root, input.session_id).cards;
+    return hits.map((h) => h.card).filter((c) => !seen.includes(c.id)).slice(0, MAX_PROMPT_CARDS);
+  } catch {
+    return [];
+  }
+}
+
 function promptMode(input) {
   const root = resolveRoot(input.cwd);
   // Owed whatever the prompt is about, so it is asked before any of the
   // topic paths can return — a prompt with no searchable word still gets it.
   const reminder = closeReminder(root, input);
   const topics = freshTopics(root, input);
+  const cards = promptCards(root, input);
+  if (cards.length) return promptWithCards(root, input, reminder, topics, cards);
   if (!topics) {
     if (reminder) emit('UserPromptSubmit', reminder, { root, mode: 'prompt' });
     return;
@@ -511,6 +554,43 @@ function promptMode(input) {
   note(root, 'hint.injected', { mode: 'prompt', specs: sent.length });
   const block = topicBlock(index, sent);
   emit('UserPromptSubmit', reminder ? `${reminder}\n\n${block}` : block, { root, mode: 'prompt' });
+}
+
+/**
+ * The prompt path when recorded decisions match. Everything above it is sent
+ * exactly as it would be without them — the close reminder whole, related
+ * specs trimmed against it as before — and the cards come last and give way
+ * first: they fill what is left under the host's inline cap, in full or one
+ * line each, and a card that does not fit stays unmarked for a later prompt.
+ */
+function promptWithCards(root, input, reminder, topics, cards) {
+  const state = topics ? topics.state : loadState(root, input.session_id);
+
+  let sent = topics ? topics.fresh : [];
+  if (topics && reminder) {
+    const budget = inlineBudget();
+    while (sent.length && `${reminder}\n\n${topicBlock(topics.index, sent)}`.length > budget) sent = sent.slice(0, -1);
+    if (!sent.length) quiet(root, 'prompt', 'no-context');
+  }
+  const base = [reminder, sent.length ? topicBlock(topics.index, sent) : null].filter(Boolean).join('\n\n');
+
+  const cli = decisionCliPath(root);
+  const fitted = fitCards(cards, base ? base.length + 2 : 0, (list, full) =>
+    `Recorded decisions that may apply (from the project's decision cards):\n${cardLines(cli, list, full)}\n${PROMPT_CARD_RELAY}`);
+  if (!fitted) quiet(root, 'decision-prompt', 'no-context');
+
+  if (!sent.length && !fitted) {
+    if (reminder) emit('UserPromptSubmit', reminder, { root, mode: 'prompt' });
+    return;
+  }
+
+  cleanupState(root);
+  if (sent.length) state.topics.push(...sent.map((s) => s.slug));
+  if (fitted) state.cards.push(...fitted.sent.map((c) => c.id));
+  saveState(root, input.session_id, state);
+  if (sent.length) note(root, 'hint.injected', { mode: 'prompt', specs: sent.length });
+  if (fitted) note(root, 'hint.injected', { mode: 'decision-prompt', cards: fitted.sent.length });
+  emit('UserPromptSubmit', [base, fitted && fitted.text].filter(Boolean).join('\n\n'), { root, mode: 'prompt' });
 }
 
 // ─── main (never break) ───────────────────────────────────

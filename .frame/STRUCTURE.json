@@ -20326,60 +20326,60 @@
       ],
       "functions": {
         "toPosix": {
-          "line": 47,
+          "line": 49,
           "params": [
             "p"
           ]
         },
         "fold": {
-          "line": 49,
+          "line": 51,
           "params": [
             "s"
           ]
         },
         "tokenize": {
-          "line": 58,
+          "line": 60,
           "params": [
             "s"
           ]
         },
         "readStdin": {
-          "line": 62
+          "line": 64
         },
         "readJson": {
-          "line": 66,
+          "line": 68,
           "params": [
             "p"
           ]
         },
         "resolveRoot": {
-          "line": 72,
+          "line": 74,
           "params": [
             "hookCwd"
           ]
         },
         "contextCliPath": {
-          "line": 81,
+          "line": 83,
           "params": [
             "root"
           ]
         },
         "stateFile": {
-          "line": 89,
+          "line": 91,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "loadState": {
-          "line": 94,
+          "line": 96,
           "params": [
             "root",
             "sessionId"
           ]
         },
         "saveState": {
-          "line": 103,
+          "line": 105,
           "params": [
             "root",
             "sessionId",
@@ -20387,20 +20387,20 @@
           ]
         },
         "cleanupState": {
-          "line": 111,
+          "line": 113,
           "params": [
             "root"
           ]
         },
         "decisionCliPath": {
-          "line": 174,
+          "line": 176,
           "params": [
             "root"
           ],
           "purpose": "The card CLI, as a path an agent can run from the project root."
         },
         "fileCards": {
-          "line": 189,
+          "line": 191,
           "params": [
             "root",
             "rel"
@@ -20408,17 +20408,17 @@
           "purpose": "The current spec-less cards that name `rel`, newest first. Spec cards are"
         },
         "setHookCli": {
-          "line": 208,
+          "line": 210,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 212
+          "line": 214
         },
         "note": {
-          "line": 216,
+          "line": 218,
           "params": [
             "root",
             "ev",
@@ -20426,7 +20426,7 @@
           ]
         },
         "quiet": {
-          "line": 231,
+          "line": 233,
           "params": [
             "root",
             "mode",
@@ -20436,7 +20436,7 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 237,
+          "line": 239,
           "params": [
             "eventName",
             "context",
@@ -20444,7 +20444,7 @@
           ]
         },
         "fixInstruction": {
-          "line": 259,
+          "line": 261,
           "params": [
             "slugs",
             "subject = 'edit'"
@@ -20452,20 +20452,20 @@
           "purpose": "How a fix to a finished spec's work records itself. Test-time fixes used to"
         },
         "formatEntry": {
-          "line": 271,
+          "line": 273,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 283,
+          "line": 285,
           "params": [
             "input"
           ]
         },
         "cardBlock": {
-          "line": 347,
+          "line": 349,
           "params": [
             "root",
             "rel",
@@ -20475,8 +20475,26 @@
           ],
           "purpose": "The cards block for a pre-edit payload, or null when nothing fits. 1–2"
         },
+        "cardLines": {
+          "line": 360,
+          "params": [
+            "cli",
+            "list",
+            "full"
+          ],
+          "purpose": "Cards as lines: in full, or one line each plus the command that prints them whole."
+        },
+        "fitCards": {
+          "line": 373,
+          "params": [
+            "cards",
+            "used",
+            "render"
+          ],
+          "purpose": "The most of `cards` that `render(list, full)` fits into what the host"
+        },
         "historyBlock": {
-          "line": 372,
+          "line": 386,
           "params": [
             "root",
             "rel",
@@ -20486,11 +20504,11 @@
           "purpose": "The spec-history block for a pre-edit payload — the text this hook has always sent."
         },
         "inlineBudget": {
-          "line": 403,
+          "line": 417,
           "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
         },
         "closeReminder": {
-          "line": 413,
+          "line": 427,
           "params": [
             "root",
             "input"
@@ -20498,7 +20516,7 @@
           "purpose": "The close reminder for this prompt, or null. The helper decides everything"
         },
         "freshTopics": {
-          "line": 428,
+          "line": 442,
           "params": [
             "root",
             "input"
@@ -20506,33 +20524,56 @@
           "purpose": "Specs related to this prompt that the session has not been shown, or null"
         },
         "topicBlock": {
-          "line": 468,
+          "line": 482,
           "params": [
             "index",
             "list"
           ]
         },
+        "promptCards": {
+          "line": 510,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "The spec-less cards this prompt matches strongly — score 3 or more on the"
+        },
         "promptMode": {
-          "line": 483,
+          "line": 524,
           "params": [
             "input"
           ]
+        },
+        "promptWithCards": {
+          "line": 566,
+          "params": [
+            "root",
+            "input",
+            "reminder",
+            "topics",
+            "cards"
+          ],
+          "purpose": "The prompt path when recorded decisions match. Everything above it is sent"
         }
       },
-      "sizeBytes": 23557,
+      "sizeBytes": 27324,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
           "cardBlock": "fecefdc2a5602b1f",
+          "cardLines": "dc61581db7f7066d",
           "closeReminder": "53f0b45f5426931c",
           "decisionCliPath": "cd4bfc0820502ca0",
           "fileCards": "a1c33b4244d4f79c",
+          "fitCards": "3b0fc2a50ca86f6b",
           "fixInstruction": "3025d4b48f1ea9b4",
           "freshTopics": "0d2ec57657e79c1b",
           "historyBlock": "4db225d038272e1a",
           "inlineBudget": "493a88afee203081",
+          "promptCards": "db2181caaf29e43b",
+          "promptWithCards": "f2427d5ebb7807d7",
           "quiet": "3e8f4a1504407442",
           "setHookCli": "c07ecdee8595a6cf"
         }
@@ -22922,32 +22963,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 510,
+          "line": 513,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 514,
+          "line": 517,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 518,
+          "line": 521,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 522,
+          "line": 525,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 545,
+          "line": 548,
           "params": [
             "name",
             "fields"
@@ -22955,7 +22996,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 562,
+          "line": 565,
           "params": [
             "name",
             "fields"
@@ -22963,7 +23004,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 583,
+          "line": 586,
           "params": [
             "name",
             "fields"
@@ -22971,7 +23012,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 27305,
+      "sizeBytes": 27521,
       "extraction": {
         "status": "parsed"
       },
@@ -24482,7 +24523,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 17716,
+      "sizeBytes": 18540,
       "extraction": {
         "status": "parsed"
       },
@@ -27317,7 +27358,7 @@
           "purpose": "With no card file, every pre-edit payload and record is the one the hook"
         }
       },
-      "sizeBytes": 39283,
+      "sizeBytes": 47091,
       "extraction": {
         "status": "parsed"
       },
@@ -30411,6 +30452,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "88c337828059cab6c8a2ef69f4399f7d60dbd4c25a7d65684e0ba5bb0949c0db"
+    "revision": "3b9540ecd3a0171714eb80da7f5dd1d2bef89c188c3402de074e3e2e271590c4"
   }
 }
