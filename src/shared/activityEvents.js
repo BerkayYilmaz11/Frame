@@ -92,6 +92,11 @@ const MISSED_BOUND_REASONS = ['changing-files', 'writer-busy', 'failed', 'timeou
 // well-formed, one absent, or one present with named defects.
 const CLOSE_VERDICTS = ['ok', 'missing', 'malformed'];
 
+// What a decision card's story is (`spec:<slug>` or a PROJECT_NOTES.md
+// entry), and how a new card relates to an older one.
+const DECISION_SOURCES = ['spec', 'notes'];
+const DECISION_RELATIONS = ['supersedes', 'extends', 'none'];
+
 // Field types. Kept deliberately narrow: enums, numbers, and the two string
 // shapes that are the point of the record (a project-relative path, a spec
 // slug). No free-form text field exists, so no call site can introduce one.
@@ -208,6 +213,29 @@ const EVENTS = {
       }
       return `${spec}: close check ran`;
     }
+  },
+
+  // ─── decision cards ─────────────────────────────────────
+  //
+  // `decision.js add` is run by an agent, like spec-close.js, and for the same
+  // reason it leaves a row: whether the instruction to record a decision led
+  // to a card is not visible anywhere else. Kinds and counts only — never the
+  // decision, its why, its keywords or its files.
+  'decision.added': {
+    kind: 'action',
+    fields: {
+      host: enumOf(HOSTS), source: enumOf(DECISION_SOURCES), slug: SLUG, relation: enumOf(DECISION_RELATIONS)
+    },
+    label: (r) => {
+      const where = r.source === 'spec' ? ` for spec ${r.slug || '?'}` : r.source === 'notes' ? ' from a PROJECT_NOTES entry' : '';
+      const rel = r.relation === 'supersedes' ? ', superseding an older card' : r.relation === 'extends' ? ', extending an older card' : '';
+      return `Decision card recorded${where}${rel}`;
+    }
+  },
+  'decision.rejected': {
+    kind: 'suppression',
+    fields: { host: enumOf(HOSTS), defects: COUNT, repeats: REPEATS },
+    label: (r) => `Decision card refused — ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} named`
   },
 
   // ─── derived spec index ─────────────────────────────────
@@ -558,6 +586,8 @@ module.exports = {
   HINT_REASONS,
   HINT_MODES,
   CLOSE_VERDICTS,
+  DECISION_SOURCES,
+  DECISION_RELATIONS,
   LIFECYCLE_REASONS,
   MISSED_BOUND_REASONS,
   HOSTS,

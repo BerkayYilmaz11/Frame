@@ -7,3 +7,10 @@ Added `scripts/decision-cards.js`, which reads `.frame/decisions.jsonl` line by 
 _Captured: 2026-10-23 · 6 file change(s)_
 
 ---
+## T02 — The decision.js writer and lookup CLI
+
+Added `scripts/decision.js` with `add` (assigns the UTC date and the D11 id, checks D12 sources, refuses an unknown relation id, a repeated id or a line of 4 KB or more, warns on a missing file, and appends with one write on an O_APPEND descriptor, adding a newline first after a torn last line), `related` and `list`, all with `--json`. Registered `decision.added` (action: source kind, slug, relation) and `decision.rejected` (suppression: defect count) in `activityEvents.js` and `PRIVACY.md`, shipped both scripts through `structureBootstrap` and `build.files`, and allowed `Bash(node .frame/bin/decision.js *)` in both allow lists. Beyond the plan: `supersedes`/`extends` must name a *current* card (the refusal names the card that superseded it), `relatedCards` ranks shared files before word score, the helper gained `notesPath`/`findNotesEntry` so the writer and the T08 view resolve a notes source the same way, `FRAME_DECISION_DATE` pins the date for tests, and `decision.js` joined the spec-path mirrors in `metaPathGuard`.
+
+_Captured: 2026-10-23 · 13 file change(s)_
+
+---

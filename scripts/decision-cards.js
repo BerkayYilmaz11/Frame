@@ -272,6 +272,45 @@ function cardsForSpec(cards, slug) {
   });
 }
 
+// ─── stories ──────────────────────────────────────────────
+
+// Today's PROJECT_NOTES.md entry heading — the same pattern projectInsights'
+// loadDecisions reads, so a notes source resolves wherever an entry shows.
+const NOTES_HEADING_RE = /^###\s*\[(\d{4}-\d{2}-\d{2})\]\s*(.+)$/;
+
+/**
+ * Where PROJECT_NOTES.md is: `.frame/` once migrated, the root while an
+ * unmigrated project still keeps it there. check-freshness.js's rule; the
+ * app answers through frameStore.readNotes.
+ */
+function notesPath(root) {
+  const overlay = path.join(root, '.frame', 'PROJECT_NOTES.md');
+  if (fs.existsSync(overlay)) return overlay;
+  const legacy = path.join(root, 'PROJECT_NOTES.md');
+  return fs.existsSync(legacy) ? legacy : overlay;
+}
+
+function sameTitle(a, b) {
+  const norm = (s) => fold(s).replace(/\s+/g, ' ').trim();
+  return norm(a) === norm(b);
+}
+
+/**
+ * The `### [date] title` entry a notes source names, as `{ date, title, line }`,
+ * or null. Titles compare without case or spacing differences; the date must
+ * be exact. The first match wins, as the view lists them.
+ */
+function findNotesEntry(notesText, source) {
+  const src = typeof source === 'string' ? parseSource(source) : source;
+  if (!src || src.kind !== 'notes') return null;
+  const lines = String(notesText || '').split('\n');
+  for (let i = 0; i < lines.length; i += 1) {
+    const m = NOTES_HEADING_RE.exec(lines[i]);
+    if (m && m[1] === src.date && sameTitle(m[2], src.title)) return { date: m[1], title: m[2].trim(), line: i + 1 };
+  }
+  return null;
+}
+
 // ─── matching ─────────────────────────────────────────────
 
 function fold(s) {
@@ -345,8 +384,10 @@ function scoreCards(cards, query, opts = {}) {
 }
 
 /**
- * Cards that share a file or a keyword with a decision about to be recorded,
- * ranked: a shared file weighs 3, a shared word what scoreCards gives it.
+ * Cards that share a file or a keyword with a decision about to be recorded.
+ * Ranked by shared files first — a file is a precise anchor, words are not —
+ * then by the word score scoreCards gives, newest first on a tie. `score`
+ * (3 per shared file plus the word score) is reported, not sorted on.
  * Recall over precision on purpose — the agent reads the list and names the
  * one that matters in its question; this only guarantees it is on the list.
  */
@@ -361,11 +402,14 @@ function relatedCards(cards, { files = [], keywords = [] } = {}) {
     out.push({
       card,
       score: sharedFiles.length * 3 + (words ? words.score : 0),
+      wordScore: words ? words.score : 0,
       files: sharedFiles,
       tokens: words ? words.tokens : []
     });
   }
-  return out.sort((a, b) => (b.score - a.score) || newerFirst(a.card, b.card));
+  return out
+    .sort((a, b) => (b.files.length - a.files.length) || (b.wordScore - a.wordScore) || newerFirst(a.card, b.card))
+    .map(({ wordScore, ...rest }) => rest);
 }
 
 // ─── rendering ────────────────────────────────────────────
@@ -430,6 +474,8 @@ module.exports = {
   isSpecCard,
   specLessCards,
   cardsForSpec,
+  notesPath,
+  findNotesEntry,
   tokenize,
   cardTokens,
   cardsForFile,

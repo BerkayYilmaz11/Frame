@@ -713,8 +713,9 @@ const IMPLEMENT_DENY = [
 // next, and a step the template requires cannot hang on that. Only the
 // shipped path: `scripts/spec-close.js` exists in Frame's own repository
 // alone, and allowing it everywhere would allow any project's script of that
-// name. src/templates/bin/implement-launch.js carries the same list; a test
-// keeps the two equal.
+// name. The card writer the close step runs beside it (decision.js add) is
+// allowed for the same reason, by its shipped path only. The list lives in
+// src/templates/bin/implement-launch.js too; a test keeps the two equal.
 const IMPLEMENT_ALLOW = [
   'Edit',
   'Read',
@@ -725,7 +726,8 @@ const IMPLEMENT_ALLOW = [
   'Bash(git show *)',
   'Bash(git log *)',
   'Bash(git rev-parse *)',
-  'Bash(node .frame/bin/spec-close.js *)'
+  'Bash(node .frame/bin/spec-close.js *)',
+  'Bash(node .frame/bin/decision.js *)'
 ];
 
 // The project's own check, in descending order of what actually verifies a

@@ -97,6 +97,7 @@ const MIRRORS = [
   path.join('scripts', 'spec-command-hint.js'),
   path.join('scripts', 'spec-close-state.js'),
   path.join('scripts', 'spec-close.js'),
+  path.join('scripts', 'decision.js'),
   path.join('src', 'templates', 'bin', 'implement-launch.js')
 ];
 

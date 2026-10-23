@@ -253,3 +253,27 @@ test('a module hint skipped while the map is being updated is a recorded reason'
   assert.deepEqual(events.validateEvent('hint.quiet', { mode: 'search', reason: 'map-dirty' }), { mode: 'search', reason: 'map-dirty' });
   assert.equal(events.formatLabel('hint.quiet', { mode: 'search', reason: 'map-dirty' }), 'Module hint skipped — the module map is being updated');
 });
+
+test('a recorded decision card carries kinds and a slug — nothing of the card', () => {
+  assert.deepEqual(events.validateEvent('decision.added', {
+    host: 'cli', source: 'spec', slug: 'decision-cards-core', relation: 'supersedes',
+    decision: 'leaked text', files: 'src/x.js'
+  }), { host: 'cli', source: 'spec', slug: 'decision-cards-core', relation: 'supersedes' });
+  assert.deepEqual(events.validateEvent('decision.added', { source: 'chat', relation: 'replaces' }), {});
+  assert.deepEqual(events.validateEvent('decision.rejected', { host: 'cli', defects: 3, why: 'leak' }), { host: 'cli', defects: 3 });
+  assert.equal(events.kindOf('decision.added'), 'action');
+  assert.equal(events.kindOf('decision.rejected'), 'suppression');
+  assert.deepEqual(events.DECISION_SOURCES, ['spec', 'notes']);
+  assert.deepEqual(events.DECISION_RELATIONS, ['supersedes', 'extends', 'none']);
+});
+
+test('decision card labels say where the story is and how the card relates', () => {
+  assert.equal(events.formatLabel('decision.added', { source: 'spec', slug: 'a', relation: 'none' }), 'Decision card recorded for spec a');
+  assert.equal(events.formatLabel('decision.added', { source: 'notes', relation: 'supersedes' }),
+    'Decision card recorded from a PROJECT_NOTES entry, superseding an older card');
+  assert.equal(events.formatLabel('decision.added', { source: 'notes', relation: 'extends' }),
+    'Decision card recorded from a PROJECT_NOTES entry, extending an older card');
+  assert.equal(events.formatLabel('decision.added', {}), 'Decision card recorded');
+  assert.equal(events.formatLabel('decision.rejected', { defects: 1 }), 'Decision card refused — 1 defect named');
+  assert.equal(events.formatLabel('decision.rejected', { defects: 2 }), 'Decision card refused — 2 defects named');
+});

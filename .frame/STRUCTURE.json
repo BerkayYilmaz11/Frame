@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12278,
+      "sizeBytes": 12636,
       "extraction": {
         "status": "parsed"
       },
@@ -5610,34 +5610,34 @@
           "purpose": "Which staged report asset a tool's prompt should name."
         },
         "resolveVerificationCommand": {
-          "line": 734,
+          "line": 736,
           "params": [
             "projectPath"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildImplementPermissions": {
-          "line": 749,
+          "line": 751,
           "params": [
             "verification"
           ]
         },
         "writeImplementPermissions": {
-          "line": 767,
+          "line": 769,
           "params": [
             "projectPath"
           ],
           "purpose": "Writes .frame/implement-permissions.json and reports what it resolved, so"
         },
         "resolveImplementLaunchHint": {
-          "line": 791,
+          "line": 793,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getImplementLaunchFlags": {
-          "line": 807,
+          "line": 809,
           "params": [
             "projectPath",
             "slug",
@@ -5646,21 +5646,21 @@
           "purpose": "The flags the lane's launch line needs for this dispatch. Only the"
         },
         "specNewPromptFilename": {
-          "line": 828,
+          "line": 830,
           "params": [
             "date"
           ],
           "purpose": "A slug-less run has no stable name to key the prompt file on — `${slug}__`"
         },
         "uniquePromptFilename": {
-          "line": 833,
+          "line": 835,
           "params": [
             "promptsDir",
             "filename"
           ]
         },
         "buildSpecCommandFile": {
-          "line": 842,
+          "line": 844,
           "params": [
             "projectPath",
             "slug",
@@ -5670,32 +5670,32 @@
           ]
         },
         "parseTasksMarkdown": {
-          "line": 886,
+          "line": 888,
           "params": [
             "content"
           ]
         },
         "parseFootprintMarkdown": {
-          "line": 912,
+          "line": 914,
           "params": [
             "content"
           ]
         },
         "getSpecFootprint": {
-          "line": 931,
+          "line": 933,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "completedTaskIdsFromOutcome": {
-          "line": 945,
+          "line": 947,
           "params": [
             "content"
           ]
         },
         "initialTaskState": {
-          "line": 952,
+          "line": 954,
           "params": [
             "status",
             "outcomeIds",
@@ -5704,34 +5704,34 @@
           ]
         },
         "syncTasksFromMarkdown": {
-          "line": 960,
+          "line": 962,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "arraysEqual": {
-          "line": 1045,
+          "line": 1047,
           "params": [
             "a",
             "b"
           ]
         },
         "syncAllSpecTasks": {
-          "line": 1052,
+          "line": 1054,
           "params": [
             "projectPath"
           ]
         },
         "getSpec": {
-          "line": 1069,
+          "line": 1071,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "readSpecReport": {
-          "line": 1108,
+          "line": 1110,
           "params": [
             "projectPath",
             "slug",
@@ -5740,7 +5740,7 @@
           "purpose": "Read one of a spec's two generated HTML reports, for the in-app viewer."
         },
         "searchSpecs": {
-          "line": 1137,
+          "line": 1139,
           "params": [
             "projectPath",
             "query"
@@ -5748,7 +5748,7 @@
           "purpose": "Search specs by keyword over their spec.md content. Case-insensitive"
         },
         "updateSpecStatus": {
-          "line": 1158,
+          "line": 1160,
           "params": [
             "projectPath",
             "slug",
@@ -5756,14 +5756,14 @@
           ]
         },
         "deleteSpec": {
-          "line": 1182,
+          "line": 1184,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "renameSpec": {
-          "line": 1199,
+          "line": 1201,
           "params": [
             "projectPath",
             "oldSlug",
@@ -5772,54 +5772,54 @@
           "purpose": "Rename a spec: moves the folder, updates status.json's slug field, and"
         },
         "startWatching": {
-          "line": 1314,
+          "line": 1316,
           "params": [
             "projectPath"
           ]
         },
         "stopWatching": {
-          "line": 1414
+          "line": 1416
         },
         "markSpecNewLaunch": {
-          "line": 1467,
+          "line": 1469,
           "params": [
             "projectPath"
           ]
         },
         "consumeSpecNewLaunch": {
-          "line": 1473,
+          "line": 1475,
           "params": [
             "projectPath"
           ]
         },
         "resolveSpecOrigin": {
-          "line": 1489,
+          "line": 1491,
           "params": [
             "projectPath"
           ],
           "purpose": "How this spec was started, from Frame's own state — never guessed from the"
         },
         "trackSpecLifecycle": {
-          "line": 1500,
+          "line": 1502,
           "params": [
             "projectPath",
             "specs"
           ]
         },
         "pushSpecData": {
-          "line": 1528,
+          "line": 1530,
           "params": [
             "projectPath"
           ]
         },
         "init": {
-          "line": 1552,
+          "line": 1554,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 1556,
+          "line": 1558,
           "params": [
             "ipcMain"
           ]
@@ -5846,7 +5846,7 @@
           "SPEC_DATA"
         ]
       },
-      "sizeBytes": 71120,
+      "sizeBytes": 71286,
       "extraction": {
         "status": "parsed"
       },
@@ -5899,7 +5899,7 @@
       ],
       "functions": {
         "stageFile": {
-          "line": 99,
+          "line": 102,
           "params": [
             "fsImpl",
             "src",
@@ -5908,7 +5908,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 132,
+          "line": 135,
           "params": [
             "projectPath",
             "options = {}"
@@ -5916,61 +5916,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 213,
+          "line": 216,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 224,
+          "line": 227,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 258,
+          "line": 261,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 299,
+          "line": 302,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 319,
+          "line": 322,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 394,
+          "line": 397,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 414,
+          "line": 417,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 427,
+          "line": 430,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 439,
+          "line": 442,
           "params": [
             "envelope",
             "code"
@@ -5978,7 +5978,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 498,
+          "line": 501,
           "params": [
             "projectPath",
             "options = {}"
@@ -5986,7 +5986,7 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 616,
+          "line": 619,
           "params": [
             "projectPath",
             "structureWasCreated"
@@ -5994,7 +5994,7 @@
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
         }
       },
-      "sizeBytes": 27244,
+      "sizeBytes": 27468,
       "extraction": {
         "status": "parsed"
       },
@@ -6748,7 +6748,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4087,
+      "sizeBytes": 4151,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -17171,6 +17171,134 @@
         }
       }
     },
+    "scripts/decision": {
+      "file": "scripts/decision.js",
+      "description": "",
+      "exports": [
+        "prepare",
+        "appendLine",
+        "cardId",
+        "main"
+      ],
+      "depends": [
+        "fs",
+        "path",
+        "crypto",
+        "decision-cards",
+        "activity-log"
+      ],
+      "functions": {
+        "resolveRoot": {
+          "line": 53
+        },
+        "specDir": {
+          "line": 61,
+          "params": [
+            "root",
+            "slug"
+          ]
+        },
+        "today": {
+          "line": 64,
+          "purpose": "The UTC date of writing. FRAME_DECISION_DATE pins it, for tests only."
+        },
+        "cardId": {
+          "line": 70,
+          "params": [
+            "decision",
+            "source",
+            "date"
+          ]
+        },
+        "listFlag": {
+          "line": 76,
+          "params": [
+            "argv",
+            "name"
+          ],
+          "purpose": "`--name value` or `--name=value`, as a comma-split list."
+        },
+        "record": {
+          "line": 89,
+          "params": [
+            "root",
+            "ev",
+            "fields"
+          ],
+          "purpose": "A refusal is a guard preventing a write, so it is a suppression; a written"
+        },
+        "prepare": {
+          "line": 106,
+          "params": [
+            "root",
+            "input"
+          ],
+          "purpose": "Build and check the card `input` describes. Returns"
+        },
+        "appendLine": {
+          "line": 180,
+          "params": [
+            "root",
+            "line"
+          ],
+          "purpose": "Append one line in a single write. A file whose last line was torn by an"
+        },
+        "readInput": {
+          "line": 199,
+          "params": [
+            "argv"
+          ]
+        },
+        "add": {
+          "line": 205,
+          "params": [
+            "root",
+            "argv",
+            "json"
+          ]
+        },
+        "malformedLines": {
+          "line": 243,
+          "params": [
+            "malformed"
+          ]
+        },
+        "related": {
+          "line": 247,
+          "params": [
+            "root",
+            "argv",
+            "json"
+          ]
+        },
+        "list": {
+          "line": 275,
+          "params": [
+            "root",
+            "json"
+          ]
+        },
+        "main": {
+          "line": 295,
+          "params": [
+            "argv"
+          ]
+        }
+      },
+      "sizeBytes": 12926,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "purposes": {
+          "appendLine": "70fcc1622a9334fc",
+          "listFlag": "2153b844d9ce7969",
+          "prepare": "5902b4df1676e66c",
+          "record": "cbe913d9af56f4a9",
+          "today": "d13ee7c56298e198"
+        }
+      }
+    },
     "scripts/decision-cards": {
       "file": "scripts/decision-cards.js",
       "description": "Decision cards — the shared reader for `.frame/decisions.jsonl`.",
@@ -17190,6 +17318,8 @@
         "isSpecCard",
         "specLessCards",
         "cardsForSpec",
+        "notesPath",
+        "findNotesEntry",
         "tokenize",
         "cardTokens",
         "cardsForFile",
@@ -17301,27 +17431,49 @@
           ],
           "purpose": "Current cards whose story is spec `slug`."
         },
+        "notesPath": {
+          "line": 286,
+          "params": [
+            "root"
+          ],
+          "purpose": "Where PROJECT_NOTES.md is: `.frame/` once migrated, the root while an"
+        },
+        "sameTitle": {
+          "line": 293,
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        "findNotesEntry": {
+          "line": 303,
+          "params": [
+            "notesText",
+            "source"
+          ],
+          "purpose": "The `### [date] title` entry a notes source names, as `{ date, title, line }`,"
+        },
         "fold": {
-          "line": 277,
+          "line": 316,
           "params": [
             "s"
           ]
         },
         "tokenize": {
-          "line": 286,
+          "line": 325,
           "params": [
             "s"
           ]
         },
         "cardTokens": {
-          "line": 291,
+          "line": 330,
           "params": [
             "card"
           ],
           "purpose": "The words a card answers to: its keywords, its decision, its files' names."
         },
         "newerFirst": {
-          "line": 300,
+          "line": 339,
           "params": [
             "a",
             "b"
@@ -17329,7 +17481,7 @@
           "purpose": "Newest first; file order breaks a tie, later lines being newer."
         },
         "cardsForFile": {
-          "line": 306,
+          "line": 345,
           "params": [
             "cards",
             "rel"
@@ -17337,7 +17489,7 @@
           "purpose": "Cards listing `rel` among their files, newest first."
         },
         "scoreCards": {
-          "line": 317,
+          "line": 356,
           "params": [
             "cards",
             "query",
@@ -17346,16 +17498,16 @@
           "purpose": "Score `cards` against a bag of words: a shared token counts 2 when it is"
         },
         "relatedCards": {
-          "line": 353,
+          "line": 394,
           "params": [
             "cards",
             "{ files = []",
             "keywords = [] } = {}"
           ],
-          "purpose": "Cards that share a file or a keyword with a decision about to be recorded,"
+          "purpose": "Cards that share a file or a keyword with a decision about to be recorded."
         },
         "clip": {
-          "line": 374,
+          "line": 418,
           "params": [
             "s",
             "cap"
@@ -17363,20 +17515,20 @@
           "purpose": "`s` cut at a word boundary with \"…\" when it runs past `cap`."
         },
         "storyPointer": {
-          "line": 383,
+          "line": 427,
           "params": [
             "card"
           ],
           "purpose": "Where the card's story is told, as an agent would go and read it."
         },
         "relationMark": {
-          "line": 390,
+          "line": 434,
           "params": [
             "card"
           ]
         },
         "renderCard": {
-          "line": 401,
+          "line": 445,
           "params": [
             "card",
             "{ full = true } = {}"
@@ -17384,14 +17536,14 @@
           "purpose": "One card as a hook or the CLI prints it. Full: the decision, its why and"
         },
         "catalogLines": {
-          "line": 412,
+          "line": 456,
           "params": [
             "cards"
           ],
           "purpose": "Catalog lines for /spec.new, in the spec catalog's own shape"
         }
       },
-      "sizeBytes": 16522,
+      "sizeBytes": 18472,
       "extraction": {
         "status": "parsed"
       },
@@ -17405,13 +17557,15 @@
           "catalogLines": "29fae1ca6ca069fd",
           "clip": "fc17db4fd46d75e8",
           "currentCards": "f755f4214a4bf876",
+          "findNotesEntry": "416d974a3bb93489",
           "newerFirst": "c7d4ca113081a028",
           "normalizeCard": "3ba911c1aadb8798",
           "normalizeRel": "04f01133fef0ee95",
+          "notesPath": "7ed6f827658f0feb",
           "parseCards": "508f42adc36b881c",
           "parseSource": "75b264a17d14da4f",
           "readCards": "815fa336ed251032",
-          "relatedCards": "4c61942e68a18e87",
+          "relatedCards": "81b434b72bb5f8e3",
           "renderCard": "eaa84273029de4d6",
           "scoreCards": "bbc7242de6fc63b9",
           "sentenceCount": "645299acfdb7cb76",
@@ -22362,6 +22516,8 @@
         "HINT_REASONS",
         "HINT_MODES",
         "CLOSE_VERDICTS",
+        "DECISION_SOURCES",
+        "DECISION_RELATIONS",
         "LIFECYCLE_REASONS",
         "MISSED_BOUND_REASONS",
         "HOSTS",
@@ -22375,32 +22531,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 475,
+          "line": 503,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 479,
+          "line": 507,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 483,
+          "line": 511,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 487,
+          "line": 515,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 510,
+          "line": 538,
           "params": [
             "name",
             "fields"
@@ -22408,7 +22564,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 527,
+          "line": 555,
           "params": [
             "name",
             "fields"
@@ -22416,7 +22572,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 548,
+          "line": 576,
           "params": [
             "name",
             "fields"
@@ -22424,7 +22580,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 25394,
+      "sizeBytes": 26870,
       "extraction": {
         "status": "parsed"
       },
@@ -23204,7 +23360,7 @@
       ],
       "functions": {
         "interpolate": {
-          "line": 75,
+          "line": 76,
           "params": [
             "template",
             "vars"
@@ -23212,21 +23368,21 @@
           "purpose": "{key} → vars[key]; unknown placeholders are left intact (same contract as"
         },
         "resolveVerificationCommand": {
-          "line": 82,
+          "line": 83,
           "params": [
             "config"
           ],
           "purpose": "The project's own check, in descending order of what actually verifies a"
         },
         "buildPermissions": {
-          "line": 94,
+          "line": 95,
           "params": [
             "verification"
           ],
           "purpose": "The implement-permissions.json body. When a verification command exists,"
         },
         "buildLaunchArgs": {
-          "line": 104,
+          "line": 105,
           "params": [
             "settingsAbsPath",
             "promptRelPath"
@@ -23234,7 +23390,7 @@
           "purpose": "The CLI launch line: the permission flags plus the short read-this-file"
         },
         "resolveRawTemplatePath": {
-          "line": 114,
+          "line": 115,
           "params": [
             "projectRoot",
             "existsFn = fs.existsSync"
@@ -23242,20 +23398,20 @@
           "purpose": "Raw template path: override → staged. `existsFn` is injectable for tests."
         },
         "findProjectRoot": {
-          "line": 126,
+          "line": 127,
           "params": [
             "startDir"
           ],
           "purpose": "Walk up from a starting dir to the nearest ancestor that holds a .frame/"
         },
         "readJson": {
-          "line": 136,
+          "line": 137,
           "params": [
             "absPath"
           ]
         },
         "recordAutonomousMode": {
-          "line": 146,
+          "line": 147,
           "params": [
             "projectRoot",
             "slug"
@@ -23263,25 +23419,25 @@
           "purpose": "Merge implement_mode: autonomous into the spec's status.json, preserving"
         },
         "writePermissions": {
-          "line": 156,
+          "line": 157,
           "params": [
             "projectRoot"
           ]
         },
         "fail": {
-          "line": 165,
+          "line": 166,
           "params": [
             "message"
           ]
         },
         "main": {
-          "line": 170,
+          "line": 171,
           "params": [
             "argv"
           ]
         }
       },
-      "sizeBytes": 8655,
+      "sizeBytes": 8727,
       "extraction": {
         "status": "parsed"
       },
@@ -23924,7 +24080,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 15085,
+      "sizeBytes": 16888,
       "extraction": {
         "status": "parsed"
       },
@@ -24273,6 +24429,80 @@
       },
       "provenance": {
         "description": "a0ee2f5a72dd524f"
+      }
+    },
+    "test/decision.test": {
+      "file": "test/decision.test.js",
+      "description": "decision.js — the card writer and lookup CLI (decision-cards-core T02).",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/decision-cards",
+        "src/shared/activityEvents",
+        "scripts/activity-log",
+        "scripts/decision"
+      ],
+      "functions": {
+        "mkProject": {
+          "line": 35,
+          "params": [
+            "{ notes = NOTES",
+            "specs = ['spec-close-step']",
+            "files = ['src/main/gitSharing.js'] } = {}"
+          ]
+        },
+        "env": {
+          "line": 47,
+          "params": [
+            "root"
+          ]
+        },
+        "run": {
+          "line": 51,
+          "params": [
+            "root",
+            "args",
+            "input"
+          ]
+        },
+        "rows": {
+          "line": 56,
+          "params": [
+            "root"
+          ]
+        },
+        "input": {
+          "line": 65,
+          "params": [
+            "over = {}"
+          ]
+        },
+        "add": {
+          "line": 76,
+          "params": [
+            "root",
+            "over",
+            "args = []"
+          ]
+        },
+        "fileLines": {
+          "line": 80,
+          "params": [
+            "root"
+          ]
+        }
+      },
+      "sizeBytes": 15083,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "3c538125f67c204e"
       }
     },
     "test/decisionCards.test": {
@@ -25593,7 +25823,7 @@
         "src/main/specManager"
       ],
       "functions": {},
-      "sizeBytes": 6615,
+      "sizeBytes": 6884,
       "extraction": {
         "status": "parsed"
       },
@@ -25773,11 +26003,11 @@
           "purpose": "Lines in `relFile` that build a path with a `specs` segment, as `file:line`."
         },
         "expectedSegments": {
-          "line": 104,
+          "line": 105,
           "purpose": "The segments frameStore puts between a project and its specs: ['.frame', 'specs']."
         },
         "joinArguments": {
-          "line": 114,
+          "line": 115,
           "params": [
             "line",
             "from"
@@ -25785,21 +26015,21 @@
           "purpose": "The arguments of the `path.join(` call starting at `from`, as a flat list."
         },
         "specPathJoins": {
-          "line": 134,
+          "line": 135,
           "params": [
             "relFile"
           ],
           "purpose": "Every spec-path join in `relFile`, with its segments resolved where we can."
         },
         "decisionPathLines": {
-          "line": 184,
+          "line": 185,
           "params": [
             "relFile"
           ],
           "purpose": "Lines in `relFile` that build a path ending in the card file."
         }
       },
-      "sizeBytes": 9570,
+      "sizeBytes": 9609,
       "extraction": {
         "status": "parsed"
       },
@@ -26908,11 +27138,11 @@
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
         "previousTemplate": {
-          "line": 388,
+          "line": 411,
           "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
         },
         "gitInit": {
-          "line": 402,
+          "line": 425,
           "params": [
             "dir"
           ]
@@ -26925,7 +27155,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 22322,
+      "sizeBytes": 23411,
       "extraction": {
         "status": "parsed"
       },
@@ -29552,7 +29782,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 318,
+        "parsed": 320,
         "unsupported": 84,
         "partial": 0
       }
@@ -29599,9 +29829,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 492,
+      "visitedEntries": 494,
       "traversedDirectories": 82,
-      "eligibleFiles": 402,
+      "eligibleFiles": 404,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -29618,7 +29848,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 402,
+      "indexedFiles": 404,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -29626,6 +29856,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "59d9cef32d650bc856413f724fb704836abb05283b9217e590ebf1bba1505ecc"
+    "revision": "b401bb3daff6d46c04dc38c932584e63a486c6c9aca46a8d83167004a98ee1e8"
   }
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T10:17:39.458Z",
+  "lastUpdated": "2026-10-23T10:24:00.774Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -8962,13 +8962,13 @@
       "title": "Add `scripts/decision.js` with `add` (D11 id, D12 source check, `supersedes`/`extends` ids, one `O_APPEND` line), `related --files --keywords` and `list` (naming malformed lines), all with `--json`; register `decision.added` and `decision.rejected` in `src/shared/activityEvents.js` and `PRIVACY.md`; ship both scripts through `src/main/structureBootstrap.js` (`ENTRY_FILES`, `HELPER_FILES`, `ENTRY_REQUIRES`) and `package.json` `build.files`; allow `Bash(node .frame/bin/decision.js *)` in `IMPLEMENT_ALLOW` in `src/main/specManager.js` and in `src/templates/bin/implement-launch.js`; cover it in `test/decision.test.js`, `test/activityEvents.test.js`, `test/structureBootstrap.test.js` and `test/implementLaunch.test.js`",
       "description": "",
       "source": "spec:decision-cards-core:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T10:24:00.774Z",
+      "completedAt": "2026-10-23T10:24:00.774Z"
     },
     {
       "id": "task-spec-decision-cards-core-T03",
