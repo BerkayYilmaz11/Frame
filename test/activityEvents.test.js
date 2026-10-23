@@ -277,3 +277,14 @@ test('decision card labels say where the story is and how the card relates', () 
   assert.equal(events.formatLabel('decision.rejected', { defects: 1 }), 'Decision card refused — 1 defect named');
   assert.equal(events.formatLabel('decision.rejected', { defects: 2 }), 'Decision card refused — 2 defects named');
 });
+
+test('an edit-time card delivery is a hint mode of its own, with a card count', () => {
+  assert.ok(events.HINT_MODES.includes('decision-edit'));
+  assert.deepEqual(events.validateEvent('hint.injected', { host: 'codex-hook', mode: 'decision-edit', path: 'src/a.js', cards: 2 }),
+    { host: 'codex-hook', mode: 'decision-edit', path: 'src/a.js', cards: 2 });
+  assert.equal(events.formatLabel('hint.injected', { mode: 'decision-edit', path: 'src/a.js', cards: 1 }),
+    'Recorded decision delivered for src/a.js (1 card)');
+  assert.equal(events.formatLabel('hint.injected', { mode: 'decision-edit', path: 'src/a.js', cards: 3 }),
+    'Recorded decisions delivered for src/a.js (3 cards)');
+  assert.equal(events.formatLabel('hint.quiet', { mode: 'decision-edit', reason: 'no-context' }).length > 0, true);
+});

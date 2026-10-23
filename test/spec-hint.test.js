@@ -597,3 +597,155 @@ test('a .frame/bin/ without the helper surfaces related specs as before and noth
   assert.equal(run(prompt(root, 'ok')), null);
   assert.ok(ctxOf(run(prompt(root, 'telemetry polling'))).startsWith(TOPIC_HEADER));
 });
+
+// ─── decision cards at edit time (decision-cards-core T06) ──
+
+const decisionCards = require('../scripts/decision-cards');
+
+const CARD = (over = {}) => ({
+  id: '20261014-aaaaaa', date: '2026-10-14',
+  decision: 'Card files merge with the union driver.',
+  why: 'Two branches each append a card, and a union merge keeps both.',
+  keywords: ['union merge'], files: ['src/main/a.js'],
+  source: 'notes:2026-10-14 Union merge for cards', supersedes: null, extends: null, ...over
+});
+
+function withCards(root, cards) {
+  fs.writeFileSync(decisionCards.cardsPath(root), cards.map((c) => JSON.stringify(c)).join('\n') + '\n');
+  return root;
+}
+
+const editAt = (root, file, session = 'dc') => runHook('pre-edit', { session_id: session, cwd: root, tool_input: { file_path: file } });
+const ctxOfEdit = (out) => out && out.hookSpecificOutput.additionalContext;
+
+test('a file with no spec history still gets its spec-less card, once per session', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const ctx = ctxOfEdit(editAt(root, 'src/untouched.js'));
+  assert.ok(ctx.startsWith('Recorded decisions for src/untouched.js (newest first):\n'));
+  assert.match(ctx, /- 2026-10-14 20261014-aaaaaa — Card files merge with the union driver\.\n  why: Two branches/);
+  assert.match(ctx, /story: PROJECT_NOTES\.md "### \[2026-10-14\] Union merge for cards"/);
+  assert.match(ctx, /Respect them; to overturn one, say so to the user first/);
+  assert.ok(!/Spec history/.test(ctx));
+  assert.equal(editAt(root, 'src/untouched.js'), null, 'once per session');
+  assert.ok(ctxOfEdit(editAt(root, 'src/untouched.js', 'another-session')), 'a new session hears it again');
+});
+
+test('a file with spec history gets the history unchanged, then its cards', () => {
+  const plain = ctxOfEdit(editAt(mkProject(IDX_ONE), 'src/main/a.js'));
+  const ctx = ctxOfEdit(editAt(withCards(mkProject(IDX_ONE), [CARD()]), 'src/main/a.js'));
+  assert.ok(ctx.startsWith(`${plain}\n\nRecorded decisions for src/main/a.js (newest first):\n`));
+});
+
+test('a card added later reaches a file already announced, and only the new card is sent', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD()]);
+  assert.ok(ctxOfEdit(editAt(root, 'src/main/a.js')));
+  withCards(root, [CARD(), CARD({ id: '20261015-bbbbbb', date: '2026-10-15', decision: 'A newer decision here.' })]);
+  const ctx = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  assert.ok(ctx.startsWith('Recorded decisions for src/main/a.js'), 'the history is not repeated');
+  assert.match(ctx, /A newer decision here\./);
+  assert.ok(!/union driver/.test(ctx), 'the card already shown is not repeated');
+});
+
+test('spec cards and superseded cards are never delivered', () => {
+  const root = withCards(mkProject(IDX_ONE), [
+    CARD({ id: '20261001-aaaaaa', date: '2026-10-01', files: ['src/x.js'], source: 'spec:perf-spec', decision: 'A spec decision.' }),
+    CARD({ id: '20261002-bbbbbb', date: '2026-10-02', files: ['src/x.js'], decision: 'The old rule.' }),
+    CARD({ id: '20261003-cccccc', date: '2026-10-03', files: ['src/x.js'], decision: 'The new rule.', supersedes: '20261002-bbbbbb' })
+  ]);
+  const ctx = ctxOfEdit(editAt(root, 'src/x.js'));
+  assert.match(ctx, /The new rule\./);
+  assert.match(ctx, /\(supersedes 20261002-bbbbbb\)/);
+  assert.ok(!/A spec decision\.|The old rule\./.test(ctx));
+  const specOnly = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/y.js'], source: 'spec:perf-spec' })]);
+  assert.equal(editAt(specOnly, 'src/y.js'), null);
+});
+
+test('three or more cards go one line each, with the command that prints them whole', () => {
+  const cards = [1, 2, 3].map((n) => CARD({ id: `2026101${n}-00000${n}`, date: `2026-10-1${n}`, files: ['src/z.js'], decision: `Decision number ${n}.` }));
+  const ctx = ctxOfEdit(editAt(withCards(mkProject(IDX_ONE), cards), 'src/z.js'));
+  assert.ok(ctx.indexOf('Decision number 3.') < ctx.indexOf('Decision number 1.'), 'newest first');
+  assert.ok(!/why:/.test(ctx), 'compact');
+  assert.match(ctx, /Full cards: node .*decision\.js list/);
+});
+
+test('cards give way under the inline cap; the ones left out come on a later edit', () => {
+  const long = (n) => CARD({
+    id: `2026101${n}-00000${n}`, date: `2026-10-1${n}`, files: ['src/main/a.js'],
+    decision: `Decision ${n} ${'word '.repeat(45).trim()}.`, why: `${'reason '.repeat(35).trim()}.`
+  });
+  const idx = JSON.parse(JSON.stringify(IDX_ONE));
+  idx.files['src/main/a.js'] = [REC('perf-spec', { line: 'y'.repeat(330), flags: { current: true } })];
+  const root = withCards(mkProject(idx), [1, 2, 3, 4, 5, 6].map(long));
+  const first = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  assert.ok(first.length <= 1980, `${first.length} chars`);
+  assert.ok(first.includes('Recorded decisions for'), 'at least one card fits');
+  assert.ok(!/why:/.test(first), 'one line per card before any card is dropped');
+  const sent = first.match(/2026101\d-00000\d/g) || [];
+  assert.ok(sent.length >= 1 && sent.length < 6, `${sent.length} sent`);
+  const second = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  const rest = second.match(/2026101\d-00000\d/g) || [];
+  assert.ok(rest.length > 0 && rest.every((id) => !sent.includes(id)), 'the rest arrive next time, and only the rest');
+});
+
+test('signal mode sends one pointer line for the cards', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const out = runHook('pre-edit', { session_id: 'sig', cwd: root, tool_input: { file_path: 'src/untouched.js' } },
+    { env: { FRAME_SPEC_HINT_MODE: 'signal' } });
+  assert.match(ctxOfEdit(out), /^This file has 1 recorded decision card\(s\)\. Before editing, run: node .*decision\.js related --files src\/untouched\.js$/);
+});
+
+test('a Codex apply_patch gets the patched file\'s cards', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const command = ['*** Begin Patch', '*** Update File: src/untouched.js', '+x', '*** End Patch'].join('\n');
+  const stdout = execFileSync('node', [HINT, 'pre-edit', 'codex'], {
+    input: JSON.stringify({ session_id: 'cx', cwd: root, tool_name: 'apply_patch', tool_input: { command }, turn_id: 't', model: 'm' }),
+    encoding: 'utf8'
+  });
+  assert.match(JSON.parse(stdout).hookSpecificOutput.additionalContext, /Card files merge with the union driver/);
+});
+
+test('a card delivery is recorded under its own mode, beside the history row', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD()]);
+  withActivity(root, (env) => {
+    runHook('pre-edit', { cwd: root, session_id: 'r1', tool_input: { file_path: 'src/main/a.js' } }, { env });
+    const injected = recordsFor(root).filter((r) => r.ev === 'hint.injected').map((r) => [r.mode, r.path, r.cards ?? null]);
+    assert.deepEqual(injected, [['pre-edit', 'src/main/a.js', null], ['decision-edit', 'src/main/a.js', 1]]);
+  });
+});
+
+// With no card file, every pre-edit payload and record is the one the hook
+// sent before cards existed. Pinned against the last commit before this spec.
+const BEFORE_CARDS = (() => {
+  try {
+    return execFileSync('git', ['show', '8ce2aa8:scripts/spec-hint.js'],
+      { cwd: path.join(__dirname, '..'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return null; // a shallow clone
+  }
+})();
+
+test('with no card file, pre-edit is byte-identical to the hook before cards', { skip: !BEFORE_CARDS && 'history unavailable' }, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-before-'));
+  for (const f of ['activity-log.js', 'redact.js', 'toolVocabulary.js', 'spec-close-state.js', 'decision-cards.js']) {
+    fs.copyFileSync(path.join(__dirname, '..', 'scripts', f), path.join(dir, f));
+  }
+  fs.writeFileSync(path.join(dir, 'spec-hint.js'), BEFORE_CARDS);
+  // The current hook in a twin folder with the same siblings, so the paths
+  // each one names for its helpers resolve alike.
+  const twin = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-after-'));
+  for (const f of fs.readdirSync(dir)) fs.copyFileSync(path.join(dir, f), path.join(twin, f));
+  fs.copyFileSync(HINT, path.join(twin, 'spec-hint.js'));
+  const run = (script, root, payload, env = {}) => execFileSync('node', [script, 'pre-edit'], {
+    input: JSON.stringify(payload), encoding: 'utf8', env: { ...process.env, ...env }
+  });
+  for (const file of ['src/main/a.js', 'src/many.js', 'src/none.js', '.frame/tasks.json', '../out.js']) {
+    for (const env of [{}, { FRAME_SPEC_HINT_MODE: 'signal' }]) {
+      const a = mkProject(IDX_ONE);
+      const b = mkProject(IDX_ONE);
+      const payload = (root) => ({ session_id: 'same', cwd: root, tool_input: { file_path: file } });
+      const before = [run(path.join(dir, 'spec-hint.js'), a, payload(a), env), run(path.join(dir, 'spec-hint.js'), a, payload(a), env)];
+      const after = [run(path.join(twin, 'spec-hint.js'), b, payload(b), env), run(path.join(twin, 'spec-hint.js'), b, payload(b), env)];
+      assert.deepEqual(after.map((o) => o.split(b).join('<root>')), before.map((o) => o.split(a).join('<root>')), `${file} ${JSON.stringify(env)}`);
+    }
+  }
+});

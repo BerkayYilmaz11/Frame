@@ -39,3 +39,10 @@ Followup: the fix-decision eval does not yet check for a superseding card.
 _Captured: 2026-10-23 · 13 file change(s)_
 
 ---
+## T06 — Cards at edit time and in spec-context
+
+`spec-hint.js` pre-edit now looks up the file's current spec-less cards before the `no-history` return, sends the spec history unchanged and then a "Recorded decisions for <rel>" block, remembers shown card ids in the session state's new `cards` list, and records a `decision-edit` injection with a card count (`activityEvents.js` gained the mode and a `cards` field). Cards are what gives way under `inlineBudget()`: one line per card before any card is dropped, and a dropped card stays unmarked for a later edit; signal mode sends one pointer line, and a Codex `apply_patch` gets the same block. `spec-context.js --file` prints the file's spec-less cards after its history. Beyond the plan: a project with no index still returns `no-index` before cards are looked at, and `test/spec-hint.test.js` and the new `test/spec-context.test.js` pin no-card output byte-for-byte against the scripts at `8ce2aa8`, the commit before this spec.
+
+_Captured: 2026-10-23 · 6 file change(s)_
+
+---

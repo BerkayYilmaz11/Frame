@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-10-23T12:28:55.906Z",
+  "lastUpdated": "2026-10-23T14:15:11.519Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -9014,13 +9014,13 @@
       "title": "Deliver a file's current spec-less cards from `scripts/spec-hint.js` pre-edit before the `no-history` return (`cards` session state with a load default, `decision-edit` mode, Codex `apply_patch`, spec cards excluded) and print them after the spec history in `scripts/spec-context.js --file`; cover both in `test/spec-hint.test.js` and a new `test/spec-context.test.js`, with byte-identical output when no card file exists",
       "description": "",
       "source": "spec:decision-cards-core:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: decision-cards-core",
       "createdAt": "2026-10-23T10:04:12.481Z",
-      "updatedAt": "2026-10-23T10:04:12.481Z",
-      "completedAt": null
+      "updatedAt": "2026-10-23T14:15:11.519Z",
+      "completedAt": "2026-10-23T14:15:11.519Z"
     },
     {
       "id": "task-spec-decision-cards-core-T07",

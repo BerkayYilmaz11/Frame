@@ -20006,60 +20006,77 @@
       "exports": [],
       "depends": [
         "path",
-        "spec-index"
+        "spec-index",
+        "decision-cards"
       ],
       "functions": {
+        "printFileCards": {
+          "line": 38,
+          "params": [
+            "root",
+            "rel"
+          ],
+          "purpose": "The current spec-less cards that name `rel`, after its spec history. Spec"
+        },
         "fold": {
-          "line": 25,
+          "line": 52,
           "params": [
             "s"
           ],
           "purpose": "ascii-fold + lowercase — Turkish/English tolerant matching."
         },
         "tokenize": {
-          "line": 30,
+          "line": 57,
           "params": [
             "s"
           ]
         },
         "flagText": {
-          "line": 34,
+          "line": 61,
           "params": [
             "flags"
           ]
         },
         "printFileHistory": {
-          "line": 45,
+          "line": 72,
           "params": [
             "index",
             "rawPath",
             "root"
           ]
         },
+        "printSpecHistory": {
+          "line": 81,
+          "params": [
+            "index",
+            "rel"
+          ]
+        },
         "printTopicMatches": {
-          "line": 64,
+          "line": 96,
           "params": [
             "index",
             "words"
           ]
         },
         "printList": {
-          "line": 89,
+          "line": 121,
           "params": [
             "index"
           ]
         },
         "main": {
-          "line": 93
+          "line": 125
         }
       },
-      "sizeBytes": 4373,
+      "sizeBytes": 5411,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
-          "fold": "9fef4598a74d4c06"
+          "fold": "9fef4598a74d4c06",
+          "printFileCards": "2ad54b9e1df8cb62"
         }
       }
     },
@@ -20072,7 +20089,8 @@
         "path",
         "activity-log",
         "toolVocabulary",
-        "spec-close-state"
+        "spec-close-state",
+        "decision-cards"
       ],
       "functions": {
         "toPosix": {
@@ -20129,7 +20147,7 @@
           ]
         },
         "saveState": {
-          "line": 99,
+          "line": 103,
           "params": [
             "root",
             "sessionId",
@@ -20137,23 +20155,38 @@
           ]
         },
         "cleanupState": {
-          "line": 107,
+          "line": 111,
           "params": [
             "root"
           ]
         },
+        "decisionCliPath": {
+          "line": 174,
+          "params": [
+            "root"
+          ],
+          "purpose": "The card CLI, as a path an agent can run from the project root."
+        },
+        "fileCards": {
+          "line": 189,
+          "params": [
+            "root",
+            "rel"
+          ],
+          "purpose": "The current spec-less cards that name `rel`, newest first. Spec cards are"
+        },
         "setHookCli": {
-          "line": 168,
+          "line": 208,
           "params": [
             "payload"
           ],
           "purpose": "Called once, from the entry point, with the parsed payload."
         },
         "hookHost": {
-          "line": 172
+          "line": 212
         },
         "note": {
-          "line": 176,
+          "line": 216,
           "params": [
             "root",
             "ev",
@@ -20161,7 +20194,7 @@
           ]
         },
         "quiet": {
-          "line": 191,
+          "line": 231,
           "params": [
             "root",
             "mode",
@@ -20171,7 +20204,7 @@
           "purpose": "Record a quiet path and return, so call sites stay single-expression."
         },
         "emit": {
-          "line": 197,
+          "line": 237,
           "params": [
             "eventName",
             "context",
@@ -20179,7 +20212,7 @@
           ]
         },
         "fixInstruction": {
-          "line": 219,
+          "line": 259,
           "params": [
             "slugs",
             "subject = 'edit'"
@@ -20187,24 +20220,45 @@
           "purpose": "How a fix to a finished spec's work records itself. Test-time fixes used to"
         },
         "formatEntry": {
-          "line": 231,
+          "line": 271,
           "params": [
             "r",
             "full"
           ]
         },
         "preEdit": {
-          "line": 243,
+          "line": 283,
           "params": [
             "input"
           ]
         },
+        "cardBlock": {
+          "line": 347,
+          "params": [
+            "root",
+            "rel",
+            "cards",
+            "signalMode",
+            "used"
+          ],
+          "purpose": "The cards block for a pre-edit payload, or null when nothing fits. 1–2"
+        },
+        "historyBlock": {
+          "line": 372,
+          "params": [
+            "root",
+            "rel",
+            "hist",
+            "signalMode"
+          ],
+          "purpose": "The spec-history block for a pre-edit payload — the text this hook has always sent."
+        },
         "inlineBudget": {
-          "line": 308,
+          "line": 403,
           "purpose": "How much this host inlines, less the margin docs-hint.js keeps. Only the"
         },
         "closeReminder": {
-          "line": 318,
+          "line": 413,
           "params": [
             "root",
             "input"
@@ -20212,7 +20266,7 @@
           "purpose": "The close reminder for this prompt, or null. The helper decides everything"
         },
         "freshTopics": {
-          "line": 333,
+          "line": 428,
           "params": [
             "root",
             "input"
@@ -20220,28 +20274,32 @@
           "purpose": "Specs related to this prompt that the session has not been shown, or null"
         },
         "topicBlock": {
-          "line": 373,
+          "line": 468,
           "params": [
             "index",
             "list"
           ]
         },
         "promptMode": {
-          "line": 388,
+          "line": 483,
           "params": [
             "input"
           ]
         }
       },
-      "sizeBytes": 19430,
+      "sizeBytes": 23557,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "purposes": {
+          "cardBlock": "fecefdc2a5602b1f",
           "closeReminder": "53f0b45f5426931c",
+          "decisionCliPath": "cd4bfc0820502ca0",
+          "fileCards": "a1c33b4244d4f79c",
           "fixInstruction": "3025d4b48f1ea9b4",
           "freshTopics": "0d2ec57657e79c1b",
+          "historyBlock": "4db225d038272e1a",
           "inlineBudget": "493a88afee203081",
           "quiet": "3e8f4a1504407442",
           "setHookCli": "c07ecdee8595a6cf"
@@ -22632,32 +22690,32 @@
       "depends": [],
       "functions": {
         "isRegistered": {
-          "line": 503,
+          "line": 510,
           "params": [
             "name"
           ]
         },
         "kindOf": {
-          "line": 507,
+          "line": 514,
           "params": [
             "name"
           ]
         },
         "isSuppression": {
-          "line": 511,
+          "line": 518,
           "params": [
             "name"
           ]
         },
         "fieldPasses": {
-          "line": 515,
+          "line": 522,
           "params": [
             "spec",
             "value"
           ]
         },
         "validateEvent": {
-          "line": 538,
+          "line": 545,
           "params": [
             "name",
             "fields"
@@ -22665,7 +22723,7 @@
           "purpose": "Validate an (event, fields) pair against the registry."
         },
         "formatLabel": {
-          "line": 555,
+          "line": 562,
           "params": [
             "name",
             "fields"
@@ -22673,7 +22731,7 @@
           "purpose": "The one-line sentence the panel's default view shows, or null when the"
         },
         "buildRecord": {
-          "line": 576,
+          "line": 583,
           "params": [
             "name",
             "fields"
@@ -22681,7 +22739,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 26888,
+      "sizeBytes": 27305,
       "extraction": {
         "status": "parsed"
       },
@@ -24192,7 +24250,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 16904,
+      "sizeBytes": 17716,
       "extraction": {
         "status": "parsed"
       },
@@ -26888,6 +26946,51 @@
         }
       }
     },
+    "test/spec-context.test": {
+      "file": "test/spec-context.test.js",
+      "description": "spec-context.js --file — spec history, then the file's decision cards",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process"
+      ],
+      "functions": {
+        "mkProject": {
+          "line": 22,
+          "purpose": "A project holding one real finished spec, so the file has spec history."
+        },
+        "run": {
+          "line": 29,
+          "params": [
+            "root",
+            "args",
+            "cli = CLI"
+          ]
+        },
+        "BEFORE_CARDS": {
+          "line": 80,
+          "params": [
+            "("
+          ],
+          "purpose": "The last commit before decision cards. Absent in a shallow clone."
+        }
+      },
+      "sizeBytes": 4482,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "a939452c9bef96e6",
+        "purposes": {
+          "BEFORE_CARDS": "6e0627e49f9db956",
+          "mkProject": "f9ad42d45055e57f"
+        }
+      }
+    },
     "test/spec-hint.test": {
       "file": "test/spec-hint.test.js",
       "description": "Spec Knowledge Layer — hook script tests.",
@@ -26900,7 +27003,8 @@
         "path",
         "child_process",
         "scripts/activity-log",
-        "src/shared/activityEvents"
+        "src/shared/activityEvents",
+        "scripts/decision-cards"
       ],
       "functions": {
         "runHook": {
@@ -26947,15 +27051,30 @@
             "width"
           ],
           "purpose": "An index whose topics all match \"telemetry\", each with a digest line of `width` characters."
+        },
+        "withCards": {
+          "line": 613,
+          "params": [
+            "root",
+            "cards"
+          ]
+        },
+        "BEFORE_CARDS": {
+          "line": 718,
+          "params": [
+            "("
+          ],
+          "purpose": "With no card file, every pre-edit payload and record is the one the hook"
         }
       },
-      "sizeBytes": 30137,
+      "sizeBytes": 39283,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "68fc601a032f6611",
         "purposes": {
+          "BEFORE_CARDS": "681d84b1ac3171cc",
           "addClosed": "5cceb150c8ba49c1",
           "wideIndex": "42801f3b44956247"
         }
@@ -29935,7 +30054,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 320,
+        "parsed": 321,
         "unsupported": 84,
         "partial": 0
       }
@@ -29982,9 +30101,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 494,
+      "visitedEntries": 495,
       "traversedDirectories": 82,
-      "eligibleFiles": 404,
+      "eligibleFiles": 405,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -30001,7 +30120,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 404,
+      "indexedFiles": 405,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -30009,6 +30128,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "6a605f3b691a91f5d75aa605215865291d49be5ca7cf22d6d8c30ec7abeb58d7"
+    "revision": "b9da45d0e67bbe0e44c316ad2be3f17d6c8a9201bbcd51aa3d96f0dbfc92633f"
   }
 }

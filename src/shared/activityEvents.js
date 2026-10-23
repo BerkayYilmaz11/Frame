@@ -65,7 +65,10 @@ const HINT_REASONS = [
 // The hint hooks' modes. One list for both events: a mode that can speak can
 // also stay quiet, and a mode declared on only one of them drops the other
 // half of its record without a trace.
-const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close'];
+// `decision-edit` is spec-hint's card delivery before an edit
+// (decision-cards-core): a mode of its own, so cards and spec history can be
+// counted apart.
+const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close', 'decision-edit'];
 
 const HOSTS = ['app', 'claude-hook', 'codex-hook', 'git-precommit', 'orch-bus', 'cli'];
 
@@ -121,9 +124,13 @@ const EVENTS = {
     kind: 'action',
     fields: {
       host: enumOf(HOSTS), mode: enumOf(HINT_MODES),
-      path: PATH, specs: COUNT, concept: SLUG, modules: COUNT, bytes: COUNT
+      path: PATH, specs: COUNT, concept: SLUG, modules: COUNT, bytes: COUNT, cards: COUNT
     },
     label: (r) => {
+      if (r.mode === 'decision-edit') {
+        return `Recorded decision${r.cards === 1 ? '' : 's'} delivered for ${r.path || 'a file'}` +
+          `${r.cards ? ` (${r.cards} card${r.cards === 1 ? '' : 's'})` : ''}`;
+      }
       if (r.mode === 'spec-close') {
         return `Reminded the agent that ${r.specs ?? 0} closed spec${r.specs === 1 ? '' : 's'} still ${r.specs === 1 ? 'owes' : 'owe'} close items`;
       }
