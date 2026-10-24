@@ -241,6 +241,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { structureEnabled, PAUSED_MESSAGE } = require('./structure-switch');
 
 // Loaded lazily so the scheduler above stays importable on its own.
 function helpers() {
@@ -1020,6 +1021,10 @@ function main() {
     return;
   }
   const root = resolveProjectRoot();
+  if (!structureEnabled(root)) {
+    process.stderr.write(`${PAUSED_MESSAGE}\n`);
+    return;
+  }
   if (modes[0] === '--once') process.exitCode = runOnce(root, args.includes('--json'));
   else runLongLived(root, modes[0] === '--supervised');
 }

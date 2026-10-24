@@ -216,3 +216,32 @@ test('codex: codexHome resolves without a test-supplied home', () => {
     if (saved !== undefined) process.env.CODEX_HOME = saved;
   }
 });
+
+// ─── the module map is opt-in (structure-map-opt-in) ──────
+
+function withoutStructureOverride(fn) {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try { return fn(); } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+}
+
+test('a project without the map gets no module-hint entry; an opted-in one does', () => {
+  ACTIVE.id = 'claude';
+  withoutStructureOverride(() => {
+    frameProject.installSpecHintHook(projectDir);
+    const off = commandsIn(readSettings());
+    assert.ok(off.length > 0, 'the other hint hooks still land');
+    assert.ok(!off.some((c) => c.includes('module-hint.js')), off.join('\n'));
+
+    fs.mkdirSync(path.join(projectDir, '.frame'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.frame', 'config.json'), JSON.stringify({ settings: { structureMap: true } }));
+    frameProject.installSpecHintHook(projectDir);
+    assert.ok(commandsIn(readSettings()).some((c) => c.includes('module-hint.js')));
+  });
+
+  // Removal still knows every one of Frame's entries (an emptied file goes).
+  frameProject.removeSpecHintHook(projectDir);
+  assert.ok(!fs.existsSync(settingsPath()) || commandsIn(readSettings()).length === 0);
+});

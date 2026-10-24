@@ -94,7 +94,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 12698,
+      "sizeBytes": 13229,
       "extraction": {
         "status": "parsed"
       },
@@ -108,7 +108,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 14798,
+      "sizeBytes": 13764,
       "extraction": {
         "status": "parsed"
       },
@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 95257,
+      "sizeBytes": 95286,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -768,31 +768,35 @@
           "line": 275,
           "purpose": "Anonymous event marking this launch."
         },
+        "trackOptOut": {
+          "line": 290,
+          "purpose": "The one event an opt-out sends: that it happened, and nothing else."
+        },
         "setEnabled": {
-          "line": 289,
+          "line": 326,
           "params": [
             "enabled"
           ],
           "purpose": "Toggle analytics from Settings. Persists the new state, then re-resolves"
         },
         "migrateLegacySettings": {
-          "line": 308,
+          "line": 346,
           "purpose": "Copy settings forward from the names this feature used when it was called"
         },
         "enforceFailClosed": {
-          "line": 332,
+          "line": 370,
           "purpose": "Make a failed settings load's fail-closed state stick. Called right after"
         },
         "isEnabled": {
-          "line": 343,
+          "line": 381,
           "purpose": "Effective enabled state. Default ON when the setting has never been"
         },
         "shutdown": {
-          "line": 359,
+          "line": 397,
           "purpose": "Flush the batcher and close the client, for the quit path."
         }
       },
-      "sizeBytes": 14849,
+      "sizeBytes": 16206,
       "extraction": {
         "status": "parsed"
       },
@@ -812,7 +816,8 @@
           "shutdown": "6db4121e4d7045c2",
           "startActiveTimer": "1132af442a4b3b3b",
           "track": "2e86b64f1eda064b",
-          "trackAppStarted": "9c37f94c9015aeb9"
+          "trackAppStarted": "9c37f94c9015aeb9",
+          "trackOptOut": "eb06f4d5d9f0936d"
         }
       }
     },
@@ -842,14 +847,14 @@
       ],
       "functions": {
         "normalizeTool": {
-          "line": 90,
+          "line": 94,
           "params": [
             "id"
           ],
           "purpose": "Collapse a tool id to the fixed dashboard enum. User-defined custom tool"
         },
         "validateEvent": {
-          "line": 105,
+          "line": 109,
           "params": [
             "name",
             "props"
@@ -857,7 +862,7 @@
           "purpose": "Validate an (event, props) pair against the registry."
         },
         "effectiveEnabled": {
-          "line": 143,
+          "line": 147,
           "params": [
             "{ value",
             "loadFailed }"
@@ -865,7 +870,7 @@
           "purpose": "Effective analytics state from the persisted setting plus settings-load"
         },
         "shouldShowNotice": {
-          "line": 173,
+          "line": 177,
           "params": [
             "{ storedVersion",
             "legacyShown",
@@ -874,33 +879,33 @@
           "purpose": "Whether the disclosure notice should be shown."
         },
         "stripAbsolutePaths": {
-          "line": 201,
+          "line": 205,
           "params": [
             "text"
           ]
         },
         "sanitizeException": {
-          "line": 217,
+          "line": 221,
           "params": [
             "err"
           ],
           "purpose": "Make an exception safe to send."
         },
         "createActiveTimer": {
-          "line": 242,
+          "line": 246,
           "params": [
             "options"
           ]
         },
         "planLegacyMigration": {
-          "line": 285,
+          "line": 289,
           "params": [
             "snapshot"
           ],
           "purpose": "What the rename owes this install."
         },
         "resolveInstallId": {
-          "line": 327,
+          "line": 331,
           "params": [
             "{ stored",
             "enabled }",
@@ -909,21 +914,21 @@
           "purpose": "Decide this launch's install id from what is stored and whether analytics"
         },
         "createRateLimiter": {
-          "line": 358,
+          "line": 362,
           "params": [
             "options"
           ],
           "purpose": "A rolling-window limiter. `check(now)` decides one event and returns"
         },
         "stampedSince": {
-          "line": 418,
+          "line": 422,
           "params": [
             "stamp",
             "since"
           ]
         },
         "diffSpecLifecycle": {
-          "line": 437,
+          "line": 441,
           "params": [
             "previous",
             "specs",
@@ -932,7 +937,7 @@
           "purpose": "Compare one push of a project's specs with this run's earlier looks at it."
         },
         "renameSpecLifecycle": {
-          "line": 476,
+          "line": 480,
           "params": [
             "state",
             "oldSlug",
@@ -941,7 +946,7 @@
           "purpose": "Carry a renamed spec's history to its new slug, so the rename does not read"
         }
       },
-      "sizeBytes": 21026,
+      "sizeBytes": 21274,
       "extraction": {
         "status": "parsed"
       },
@@ -1860,6 +1865,7 @@
         "perfMonitor",
         "activityLog",
         "../scripts/detect-project",
+        "../scripts/structure-switch",
         "tasksManager",
         "electron",
         "aiToolManager",
@@ -1870,28 +1876,28 @@
       ],
       "functions": {
         "init": {
-          "line": 33,
+          "line": 34,
           "params": [
             "window"
           ],
           "purpose": "Initialize frame project module"
         },
         "isFrameProject": {
-          "line": 51,
+          "line": 52,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if a project is a Frame project"
         },
         "getFrameConfig": {
-          "line": 59,
+          "line": 60,
           "params": [
             "projectPath"
           ],
           "purpose": "Get Frame config from project"
         },
         "createFileIfNotExists": {
-          "line": 72,
+          "line": 73,
           "params": [
             "filePath",
             "content"
@@ -1899,21 +1905,21 @@
           "purpose": "Create file if it doesn't exist"
         },
         "checkExistingFrameFiles": {
-          "line": 86,
+          "line": 87,
           "params": [
             "projectPath"
           ],
           "purpose": "Check which Frame files already exist in the project"
         },
         "showInitializeConfirmation": {
-          "line": 113,
+          "line": 114,
           "params": [
             "projectPath"
           ],
           "purpose": "Show confirmation dialog before initializing Frame project"
         },
         "initializeFrameProject": {
-          "line": 158,
+          "line": 159,
           "params": [
             "projectPath",
             "projectName",
@@ -1921,7 +1927,7 @@
           ]
         },
         "doInitializeFrameProject": {
-          "line": 166,
+          "line": 167,
           "params": [
             "projectPath",
             "projectName",
@@ -1929,7 +1935,7 @@
           ]
         },
         "mergeInitConfig": {
-          "line": 186,
+          "line": 187,
           "params": [
             "defaults",
             "existing",
@@ -1940,7 +1946,7 @@
           "purpose": "Config for (re-)init: the template's defaults *underneath* whatever the"
         },
         "runProjectInit": {
-          "line": 203,
+          "line": 204,
           "params": [
             "projectPath",
             "projectName",
@@ -1948,20 +1954,20 @@
           ]
         },
         "ensureProjectArtifacts": {
-          "line": 451,
+          "line": 455,
           "params": [
             "projectPath"
           ],
           "purpose": "Re-ensure on open what a fresh init creates."
         },
         "syncClaudeRule": {
-          "line": 474,
+          "line": 478,
           "params": [
             "projectPath"
           ]
         },
         "detectJsonIndent": {
-          "line": 501,
+          "line": 505,
           "params": [
             "text",
             "fallback = 2"
@@ -1969,18 +1975,18 @@
           "purpose": "The indentation an existing settings file uses, so rewriting it preserves"
         },
         "hookCommandsIn": {
-          "line": 508,
+          "line": 512,
           "params": [
             "settings"
           ],
           "purpose": "Every hook command in a settings object, whatever shape the file is in."
         },
         "frameHookCommands": {
-          "line": 525,
+          "line": 529,
           "purpose": "The command strings Frame installs today."
         },
         "installSpecHintHook": {
-          "line": 549,
+          "line": 553,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
@@ -1988,7 +1994,7 @@
           "purpose": "Register the spec-hint hooks in the project's Claude settings file."
         },
         "mergeHookEntries": {
-          "line": 632,
+          "line": 637,
           "params": [
             "hooks",
             "template"
@@ -1996,7 +2002,7 @@
           "purpose": "Append each template entry to a hooks object unless an identical one is"
         },
         "installSessionHook": {
-          "line": 658,
+          "line": 663,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
@@ -2004,11 +2010,11 @@
           "purpose": "Register the session report hook (restore-ai-sessions-on-relaunch) in the"
         },
         "codexHome": {
-          "line": 688,
+          "line": 693,
           "purpose": "Where Codex keeps its configuration. `CODEX_HOME` wins so a test — or a"
         },
         "installCodexHintHook": {
-          "line": 706,
+          "line": 711,
           "params": [
             "projectPath",
             "{ enabled = true",
@@ -2017,21 +2023,21 @@
           "purpose": "Register Frame's hooks for Codex in `CODEX_HOME/hooks.json`."
         },
         "installCodexSessionHook": {
-          "line": 773,
+          "line": 781,
           "params": [
             "{ home = null } = {}"
           ],
           "purpose": "Register the Codex session report hook (restore-ai-sessions-on-relaunch) in"
         },
         "removeCodexHintHook": {
-          "line": 804,
+          "line": 812,
           "params": [
             "{ home = null } = {}"
           ],
           "purpose": "Take Frame's Codex entries back out. Exact-match on the command string, so"
         },
         "codexHookTrustState": {
-          "line": 859,
+          "line": 867,
           "params": [
             "projectPath",
             "{ home = null",
@@ -2040,11 +2046,11 @@
           "purpose": "Are Frame's Codex hooks installed, and have they ever actually run?"
         },
         "codexHookCommands": {
-          "line": 895,
+          "line": 903,
           "purpose": "Every command string Frame's Codex hook entries carry."
         },
         "removeSpecHintHook": {
-          "line": 910,
+          "line": 918,
           "params": [
             "projectPath",
             "{ file = 'settings.json' } = {}"
@@ -2052,13 +2058,13 @@
           "purpose": "Take Frame's hook entries back out of a Claude settings file. Exact-match on"
         },
         "getDoneWindow": {
-          "line": 982,
+          "line": 990,
           "params": [
             "projectPath"
           ]
         },
         "setDoneWindow": {
-          "line": 987,
+          "line": 995,
           "params": [
             "projectPath",
             "board",
@@ -2066,80 +2072,80 @@
           ]
         },
         "isSpecDrivenEnabled": {
-          "line": 1012,
+          "line": 1020,
           "params": [
             "projectPath"
           ]
         },
         "enableSpecDriven": {
-          "line": 1017,
+          "line": 1025,
           "params": [
             "projectPath"
           ]
         },
         "disableSpecDriven": {
-          "line": 1046,
+          "line": 1054,
           "params": [
             "projectPath"
           ],
           "purpose": "Turn the workflow off: flip the flag and take the Frame-managed spec"
         },
         "setSpecDrivenEnabled": {
-          "line": 1074,
+          "line": 1082,
           "params": [
             "projectPath",
             "enabled"
           ]
         },
         "writeFrameConfig": {
-          "line": 1078,
+          "line": 1086,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "stripManagedSpecSection": {
-          "line": 1092,
+          "line": 1100,
           "params": [
             "text"
           ],
           "purpose": "Remove the marker-wrapped spec section from a doc, together with the `---`"
         },
         "ensureSpecDrivenArtifacts": {
-          "line": 1102,
+          "line": 1110,
           "params": [
             "projectPath",
             "config"
           ]
         },
         "specDocDescriptors": {
-          "line": 1203,
+          "line": 1211,
           "params": [
             "projectPath"
           ],
           "purpose": "The spec-section descriptors, in the order they must be settled: the target"
         },
         "decisionDocDescriptors": {
-          "line": 1236,
+          "line": 1244,
           "params": [
             "projectPath"
           ]
         },
         "readTextOrNull": {
-          "line": 1257,
+          "line": 1265,
           "params": [
             "file"
           ]
         },
         "upgradeSpecDocs": {
-          "line": 1271,
+          "line": 1279,
           "params": [
             "projectPath"
           ],
           "purpose": "Upgrade the Frame-managed sections and report what could not be settled."
         },
         "appendSpecSection": {
-          "line": 1367,
+          "line": 1375,
           "params": [
             "projectPath",
             "rel"
@@ -2147,14 +2153,14 @@
           "purpose": "Append the managed spec section to a document the pass deliberately refused"
         },
         "docsHealthFor": {
-          "line": 1406,
+          "line": 1414,
           "params": [
             "projectPath"
           ],
           "purpose": "The report on its own, without running the repair pass — what the UI asks"
         },
         "recordDocsActivity": {
-          "line": 1428,
+          "line": 1436,
           "params": [
             "written",
             "appended",
@@ -2163,20 +2169,20 @@
           "purpose": "Put the pass's result on the record. This is the half that was missing when"
         },
         "detachThenRemoveFrame": {
-          "line": 1467,
+          "line": 1475,
           "params": [
             "projectPath"
           ],
           "purpose": "Remove Frame after its lifecycle worker has stopped, so no child is still"
         },
         "removeFrame": {
-          "line": 1476,
+          "line": 1484,
           "params": [
             "projectPath"
           ]
         },
         "dropEmptySettingsFile": {
-          "line": 1530,
+          "line": 1538,
           "params": [
             "projectPath",
             "file"
@@ -2184,21 +2190,21 @@
           "purpose": "Delete a Claude settings file that now parses to `{}` — Frame wrote it to"
         },
         "isFrameOwnedHookResidue": {
-          "line": 1556,
+          "line": 1564,
           "params": [
             "text"
           ],
           "purpose": "What Frame's own pre-commit file looks like once its managed block is gone:"
         },
         "removeHookSnippet": {
-          "line": 1572,
+          "line": 1580,
           "params": [
             "projectPath"
           ],
           "purpose": "Strip Frame's marker-wrapped block from whichever pre-commit hook carries"
         },
         "openProjectLayout": {
-          "line": 1624,
+          "line": 1632,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2206,7 +2212,7 @@
           "purpose": "Everything a project open does to the project, in the order that makes the"
         },
         "rearmAfterMigration": {
-          "line": 1731,
+          "line": 1753,
           "params": [
             "projectPath",
             "hooks = {}"
@@ -2214,7 +2220,7 @@
           "purpose": "Every meta file just changed address: the watchers are pointed at the"
         },
         "setupIPC": {
-          "line": 1753,
+          "line": 1775,
           "params": [
             "ipcMain"
           ],
@@ -2246,7 +2252,7 @@
           "FRAME_CONFIG_DATA"
         ]
       },
-      "sizeBytes": 77270,
+      "sizeBytes": 78958,
       "extraction": {
         "status": "parsed"
       },
@@ -3501,26 +3507,26 @@
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 60,
+          "line": 61,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 78,
+          "line": 79,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 179
+          "line": 180
         },
         "setupAllIPC": {
-          "line": 209,
+          "line": 210,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 303,
+          "line": 304,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 351,
+          "line": 352,
           "params": [
             "window"
           ],
@@ -3543,7 +3549,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 15830,
+      "sizeBytes": 15891,
       "extraction": {
         "status": "parsed"
       },
@@ -3702,13 +3708,13 @@
           "purpose": "Is a line Frame could not find actually worth a human's attention?"
         },
         "upgradeAgentsText": {
-          "line": 353,
+          "line": 359,
           "params": [
             "text"
           ]
         },
         "execute": {
-          "line": 384,
+          "line": 390,
           "params": [
             "projectPath",
             "activePlan",
@@ -3718,7 +3724,7 @@
           "purpose": "The steps themselves, in order, writing what happened into `state`. Split"
         },
         "run": {
-          "line": 496,
+          "line": 502,
           "params": [
             "projectPath",
             "migrationPlan",
@@ -3727,14 +3733,14 @@
           "purpose": "Execute a plan. Reports progress through `onProgress({ step, detail })` and"
         },
         "pendingDecisions": {
-          "line": 562,
+          "line": 568,
           "params": [
             "projectPath"
           ],
           "purpose": "What is left for the user to answer, derived rather than stored."
         },
         "applyDecisions": {
-          "line": 592,
+          "line": 598,
           "params": [
             "projectPath",
             "decisions = []"
@@ -3742,7 +3748,7 @@
           "purpose": "Apply the decisions the user clicked through — today exactly one, the"
         }
       },
-      "sizeBytes": 25491,
+      "sizeBytes": 25892,
       "extraction": {
         "status": "parsed"
       },
@@ -5935,6 +5941,7 @@
       "file": "src/main/structureBootstrap.js",
       "description": "Structure Bootstrap",
       "exports": [
+        "ensureStructureHook",
         "bootstrapStructure",
         "copyParserScripts",
         "stageParserScripts",
@@ -5952,12 +5959,13 @@
         "crypto",
         "child_process",
         "util",
+        "../scripts/structure-switch",
         "shared/frameConstants",
         "shared/frameTemplates"
       ],
       "functions": {
         "stageFile": {
-          "line": 102,
+          "line": 113,
           "params": [
             "fsImpl",
             "src",
@@ -5966,7 +5974,7 @@
           "purpose": "Write `src` to `dst` only when the bytes differ, through a temporary file"
         },
         "stageParserScripts": {
-          "line": 135,
+          "line": 153,
           "params": [
             "projectPath",
             "options = {}"
@@ -5974,61 +5982,61 @@
           "purpose": "Stage Frame's bundled scripts into the project's .frame/bin/."
         },
         "copyParserScripts": {
-          "line": 216,
+          "line": 241,
           "params": [
             "projectPath"
           ],
           "purpose": "Copy parser scripts from Frame's bundled scripts/ into the project's"
         },
         "hookLocation": {
-          "line": 227,
+          "line": 252,
           "params": [
             "projectPath"
           ],
           "purpose": "Where this checkout's `pre-commit` hook lives, asked of Git — a linked"
         },
         "detectHookSetup": {
-          "line": 261,
+          "line": 286,
           "params": [
             "projectPath"
           ],
           "purpose": "Detect what kind of pre-commit hook setup the project has."
         },
         "writeHook": {
-          "line": 302,
+          "line": 327,
           "params": [
             "location"
           ]
         },
         "installPreCommitHook": {
-          "line": 322,
+          "line": 347,
           "params": [
             "projectPath"
           ],
           "purpose": "Install the pre-commit hook, but only where there is no hook to damage."
         },
         "upgradeStructureHook": {
-          "line": 397,
+          "line": 422,
           "params": [
             "projectPath"
           ],
           "purpose": "On project open: replace an unmodified earlier Frame template with the"
         },
         "scanTimeoutMs": {
-          "line": 417,
+          "line": 442,
           "params": [
             "projectPath"
           ]
         },
         "parseEnvelope": {
-          "line": 430,
+          "line": 455,
           "params": [
             "stdout"
           ],
           "purpose": "The single JSON envelope a `--json` run prints, or null."
         },
         "summarizeEnvelope": {
-          "line": 442,
+          "line": 467,
           "params": [
             "envelope",
             "code"
@@ -6036,7 +6044,7 @@
           "purpose": "Map a child result envelope onto the bootstrap's initialScan summary."
         },
         "runInitialFullScan": {
-          "line": 501,
+          "line": 526,
           "params": [
             "projectPath",
             "options = {}"
@@ -6044,15 +6052,22 @@
           "purpose": "Run the parser in full mode once so STRUCTURE.json gets populated with"
         },
         "bootstrapStructure": {
-          "line": 619,
+          "line": 644,
           "params": [
             "projectPath",
             "structureWasCreated"
           ],
           "purpose": "Top-level bootstrap orchestrator. Called from frameProject.js after the"
+        },
+        "ensureStructureHook": {
+          "line": 689,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "Install the pre-commit hook for a project that opted into the module map"
         }
       },
-      "sizeBytes": 27468,
+      "sizeBytes": 30085,
       "extraction": {
         "status": "parsed"
       },
@@ -6061,6 +6076,7 @@
         "purposes": {
           "bootstrapStructure": "723773900dfeea80",
           "detectHookSetup": "7139e135de5fdc39",
+          "ensureStructureHook": "3d069cf1bd8338e4",
           "hookLocation": "89a1589ed4e6559e",
           "installPreCommitHook": "748f5e3e8d88f1b5",
           "parseEnvelope": "b20189a62e13bc20",
@@ -6089,64 +6105,65 @@
         "path",
         "child_process",
         "shared/frameConstants",
+        "../scripts/structure-switch",
         "pollGate"
       ],
       "functions": {
         "configure": {
-          "line": 52,
+          "line": 53,
           "params": [
             "overrides = {}"
           ],
           "purpose": "Tests and app wiring override the defaults here."
         },
         "realPath": {
-          "line": 56,
+          "line": 57,
           "params": [
             "projectPath"
           ]
         },
         "workerScript": {
-          "line": 64,
+          "line": 65,
           "params": [
             "projectPath"
           ]
         },
         "report": {
-          "line": 68,
+          "line": 69,
           "params": [
             "record",
             "value"
           ]
         },
         "send": {
-          "line": 77,
+          "line": 78,
           "params": [
             "record",
             "message"
           ]
         },
         "defaultTicker": {
-          "line": 87,
+          "line": 88,
           "params": [
             "fn",
             "ms"
           ]
         },
         "ensureTicks": {
-          "line": 98
+          "line": 99
         },
         "stopTicksIfIdle": {
-          "line": 106
+          "line": 107
         },
         "attach": {
-          "line": 118,
+          "line": 119,
           "params": [
             "projectPath"
           ],
           "purpose": "Start the checkout's worker, or return the running one. Returns null when"
         },
         "requestReconcile": {
-          "line": 181,
+          "line": 183,
           "params": [
             "projectPath",
             "reason = 'reopen'"
@@ -6154,21 +6171,21 @@
           "purpose": "Ask for a full reconciliation; a worker that exited is started again."
         },
         "detach": {
-          "line": 188,
+          "line": 190,
           "params": [
             "projectPath"
           ],
           "purpose": "Stop the checkout's worker. Resolves once it has exited."
         },
         "disposeAll": {
-          "line": 204,
+          "line": 206,
           "purpose": "Stop every worker (app shutdown)."
         },
         "list": {
-          "line": 213
+          "line": 215
         }
       },
-      "sizeBytes": 7220,
+      "sizeBytes": 7373,
       "extraction": {
         "status": "parsed"
       },
@@ -6806,7 +6823,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 4151,
+      "sizeBytes": 4207,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -9335,16 +9352,16 @@
           "line": 53
         },
         "initAboutSection": {
-          "line": 139
+          "line": 141
         },
         "runCheck": {
-          "line": 232,
+          "line": 234,
           "params": [
             "userInitiated"
           ]
         },
         "renderUpdateState": {
-          "line": 272,
+          "line": 274,
           "params": [
             "{ checked",
             "found",
@@ -9356,39 +9373,39 @@
           ]
         },
         "showUpdateBanner": {
-          "line": 306,
+          "line": 308,
           "params": [
             "info"
           ]
         },
         "hideUpdateBanner": {
-          "line": 323
+          "line": 325
         },
         "hideSidebarDot": {
-          "line": 327
+          "line": 329
         },
         "formatRelative": {
-          "line": 333,
+          "line": 335,
           "params": [
             "date"
           ]
         },
         "initZoomSelect": {
-          "line": 349,
+          "line": 351,
           "purpose": "Fill the Interface size select from the shared ladder — one option per"
         },
         "syncZoomFromMain": {
-          "line": 372
+          "line": 374
         },
         "syncErrorReportingAvailability": {
-          "line": 388,
+          "line": 390,
           "params": [
             "analyticsOn"
           ],
           "purpose": "Error reporting is gated on analytics in main (analytics.captureException"
         },
         "syncToggleFromSettings": {
-          "line": 395
+          "line": 397
         }
       },
       "ipc": {
@@ -9405,7 +9422,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 15724,
+      "sizeBytes": 15877,
       "extraction": {
         "status": "parsed"
       },
@@ -10179,35 +10196,35 @@
       "depends": [],
       "functions": {
         "flattenPages": {
-          "line": 615,
+          "line": 613,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Every page in tree order — the order Back / Next walk and the \"n / N\""
         },
         "parseInline": {
-          "line": 630,
+          "line": 628,
           "params": [
             "text"
           ],
           "purpose": "Split a text into plain, {kbd:id} and `code` segments. The host escapes"
         },
         "blockTexts": {
-          "line": 646,
+          "line": 644,
           "params": [
             "block"
           ],
           "purpose": "Every string of a block, for token scanning."
         },
         "validate": {
-          "line": 656,
+          "line": 654,
           "params": [
             "chapters = CHAPTERS"
           ],
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35378,
+      "sizeBytes": 35046,
       "extraction": {
         "status": "parsed"
       },
@@ -10285,14 +10302,14 @@
           "purpose": "The sketch's outer frame."
         },
         "render": {
-          "line": 636,
+          "line": 634,
           "params": [
             "kind",
             "focus"
           ]
         }
       },
-      "sizeBytes": 35629,
+      "sizeBytes": 35404,
       "extraction": {
         "status": "parsed"
       },
@@ -11341,7 +11358,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 39137,
+      "sizeBytes": 39133,
       "extraction": {
         "status": "parsed"
       },
@@ -11380,24 +11397,24 @@
           "purpose": "electron-log's renderer entry forwards to the main process's file"
         },
         "bump": {
-          "line": 75,
+          "line": 88,
           "params": [
             "direction",
             "channel"
           ]
         },
         "classifyInput": {
-          "line": 83,
+          "line": 96,
           "params": [
             "args"
           ],
           "purpose": "Tally the escape sequences in one stdin payload. Never throws."
         },
         "init": {
-          "line": 96
+          "line": 110
         }
       },
-      "sizeBytes": 6206,
+      "sizeBytes": 7040,
       "extraction": {
         "status": "parsed"
       },
@@ -15305,7 +15322,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 13599,
+      "sizeBytes": 9955,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15449,7 +15466,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 34666,
+      "sizeBytes": 34925,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15521,7 +15538,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1869,
+      "sizeBytes": 5277,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -17169,7 +17186,7 @@
           "purpose": "Mistakes in a step list, as readable strings; empty when it is sound."
         }
       },
-      "sizeBytes": 9836,
+      "sizeBytes": 9835,
       "extraction": {
         "status": "parsed"
       },
@@ -17323,99 +17340,105 @@
         "fs",
         "path",
         "child_process",
-        "structure-read",
         "crypto",
         "activity-log"
       ],
       "functions": {
+        "optionalRequire": {
+          "line": 19,
+          "params": [
+            "name"
+          ],
+          "purpose": "Ownership, freshness and generation status: the shared read contract."
+        },
         "resolveProjectRoot": {
-          "line": 26,
+          "line": 32,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "resolveMetaPath": {
-          "line": 44,
+          "line": 50,
           "params": [
             "name"
           ],
           "purpose": "Where a meta file lives: `.frame/<name>` for a migrated project, the root"
         },
         "repairCommand": {
-          "line": 52,
+          "line": 58,
           "params": [
             "root"
           ]
         },
         "warn": {
-          "line": 64,
+          "line": 70,
           "params": [
             "check",
             "message"
           ]
         },
         "git": {
-          "line": 68,
+          "line": 74,
           "params": [
             "cmd"
           ]
         },
         "readJSON": {
-          "line": 80,
+          "line": 86,
           "params": [
             "name"
           ]
         },
         "checkPhantomModules": {
-          "line": 93,
+          "line": 99,
           "params": [
             "structure"
           ],
           "purpose": "1. Phantom modules — STRUCTURE.json entries whose file is missing on disk"
         },
         "confirmContentDrift": {
-          "line": 106,
+          "line": 112,
           "purpose": "Ask update-structure.js --check whether a regen would actually change"
         },
         "checkStructureDrift": {
-          "line": 131,
+          "line": 137,
           "params": [
             "structure"
           ],
           "purpose": "2. STRUCTURE drift — the date heuristic (lastUpdated older than the last"
         },
         "checkStructureGeneration": {
-          "line": 149,
+          "line": 155,
           "params": [
             "structure"
           ],
           "purpose": "2b. Generation status — a partial or unverified map, or a latest scan that"
         },
         "checkStructureFreshness": {
-          "line": 163
+          "line": 169
         },
         "readText": {
-          "line": 186,
+          "line": 192,
           "params": [
             "file"
           ],
           "purpose": "2d. Commit integration (STR-02b) — a last `--staged` run that did not"
         },
         "checkCommitIntegration": {
-          "line": 194
+          "line": 200
         },
         "checkNotesStaleness": {
-          "line": 233,
+          "line": 239,
           "purpose": "3. Notes staleness — commits landed since the last dated PROJECT_NOTES entry"
         },
         "checkStuckTasks": {
-          "line": 251,
+          "line": 257,
           "purpose": "4. Stuck tasks — in_progress for more than STALE_TASK_DAYS"
         },
         "checkQuickstartStaleness": {
-          "line": 272,
+          "line": 278,
           "purpose": "5. QUICKSTART staleness — commits landed since QUICKSTART.md was last touched"
         }
       },
-      "sizeBytes": 12414,
+      "sizeBytes": 13009,
       "extraction": {
         "status": "parsed"
       },
@@ -17428,6 +17451,7 @@
           "checkStructureGeneration": "0348ebab53cef17e",
           "checkStuckTasks": "1f5e1836816e0dbd",
           "confirmContentDrift": "c2c5c559d55b8faf",
+          "optionalRequire": "6c59ca1cb1909044",
           "readText": "874a7e71c64e872b",
           "resolveMetaPath": "246df3924894a319",
           "resolveProjectRoot": "bdaf2016db7ccaef"
@@ -19377,7 +19401,8 @@
         "structure-retrieval",
         "activity-log",
         "toolVocabulary",
-        "net"
+        "net",
+        "structure-switch"
       ],
       "functions": {
         "toPosix": {
@@ -19619,7 +19644,7 @@
           ]
         }
       },
-      "sizeBytes": 26730,
+      "sizeBytes": 26883,
       "extraction": {
         "status": "parsed"
       },
@@ -21672,6 +21697,7 @@
         "os",
         "path",
         "crypto",
+        "structure-switch",
         "structure-discovery",
         "structure-generation",
         "structure-state",
@@ -21691,42 +21717,42 @@
           "purpose": "createScheduler({ clock, run, onReport, ...DEFAULTS })"
         },
         "helpers": {
-          "line": 246,
+          "line": 247,
           "purpose": "Loaded lazily so the scheduler above stays importable on its own."
         },
         "sha256": {
-          "line": 265,
+          "line": 266,
           "params": [
             "data"
           ]
         },
         "runtimeDir": {
-          "line": 269,
+          "line": 270,
           "params": [
             "root"
           ]
         },
         "writeJsonAtomic": {
-          "line": 273,
+          "line": 274,
           "params": [
             "file",
             "value"
           ]
         },
         "readJson": {
-          "line": 280,
+          "line": 281,
           "params": [
             "file"
           ]
         },
         "readLifecycle": {
-          "line": 290,
+          "line": 291,
           "params": [
             "root"
           ]
         },
         "writeLifecycle": {
-          "line": 298,
+          "line": 299,
           "params": [
             "root",
             "patch"
@@ -21734,16 +21760,16 @@
           "purpose": "Merge `patch` into lifecycle.json. Only the worker writes it; the receipt"
         },
         "curationDigest": {
-          "line": 307
+          "line": 308
         },
         "projectBlock": {
-          "line": 315,
+          "line": 316,
           "params": [
             "root"
           ]
         },
         "reconcile": {
-          "line": 330,
+          "line": 331,
           "params": [
             "root",
             "job = {}"
@@ -21751,13 +21777,13 @@
           "purpose": "One full reconciliation of the working tree: discover, observe content"
         },
         "ownerPaths": {
-          "line": 463,
+          "line": 464,
           "params": [
             "root"
           ]
         },
         "acquireOwner": {
-          "line": 468,
+          "line": 469,
           "params": [
             "root",
             "options = {}"
@@ -21765,21 +21791,21 @@
           "purpose": "One coordinator per checkout; reclaimed only from a demonstrably dead owner."
         },
         "releaseOwner": {
-          "line": 472,
+          "line": 473,
           "params": [
             "root",
             "token"
           ]
         },
         "resolveGitDirs": {
-          "line": 479,
+          "line": 480,
           "params": [
             "root"
           ],
           "purpose": "Git directories of a checkout, from `.git` or a `gitdir:` file. No Git process."
         },
         "classify": {
-          "line": 499,
+          "line": 500,
           "params": [
             "rel",
             "ownedRootMap"
@@ -21787,13 +21813,13 @@
           "purpose": "Classify one notification (root-relative POSIX path, or null) into a"
         },
         "ownsRootMap": {
-          "line": 513,
+          "line": 514,
           "params": [
             "root"
           ]
         },
         "createWatcher": {
-          "line": 524,
+          "line": 525,
           "params": [
             "root",
             "onEvent",
@@ -21802,14 +21828,14 @@
           "purpose": "Watch a checkout. Recursive watching where the runtime supports it,"
         },
         "directoriesOf": {
-          "line": 625,
+          "line": 626,
           "params": [
             "root"
           ],
           "purpose": "Directories to watch in per-directory mode: parents of eligible files."
         },
         "startWorker": {
-          "line": 657,
+          "line": 658,
           "params": [
             "root",
             "options = {}"
@@ -21817,7 +21843,7 @@
           "purpose": "Run the lifecycle for one checkout until stopped."
         },
         "startLookupServer": {
-          "line": 812,
+          "line": 813,
           "params": [
             "root",
             "options = {}"
@@ -21825,24 +21851,24 @@
           "purpose": "Answer lookups from the index this worker published (STR-03b), over a"
         },
         "resolveProjectRoot": {
-          "line": 935
+          "line": 936
         },
         "writeLine": {
-          "line": 944,
+          "line": 945,
           "params": [
             "stream",
             "value"
           ]
         },
         "runOnce": {
-          "line": 948,
+          "line": 949,
           "params": [
             "root",
             "json"
           ]
         },
         "runLongLived": {
-          "line": 970,
+          "line": 971,
           "params": [
             "root",
             "supervised"
@@ -21850,10 +21876,10 @@
           "purpose": "--watch: foreground coordinator with its own timer until SIGINT/SIGTERM."
         },
         "main": {
-          "line": 1012
+          "line": 1013
         }
       },
-      "sizeBytes": 36559,
+      "sizeBytes": 36733,
       "extraction": {
         "status": "parsed"
       },
@@ -22655,6 +22681,34 @@
         }
       }
     },
+    "scripts/structure-switch": {
+      "file": "scripts/structure-switch.js",
+      "description": "Structure switch — STRUCTURE.json maintenance is opt-in per project.",
+      "exports": [
+        "structureEnabled",
+        "PAUSED_MESSAGE"
+      ],
+      "depends": [
+        "fs",
+        "path"
+      ],
+      "functions": {
+        "structureEnabled": {
+          "line": 26,
+          "params": [
+            "projectRoot",
+            "env = process.env"
+          ]
+        }
+      },
+      "sizeBytes": 1550,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "c1b1b8bf2ee556ca"
+      }
+    },
     "scripts/toolVocabulary": {
       "file": "scripts/toolVocabulary.js",
       "description": "Tool vocabulary — what each CLI calls the things Frame's hooks care about.",
@@ -22794,85 +22848,86 @@
         "structure-discovery",
         "structure-generation",
         "structure-state",
+        "structure-switch",
         "activity-log",
         "structure-retrieval",
         "structure-commit"
       ],
       "functions": {
         "resolveProjectRoot": {
-          "line": 43,
+          "line": 44,
           "purpose": "Which project this run is about. `__dirname/..` was wrong for the shipped"
         },
         "parseArgs": {
-          "line": 60,
+          "line": 61,
           "params": [
             "argv"
           ]
         },
         "say": {
-          "line": 86,
+          "line": 87,
           "params": [
             "line"
           ],
           "purpose": "Human text: stdout normally, stderr when stdout carries the envelope."
         },
         "warn": {
-          "line": 90,
+          "line": 91,
           "params": [
             "line"
           ]
         },
         "repairCommand": {
-          "line": 94
+          "line": 95
         },
         "printDiagnostics": {
-          "line": 99,
+          "line": 100,
           "params": [
             "diagnostics"
           ]
         },
         "emit": {
-          "line": 108,
+          "line": 109,
           "params": [
             "envelope"
           ]
         },
         "projectBlock": {
-          "line": 114
+          "line": 115
         },
         "toRootRelative": {
-          "line": 124,
+          "line": 125,
           "params": [
             "files"
           ],
           "purpose": "Explicit file arguments, relative to the project root."
         },
         "noteRun": {
-          "line": 151,
+          "line": 152,
           "params": [
             "startedAt",
             "changes"
           ]
         },
         "exitCodeFor": {
-          "line": 171,
+          "line": 172,
           "params": [
             "result"
           ]
         },
         "trackedPrior": {
-          "line": 181,
+          "line": 182,
           "purpose": "The tracked map (committed view plus hand edits) as the generation prior"
         },
         "publishLookup": {
-          "line": 190,
+          "line": 191,
           "params": [
             "result"
           ],
           "purpose": "After a working-view publish, refresh the derived lookup index (STR-03)."
         },
         "mirrorWorkingView": {
-          "line": 204,
+          "line": 205,
           "params": [
             "result",
             "discardsAuthored"
@@ -22880,7 +22935,7 @@
           "purpose": "After a working-view publish, keep an untracked map file equal to it."
         },
         "builtFrom": {
-          "line": 221,
+          "line": 222,
           "params": [
             "structure",
             "report",
@@ -22890,37 +22945,37 @@
           "purpose": "`reference` is the artifact's own previous content (for lastUpdated and"
         },
         "runFull": {
-          "line": 239,
+          "line": 240,
           "purpose": "--full (STR-02c D3): rebuild the working view. Hand-written prose comes"
         },
         "runDelta": {
-          "line": 264,
+          "line": 265,
           "params": [
             "candidates"
           ]
         },
         "reportMutation": {
-          "line": 306,
+          "line": 307,
           "params": [
             "result",
             "command"
           ]
         },
         "runCheck": {
-          "line": 337
+          "line": 338
         },
         "runStaged": {
-          "line": 383,
+          "line": 384,
           "params": [
             "command = 'staged'"
           ],
           "purpose": "--staged (STR-02b): build the commit's map from the staged snapshot,"
         },
         "main": {
-          "line": 402
+          "line": 403
         }
       },
-      "sizeBytes": 19854,
+      "sizeBytes": 20143,
       "extraction": {
         "status": "parsed"
       },
@@ -23458,6 +23513,7 @@
         "getFrameGitattributesBlock",
         "SPEC_HINT_HOOKS",
         "CODEX_HINT_HOOKS",
+        "hintHooksFor",
         "LEGACY_SPEC_HINT_COMMANDS",
         "SESSION_REPORT_HOOKS",
         "CODEX_SESSION_REPORT_HOOKS",
@@ -23522,14 +23578,15 @@
           ]
         },
         "getReferenceTemplate": {
-          "line": 528,
+          "line": 531,
           "params": [
-            "projectName"
+            "projectName",
+            "options"
           ],
           "purpose": "REFERENCE.md template — the reference-on-demand companion to the lean"
         },
         "getStructureTemplate": {
-          "line": 801,
+          "line": 807,
           "params": [
             "projectName",
             "project"
@@ -23537,49 +23594,58 @@
           "purpose": "STRUCTURE.json template"
         },
         "getNotesTemplate": {
-          "line": 829,
+          "line": 835,
           "params": [
             "projectName"
           ],
           "purpose": "PROJECT_NOTES.md template"
         },
         "getTasksTemplate": {
-          "line": 849,
+          "line": 855,
           "params": [
             "projectName"
           ],
           "purpose": "tasks.json template"
         },
         "getQuickstartTemplate": {
-          "line": 895,
+          "line": 901,
           "params": [
             "projectName",
-            "project"
+            "project",
+            "options"
           ],
           "purpose": "QUICKSTART.md template"
         },
         "getFrameConfigTemplate": {
-          "line": 978,
+          "line": 988,
           "params": [
             "projectName"
           ],
           "purpose": ".frame/config.json template"
         },
         "getClaudeRuleTemplate": {
-          "line": 1021,
+          "line": 1031,
           "params": [
             "agentsText"
           ],
           "purpose": "`.claude/rules/frame.md` — the file Claude Code loads at session start."
         },
         "getFrameGitignoreBlock": {
-          "line": 1036
+          "line": 1046
         },
         "getFrameGitattributesBlock": {
-          "line": 1053
+          "line": 1063
+        },
+        "hintHooksFor": {
+          "line": 1196,
+          "params": [
+            "template",
+            "{ structureMap = false } = {}"
+          ],
+          "purpose": "The hint hooks a project should get. The full sets above stay as they are —"
         },
         "sessionReportCommand": {
-          "line": 1206,
+          "line": 1232,
           "params": [
             "tool",
             "guard = ''"
@@ -23587,7 +23653,7 @@
           "purpose": "Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the"
         },
         "getGenericWrapperTemplate": {
-          "line": 1241,
+          "line": 1267,
           "params": [
             "toolCommand",
             "promptFlag = ''"
@@ -23595,38 +23661,38 @@
           "purpose": "Generic AI tool wrapper template"
         },
         "getStructureHookSnippet": {
-          "line": 1287
+          "line": 1313
         },
         "getStructurePreCommitHookTemplate": {
-          "line": 1324,
+          "line": 1350,
           "purpose": "Full pre-commit hook file content for the \"no existing hook\" case."
         },
         "classifyStructureHook": {
-          "line": 1353,
+          "line": 1379,
           "params": [
             "text"
           ],
           "purpose": "'current' when `text` is today's template, 'previous' when it is an"
         },
         "getOrchBusHeader": {
-          "line": 1372,
+          "line": 1398,
           "purpose": "Orchestration command-channel scripts (.frame/bin/)"
         },
         "getOrchRequestScript": {
-          "line": 1384,
+          "line": 1410,
           "params": [
             "type"
           ]
         },
         "getOrchStatusScript": {
-          "line": 1404
+          "line": 1430
         },
         "getOrchBinScripts": {
-          "line": 1422,
+          "line": 1448,
           "purpose": "Map of filename → script body for the orchestration bin scripts. The"
         }
       },
-      "sizeBytes": 63215,
+      "sizeBytes": 65025,
       "extraction": {
         "status": "parsed"
       },
@@ -23648,6 +23714,7 @@
           "getStructurePreCommitHookTemplate": "66fc6794d6915e67",
           "getStructureTemplate": "ae0768942621daa6",
           "getTasksTemplate": "51a7303c8276cb87",
+          "hintHooksFor": "65fad3545aef86c6",
           "renderSpecSection": "7fd001cb3ae45a96",
           "sessionReportCommand": "2fb12d8e2b0bae69"
         }
@@ -24193,7 +24260,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 11236,
+      "sizeBytes": 10726,
       "extraction": {
         "status": "parsed"
       },
@@ -24219,7 +24286,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 1040,
+      "sizeBytes": 971,
       "extraction": {
         "status": "parsed"
       },
@@ -24572,13 +24639,13 @@
       ],
       "functions": {
         "seed": {
-          "line": 418,
+          "line": 423,
           "params": [
             "specs"
           ]
         }
       },
-      "sizeBytes": 21440,
+      "sizeBytes": 21674,
       "extraction": {
         "status": "parsed"
       },
@@ -24712,7 +24779,7 @@
         "src/shared/frameTemplates"
       ],
       "functions": {},
-      "sizeBytes": 8412,
+      "sizeBytes": 9774,
       "extraction": {
         "status": "parsed"
       },
@@ -25831,14 +25898,20 @@
           "purpose": "Every file in the tree → sha256, excluding paths Frame is allowed to own."
         },
         "fakeWorkers": {
-          "line": 672,
+          "line": 677,
           "purpose": "A fake `--supervised` child that records what the supervisor sends."
         },
         "resetWorkers": {
-          "line": 697
+          "line": 702
+        },
+        "withoutStructureOverride": {
+          "line": 745,
+          "params": [
+            "fn"
+          ]
         }
       },
-      "sizeBytes": 37156,
+      "sizeBytes": 40384,
       "extraction": {
         "status": "parsed"
       },
@@ -25916,9 +25989,27 @@
         },
         "resetWorkers": {
           "line": 337
+        },
+        "withoutStructureOverride": {
+          "line": 485,
+          "params": [
+            "fn"
+          ]
+        },
+        "freshRepo": {
+          "line": 493,
+          "params": [
+            "prefix"
+          ]
+        },
+        "optIn": {
+          "line": 500,
+          "params": [
+            "dir"
+          ]
         }
       },
-      "sizeBytes": 21313,
+      "sizeBytes": 24614,
       "extraction": {
         "status": "parsed"
       },
@@ -26227,7 +26318,9 @@
       "depends": [
         "node:test",
         "node:assert/strict",
-        "src/renderer/guide/guideContent"
+        "src/renderer/guide/guideContent",
+        "fs",
+        "path"
       ],
       "functions": {
         "fixture": {
@@ -26241,7 +26334,7 @@
           ]
         }
       },
-      "sizeBytes": 7879,
+      "sizeBytes": 8487,
       "extraction": {
         "status": "parsed"
       },
@@ -26416,7 +26509,7 @@
           "purpose": "A project as Frame's pre-overlay init left it."
         }
       },
-      "sizeBytes": 32034,
+      "sizeBytes": 32360,
       "extraction": {
         "status": "parsed"
       },
@@ -26597,7 +26690,7 @@
           ]
         }
       },
-      "sizeBytes": 29600,
+      "sizeBytes": 29623,
       "extraction": {
         "status": "parsed"
       },
@@ -26748,7 +26841,7 @@
           ]
         }
       },
-      "sizeBytes": 31086,
+      "sizeBytes": 33100,
       "extraction": {
         "status": "parsed"
       },
@@ -26908,9 +27001,15 @@
             "opts"
           ],
           "purpose": "Run a hook command that is expected to do nothing. A no-op exits without"
+        },
+        "withoutStructureOverride": {
+          "line": 222,
+          "params": [
+            "fn"
+          ]
         }
       },
-      "sizeBytes": 9698,
+      "sizeBytes": 10953,
       "extraction": {
         "status": "parsed"
       },
@@ -27701,11 +27800,11 @@
           "purpose": "A parser that publishes through the real state layer, then hangs."
         },
         "previousTemplate": {
-          "line": 411,
+          "line": 453,
           "purpose": "The template Frame shipped before STR-02b, rebuilt from history (null in a shallow clone)."
         },
         "gitInit": {
-          "line": 425,
+          "line": 467,
           "params": [
             "dir"
           ]
@@ -27718,7 +27817,7 @@
           "purpose": "The last parser generation before STR-01, read from history."
         }
       },
-      "sizeBytes": 23411,
+      "sizeBytes": 25540,
       "extraction": {
         "status": "parsed"
       },
@@ -28214,6 +28313,41 @@
       },
       "provenance": {
         "description": "b73f1eabbda70741"
+      }
+    },
+    "test/structureSwitch.test": {
+      "file": "test/structureSwitch.test.js",
+      "description": "structure-switch tests: STRUCTURE.json maintenance is opt-in per project",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "fs",
+        "os",
+        "path",
+        "child_process",
+        "scripts/structure-switch",
+        "src/main/structureBootstrap",
+        "src/main/structureLifecycle"
+      ],
+      "functions": {
+        "offEnv": {
+          "line": 19
+        },
+        "writeConfig": {
+          "line": 25,
+          "params": [
+            "root",
+            "settings"
+          ]
+        }
+      },
+      "sizeBytes": 6372,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "ea220e04dcbc8cb2"
       }
     },
     "test/taskRunPrompt.test": {
@@ -30378,7 +30512,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 324,
+        "parsed": 326,
         "unsupported": 85,
         "partial": 0
       }
@@ -30425,9 +30559,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 500,
+      "visitedEntries": 502,
       "traversedDirectories": 83,
-      "eligibleFiles": 409,
+      "eligibleFiles": 411,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -30444,7 +30578,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 409,
+      "indexedFiles": 411,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -30452,6 +30586,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "41c9af873bb94a133c77e1810bfb64c0c5b63c56135c3cc4b8f63d378e054fbe"
+    "revision": "f1debea2ec51ba5befff690156a0eac93029df52edffa06eac40362f2bfd2400"
   }
 }

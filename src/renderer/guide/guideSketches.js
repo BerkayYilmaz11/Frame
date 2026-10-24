@@ -110,13 +110,13 @@ const KINDS = {
           <div class="gs-pane">${terminalLines('codex', [58, 66])}${chip('waiting for input', { dot: 'warn' })}</div>
         </div>
         <div class="gs-agents-context">
-          ${chip('STRUCTURE.json')}${chip('PROJECT_NOTES.md')}${chip('tasks.json')}${chip('specs/')}
+          ${chip('AGENTS.md')}${chip('PROJECT_NOTES.md')}${chip('tasks.json')}${chip('specs/')}
         </div>`)}
     `);
   },
 
   /**
-   * The whole window. Regions: header-switcher, header-agent, header-start,
+   * The whole window. Regions: sidebar-switcher, header-agent, header-start,
    * header-theme, rail-views, rail-foot, rail-guide, sidebar-nav, center,
    * dock, statusbar-left, statusbar-right.
    */
@@ -127,7 +127,6 @@ const KINDS = {
     const header = `
       <div class="gs-shell-header">
         <span class="gs-mark"></span>
-        ${region('header-switcher', focused, 'gs-switcher', `${label('my-project')}${icon(ChevronDown, 10)}`)}
         <div class="gs-header-right">
           ${region('header-agent', focused, 'gs-agent-picker', `${label('Agent', 'gs-dim')}${label('Claude Code')}${icon(ChevronDown, 10)}`)}
           ${region('header-start', focused, 'gs-start', `${icon(Play, 10)}${label('Start')}`)}
@@ -151,6 +150,7 @@ const KINDS = {
       </div>`;
 
     const sidebar = region('sidebar-nav', focused, 'gs-sidebar', `
+      ${region('sidebar-switcher', focused, 'gs-switcher', `${label('my-project')}${icon(ChevronDown, 10)}`)}
       <div class="gs-nav-group">${label('WORK', 'gs-eyebrow')}</div>
       ${navRow('Terminals')}
       <div class="gs-nav-group">${label('CONTEXT', 'gs-eyebrow')}</div>
@@ -196,7 +196,6 @@ const KINDS = {
       { depth: 0, dir: true, name: 'my-project/', tags: [] },
       { depth: 1, dir: true, name: '.frame/', tags: ['frame'], note: 'everything Frame writes' },
       { depth: 2, name: 'AGENTS.md', tags: ['frame', 'context'], note: 'rules for agents' },
-      { depth: 2, name: 'STRUCTURE.json', tags: ['frame', 'context'], note: 'module map' },
       { depth: 2, name: 'PROJECT_NOTES.md', tags: ['frame', 'context'], note: 'decisions' },
       { depth: 2, name: 'tasks.json', tags: ['frame', 'context'], note: 'tasks' },
       { depth: 2, dir: true, name: 'specs/', tags: ['frame', 'context'], note: 'spec archive' },
@@ -473,7 +472,6 @@ const KINDS = {
       activity: `
         <div class="gs-dock-row">${chip('tasks', { cls: 'gs-chip-tiny' })}${label('tasks.json synced from specs/add-retry')}</div>
         <div class="gs-dock-row">${chip('hooks', { cls: 'gs-chip-tiny' })}${label('spec history shown before an edit')}</div>
-        <div class="gs-dock-row">${chip('structure', { cls: 'gs-chip-tiny' })}${label('STRUCTURE.json updated on commit')}</div>
         <div class="gs-dock-row gs-dock-row-muted">${chip('watchers', { cls: 'gs-chip-tiny' })}${label('skipped: Frame’s own write')}</div>`
     };
     return frame('dockTabs', focused, `
@@ -485,7 +483,7 @@ const KINDS = {
         <div class="gs-dock-list">${bodies[active]}</div>`)}`);
   },
 
-  /** Several projects. Regions: switcher (header + its menu), others (status bar popover). */
+  /** Several projects. Regions: switcher (sidebar + its menu), others (status bar popover). */
   multiProject(focused) {
     const proj = (name, badge, current) => `<div class="gs-proj-row${current ? ' gs-proj-current' : ''}">${icon(Folder, 10)}${label(name)}${badge || ''}</div>`;
     const agentRow = (name, state, dot) => `<div class="gs-proj-row">${icon(Bot, 10)}${label(name)}${chip(state, { dot, cls: 'gs-chip-tiny' })}</div>`;

@@ -714,6 +714,15 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  margin-left: auto;
+}
+
+/* The shell sketch's switcher sits atop the sidebar, above WORK, as the
+   app's does; the multi-project sketch keeps the centred box. */
+.gs-sidebar .gs-switcher {
+  margin: 0 0 4px;
+  min-width: 0;
+  justify-content: space-between;
 }
 
 .gs-agent-picker,

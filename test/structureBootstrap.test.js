@@ -372,8 +372,11 @@ test('freshness readers are activated only after the read contract they import',
   try {
     fs.rmSync(path.join(source, 'structure-read.js'));
     const report = stageParserScripts(project, { sourceDir: source });
-    assert.deepEqual(report.unavailable.sort(), ['check-freshness.js', 'find-module.js', 'module-hint.js', 'structure-lifecycle.js']);
+    assert.deepEqual(report.unavailable.sort(), ['find-module.js', 'module-hint.js', 'structure-lifecycle.js']);
     assert.ok(fs.existsSync(bin('update-structure.js')), 'the parser itself does not need it');
+    // check-freshness runs without it (its STRUCTURE checks switch off), so a
+    // missing read contract never holds it back.
+    assert.ok(fs.existsSync(bin('check-freshness.js')));
   } finally {
     fs.rmSync(source, { recursive: true, force: true });
   }
@@ -400,6 +403,45 @@ test('a missing card reader withholds the writer and nothing else', () => {
   } finally {
     fs.rmSync(source, { recursive: true, force: true });
   }
+});
+
+/* ------------- the module map is opt-in (structure-map-opt-in) ------------- */
+
+const STRUCTURE_ONLY = [
+  'update-structure.js', 'structure-lifecycle.js', 'find-module.js', 'module-hint.js',
+  'structure-switch.js', 'structure-read.js', 'structure-retrieval.js', 'fsSafe.js', 'intent-map.json', 'lang'
+];
+
+test('a project without the map gets only the shared tools', () => {
+  const report = stageParserScripts(project, { structureMap: false });
+  for (const name of STRUCTURE_ONLY) assert.ok(!fs.existsSync(bin(name)), `${name} not staged`);
+  for (const name of ['check-freshness.js', 'spec-hint.js', 'spec-context.js', 'docs-hint.js', 'detect-project.js', 'activity-log.js']) {
+    assert.ok(fs.existsSync(bin(name)), `${name} staged`);
+  }
+  assert.deepEqual(report.failed, []);
+  assert.deepEqual(report.unavailable, [], 'a structure entry left out is not "unavailable"');
+});
+
+test('a bin that already has a parser keeps getting the full set, even without the map', () => {
+  // A project initialized before the map became opt-in: its pre-commit hook
+  // still runs .frame/bin/update-structure.js, so that copy must be refreshed.
+  fs.mkdirSync(bin(), { recursive: true });
+  fs.writeFileSync(bin('update-structure.js'), '// an older parser\n');
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try {
+    stageParserScripts(project);
+  } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+  assert.equal(fs.readFileSync(bin('update-structure.js'), 'utf8'), fs.readFileSync(path.join(REPO_ROOT, 'scripts', 'update-structure.js'), 'utf8'));
+  assert.ok(fs.existsSync(bin('structure-switch.js')), 'with the switch it now reads');
+  assert.ok(fs.existsSync(bin('module-hint.js')));
+});
+
+test('an opted-in project gets the full set', () => {
+  stageParserScripts(project, { structureMap: true });
+  for (const name of STRUCTURE_ONLY) assert.ok(fs.existsSync(bin(name)), `${name} staged`);
 });
 
 /* ------------------- STR-02b: hook installation and upgrades ------------------- */

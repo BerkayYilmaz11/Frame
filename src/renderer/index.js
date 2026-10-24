@@ -411,7 +411,7 @@ function setupButtonHandlers() {
   // (status-bar spec). Binding it from here would attach a listener before
   // the element exists.
 
-  // Current-project switcher (above the rail and the panel): reflects the
+  // Current-project switcher (top of the sidebar panel): reflects the
   // active project and opens a dropdown to switch project without leaving
   // the view.
   const currentProjectNameEl = document.getElementById('sidebar-current-project-name');

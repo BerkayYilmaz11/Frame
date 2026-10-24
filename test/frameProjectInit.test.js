@@ -345,10 +345,15 @@ test('the sample project ships the new layout with no legacy fingerprint', () =>
   assert.match(config.projectId, /^[0-9a-f-]{36}$/);
   assert.equal(config.settings.gitSharing, 'repo');
 
-  // The sample ships four of the five (it never carried a QUICKSTART), and
-  // none of them may sit at its root.
-  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.STRUCTURE, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
+  // The sample ships three of the five (it never carried a QUICKSTART, and
+  // the module map is opt-in, which the sample is not), and none of them may
+  // sit at its root.
+  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
     assert.ok(fs.existsSync(path.join(sampleDir, FRAME_DIR, name)), `.frame/${name} present`);
+  }
+  assert.ok(!fs.existsSync(path.join(sampleDir, FRAME_DIR, FRAME_FILES.STRUCTURE)), 'no module map');
+  for (const file of [path.join(FRAME_DIR, FRAME_FILES.AGENTS), path.join(...CLAUDE_RULE_PATH.split('/')), 'README.md']) {
+    assert.ok(!/STRUCTURE\.json|module map|structure map/.test(fs.readFileSync(path.join(sampleDir, file), 'utf8')), `${file} names the map`);
   }
   for (const name of Object.values(FRAME_FILES)) {
     assert.ok(!fs.existsSync(path.join(sampleDir, name)), `${name} not at the sample's root`);
@@ -733,4 +738,61 @@ test('a fresh init writes the working view and, while untracked, the map file to
   const working = path.join(projectDir, FRAME_DIR, 'runtime', 'structure', 'working.json');
   assert.ok(fs.existsSync(working));
   assert.equal(fs.readFileSync(mapPath(projectDir), 'utf8'), fs.readFileSync(working, 'utf8'));
+});
+
+// ─── the module map is opt-in (structure-switch.js) ───────
+
+async function withoutStructureOverride(fn) {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try { return await fn(); } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+}
+
+test('init writes no STRUCTURE.json for a project that has not opted into the map', async () => {
+  await withoutStructureOverride(async () => {
+    const config = await frameProject.runProjectInit(projectDir, 'demo');
+    assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+    assert.equal(config._structureBootstrap.initialScan.status, 'skipped-disabled');
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.TASKS)), 'the other meta files still appear');
+  });
+});
+
+test('a project without the map ends init with no trace of it', async () => {
+  // Every file init writes, read back: none may name the map or its tools.
+  const MAP = /STRUCTURE\.json|find-module|module-hint|module map/;
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+  });
+  const bin = path.join(projectDir, FRAME_DIR, 'bin');
+  const binFiles = fs.readdirSync(bin);
+  assert.ok(binFiles.includes('check-freshness.js'), 'the shared tools are there');
+  for (const name of binFiles) {
+    assert.ok(!/^(update-structure|structure-|find-module|module-hint|fsSafe|intent-map)|^lang$/.test(name), `.frame/bin/${name}`);
+  }
+  assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+
+  const written = [
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.AGENTS),
+    path.join(projectDir, FRAME_DIR, 'docs', 'REFERENCE.md'),
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.QUICKSTART),
+    path.join(projectDir, ...CLAUDE_RULE_PATH.split('/')),
+    path.join(projectDir, '.claude', 'settings.json')
+  ];
+  for (const file of written) {
+    assert.ok(fs.existsSync(file), `${path.relative(projectDir, file)} written`);
+    assert.ok(!MAP.test(fs.readFileSync(file, 'utf8')), `${path.relative(projectDir, file)} names the map`);
+  }
+});
+
+test('re-init of an opted-in project keeps the opt-in and writes the map', async () => {
+  await withoutStructureOverride(async () => {
+    fs.mkdirSync(path.join(projectDir, FRAME_DIR), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), JSON.stringify({ settings: { structureMap: true } }));
+    await frameProject.runProjectInit(projectDir, 'demo');
+    const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), 'utf8'));
+    assert.equal(config.settings.structureMap, true);
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+  });
 });

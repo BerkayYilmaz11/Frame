@@ -38,7 +38,7 @@ const STEPS = [
     id: 'switcher',
     title: 'Your projects',
     body: 'This is the project you are in. Open it to switch to another project or add a new one.',
-    targets: [{ selector: '#sidebar-current-project-wrap', placement: 'bottom' }],
+    targets: [{ selector: '#sidebar-current-project-wrap', placement: 'right' }],
     advance: 'next',
     requiresProject: true,
     requiresNoProject: false

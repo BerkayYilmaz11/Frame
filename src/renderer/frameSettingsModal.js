@@ -83,8 +83,10 @@ function init() {
   // delete the install id, which setEnabled does on the spot)
   toggleEl.addEventListener('change', async () => {
     const enabled = toggleEl.checked;
-    await ipcRenderer.invoke(IPC.SET_USER_SETTING, ANALYTICS_KEY, enabled);
+    // Main first: setEnabled reads the old state to send the opt-out's one
+    // analytics_disabled event, which it cannot do once the setting is off.
     await ipcRenderer.invoke(IPC.ANALYTICS_SET_ENABLED, enabled);
+    await ipcRenderer.invoke(IPC.SET_USER_SETTING, ANALYTICS_KEY, enabled);
     // Only arrives when switching ON: track() is gated on the new state, so
     // an opt-out sends nothing, which is the point of an opt-out.
     ipcRenderer.send(IPC.ANALYTICS_TRACK, 'settings_changed', { setting: 'analytics' });
