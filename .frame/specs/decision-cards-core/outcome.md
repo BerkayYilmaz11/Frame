@@ -67,3 +67,10 @@ _Captured: 2026-10-23 · 10 file change(s)_
 _Captured: 2026-10-23 · 3 file change(s)_
 
 ---
+## Fix — Spec-flow decisions are not asked about, except how the project tests
+
+Found in the manual test tour (E1): during `/spec.new` the agent wrote two choices into the spec (an empty name gives "Goodbye, there!", tests run with `node --test`) and then offered to record them as notes cards as well, because the decision section's exception named only implement. A yes would have recorded each choice twice, and the notes card would have reached agents by hook, against D6. The exception now covers the whole spec flow (`spec.new`, `spec.plan`, `spec.tasks`, `spec.implement`), with one exception of its own, set by the user: how the project tests (choosing or changing its test runner or test convention) belongs to the project, not the spec. In a new project with no testing record the spec cannot know whether the project tests at all, so that choice is still asked about like a chat decision and gets a `PROJECT_NOTES.md` story and a spec-less card that reaches later work; the per-spec test posture `/spec.plan` asks about stays in the spec. `DECISION_SECTION_VERSION` went from 1 to 2 so a project holding the v1 block gets the new text on open, and `test/specDocsUpgrade.test.js` pins both sentences.
+
+_Captured: 2026-10-24 · 2 file changes_
+
+---

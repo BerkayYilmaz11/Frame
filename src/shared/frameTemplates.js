@@ -308,7 +308,7 @@ follow exactly) lives in **"Spec-Driven Development"** in
  * yes" and "The card" parts when an agent writes the card file by hand.
  * DECISION_CORE_SECTION is the AGENTS.md pointer carrying the trigger.
  */
-const DECISION_SECTION_VERSION = 1;
+const DECISION_SECTION_VERSION = 2;
 
 const DECISION_SECTION = `## Decision Cards (decisions.jsonl)
 
@@ -318,7 +318,7 @@ A recorded decision leaves a **card**: one line in \`decisions.jsonl\`, beside t
 
 ### When to ask
 
-When a decision is made in conversation — a technical or architectural choice, a rule for future work, an approach settled with the user, an earlier decision overturned — ask once, before moving on. Not for routine edits, questions or experiments. A decision made while implementing a spec is not asked about: its cards are written when the spec closes.
+When a decision is made in conversation — a technical or architectural choice, a rule for future work, an approach settled with the user, an earlier decision overturned — ask once, before moving on. Not for routine edits, questions or experiments. A decision made inside the spec flow (spec.new, spec.plan, spec.tasks, spec.implement) is not asked about: it lives in the spec, and its cards are written when the spec closes. One exception: how the project tests (choosing or changing its test runner or test convention) belongs to the project, not to the spec. Ask about it once, as for a chat decision, so it gets a PROJECT_NOTES.md story and reaches work after this spec.
 
 ### The one question
 

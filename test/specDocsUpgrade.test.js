@@ -470,6 +470,13 @@ test('the decision rules name the card file by name, not by a path that may not 
   assert.equal(templates.DECISION_CORE_SECTION.split('\n').filter(Boolean).length, 4, 'a heading and a three-line pointer');
 });
 
+test('a decision inside the spec flow is not asked about, except how the project tests', () => {
+  // Found in the manual tour: spec.new asked to record choices the spec already
+  // held, because the exception named only implement.
+  assert.match(templates.DECISION_SECTION, /inside the spec flow \(spec\.new, spec\.plan, spec\.tasks, spec\.implement\) is not asked about/);
+  assert.match(templates.DECISION_SECTION, /One exception: how the project tests \(choosing or changing its test runner or test convention\)/);
+});
+
 // ─── What the pass puts on the record ─────────────────────────
 //
 // Lives here rather than in test/activityEvents.test.js because these two
