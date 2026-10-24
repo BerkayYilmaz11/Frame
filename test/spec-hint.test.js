@@ -597,3 +597,280 @@ test('a .frame/bin/ without the helper surfaces related specs as before and noth
   assert.equal(run(prompt(root, 'ok')), null);
   assert.ok(ctxOf(run(prompt(root, 'telemetry polling'))).startsWith(TOPIC_HEADER));
 });
+
+// ─── decision cards at edit time (decision-cards-core T06) ──
+
+const decisionCards = require('../scripts/decision-cards');
+
+const CARD = (over = {}) => ({
+  id: '20261014-aaaaaa', date: '2026-10-14',
+  decision: 'Card files merge with the union driver.',
+  why: 'Two branches each append a card, and a union merge keeps both.',
+  keywords: ['union merge'], files: ['src/main/a.js'],
+  source: 'notes:2026-10-14 Union merge for cards', supersedes: null, extends: null, ...over
+});
+
+function withCards(root, cards) {
+  fs.writeFileSync(decisionCards.cardsPath(root), cards.map((c) => JSON.stringify(c)).join('\n') + '\n');
+  return root;
+}
+
+const editAt = (root, file, session = 'dc') => runHook('pre-edit', { session_id: session, cwd: root, tool_input: { file_path: file } });
+const ctxOfEdit = (out) => out && out.hookSpecificOutput.additionalContext;
+
+test('a file with no spec history still gets its spec-less card, once per session', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const ctx = ctxOfEdit(editAt(root, 'src/untouched.js'));
+  assert.ok(ctx.startsWith('Recorded decisions for src/untouched.js (newest first):\n'));
+  assert.match(ctx, /- 2026-10-14 20261014-aaaaaa — Card files merge with the union driver\.\n  why: Two branches/);
+  assert.match(ctx, /story: PROJECT_NOTES\.md "### \[2026-10-14\] Union merge for cards"/);
+  assert.match(ctx, /Respect them; to overturn one, say so to the user first/);
+  assert.ok(!/Spec history/.test(ctx));
+  assert.equal(editAt(root, 'src/untouched.js'), null, 'once per session');
+  assert.ok(ctxOfEdit(editAt(root, 'src/untouched.js', 'another-session')), 'a new session hears it again');
+});
+
+test('a file with spec history gets the history unchanged, then its cards', () => {
+  const plain = ctxOfEdit(editAt(mkProject(IDX_ONE), 'src/main/a.js'));
+  const ctx = ctxOfEdit(editAt(withCards(mkProject(IDX_ONE), [CARD()]), 'src/main/a.js'));
+  assert.ok(ctx.startsWith(`${plain}\n\nRecorded decisions for src/main/a.js (newest first):\n`));
+});
+
+test('a card added later reaches a file already announced, and only the new card is sent', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD()]);
+  assert.ok(ctxOfEdit(editAt(root, 'src/main/a.js')));
+  withCards(root, [CARD(), CARD({ id: '20261015-bbbbbb', date: '2026-10-15', decision: 'A newer decision here.' })]);
+  const ctx = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  assert.ok(ctx.startsWith('Recorded decisions for src/main/a.js'), 'the history is not repeated');
+  assert.match(ctx, /A newer decision here\./);
+  assert.ok(!/union driver/.test(ctx), 'the card already shown is not repeated');
+});
+
+test('spec cards and superseded cards are never delivered', () => {
+  const root = withCards(mkProject(IDX_ONE), [
+    CARD({ id: '20261001-aaaaaa', date: '2026-10-01', files: ['src/x.js'], source: 'spec:perf-spec', decision: 'A spec decision.' }),
+    CARD({ id: '20261002-bbbbbb', date: '2026-10-02', files: ['src/x.js'], decision: 'The old rule.' }),
+    CARD({ id: '20261003-cccccc', date: '2026-10-03', files: ['src/x.js'], decision: 'The new rule.', supersedes: '20261002-bbbbbb' })
+  ]);
+  const ctx = ctxOfEdit(editAt(root, 'src/x.js'));
+  assert.match(ctx, /The new rule\./);
+  assert.match(ctx, /\(supersedes 20261002-bbbbbb\)/);
+  assert.ok(!/A spec decision\.|The old rule\./.test(ctx));
+  const specOnly = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/y.js'], source: 'spec:perf-spec' })]);
+  assert.equal(editAt(specOnly, 'src/y.js'), null);
+});
+
+test('three or more cards go one line each, with the command that prints them whole', () => {
+  const cards = [1, 2, 3].map((n) => CARD({ id: `2026101${n}-00000${n}`, date: `2026-10-1${n}`, files: ['src/z.js'], decision: `Decision number ${n}.` }));
+  const ctx = ctxOfEdit(editAt(withCards(mkProject(IDX_ONE), cards), 'src/z.js'));
+  assert.ok(ctx.indexOf('Decision number 3.') < ctx.indexOf('Decision number 1.'), 'newest first');
+  assert.ok(!/why:/.test(ctx), 'compact');
+  assert.match(ctx, /Full cards: node .*decision\.js list/);
+});
+
+test('cards give way under the inline cap; the ones left out come on a later edit', () => {
+  const long = (n) => CARD({
+    id: `2026101${n}-00000${n}`, date: `2026-10-1${n}`, files: ['src/main/a.js'],
+    decision: `Decision ${n} ${'word '.repeat(45).trim()}.`, why: `${'reason '.repeat(35).trim()}.`
+  });
+  const idx = JSON.parse(JSON.stringify(IDX_ONE));
+  idx.files['src/main/a.js'] = [REC('perf-spec', { line: 'y'.repeat(330), flags: { current: true } })];
+  const root = withCards(mkProject(idx), [1, 2, 3, 4, 5, 6].map(long));
+  const first = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  assert.ok(first.length <= 1980, `${first.length} chars`);
+  assert.ok(first.includes('Recorded decisions for'), 'at least one card fits');
+  assert.ok(!/why:/.test(first), 'one line per card before any card is dropped');
+  const sent = first.match(/2026101\d-00000\d/g) || [];
+  assert.ok(sent.length >= 1 && sent.length < 6, `${sent.length} sent`);
+  const second = ctxOfEdit(editAt(root, 'src/main/a.js'));
+  const rest = second.match(/2026101\d-00000\d/g) || [];
+  assert.ok(rest.length > 0 && rest.every((id) => !sent.includes(id)), 'the rest arrive next time, and only the rest');
+});
+
+test('signal mode sends one pointer line for the cards', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const out = runHook('pre-edit', { session_id: 'sig', cwd: root, tool_input: { file_path: 'src/untouched.js' } },
+    { env: { FRAME_SPEC_HINT_MODE: 'signal' } });
+  assert.match(ctxOfEdit(out), /^This file has 1 recorded decision card\(s\)\. Before editing, run: node .*decision\.js related --files src\/untouched\.js$/);
+});
+
+test('a Codex apply_patch gets the patched file\'s cards', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD({ files: ['src/untouched.js'] })]);
+  const command = ['*** Begin Patch', '*** Update File: src/untouched.js', '+x', '*** End Patch'].join('\n');
+  const stdout = execFileSync('node', [HINT, 'pre-edit', 'codex'], {
+    input: JSON.stringify({ session_id: 'cx', cwd: root, tool_name: 'apply_patch', tool_input: { command }, turn_id: 't', model: 'm' }),
+    encoding: 'utf8'
+  });
+  assert.match(JSON.parse(stdout).hookSpecificOutput.additionalContext, /Card files merge with the union driver/);
+});
+
+test('a card delivery is recorded under its own mode, beside the history row', () => {
+  const root = withCards(mkProject(IDX_ONE), [CARD()]);
+  withActivity(root, (env) => {
+    runHook('pre-edit', { cwd: root, session_id: 'r1', tool_input: { file_path: 'src/main/a.js' } }, { env });
+    const injected = recordsFor(root).filter((r) => r.ev === 'hint.injected').map((r) => [r.mode, r.path, r.cards ?? null]);
+    assert.deepEqual(injected, [['pre-edit', 'src/main/a.js', null], ['decision-edit', 'src/main/a.js', 1]]);
+  });
+});
+
+// With no card file, every pre-edit payload and record is the one the hook
+// sent before cards existed. Pinned against the last commit before this spec.
+const BEFORE_CARDS = (() => {
+  try {
+    return execFileSync('git', ['show', '8ce2aa8:scripts/spec-hint.js'],
+      { cwd: path.join(__dirname, '..'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return null; // a shallow clone
+  }
+})();
+
+test('with no card file, pre-edit is byte-identical to the hook before cards', { skip: !BEFORE_CARDS && 'history unavailable' }, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-before-'));
+  for (const f of ['activity-log.js', 'redact.js', 'toolVocabulary.js', 'spec-close-state.js', 'decision-cards.js']) {
+    fs.copyFileSync(path.join(__dirname, '..', 'scripts', f), path.join(dir, f));
+  }
+  fs.writeFileSync(path.join(dir, 'spec-hint.js'), BEFORE_CARDS);
+  // The current hook in a twin folder with the same siblings, so the paths
+  // each one names for its helpers resolve alike.
+  const twin = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-after-'));
+  for (const f of fs.readdirSync(dir)) fs.copyFileSync(path.join(dir, f), path.join(twin, f));
+  fs.copyFileSync(HINT, path.join(twin, 'spec-hint.js'));
+  const run = (script, root, payload, env = {}) => execFileSync('node', [script, 'pre-edit'], {
+    input: JSON.stringify(payload), encoding: 'utf8', env: { ...process.env, ...env }
+  });
+  for (const file of ['src/main/a.js', 'src/many.js', 'src/none.js', '.frame/tasks.json', '../out.js']) {
+    for (const env of [{}, { FRAME_SPEC_HINT_MODE: 'signal' }]) {
+      const a = mkProject(IDX_ONE);
+      const b = mkProject(IDX_ONE);
+      const payload = (root) => ({ session_id: 'same', cwd: root, tool_input: { file_path: file } });
+      const before = [run(path.join(dir, 'spec-hint.js'), a, payload(a), env), run(path.join(dir, 'spec-hint.js'), a, payload(a), env)];
+      const after = [run(path.join(twin, 'spec-hint.js'), b, payload(b), env), run(path.join(twin, 'spec-hint.js'), b, payload(b), env)];
+      assert.deepEqual(after.map((o) => o.split(b).join('<root>')), before.map((o) => o.split(a).join('<root>')), `${file} ${JSON.stringify(env)}`);
+    }
+  }
+});
+
+// ─── decision cards at prompt time (decision-cards-core T09) ──
+
+const CARD_HEADER = 'Recorded decisions that may apply (from the project\'s decision cards):';
+const mergeCard = (over = {}) => CARD({ files: [], keywords: ['union merge', 'gitattributes'], ...over });
+
+test('a prompt that matches a spec-less card strongly gets it; one rare word is not enough', () => {
+  const root = withCards(mkProject(IDX_ONE), [mergeCard()]);
+  assert.equal(runHook('prompt', prompt(root, 'how do gitattributes work')), null, 'one rare word scores 2');
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'set up the union merge in gitattributes')));
+  assert.ok(ctx.startsWith(`${CARD_HEADER}\n- 2026-10-14 20261014-aaaaaa — Card files merge with the union driver.\n  why: `));
+  assert.match(ctx, /If one of these decisions bears on this request, respect it/);
+});
+
+test('at most two cards, the strongest first, and each once per session', () => {
+  const root = withCards(mkProject(IDX_ONE), [
+    mergeCard({ id: '20261011-aaaaaa', date: '2026-10-11', decision: 'Union merge keeps both card lines.', keywords: ['union merge'] }),
+    mergeCard({ id: '20261012-bbbbbb', date: '2026-10-12', decision: 'Gitattributes carries the union merge rule.', keywords: ['union merge', 'gitattributes'] }),
+    mergeCard({ id: '20261013-cccccc', date: '2026-10-13', decision: 'A union merge never conflicts on cards.', keywords: ['union merge'] })
+  ]);
+  const first = ctxOf(runHook('prompt', prompt(root, 'union merge gitattributes rule')));
+  const sent = first.match(/2026101\d-[a-c]{6}/g);
+  assert.equal(sent.length, 2);
+  assert.equal(sent[0], '20261012-bbbbbb', 'the best match leads');
+  const second = ctxOf(runHook('prompt', prompt(root, 'union merge gitattributes rule')));
+  assert.deepEqual(second.match(/2026101\d-[a-c]{6}/g), ['20261011-aaaaaa', '20261013-cccccc'].filter((id) => !sent.includes(id)));
+  assert.equal(runHook('prompt', prompt(root, 'union merge gitattributes rule')), null, 'nothing new is left');
+});
+
+test('a card shown before an edit is not shown again at a prompt', () => {
+  const root = withCards(mkProject(IDX_ONE), [mergeCard({ files: ['src/untouched.js'] })]);
+  assert.ok(ctxOfEdit(editAt(root, 'src/untouched.js', 'p1')));
+  assert.equal(runHook('prompt', prompt(root, 'union merge in gitattributes', 'p1')), null);
+});
+
+test('spec cards and superseded cards never reach a prompt', () => {
+  const root = withCards(mkProject(IDX_ONE), [
+    mergeCard({ id: '20261001-aaaaaa', date: '2026-10-01', source: 'spec:perf-spec', decision: 'A spec decision on union merge.' }),
+    mergeCard({ id: '20261002-bbbbbb', date: '2026-10-02', decision: 'The old union merge rule.' }),
+    mergeCard({ id: '20261003-cccccc', date: '2026-10-03', decision: 'The new union merge rule.', supersedes: '20261002-bbbbbb' })
+  ]);
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'union merge gitattributes')));
+  assert.match(ctx, /The new union merge rule\./);
+  assert.ok(!/A spec decision|The old union merge rule/.test(ctx));
+});
+
+test('related specs come first as they always were, and the cards follow', () => {
+  const plain = ctxOf(runHook('prompt', prompt(mkProject(IDX_ONE), 'telemetry polling union merge gitattributes')));
+  const root = withCards(mkProject(IDX_ONE), [mergeCard()]);
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'telemetry polling union merge gitattributes')));
+  assert.ok(ctx.startsWith(`${plain}\n\n${CARD_HEADER}\n`));
+});
+
+test('cards give way first under the cap: the reminder and related specs stay whole', () => {
+  // A reminder plus related specs that leave little room: the cards shrink
+  // to one line each, then drop — the rest arrives unchanged.
+  const index = wideIndex(['spec-one', 'spec-two'], 600);
+  const without = addClosed(mkProject(index));
+  const expected = ctxOf(runHook('prompt', prompt(without, 'telemetry union merge gitattributes')));
+  const root = withCards(addClosed(mkProject(index)), [mergeCard({ why: `${'reason '.repeat(60).trim()}.` })]);
+  const ctx = ctxOf(runHook('prompt', prompt(root, 'telemetry union merge gitattributes')));
+  assert.ok(ctx.startsWith(expected), 'the reminder and the specs are untouched');
+  assert.ok(ctx.length <= BUDGET, `${ctx.length} chars`);
+  assert.ok(ctx.includes(CARD_HEADER), 'the card still fits');
+  assert.ok(!/why:/.test(ctx.slice(expected.length)), 'one line, because in full it would not');
+
+  const tight = wideIndex(['spec-one', 'spec-two'], 850);
+  const full = withCards(addClosed(mkProject(tight)), [mergeCard()]);
+  const alone = ctxOf(runHook('prompt', prompt(addClosed(mkProject(tight)), 'telemetry union merge gitattributes')));
+  const out = ctxOf(runHook('prompt', prompt(full, 'telemetry union merge gitattributes')));
+  assert.equal(out, alone, 'no room: exactly what was sent without cards');
+  assert.match(ctxOf(runHook('prompt', prompt(full, 'union merge gitattributes'))), /Card files merge/, 'the card waited, unmarked');
+});
+
+test('Codex inlines more, so both cards arrive in full', () => {
+  const root = withCards(mkProject(IDX_ONE), [
+    mergeCard({ id: '20261011-aaaaaa', date: '2026-10-11', why: `${'reason '.repeat(60).trim()}.` }),
+    mergeCard({ id: '20261012-bbbbbb', date: '2026-10-12', why: `${'reason '.repeat(60).trim()}.` })
+  ]);
+  const stdout = execFileSync('node', [HINT, 'prompt', 'codex'], {
+    input: JSON.stringify({ ...prompt(root, 'union merge gitattributes'), turn_id: 't', model: 'm' }), encoding: 'utf8'
+  });
+  const ctx = ctxOf(JSON.parse(stdout));
+  assert.equal((ctx.match(/\n  why: /g) || []).length, 2);
+});
+
+test('a prompt card delivery is recorded under its own mode', () => {
+  const root = withCards(mkProject(IDX_ONE), [mergeCard()]);
+  withActivity(root, (env) => {
+    runHook('prompt', prompt(root, 'union merge gitattributes'), { env });
+    const rows = recordsFor(root).filter((r) => r.ev === 'hint.injected').map((r) => [r.mode, r.cards ?? null]);
+    assert.deepEqual(rows, [['decision-prompt', 1]]);
+  });
+});
+
+test('with no card file, prompt mode is byte-identical to the hook before cards', { skip: !BEFORE_CARDS && 'history unavailable' }, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-before-p-'));
+  for (const f of ['activity-log.js', 'redact.js', 'toolVocabulary.js', 'spec-close-state.js', 'decision-cards.js']) {
+    fs.copyFileSync(path.join(__dirname, '..', 'scripts', f), path.join(dir, f));
+  }
+  const twin = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-hint-after-p-'));
+  for (const f of fs.readdirSync(dir)) fs.copyFileSync(path.join(dir, f), path.join(twin, f));
+  fs.writeFileSync(path.join(dir, 'spec-hint.js'), BEFORE_CARDS);
+  fs.copyFileSync(HINT, path.join(twin, 'spec-hint.js'));
+  const run = (script, payload, args = []) => execFileSync('node', [script, 'prompt', ...args], {
+    input: JSON.stringify(payload), encoding: 'utf8'
+  });
+  const shapes = [
+    () => mkProject(IDX_ONE),
+    () => addClosed(mkProject(IDX_ONE)),
+    () => addClosed(mkProject(wideIndex(['spec-one', 'spec-two', 'spec-three'], 700))),
+    () => mkProject(null)
+  ];
+  for (const text of ['telemetry polling', 'ok', 'telemetry', 'nothing relevant at all']) {
+    for (const [i, make] of shapes.entries()) {
+      for (const args of [[], ['codex']]) {
+        const a = make();
+        const b = make();
+        const before = [run(path.join(dir, 'spec-hint.js'), prompt(a, text), args), run(path.join(dir, 'spec-hint.js'), prompt(a, text), args)];
+        const after = [run(path.join(twin, 'spec-hint.js'), prompt(b, text), args), run(path.join(twin, 'spec-hint.js'), prompt(b, text), args)];
+        assert.deepEqual(after.map((o) => o.split(b).join('<root>')), before.map((o) => o.split(a).join('<root>')), `"${text}" shape ${i} ${args.join(' ')}`);
+      }
+    }
+  }
+});

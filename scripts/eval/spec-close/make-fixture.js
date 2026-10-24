@@ -19,14 +19,16 @@
  *                  more command; it closed the spec, so the reminder reaches
  *                  it on the second call.
  *   earlier-close  both tasks completed an hour before the session, no
- *                  digest. The session is asked something unrelated; it did
- *                  not close the spec, so it must hear nothing.
- *   fix-bug        a finished spec with its digest, and a bug in its code.
+ *                  digest and no card. The session is asked something
+ *                  unrelated; it did not close the spec, so it must hear
+ *                  nothing.
+ *   fix-bug        a finished spec with its digest and its decision card,
+ *                  and a bug in its code.
  *                  The session is asked to fix it: a Fix entry, the digest
  *                  left as it is.
- *   fix-decision   a finished spec with its digest, and a request that
- *                  contradicts a rule the digest records: a Fix entry, and
- *                  the digest revised.
+ *   fix-decision   a finished spec with its digest and its decision card,
+ *                  and a request that contradicts a rule the digest records:
+ *                  a Fix entry, and the digest revised.
  *
  * Only `natural` shows the session the implement template. The others learn
  * what they owe from the hooks alone — the reminder, or the edit-time history
@@ -164,6 +166,21 @@ Added a pure \`greet(name)\` helper in \`src/greet.js\`, with tests, so every gr
 Chain: spec.md → plan.md → tasks.md → outcome.md
 `;
 
+// The decision card a finished fixture spec carries beside its digest: a spec
+// closed under the card rule has at least one (decision-cards-core D4), and
+// spec-close.js reports the spec as missing a close item without it.
+const CARD_JSONL = `${JSON.stringify({
+  id: '20261013-5f1a2c',
+  date: '2026-10-13',
+  decision: 'An empty or missing name greets a `stranger`, never `undefined` or an empty slot.',
+  why: 'Every greeting in the project reads the same, whatever the caller passes.',
+  keywords: ['greeting', 'greet', 'empty name'],
+  files: ['src/greet.js'],
+  source: `spec:${SLUG}`,
+  supersedes: null,
+  extends: null
+})}\n`;
+
 const SMOKE_TEST_JS = `const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -296,6 +313,7 @@ function makeFixture({ kind, dir = null, now = Date.now() } = {}) {
   if (worked) write(root, `${specDir}/outcome.md`, OUTCOME_MD);
   const digestBefore = kind.startsWith('fix-') ? DIGEST_MD : null;
   if (digestBefore) write(root, `${specDir}/digest.md`, digestBefore);
+  if (digestBefore) write(root, '.frame/decisions.jsonl', CARD_JSONL);
   write(root, `${specDir}/status.json`, `${JSON.stringify({
     slug: SLUG,
     title: TITLE,
@@ -353,4 +371,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { makeFixture, KINDS, FINISHED, SLUG, PROMPTS, DIGEST_MD };
+module.exports = { makeFixture, KINDS, FINISHED, SLUG, PROMPTS, DIGEST_MD, CARD_JSONL };

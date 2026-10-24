@@ -177,6 +177,7 @@ function writeStatus(projectPath, slug, status) {
 // Same bundled-scripts location contract as structureBootstrap.
 
 const specIndexLib = require(path.join(__dirname, '..', '..', 'scripts', 'spec-index.js'));
+const decisionCardsLib = require(path.join(__dirname, '..', '..', 'scripts', 'decision-cards.js'));
 const vocabulary = require('../../scripts/toolVocabulary');
 
 /** mtime of the derived index, or 0 — used to tell a rebuild from a no-op. */
@@ -218,6 +219,30 @@ function scheduleIndexRefresh(projectPath) {
  * refresh warms it for the next dispatch.
  */
 function buildSpecCatalog(projectPath) {
+  const specs = specCatalogText(projectPath);
+  const cards = cardCatalogLines(projectPath);
+  if (!cards.length) return specs;
+  return specs ? `${specs}\n${cards.join('\n')}` : cards.join('\n');
+}
+
+/**
+ * The current spec-less decision cards as catalog lines, after the specs
+ * (decision-cards-core D17): `/spec.new` weighs a decision recorded outside
+ * any spec the way it weighs a related spec. Spec cards are left out — their
+ * spec is already a line above. No card file, no lines, so the catalog is
+ * exactly what it was.
+ */
+function cardCatalogLines(projectPath) {
+  try {
+    const text = fs.readFileSync(frameStore.decisionsPath(projectPath), 'utf8');
+    const current = decisionCardsLib.currentCards(decisionCardsLib.parseCards(text).cards);
+    return decisionCardsLib.catalogLines(decisionCardsLib.specLessCards(current));
+  } catch (_) {
+    return [];
+  }
+}
+
+function specCatalogText(projectPath) {
   scheduleIndexRefresh(projectPath);
   try {
     const idx = JSON.parse(fs.readFileSync(
@@ -563,9 +588,18 @@ function interpolate(template, vars) {
  * the next project open is better than no path.
  */
 function closeScriptRel(projectPath) {
-  const shipped = path.posix.join(FRAME_DIR.replace(/\\/g, '/'), FRAME_BIN_DIR, CLOSE_SCRIPT_FILE);
+  return shippedScriptRel(projectPath, CLOSE_SCRIPT_FILE);
+}
+
+/** The card writer the close step runs, resolved the same way (decision-cards-core). */
+function decisionScriptRel(projectPath) {
+  return shippedScriptRel(projectPath, DECISION_SCRIPT_FILE);
+}
+
+function shippedScriptRel(projectPath, file) {
+  const shipped = path.posix.join(FRAME_DIR.replace(/\\/g, '/'), FRAME_BIN_DIR, file);
   if (fs.existsSync(path.join(projectPath, shipped))) return shipped;
-  const dev = path.posix.join('scripts', CLOSE_SCRIPT_FILE);
+  const dev = path.posix.join('scripts', file);
   return fs.existsSync(path.join(projectPath, dev)) ? dev : shipped;
 }
 
@@ -605,6 +639,7 @@ function getCommandPrompt(projectPath, slug, command, aiTool, description) {
     report_template_path: reportAssetRel(projectPath, tool, REPORT_TEMPLATE_FILE),
     report_generator_path: reportAssetRel(projectPath, tool, REPORT_GENERATOR_FILE),
     close_script_path: closeScriptRel(projectPath),
+    decision_script_path: decisionScriptRel(projectPath),
     // Full spec catalog only where it's consumed (spec.new's relatedness
     // evaluation and slug disambiguation) — other templates carry no
     // {spec_catalog} token.
@@ -632,6 +667,7 @@ const RUNTIME_PROMPTS_DIR = path.join(FRAME_DIR, 'runtime', 'prompts');
 const REPORT_TEMPLATE_FILE = 'plan-report-template.html';
 const REPORT_GENERATOR_FILE = 'build-implement-report.mjs';
 const CLOSE_SCRIPT_FILE = 'spec-close.js';
+const DECISION_SCRIPT_FILE = 'decision.js';
 
 // The report assets the agent reads live beside the command templates they
 // belong to, under .frame/runtime/commands/<tool>/ — the location
@@ -713,8 +749,9 @@ const IMPLEMENT_DENY = [
 // next, and a step the template requires cannot hang on that. Only the
 // shipped path: `scripts/spec-close.js` exists in Frame's own repository
 // alone, and allowing it everywhere would allow any project's script of that
-// name. src/templates/bin/implement-launch.js carries the same list; a test
-// keeps the two equal.
+// name. The card writer the close step runs beside it (decision.js add) is
+// allowed for the same reason, by its shipped path only. The list lives in
+// src/templates/bin/implement-launch.js too; a test keeps the two equal.
 const IMPLEMENT_ALLOW = [
   'Edit',
   'Read',
@@ -725,7 +762,8 @@ const IMPLEMENT_ALLOW = [
   'Bash(git show *)',
   'Bash(git log *)',
   'Bash(git rev-parse *)',
-  'Bash(node .frame/bin/spec-close.js *)'
+  'Bash(node .frame/bin/spec-close.js *)',
+  'Bash(node .frame/bin/decision.js *)'
 ];
 
 // The project's own check, in descending order of what actually verifies a

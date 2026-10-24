@@ -143,25 +143,77 @@ test('tasks.json as a bare array is read the same way', () => {
 
 // ─── close items ──────────────────────────────────────────
 
-test('the digest is the one close item, missing until digest.md exists', () => {
+test('without decision.js the digest is the only item owed, missing until digest.md exists', () => {
   const root = mkProject({ specs: ['a'], tasks: closed('a') });
-  assert.deepEqual(CLOSE_ITEMS.map((i) => i.id), ['digest']);
+  assert.deepEqual(CLOSE_ITEMS.map((i) => i.id), ['digest', 'cards']);
+  assert.equal(closeStateLib.cardsDue(root), false, 'no decision.js — cards are not due');
   assert.deepEqual(missingItems(root, 'a'), ['digest']);
   mkSpec(root, 'a', { digest: true });
   assert.deepEqual(missingItems(root, 'a'), []);
 });
 
-test('a second close item joins the list without anything around it changing', () => {
-  const root = mkProject({ specs: ['a'] });
+// ─── decision cards (decision-cards-core T05) ─────────────
+
+/** A project that can write cards: decision.js in .frame/bin/, as Frame ships it. */
+function withCardTooling(root) {
+  fs.mkdirSync(path.join(root, '.frame', 'bin'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.frame', 'bin', 'decision.js'), '// stub\n');
+  return root;
+}
+
+function writeCards(root, cards) {
+  fs.writeFileSync(path.join(root, '.frame', 'decisions.jsonl'), cards.map((c) => JSON.stringify({
+    date: '2026-10-14', decision: 'A decision.', why: 'A reason.', keywords: ['k'], files: [],
+    supersedes: null, extends: null, ...c
+  })).join('\n') + '\n');
+}
+
+test('with decision.js a closed spec owes a card until a current one names it', () => {
+  const root = withCardTooling(mkProject({ specs: ['a'], tasks: closed('a') }));
   mkSpec(root, 'a', { digest: true });
-  CLOSE_ITEMS.push({ id: 'cards', label: 'decision cards', missing: () => true });
-  try {
-    closeIn(root, 's', open('a'), closed('a'));
-    assert.deepEqual(missingItems(root, 'a'), ['cards']);
-    assert.match(reminder(root, 's', NOW).line, /and it has no decision cards yet\. Finish it:/);
-  } finally {
-    CLOSE_ITEMS.pop();
-  }
+  assert.equal(closeStateLib.cardsDue(root), true);
+  assert.deepEqual(missingItems(root, 'a'), ['cards']);
+
+  writeCards(root, [{ id: '20261014-aaaaaa', source: 'notes:2026-10-14 Something else' }]);
+  assert.deepEqual(missingItems(root, 'a'), ['cards'], 'a card for another story does not count');
+
+  writeCards(root, [{ id: '20261014-aaaaaa', source: 'spec:a' }]);
+  assert.deepEqual(missingItems(root, 'a'), []);
+
+  writeCards(root, [
+    { id: '20261014-aaaaaa', source: 'spec:a' },
+    { id: '20261015-bbbbbb', date: '2026-10-15', source: 'spec:b', supersedes: '20261014-aaaaaa' }
+  ]);
+  assert.deepEqual(missingItems(root, 'a'), ['cards'], 'a superseded card is not current');
+});
+
+test('scripts/decision.js also makes cards due — Frame\'s own repository', () => {
+  const root = mkProject({ specs: ['a'], tasks: closed('a') });
+  fs.mkdirSync(path.join(root, 'scripts'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'scripts', 'decision.js'), '// dev copy\n');
+  assert.equal(closeStateLib.cardsDue(root), true);
+});
+
+test('the reminder names cards once the digest is there and a card is not', () => {
+  const root = withCardTooling(mkProject({ specs: ['a'] }));
+  mkSpec(root, 'a', { digest: true });
+  closeIn(root, 's', open('a'), closed('a'));
+  assert.match(reminder(root, 's', NOW).line, /and it has no decision cards yet\. Finish it:/);
+});
+
+test('the reminder names both items when both are missing', () => {
+  const root = withCardTooling(mkProject({ specs: ['a'] }));
+  closeIn(root, 's', open('a'), closed('a'));
+  assert.match(reminder(root, 's', NOW).line, /and it has no digest or decision cards yet\. Finish it:/);
+});
+
+test('a card written after the reminder settles the spec on the next look', () => {
+  const root = withCardTooling(mkProject({ specs: ['a'] }));
+  mkSpec(root, 'a', { digest: true });
+  closeIn(root, 's', open('a'), closed('a'));
+  writeCards(root, [{ id: '20261014-aaaaaa', source: 'spec:a' }]);
+  assert.equal(reminder(root, 's', NOW), null);
+  assert.deepEqual(closeStateLib.pending(root), []);
 });
 
 // ─── the session that closed it ───────────────────────────

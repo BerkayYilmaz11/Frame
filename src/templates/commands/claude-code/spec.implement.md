@@ -142,7 +142,7 @@ Edit `.frame/tasks.json` directly.
 
 **Spec phase.** `.frame/specs/{slug}/status.json` goes to `"implementing"` when
 work starts, and to `"done"` once no pending task remains and the digest step
-below has run. Merge into the existing object — other keys, `implement_mode`
+below — the digest and the decision cards — has run. Merge into the existing object — other keys, `implement_mode`
 among them, must survive.
 
 **One outcome entry per completed task**, in the format below. Not one per
@@ -153,16 +153,21 @@ pending task for this spec is not finished until, in the same turn:
 
 1. You write `.frame/specs/{slug}/digest.md` in the shape under *The digest*
    below.
-2. You run `node {close_script_path} {slug}`. It checks the digest and names
-   each defect. If the script is not there — an older `.frame/bin/` — the
-   digest alone is the step.
-3. You fix what it names and run it again, until it reports the digest `ok`.
-4. The spec phase goes to `"done"`.
+2. You record the spec's decision cards — at least one — with
+   `node {decision_script_path} add`, in the shape under *The cards* below. If
+   that script is not there — an older `.frame/bin/` — there are no cards to
+   write.
+3. You run `node {close_script_path} {slug}`. It checks the digest and the
+   cards and names each defect. If the script is not there — an older
+   `.frame/bin/` — the digest alone is the step.
+4. You fix what it names and run it again, until it reports every item `ok`.
+5. The spec phase goes to `"done"`.
 
 These steps are part of that last task, not a step after it. They come before
-the task is committed, so the digest and the phase change go into the same
-commit as the task's code and outcome entry — never into a commit of their
-own. A mode that leaves its work uncommitted leaves them in that same change.
+the task is committed, so the digest, the cards and the phase change go into
+the same commit as the task's code and outcome entry —
+never into a commit of their own. A mode that leaves its work uncommitted
+leaves them in that same change.
 
 **A fix after the last task.** When the user asks, after this spec's last
 task, for a fix to its work — a bug found while testing, a small correction to
@@ -174,6 +179,9 @@ the plan — the fix carries its own record in its own commit:
   corrected in place, a `Revised <YYYY-MM-DD>: <what changed, and why>` line
   added before the `Chain:` line, and `node {close_script_path} {slug}` run
   again. A bug fixed within the recorded decisions leaves the digest as it is.
+- when the fix overturns a decision one of this spec's cards records, a new
+  card that supersedes it, in the same commit: `node {decision_script_path} add`
+  with `"supersedes"` set to the old card's id. Cards are never edited.
 
 Whether a fix changes a decision is your call; if you are not sure, ask the
 user. Larger rework is a new task on this spec, or a new spec with
@@ -233,6 +241,33 @@ Chain: spec.md → plan.md → tasks.md → outcome.md
 
 Write it from `outcome.md`'s actuals, not `plan.md`'s intent — deviations
 are exactly what the digest must carry.
+
+### The cards
+
+A card is one line in `decisions.jsonl` that reaches a later agent at the
+moment the decision applies — before it edits a file the card names. Record
+one per decision this spec made that later work must respect or overturn by
+name, at least one, from `outcome.md`'s actuals like the digest. Run, once per
+card:
+
+```
+node {decision_script_path} add '{
+  "decision": "<one sentence, at most 280 characters>",
+  "why": "<at most 3 sentences>",
+  "keywords": ["<1-8 concepts>"],
+  "files": ["<project-relative paths the decision governs>"],
+  "source": "spec:{slug}",
+  "supersedes": null,
+  "extends": null
+}'
+```
+
+It assigns the id and the date, and refuses a card with a defect, naming it.
+`files` is `[]` when the decision names no file. When this spec overturns or
+builds on a decision an existing card records, set `supersedes` or `extends`
+to that card's id — `node {decision_script_path} related --files <a,b>
+--keywords <x,y>` lists the candidates. An apostrophe inside the JSON ends the
+shell quote: write it as `\u0027`.
 
 ## Mode · Step by step
 

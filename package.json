@@ -118,6 +118,8 @@
       "scripts/spec-command-hint.js",
       "scripts/spec-close-state.js",
       "scripts/spec-close.js",
+      "scripts/decision-cards.js",
+      "scripts/decision.js",
       "scripts/toolVocabulary.js",
       "scripts/redact.js",
       "scripts/activity-log.js",

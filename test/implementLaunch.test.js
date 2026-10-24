@@ -85,6 +85,11 @@ test('the close script the digest step runs is allowed by a rule, not left to a 
     'only the shipped path — a project\'s own scripts/ is not Frame\'s');
 });
 
+test('the card writer the close step runs is allowed by its shipped path only', () => {
+  assert.ok(helper.IMPLEMENT_ALLOW.includes('Bash(node .frame/bin/decision.js *)'));
+  assert.ok(!helper.IMPLEMENT_ALLOW.some((rule) => rule.includes('scripts/decision.js')));
+});
+
 test('the launcher and the app write the same permission file', () => {
   // Two copies of one list: the launcher ships into .frame/bin/ and cannot
   // require the app. specManager pulls in Electron-side modules, so those are

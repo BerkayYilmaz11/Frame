@@ -53,8 +53,8 @@ const IMPLEMENT_DENY = [
 ];
 
 // Editing plus the git plumbing the loop needs. `Edit` covers Write/NotebookEdit.
-// And the close script the digest step runs — specManager.js explains why;
-// its copy of this list must stay equal to this one.
+// And the close script the digest step runs, and the card writer beside it —
+// specManager.js explains why; its copy of this list must stay equal to this one.
 const IMPLEMENT_ALLOW = [
   'Edit',
   'Read',
@@ -65,7 +65,8 @@ const IMPLEMENT_ALLOW = [
   'Bash(git show *)',
   'Bash(git log *)',
   'Bash(git rev-parse *)',
-  'Bash(node .frame/bin/spec-close.js *)'
+  'Bash(node .frame/bin/spec-close.js *)',
+  'Bash(node .frame/bin/decision.js *)'
 ];
 
 // ─── Pure helpers ─────────────────────────────────────────────

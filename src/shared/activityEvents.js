@@ -57,7 +57,7 @@ const HINT_REASONS = [
   'index-oversize', // search: the lookup index or map is above the hook's 2 MiB cap (STR-03)
   'ambiguous-weak', // search: only path or description words matched — CLI evidence, not a hint (STR-03)
   'already-looked-up', // search: find-module already answered this in the session (STR-03b)
-  'orchestrated', // spec-close: an orchestration run owns the spec — its digest lives on the integration branch
+  'orchestrated', // spec-close: an orchestration run owns the spec — its close items live on the integration branch
   'closed-earlier', // spec-close: the spec was already closed when this session started — not its work
   'git-unavailable' // spec-close: git would not say whether orchestration owns the spec
 ];
@@ -65,7 +65,10 @@ const HINT_REASONS = [
 // The hint hooks' modes. One list for both events: a mode that can speak can
 // also stay quiet, and a mode declared on only one of them drops the other
 // half of its record without a trace.
-const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close'];
+// `decision-edit` and `decision-prompt` are spec-hint's card deliveries
+// before an edit and on a prompt (decision-cards-core): modes of their own,
+// so cards and spec history can be counted apart.
+const HINT_MODES = ['pre-edit', 'prompt', 'search', 'session-start', 'meta-write', 'spec-command', 'spec-close', 'decision-edit', 'decision-prompt'];
 
 const HOSTS = ['app', 'claude-hook', 'codex-hook', 'git-precommit', 'orch-bus', 'cli'];
 
@@ -92,6 +95,11 @@ const MISSED_BOUND_REASONS = ['changing-files', 'writer-busy', 'failed', 'timeou
 // well-formed, one absent, or one present with named defects.
 const CLOSE_VERDICTS = ['ok', 'missing', 'malformed'];
 
+// What a decision card's story is (`spec:<slug>` or a PROJECT_NOTES.md
+// entry), and how a new card relates to an older one.
+const DECISION_SOURCES = ['spec', 'notes'];
+const DECISION_RELATIONS = ['supersedes', 'extends', 'none'];
+
 // Field types. Kept deliberately narrow: enums, numbers, and the two string
 // shapes that are the point of the record (a project-relative path, a spec
 // slug). No free-form text field exists, so no call site can introduce one.
@@ -116,11 +124,18 @@ const EVENTS = {
     kind: 'action',
     fields: {
       host: enumOf(HOSTS), mode: enumOf(HINT_MODES),
-      path: PATH, specs: COUNT, concept: SLUG, modules: COUNT, bytes: COUNT
+      path: PATH, specs: COUNT, concept: SLUG, modules: COUNT, bytes: COUNT, cards: COUNT
     },
     label: (r) => {
+      if (r.mode === 'decision-prompt') {
+        return `Surfaced ${r.cards ?? 0} recorded decision${r.cards === 1 ? '' : 's'} for this request`;
+      }
+      if (r.mode === 'decision-edit') {
+        return `Recorded decision${r.cards === 1 ? '' : 's'} delivered for ${r.path || 'a file'}` +
+          `${r.cards ? ` (${r.cards} card${r.cards === 1 ? '' : 's'})` : ''}`;
+      }
       if (r.mode === 'spec-close') {
-        return `Reminded the agent that ${r.specs ?? 0} closed spec${r.specs === 1 ? '' : 's'} still ${r.specs === 1 ? 'needs' : 'need'} a digest`;
+        return `Reminded the agent that ${r.specs ?? 0} closed spec${r.specs === 1 ? '' : 's'} still ${r.specs === 1 ? 'owes' : 'owe'} close items`;
       }
       if (r.mode === 'session-start') {
         return `Frame project rules delivered at session start${r.bytes ? ` (${r.bytes} chars)` : ''}`;
@@ -195,19 +210,42 @@ const EVENTS = {
   // `spec-close.js` is run by an agent, not by Frame — but it is run because
   // a Frame hook asked for it, and its verdict is the only evidence that the
   // reminder led anywhere. Without this row "reminded" and "reminded, and the
-  // digest was checked" are the same line in the record.
+  // close items were checked" are the same line in the record.
   'spec.close_checked': {
     kind: 'action',
     fields: { host: enumOf(HOSTS), slug: SLUG, verdict: enumOf(CLOSE_VERDICTS), defects: COUNT },
     label: (r) => {
       const spec = `Spec ${r.slug || '?'}`;
       if (r.verdict === 'ok') return `${spec}: close check passed`;
-      if (r.verdict === 'missing') return `${spec}: close check found the digest missing`;
+      if (r.verdict === 'missing') return `${spec}: close check found a close item missing`;
       if (r.verdict === 'malformed') {
-        return `${spec}: close check named ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} in the digest`;
+        return `${spec}: close check named ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} in its close items`;
       }
       return `${spec}: close check ran`;
     }
+  },
+
+  // ─── decision cards ─────────────────────────────────────
+  //
+  // `decision.js add` is run by an agent, like spec-close.js, and for the same
+  // reason it leaves a row: whether the instruction to record a decision led
+  // to a card is not visible anywhere else. Kinds and counts only — never the
+  // decision, its why, its keywords or its files.
+  'decision.added': {
+    kind: 'action',
+    fields: {
+      host: enumOf(HOSTS), source: enumOf(DECISION_SOURCES), slug: SLUG, relation: enumOf(DECISION_RELATIONS)
+    },
+    label: (r) => {
+      const where = r.source === 'spec' ? ` for spec ${r.slug || '?'}` : r.source === 'notes' ? ' from a PROJECT_NOTES entry' : '';
+      const rel = r.relation === 'supersedes' ? ', superseding an older decision' : r.relation === 'extends' ? ', extending an older decision' : '';
+      return `Decision recorded${where}${rel}`;
+    }
+  },
+  'decision.rejected': {
+    kind: 'suppression',
+    fields: { host: enumOf(HOSTS), defects: COUNT, repeats: REPEATS },
+    label: (r) => `Decision refused — ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} named`
   },
 
   // ─── derived spec index ─────────────────────────────────
@@ -558,6 +596,8 @@ module.exports = {
   HINT_REASONS,
   HINT_MODES,
   CLOSE_VERDICTS,
+  DECISION_SOURCES,
+  DECISION_RELATIONS,
   LIFECYCLE_REASONS,
   MISSED_BOUND_REASONS,
   HOSTS,

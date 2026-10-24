@@ -19,14 +19,15 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const { makeFixture, KINDS, FINISHED, SLUG, PROMPTS, DIGEST_MD } = require('../scripts/eval/spec-close/make-fixture');
+const { makeFixture, KINDS, FINISHED, SLUG, PROMPTS, DIGEST_MD, CARD_JSONL } = require('../scripts/eval/spec-close/make-fixture');
 const runner = require('../scripts/eval/spec-close/run');
 const { SPEC_HINT_HOOKS } = require('../src/shared/frameTemplates');
 
 const POSIX = process.platform !== 'win32';
 const skip = !POSIX && 'the registered hook commands are sh';
 
-const REMINDER = `You completed the last task of spec "${SLUG}" in this session and it has no digest yet. ` +
+// Both close items are owed: the fixture ships decision.js, as Frame does.
+const REMINDER = `You completed the last task of spec "${SLUG}" in this session and it has no digest or decision cards yet. ` +
   `Finish it: run node .frame/bin/spec-close.js ${SLUG} and write what it asks for.`;
 const GOOD_DIGEST = [
   '---', 'keywords: greeting, greet, helper', '---',
@@ -86,6 +87,15 @@ function closeCheck(fixture) {
 const writeDigest = (fixture) =>
   fs.writeFileSync(path.join(fixture.root, '.frame', 'specs', SLUG, 'digest.md'), GOOD_DIGEST);
 
+/** The spec's card, recorded the way the template tells an agent to: through the fixture's own decision.js. */
+const writeCard = (fixture) => execFileSync('node', [path.join(fixture.root, '.frame', 'bin', 'decision.js'), 'add', JSON.stringify({
+  decision: 'greet(name) is a plain function, not a configurable class.',
+  why: 'Nothing asks for a second salutation.',
+  keywords: ['greeting', 'greet'],
+  files: ['src/greet.js'],
+  source: `spec:${SLUG}`
+})], { cwd: fixture.root, encoding: 'utf8', env: { ...envOf(fixture), FRAME_ACTIVITY_HOME: path.join(fixture.base, 'measurement') } });
+
 // ─── what every fixture is ────────────────────────────────
 
 for (const kind of KINDS) {
@@ -98,7 +108,7 @@ for (const kind of KINDS) {
 
       const settings = JSON.parse(fs.readFileSync(path.join(fixture.root, '.claude', 'settings.json'), 'utf8'));
       assert.deepEqual(settings, { hooks: SPEC_HINT_HOOKS }, 'the hooks are Frame\'s, not a copy of them');
-      for (const file of ['spec-close.js', 'spec-close-state.js', 'docs-hint.js', 'spec-hint.js', 'spec-command-hint.js']) {
+      for (const file of ['spec-close.js', 'spec-close-state.js', 'docs-hint.js', 'spec-hint.js', 'spec-command-hint.js', 'decision.js', 'decision-cards.js']) {
         assert.ok(fs.existsSync(path.join(fixture.root, '.frame', 'bin', file)), `.frame/bin/${file}`);
       }
       assert.ok(fs.existsSync(path.join(fixture.root, '.frame', 'runtime', 'commands', 'claude-code', 'spec.implement.md')));
@@ -107,12 +117,15 @@ for (const kind of KINDS) {
       const status = JSON.parse(fs.readFileSync(path.join(fixture.root, '.frame', 'specs', SLUG, 'status.json'), 'utf8'));
       assert.equal(status.implement_mode, 'autonomous');
       const digest = path.join(fixture.root, '.frame', 'specs', SLUG, 'digest.md');
+      const cardFile = path.join(fixture.root, '.frame', 'decisions.jsonl');
       if (kind.startsWith('fix-')) {
         assert.equal(fs.readFileSync(digest, 'utf8'), DIGEST_MD, 'a finished spec carries its digest');
         assert.equal(fixture.digestBefore, DIGEST_MD);
+        assert.equal(fs.readFileSync(cardFile, 'utf8'), CARD_JSONL, 'and its decision card');
       } else {
         assert.ok(!fs.existsSync(digest), 'only a finished spec starts with a digest');
         assert.equal(fixture.digestBefore, null);
+        assert.ok(!fs.existsSync(cardFile), 'and only a finished spec starts with a card');
       }
       assert.equal(status.phase, FINISHED.includes(kind) ? 'done' : kind === 'natural' ? 'tasks_generated' : 'implementing');
       assert.ok(fs.existsSync(path.join(fixture.root, '.frame', 'index', 'spec-index.json')), 'the spec index is built, as Frame keeps it');
@@ -139,7 +152,8 @@ test('natural: nothing is said until both tasks close, then the next tool call s
     // it stages carries the digest step with the script where this project has it.
     hook(fixture, 'UserPromptSubmit', 'spec-command-hint.js prompt', { session_id: 's', prompt: fixture.prompt });
     const staged = fs.readFileSync(path.join(fixture.root, '.frame', 'runtime', 'prompts', `${SLUG}__spec.implement.md`), 'utf8');
-    assert.match(staged, new RegExp(`2\\. You run \`node \\.frame/bin/spec-close\\.js ${SLUG}\``));
+    assert.match(staged, new RegExp(`2\\. You record the spec's decision cards — at least one — with\\s+\`node \\.frame/bin/decision\\.js add\``));
+    assert.match(staged, new RegExp(`3\\. You run \`node \\.frame/bin/spec-close\\.js ${SLUG}\``));
 
     // What the session does: both tasks completed, some time after the baseline.
     const file = path.join(fixture.root, '.frame', 'tasks.json');
@@ -152,7 +166,9 @@ test('natural: nothing is said until both tasks close, then the next tool call s
     assert.equal(closeCheck(fixture).verdict, 'missing');
 
     writeDigest(fixture);
-    assert.equal(bash(fixture, 'another', 'git status'), null, 'absent once the digest is written');
+    assert.equal(closeCheck(fixture).verdict, 'missing', 'the digest alone leaves the card owed');
+    writeCard(fixture);
+    assert.equal(bash(fixture, 'another', 'git status'), null, 'absent once the digest and the card are written');
     assert.equal(closeCheck(fixture).verdict, 'ok');
     assert.deepEqual(runner.closeRows(fixture.activityHome).reminders, 1);
   });
@@ -192,7 +208,8 @@ test('closing-turn: the call that closes the task is silent; the next one carrie
     assert.equal(prompt(fixture, 's', 'thanks'), null, 'not repeated at the next prompt');
 
     writeDigest(fixture);
-    assert.equal(bash(fixture, 'another', 'git status --short'), null, 'absent once the digest is written');
+    writeCard(fixture);
+    assert.equal(bash(fixture, 'another', 'git status --short'), null, 'absent once the digest and the card are written');
     assert.equal(closeCheck(fixture).verdict, 'ok');
     assert.equal(runner.closeRows(fixture.activityHome).reminders, 1);
   });
@@ -316,6 +333,7 @@ test('natural: the digest passes only when it rides in a commit that carries cod
     g('add', '-A');
     g('commit', '-q', '-m', 'T02');
     writeDigest(fixture);
+    writeCard(fixture);
     g('add', '-A');
     g('commit', '-q', '-m', 'digest');
     assert.equal(runner.judge('natural', inspected(fixture)), false, 'a digest commit of its own');
@@ -325,6 +343,7 @@ test('natural: the digest passes only when it rides in a commit that carries cod
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
     fs.writeFileSync(path.join(fixture.root, 'src', 'greet.js'), "module.exports = { greet: (n) => `Hello, ${n || 'stranger'}!` };\n");
     writeDigest(fixture);
+    writeCard(fixture);
     g('add', '-A');
     g('commit', '-q', '-m', 'T02 with its digest');
     const facts = inspected(fixture);

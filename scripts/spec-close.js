@@ -15,8 +15,10 @@
  * instruction "keep the first sentence short" was already in the template.
  *
  * What it deliberately does not do:
- *   - write the digest. Frame makes no model call; the agent that did the
- *     work writes it, from outcome.md.
+ *   - write the digest or the cards. Frame makes no model call; the agent
+ *     that did the work writes them, from outcome.md — the cards through
+ *     decision.js, which validates each one. This only checks that a current
+ *     card names the spec, and names the card-file lines it skipped.
  *   - set a phase. `done` is derived from task state alone and stays that
  *     way: a spec held back for a missing digest would lose its file history
  *     in the index and raise in-flight warnings for work that is finished.
@@ -68,7 +70,46 @@ const DIGEST_SHAPE = [
   CHAIN_LINE
 ].join('\n');
 
+// The card reader, guarded: a `.frame/bin/` without decision-cards.js owes no
+// cards (spec-close-state.js says so too), and the check says nothing of them.
+let cardsLib = null;
+try {
+  cardsLib = require('./decision-cards');
+} catch {
+  /* older generation — no cards check */
+}
+
+/**
+ * The command that records one of the spec's cards, as the implement
+ * template states it. The template carries the same text with
+ * `{decision_script_path}` and `{slug}` in place; a test fails when the two
+ * differ.
+ */
+function cardShape(cli, slug) {
+  return [
+    `node ${cli} add '{`,
+    '  "decision": "<one sentence, at most 280 characters>",',
+    '  "why": "<at most 3 sentences>",',
+    '  "keywords": ["<1-8 concepts>"],',
+    '  "files": ["<project-relative paths the decision governs>"],',
+    `  "source": "spec:${slug}",`,
+    '  "supersedes": null,',
+    '  "extends": null',
+    "}'"
+  ].join('\n');
+}
+
 function toPosix(p) { return String(p).split(path.sep).join('/'); }
+
+/** The card writer, as a path an agent can run from the project root. */
+function decisionScriptPath(root) {
+  const local = path.join(__dirname, 'decision.js');
+  if (fs.existsSync(local)) {
+    const rel = toPosix(path.relative(root, local));
+    if (rel && !rel.startsWith('..')) return rel;
+  }
+  return '.frame/bin/decision.js';
+}
 
 function resolveRoot() {
   if (process.env.FRAME_PROJECT_ROOT) return path.resolve(process.env.FRAME_PROJECT_ROOT);
@@ -122,18 +163,55 @@ function digestDefects(md) {
   return defects;
 }
 
+// ─── the cards check ──────────────────────────────────────
+
+/**
+ * Lines of the card file that name this spec and that the reader skipped,
+ * as defects. Its own read of the raw lines, because the shared reader drops
+ * a malformed line before anyone can ask whose it was: a line that parses is
+ * this spec's when its source is `spec:<slug>`, one that does not parse when
+ * it carries that text at all. A valid card superseded by a later one is not
+ * a defect; it simply does not count as the spec's current card.
+ */
+function cardDefects(root, slug) {
+  if (!cardsLib) return [];
+  let text;
+  try { text = fs.readFileSync(cardsLib.cardsPath(root), 'utf8'); } catch { return []; }
+  const source = `spec:${slug}`;
+  const lines = text.split('\n');
+  const defects = [];
+  for (const m of cardsLib.parseCards(text).malformed) {
+    const raw = lines[m.line - 1] || '';
+    let obj = null;
+    try { obj = JSON.parse(raw); } catch { /* torn */ }
+    const mine = obj && typeof obj === 'object' ? obj.source === source : raw.includes(`"${source}"`);
+    if (!mine) continue;
+    defects.push({ code: 'malformed-card', message: `line ${m.line} of decisions.jsonl was skipped — ${m.reason}; record it again with decision.js add` });
+  }
+  return defects;
+}
+
 // What each close item is checked for once it exists, and what to write when
 // it does not. Keyed by the item's id in spec-close-state.js's CLOSE_ITEMS; an
 // item with no entry here is reported as present or missing and nothing more.
+// `file` is a file in the spec's folder read for `defects(text)`; `inspect` is
+// an item's own reader, for one that lives elsewhere.
 const ITEM_CHECKS = {
   digest: {
     file: 'digest.md',
     defects: digestDefects,
-    shape: DIGEST_SHAPE,
+    shape: () => DIGEST_SHAPE,
     howTo: 'from outcome.md\'s actuals, not plan.md\'s intent',
     // What an "ok" here does not cover. Said out loud: an unchecked length
     // reported as fine is the false assurance this script exists to remove.
     unchecked: () => (CAN_MEASURE ? [] : ['first-sentence length — the spec-index.js beside this script predates the check'])
+  },
+  cards: {
+    relPath: () => '.frame/decisions.jsonl',
+    inspect: cardDefects,
+    shape: (root, slug) => cardShape(decisionScriptPath(root), slug),
+    missingLine: (root, slug) => `cards: missing — record at least one decision card for this spec, from outcome.md's actuals, ` +
+      `one per decision later work must respect. Run, in this shape (it assigns the id and the date, and names any defect):`
   }
 };
 
@@ -154,15 +232,24 @@ function checkSpec(root, slug) {
   const closed = total > 0 && completed === total;
   const missing = closeState.missingItems(root, slug);
 
-  const items = closeState.CLOSE_ITEMS.map((item) => {
+  // An item the project cannot produce yet — cards without decision.js — is
+  // owed by nobody and left out of the report, so such a project's check reads
+  // exactly as it did before the item existed.
+  const due = closeState.CLOSE_ITEMS.filter((item) => !closeState.isDue || closeState.isDue(root, item));
+  const items = due.map((item) => {
     const check = ITEM_CHECKS[item.id] || {};
-    const rel = check.file ? toPosix(path.join('.frame', 'specs', slug, check.file)) : null;
+    const rel = check.relPath ? check.relPath(slug)
+      : check.file ? toPosix(path.join('.frame', 'specs', slug, check.file)) : null;
     if (missing.includes(item.id)) {
-      // Nothing is owed before the last task completes.
-      return { id: item.id, label: item.label, path: rel, status: closed ? 'missing' : 'not-due', defects: [], unchecked: [] };
+      // Nothing is owed before the last task completes. A missing item that
+      // has lines the reader skipped names them, so "missing" is not a puzzle.
+      const defects = closed && check.inspect ? check.inspect(root, slug) : [];
+      return { id: item.id, label: item.label, path: rel, status: closed ? 'missing' : 'not-due', defects, unchecked: [] };
     }
     let defects = [];
-    if (check.defects && check.file) {
+    if (check.inspect) {
+      defects = check.inspect(root, slug);
+    } else if (check.defects && check.file) {
       let md = null;
       try { md = fs.readFileSync(path.join(specDir(root, slug), check.file), 'utf8'); } catch { /* unreadable → no named defects */ }
       if (md !== null) defects = check.defects(md);
@@ -211,11 +298,15 @@ function textReport(root, result) {
       lines.push(`${item.id}: not due — it is written when the last task completes`);
     } else if (item.status === 'missing') {
       again = true;
-      if (check.shape) {
-        lines.push(`${item.id}: missing — write ${item.path}${check.howTo ? ` ${check.howTo}` : ''}, in this shape:`, '', check.shape, '');
+      const shape = check.shape ? check.shape(root, result.slug) : null;
+      if (shape && check.missingLine) {
+        lines.push(check.missingLine(root, result.slug), '', shape, '');
+      } else if (shape) {
+        lines.push(`${item.id}: missing — write ${item.path}${check.howTo ? ` ${check.howTo}` : ''}, in this shape:`, '', shape, '');
       } else {
         lines.push(`${item.id}: missing`);
       }
+      for (const d of item.defects) lines.push(`  - ${d.message}`);
     } else {
       again = true;
       lines.push(`${item.id}: ${item.defects.length} defect${item.defects.length === 1 ? '' : 's'} — ${item.path || item.label}`);
@@ -279,4 +370,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { DIGEST_SHAPE, CHAIN_LINE, DIGEST_LINE_CAP, ITEM_CHECKS, digestDefects, checkSpec, textReport };
+module.exports = { DIGEST_SHAPE, CHAIN_LINE, DIGEST_LINE_CAP, ITEM_CHECKS, digestDefects, cardDefects, cardShape, checkSpec, textReport };

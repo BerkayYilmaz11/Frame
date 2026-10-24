@@ -255,9 +255,18 @@ function reportAssetRel(root, tool, file) {
  * `scripts/`, then the shipped location named anyway.
  */
 function closeScriptRel(root) {
-  const shipped = '.frame/bin/spec-close.js';
+  return shippedScriptRel(root, 'spec-close.js');
+}
+
+/** The card writer the close step runs, resolved as specManager's decisionScriptRel does. */
+function decisionScriptRel(root) {
+  return shippedScriptRel(root, 'decision.js');
+}
+
+function shippedScriptRel(root, file) {
+  const shipped = `.frame/bin/${file}`;
   if (fs.existsSync(path.join(root, shipped))) return shipped;
-  const dev = 'scripts/spec-close.js';
+  const dev = `scripts/${file}`;
   return fs.existsSync(path.join(root, dev)) ? dev : shipped;
 }
 
@@ -306,6 +315,7 @@ function buildPrompt(root, slug, command, tool) {
     report_template_path: reportAssetRel(root, tool, 'plan-report-template.html'),
     report_generator_path: reportAssetRel(root, tool, 'build-implement-report.mjs'),
     close_script_path: closeScriptRel(root),
+    decision_script_path: decisionScriptRel(root),
     spec_catalog: command === 'spec.new' ? specCatalog(root) : ''
   });
 }

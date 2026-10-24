@@ -105,7 +105,12 @@ const FILE_SECTIONS = [
   { file: 'tasks.json', section: 'Task Management', subsections: ['Task Structure', 'Task Content Rules', 'Task Status Updates'] },
   { file: 'PROJECT_NOTES.md', section: 'PROJECT_NOTES.md Rules' },
   { file: 'STRUCTURE.json', section: 'STRUCTURE.json Rules' },
-  { file: 'QUICKSTART.md', section: 'QUICKSTART.md Rules' }
+  { file: 'QUICKSTART.md', section: 'QUICKSTART.md Rules' },
+  // A card written by hand — the fallback when decision.js is missing, or an
+  // agent appending with `>>`. The write needs the yes rule and the card's
+  // shape; when to ask and how to phrase the question belong to the
+  // conversation, before anything is written.
+  { file: 'decisions.jsonl', section: 'Decision Cards', subsections: ['On a yes', 'The card'] }
 ];
 
 // `Task Management` as a whole is 2396 characters — over the ceiling — but its
