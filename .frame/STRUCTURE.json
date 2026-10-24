@@ -290,7 +290,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 95262,
+      "sizeBytes": 95257,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -3934,7 +3934,7 @@
           "RUN_APP_COMMAND"
         ]
       },
-      "sizeBytes": 11541,
+      "sizeBytes": 11545,
       "extraction": {
         "status": "parsed"
       },
@@ -8083,7 +8083,7 @@
           ]
         }
       },
-      "sizeBytes": 6102,
+      "sizeBytes": 6101,
       "extraction": {
         "status": "parsed"
       },
@@ -8471,7 +8471,7 @@
           "ANALYTICS_TRACK"
         ]
       },
-      "sizeBytes": 18854,
+      "sizeBytes": 18858,
       "extraction": {
         "status": "parsed"
       },
@@ -10207,7 +10207,7 @@
           "purpose": "Check the content against every rule the host relies on."
         }
       },
-      "sizeBytes": 35362,
+      "sizeBytes": 35378,
       "extraction": {
         "status": "parsed"
       },
@@ -10292,7 +10292,7 @@
           ]
         }
       },
-      "sizeBytes": 35617,
+      "sizeBytes": 35629,
       "extraction": {
         "status": "parsed"
       },
@@ -11341,7 +11341,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 39138,
+      "sizeBytes": 39137,
       "extraction": {
         "status": "parsed"
       },
@@ -12234,7 +12234,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 4246,
+      "sizeBytes": 4241,
       "extraction": {
         "status": "parsed"
       },
@@ -12609,7 +12609,7 @@
           "REMOVE_PROJECT_FROM_WORKSPACE"
         ]
       },
-      "sizeBytes": 20897,
+      "sizeBytes": 20894,
       "extraction": {
         "status": "parsed"
       },
@@ -14685,7 +14685,7 @@
           "LOAD_CLAUDE_USAGE"
         ]
       },
-      "sizeBytes": 22044,
+      "sizeBytes": 22048,
       "extraction": {
         "status": "parsed"
       },
@@ -23012,7 +23012,7 @@
           "purpose": "Build the record the append contract writes: the validated fields plus the"
         }
       },
-      "sizeBytes": 27521,
+      "sizeBytes": 27519,
       "extraction": {
         "status": "parsed"
       },
@@ -24523,7 +24523,7 @@
         "src/shared/activityEvents"
       ],
       "functions": {},
-      "sizeBytes": 18540,
+      "sizeBytes": 18518,
       "extraction": {
         "status": "parsed"
       },
@@ -30452,6 +30452,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8e9baa04e2f838332f3d34e4c60895270f2de05c828141cf619c1779b8cadad2"
+    "revision": "41c9af873bb94a133c77e1810bfb64c0c5b63c56135c3cc4b8f63d378e054fbe"
   }
 }

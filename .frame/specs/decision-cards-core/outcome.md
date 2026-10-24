@@ -74,3 +74,10 @@ Found in the manual test tour (E1): during `/spec.new` the agent wrote two choic
 _Captured: 2026-10-24 · 2 file changes_
 
 ---
+## Fix — The cards view is "Decisions", the dock tab "Project Notes"
+
+Found in the manual test tour (A5, G9): two surfaces carried the Decisions name, the cards view under Context (labelled "Decision cards") and the dock tab that lists `PROJECT_NOTES.md` entries. The user decided that Decisions now means the cards, without waiting for the dock tab to retire as D2 planned. The Context row, the view's heading, the palette's "Go to Decisions" and "Toggle Decisions", and the Activity rows ("Decision recorded…", "Decision refused…") now say Decisions. The dock tab, its heading and empty state, its status-bar icon, the View menu item, "Toggle Project Notes" and the guide's panel page and sketches now say Project Notes. What the dock tab lists is unchanged (D1), and the internal ids (`decisionCards`, `dock.decisions`, the `decisions` tab key) stay, so saved dock layouts and shortcuts carry over. At the user's choice no card was written, so card 20261023-7674f0 still calls the dock tab "Decisions".
+
+_Captured: 2026-10-24 · 12 file changes_
+
+---

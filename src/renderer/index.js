@@ -751,7 +751,7 @@ function registerCommands() {
   r({
     // The decision cards view (decision-cards-core), toggled like Sessions.
     id: 'decisionCards.open',
-    title: 'Toggle Decision Cards',
+    title: 'Toggle Decisions',
     category: 'Panel',
     run: () => require('./terminal').getMultiTerminalUI()?.togglePanel('decisionCards')
   });
@@ -775,7 +775,7 @@ function registerCommands() {
   });
   r({
     id: 'dock.decisions',
-    title: 'Toggle Decisions',
+    title: 'Toggle Project Notes',
     category: 'View',
     shortcut: dockState.TAB_SHORTCUTS.decisions,
     run: () => dock.toggleTab('decisions')

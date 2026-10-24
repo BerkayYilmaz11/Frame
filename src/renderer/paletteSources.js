@@ -111,7 +111,7 @@ function viewItems() {
     ['specs', 'Go to Specs', () => ui.showSpecs()],
     ['tasks', 'Go to Tasks', () => ui.showTasksBoard()],
     ['sessions', 'Go to Sessions', () => ui.showPanel('sessions')],
-    ['decisionCards', 'Go to Decision cards', () => ui.showPanel('decisionCards')]
+    ['decisionCards', 'Go to Decisions', () => ui.showPanel('decisionCards')]
   ];
   return views.map(([key, title, run]) => ({
     id: `jump.view:${key}`,

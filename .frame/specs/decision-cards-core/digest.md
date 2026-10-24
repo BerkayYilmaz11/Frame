@@ -11,4 +11,6 @@ Added decision cards: one JSON line per decision in `.frame/decisions.jsonl`, wr
 - Close: `cards` is a close item owed only where `decision.js` exists; without it, `spec-close.js` output and every hint are byte-identical to before, and the no-card hook output is pinned against `8ce2aa8`.
 - Deviations: `LOAD_DECISION_CARDS` landed in T07, not T08, because the renderer reads no files and task runs needed the cards; the close eval's finished fixtures carry a card (approved by the user). Converting this repo's spec-less notes into cards is left to the migration branch (D3).
 
+Revised 2026-10-24: the cards view is named "Decisions" and the dock tab "Project Notes" now, not when the dock tab retires (plan D2); the dock tab still lists PROJECT_NOTES.md entries.
+
 Chain: spec.md → plan.md → tasks.md → outcome.md

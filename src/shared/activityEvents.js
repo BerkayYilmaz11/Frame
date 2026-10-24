@@ -238,14 +238,14 @@ const EVENTS = {
     },
     label: (r) => {
       const where = r.source === 'spec' ? ` for spec ${r.slug || '?'}` : r.source === 'notes' ? ' from a PROJECT_NOTES entry' : '';
-      const rel = r.relation === 'supersedes' ? ', superseding an older card' : r.relation === 'extends' ? ', extending an older card' : '';
-      return `Decision card recorded${where}${rel}`;
+      const rel = r.relation === 'supersedes' ? ', superseding an older decision' : r.relation === 'extends' ? ', extending an older decision' : '';
+      return `Decision recorded${where}${rel}`;
     }
   },
   'decision.rejected': {
     kind: 'suppression',
     fields: { host: enumOf(HOSTS), defects: COUNT, repeats: REPEATS },
-    label: (r) => `Decision card refused — ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} named`
+    label: (r) => `Decision refused — ${r.defects ?? 0} defect${r.defects === 1 ? '' : 's'} named`
   },
 
   // ─── derived spec index ─────────────────────────────────

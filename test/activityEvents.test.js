@@ -268,14 +268,14 @@ test('a recorded decision card carries kinds and a slug — nothing of the card'
 });
 
 test('decision card labels say where the story is and how the card relates', () => {
-  assert.equal(events.formatLabel('decision.added', { source: 'spec', slug: 'a', relation: 'none' }), 'Decision card recorded for spec a');
+  assert.equal(events.formatLabel('decision.added', { source: 'spec', slug: 'a', relation: 'none' }), 'Decision recorded for spec a');
   assert.equal(events.formatLabel('decision.added', { source: 'notes', relation: 'supersedes' }),
-    'Decision card recorded from a PROJECT_NOTES entry, superseding an older card');
+    'Decision recorded from a PROJECT_NOTES entry, superseding an older decision');
   assert.equal(events.formatLabel('decision.added', { source: 'notes', relation: 'extends' }),
-    'Decision card recorded from a PROJECT_NOTES entry, extending an older card');
-  assert.equal(events.formatLabel('decision.added', {}), 'Decision card recorded');
-  assert.equal(events.formatLabel('decision.rejected', { defects: 1 }), 'Decision card refused — 1 defect named');
-  assert.equal(events.formatLabel('decision.rejected', { defects: 2 }), 'Decision card refused — 2 defects named');
+    'Decision recorded from a PROJECT_NOTES entry, extending an older decision');
+  assert.equal(events.formatLabel('decision.added', {}), 'Decision recorded');
+  assert.equal(events.formatLabel('decision.rejected', { defects: 1 }), 'Decision refused — 1 defect named');
+  assert.equal(events.formatLabel('decision.rejected', { defects: 2 }), 'Decision refused — 2 defects named');
 });
 
 test('an edit-time card delivery is a hint mode of its own, with a card count', () => {
