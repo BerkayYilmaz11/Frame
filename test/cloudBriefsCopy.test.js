@@ -607,6 +607,11 @@ test('partStatus skips the cloud\'s branch when this machine\'s own branch is go
   assert.deepEqual(copy.partStatus({ part: gone, target: 'main' }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
 });
 
+test('the GitHub-not-connected words', () => {
+  assert.equal(copy.MERGE_TRACKING_NOTICE, 'Merges are tracked once GitHub is connected.');
+  assert.equal(copy.OPEN_ON_WEB_LABEL, 'Open on web');
+});
+
 test('the Done words', () => {
   assert.equal(copy.IMPLEMENTED_LABEL, 'Implemented');
   assert.equal(copy.droppedLabel('Not needed'), 'Dropped · Not needed');

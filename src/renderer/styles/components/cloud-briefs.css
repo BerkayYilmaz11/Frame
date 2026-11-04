@@ -517,6 +517,29 @@
   flex-shrink: 0;
 }
 
+/* The GitHub-not-connected line: a standing fact, quieter than a notice. */
+.cloud-briefs-tracking {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cloud-briefs-tracking p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cloud-briefs-tracking .cloud-briefs-web-btn {
+  flex-shrink: 0;
+}
+
 /* ─── Detail (inside the Specs drawer shell) ─── */
 
 .cloud-briefs-detail-body {

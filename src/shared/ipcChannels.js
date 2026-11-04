@@ -273,7 +273,7 @@ const IPC = {
   // Frame Cloud briefs, read-only (frame-cloud-briefs-read-only spec). The
   // renderer sends a folder path; main resolves the connected project itself
   // and refuses a folder that is not connected before any request.
-  CLOUD_BRIEFS_LIST: 'cloud-briefs-list',               // renderer → main (invoke): (path, { includeClosed }) → { ok, project, briefs, milestones, meId, canOpenWeb } | { ok: false, reason }
+  CLOUD_BRIEFS_LIST: 'cloud-briefs-list',               // renderer → main (invoke): (path, { includeClosed }) → { ok, project, briefs, milestones, mergeTracking, meId, canOpenWeb } | { ok: false, reason }
   CLOUD_BRIEF_GET: 'cloud-brief-get',                   // renderer → main (invoke): (path, number) → { ok, brief, events, meId, canOpenWeb } | { ok: false, reason }
   CLOUD_BRIEFS_OPEN_ON_WEB: 'cloud-briefs-open-on-web', // renderer → main (invoke): (path, number?) → opened?
   CLOUD_BRIEF_CREATE: 'cloud-brief-create',             // renderer → main (invoke): (path, { kind, title, body, priority, links }) → { ok, number, attachmentError } | { ok: false, reason, field? }

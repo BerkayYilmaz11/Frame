@@ -42,7 +42,19 @@ function webUrl(project, number) {
   });
 }
 
-/** The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`. */
+/**
+ * Whether the cloud can see the project's merges, from the listed briefs
+ * (every brief carries its project's state): `needs_github` until GitHub is
+ * connected, `ready` otherwise and when nothing is listed.
+ */
+function mergeTrackingOf(briefs) {
+  return briefs.some((b) => b.mergeTracking === 'needs_github') ? 'needs_github' : 'ready';
+}
+
+/**
+ * The folder's briefs and milestones.
+ * → `{ ok, project, briefs, milestones, mergeTracking, meId, canOpenWeb }` or `{ ok: false, reason }`.
+ */
 async function list(folderPath, { includeClosed } = {}) {
   const project = cloudProjectsService.connectedProject(folderPath);
   if (!project) return NOT_CONNECTED;
@@ -64,6 +76,7 @@ async function list(folderPath, { includeClosed } = {}) {
     project: { name: project.name, slug: project.slug },
     briefs: begun,
     milestones: milestones.value,
+    mergeTracking: mergeTrackingOf(briefs.value),
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project)),
   };

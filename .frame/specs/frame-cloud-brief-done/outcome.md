@@ -31,3 +31,11 @@ _Captured: 2026-11-04 · 2 file change(s)_
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T05 — Add the GitHub-not-connected notice
+
+`cloudBriefsService.list` now returns `mergeTracking`: `needs_github` when any listed brief says so, else `ready` (also with no briefs), and the `CLOUD_BRIEFS_LIST` channel comment names it. The board shows a non-dismissible `cloud-briefs-tracking` line above the columns while the Active column is non-empty and tracking is `needs_github`. Its button reuses the board's existing `open-web` action (`CLOUD_BRIEFS_OPEN_ON_WEB` with no number) and appears only when the web URL can be built. Diverged from D2's wording: `OPEN_ON_WEB_LABEL` is "Open on web", matching the two buttons already in this view, not "Open on the web". Files: `src/main/cloud/cloudBriefsService.js`, `src/shared/ipcChannels.js`, `src/renderer/cloudBriefsCopy.js`, `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-04 · 6 file change(s)_
+
+---

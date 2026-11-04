@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:51:02.984Z",
+  "lastUpdated": "2026-11-04T08:52:41.385Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10437,13 +10437,13 @@
       "title": "Add the GitHub-not-connected notice: `cloudBriefsService.list` returns `mergeTracking` from the listed briefs (`ready` when there are none), `cloudBriefsCopy.js` gets `MERGE_TRACKING_NOTICE` (\"Merges are tracked once GitHub is connected.\") and `OPEN_ON_WEB_LABEL`, and `cloudBriefsPanel.js` shows a non-dismissible notice above the columns while an Active brief exists and tracking is `needs_github`, whose button opens the project on the web through `CLOUD_BRIEFS_OPEN_ON_WEB`, styled in `cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:52:41.385Z",
+      "completedAt": "2026-11-04T08:52:41.385Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T06",

@@ -407,7 +407,22 @@ function renderBoard() {
       </section>`
     : '';
 
-  contentElement.innerHTML = renderNotice() + open + closed;
+  const tracking = groups.active.length > 0 ? renderTrackingNotice(board.result.mergeTracking, canOpenWeb) : '';
+  contentElement.innerHTML = renderNotice() + tracking + open + closed;
+}
+
+/**
+ * The project's merges cannot be seen until GitHub is connected, so an
+ * Active brief's parts never reach merged: say so above the columns, with the
+ * project on the web, where Connect GitHub is. Not dismissible: it states the
+ * project's state, and leaves once that changes.
+ */
+function renderTrackingNotice(mergeTracking, canOpenWeb) {
+  if (mergeTracking !== 'needs_github') return '';
+  return `<div class="cloud-briefs-tracking" role="status">
+      <p>${escapeHtml(copy.MERGE_TRACKING_NOTICE)}</p>
+      ${canOpenWeb ? `<button type="button" class="cloud-briefs-web-btn" data-action="open-web" tabindex="-1">${escapeHtml(copy.OPEN_ON_WEB_LABEL)}</button>` : ''}
+    </div>`;
 }
 
 function renderNotice() {

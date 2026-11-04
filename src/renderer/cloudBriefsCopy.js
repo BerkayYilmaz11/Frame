@@ -690,6 +690,13 @@ function partsSummary(statuses) {
   return pieces.join(' · ');
 }
 
+/**
+ * The board's line while the project's merges cannot be seen
+ * (`mergeTracking: 'needs_github'`): parts stay short of merged until then.
+ */
+const MERGE_TRACKING_NOTICE = 'Merges are tracked once GitHub is connected.';
+const OPEN_ON_WEB_LABEL = 'Open on web';
+
 /** A part link whose task this folder does not hold. */
 function partNotHereMessage(ref) {
   return `${ref} is not in this folder's tasks. It may be on another branch or machine.`;
@@ -813,6 +820,8 @@ module.exports = {
   OPEN_TASK_LABEL,
   partNotHereMessage,
   IMPLEMENTED_LABEL,
+  MERGE_TRACKING_NOTICE,
+  OPEN_ON_WEB_LABEL,
   countsAsMerged,
   droppedLabel,
   mergedLabel,
