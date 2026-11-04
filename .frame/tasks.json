@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:57:55.846Z",
+  "lastUpdated": "2026-11-04T09:00:01.689Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10476,13 +10476,13 @@
       "title": "Add `branchTipSha(projectPath, name)`, `showFileAt(projectPath, ref, relPath)` (`git show <ref>:./<relPath>`), `commitExists(projectPath, sha)` and `isAncestor(projectPath, a, b)` to `src/main/gitBranchesManager.js` through `execGitArgs`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T09:00:01.689Z",
+      "completedAt": "2026-11-04T09:00:01.689Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T09",

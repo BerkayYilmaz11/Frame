@@ -5644,6 +5644,10 @@
         "remoteBranchExists",
         "currentBranch",
         "stashAll",
+        "branchTipSha",
+        "showFileAt",
+        "commitExists",
+        "isAncestor",
         "setupIPC",
         "getHeadSha",
         "branchExists",
@@ -5681,15 +5685,16 @@
           "purpose": "Execute git command with promise"
         },
         "execGitArgs": {
-          "line": 65,
+          "line": 66,
           "params": [
             "args",
-            "projectPath"
+            "projectPath",
+            "options = {}"
           ],
           "purpose": "Execute git with an argv array — no shell, so a branch name is one"
         },
         "localBranchExists": {
-          "line": 90,
+          "line": 91,
           "params": [
             "name",
             "projectPath"
@@ -5697,7 +5702,7 @@
           "purpose": "Does `refs/heads/<name>` exist in this repo?"
         },
         "remoteBranchExists": {
-          "line": 100,
+          "line": 101,
           "params": [
             "name",
             "projectPath"
@@ -5705,14 +5710,14 @@
           "purpose": "Does `refs/remotes/origin/<name>` exist in this repo? Nothing is fetched: it is what this machine has."
         },
         "currentBranch": {
-          "line": 110,
+          "line": 111,
           "params": [
             "projectPath"
           ],
           "purpose": "The checked-out branch's name, or '' when HEAD is detached or git fails."
         },
         "stashAll": {
-          "line": 124,
+          "line": 125,
           "params": [
             "projectPath",
             "message"
@@ -5720,21 +5725,21 @@
           "purpose": "Stash every change, untracked files included (`git stash push -u -m`), so"
         },
         "isWorkingTreeClean": {
-          "line": 136,
+          "line": 137,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if working tree is clean"
         },
         "loadBranches": {
-          "line": 148,
+          "line": 149,
           "params": [
             "projectPath"
           ],
           "purpose": "Load all branches"
         },
         "switchBranch": {
-          "line": 206,
+          "line": 207,
           "params": [
             "projectPath",
             "branchName"
@@ -5742,7 +5747,7 @@
           "purpose": "Switch to a branch"
         },
         "createBranch": {
-          "line": 258,
+          "line": 259,
           "params": [
             "projectPath",
             "branchName",
@@ -5753,7 +5758,7 @@
           "purpose": "Create a new branch. `{ track: false }` cuts it with `--no-track`, so a"
         },
         "deleteBranch": {
-          "line": 284,
+          "line": 285,
           "params": [
             "projectPath",
             "branchName",
@@ -5762,14 +5767,14 @@
           "purpose": "Delete a branch"
         },
         "loadWorktrees": {
-          "line": 301,
+          "line": 302,
           "params": [
             "projectPath"
           ],
           "purpose": "Load worktrees"
         },
         "addWorktree": {
-          "line": 343,
+          "line": 344,
           "params": [
             "projectPath",
             "worktreePath",
@@ -5779,7 +5784,7 @@
           "purpose": "Add a worktree"
         },
         "removeWorktree": {
-          "line": 362,
+          "line": 363,
           "params": [
             "projectPath",
             "worktreePath",
@@ -5788,27 +5793,68 @@
           "purpose": "Remove a worktree"
         },
         "orchWorktreePath": {
-          "line": 384,
+          "line": 385,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getHeadSha": {
-          "line": 388,
+          "line": 389,
           "params": [
             "projectPath"
           ]
         },
+        "isRevArg": {
+          "line": 404,
+          "params": [
+            "value"
+          ],
+          "purpose": "A value safe to pass as a revision: a non-empty string git cannot read as an option."
+        },
+        "branchTipSha": {
+          "line": 409,
+          "params": [
+            "projectPath",
+            "name"
+          ],
+          "purpose": "The full commit id a local branch points at, or null when there is no such branch."
+        },
+        "showFileAt": {
+          "line": 424,
+          "params": [
+            "projectPath",
+            "ref",
+            "relPath"
+          ],
+          "purpose": "A file's text as committed at `ref` (`git show <ref>:./<relPath>`, the path"
+        },
+        "commitExists": {
+          "line": 435,
+          "params": [
+            "projectPath",
+            "sha"
+          ],
+          "purpose": "Does this repository hold `sha` as a commit?"
+        },
+        "isAncestor": {
+          "line": 446,
+          "params": [
+            "projectPath",
+            "a",
+            "b"
+          ],
+          "purpose": "Is commit `a` an ancestor of `b`, or the same commit? false when either is unknown."
+        },
         "branchExists": {
-          "line": 397,
+          "line": 456,
           "params": [
             "projectPath",
             "branchName"
           ]
         },
         "createOrchWorktree": {
-          "line": 411,
+          "line": 470,
           "params": [
             "projectPath",
             "slug"
@@ -5816,7 +5862,7 @@
           "purpose": "Create a fresh worker worktree for a spec, branched from current HEAD."
         },
         "removeOrchWorktree": {
-          "line": 432,
+          "line": 491,
           "params": [
             "projectPath",
             "slug",
@@ -5825,7 +5871,7 @@
           "purpose": "Remove a spec's worker worktree (force). Optionally delete its work branch."
         },
         "worktreeChangedFiles": {
-          "line": 447,
+          "line": 506,
           "params": [
             "projectPath",
             "slug",
@@ -5834,7 +5880,7 @@
           "purpose": "Files actually changed on a spec's work branch relative to a base ref."
         },
         "mergeWorkToIntegration": {
-          "line": 464,
+          "line": 523,
           "params": [
             "projectPath",
             "slug"
@@ -5842,7 +5888,7 @@
           "purpose": "Merge a spec's work branch into its per-spec integration branch. Because the"
         },
         "isWorkMerged": {
-          "line": 483,
+          "line": 542,
           "params": [
             "projectPath",
             "slug"
@@ -5850,14 +5896,14 @@
           "purpose": "Whether a spec's work branch has been merged (its integration branch exists"
         },
         "listOrchBranches": {
-          "line": 499,
+          "line": 558,
           "params": [
             "projectPath"
           ],
           "purpose": "List orchestration branches present in the repo, grouped by slug. Used for"
         },
         "setupIPC": {
-          "line": 519,
+          "line": 578,
           "params": [
             "ipcMain"
           ],
@@ -5879,7 +5925,7 @@
           "TOGGLE_GIT_BRANCHES_PANEL"
         ]
       },
-      "sizeBytes": 19869,
+      "sizeBytes": 21951,
       "extraction": {
         "status": "parsed"
       },
@@ -5887,6 +5933,8 @@
         "description": "de7834a9081f3c52",
         "purposes": {
           "addWorktree": "9d5960b0200f2941",
+          "branchTipSha": "97221a09922c2e3a",
+          "commitExists": "4476e85f33b3a367",
           "createBranch": "65e6f97f28dbaa7a",
           "createOrchWorktree": "360f17a3e8ed35d7",
           "currentBranch": "69702a9570698b9b",
@@ -5894,6 +5942,8 @@
           "execGit": "eb4919d0bef0003b",
           "execGitArgs": "ab6b29b207a1cf6b",
           "init": "4ed6c1db9529d664",
+          "isAncestor": "998bcd6436ce512d",
+          "isRevArg": "6b803e3f7518c943",
           "isWorkMerged": "39ca7ffa9b37d991",
           "isWorkingTreeClean": "077fc8ab2e75ee0d",
           "listOrchBranches": "b6e87043dfe78d4c",
@@ -5905,6 +5955,7 @@
           "removeOrchWorktree": "ee09f7af04806f80",
           "removeWorktree": "679ea312f5b749d1",
           "setupIPC": "b41c7437e6910eb5",
+          "showFileAt": "f99bf5a1d96dc56b",
           "stashAll": "737899144285069e",
           "switchBranch": "7059dba0b5b50f79",
           "worktreeChangedFiles": "d674ac8f88bfbf50"
@@ -34910,6 +34961,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "4d1c10ec62112f7feb6b28831e66e90ed70dc0990162edec5d075916cca7a877"
+    "revision": "543b1cd70081e7a68390ec558e828004e547707baf50a111252d349b7d5d4549"
   }
 }

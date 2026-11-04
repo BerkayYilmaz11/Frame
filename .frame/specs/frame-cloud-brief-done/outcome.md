@@ -55,3 +55,11 @@ Added `src/main/cloud/cloudDone.js`. `plan` takes Active briefs only (status `ac
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T08 — Add the git read helpers to gitBranchesManager.js
+
+Added `branchTipSha` (`rev-parse --verify --quiet refs/heads/<name>^{commit}`), `showFileAt` (`git show <ref>:./<relPath>`), `commitExists` (`cat-file -e <sha>^{commit}`) and `isAncestor` (`merge-base --is-ancestor`), all through `execGitArgs`. Each returns null or false on any failure and refuses an argument that starts with `-`. Diverged from the plan by giving `execGitArgs` an optional `options` argument: `showFileAt` needs a 32 MB `maxBuffer`, because this repo's `tasks.json` is already ~0.7 MB against execFile's 1 MB default. Smoke-tested against this repo (tip, missing branch, file at tip, unknown commit, ancestry both ways); not unit-tested, per D7. Files: `src/main/gitBranchesManager.js`.
+
+_Captured: 2026-11-04 · 1 file change(s)_
+
+---
