@@ -333,6 +333,12 @@ function hasSection(text, stem) {
  */
 function lineNeedsReview(text, to, section) {
   if (text.includes(to)) return false;
+  // Renumbered: a generation without the module map lists notes as item 1.
+  const bare = to.replace(/^\d+\. /, '').trim();
+  if (text.includes(bare)) return false;
+  // STRUCTURE.json is opt-in: a document that never names it, in either
+  // form, comes from a generation without the map — nothing to upgrade.
+  if (to.includes('STRUCTURE.json') && !text.includes('STRUCTURE.json')) return false;
   if (section && !hasSection(text, section)) return false;
   return true;
 }

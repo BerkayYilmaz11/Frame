@@ -33,6 +33,7 @@ const editor = require('./editor');
 const sidebarResize = require('./sidebarResize');
 const appHeader = require('./appHeader');
 const aiToolSelector = require('./aiToolSelector');
+const selectMenu = require('./selectMenu');
 const commandRegistry = require('./commandRegistry');
 const commandPalette = require('./commandPalette');
 const cheatSheet = require('./cheatSheet');
@@ -52,7 +53,7 @@ const cloudHubTabs = require('./cloudHubTabs');
 const cloudProjectMark = require('./cloudProjectMark');
 const cloudBriefsPanel = require('./cloudBriefsPanel');
 const feedbackPanel = require('./feedbackPanel');
-const telemetryNotice = require('./telemetryNotice');
+const analyticsNotice = require('./analyticsNotice');
 const healthNotice = require('./healthNotice');
 const specDrivenHint = require('./specDrivenHint');
 const docsHealthHint = require('./docsHealthHint');
@@ -97,6 +98,9 @@ function init() {
   aiToolSelector.init((tool) => {
     console.log('AI tool changed to:', tool.name);
   });
+
+  // Every <select> opens Frame's dropdown instead of the OS popup
+  selectMenu.init();
 
   // Connect state with multiTerminalUI for project-terminal session management
   state.setMultiTerminalUI(multiTerminalUI);
@@ -231,7 +235,7 @@ function init() {
 
       // Add to workspace and update project list
       const projectName = projectPath.split('/').pop() || projectPath.split('\\').pop();
-      projectListUI.addProject(projectPath, projectName, state.getIsFrameProject());
+      projectListUI.addProject(projectPath, projectName);
       projectListUI.setActiveProject(projectPath);
 
       // Load tasks if tasks panel is visible
@@ -265,6 +269,9 @@ function init() {
     fileTreeUI.refreshFileTree();
     // Load tasks for the new project
     tasksPanel.loadTasks();
+    // The spec watch skipped this project while it had no .frame/ — start it
+    // now (this also stages the spec commands).
+    specPanel.startWatchingForProject(projectPath);
   });
 
   // Initialize the Open Project modal (shell over the existing open flows)
@@ -296,7 +303,7 @@ function init() {
   feedbackPanel.init();
   // The notice is about what Frame sends home — Privacy lives in Frame's
   // own settings, not the project's.
-  telemetryNotice.init(() => frameSettingsModal.open());
+  analyticsNotice.init(() => frameSettingsModal.open());
   healthNotice.init();
   sampleBanner.init();
   specDrivenHint.init();
@@ -437,7 +444,7 @@ function setupButtonHandlers() {
   // (status-bar spec). Binding it from here would attach a listener before
   // the element exists.
 
-  // Current-project switcher (above the rail and the panel): reflects the
+  // Current-project switcher (top of the sidebar panel): reflects the
   // active project and opens a dropdown to switch project without leaving
   // the view.
   const currentProjectNameEl = document.getElementById('sidebar-current-project-name');
@@ -467,8 +474,14 @@ function setupProjectSwitcher() {
   if (wrap) wrap.style.display = '';
 
   const CHECK = '<svg class="sidebar-project-menu-item-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  // Small mark after the name of a project Frame isn't set up in; its
+  // tooltip says where to fix that (Project Settings' top banner).
+  const NOT_SET_UP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2.4"/></svg>';
 
   const close = () => {
+    // Rows are rebuilt on every open, so a label left on one would never see
+    // its mouseleave.
+    tooltip.hide();
     if (menu.hidden) return;
     menu.hidden = true;
     btn.setAttribute('aria-expanded', 'false');
@@ -486,7 +499,26 @@ function setupProjectSwitcher() {
   const open = () => {
     const projects = projectListUI.getProjects();
     const active = projectListUI.getActiveProject();
+    const wasOpen = !menu.hidden;
+    tooltip.hide();
     menu.innerHTML = '';
+
+    // "Add a project" leads the menu: with a long list at the end it sat
+    // below a scroll.
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'sidebar-project-menu-item sidebar-project-menu-add';
+    add.setAttribute('role', 'menuitem');
+    add.innerHTML = '<span class="sidebar-project-menu-item-name">+ Add a project…</span>';
+    add.addEventListener('click', () => {
+      close();
+      openProjectModal.open();
+    });
+    menu.appendChild(add);
+
+    const sep = document.createElement('div');
+    sep.className = 'sidebar-project-menu-sep';
+    menu.appendChild(sep);
 
     if (!projects.length) {
       const empty = document.createElement('div');
@@ -505,11 +537,15 @@ function setupProjectSwitcher() {
           ? `<span class="sidebar-project-menu-dot ${counts.approval ? 'approval' : 'input'}" title="${counts.approval ? 'agents need approval' : 'agents waiting for input'}"></span>`
           : '';
         item.innerHTML = '<span class="sidebar-project-menu-item-name"></span>'
-          + (p.isFrameProject ? '<span class="sidebar-project-menu-tag">Frame</span>' : '')
+          + (p.isFrameProject ? '' : `<span class="sidebar-project-menu-unset">${NOT_SET_UP}</span>`)
           + attention
           + (isActive ? CHECK : '')
           + '<span class="sidebar-project-menu-remove" title="Remove from list">×</span>';
         item.querySelector('.sidebar-project-menu-item-name').textContent = p.name;
+        const unset = item.querySelector('.sidebar-project-menu-unset');
+        if (unset) {
+          tooltip.attach(unset, 'Frame not set up — initialize it in Project Settings');
+        }
         item.addEventListener('click', (e) => {
           if (e.target.closest('.sidebar-project-menu-remove')) {
             close();
@@ -523,22 +559,10 @@ function setupProjectSwitcher() {
       });
     }
 
-    const sep = document.createElement('div');
-    sep.className = 'sidebar-project-menu-sep';
-    menu.appendChild(sep);
-
-    const add = document.createElement('button');
-    add.type = 'button';
-    add.className = 'sidebar-project-menu-item sidebar-project-menu-add';
-    add.setAttribute('role', 'menuitem');
-    add.innerHTML = '<span class="sidebar-project-menu-item-name">+ Add a project…</span>';
-    add.addEventListener('click', () => {
-      close();
-      openProjectModal.open();
-    });
-    menu.appendChild(add);
-
     menu.hidden = false;
+    // Open at the top, where "Add a project" is — a refresh while open keeps
+    // the user's scroll.
+    if (!wasOpen) menu.scrollTop = 0;
     btn.setAttribute('aria-expanded', 'true');
     // Defer so this opening click doesn't immediately close via the doc listener.
     setTimeout(() => {
@@ -566,12 +590,18 @@ function setupProjectSwitcher() {
  * version (Settings → About → "Dismiss this version"); click opens
  * Settings → About. The header's bell (appHeader.js) is the other signal;
  * the pulsing dot beside the mark was removed on 2026-09-14.
+ *
+ * Once auto-update has downloaded the version (UPDATE_DOWNLOADED, packaged
+ * macOS only) the title reads "Restart to install"; the click still opens
+ * About, where the install button is.
  */
 function setupUpdateDot() {
   const banner = document.getElementById('sidebar-update-banner');
+  const bannerTitleEl = document.getElementById('sidebar-update-banner-title');
   const bannerVersionEl = document.getElementById('sidebar-update-banner-version');
+  let downloadedVersion = null;
 
-  ipcRenderer.on(IPC.UPDATE_AVAILABLE, async (event, info) => {
+  const show = async (info) => {
     if (!info || !info.latestVersion) return;
     const dismissed = await ipcRenderer.invoke(
       IPC.GET_USER_SETTING,
@@ -579,9 +609,20 @@ function setupUpdateDot() {
     );
     if (dismissed === info.latestVersion) return;
     if (banner) {
+      const ready = downloadedVersion === info.latestVersion;
+      if (bannerTitleEl) bannerTitleEl.textContent = ready ? 'Restart to install' : 'New version available';
+      banner.setAttribute('aria-label', ready
+        ? 'Update ready to install, click to view details'
+        : 'Update available, click to view details');
       if (bannerVersionEl) bannerVersionEl.textContent = `v${info.latestVersion}`;
       banner.style.display = '';
     }
+  };
+
+  ipcRenderer.on(IPC.UPDATE_AVAILABLE, (event, info) => show(info));
+  ipcRenderer.on(IPC.UPDATE_DOWNLOADED, (event, info) => {
+    if (info && info.latestVersion) downloadedVersion = info.latestVersion;
+    show(info);
   });
 
   if (banner) {
@@ -1089,6 +1130,31 @@ async function startAiSession() {
 /**
  * Start application when DOM is ready
  */
+// Renderer exceptions reach the same opt-in channel the main process uses.
+// Only the three fields are forwarded — an Error does not survive structured
+// cloning intact, and sending anything wider would hand the main process
+// fields nobody has sanitized. captureException does the stripping there.
+function forwardException(err) {
+  try {
+    const e = err instanceof Error ? err : new Error(String(err));
+    ipcRenderer.send(IPC.ANALYTICS_EXCEPTION, {
+      name: e.name,
+      message: e.message,
+      stack: e.stack
+    });
+  } catch (_) {
+    // Reporting a failure must never become one.
+  }
+}
+
+window.addEventListener('error', (event) => {
+  forwardException(event.error || event.message);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  forwardException(event.reason);
+});
+
 window.addEventListener('load', () => {
   init();
 

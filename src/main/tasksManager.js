@@ -204,6 +204,11 @@ function addTask(projectPath, task) {
     id: generateTaskId(),
     title: task.title || 'Untitled Task',
     description: task.description || '',
+    // The New Task form's request text, kept exactly as typed
+    // (tasks-list-view spec, D14). A blank request records none.
+    ...(typeof task.userRequest === 'string' && task.userRequest.trim()
+      ? { userRequest: task.userRequest }
+      : {}),
     status: 'pending',
     priority: task.priority || 'medium',
     category: task.category || 'feature',
@@ -236,6 +241,13 @@ function updateTask(projectPath, taskId, updates) {
       task.completedAt = new Date().toISOString();
       tasksData.metadata = tasksData.metadata || {};
       tasksData.metadata.totalCompleted = (tasksData.metadata.totalCompleted || 0) + 1;
+      // Lazy require, same reason as frameProject: analytics pulls
+      // posthog-node and electron, and CI runs the suite with no
+      // node_modules. Keep this module's load graph Electron-free.
+      // Nothing about the task is sent — not its title, not its id.
+      try {
+        require('./analytics').track('task_completed');
+      } catch (_) { /* analytics is never allowed to break a task write */ }
     }
   }
 
@@ -254,12 +266,14 @@ function deleteTask(projectPath, taskId) {
 }
 
 /**
- * Reorder tasks (used by the Kanban dashboard for drag-and-drop). The renderer
- * sends an ordered list of { id, status } describing the new arrangement.
- * The backend rebuilds tasks.json so array position reflects column order, and
- * each task's status is updated to its new column. Tasks not present in the
- * order list are appended at the end (defensive — should not happen in normal
- * flow but keeps any concurrent additions from being dropped).
+ * Reorder tasks. The renderer sends an ordered list of { id, status? }
+ * describing the new arrangement, and the backend rebuilds tasks.json so
+ * array position follows it. An entry that carries a valid status moves the
+ * task to it; an entry with no status keeps the task's own, so an order
+ * write that sends ids only can never change a status.
+ * Tasks not present in the order list are appended at the end (defensive —
+ * should not happen in normal flow but keeps any concurrent additions from
+ * being dropped).
  */
 function reorderTasks(projectPath, order) {
   const tasksData = loadTasks(projectPath);

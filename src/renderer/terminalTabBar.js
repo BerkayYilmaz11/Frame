@@ -36,6 +36,7 @@ const { Plus, CheckSquare, Home, X, FileText, FileDiff, FileBarChart, Bot } = re
 const { escapeHtml } = require('./htmlUtils');
 const laneStatus = require('./laneStatus');
 const notify = require('./notify');
+const tooltip = require('./tooltip');
 
 function lucideIcon(data, size = 18) {
   const children = data.map(([tag, attrs]) => {
@@ -117,7 +118,7 @@ class TerminalTabBar {
           display: block;
         }
         .terminal-context-menu-item {
-          padding: 6px 12px;
+          padding: 8px 12px;
           font-size: 12px;
           color: var(--text-primary);
           cursor: pointer;
@@ -150,7 +151,7 @@ class TerminalTabBar {
           min-width: 160px;
         }
         .shell-menu-header {
-          padding: 6px 12px;
+          padding: 8px 12px;
           font-size: 11px;
           color: var(--text-secondary);
           text-transform: uppercase;
@@ -212,6 +213,11 @@ class TerminalTabBar {
     const shownId = state.shownTerminalId || null;
     const specDrawer = state.specDrawer || null;
     const taskDrawer = state.taskDrawer || null;
+    // Pages (a terminal enlarged, a spec / task drawer, a section tab) are a
+    // second kind of tab: bordered chips after their own divider, apart from
+    // the filled Home / Terminals.
+    const hasPages = (showTerminals && terminals.length) || specDrawer || taskDrawer || sections.length;
+    const pagesDivider = hasPages && showTerminals ? '<span class="lane-bar-divider"></span>' : '';
 
     left.innerHTML = `
       <button class="btn-lane-home ${onHome ? 'current' : ''}" title="Home (Cmd+Esc)">
@@ -225,30 +231,36 @@ class TerminalTabBar {
           <span class="lane-bar-section-label">Terminals</span>
           ${liveCount ? '' : `<span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>`}
         </button>
-        ${terminals.map(t => this._terminalChip(t, onTerminals && shownId === t.id)).join('')}
       ` : ''}
+      ${pagesDivider}
+      ${showTerminals ? terminals.map(t => this._terminalChip(t, onTerminals && shownId === t.id)).join('') : ''}
+      <button class="lane-bar-new-terminal" type="button">${lucideIcon(Plus, 14)}</button>
       ${specDrawer ? `
-        <button class="lane-bar-section lane-bar-spec-drawer ${state.specDrawerShown ? 'current' : ''}" data-slug="${escapeHtml(specDrawer.slug)}" title="${escapeHtml(specDrawer.title)}">
+        <button class="lane-bar-section lane-bar-page lane-bar-spec-drawer ${state.specDrawerShown ? 'current' : ''}" data-slug="${escapeHtml(specDrawer.slug)}" title="${escapeHtml(specDrawer.title)}">
           ${lucideIcon(FileText, 13)}
           <span class="lane-bar-section-label">${escapeHtml(specDrawer.title)}</span>
           <span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>
         </button>
       ` : ''}
       ${taskDrawer ? `
-        <button class="lane-bar-section lane-bar-task-drawer ${state.taskDrawerShown ? 'current' : ''}" data-task-id="${escapeHtml(String(taskDrawer.id))}" title="${escapeHtml(taskDrawer.title)}">
+        <button class="lane-bar-section lane-bar-page lane-bar-task-drawer ${state.taskDrawerShown ? 'current' : ''}" data-task-id="${escapeHtml(String(taskDrawer.id))}" title="${escapeHtml(taskDrawer.title)}">
           ${lucideIcon(CheckSquare, 13)}
           <span class="lane-bar-section-label">${escapeHtml(taskDrawer.title)}</span>
           <span class="lane-bar-section-close" title="Remove from the bar">${lucideIcon(X, 12)}</span>
         </button>
       ` : ''}
       ${sections.map(sec => `
-        <button class="lane-bar-section ${sec.key === activeKey ? 'current' : ''}" data-key="${escapeHtml(sec.key)}" title="${escapeHtml(sec.title)}">
+        <button class="lane-bar-section lane-bar-page ${sec.key === activeKey ? 'current' : ''}" data-key="${escapeHtml(sec.key)}" title="${escapeHtml(sec.title)}">
           ${lucideIcon(sec.type === 'spec' ? FileText : sec.type === 'diff' ? FileDiff : sec.type === 'report' ? FileBarChart : sec.type === 'orchestrator' ? Bot : CheckSquare, 13)}
           <span class="lane-bar-section-label">${escapeHtml(sec.title)}</span>
           <span class="lane-bar-section-close" title="Close tab">${lucideIcon(X, 12)}</span>
         </button>
       `).join('')}
     `;
+
+    // New terminal, at the end of the terminal group: opens one in the
+    // default shell and enlarges it — no detour through the Terminals grid.
+    tooltip.attach(left.querySelector('.lane-bar-new-terminal'), 'New terminal', { placement: 'bottom' });
   }
 
   /**
@@ -258,7 +270,7 @@ class TerminalTabBar {
   _terminalChip(state, current) {
     const name = state.customName || state.name;
     return `
-      <button class="lane-bar-section lane-bar-terminal ${current ? 'current' : ''}" data-terminal-id="${escapeHtml(state.id)}" title="${escapeHtml(name)}">
+      <button class="lane-bar-section lane-bar-page lane-bar-terminal ${current ? 'current' : ''}" data-terminal-id="${escapeHtml(state.id)}" title="${escapeHtml(name)}">
         <span class="lane-status-dot ${laneStatus.getStatus(state.id).status}"></span>
         <span class="lane-bar-section-label">${escapeHtml(name)}</span>
         <span class="lane-bar-section-close" title="Close terminal">${lucideIcon(X, 12)}</span>
@@ -281,6 +293,10 @@ class TerminalTabBar {
   _setupEventHandlers() {
     // Left section (delegated — content re-renders on every state update)
     this.element.addEventListener('click', (e) => {
+      if (e.target.closest('.lane-bar-new-terminal')) {
+        this._createLane();
+        return;
+      }
       // Terminals wears a section chip but is not one — it has no key, and
       // its × drops it from the bar rather than closing anything.
       if (e.target.closest('.lane-bar-terminals')) {

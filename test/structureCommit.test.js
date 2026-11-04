@@ -348,3 +348,26 @@ test('repairPathspecIndex skips a repository whose HEAD has no map', (t) => {
   const { dir } = committedRepo(t);
   assert.equal(commit.repairPathspecIndex(dir), 'skipped');
 });
+
+/* ------------- a commit hook never hangs, never pipes the map through Git ------------- */
+
+test('blobId matches git hash-object for SHA-1 ids and follows a SHA-256 id', (t) => {
+  const { dir } = repo(t);
+  for (const bytes of [Buffer.from(''), Buffer.from('{"a":1}\n'), Buffer.from('ç\u0000x'.repeat(5000))]) {
+    const expected = spawnSync('git', ['hash-object', '--stdin'], { cwd: dir, input: bytes, encoding: 'utf8' }).stdout.trim();
+    assert.equal(commit.blobId(bytes, expected), expected);
+  }
+  const sha256 = commit.blobId(Buffer.from('x'), 'f'.repeat(64));
+  assert.equal(sha256.length, 64);
+  assert.equal(sha256, require('crypto').createHash('sha256').update('blob 1\0x').digest('hex'));
+});
+
+test('a Git call that does not return in time fails the run instead of hanging the commit', (t) => {
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'frame-slow-git-'));
+  t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(bin, 'git'), '#!/bin/sh\nsleep 5\n', { mode: 0o755 });
+  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}` };
+  const started = Date.now();
+  assert.throws(() => commit.git(bin, ['status'], { env, timeout: 200 }), (err) => err.reason === 'git-timeout');
+  assert.ok(Date.now() - started < 3000);
+});

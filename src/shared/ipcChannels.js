@@ -76,6 +76,14 @@ const IPC = {
   AVAILABLE_SHELLS_DATA: 'available-shells-data',
   RECONCILE_TERMINALS: 'reconcile-terminals',
 
+  // Session restore (restore-ai-sessions-on-relaunch)
+  SESSION_RESTORE_TAKE: 'session-restore-take',                     // renderer → main (invoke): projectPath → { sessions, activeSessionId }
+  SESSION_RESTORE_DONE: 'session-restore-done',                     // renderer → main: projectPath — its restore finished
+  SESSION_RESTORE_CLAIM: 'session-restore-claim',                   // renderer → main: { terminalId, tool, sessionId, transcriptPath, cwd, name }
+  SESSION_RESTORE_META: 'session-restore-meta',                     // renderer → main: { terminalId, name?, active? }
+  SESSION_RESTORE_GET_LAST_PROJECT: 'session-restore-get-last-project', // renderer → main (invoke): → last project if it has sessions to resume, else null
+  SESSION_RESTORE_SET_LAST_PROJECT: 'session-restore-set-last-project', // renderer → main: projectPath
+
   // Tasks Panel
   LOAD_TASKS: 'load-tasks',
   TASKS_DATA: 'tasks-data',
@@ -99,6 +107,7 @@ const IPC = {
   // Claude Sessions
   LOAD_CLAUDE_SESSIONS: 'load-claude-sessions',
   REFRESH_CLAUDE_SESSIONS: 'refresh-claude-sessions',
+  LOAD_CODEX_SESSIONS: 'load-codex-sessions',
 
   // GitHub Panel
   LOAD_GITHUB_ISSUES: 'load-github-issues',
@@ -133,6 +142,8 @@ const IPC = {
   CHECK_FOR_UPDATE: 'check-for-update',
   UPDATE_AVAILABLE: 'update-available',
   GET_UPDATE_STATUS: 'get-update-status',
+  UPDATE_DOWNLOADED: 'update-downloaded',
+  INSTALL_UPDATE: 'install-update',
 
   // AI Tool Settings
   GET_AI_TOOL_CONFIG: 'get-ai-tool-config',
@@ -157,9 +168,11 @@ const IPC = {
   GIT_STATUS_DATA: 'git-status-data',
   GET_GIT_DIFF: 'get-git-diff',
 
-  // Telemetry (Aptabase, opt-out via Settings)
-  TELEMETRY_SET_ENABLED: 'telemetry-set-enabled',
-  TELEMETRY_TRACK: 'telemetry-track',
+  // Analytics (PostHog, opt-out via Settings; exceptions are a separate opt-in)
+  ANALYTICS_SET_ENABLED: 'analytics-set-enabled',
+  ANALYTICS_TRACK: 'analytics-track',
+  ANALYTICS_EXCEPTION: 'analytics-exception',
+  ANALYTICS_NOTICE_STATE: 'analytics-notice-state',
 
   // Health / crash recovery (main → renderer notices)
   MAIN_PROCESS_ERROR: 'main-process-error',

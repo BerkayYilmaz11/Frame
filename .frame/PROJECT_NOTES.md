@@ -425,6 +425,84 @@ mainWindow.webContents.openDevTools();
 
 ## Session Notes
 
+### [2026-09-21] IP-based location turned on, one day after turning it off
+
+**Context:** The PostHog migration shipped with `disableGeoip: true` and
+PRIVACY.md said, in two places, that location is never derived or stored. Asked
+the same day whether country was visible in the dashboard, the answer was no —
+by our own choice.
+
+**Decision:** Reverse it. Geo lookup is on; PostHog resolves the request IP to
+country/region on arrival and discards the IP. The alternative offered was
+device timezone (`Europe/Istanbul`), which answers the same question without
+touching a stated promise; it was declined in favour of the IP path.
+
+**What this cost, recorded so it is not forgotten:** a promise published in the
+morning was withdrawn in the afternoon. PRIVACY.md now has an **Approximate
+location** section stating what is derived rather than a line saying it is not —
+the doc is accurate again, but it is the second version of a claim about the same
+subject in one day. `NOTICE_VERSION` went to 3, so every user is interrupted a
+second time within days of the first card; the second card is what makes the
+change honest and also what makes the first one look provisional.
+
+**Rule reaffirmed (it held):** `NOTICE_VERSION` bumps when the disclosure
+changes. This is exactly that case, and bumping was not optional — collecting
+location under a card that says location is not collected would have been the
+real failure.
+
+**Open:** if location is ever narrowed or removed again, do not quietly drop the
+PRIVACY.md section — a third revision of the same claim needs to say what changed
+and why, or the document stops being read as a commitment.
+
+---
+
+### [2026-09-21] Analytics moved to PostHog — reversing the Aptabase decision
+
+**Context:** `audit-q3-product-analytics` (July) chose Aptabase deliberately and
+recorded a rejection of PostHog: *"PostHog's funnels/identity features exceed the
+spec's out-of-scope line (no per-user tracking)"* (`plan.md:11`). It measured
+activation as unique-users-per-event and accepted the imprecision. Two months of
+using that dashboard showed the cost: Aptabase attaches no identifier at all, so
+`app_started` cannot distinguish one person launching forty times from forty
+people launching once, and there is no funnel, no retention and no per-user
+feature usage. Every question worth asking about the roadmap turned out to be
+user-level.
+
+**Decision:** Reverse it. PostHog EU cloud, with a random per-install UUID as the
+distinct id. The July constraint was right about the trade — identity is a real
+privacy cost — and wrong about which side of it to take, because the alternative
+was not "less data", it was "no answers".
+
+Four choices shaped how the cost gets paid rather than avoided:
+
+- **Default-on opt-out kept**, not switched to opt-in. On a developer tool opt-in
+  yields 5–15% participation, and none of the questions survive that sample. The
+  cost is paid by disclosure instead.
+- **Anonymous only.** No self-identify field, no email. The PRIVACY.md line "no
+  email addresses or any personally identifiable information" stays true as
+  written.
+- **The notice re-shows.** People acknowledged a system with no identifier;
+  `telemetryNoticeShown` became `telemetryNoticeVersion` so the changed text
+  reaches them once. Default-on is only honest if the change is surfaced.
+- **Error detail on a separate opt-in channel**, not a redacted `message`
+  property on `error_occurred`. A free-form property would end the registry's
+  mechanically enum-only guarantee, and nothing would stop the next widening.
+
+**What did not change:** the `telemetryEvents.js` registry and `validateEvent`
+gate, the fail-closed opt-out, and the renderer-revalidated-in-main rule. Only
+`track()`'s final send call moved. No event was added — the user-level views come
+entirely from attaching the install id to the eleven events that already existed.
+
+**Rules established:**
+- Opting out **deletes** the install id; re-enabling mints a new one. An opt-out
+  that leaves a resumable identifier is not an opt-out.
+- `NOTICE_VERSION` is bumped only when the disclosure itself changes — it is not
+  a release counter, and a bump interrupts every user once.
+- The error channel never becomes an event. If exception detail is ever wanted in
+  the registry, that is a decision to re-open here, not a property to add.
+
+---
+
 ### [2026-01-25] Project Navigation System
 
 **Context:** When Claude Code enters a project, it needs to quickly capture the context.
@@ -4075,3 +4153,103 @@ not to a work branch ("o cloud-adaptor çatı branchinin görevi olmalı").
 the flow against FrameCloud `feat/early-access` and reported it working. It
 depends on FrameCloud `feat/early-access`, which is not yet merged into
 FrameCloud `main`.
+
+### [2026-10-02] shadcn/ui look adopted as CSS only — no React, palette unchanged
+
+The request was to replace Frame's components with shadcn/ui components.
+shadcn/ui needs React + Tailwind + Radix; Frame's renderer is vanilla JS with
+plain CSS (85 renderer modules, ~18,500 lines of CSS, stylesheets linked
+straight from `index.html`). Three routes were weighed: a full React
+migration (weeks, spec-scale), React islands for isolated surfaces only, or
+porting shadcn's visual language onto the existing classes. The user first
+picked the islands route, then asked for "an easier UI change that fits what
+is already defined" and approved the CSS-only port. Basecoat UI (shadcn for
+plain HTML) was rejected because it needs Tailwind, whose global reset would
+fight the existing CSS; Shoelace / Web Awesome because they do not look like
+shadcn and would mean rewriting markup into custom elements.
+
+What was done, in four passes, CSS only — no class names, markup or JS
+changed, and every colour still comes from `variables.css` so all four themes
+keep working:
+
+- Buttons (`.btn`, `.btn-secondary`, `.btn-success`, `.modal-btn*`): flat
+  fills, no gradient / hover lift / glow; disabled is 50% opacity.
+- Focus ring on buttons, fields and switches: accent border plus a 3px
+  `color-mix(accent 35%)` halo, replacing the per-rule outlines.
+- Fields in modals and the task form: one border and radius; focus shows the
+  ring only.
+- Modals and the command palette: fade + zoom entrance instead of a slide,
+  no tinted footer band, neutral close button.
+- Tooltip: inverted (ink fill, deep-surface text). This deliberately
+  overturns the earlier "elevated-surface language like the other popovers"
+  choice recorded in `tooltip.css`.
+- Tabs: active label is `--text-primary` with the accent underline, matching
+  the dock tabs. Badges/chips became pills. Cards moved to `--radius-lg` and
+  `--border-default`. Menus use neutral hover and the shared shadow tokens.
+- Switches (settings and plugins): borderless muted track, accent when on.
+
+Colour changes made along the way, flagged to the user as reversible: the
+modal primary button, the modal checkbox and the plugin switch moved from
+`--success` to `--accent-primary`, so the app has one primary colour and
+their text/mark is dark instead of white.
+
+Not verified on screen: `node`/`npm` were unavailable in the session, so the
+app was never launched. The user was asked to check the light themes, the
+narrow right rail (wider pills) and the command palette spacing.
+
+Same session, separate request: the left rail icons went from 40px to 32px
+(button 48px to 40px, 4px inset kept) with `stroke-width: 1.5` so the stroke
+still renders at 2px.
+
+### [2026-10-09] AI sessions resume after a relaunch (spec: restore-ai-sessions-on-relaunch)
+
+User's request (Turkish, verbatim): "frame i kapatıp açtığımızda herşey sıfırdan başlıyor, açık olan terminal sessionlarının bilgisine sahibiz zaten, uygulama tekrar açıldığında terminalleri ve sessionları açarak başlayabiliriz bence. […] son açık olan proje açıldığında gelir ve terminaller ve sessionlar başlatılır. eğer diğer projelerde de bu durum varsa, kullanıcı o projeyi açtığında terminaller ve sessionlar başlatılır." Then: plain shells (zsh/bash) are ignored; restore is automatic, no prompt; Codex included alongside Claude Code (Gemini/OpenCode out).
+
+Decisions taken with the user:
+- Capture by a `SessionStart` hook plus a per-terminal env (`FRAME_TERMINAL_ID`), not by guessing from transcripts. The user first asked what the hook does; after the explanation (two Claude terminals in one project would cross-assign, `/clear` would be missed) chose the hook.
+- Hook installed per project, not in `~/.claude/settings.json`: Claude entry in the project's sharing-mode settings file; Codex entry in `CODEX_HOME/hooks.json` (the only place Codex reads) guarded on `.frame/`. Consequence accepted: projects never initialized with Frame do not restore.
+- The session hook ignores the active-tool gate, so one project with a Claude and a Codex terminal restores both.
+- "Last active project" is saved explicitly. Mid-implementation a conflict surfaced with the existing Default-project setting ("Frame opens it every time it launches"); the user chose: open the last project **only when it has sessions to resume**, otherwise the default as before. The setting's text now states the exception.
+
+Measured (measurements.md): both CLIs pass the env to the hook; `$PPID` is the CLI and its pgid equals the terminal's tpgid, while a CLI nested in a session's Bash tool sits in another group — that check filters nested reports.
+
+### [2026-10-22] Opt-out now sends one `analytics_disabled` event
+
+Context: the user suspected Aptabase was broken because very few events arrive. Checked in-session: the app key is valid, the SDK delivers end to end in Electron 28, and PostHog failures (offline, 500) never block Aptabase — `track()` sends to Aptabase first in its own try, and no unhandled rejections occur. The likelier explanation is a small install base (v2.8.2 arm64 .dmg ≈ 84 downloads, mac arm64 only since 2.8.0) and a v2.8.2 registry dominated by `app_started`. One real coupling found and left as-is: `captureException` shares the event rate limiter, so an exception storm with error reporting on silences usage events for the rest of that session.
+
+User's request (Turkish, verbatim): "acaba ayarlardan kapatılan yeri de mi track etsek, en azından kaç kişinin telemetry verilerini kapattığını da görürüz" — then "tamam, uygula".
+
+This overturns, explicitly, the earlier decision that switching analytics off sends nothing ("Switching analytics *off* deliberately never arrives… correct behaviour for an opt-out", analyticsEvents.js; PRIVACY.md "no event"). The user was shown that decision and the PRIVACY.md promise before approving.
+
+Shape chosen:
+- `analytics.trackOptOut()` sends `analytics_disabled` from `setEnabled(false)` only when analytics was on, before the setting flips — not through `track()`.
+- No install id, no session id, no person properties. PostHog gets a fresh random distinct id used once, `$process_person_profile: false`, `disableGeoip: true`. Aptabase gets the bare event. So it counts opt-outs, not unique users, and cannot be joined to the install's earlier events.
+- Renderer order swapped in frameSettingsModal.js: `ANALYTICS_SET_ENABLED` before `SET_USER_SETTING`, because setEnabled must read the pre-toggle state.
+- Disclosure changed, so the notice card text says so and `NOTICE_VERSION` went 3 → 4 (card reappears once for everyone). PRIVACY.md lists the event and its exceptions.
+
+### [2026-10-22] STRUCTURE.json maintenance is opt-in per project — only Frame's repo opts in
+
+User's request (Turkish, verbatim): "bizim dosya bulma için devasa bir yapımız ve pipeline ımız var, ama çok fayda alıyoruz gibi durmuyor ve structure.json çok baş ağrıtıyor birden fazla kişinin pr attığı durumlarda. kodun durmasını ama mekanızmanın çalışmasını kesmek istiyorum geçici olarak."
+
+Trigger: PR #179 (a one-file watchdog fix) conflicted on `.frame/STRUCTURE.json` because the pre-commit hook re-stages the map on every commit.
+
+First iteration (same session): one global `STRUCTURE_ENABLED = false` constant stopping everything, file left tracked and frozen. The user then asked "peki sadece frame in reposunda çalışması için ne yapabiliriz?" and clarified: "frame i kullanan ama frame e katkı yapmayan bütün kullanıcılar bu yapıyı kullanmasın false olsun, sadece bizim repomuzda true olsun". So the switch became a per-project opt-in, default off.
+
+Shape:
+- `scripts/structure-switch.js` → `structureEnabled(projectRoot)`: true only when that project's `.frame/config.json` has `settings.structureMap: true`; missing/unreadable config → off. `FRAME_STRUCTURE=on` forces it on for one process (the test script sets it; `test/structureSwitch.test.js` covers the off path). Ships to `.frame/bin/` as a helper.
+- Not `settings.autoUpdateStructure`: init writes it as `true` into every project and nothing ever read it, so reusing it would have left everyone on.
+- Frame's own `.frame/config.json` sets `structureMap: true`.
+- When off, init does not create `.frame/STRUCTURE.json` at all (user follow-up: "initialize ederken dosya da oluşturuluyor, o da oluşmamalı") and the init confirmation dialog no longer lists it; the check runs after `config.json` is written, so re-init of an opted-in project keeps its map.
+- When off: `update-structure.js` (pre-commit `--staged`, `npm run structure`, init's scan) emits `{ state: 'skipped', reason: 'paused' }` and writes nothing; `structureLifecycle.attach` returns null; `structure-lifecycle.js` exits; `bootstrapStructure` still stages the tools but installs no hook and runs no scan (`initialScan.status: 'skipped-disabled'`, no notice); `module-hint.js` stays silent; `check-freshness.js` skips its STRUCTURE checks. Readers (`find-module.js`, the Structure view) still read whatever map exists.
+- AGENTS.md template (user follow-up: "evet agents.md şablonunu da düzelt"): `getAgentsTemplate(name, { structureMap })` drops the STRUCTURE.json navigation item, the find-module "Fast file lookup" block, the STRUCTURE row of the meta-file table and "phantom modules, stale STRUCTURE" from the freshness line when the map is off; the remaining items renumber (1. notes, 2. tasks). Opted-in output is byte-identical to before. `frameProject` passes `structureEnabled(projectPath)` at both write sites. Existing AGENTS.md files are never rewritten, so projects initialized earlier keep their STRUCTURE lines.
+- `layoutMigration.lineNeedsReview` learned two cases so the off template is not reported as user edits: a renumbered navigation item, and a document that never names STRUCTURE.json.
+- Still mentioning the map regardless: the REFERENCE.md and QUICKSTART.md templates.
+- The lifecycle decision is taken when a project is opened; hooks and scripts read the config on every run.
+
+### [2026-10-22] Project switcher back in the sidebar, above Work
+
+User's request (Turkish, verbatim): "project seçimi şu an yukarıda sağda, onu soldan ikinci panele, work menü item ının üstüne geri yerleştirmek istiyorum".
+
+History: sidebar-project-section put the switcher above the rail-and-panel split; shell-chrome-app-header-collapsible-panels D1 (2026-09-14) moved it into the app header's center so it stayed reachable with the sidebar collapsed; bfdb629 later moved it to the header's right, beside the Agent picker. This explicitly overturns D1: the switcher is now the first child of `.sidebar-panel`, above Work (and above the Files / Changes / GitHub views — index.js already keeps it visible on every tab). Accepted consequence: with the sidebar collapsed (⌘B) the switcher is out of sight.
+
+Changed: `index.html` markup moved out of `.lane-bar-launcher`; switcher CSS moved from `app-header.css` to `project-section.css` (full panel width, 28px); the header's `:not()` button selectors dropped the switcher classes; the tour's switcher step points right; the Guide text and shell sketch show it atop the sidebar (region renamed `sidebar-switcher`).

@@ -30,6 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 const { FRAME_DIR, FRAME_BIN_DIR } = require('../shared/frameConstants');
+const { structureEnabled } = require('../../scripts/structure-switch');
 
 const PERIODIC_MS = 60000;
 const STOP_GRACE_MS = 3000;
@@ -118,6 +119,7 @@ function stopTicksIfIdle() {
 function attach(projectPath) {
   if (!settings.enabled) return null;
   const key = realPath(projectPath);
+  if (!structureEnabled(key)) return null; // project has not opted into the map
   const existing = workers.get(key);
   if (existing && !existing.closed) return existing;
 

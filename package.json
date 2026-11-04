@@ -1,7 +1,7 @@
 {
   "name": "frame",
   "productName": "Frame",
-  "version": "2.8.2",
+  "version": "2.9.0",
   "description": "Frame - Project Management IDE for Claude Code",
   "main": "src/main/index.js",
   "scripts": {
@@ -9,16 +9,16 @@
     "build": "esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron",
     "watch": "esbuild src/renderer/index.js --bundle --outfile=dist/renderer.js --platform=node --external:electron --watch",
     "start": "npm run build && electron .",
-    "test": "FRAME_ACTIVITY_HOME=.frame/runtime/test-activity node --test test/*.test.js",
+    "test": "FRAME_STRUCTURE=on FRAME_ACTIVITY_HOME=.frame/runtime/test-activity CODEX_HOME=.frame/runtime/test-codex-home node --test test/*.test.js",
     "dev": "npm run watch & electron .",
     "structure": "node scripts/update-structure.js",
     "structure:changed": "node scripts/update-structure.js --changed",
     "find-module": "node scripts/find-module.js",
     "freshness": "node scripts/check-freshness.js",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dist": "npm run build && node scripts/release-build.js --mac --dir",
-    "dist:mac": "npm run build && node scripts/release-build.js --mac",
-    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false node scripts/release-build.js --mac"
+    "dist": "npm run build && node scripts/release-build.js --mac --dir --publish never",
+    "dist:mac": "npm run build && node scripts/release-build.js --mac --publish never",
+    "dist:mac:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false node scripts/release-build.js --mac --publish never"
   },
   "keywords": [
     "electron",
@@ -43,9 +43,11 @@
     "d3": "^7.9.0",
     "diff2html": "^3.4.56",
     "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9",
     "lucide": "^0.577.0",
     "marked": "^17.0.5",
     "node-pty": "^1.0.0",
+    "posthog-node": "^5.52.5",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
   },
@@ -56,7 +58,8 @@
       "category": "public.app-category.developer-tools",
       "icon": "assets/icon.icns",
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -78,6 +81,11 @@
         }
       ]
     },
+    "publish": {
+      "provider": "github",
+      "owner": "kaanozhan",
+      "repo": "Frame"
+    },
     "directories": {
       "output": "release"
     },
@@ -94,7 +102,9 @@
       "scripts/structure-read.js",
       "scripts/structure-lifecycle.js",
       "scripts/structure-commit.js",
+      "scripts/structure-retrieval.js",
       "scripts/structure-ignore.js",
+      "scripts/structure-switch.js",
       "scripts/structure-ignore.LICENSE",
       "scripts/find-module.js",
       "scripts/check-freshness.js",

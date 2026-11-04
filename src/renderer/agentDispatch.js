@@ -202,7 +202,7 @@ async function dispatch({ terminalId = null, createNew = false, toolId = null, p
 
     // The CLI actually launched and reached ready — that is an agent run.
     // Main normalizes the tool id to the registry enum before sending.
-    ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', { tool: chosenToolId });
+    ipcRenderer.send(IPC.ANALYTICS_TRACK, 'agent_run_started', { tool: chosenToolId });
 
     // This dispatch started the session. Record whether it carried the
     // autonomous permission flags and the CLI kept them (didn't come up
@@ -303,7 +303,7 @@ function _startAgentIn(terminalId, { fresh = false } = {}) {
 // "send" and "listen". A custom CLI is never recognized as an agent by
 // laneStatus, so it cannot be seen coming up and counts on launch.
 function _trackAgentRunWhenReady(terminalId, toolId) {
-  const track = () => ipcRenderer.send(IPC.TELEMETRY_TRACK, 'agent_run_started', { tool: toolId });
+  const track = () => ipcRenderer.send(IPC.ANALYTICS_TRACK, 'agent_run_started', { tool: toolId });
   if (!laneStatus.KNOWN_AGENTS.has(toolId)) {
     track();
     return;
@@ -338,43 +338,67 @@ async function _startAgentInNewFrame() {
  * these are Claude Code transcripts, so Codex or Gemini cannot resume them.
  */
 async function resumeClaudeSession(sessionId) {
-  if (!multiTerminalUI) {
-    notify.error('Terminal system is not ready yet');
-    return;
-  }
   if (!state.getProjectPath()) {
     notify.error('Open a project first');
     return;
   }
-  // The id reaches a command line, so it must be exactly what Claude Code
-  // names its transcripts — a UUID, nothing else.
+  await resumeAgentSession('claude', sessionId, { projectPath: state.getProjectPath(), focus: true });
+}
+
+// How each CLI resumes a session by id. The binary comes from the tool's own
+// entry, never the active tool: a Codex transcript only Codex can resume.
+const RESUME_ARGS = {
+  claude: (id) => `--resume ${id}`,
+  codex: (id) => `resume ${id}`
+};
+
+/**
+ * Resume a Claude Code or Codex session in a new terminal of `projectPath`
+ * (explicit, not "current": a restore keeps going if the user switches
+ * project meanwhile). Used by the sessions list and by relaunch restore.
+ *
+ * @param {'claude'|'codex'} tool
+ * @param {string} sessionId - UUID; it reaches a command line
+ * @param {{projectPath: string, cwd?: string|null, name?: string|null, focus?: boolean}} opts
+ * @returns {Promise<string|null>} the new terminal's id, or null
+ */
+async function resumeAgentSession(tool, sessionId, { projectPath, cwd = null, name = null, focus = false } = {}) {
+  if (!multiTerminalUI) {
+    notify.error('Terminal system is not ready yet');
+    return null;
+  }
+  if (!RESUME_ARGS[tool] || !projectPath) return null;
+  // The id reaches a command line, so it must be exactly what the CLIs name
+  // their transcripts — a UUID, nothing else.
   if (!/^[0-9a-fA-F-]{36}$/.test(String(sessionId || ''))) {
     notify.error('That session has an unreadable id and cannot be resumed');
-    return;
+    return null;
   }
 
   const aiToolSelector = require('./aiToolSelector');
   const tools = aiToolSelector.getAvailableTools() || {};
-  const claudeCommand = (tools.claude && tools.claude.command) || 'claude';
+  const command = (tools[tool] && tools[tool].command) || tool;
 
+  const manager = multiTerminalUI.getManager();
   let id = null;
   try {
-    id = await multiTerminalUI.createTerminalForCurrentProject();
+    id = await manager.createTerminal({ projectPath, cwd: cwd || projectPath });
   } catch (err) {
     console.error('agentDispatch: terminal creation failed', err);
   }
   if (!id) {
-    const max = multiTerminalUI.getManager().maxTerminals;
-    notify.error(`Could not create a new terminal — maximum (${max}) may be reached for this project`);
-    return;
+    notify.error(`Could not create a new terminal — maximum (${manager.maxTerminals}) may be reached for this project`);
+    return null;
   }
 
-  multiTerminalUI.enterLane(id);
+  if (name) manager.renameTerminal(id, name);
+  if (focus) multiTerminalUI.enterLane(id);
   // Same settle a freshly spawned shell gets before the Start button types.
   setTimeout(() => {
-    _trackAgentRunWhenReady(id, 'claude');
-    multiTerminalUI.sendCommand(`${claudeCommand} --resume ${sessionId}`, id);
+    _trackAgentRunWhenReady(id, tool);
+    multiTerminalUI.sendCommand(`${command} ${RESUME_ARGS[tool](sessionId)}`, id);
   }, 800);
+  return id;
 }
 
 // "Open a new Frame / Kill & restart here" — asked when the focused Frame is
@@ -529,6 +553,11 @@ async function _dispatchImplement({ slug, title, projectPath, assignment }) {
   if (!choice) {
     return { success: false, terminalId: null, error: null };
   }
+
+  // Which mode people actually pick is a product question the spec flow
+  // cannot answer from the filesystem: autonomous runs are launched
+  // elsewhere, so status.json alone under-counts them.
+  ipcRenderer.send(IPC.ANALYTICS_TRACK, 'implement_mode_selected', { mode: choice.mode });
 
   // Record the chosen mode *before* staging so the flags follow the choice.
   try {
@@ -1095,6 +1124,7 @@ module.exports = {
   dispatch,
   startDefaultAgent,
   resumeClaudeSession,
+  resumeAgentSession,
   dispatchSpecCommand,
   dispatchSpecNew,
   getSpecLaneInfo,

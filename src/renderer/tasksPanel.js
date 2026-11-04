@@ -8,6 +8,7 @@ const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const { escapeHtml } = require('./htmlUtils');
 const notify = require('./notify');
+const runPrompt = require('./tasks/runPrompt');
 
 let isVisible = false;
 let currentFilter = 'all'; // all, pending, inProgress, completed
@@ -59,7 +60,7 @@ function setupEventListeners() {
     addBtn.addEventListener('click', showAddTaskModal);
   }
 
-  // Show Dashboard button — opens the full-page Kanban view. Lazy-required to
+  // Show Dashboard button — opens the full-page Tasks screen. Lazy-required to
   // sidestep the circular dependency between tasksPanel and tasksDashboard.
   const dashboardBtn = document.getElementById('tasks-dashboard-btn');
   if (dashboardBtn) {
@@ -265,7 +266,7 @@ function renderTaskItem(task) {
   if (isPending) {
     actionButtons = `
       <button class="task-action-btn task-start" data-action="start" title="Start working">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
       </button>
       <button class="task-action-btn task-complete" data-action="complete" title="Mark complete">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -277,7 +278,7 @@ function renderTaskItem(task) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
       <button class="task-action-btn task-pause" data-action="pause" title="Pause">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
       </button>
     `;
   } else {
@@ -388,36 +389,12 @@ function openRunFlow(task) {
 }
 
 /**
- * Build the task prompt that gets injected into the AI CLI. If the user
- * asked for a new branch, instruct the AI to (1) surface any uncommitted
- * changes for an explicit decision rather than silently carrying or
- * discarding them, and (2) either use the user-provided branch name or
- * — when none was given — suggest one and wait for confirmation before
- * creating it. Uncommitted-check comes first so the branch decision is
- * never made on top of an unresolved working tree.
+ * Build the task prompt that gets injected into the AI CLI. The builder
+ * lives in the pure tasks/runPrompt.js (readiness step, acceptance
+ * criteria, branch steps) so it can be tested without electron.
  */
 function buildTaskPrompt(task, opts = {}) {
-  let prompt = `Work on this task: ${task.title}`;
-  if (task.description) prompt += `. ${task.description}`;
-  if (task.priority === 'high') prompt += ` (High priority)`;
-
-  if (opts.branchMode === 'new') {
-    const branchStep = opts.newBranchName
-      ? `create and switch to a new branch named "${opts.newBranchName}"`
-      : `suggest an appropriate branch name based on this task, wait for my confirmation, and then create and switch to that branch`;
-
-    prompt += `. Before starting, do the following in order:`
-      + ` First, check for uncommitted changes on the current branch — if any exist, ask me what to do with them (commit, stash, or discard) and act on my decision before continuing.`
-      + ` Then, ${branchStep}.`;
-  }
-
-  // Close the loop: the agent flips the task to completed in tasks.json
-  // when it's genuinely done; the tasks watcher pushes the change straight
-  // back into the UI. Terminal-side signals can't tell "done" from
-  // "stopped", so this stays the only auto-completion path.
-  prompt += ` When the task is fully complete, update this task's status to "completed" in tasks.json (task id: ${task.id}).`;
-
-  return prompt;
+  return runPrompt.buildTaskPrompt(task, opts);
 }
 
 /**

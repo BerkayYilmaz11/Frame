@@ -26,13 +26,15 @@ const settingsOverlay = require('./settingsOverlay');
 const cloudHub = require('./cloudHub');
 const uiZoom = require('../shared/uiZoom');
 
-const TELEMETRY_KEY = 'telemetryEnabled';
+const ANALYTICS_KEY = 'analyticsEnabled';
 const CRASH_DUMPS_KEY = 'crashDumpsEnabled';
+const ERROR_REPORTING_KEY = 'errorReportingEnabled';
 const DISMISSED_VERSION_KEY = 'dismissedUpdateVersion';
 
 let overlay = null;
 let toggleEl = null;
 let crashDumpsToggleEl = null;
+let errorReportingToggleEl = null;
 // Appearance › Interface size (ui-zoom-steps spec). Main owns the step; this
 // select shows it and asks for another over UI_ZOOM_SET.
 let zoomSelectEl = null;
@@ -46,7 +48,13 @@ let updateLatestEl = null;
 let updateReleasedEl = null;
 let updateLinkEl = null;
 let updateDismissBtn = null;
+let updateTitleEl = null;
+let updateInstallBtn = null;
 let currentUpdateInfo = null;
+// Auto-update (packaged macOS only): main downloads in the background and
+// the banner offers "Restart to Install" once the download is done.
+let autoUpdateActive = false;
+let updateDownloaded = false;
 
 // Account row elements
 let accountSection = null;
@@ -54,8 +62,9 @@ let accountSummaryEl = null;
 let accountOpenBtn = null;
 
 function init() {
-  toggleEl = document.getElementById('settings-telemetry-toggle');
+  toggleEl = document.getElementById('settings-analytics-toggle');
   crashDumpsToggleEl = document.getElementById('settings-crash-dumps-toggle');
+  errorReportingToggleEl = document.getElementById('settings-error-reporting-toggle');
   zoomSelectEl = document.getElementById('settings-ui-zoom');
   initZoomSelect();
 
@@ -68,6 +77,8 @@ function init() {
   updateReleasedEl = document.getElementById('settings-update-released');
   updateLinkEl = document.getElementById('settings-update-link');
   updateDismissBtn = document.getElementById('settings-update-dismiss');
+  updateTitleEl = document.getElementById('settings-update-title');
+  updateInstallBtn = document.getElementById('settings-update-install');
 
   overlay = settingsOverlay.create('frame-settings-overlay', () => {
     syncToggleFromSettings();
@@ -83,18 +94,37 @@ function init() {
   initAccountSection();
   initAboutSection();
 
-  // Toggle: persist + tell main process to enable/disable Aptabase
+  // Toggle: persist + tell main to enable/disable sending (and to mint or
+  // delete the install id, which setEnabled does on the spot)
   toggleEl.addEventListener('change', async () => {
     const enabled = toggleEl.checked;
-    await ipcRenderer.invoke(IPC.SET_USER_SETTING, TELEMETRY_KEY, enabled);
-    await ipcRenderer.invoke(IPC.TELEMETRY_SET_ENABLED, enabled);
+    // Main first: setEnabled reads the old state to send the opt-out's one
+    // analytics_disabled event, which it cannot do once the setting is off.
+    await ipcRenderer.invoke(IPC.ANALYTICS_SET_ENABLED, enabled);
+    await ipcRenderer.invoke(IPC.SET_USER_SETTING, ANALYTICS_KEY, enabled);
+    // Only arrives when switching ON: track() is gated on the new state, so
+    // an opt-out sends nothing, which is the point of an opt-out.
+    ipcRenderer.send(IPC.ANALYTICS_TRACK, 'settings_changed', { setting: 'analytics' });
+    // Error reporting rides on analytics being on, so the row follows it
+    // rather than sitting enabled over a switch that silences it.
+    syncErrorReportingAvailability(enabled);
   });
+
+  // Error reports: opt-in, persisted setting only — analytics.captureException
+  // reads it per call, so a change takes effect immediately.
+  if (errorReportingToggleEl) {
+    errorReportingToggleEl.addEventListener('change', async () => {
+      await ipcRenderer.invoke(IPC.SET_USER_SETTING, ERROR_REPORTING_KEY, errorReportingToggleEl.checked);
+      ipcRenderer.send(IPC.ANALYTICS_TRACK, 'settings_changed', { setting: 'error_reporting' });
+    });
+  }
 
   // Crash dumps: persisted setting only — crashGuard reads it at startup
   // (the reporter can't be stopped once started, so changes apply on next launch)
   if (crashDumpsToggleEl) {
     crashDumpsToggleEl.addEventListener('change', async () => {
       await ipcRenderer.invoke(IPC.SET_USER_SETTING, CRASH_DUMPS_KEY, crashDumpsToggleEl.checked);
+      ipcRenderer.send(IPC.ANALYTICS_TRACK, 'settings_changed', { setting: 'crash_dumps' });
     });
   }
 
@@ -112,6 +142,13 @@ function init() {
   // Push updates from periodic recheck refresh the About panel state
   ipcRenderer.on(IPC.UPDATE_AVAILABLE, (event, info) => {
     currentUpdateInfo = info;
+    renderUpdateState({ checked: true, found: true, info });
+  });
+
+  ipcRenderer.on(IPC.UPDATE_DOWNLOADED, (event, info) => {
+    currentUpdateInfo = info;
+    autoUpdateActive = true;
+    updateDownloaded = true;
     renderUpdateState({ checked: true, found: true, info });
   });
 }
@@ -207,6 +244,12 @@ function initAboutSection() {
     });
   }
 
+  if (updateInstallBtn) {
+    updateInstallBtn.addEventListener('click', () => {
+      ipcRenderer.invoke(IPC.INSTALL_UPDATE).catch(() => {});
+    });
+  }
+
   if (updateDismissBtn) {
     updateDismissBtn.addEventListener('click', async () => {
       if (!currentUpdateInfo) return;
@@ -226,6 +269,8 @@ function initAboutSection() {
     .invoke(IPC.GET_UPDATE_STATUS)
     .then((status) => {
       if (!status) return;
+      autoUpdateActive = !!status.autoUpdate;
+      updateDownloaded = !!status.downloaded;
       if (status.result) {
         currentUpdateInfo = status.result;
         renderUpdateState({
@@ -264,6 +309,7 @@ async function runCheck(userInitiated) {
     const res = await ipcRenderer.invoke(IPC.CHECK_FOR_UPDATE);
     if (res && res.status === 'update-available') {
       currentUpdateInfo = res.info;
+      if (res.downloaded) updateDownloaded = true;
       renderUpdateState({
         checked: true,
         found: true,
@@ -298,14 +344,24 @@ function renderUpdateState({ checked, found, failed, failReason, info, checkedAt
   if (!aboutStatusEl) return;
   const stamp = checkedAt ? formatRelative(new Date(checkedAt)) : '';
   if (found && info) {
-    aboutStatusEl.textContent = stamp ? `Last checked ${stamp}.` : '';
+    if (updateDownloaded) {
+      aboutStatusEl.textContent = 'Downloaded. Restart Frame to install it.';
+    } else if (autoUpdateActive) {
+      aboutStatusEl.textContent = stamp
+        ? `Downloading in the background… Last checked ${stamp}.`
+        : 'Downloading in the background…';
+    } else {
+      aboutStatusEl.textContent = stamp ? `Last checked ${stamp}.` : '';
+    }
     showUpdateBanner(info);
   } else if (failed) {
     const why = failReason === 'timeout'
       ? 'timed out'
       : failReason === 'parse'
         ? 'unexpected response'
-        : 'network error';
+        : failReason === 'download'
+          ? 'download failed'
+          : 'network error';
     aboutStatusEl.textContent = `Update check failed (${why}) — you may not be on the latest version.`;
     hideUpdateBanner();
   } else if (checked) {
@@ -321,6 +377,12 @@ function renderUpdateState({ checked, found, failed, failReason, info, checkedAt
 function showUpdateBanner(info) {
   if (!updateBanner) return;
   updateBanner.style.display = '';
+  if (updateTitleEl) {
+    updateTitleEl.textContent = updateDownloaded ? 'Update ready' : 'New version available';
+  }
+  if (updateInstallBtn) updateInstallBtn.style.display = updateDownloaded ? '' : 'none';
+  // One primary action at a time: installing outranks reading the notes.
+  if (updateLinkEl) updateLinkEl.classList.toggle('settings-about-btn-primary', !updateDownloaded);
   if (updateLatestEl) updateLatestEl.textContent = `v${info.latestVersion}`;
   if (updateReleasedEl) {
     const released = info.publishedAt ? formatRelative(new Date(info.publishedAt)) : '';
@@ -368,6 +430,10 @@ function initZoomSelect() {
     const step = uiZoom.clampStep(Number(zoomSelectEl.value));
     try {
       await ipcRenderer.invoke(IPC.UI_ZOOM_SET, step);
+      // From this control only. Zoom also changes by shortcut, menu, status
+      // bar and trackpad; counting those too would say "people zoom", not
+      // "people go to Settings to zoom", which is the question here.
+      ipcRenderer.send(IPC.ANALYTICS_TRACK, 'settings_changed', { setting: 'ui_zoom' });
     } catch (err) {
       console.error('Frame settings: could not set the interface size', err);
     }
@@ -384,12 +450,32 @@ async function syncZoomFromMain() {
   }
 }
 
+/**
+ * Error reporting is gated on analytics in main (analytics.captureException
+ * requires both), so the row is disabled rather than left looking live over a
+ * switch that silences it. The stored value is untouched — turning analytics
+ * back on restores whatever the user had chosen here.
+ */
+function syncErrorReportingAvailability(analyticsOn) {
+  if (!errorReportingToggleEl) return;
+  errorReportingToggleEl.disabled = !analyticsOn;
+  const row = errorReportingToggleEl.closest('.settings-row');
+  if (row) row.classList.toggle('settings-row-disabled', !analyticsOn);
+}
+
 async function syncToggleFromSettings() {
   if (!toggleEl) return;
   syncZoomFromMain();
-  const value = await ipcRenderer.invoke(IPC.GET_USER_SETTING, TELEMETRY_KEY);
+  const value = await ipcRenderer.invoke(IPC.GET_USER_SETTING, ANALYTICS_KEY);
   // Default ON when unset (opt-out semantics)
   toggleEl.checked = value !== false;
+
+  if (errorReportingToggleEl) {
+    const errors = await ipcRenderer.invoke(IPC.GET_USER_SETTING, ERROR_REPORTING_KEY);
+    // Default OFF when unset — this one is opt-in
+    errorReportingToggleEl.checked = errors === true;
+    syncErrorReportingAvailability(toggleEl.checked);
+  }
 
   if (crashDumpsToggleEl) {
     const dumps = await ipcRenderer.invoke(IPC.GET_USER_SETTING, CRASH_DUMPS_KEY);

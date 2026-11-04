@@ -38,7 +38,7 @@ const STEPS = [
     id: 'switcher',
     title: 'Your projects',
     body: 'This is the project you are in. Open it to switch to another project or add a new one.',
-    targets: [{ selector: '#sidebar-current-project-wrap', placement: 'bottom' }],
+    targets: [{ selector: '#sidebar-current-project-wrap', placement: 'right' }],
     advance: 'next',
     requiresProject: true,
     requiresNoProject: false
@@ -76,7 +76,7 @@ const STEPS = [
   {
     id: 'tasks',
     title: 'Tasks',
-    body: 'The board holds what is planned, in progress and done, including the tasks a spec generates. The play button on a task sends it to an agent terminal.',
+    body: 'Your own tasks, in progress above pending, with what is done one click away. The play button on a pending task sends it to an agent terminal; the tasks a spec generates stay hidden until you show them.',
     targets: [{ selector: '.workspace-nav-item[data-view="tasks"]', placement: 'right', needsNav: 'tasks' }],
     advance: 'next',
     requiresProject: true,

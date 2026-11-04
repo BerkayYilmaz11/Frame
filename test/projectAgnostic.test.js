@@ -507,7 +507,7 @@ test('templates: a fresh STRUCTURE template is marked pending — not a complete
 });
 
 test('templates: the maintenance reference documents policy, results, limits and the rebuild command', () => {
-  const reference = templates.getReferenceTemplate('demo');
+  const reference = templates.getReferenceTemplate('demo', { structureMap: true });
   const section = reference.slice(reference.indexOf('## STRUCTURE.json Rules'), reference.indexOf('## QUICKSTART.md Rules'));
   for (const needle of ['update-structure.js --full', '.gitignore', 'ignoredDirectories', 'maxFiles', 'timeoutMs',
     'inventory.coverage', 'partial', 'unsupported', 'scan.json', 'recovery', '"version": "1.1"']) {
@@ -518,12 +518,12 @@ test('templates: the maintenance reference documents policy, results, limits and
   const docsHealth = require('../src/shared/docsHealth');
   assert.deepEqual(docsHealth.namedPaths(section), ['.frame/config.json']);
 
-  const quickstart = templates.getQuickstartTemplate('demo', null);
+  const quickstart = templates.getQuickstartTemplate('demo', null, { structureMap: true });
   assert.ok(quickstart.includes('node .frame/bin/update-structure.js --full'));
 });
 
 test('templates: the maintenance reference explains freshness and how to keep the map current', () => {
-  const reference = templates.getReferenceTemplate('demo');
+  const reference = templates.getReferenceTemplate('demo', { structureMap: true });
   const section = reference.slice(reference.indexOf('## STRUCTURE.json Rules'), reference.indexOf('## QUICKSTART.md Rules'));
   for (const needle of ['structure-lifecycle.js --watch', '--once', '`fresh`', '`dirty`', '`stale`', '`unknown`', 'Commits get their own map', '--no-verify', '--staged',
     'working.json', 'as of\n  the last commit', 'unstaged hand edits', '--changed']) {
@@ -621,4 +621,78 @@ test('templates: the pre-commit template is recognized; earlier unmodified templ
     }
   }
   assert.equal(templates.classifyStructureHook('#!/bin/sh\necho mine\n'), null);
+});
+
+/* ---------------------- STR-03: the derived lookup index ---------------------- */
+
+test('cli: --full and file updates publish lookup.json; a failed index never fails the map', () => {
+  const dir = tmpProject({ 'src/a.js': '// A\nfunction alphaThing() {}\nmodule.exports = { alphaThing };\n' });
+  try {
+    const full = envelopeOf(runParser(dir, ['--full', '--json']));
+    assert.equal(full.exitCode, 0);
+    assert.equal(full.lookup, 'published');
+    const lookupFile = path.join(dir, '.frame', 'runtime', 'structure', 'lookup.json');
+    assert.ok(JSON.parse(fs.readFileSync(lookupFile, 'utf8')).terms['5:alphathing']);
+
+    fs.writeFileSync(path.join(dir, 'src', 'b.js'), '// B\nfunction betaThing() {}\n');
+    const delta = envelopeOf(runParser(dir, ['src/b.js', '--json']));
+    assert.equal(delta.lookup, 'published');
+    assert.ok(JSON.parse(fs.readFileSync(lookupFile, 'utf8')).terms['5:betathing']);
+
+    // a directory where the index should go: publication fails, the map does not
+    fs.rmSync(lookupFile);
+    fs.mkdirSync(lookupFile);
+    fs.writeFileSync(path.join(lookupFile, 'blocker'), 'x');
+    fs.writeFileSync(path.join(dir, 'src', 'c.js'), '// C\n');
+    const res = runParser(dir, ['--full', '--json']);
+    const env = envelopeOf(res);
+    assert.equal(env.exitCode, 0);
+    assert.equal(env.lookup, 'failed');
+    assert.match(res.stderr, /Lookup index not published/);
+    assert.ok(JSON.parse(fs.readFileSync(path.join(dir, '.frame', 'runtime', 'structure', 'working.json'), 'utf8')).modules.c, 'the map was published');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('templates: a find-module answer is enough to open the file; grep is for searching inside it (STR-03b)', () => {
+  const agents = templates.getAgentsTemplate('demo', { structureMap: true });
+  assert.match(agents, /find-module\.js <keyword> +# concept, file name or function → files/);
+  assert.match(agents, /Its answer is enough to open the file — a function answer comes with its\nline\. Use grep to search inside a file, not to find it again\./);
+  const reference = templates.getReferenceTemplate('demo', { structureMap: true });
+  const section = reference.slice(reference.indexOf('### Looking Files Up'), reference.indexOf('### What to Edit'));
+  for (const needle of ['`path:line name`', 'one file must match every word', '`find-module` already answered', 'answers\n  hints from memory']) {
+    assert.ok(section.includes(needle), `reference mentions ${needle}`);
+  }
+  assert.deepEqual(require('../src/shared/docsHealth').namedPaths(section), ['.frame/config.json']);
+});
+
+test('templates: AGENTS.md names STRUCTURE.json and find-module only when the project has the map', () => {
+  const off = templates.getAgentsTemplate('demo', { specDriven: true });
+  assert.ok(!/STRUCTURE|find-module/.test(off), 'no pointer at a map the project does not have');
+  assert.match(off, /1\. \*\*`\.frame\/PROJECT_NOTES\.md`\*\*/);
+  assert.match(off, /2\. \*\*`\.frame\/tasks\.json`\*\*/);
+  const on = templates.getAgentsTemplate('demo', { specDriven: true, structureMap: true });
+  assert.match(on, /1\. \*\*`\.frame\/STRUCTURE\.json`\*\*/);
+  assert.match(on, /"STRUCTURE\.json Rules"/);
+});
+
+test('templates: REFERENCE.md and QUICKSTART.md describe the map only when the project has it', () => {
+  const project = { languages: ['javascript'], packageManager: 'npm', commands: { test: 'npm test' } };
+  const MAP = /STRUCTURE\.json|find-module|module-hint|module map/;
+  const ref = templates.getReferenceTemplate('demo');
+  const qs = templates.getQuickstartTemplate('demo', project);
+  assert.ok(!MAP.test(ref), 'REFERENCE without the map');
+  assert.ok(!MAP.test(qs), 'QUICKSTART without the map');
+  assert.match(ref, /3\. \*\*After Commit:\*\* Check `\.frame\/tasks\.json`\n/);
+  assert.match(qs, /1\. \*\*First\*\*: Check `\.frame\/PROJECT_NOTES\.md`/);
+  assert.match(qs, /4\. \*\*Update\*\*: These files as you make changes/);
+  assert.ok(!/ \n/.test(ref.split('---')[0]), 'no trailing space left in the intro');
+
+  const refOn = templates.getReferenceTemplate('demo', { structureMap: true });
+  const qsOn = templates.getQuickstartTemplate('demo', project, { structureMap: true });
+  assert.match(refOn, /## STRUCTURE\.json Rules/);
+  assert.match(refOn, /`\.frame\/PROJECT_NOTES\.md`, `\.frame\/STRUCTURE\.json`,\n/);
+  assert.match(qsOn, /1\. \*\*First\*\*: Read `\.frame\/STRUCTURE\.json`/);
+  assert.match(qsOn, /\| `\.frame\/STRUCTURE\.json` \| Module map/);
 });

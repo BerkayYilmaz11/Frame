@@ -8,7 +8,7 @@
  * is byte-identical afterwards, because Frame no longer reads, consumes or
  * replaces anything at the project root.
  *
- * Electron and the telemetry package are stubbed (the specTasksSync pattern):
+ * Electron and the analytics package are stubbed (the specTasksSync pattern):
  * CI runs this suite with no node_modules.
  */
 
@@ -22,6 +22,7 @@ const crypto = require('crypto');
 const Module = require('node:module');
 const EXTERNAL_STUBS = {
   '@aptabase/electron/main': { initialize() {}, trackEvent() {} },
+  'posthog-node': { PostHog: class { capture() {} captureException() {} identify() {} shutdown() { return Promise.resolve(); } } },
   electron: {
     app: { getPath: () => os.tmpdir(), getVersion: () => '0.0.0-test' },
     ipcMain: { handle() {}, on() {} },
@@ -64,6 +65,11 @@ function writeUserFiles(dir) {
     fs.writeFileSync(target, content, 'utf8');
   }
 }
+
+// The session report hook (restore-ai-sessions-on-relaunch) lands beside the
+// hint hooks on every init; these tests count the hint hooks.
+const isSessionEntry = (e) => e.hooks.every((h) => h.command.includes('FRAME_SESSION_DIR'));
+const hintEntries = (hooks) => Object.values(hooks).flat().filter((e) => !isSessionEntry(e));
 
 function hashFile(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -162,8 +168,9 @@ test('hook entries are guarded and land in settings.json under repo sharing', as
   await frameProject.runProjectInit(projectDir, 'demo');
 
   const settings = JSON.parse(fs.readFileSync(path.join(projectDir, '.claude', 'settings.json'), 'utf8'));
-  const commands = Object.values(settings.hooks).flat().flatMap((e) => e.hooks.map((h) => h.command));
+  const commands = hintEntries(settings.hooks).flatMap((e) => e.hooks.map((h) => h.command));
   assert.equal(commands.length, 6); // spec-hint x2, module-hint, docs-hint x2, spec-command-hint
+  assert.equal(Object.values(settings.hooks).flat().filter(isSessionEntry).length, 1, 'plus the session report hook');
   for (const command of commands) {
     // The backreference is the point: the file the guard tests must be the
     // file the guard execs, so a new hook cannot be registered half-wired.
@@ -201,7 +208,7 @@ test('a settings file Frame writes into keeps its own indentation', async () => 
   const text = fs.readFileSync(settingsPath, 'utf8');
   assert.match(text, /^ {4}"permissions": \{$/m, 'four-space indentation preserved');
   assert.ok(!/^ {2}"permissions"/m.test(text), 'not reflowed to Frame\'s two spaces');
-  assert.equal(Object.values(JSON.parse(text).hooks).flat().length, 6, 'and the hooks did land');
+  assert.equal(hintEntries(JSON.parse(text).hooks).length, 6, 'and the hooks did land');
 });
 
 test('a project already wired to spec-hint.js by hand keeps its own hooks', async () => {
@@ -221,7 +228,7 @@ test('a project already wired to spec-hint.js by hand keeps its own hooks', asyn
   // And a full init makes the same call, so nothing is added there either.
   await frameProject.runProjectInit(projectDir, 'demo');
   const after = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-  assert.equal(Object.values(after.hooks).flat().length, 1, 'still just the user\'s entry');
+  assert.equal(hintEntries(after.hooks).length, 1, 'still just the user\'s entry');
 });
 
 test('Frame\'s own older hook command is upgraded in place, not left behind', async () => {
@@ -311,7 +318,7 @@ test('re-init is idempotent: same identity, no duplicate hook entries', async ()
   assert.deepEqual(snapshotTree(projectDir), userSnapshot, 'still nothing outside Frame\'s paths');
 
   const settings = JSON.parse(fs.readFileSync(path.join(projectDir, '.claude', 'settings.json'), 'utf8'));
-  assert.equal(Object.values(settings.hooks).flat().length, 6, 'hook entries not duplicated');
+  assert.equal(Object.values(settings.hooks).flat().length, 7, 'hook entries not duplicated (6 hint + session)');
 });
 
 test('a project that was never initialized gets nothing written to it', () => {
@@ -338,10 +345,15 @@ test('the sample project ships the new layout with no legacy fingerprint', () =>
   assert.match(config.projectId, /^[0-9a-f-]{36}$/);
   assert.equal(config.settings.gitSharing, 'repo');
 
-  // The sample ships four of the five (it never carried a QUICKSTART), and
-  // none of them may sit at its root.
-  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.STRUCTURE, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
+  // The sample ships three of the five (it never carried a QUICKSTART, and
+  // the module map is opt-in, which the sample is not), and none of them may
+  // sit at its root.
+  for (const name of [FRAME_FILES.AGENTS, FRAME_FILES.NOTES, FRAME_FILES.TASKS]) {
     assert.ok(fs.existsSync(path.join(sampleDir, FRAME_DIR, name)), `.frame/${name} present`);
+  }
+  assert.ok(!fs.existsSync(path.join(sampleDir, FRAME_DIR, FRAME_FILES.STRUCTURE)), 'no module map');
+  for (const file of [path.join(FRAME_DIR, FRAME_FILES.AGENTS), path.join(...CLAUDE_RULE_PATH.split('/')), 'README.md']) {
+    assert.ok(!/STRUCTURE\.json|module map|structure map/.test(fs.readFileSync(path.join(sampleDir, file), 'utf8')), `${file} names the map`);
   }
   for (const name of Object.values(FRAME_FILES)) {
     assert.ok(!fs.existsSync(path.join(sampleDir, name)), `${name} not at the sample's root`);
@@ -726,4 +738,61 @@ test('a fresh init writes the working view and, while untracked, the map file to
   const working = path.join(projectDir, FRAME_DIR, 'runtime', 'structure', 'working.json');
   assert.ok(fs.existsSync(working));
   assert.equal(fs.readFileSync(mapPath(projectDir), 'utf8'), fs.readFileSync(working, 'utf8'));
+});
+
+// ─── the module map is opt-in (structure-switch.js) ───────
+
+async function withoutStructureOverride(fn) {
+  const saved = process.env.FRAME_STRUCTURE;
+  delete process.env.FRAME_STRUCTURE;
+  try { return await fn(); } finally {
+    if (saved !== undefined) process.env.FRAME_STRUCTURE = saved;
+  }
+}
+
+test('init writes no STRUCTURE.json for a project that has not opted into the map', async () => {
+  await withoutStructureOverride(async () => {
+    const config = await frameProject.runProjectInit(projectDir, 'demo');
+    assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+    assert.equal(config._structureBootstrap.initialScan.status, 'skipped-disabled');
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.TASKS)), 'the other meta files still appear');
+  });
+});
+
+test('a project without the map ends init with no trace of it', async () => {
+  // Every file init writes, read back: none may name the map or its tools.
+  const MAP = /STRUCTURE\.json|find-module|module-hint|module map/;
+  await withoutStructureOverride(async () => {
+    await frameProject.runProjectInit(projectDir, 'demo');
+  });
+  const bin = path.join(projectDir, FRAME_DIR, 'bin');
+  const binFiles = fs.readdirSync(bin);
+  assert.ok(binFiles.includes('check-freshness.js'), 'the shared tools are there');
+  for (const name of binFiles) {
+    assert.ok(!/^(update-structure|structure-|find-module|module-hint|fsSafe|intent-map)|^lang$/.test(name), `.frame/bin/${name}`);
+  }
+  assert.ok(!fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+
+  const written = [
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.AGENTS),
+    path.join(projectDir, FRAME_DIR, 'docs', 'REFERENCE.md'),
+    path.join(projectDir, FRAME_DIR, FRAME_FILES.QUICKSTART),
+    path.join(projectDir, ...CLAUDE_RULE_PATH.split('/')),
+    path.join(projectDir, '.claude', 'settings.json')
+  ];
+  for (const file of written) {
+    assert.ok(fs.existsSync(file), `${path.relative(projectDir, file)} written`);
+    assert.ok(!MAP.test(fs.readFileSync(file, 'utf8')), `${path.relative(projectDir, file)} names the map`);
+  }
+});
+
+test('re-init of an opted-in project keeps the opt-in and writes the map', async () => {
+  await withoutStructureOverride(async () => {
+    fs.mkdirSync(path.join(projectDir, FRAME_DIR), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), JSON.stringify({ settings: { structureMap: true } }));
+    await frameProject.runProjectInit(projectDir, 'demo');
+    const config = JSON.parse(fs.readFileSync(path.join(projectDir, FRAME_DIR, 'config.json'), 'utf8'));
+    assert.equal(config.settings.structureMap, true);
+    assert.ok(fs.existsSync(path.join(projectDir, FRAME_DIR, FRAME_FILES.STRUCTURE)));
+  });
 });

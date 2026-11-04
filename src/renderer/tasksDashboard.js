@@ -1,17 +1,28 @@
 /**
  * Tasks Dashboard Module
  *
- * Full-page Kanban board with three columns (Pending / In Progress /
- * Completed). Cards are draggable within and across columns; drops persist
- * via REORDER_TASKS, which rewrites tasks.json so array order matches column
- * order and each task's status reflects its column.
+ * The Tasks screen, built like the Specs screen (tasks-list-view spec): a
+ * view header (title, New Task, close), a toolbar with the All / Active /
+ * Done scope and its counts on the left and Filter / Sort on the right, and
+ * a list of task tiles in the Specs grid. Active lists In progress above
+ * Pending, and its In progress / Pending chips narrow it to one of the two
+ * (as the Specs phase chips do); Done lists Completed under the project's
+ * done window, older ones
+ * behind the "Show" ghost tile. Nothing is draggable: a task changes status
+ * through Play, its drawer actions, or the agent closing it.
  *
- * Cards are intentionally minimal here — no Play / Complete / Pause buttons.
- * Clicking a card slides a full-page detail drawer in from the right over
- * the board (same motion as the specs dashboard) with the full task body
+ * What the list shows comes from the pure `tasks/listModel.js`; this module
+ * only renders it. Spec tasks (`source: spec:…`) are owned by their spec —
+ * its phase is derived from them — so they are hidden by default; the
+ * toolbar's "Include spec tasks" checkbox lists them in the status sections
+ * with the others, each tile labelled with its spec, read-only: no Play, no
+ * status action, no Delete.
+ *
+ * Clicking a tile slides a full-page detail drawer in from the right over
+ * the list (same motion as the specs dashboard) with the full task body
  * (description, original userRequest, acceptance criteria, notes, context).
- * The right aside only hosts the New Task form now; with no open form it
- * leaves the layout so the three columns get the full width.
+ * The right aside only hosts the New Task form; with no open form it leaves
+ * the layout so the list gets the full width.
  *
  * The task in the drawer is also pinned as a chip in the top bar (via the
  * inline host's drawerOpened/drawerClosed hooks). One chip, replaced on
@@ -27,33 +38,54 @@ const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const doneWindow = require('./doneWindow');
-const { partitionDone } = require('../shared/doneWindow');
+const { SECTIONS, ACTIVE_STATUSES, isSpecTask, specSlugOf, buildListModel } = require('./tasks/listModel');
 
-const STATUS_COLUMNS = ['pending', 'in_progress', 'completed'];
 const STATUS_LABELS = {
   pending: 'Pending',
   in_progress: 'In Progress',
   completed: 'Completed'
 };
 
+const SCOPE_FILTERS = [
+  { id: 'all',    label: 'All' },
+  { id: 'active', label: 'Active' },
+  { id: 'done',   label: 'Done' }
+];
+
+const SECTION_LABELS = Object.fromEntries(SECTIONS.map(s => [s.id, s.label]));
+
+const EMPTY_STATUS = {
+  in_progress: 'Nothing in progress.',
+  pending: 'Nothing pending.'
+};
+
 let isVisible = false;
 let tasks = [];
 let selectedTaskId = null;
 let dashboardEl = null;
-let columnEls = {};
-let countEls = {};
-let headerEls = {};
-// Completed tasks older than the project's done window hide behind a
-// "Show N older" footer (boards-done-window spec). The reveal is session
-// state on the open project: it survives TASKS_DATA re-renders and resets
-// when the project changes.
+let filtersEl = null;        // toolbar: scope segments
+let specToggleEl = null;     // toolbar: the "Include spec tasks" checkbox label
+let listEl = null;           // the sections of tiles
+// Opens on Active, as Specs does; the user can pick All or Done.
+let scope = 'active';
+// In progress or Pending: narrows Active only; cleared by any scope pick,
+// like the Specs phase chips.
+let statusFilter = null;
+// Completed tasks older than the project's done window hide behind the
+// "Show" ghost tile (boards-done-window spec). The reveal is session state
+// on the open project: it survives TASKS_DATA re-renders and resets on a
+// scope pick and when the project changes.
 let showOlderDone = false;
+// Spec tasks are hidden until the toolbar checkbox includes them. Session
+// state on the open project, like the older-done reveal: never persisted,
+// reset when the project changes (and so on reopening the project).
+let showSpecTasks = false;
 let loadedProjectPath = null;
 let detailEl = null;         // right aside — hosts the New Task form
 let drawerEl = null;         // full-page task detail drawer
 let detailContentEl = null;  // detail body inside the drawer
 let detailFormEl = null;
-let dragSource = null;
+let detailActionsEl = null;  // status actions in the drawer header
 
 /**
  * Dashboard-only filter state. Empty set on a dimension means "no filter on
@@ -72,7 +104,6 @@ let filterBadgeEl = null;
  * persists.
  */
 const sort = { mode: 'default', applyToFile: false };
-const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
 let sortBtnEl = null;
 let sortPopoverEl = null;
 let sortLabelEl = null;
@@ -85,17 +116,18 @@ function init() {
   drawerEl = document.getElementById('tasks-dashboard-task-drawer');
   detailContentEl = drawerEl.querySelector('.tasks-dashboard-detail-content');
   detailFormEl = document.getElementById('tasks-dashboard-form');
+  detailActionsEl = drawerEl.querySelector('.tasks-dashboard-detail-actions');
+  filtersEl = document.getElementById('tasks-dashboard-filters');
+  specToggleEl = document.getElementById('tasks-dashboard-spec-toggle');
+  listEl = document.getElementById('tasks-dashboard-list');
 
-  for (const status of STATUS_COLUMNS) {
-    columnEls[status] = dashboardEl.querySelector(`[data-drop-status="${status}"]`);
-    countEls[status] = dashboardEl.querySelector(`[data-count-for="${status}"]`);
-    headerEls[status] = dashboardEl.querySelector(`[data-column="${status}"] .tasks-dashboard-column-header`);
-  }
-
-  setupDropTargets();
+  specToggleEl?.querySelector('input').addEventListener('change', (e) => {
+    showSpecTasks = e.target.checked;
+    render();
+  });
 
   // The done window is a project setting; when it moves, the Completed
-  // column re-partitions from the data it already holds.
+  // section re-partitions from the data it already holds.
   doneWindow.onChange(() => { if (isVisible) render(); });
 
   document.getElementById('tasks-dashboard-close').addEventListener('click', hide);
@@ -107,7 +139,7 @@ function init() {
   drawerEl.querySelector('.tasks-dashboard-task-drawer-close').addEventListener('click', () => clearSelection());
   drawerEl.querySelector('.tasks-dashboard-task-drawer-back').addEventListener('click', () => clearSelection());
 
-  // Delete button on the selected card — routes through the shared confirm
+  // Delete button on the selected task — routes through the shared confirm
   // modal before any DELETE_TASK is dispatched.
   const deleteBtn = drawerEl.querySelector('.tasks-dashboard-detail-delete');
   if (deleteBtn) deleteBtn.addEventListener('click', requestDeleteSelected);
@@ -208,6 +240,7 @@ function _load() {
   }
   if (projectPath !== loadedProjectPath) {
     showOlderDone = false;
+    showSpecTasks = false;
     loadedProjectPath = projectPath;
   }
   isVisible = true;
@@ -246,100 +279,23 @@ function toggle() {
   if (isVisible) hide(); else show();
 }
 
-function render() {
-  for (const status of STATUS_COLUMNS) {
-    const col = columnEls[status];
-    if (!col) continue;
-    col.innerHTML = '';
-  }
-
-  const buckets = { pending: [], in_progress: [], completed: [] };
-  for (const task of tasks) {
-    const status = STATUS_COLUMNS.includes(task.status) ? task.status : 'pending';
-    buckets[status].push(task);
-  }
-
-  // Apply sort within each column. Default mode preserves the array order
-  // (= file order), which is what the rest of the codebase relies on.
-  if (sort.mode !== 'default') {
-    for (const status of STATUS_COLUMNS) {
-      buckets[status].sort(compareTasks);
-    }
-  }
-
-  // Completed is windowed: cards older than the project's done window get
-  // .done-older and stay in the DOM (see below) but are CSS-hidden until
-  // the column carries .show-older. Pending and In Progress are never
-  // windowed — an old pending task is still pending.
-  const { recent, older } = partitionDone(buckets.completed, {
-    days: doneWindow.get().tasks,
-    dateOf: t => t.completedAt || t.updatedAt
+function listModel() {
+  return buildListModel({
+    tasks,
+    scope,
+    status: statusFilter,
+    showSpecTasks,
+    matches: filterMatches,
+    sortMode: sort.mode,
+    windowDays: doneWindow.get().tasks,
+    showOlder: showOlderDone
   });
-  const olderSet = new Set(older);
-  const olderHidden = older.length > 0 && !showOlderDone;
+}
 
-  for (const status of STATUS_COLUMNS) {
-    const col = columnEls[status];
-    const count = countEls[status];
-    const header = headerEls[status];
-    const isCompleted = status === 'completed';
-    // What the eye can find in this column: the windowed set for Completed
-    // (all of it once revealed), everything for the other two.
-    const shown = isCompleted && olderHidden ? recent : buckets[status];
-    // All cards are rendered in DOM (filtered ones get .filtered-out and are
-    // CSS-hidden) so drag-and-drop reorder still sees the full ordering and
-    // doesn't accidentally drop hidden tasks to the end of tasks.json.
-    const visibleCount = shown.filter(filterMatches).length;
-    if (count) {
-      count.textContent = isFilterActive()
-        ? `${visibleCount}/${shown.length}`
-        : String(shown.length);
-    }
-    if (header) {
-      if (isCompleted && olderHidden) {
-        header.title = `${shown.length} shown · ${older.length} older hidden`;
-      } else {
-        header.removeAttribute('title');
-      }
-    }
-    if (!col) continue;
-    if (isCompleted) col.classList.toggle('show-older', showOlderDone);
-
-    if (buckets[status].length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'tasks-dashboard-column-empty';
-      empty.textContent = 'Drop tasks here';
-      col.appendChild(empty);
-      continue;
-    }
-
-    for (const task of buckets[status]) {
-      const cardEl = renderCard(task);
-      if (!filterMatches(task)) cardEl.classList.add('filtered-out');
-      if (isCompleted && olderSet.has(task)) cardEl.classList.add('done-older');
-      col.appendChild(cardEl);
-    }
-
-    if (visibleCount === 0 && isFilterActive()) {
-      const empty = document.createElement('div');
-      empty.className = 'tasks-dashboard-column-empty';
-      empty.textContent = 'No matches in this column';
-      col.appendChild(empty);
-    }
-
-    if (isCompleted && older.length > 0) {
-      const more = document.createElement('button');
-      more.type = 'button';
-      more.className = 'tasks-dashboard-column-more';
-      more.tabIndex = -1;
-      more.textContent = showOlderDone ? 'Hide older' : `Show ${older.length} older`;
-      more.addEventListener('click', () => {
-        showOlderDone = !showOlderDone;
-        render();
-      });
-      col.appendChild(more);
-    }
-  }
+function render() {
+  const model = listModel();
+  renderToolbar(model);
+  renderList(model);
 
   // A push can delete the selected task out from under us; syncAside drops
   // the selection rather than leaving a stranded panel.
@@ -347,155 +303,294 @@ function render() {
   syncAside();
 }
 
-function renderCard(task) {
-  const card = document.createElement('div');
-  card.className = `tasks-dashboard-card priority-${task.priority || 'medium'}`;
-  card.dataset.taskId = task.id;
-  card.draggable = true;
-  if (task.id === selectedTaskId) card.classList.add('selected');
+/**
+ * The scope segments, Active's status chips and the spec-tasks checkbox,
+ * painted from the same model the list is painted from so each count
+ * answers "what will I see if I click this". A scope pick resets the status
+ * chip and the older-done reveal, as on Specs.
+ */
+function renderToolbar(model) {
+  if (!filtersEl) return;
+  const { counts } = model;
+  const count = (n) => `<span class="specs-filter-count">${n || 0}</span>`;
 
-  const title = document.createElement('div');
-  title.className = 'tasks-dashboard-card-title';
-  title.textContent = task.title || 'Untitled';
-  // Live agent working on this task → pulsing activity dot before the title
-  const liveDot = require('./agentDispatch').taskStatusDotHtml(task.id);
-  if (liveDot) title.insertAdjacentHTML('afterbegin', liveDot);
-  card.appendChild(title);
+  const segments = SCOPE_FILTERS.map(f => {
+    const on = scope === f.id;
+    const hiddenDone = counts.doneTotal - counts.done;
+    const title = f.id === 'done' && hiddenDone > 0
+      ? ` title="${counts.doneTotal} done in total · ${hiddenDone} older hidden"`
+      : '';
+    return `<button type="button" class="specs-filter-seg${on ? ' active' : ''}" data-scope="${f.id}" aria-pressed="${on}" tabindex="-1"${title}>${f.label}${count(counts[f.id])}</button>`;
+  }).join('');
 
-  if (task.description) {
-    const desc = document.createElement('div');
-    desc.className = 'tasks-dashboard-card-desc';
-    desc.textContent = task.description;
-    card.appendChild(desc);
+  let chips = '';
+  if (scope === 'active') {
+    chips = ACTIVE_STATUSES.map(id => {
+      const on = statusFilter === id;
+      const n = counts[`status:${id}`] || 0;
+      return `<button type="button" class="specs-filter-chip status-${id.replace('_', '-')}${on ? ' active' : ''}${n ? '' : ' is-empty'}" data-status="${id}" aria-pressed="${on}" tabindex="-1"><span class="specs-filter-dot" aria-hidden="true"></span>${SECTION_LABELS[id]}${count(n)}</button>`;
+    }).join('');
   }
 
-  const meta = document.createElement('div');
-  meta.className = 'tasks-dashboard-card-meta';
+  filtersEl.innerHTML = `
+    <div class="specs-filter-scope" role="group" aria-label="Scope">${segments}</div>
+    ${chips ? `<span class="specs-filter-divider" aria-hidden="true"></span>
+    <div class="specs-filter-phases" role="group" aria-label="Status">${chips}</div>` : ''}
+  `;
+  filtersEl.querySelectorAll('[data-scope]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      scope = btn.dataset.scope;
+      statusFilter = null;
+      showOlderDone = false;
+      render();
+    });
+  });
+  filtersEl.querySelectorAll('[data-status]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      statusFilter = statusFilter === btn.dataset.status ? null : btn.dataset.status;
+      render();
+    });
+  });
+
+  // The checkbox says how many spec tasks the current scope would add, and
+  // only shows while the project has any.
+  if (specToggleEl) {
+    specToggleEl.hidden = !tasks.some(isSpecTask);
+    specToggleEl.querySelector('input').checked = showSpecTasks;
+    specToggleEl.querySelector('.specs-filter-count').textContent = String(counts.specTasks || 0);
+  }
+}
+
+function renderList(model) {
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  const days = doneWindow.get().tasks;
+  let listed = 0;
+
+  for (const section of model.sections) {
+    const isCompleted = section.id === 'completed';
+    const older = isCompleted ? model.olderCount : 0;
+    if (section.tasks.length === 0 && older === 0) continue;
+    listed += section.tasks.length;
+
+    const grid = appendSection(section.id, SECTION_LABELS[section.id], section.tasks.length);
+    for (const task of section.tasks) {
+      grid.appendChild(renderTile(task, { playable: section.id === 'pending' && !isSpecTask(task) }));
+    }
+    if (isCompleted && section.tasks.length === 0) {
+      // Everything done is outside the window: the tile is the whole section.
+      grid.appendChild(emptyState(`Nothing completed in the last ${days} days.`));
+    }
+    if (older > 0) grid.appendChild(renderOlderTile(older));
+  }
+
+  if (listed > 0 || model.olderCount > 0) return;
+
+  if (tasks.length === 0) {
+    const empty = emptyState('Tasks are the small units of work Frame tracks between sessions.', 'No tasks yet');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-primary';
+    btn.textContent = '+ New Task';
+    btn.addEventListener('click', showForm);
+    empty.appendChild(btn);
+    listEl.appendChild(empty);
+  } else if (isFilterActive()) {
+    listEl.appendChild(emptyState('No tasks match the active filter.'));
+  } else if (model.status) {
+    listEl.appendChild(emptyState(EMPTY_STATUS[model.status]));
+  } else if (scope === 'done') {
+    listEl.appendChild(emptyState('No completed tasks.'));
+  } else if (scope === 'active') {
+    listEl.appendChild(emptyState('Nothing pending or in progress.'));
+  } else {
+    listEl.appendChild(emptyState('No tasks to show.'));
+  }
+}
+
+/**
+ * Leave for the Specs screen with this spec in its drawer — the pair
+ * multiTerminalUI.enterSpecDrawer uses: show() mounts the grid in the same
+ * frame, so the drawer opens instantly over it.
+ */
+function openSpec(slug) {
+  if (!slug) return;
+  const specsDashboard = require('./specsDashboard');
+  specsDashboard.show();
+  specsDashboard.openSpec(slug, { instant: true });
+}
+
+function sectionHeader(id, label, count) {
+  const header = document.createElement('div');
+  header.className = 'tasks-dashboard-section-header';
+  header.innerHTML = `<span class="tasks-dashboard-section-dot status-${id.replace('_', '-')}" aria-hidden="true"></span>`;
+  const title = document.createElement('h3');
+  title.className = 'tasks-dashboard-section-title';
+  title.textContent = label;
+  header.appendChild(title);
+  const countEl = document.createElement('span');
+  countEl.className = 'specs-filter-count';
+  countEl.textContent = String(count);
+  header.appendChild(countEl);
+  return header;
+}
+
+/** A section heading plus its grid; returns the grid for the tiles. */
+function appendSection(id, label, count) {
+  const section = document.createElement('section');
+  section.className = 'tasks-dashboard-section';
+  section.dataset.section = id;
+  section.appendChild(sectionHeader(id, label, count));
+
+  const grid = document.createElement('div');
+  grid.className = 'tasks-dashboard-grid';
+  section.appendChild(grid);
+
+  listEl.appendChild(section);
+  return grid;
+}
+
+function emptyState(message, heading) {
+  const empty = document.createElement('div');
+  empty.className = 'specs-dashboard-empty';
+  if (heading) {
+    const h = document.createElement('h3');
+    h.textContent = heading;
+    empty.appendChild(h);
+  }
+  const p = document.createElement('p');
+  p.textContent = message;
+  empty.appendChild(p);
+  return empty;
+}
+
+/** The ghost tile closing Completed: "N older done tasks · Show". */
+function renderOlderTile(count) {
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'specs-card-older';
+  tile.tabIndex = -1;
+  tile.innerHTML = `
+    <span class="specs-card-older-count">${count}</span>
+    <span class="specs-card-older-label">older done task${count === 1 ? '' : 's'}</span>
+    <span class="specs-card-older-action">Show</span>
+  `;
+  tile.addEventListener('click', () => {
+    showOlderDone = true;
+    render();
+  });
+  return tile;
+}
+
+/**
+ * One task tile. `playable` puts the Play button on it — pending non-spec
+ * tasks only; an in-progress task shows its lane activity dot instead.
+ */
+function renderTile(task, { playable = false } = {}) {
+  const tile = document.createElement('div');
+  tile.className = `specs-card tasks-tile priority-${task.priority || 'medium'}`;
+  tile.dataset.taskId = task.id;
+  if (task.id === selectedTaskId) tile.classList.add('selected');
+
+  const top = document.createElement('div');
+  top.className = 'specs-card-top';
+  const badges = document.createElement('div');
+  badges.className = 'tasks-tile-badges';
+  // Live agent working on this task → pulsing activity dot
+  const liveDot = require('./agentDispatch').taskStatusDotHtml(task.id);
+  if (liveDot) badges.insertAdjacentHTML('afterbegin', liveDot);
+
+  if (isSpecTask(task)) {
+    const chip = document.createElement('span');
+    chip.className = 'tasks-tile-spec-chip';
+    chip.textContent = 'SPEC';
+    badges.appendChild(chip);
+  }
 
   const priority = document.createElement('span');
-  priority.className = `tasks-dashboard-card-priority priority-${task.priority || 'medium'}`;
+  priority.className = `tasks-tile-priority priority-${task.priority || 'medium'}`;
   priority.textContent = (task.priority || 'medium').toUpperCase();
-  meta.appendChild(priority);
+  badges.appendChild(priority);
 
   if (task.category) {
     const cat = document.createElement('span');
-    cat.className = 'tasks-dashboard-card-category';
+    cat.className = 'tasks-tile-category';
     cat.textContent = task.category;
-    meta.appendChild(cat);
+    badges.appendChild(cat);
+  }
+  top.appendChild(badges);
+  if (playable) top.appendChild(renderPlayButton(task));
+  tile.appendChild(top);
+
+  const title = document.createElement('div');
+  title.className = 'specs-card-title';
+  title.textContent = task.title || 'Untitled';
+  tile.appendChild(title);
+
+  // Until the agent writes a description, the tile shows the request.
+  const bodyText = task.description || task.userRequest;
+  if (bodyText) {
+    const body = document.createElement('div');
+    body.className = 'tasks-tile-body';
+    body.textContent = bodyText;
+    tile.appendChild(body);
   }
 
+  const foot = document.createElement('div');
+  foot.className = 'specs-card-foot';
+  if (isSpecTask(task)) {
+    // A spec task sits among the others: its spec and number say why it has
+    // no Play. A long slug truncates; the number always shows.
+    const slug = specSlugOf(task);
+    const label = document.createElement('span');
+    label.className = 'tasks-tile-spec';
+    label.title = `Part of ${slug} — run it from the spec`;
+    const slugEl = document.createElement('span');
+    slugEl.className = 'tasks-tile-spec-slug';
+    slugEl.textContent = slug;
+    const numEl = document.createElement('span');
+    numEl.className = 'tasks-tile-spec-num';
+    numEl.textContent = ` · ${String(task.source).split(':').pop()}`;
+    label.append(slugEl, numEl);
+    foot.appendChild(label);
+  }
   const date = document.createElement('span');
-  date.className = 'tasks-dashboard-card-date';
+  date.className = 'specs-card-time';
   date.textContent = formatDate(task.updatedAt || task.createdAt);
-  meta.appendChild(date);
+  foot.appendChild(date);
+  tile.appendChild(foot);
 
-  card.appendChild(meta);
+  tile.addEventListener('click', () => selectTask(task.id));
 
-  card.addEventListener('click', () => selectTask(task.id));
-  card.addEventListener('dragstart', (e) => onDragStart(e, task));
-  card.addEventListener('dragend', onDragEnd);
-
-  return card;
+  return tile;
 }
 
-function setupDropTargets() {
-  for (const status of STATUS_COLUMNS) {
-    const col = columnEls[status];
-    if (!col) continue;
-
-    col.addEventListener('dragover', (e) => {
-      if (!dragSource) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const after = getCardAfterY(col, e.clientY);
-      const dragging = document.querySelector('.tasks-dashboard-card.dragging');
-      if (!dragging) return;
-      if (after == null) {
-        col.appendChild(dragging);
-      } else {
-        col.insertBefore(dragging, after);
-      }
-    });
-
-    col.addEventListener('dragenter', (e) => {
-      if (!dragSource) return;
-      e.preventDefault();
-      col.classList.add('drag-over');
-    });
-
-    col.addEventListener('dragleave', (e) => {
-      // dragleave fires for child enters; only clear when leaving the column itself
-      if (e.target === col) col.classList.remove('drag-over');
-    });
-
-    col.addEventListener('drop', (e) => {
-      e.preventDefault();
-      col.classList.remove('drag-over');
-      if (!dragSource) return;
-      commitOrder();
-    });
-  }
-}
-
-function onDragStart(e, task) {
-  dragSource = task.id;
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', task.id);
-  // give the browser a tick before adding the dragging class so the drag image
-  // captures the un-styled card (avoids a transparent ghost on some platforms)
-  requestAnimationFrame(() => {
-    const el = document.querySelector(`.tasks-dashboard-card[data-task-id="${task.id}"]`);
-    if (el) el.classList.add('dragging');
-  });
-}
-
-function onDragEnd() {
-  dragSource = null;
-  document.querySelectorAll('.tasks-dashboard-card.dragging').forEach(el => {
-    el.classList.remove('dragging');
-  });
-  document.querySelectorAll('.tasks-dashboard-cards.drag-over').forEach(el => {
-    el.classList.remove('drag-over');
-  });
-}
+const PLAY_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
 
 /**
- * Find the card the dragged item should be inserted *before*, based on
- * vertical midpoint. Returns null when the drop should land at the end.
+ * Play starts the task through the shared run flow (run modal → Agent
+ * Dispatch into a new Frame); the task turns in_progress only after the
+ * dispatch succeeds. It never selects the tile.
  */
-function getCardAfterY(container, y) {
-  // Hidden cards — filtered out, or older-than-window while not revealed —
-  // have no box to drop around.
-  const olderHidden = !container.classList.contains('show-older');
-  const cards = Array.from(
-    container.querySelectorAll('.tasks-dashboard-card:not(.dragging):not(.filtered-out)')
-  ).filter(card => !(olderHidden && card.classList.contains('done-older')));
-  for (const card of cards) {
-    const box = card.getBoundingClientRect();
-    if (y < box.top + box.height / 2) return card;
-  }
-  return null;
+function renderPlayButton(task) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tasks-tile-play';
+  btn.tabIndex = -1;
+  btn.title = 'Start this task in a new Frame';
+  btn.setAttribute('aria-label', `Start ${task.title || 'task'}`);
+  btn.innerHTML = PLAY_ICON;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    startTask(task);
+  });
+  return btn;
 }
 
-/**
- * Read the current DOM order across all three columns and send the new order
- * (with each task's column → status) to the main process. The main process
- * rewrites tasks.json and pushes a fresh TASKS_DATA, which re-renders the UI.
- */
-function commitOrder() {
-  const projectPath = state.getProjectPath();
-  if (!projectPath) return;
-
-  const order = [];
-  for (const status of STATUS_COLUMNS) {
-    const col = columnEls[status];
-    if (!col) continue;
-    col.querySelectorAll('.tasks-dashboard-card').forEach(card => {
-      order.push({ id: card.dataset.taskId, status });
-    });
-  }
-
-  ipcRenderer.send(IPC.REORDER_TASKS, { projectPath, order });
+function startTask(task) {
+  // Lazy-required: tasksPanel lazy-requires this module too.
+  require('./tasksPanel').openRunFlow(task);
 }
 
 /* ---------- Right aside (form) + detail drawer ---------- */
@@ -503,8 +598,8 @@ function commitOrder() {
 /**
  * Single owner of the aside's and the drawer's visibility. The aside exists
  * only while the New Task form is open — otherwise it leaves the layout so
- * the three columns take the full width (tasks-detail-on-demand spec). The
- * drawer slides in over the board while a task is selected and no form is
+ * the list takes the full width (tasks-detail-on-demand spec). The
+ * drawer slides in over the list while a task is selected and no form is
  * open; it stays in the DOM parked off-screen so open/close animate. Every
  * path that changes selection or form state ends here, so the panels can
  * only be wrong in one place.
@@ -530,9 +625,9 @@ function syncAside() {
 }
 
 /**
- * Open a task in the drawer. `instant` is the top-bar chip path: the board
+ * Open a task in the drawer. `instant` is the top-bar chip path: the list
  * has just been mounted underneath, so the drawer must already cover it in
- * the same frame — no slide, no flash of the columns. Returns false when
+ * the same frame — no slide, no flash of the tiles. Returns false when
  * the task no longer exists.
  */
 function selectTask(taskId, { instant = false } = {}) {
@@ -544,13 +639,13 @@ function selectTask(taskId, { instant = false } = {}) {
     // Two frames so the class removal itself can never start a transition
     requestAnimationFrame(() => requestAnimationFrame(() => drawerEl.classList.remove('instant')));
   }
-  // Selecting a card always exits form mode — the aside has one job at a time.
+  // Selecting a task always exits form mode — the aside has one job at a time.
   if (isFormOpen()) detailFormEl.style.display = 'none';
-  document.querySelectorAll('.tasks-dashboard-card.selected').forEach(el => {
+  document.querySelectorAll('.tasks-tile.selected').forEach(el => {
     el.classList.remove('selected');
   });
-  const card = document.querySelector(`.tasks-dashboard-card[data-task-id="${taskId}"]`);
-  if (card) card.classList.add('selected');
+  const tile = document.querySelector(`.tasks-tile[data-task-id="${taskId}"]`);
+  if (tile) tile.classList.add('selected');
   syncAside();
   return true;
 }
@@ -563,17 +658,17 @@ function selectTask(taskId, { instant = false } = {}) {
 function clearSelection({ notify = true } = {}) {
   const hadSelection = !!selectedTaskId;
   selectedTaskId = null;
-  document.querySelectorAll('.tasks-dashboard-card.selected').forEach(el => {
+  document.querySelectorAll('.tasks-tile.selected').forEach(el => {
     el.classList.remove('selected');
   });
   syncAside();
   if (hadSelection && notify && inlineHost && inlineHost.drawerClosed) inlineHost.drawerClosed();
 }
 
-/** Leaving the board: no selection, no half-typed form waiting on return. */
+/** Leaving the screen: no selection, no half-typed form waiting on return. */
 function resetAside() {
   selectedTaskId = null;
-  document.querySelectorAll('.tasks-dashboard-card.selected').forEach(el => {
+  document.querySelectorAll('.tasks-tile.selected').forEach(el => {
     el.classList.remove('selected');
   });
   if (detailFormEl) detailFormEl.style.display = 'none';
@@ -618,7 +713,7 @@ function showForm() {
 function hideForm() {
   if (!detailFormEl) return;
   detailFormEl.style.display = 'none';
-  // Falls back to the detail view if a card is selected, otherwise the aside
+  // Falls back to the detail view if a task is selected, otherwise the aside
   // collapses.
   syncAside();
 }
@@ -628,6 +723,7 @@ function requestDeleteSelected() {
   const projectPath = state.getProjectPath();
   if (!projectPath) return;
   const task = tasks.find(t => t.id === selectedTaskId);
+  if (task && isSpecTask(task)) return;
   const confirmModal = require('./taskConfirmModal');
   const idToDelete = selectedTaskId;
   confirmModal.open({
@@ -635,7 +731,7 @@ function requestDeleteSelected() {
     onConfirm: () => {
       ipcRenderer.send(IPC.DELETE_TASK, { projectPath, taskId: idToDelete });
       // Clear local selection right away — the next TASKS_DATA push will
-      // refresh the columns and the aside collapses.
+      // refresh the list and the aside collapses.
       if (selectedTaskId === idToDelete) clearSelection();
     }
   });
@@ -648,12 +744,16 @@ function submitForm() {
   const title = detailFormEl.querySelector('#tasks-dashboard-form-title').value.trim();
   if (!title) return;
 
+  // The form maps to the tasks.json schema: the request is the user's own
+  // words, kept exactly as typed (userRequest). No description or acceptance
+  // criteria — Play has the agent write them, with the code in view.
+  const request = detailFormEl.querySelector('#tasks-dashboard-form-request').value;
   const task = {
     title,
-    description: detailFormEl.querySelector('#tasks-dashboard-form-description').value.trim(),
     priority: detailFormEl.querySelector('#tasks-dashboard-form-priority').value,
     category: detailFormEl.querySelector('#tasks-dashboard-form-category').value
   };
+  if (request.trim()) task.userRequest = request;
 
   ipcRenderer.send(IPC.ADD_TASK, { projectPath, task });
   hideForm();
@@ -669,6 +769,8 @@ function renderDetail(task) {
   pill.className = `tasks-dashboard-detail-status-pill status-${(task.status || 'pending').replace('_', '-')}`;
 
   detailContentEl.querySelector('.tasks-dashboard-detail-title').textContent = task.title || 'Untitled';
+
+  renderDetailActions(task);
 
   const meta = detailContentEl.querySelector('.tasks-dashboard-detail-meta');
   meta.innerHTML = '';
@@ -715,6 +817,79 @@ function renderDetail(task) {
   if (inlineHost && inlineHost.drawerOpened) {
     inlineHost.drawerOpened({ id: task.id, title: task.title || 'Untitled' });
   }
+}
+
+/**
+ * The drawer's status actions for a non-spec task, the same set the task
+ * tab and the Specs task rows offer: pending → Play + Mark complete;
+ * in progress → Mark complete + Back to pending; completed → Reopen. Only
+ * Play starts an agent; the rest just set the status. A spec task gets none
+ * of them — its status belongs to its spec's implement run.
+ */
+const DETAIL_ACTIONS = {
+  pending: [
+    { action: 'start', label: 'Play', icon: PLAY_ICON, primary: true },
+    { action: 'complete', label: 'Mark complete' }
+  ],
+  in_progress: [
+    { action: 'complete', label: 'Mark complete', primary: true },
+    { action: 'pause', label: 'Back to pending' }
+  ],
+  completed: [
+    { action: 'reopen', label: 'Reopen' }
+  ]
+};
+
+const ACTION_STATUS = { complete: 'completed', pause: 'pending', reopen: 'pending' };
+
+function renderDetailActions(task) {
+  if (!detailActionsEl) return;
+  detailActionsEl.innerHTML = '';
+  // A deleted spec task is re-imported on the next spec sync, so Delete
+  // could only confuse; the way to act on one is its spec.
+  const deleteBtn = drawerEl && drawerEl.querySelector('.tasks-dashboard-detail-delete');
+  if (deleteBtn) deleteBtn.style.display = isSpecTask(task) ? 'none' : '';
+  if (isSpecTask(task)) {
+    const slug = specSlugOf(task);
+    if (slug) {
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.className = 'tasks-dashboard-detail-action';
+      link.tabIndex = -1;
+      link.textContent = 'Open spec';
+      link.title = `Open ${slug} in Specs`;
+      link.addEventListener('click', () => openSpec(slug));
+      detailActionsEl.appendChild(link);
+    }
+    return;
+  }
+
+  const actions = DETAIL_ACTIONS[task.status] || DETAIL_ACTIONS.pending;
+  for (const def of actions) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `tasks-dashboard-detail-action${def.primary ? ' primary' : ''}`;
+    btn.tabIndex = -1;
+    btn.innerHTML = def.icon || '';
+    btn.appendChild(document.createTextNode(def.label));
+    btn.addEventListener('click', () => runDetailAction(task.id, def.action));
+    detailActionsEl.appendChild(btn);
+  }
+}
+
+function runDetailAction(taskId, action) {
+  const task = tasks.find(t => t.id === taskId);
+  const projectPath = state.getProjectPath();
+  if (!task || !projectPath || isSpecTask(task)) return;
+
+  if (action === 'start') {
+    startTask(task);
+    return;
+  }
+  const status = ACTION_STATUS[action];
+  if (!status) return;
+  ipcRenderer.send(IPC.UPDATE_TASK, { projectPath, taskId, updates: { status } });
+  // The TASKS_DATA push re-renders the list, and the drawer with it.
 }
 
 function appendMetaPill(container, text, cls) {
@@ -848,22 +1023,6 @@ function updateFilterUI() {
 
 /* ---------- Sort ---------- */
 
-function compareTasks(a, b) {
-  if (sort.mode === 'priority') {
-    const pa = PRIORITY_ORDER[a.priority] ?? 99;
-    const pb = PRIORITY_ORDER[b.priority] ?? 99;
-    if (pa !== pb) return pa - pb;
-    // Stable tiebreaker — preserve file order for tasks with same priority
-    return tasks.indexOf(a) - tasks.indexOf(b);
-  }
-  if (sort.mode === 'category') {
-    const cmp = (a.category || '').localeCompare(b.category || '');
-    if (cmp !== 0) return cmp;
-    return tasks.indexOf(a) - tasks.indexOf(b);
-  }
-  return 0;
-}
-
 function setupSort() {
   sortBtnEl = document.getElementById('tasks-dashboard-sort-btn');
   sortPopoverEl = document.getElementById('tasks-dashboard-sort-popover');
@@ -965,29 +1124,21 @@ function updateSortUI() {
 }
 
 /**
- * Commit the current sorted view to tasks.json. Per-column sorted order is
- * concatenated in column order (pending → in_progress → completed) so the
- * resulting array is coherent. Backend's reorderTasks rewrites the file.
+ * Commit the current sorted view to tasks.json. Ids only (tasks-list-view
+ * spec, D12): the backend keeps a task's status when its entry carries none,
+ * so a sort can never move a task to another status. Non-spec tasks are
+ * written in the list's section order, each section sorted; spec tasks keep
+ * their slots in the file, so a spec's tasks stay in T order.
  */
 function commitSortToFile() {
   const projectPath = state.getProjectPath();
   if (!projectPath) return;
 
-  const buckets = { pending: [], in_progress: [], completed: [] };
-  for (const task of tasks) {
-    const status = STATUS_COLUMNS.includes(task.status) ? task.status : 'pending';
-    buckets[status].push(task);
-  }
-  for (const status of STATUS_COLUMNS) {
-    buckets[status].sort(compareTasks);
-  }
-
-  const order = [];
-  for (const status of STATUS_COLUMNS) {
-    for (const task of buckets[status]) {
-      order.push({ id: task.id, status });
-    }
-  }
+  const all = tasks.filter(Boolean);
+  const { sections } = buildListModel({ tasks: all, scope: 'all', sortMode: sort.mode });
+  const sorted = sections.flatMap(section => section.tasks);
+  let next = 0;
+  const order = all.map(task => ({ id: (isSpecTask(task) ? task : sorted[next++]).id }));
 
   ipcRenderer.send(IPC.REORDER_TASKS, { projectPath, order });
 }

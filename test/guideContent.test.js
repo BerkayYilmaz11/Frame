@@ -173,3 +173,14 @@ test('validate reports an action without a label and stay on a non theme/zoom co
   assert.match(problemsFor((c) => { c[0].pages[1].actions[0].label = ''; }).join('\n'), /action without a label/);
   assert.match(problemsFor((c) => { c[0].pages[1].actions[0].stay = true; }).join('\n'), /marks "settings.open" as stay/);
 });
+
+test('no page or sketch names the module map (opt-in, off for new users)', () => {
+  // STRUCTURE.json is opt-in per project and off by default, so the Guide —
+  // global, read by every new user — never presents it.
+  const MAP = /STRUCTURE\.json|module map|find-module|module-hint/;
+  for (const page of flattenPages(CHAPTERS)) {
+    assert.ok(!MAP.test(JSON.stringify(page)), `page ${page.id}`);
+  }
+  const sketches = require('fs').readFileSync(require('path').join(__dirname, '..', 'src', 'renderer', 'guide', 'guideSketches.js'), 'utf8');
+  assert.ok(!MAP.test(sketches), 'guideSketches.js');
+});

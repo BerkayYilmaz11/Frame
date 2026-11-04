@@ -354,6 +354,9 @@ ${record}`;
 function getAgentsTemplate(projectName, options) {
   const opts = options || {};
   const specDriven = opts.specDriven === true;
+  // The module map is opt-in per project (scripts/structure-switch.js); a
+  // project without it gets no STRUCTURE.json, so nothing here points at one.
+  const structureMap = opts.structureMap === true;
   const date = getDateString();
   return `# ${projectName} - Frame Project
 
@@ -380,7 +383,7 @@ implemented without approval.
 
 **Read these at the start of each session:**
 
-1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
+${structureMap ? `1. **\`.frame/STRUCTURE.json\`** — module map, which file is where (as of the
    last commit, plus your prose edits; \`find-module.js\` and hints use Frame's
    live view of the working tree)
 2. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
@@ -389,9 +392,13 @@ implemented without approval.
 **Fast file lookup** — before manual grep/glob, run:
 
 \`\`\`bash
-node .frame/bin/find-module.js <keyword>   # concept/synonym → files
+node .frame/bin/find-module.js <keyword>   # concept, file name or function → files
 node .frame/bin/find-module.js --list      # all features
 \`\`\`
+
+Its answer is enough to open the file — a function answer comes with its
+line. Use grep to search inside a file, not to find it again.` : `1. **\`.frame/PROJECT_NOTES.md\`** — project vision, past decisions, session notes
+2. **\`.frame/tasks.json\`** — pending tasks`}
 
 **Spec history** — before working a topic or changing a file, check what
 earlier specs did there and why (Claude Code sessions also get this injected
@@ -407,7 +414,7 @@ before working — respect recorded decisions or overturn them explicitly,
 never silently.
 
 **Freshness** — \`node .frame/bin/check-freshness.js\` reports when this
-context is likely to mislead (phantom modules, stale STRUCTURE/notes, stuck
+context is likely to mislead (${structureMap ? 'phantom modules, stale STRUCTURE/notes' : 'stale notes'}, stuck
 tasks). Trust its warnings over stale entries.
 
 ${specDriven ? `---
@@ -422,8 +429,7 @@ ${renderSpecCoreSection()}
 | ---------------------------- | ------------------------------------ |
 | \`.frame/tasks.json\`          | "Task Management" (schema + rules)   |
 | \`.frame/PROJECT_NOTES.md\`    | "PROJECT_NOTES.md Rules"             |
-| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |
-| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
+${structureMap ? '| \`.frame/STRUCTURE.json\`      | "STRUCTURE.json Rules"               |\n' : ''}| \`.frame/QUICKSTART.md\`       | "QUICKSTART.md Rules"                |
 
 Quick reminders that always apply:
 - Task work: \`status: "in_progress"\` when starting, \`"completed"\` +
@@ -452,12 +458,15 @@ edit this file, never the copy; delete the copy to detach.
  * it is about to write a Frame meta file. Written to .frame/docs/ on init
  * and on the spec-driven upgrade path. Tool-agnostic.
  */
-function getReferenceTemplate(projectName) {
+function getReferenceTemplate(projectName, options) {
+  // The module map is opt-in per project (scripts/structure-switch.js):
+  // without it, nothing here describes STRUCTURE.json.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   return `# ${projectName} — Frame Reference
 
 Read the relevant section of this file **before writing a Frame meta file**
-(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`, \`.frame/STRUCTURE.json\`,
+(\`.frame/tasks.json\`, \`.frame/PROJECT_NOTES.md\`,${structureMap ? ' \`.frame/STRUCTURE.json\`,' : ''}
 \`.frame/QUICKSTART.md\`). The always-on orientation lives in
 \`.frame/AGENTS.md\`; this file is loaded on demand.
 
@@ -576,7 +585,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## STRUCTURE.json Rules
+${structureMap ? `## STRUCTURE.json Rules
 
 **This file is the map of the codebase.** Frame generates it; you enrich it.
 
@@ -643,6 +652,26 @@ No problem, continue. The user can also say what they consider important themsel
   runs \`--changed\` and then \`git add\`s the map does the same. Frame keeps
   its own unedited hook up to date.
 
+### Looking Files Up
+- \`find-module.js\` (in \`.frame/bin/\`) answers a concept, a synonym, a file
+  name, a path or a function/IPC name. Each result says which of those
+  matched; several files of equal standing are listed as candidates. Add
+  \`--json\` for one machine-readable result and \`--limit N\` (at most 20).
+- A function answer comes with the line it is defined on
+  (\`path:line name\`), so the file can be opened there directly. Use grep to
+  search inside a file, not to find the file again.
+- The search hint that appears next to a grep uses the same lookup with
+  stricter evidence: one file must match every word. It stays quiet while
+  the map is being updated, and when \`find-module\` already answered the same
+  thing in the session. While Frame runs, its background worker answers
+  hints from memory.
+- Two engines: \`legacy\` (the default — concepts and synonyms first, then a
+  text search) and \`v2\` (also file names, paths and symbols, with a compact
+  index kept in \`.frame/runtime/structure/\`). v2 becomes the default once
+  it passes Frame's retrieval benchmark. Opt in now with
+  \`"project": { "retrieval": { "engine": "v2" } }\` in \`.frame/config.json\`,
+  or per call with \`--retrieval=v2\`.
+
 ### What to Edit
 - Enrich entries in place in the tracked STRUCTURE.json (never in the live
   view): \`description\`, function \`purpose\`, fields of your own, and
@@ -679,7 +708,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 ---
 
-## QUICKSTART.md Rules
+` : ''}## QUICKSTART.md Rules
 
 ### When to Update?
 - When installation steps change
@@ -692,7 +721,7 @@ No problem, continue. The user can also say what they consider important themsel
 
 1. **Language:** Write documentation in English (except code examples)
 2. **Date Format:** ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
-3. **After Commit:** Check \`.frame/tasks.json\` and \`.frame/STRUCTURE.json\`
+3. **After Commit:** Check \`.frame/tasks.json\`${structureMap ? ' and \`.frame/STRUCTURE.json\`' : ''}
 4. **Session Start:** Review pending tasks in \`.frame/tasks.json\`
 
 ---
@@ -799,7 +828,9 @@ function getTasksTemplate(projectName) {
 /**
  * QUICKSTART.md template
  */
-function getQuickstartTemplate(projectName, project) {
+function getQuickstartTemplate(projectName, project, options) {
+  // Same opt-in as getAgentsTemplate / getReferenceTemplate.
+  const structureMap = (options || {}).structureMap === true;
   const date = getDateString();
   const p = project || {};
   const cmds = p.commands || {};
@@ -852,8 +883,7 @@ ${cmds.test || todo}
 
 | File | Purpose |
 |------|---------|
-| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |
-| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
+${structureMap ? '| \`.frame/STRUCTURE.json\` | Module map and architecture as of the last commit (live view: \`node .frame/bin/find-module.js\`; rebuild: \`node .frame/bin/update-structure.js --full\`) |\n' : ''}| \`.frame/PROJECT_NOTES.md\` | Decisions and context |
 | \`.frame/tasks.json\` | Task tracking |
 | \`.frame/QUICKSTART.md\` | This file |
 
@@ -865,13 +895,16 @@ ${tree}
 
 ## For AI Assistants
 
-1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
+${structureMap ? `1. **First**: Read \`.frame/STRUCTURE.json\` for architecture overview — if its
    \`generation.inventory.coverage\` is not \`complete\`, the map is missing files;
    rebuild it with \`node .frame/bin/update-structure.js --full\`
 2. **Then**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
 3. **Check**: \`.frame/tasks.json\` for pending tasks
 4. **Follow**: Existing code patterns and conventions
-5. **Update**: These files as you make changes
+5. **Update**: These files as you make changes` : `1. **First**: Check \`.frame/PROJECT_NOTES.md\` for current context and decisions
+2. **Check**: \`.frame/tasks.json\` for pending tasks
+3. **Follow**: Existing code patterns and conventions
+4. **Update**: These files as you make changes`}
 
 ## Quick Context
 
@@ -1071,6 +1104,22 @@ const CODEX_HINT_HOOKS = {
   ]
 };
 
+/**
+ * The hint hooks a project should get. The full sets above stay as they are —
+ * they also identify Frame's own entries for upgrade and removal — but a
+ * project without the module map (scripts/structure-switch.js) gets no
+ * module-hint entry: it would point at a tool the project does not have.
+ */
+function hintHooksFor(template, { structureMap = false } = {}) {
+  if (structureMap) return template;
+  const out = {};
+  for (const [eventName, entries] of Object.entries(template)) {
+    const kept = entries.filter((entry) => !entry.hooks.some((hook) => /\bmodule-hint\.js\b/.test(hook.command)));
+    if (kept.length) out[eventName] = kept;
+  }
+  return out;
+}
+
 // Forms Frame installed before: the unguarded pre-overlay commands, and the
 // `&&` guard that exited 1 when the file was missing. Removal matches these
 // too, so an upgrade takes Frame's older entries out cleanly; nothing else
@@ -1081,6 +1130,45 @@ const LEGACY_SPEC_HINT_COMMANDS = [
   "sh -c '[ -f .frame/bin/spec-hint.js ] && exec node .frame/bin/spec-hint.js pre-edit'",
   "sh -c '[ -f .frame/bin/spec-hint.js ] && exec node .frame/bin/spec-hint.js prompt'"
 ];
+
+/**
+ * Session report hook (restore-ai-sessions-on-relaunch). On SessionStart the
+ * CLI's payload — `session_id`, `transcript_path`, `cwd`, `source` — is
+ * dropped into `$FRAME_SESSION_DIR` as `<terminalId>.<tool>.<pid>.json`, where
+ * Frame's main process picks it up and learns which session runs in which
+ * terminal. `$PPID` is the CLI itself, the terminal's foreground job when the
+ * session is the lane's own (measurements.md §3).
+ *
+ * The guard is the env, not a file: only a Frame terminal sets
+ * `FRAME_SESSION_DIR` / `FRAME_TERMINAL_ID`, so in any other terminal — a
+ * teammate's, for a settings.json committed in sharing mode `repo` — the
+ * command is a no-op that exits 0. `sh` + `cat` rather than node: nothing to
+ * start, nothing in `.frame/bin` to depend on. Written to `.tmp` then moved so
+ * the watcher never reads half a payload.
+ */
+function sessionReportCommand(tool, guard = '') {
+  return `sh -c '${guard}[ -z "$FRAME_SESSION_DIR" ] || [ -z "$FRAME_TERMINAL_ID" ] || `
+    + `{ f="$FRAME_SESSION_DIR/$FRAME_TERMINAL_ID.${tool}.$PPID"; cat > "$f.tmp" && mv -f "$f.tmp" "$f.json"; }'`;
+}
+
+/** Installed in the project's Claude settings file, whatever tool is active. */
+const SESSION_REPORT_HOOKS = {
+  SessionStart: [
+    { hooks: [{ type: 'command', command: sessionReportCommand('claude') }] }
+  ]
+};
+
+/**
+ * The same report for Codex, installed in `CODEX_HOME/hooks.json` — the only
+ * place Codex loads hooks from, and a file shared by every project. The extra
+ * `.frame/` guard keeps it to Frame projects, the per-project scope chosen for
+ * this hook; the hook's cwd is the session's.
+ */
+const CODEX_SESSION_REPORT_HOOKS = {
+  SessionStart: [
+    { hooks: [{ type: 'command', command: sessionReportCommand('codex', '[ ! -d .frame ] || ') }] }
+  ]
+};
 
 /**
  * AI Tool Wrapper Script Templates
@@ -1297,7 +1385,10 @@ module.exports = {
   FRAME_GITIGNORE_MARKER_END,
   SPEC_HINT_HOOKS,
   CODEX_HINT_HOOKS,
+  hintHooksFor,
   LEGACY_SPEC_HINT_COMMANDS,
+  SESSION_REPORT_HOOKS,
+  CODEX_SESSION_REPORT_HOOKS,
   SPEC_DRIVEN_SECTION,
   SPEC_DRIVEN_CORE_SECTION,
   renderSpecSection,

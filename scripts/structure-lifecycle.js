@@ -241,6 +241,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { structureEnabled, PAUSED_MESSAGE } = require('./structure-switch');
 
 // Loaded lazily so the scheduler above stays importable on its own.
 function helpers() {
@@ -398,6 +399,16 @@ function reconcile(root, job = {}) {
     }
   }
 
+  // The search index follows the working view (STR-03); never fails the map.
+  let lookup = null;
+  if (result.artifact === 'written' || result.artifact === 'unchanged') {
+    try {
+      lookup = require('./structure-retrieval').publishLookup(root, { mapPath: workingPath }).status;
+    } catch (e) {
+      lookup = null; // an older .frame/bin/ without the retrieval helper
+    }
+  }
+
   // Keep the tracked map on the committed view without losing hand edits:
   // repair a pathspec commit's index, restore a generated-only difference
   // (STR-02c D6, D8).
@@ -443,6 +454,7 @@ function reconcile(root, job = {}) {
     reused: observed.reused,
     cacheHits: cache.stats.hits,
     trackedMap,
+    lookup,
     ms: Date.now() - startedAt
   };
 }
@@ -668,6 +680,7 @@ function startWorker(root, options = {}) {
   let stopped = false;
   let persisted = '';
   let watcher = null;
+  let lookupServer = null;
 
   // Readers must see pending changes promptly, but a burst must not become
   // a write per event: persist only when pending flips or a new reason shows.
@@ -710,6 +723,7 @@ function startWorker(root, options = {}) {
     },
     run: async (job) => {
       const result = reconcile(root, job);
+      if (lookupServer && (result.lookup === 'published' || result.lookup === 'unchanged')) lookupServer.refresh();
       if (result.receipt) {
         const status = scheduler.status();
         const pendingAfter = status.requestedEpoch > job.epoch;
@@ -753,6 +767,8 @@ function startWorker(root, options = {}) {
 
   armWatcher();
   noteActivity('structure.lifecycle', { state: 'attached' });
+  // Long-lived coordinators answer lookups from memory (STR-03b).
+  if (options.serveLookup) lookupServer = startLookupServer(root, { onReport: report });
   scheduler.requestReconcile('attach');
 
   let timer = null;
@@ -766,6 +782,7 @@ function startWorker(root, options = {}) {
     stopped = true;
     if (timer) clearInterval(timer);
     if (watcher) watcher.close();
+    if (lookupServer) lookupServer.stop();
     scheduler.dispose();
     releaseOwner(root, owner.token);
     noteActivity('structure.lifecycle', { state: 'detached' });
@@ -780,6 +797,137 @@ function startWorker(root, options = {}) {
     status: () => ({ ...scheduler.status(), watcher: watcher ? watcher.info() : null }),
     idle: () => scheduler.idle(),
     stop
+  };
+}
+
+/* ------------------------------ lookup socket ----------------------------- */
+
+/**
+ * Answer lookups from the index this worker published (STR-03b), over a
+ * local socket only (see structure-retrieval: lookupAddress). One JSON line
+ * in, one JSON line out:
+ *   → { v: 1, query, mode: 'hook' | 'cli', limit }
+ *   ← { v: 1, ok: true, revision, algorithm, result } | { v: 1, ok: false, reason }
+ * A failure to listen is reported and never stops the worker.
+ */
+function startLookupServer(root, options = {}) {
+  let retrieval;
+  let net;
+  try {
+    retrieval = require('./structure-retrieval');
+    net = require('net');
+  } catch (e) {
+    return null; // an older .frame/bin/ without the retrieval helper
+  }
+  const address = retrieval.lookupAddress(root);
+  const endpointFile = retrieval.lookupEndpointPath(root);
+  const report = typeof options.onReport === 'function' ? options.onReport : () => {};
+  let index = null;
+  let indexStamp = null;
+  let rootReal = null;
+
+  function refresh() {
+    let stat;
+    try {
+      stat = fs.statSync(retrieval.lookupPath(root));
+    } catch (e) {
+      index = null;
+      return;
+    }
+    const stamp = `${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    if (stamp === indexStamp && index) return;
+    const loaded = retrieval.loadLookup(root);
+    index = loaded.state === 'fresh' ? loaded.index : null;
+    indexStamp = index ? stamp : null;
+  }
+
+  function exists(rel) {
+    if (typeof rel !== 'string' || !rel || path.isAbsolute(rel) || rel.split(/[\\/]/).includes('..')) return false;
+    try {
+      rootReal = rootReal || fs.realpathSync(root);
+      const real = fs.realpathSync(path.join(root, rel));
+      if (real !== rootReal && !real.startsWith(rootReal + path.sep)) return false;
+      return fs.statSync(real).isFile();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function answer(line) {
+    let request;
+    try {
+      request = JSON.parse(line);
+    } catch (e) {
+      return { v: retrieval.LOOKUP_PROTOCOL, ok: false, reason: 'bad-request' };
+    }
+    if (!request || request.v !== retrieval.LOOKUP_PROTOCOL || typeof request.query !== 'string') {
+      return { v: retrieval.LOOKUP_PROTOCOL, ok: false, reason: 'bad-request' };
+    }
+    refresh();
+    if (!index) return { v: retrieval.LOOKUP_PROTOCOL, ok: false, reason: 'no-index' };
+    const mode = request.mode === 'cli' ? 'cli' : 'hook';
+    const result = retrieval.retrieve(index, request.query, { mode, limit: request.limit, exists });
+    // a quiet hook still says whether the CLI would have found weak matches
+    const weak = mode === 'hook' && result.status === 'no-match'
+      ? retrieval.retrieve(index, request.query, { mode: 'cli', limit: 1 }).status !== 'no-match'
+      : false;
+    return { v: retrieval.LOOKUP_PROTOCOL, ok: true, revision: index.revision || null, algorithm: index.algorithm, result, weak };
+  }
+
+  const server = net.createServer((socket) => {
+    let buffer = '';
+    socket.setEncoding('utf8');
+    socket.on('error', () => {});
+    socket.on('data', (chunk) => {
+      buffer += chunk;
+      if (buffer.length > 8192) return socket.destroy();
+      const newline = buffer.indexOf('\n');
+      if (newline === -1) return;
+      let reply;
+      try {
+        reply = answer(buffer.slice(0, newline));
+      } catch (e) {
+        reply = { v: retrieval.LOOKUP_PROTOCOL, ok: false, reason: 'error' };
+      }
+      socket.end(`${JSON.stringify(reply)}\n`);
+    });
+  });
+  server.on('error', (err) => report({ type: 'lookup-server', state: 'failed', reason: err.code || 'error' }));
+
+  // We hold the owner lease, so a socket left at our address belongs to a
+  // dead coordinator of this checkout.
+  if (process.platform !== 'win32') {
+    try {
+      fs.unlinkSync(address);
+    } catch (e) { /* none */ }
+  }
+  server.listen(address, () => {
+    try {
+      writeJsonAtomic(endpointFile, {
+        v: retrieval.LOOKUP_PROTOCOL, address, pid: process.pid, algorithm: retrieval.ALGORITHM, startedAt: new Date().toISOString()
+      });
+    } catch (e) { /* the hook falls back to lookup.json */ }
+    report({ type: 'lookup-server', state: 'listening' });
+  });
+  if (server.unref) server.unref();
+
+  return {
+    address,
+    refresh,
+    stop() {
+      try {
+        server.close();
+      } catch (e) { /* ignore */ }
+      try {
+        const current = readJson(endpointFile);
+        if (current && current.pid === process.pid) fs.unlinkSync(endpointFile);
+      } catch (e) { /* ignore */ }
+      if (process.platform !== 'win32') {
+        try {
+          fs.unlinkSync(address);
+        } catch (e) { /* ignore */ }
+      }
+    }
   };
 }
 
@@ -822,7 +970,7 @@ function runOnce(root, json) {
  */
 function runLongLived(root, supervised) {
   const out = (value) => writeLine(process.stdout, { schema: RESULT_SCHEMA, ...value });
-  const worker = startWorker(root, { supervised, onReport: (r) => out({ type: r.type, ...r }) });
+  const worker = startWorker(root, { supervised, serveLookup: true, onReport: (r) => out({ type: r.type, ...r }) });
   if (!worker.ok) {
     process.stderr.write(`structure-lifecycle: another coordinator owns this checkout (pid ${worker.owner && worker.owner.pid})\n`);
     out({ type: 'busy' });
@@ -873,6 +1021,10 @@ function main() {
     return;
   }
   const root = resolveProjectRoot();
+  if (!structureEnabled(root)) {
+    process.stderr.write(`${PAUSED_MESSAGE}\n`);
+    return;
+  }
   if (modes[0] === '--once') process.exitCode = runOnce(root, args.includes('--json'));
   else runLongLived(root, modes[0] === '--supervised');
 }
@@ -884,6 +1036,7 @@ module.exports = {
   SCHEDULER_DEFAULTS: DEFAULTS,
   reconcile,
   startWorker,
+  startLookupServer,
   createWatcher,
   classify,
   resolveGitDirs,

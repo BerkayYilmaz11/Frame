@@ -3,7 +3,7 @@
  *
  * The registry below is the single source of truth for what Frame may record
  * about its own background work. It exists for the same reason
- * `telemetryEvents.js` does, applied to a different destination: an event
+ * `analyticsEvents.js` does, applied to a different destination: an event
  * that is not declared here is dropped, and a field value outside its
  * declared enum is stripped. `perfMonitor.js` shows what the alternative
  * looks like — eight call sites scattered over five months with no registry
@@ -52,7 +52,11 @@ const HINT_REASONS = [
   'no-match', // prompt: no spec scored
   'no-stale-free-match', // prompt: matches existed but none survived filtering
   'no-context', // emit: nothing composed to send
-  'map-dirty' // search: STRUCTURE.json changes are still being applied (STR-02)
+  'map-dirty', // search: STRUCTURE.json changes are still being applied (STR-02)
+  'map-incomplete', // search: the last scan missed files, an answer could be wrong (STR-03)
+  'index-oversize', // search: the lookup index or map is above the hook's 2 MiB cap (STR-03)
+  'ambiguous-weak', // search: only path or description words matched — CLI evidence, not a hint (STR-03)
+  'already-looked-up' // search: find-module already answered this in the session (STR-03b)
 ];
 
 const HOSTS = ['app', 'claude-hook', 'codex-hook', 'git-precommit', 'orch-bus', 'cli'];
@@ -336,6 +340,11 @@ const HINT_REASON_TEXT = {
 // falls back to the spec wording.
 const SEARCH_REASON_TEXT = {
   'map-dirty': 'the module map is being updated',
+  'map-incomplete': 'the module map missed files in its last scan',
+  'index-oversize': 'the module map is too large to read in a hook',
+  'ambiguous-weak': 'only weak matches (path or description words)',
+  'already-looked-up': 'find-module already answered it this session',
+  'no-context': 'nothing fit in the hint',
   'no-index': 'no module map in STRUCTURE.json',
   'no-words': 'no concept word in the search',
   'no-match': 'no module matched the concept',
@@ -450,7 +459,7 @@ function fieldPasses(spec, value) {
  * Returns null for an unregistered event — the caller must drop it entirely.
  * Otherwise the subset of fields that are declared and carry an acceptable
  * value; unknown keys and bad values are stripped silently, exactly as
- * `telemetryEvents.validateEvent` does.
+ * `analyticsEvents.validateEvent` does.
  */
 function validateEvent(name, fields) {
   if (!isRegistered(name)) return null;

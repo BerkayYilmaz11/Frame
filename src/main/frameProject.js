@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const fsp = require('fs').promises;
+const os = require('os');
 const path = require('path');
 const { IPC } = require('../shared/ipcChannels');
 const { FRAME_DIR, FRAME_CONFIG_FILE, FRAME_FILES, FRAME_BIN_DIR, CLAUDE_RULE_PATH } = require('../shared/frameConstants');
@@ -23,6 +24,7 @@ const docsHealth = require('../shared/docsHealth');
 const perfMonitor = require('./perfMonitor');
 const activityLog = require('./activityLog');
 const detector = require('../../scripts/detect-project');
+const { structureEnabled } = require('../../scripts/structure-switch');
 
 let mainWindow = null;
 
@@ -115,11 +117,11 @@ async function showInitializeConfirmation(projectPath) {
   let message = 'This will create the following files in your project:\n\n';
   message += '  • .frame/ (everything Frame writes lives here)\n';
   message += '  • .frame/AGENTS.md (AI instructions)\n';
-  message += '  • .frame/STRUCTURE.json (module map)\n';
+  if (structureEnabled(projectPath)) message += '  • .frame/STRUCTURE.json (module map)\n';
   message += '  • .frame/PROJECT_NOTES.md (session notes)\n';
   message += '  • .frame/tasks.json (task tracking)\n';
   message += '  • .frame/QUICKSTART.md (getting started)\n';
-  message += "  • .frame/bin/ (Frame's parser and helper scripts)\n";
+  message += "  • .frame/bin/ (Frame's helper scripts)\n";
   message += '  • .claude/rules/frame.md (a synced copy of .frame/AGENTS.md for Claude Code)\n';
   message += '\nNothing is added to your project root, and no existing file is read, moved or replaced.\n';
 
@@ -256,7 +258,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   // template sets features.specDriven), so the section ships with the file.
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.AGENTS),
-    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject })
+    templates.getAgentsTemplate(name, { specDriven: true, project: detectedProject, structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/docs/REFERENCE.md — the reference-on-demand companion to the lean
@@ -265,7 +267,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(docsDirPath, { recursive: true });
   await createFileIfNotExists(
     path.join(docsDirPath, 'REFERENCE.md'),
-    templates.getReferenceTemplate(name)
+    templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) })
   );
 
   // .frame/specs/ — Spec-Driven Development is on for new projects, so the
@@ -275,7 +277,10 @@ async function runProjectInit(projectPath, projectName, options = {}) {
   await fsp.mkdir(specsDirPath, { recursive: true });
   await createFileIfNotExists(path.join(specsDirPath, '.gitkeep'), '');
 
-  const structureWasCreated = await createFileIfNotExists(
+  // The module map is opt-in (scripts/structure-switch.js): a project that
+  // has not opted in gets no STRUCTURE.json at all. Read after config.json
+  // above, so a re-init of an opted-in project keeps its map.
+  const structureWasCreated = structureEnabled(projectPath) && await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.STRUCTURE),
     templates.getStructureTemplate(name, detectedProject)
   );
@@ -292,7 +297,7 @@ async function runProjectInit(projectPath, projectName, options = {}) {
 
   await createFileIfNotExists(
     frameStore.resolvePath(projectPath, FRAME_FILES.QUICKSTART),
-    templates.getQuickstartTemplate(name, detectedProject)
+    templates.getQuickstartTemplate(name, detectedProject, { structureMap: structureEnabled(projectPath) })
   );
 
   // .claude/rules/frame.md — what Claude Code loads at session start. The
@@ -399,6 +404,11 @@ async function runProjectInit(projectPath, projectName, options = {}) {
     gitSharing.reconcile(projectPath);
   } catch (err) {
     console.warn('[frame] applying sharing mode failed (non-fatal):', err.message);
+  }
+  try {
+    installCodexSessionHook();
+  } catch (err) {
+    console.warn('[frame] codex session hook install failed (non-fatal):', err.message);
   }
 
   // Update workspace to mark as Frame project
@@ -541,7 +551,7 @@ function frameHookCommands() {
  * surfaced via the returned summary.
  */
 function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
-  // Lazy require — aiToolManager pulls telemetry; keep init's module graph flat.
+  // Lazy require — aiToolManager pulls analytics; keep init's module graph flat.
   const aiToolManager = require('./aiToolManager');
   const active = aiToolManager.getActiveTool();
   if (!active || active.id !== 'claude') {
@@ -600,9 +610,10 @@ function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   }
 
   let added = 0;
-  for (const eventName of Object.keys(templates.SPEC_HINT_HOOKS)) {
+  const wanted = templates.hintHooksFor(templates.SPEC_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(settings.hooks[eventName]) ? settings.hooks[eventName] : [];
-    for (const entry of templates.SPEC_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
@@ -617,6 +628,61 @@ function installSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, indent) + '\n');
   }
   return { installed: true, added, upgraded, file };
+}
+
+/**
+ * Append each template entry to a hooks object unless an identical one is
+ * already there. Returns how many were added.
+ */
+function mergeHookEntries(hooks, template) {
+  let added = 0;
+  for (const eventName of Object.keys(template)) {
+    const list = Array.isArray(hooks[eventName]) ? hooks[eventName] : [];
+    for (const entry of template[eventName]) {
+      const sig = JSON.stringify(entry);
+      if (!list.some((x) => JSON.stringify(x) === sig)) {
+        list.push(entry);
+        added++;
+      }
+    }
+    hooks[eventName] = list;
+  }
+  return added;
+}
+
+/**
+ * Register the session report hook (restore-ai-sessions-on-relaunch) in the
+ * project's Claude settings file. Unlike the spec-hint hooks this is **not**
+ * gated on the active tool: a Claude session started by hand in a project
+ * whose active tool is Codex is still a session to restore. The command is
+ * env-guarded, so it costs nothing outside a Frame terminal.
+ *
+ * Same merge-safe contract as `installSpecHintHook`; removal rides on
+ * `removeSpecHintHook`, which treats these entries as Frame's too.
+ */
+function installSessionHook(projectPath, { file = 'settings.json' } = {}) {
+  const settingsDir = path.join(projectPath, '.claude');
+  const settingsPath = path.join(settingsDir, file);
+
+  let settings = {};
+  let indent = 2;
+  if (fs.existsSync(settingsPath)) {
+    const raw = fs.readFileSync(settingsPath, 'utf8');
+    try {
+      settings = JSON.parse(raw);
+    } catch (err) {
+      return { installed: false, manual: true, reason: `.claude/${file} is not valid JSON (${err.message})` };
+    }
+    indent = detectJsonIndent(raw);
+  }
+
+  settings.hooks = settings.hooks || {};
+  const added = mergeHookEntries(settings.hooks, templates.SESSION_REPORT_HOOKS);
+  if (added > 0) {
+    fs.mkdirSync(settingsDir, { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, indent) + '\n');
+  }
+  return { installed: true, added, file };
 }
 
 /**
@@ -680,9 +746,12 @@ function installCodexHintHook(projectPath, { enabled = true, home = null } = {})
 
   config.hooks = config.hooks || {};
   let added = 0;
-  for (const eventName of Object.keys(templates.CODEX_HINT_HOOKS)) {
+  // hooks.json is global: the module-hint entry is added for a project with
+  // the map and never taken out for one without (another project may use it).
+  const wanted = templates.hintHooksFor(templates.CODEX_HINT_HOOKS, { structureMap: structureEnabled(projectPath) });
+  for (const eventName of Object.keys(wanted)) {
     const list = Array.isArray(config.hooks[eventName]) ? config.hooks[eventName] : [];
-    for (const entry of templates.CODEX_HINT_HOOKS[eventName]) {
+    for (const entry of wanted[eventName]) {
       const sig = JSON.stringify(entry);
       if (!list.some((x) => JSON.stringify(x) === sig)) {
         list.push(entry);
@@ -692,6 +761,41 @@ function installCodexHintHook(projectPath, { enabled = true, home = null } = {})
     config.hooks[eventName] = list;
   }
 
+  if (added > 0) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(hooksPath, JSON.stringify(config, null, indent) + '\n');
+  }
+  return { installed: true, added, path: hooksPath };
+}
+
+/**
+ * Register the Codex session report hook (restore-ai-sessions-on-relaunch) in
+ * `CODEX_HOME/hooks.json`. Not gated on the active tool — a Codex session
+ * started by hand in a Claude project is still one to restore — and not
+ * per project in where it lives, since Codex reads only this global file; the
+ * command's own `.frame/` guard is what scopes it to Frame projects.
+ *
+ * Codex will not run it until the user trusts it, like every Frame hook
+ * there. Until then its sessions are simply not captured, never guessed.
+ */
+function installCodexSessionHook({ home = null } = {}) {
+  const dir = home || codexHome();
+  const hooksPath = path.join(dir, 'hooks.json');
+
+  let config = {};
+  let indent = 2;
+  if (fs.existsSync(hooksPath)) {
+    const raw = fs.readFileSync(hooksPath, 'utf8');
+    try {
+      config = JSON.parse(raw);
+    } catch (err) {
+      return { installed: false, manual: true, reason: `${hooksPath} is not valid JSON (${err.message})` };
+    }
+    indent = detectJsonIndent(raw);
+  }
+
+  config.hooks = config.hooks || {};
+  const added = mergeHookEntries(config.hooks, templates.CODEX_SESSION_REPORT_HOOKS);
   if (added > 0) {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(hooksPath, JSON.stringify(config, null, indent) + '\n');
@@ -720,6 +824,9 @@ function removeCodexHintHook({ home = null } = {}) {
   if (!config.hooks || typeof config.hooks !== 'object') return { removed: 0 };
 
   const ours = new Set(codexHookCommands());
+  for (const list of Object.values(templates.CODEX_SESSION_REPORT_HOOKS)) {
+    for (const entry of list) for (const h of entry.hooks) ours.add(h.command);
+  }
   let removed = 0;
   for (const eventName of Object.keys(config.hooks)) {
     const list = config.hooks[eventName];
@@ -823,7 +930,10 @@ function removeSpecHintHook(projectPath, { file = 'settings.json' } = {}) {
   if (!settings.hooks || typeof settings.hooks !== 'object') return { removed: 0 };
 
   const frameCommands = new Set(templates.LEGACY_SPEC_HINT_COMMANDS);
-  for (const entries of Object.values(templates.SPEC_HINT_HOOKS)) {
+  for (const entries of [
+    ...Object.values(templates.SPEC_HINT_HOOKS),
+    ...Object.values(templates.SESSION_REPORT_HOOKS)
+  ]) {
     for (const entry of entries) {
       for (const hook of entry.hooks) frameCommands.add(hook.command);
     }
@@ -1022,7 +1132,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   fs.mkdirSync(docsDir, { recursive: true });
   const referencePath = path.join(docsDir, 'REFERENCE.md');
   if (!fs.existsSync(referencePath)) {
-    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name), 'utf8');
+    fs.writeFileSync(referencePath, templates.getReferenceTemplate(name, { structureMap: structureEnabled(projectPath) }), 'utf8');
   }
 
   // Make sure AGENTS.md has the Spec-Driven Development section so AI
@@ -1037,7 +1147,7 @@ function ensureSpecDrivenArtifacts(projectPath, config) {
   if (!existing) {
     frameStore.writeAgents(
       projectPath,
-      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null })
+      templates.getAgentsTemplate(name, { specDriven: true, project: (config && config.project) || null, structureMap: structureEnabled(projectPath) })
     );
   } else if (!existing.includes('Spec-Driven Development')) {
     // Append the short core section (marker-wrapped, stamped current) — the
@@ -1516,6 +1626,9 @@ async function openProjectLayout(projectPath, hooks = {}) {
   // the running Frame — a clone, a linked worktree, a teammate's commit.
   // Both stagers are copy-if-changed, so an up-to-date project is read,
   // compared and left alone. Non-fatal, all of it.
+  // Whether this checkout had the module map's parser before the refresh: if
+  // it appears now, the project has just opted into the map (below).
+  const hadParser = fs.existsSync(path.join(projectPath, FRAME_DIR, FRAME_BIN_DIR, 'update-structure.js'));
   try {
     structureBootstrap.copyParserScripts(projectPath);
   } catch (err) {
@@ -1529,6 +1642,17 @@ async function openProjectLayout(projectPath, hooks = {}) {
   } catch (err) {
     console.warn('[frame] could not check the pre-commit hook (non-fatal):', err.message);
   }
+  // A project that opted into the module map after init gets its hook on the
+  // open where its parser first arrives — once, so an open still never puts
+  // back a hook the user removed (STR-02b).
+  if (!hadParser) {
+    try {
+      const hook = await structureBootstrap.ensureStructureHook(projectPath);
+      if (hook.manualInstructions) console.log(`[frame] ${hook.message}\n${hook.manualInstructions}`);
+    } catch (err) {
+      console.warn('[frame] could not install the pre-commit hook (non-fatal):', err.message);
+    }
+  }
   try {
     commandStaging.stageCommandFiles(projectPath);
   } catch (err) {
@@ -1541,6 +1665,13 @@ async function openProjectLayout(projectPath, hooks = {}) {
     gitSharing.reconcile(projectPath);
   } catch (err) {
     console.warn('[frame] could not reconcile the sharing mode (non-fatal):', err.message);
+  }
+  // The Codex half of the session report hook. Its Claude half rides on
+  // reconcile above; this one lives in CODEX_HOME, so it is ensured here.
+  try {
+    installCodexSessionHook();
+  } catch (err) {
+    console.warn('[frame] could not ensure the codex session hook (non-fatal):', err.message);
   }
   // The artifacts an older Frame never wrote, then the managed sections at
   // the current generation. 2 before 3: the pointer's target must exist
@@ -1632,10 +1763,10 @@ function setupIPC(ipcMain) {
       }
 
       const config = await initializeFrameProject(projectPath, projectName, { gitSharing });
-      // Lazy require, same reason as aiToolManager below: telemetry pulls
-      // @aptabase/electron → electron, and CI runs the suite with no
+      // Lazy require, same reason as aiToolManager above: analytics pulls
+      // posthog-node and electron, and CI runs the suite with no
       // node_modules. Keep this module's load graph Electron-free.
-      require('./telemetry').track('project_initialized');
+      require('./analytics').track('project_initialized');
       event.sender.send(IPC.FRAME_PROJECT_INITIALIZED, {
         projectPath,
         config,
@@ -1742,7 +1873,9 @@ module.exports = {
   runProjectInit,
   syncClaudeRule,
   installSpecHintHook,
+  installSessionHook,
   installCodexHintHook,
+  installCodexSessionHook,
   removeCodexHintHook,
   codexHookTrustState,
   codexHome,

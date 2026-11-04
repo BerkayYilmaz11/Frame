@@ -54,6 +54,18 @@ function installGlobalDropGuard() {
   window.addEventListener('drop', (e) => e.preventDefault());
 }
 
+
+/**
+ * A terminal's default name, number first ("1st Terminal", "2nd Terminal"):
+ * when the bar's chips shrink and the name is cut with an ellipsis, the
+ * number is what stays visible.
+ */
+function terminalName(n) {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  return `${n}${suffix} Terminal`;
+}
+
 class TerminalManager {
   constructor() {
     this.terminals = new Map(); // Map<id, {terminal, fitAddon, element, state}>
@@ -344,7 +356,7 @@ class TerminalManager {
 
     const state = {
       id: terminalId,
-      name: options.name || `Terminal ${++this.terminalCounter}`,
+      name: options.name || terminalName(++this.terminalCounter),
       customName: null,
       isActive: false,
       createdAt: Date.now(),
@@ -552,6 +564,8 @@ class TerminalManager {
     if (current) {
       current.state.isActive = true;
       current.terminal.focus();
+      // Session restore focuses this one again after a relaunch.
+      ipcRenderer.send(IPC.SESSION_RESTORE_META, { terminalId, active: true });
     }
 
     this._notifyStateChange();
@@ -565,6 +579,8 @@ class TerminalManager {
     if (instance) {
       instance.state.customName = newName;
       instance.state.name = newName;
+      // Saved with the terminal's session, so a restored lane keeps its name.
+      ipcRenderer.send(IPC.SESSION_RESTORE_META, { terminalId, name: newName || null });
       this._notifyStateChange();
     }
   }
@@ -790,7 +806,7 @@ class TerminalManager {
   }
 
   /**
-   * Renumber terminals for a project to ensure sequential naming (Terminal 1, Terminal 2, ...)
+   * Renumber terminals for a project to ensure sequential naming (1st Terminal, 2nd Terminal, ...)
    * Only affects terminals without custom names.
    */
   _renumberTerminals(projectPath) {
@@ -799,7 +815,7 @@ class TerminalManager {
     terminals.forEach((tState, index) => {
       const instance = this.terminals.get(tState.id);
       if (instance && !instance.state.customName) {
-        const newName = `Terminal ${index + 1}`;
+        const newName = terminalName(index + 1);
         if (instance.state.name !== newName) {
           instance.state.name = newName;
         }

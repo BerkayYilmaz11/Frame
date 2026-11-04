@@ -130,12 +130,14 @@ function setIsFrameProject(isFrame) {
   // Notify listeners
   onFrameStatusChangeCallbacks.forEach(cb => cb(isFrame));
 
-  // When we land on a non-Frame project, offer to initialize it — unless it's
-  // the bundled sample or the user already said "Don't ask again" this session.
+  // When we land on a non-Frame project, take the user to Project Settings,
+  // whose top banner is where Frame is set up — unless it's the bundled
+  // sample or the user already said "Don't ask again" this session. Lazy
+  // require: projectSettingsModal requires this module.
   if (!isFrame && currentProjectPath
       && !isCurrentProjectSample
       && !frameInitPromptSuppressed.has(currentProjectPath)) {
-    showInitializeFrameModal();
+    require('./projectSettingsModal').open();
   }
 }
 
@@ -291,7 +293,7 @@ function showInitSpotlight() {
   // Wait for button to render and be positioned
   setTimeout(() => {
     const rect = initializeFrameBtn.getBoundingClientRect();
-    const padding = 6;
+    const padding = 8;
 
     // Create/reuse backdrop element
     let backdrop = overlay.querySelector('.spotlight-backdrop');

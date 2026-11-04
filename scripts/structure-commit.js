@@ -41,6 +41,7 @@ const snapshot = require('./structure-snapshot');
 const MODE_FILE = new Set(['100644', '100755']);
 const MODE_SYMLINK = '120000';
 const MODE_GITLINK = '160000';
+const GIT_TIMEOUT_MS = 60000;
 
 function sha256(data) {
   return crypto.createHash('sha256').update(data).digest('hex');
@@ -65,13 +66,30 @@ function git(root, args, options = {}) {
     cwd: root,
     env: options.env || process.env,
     input: options.input,
-    maxBuffer: 1024 * 1024 * 1024
+    maxBuffer: 1024 * 1024 * 1024,
+    // a commit hook must never hang the commit: a stuck Git call fails this run
+    timeout: options.timeout || GIT_TIMEOUT_MS,
+    killSignal: 'SIGKILL'
   });
-  if (result.error) throw new CommitUnavailable('git-unavailable', result.error.message);
+  if (result.error) {
+    const reason = result.error.code === 'ETIMEDOUT' ? 'git-timeout' : 'git-unavailable';
+    throw new CommitUnavailable(reason, result.error.message);
+  }
   if (result.status !== 0 && !options.allowFailure) {
     throw new CommitUnavailable(options.failureReason || 'git-failed', String(result.stderr || '').trim().split('\n')[0]);
   }
   return result;
+}
+
+/**
+ * Git's object id for a blob, computed here instead of piping the bytes
+ * through `git hash-object --stdin` (no filters apply to either). The hash
+ * function follows the id it is compared with: 40 hex digits SHA-1, 64
+ * SHA-256.
+ */
+function blobId(bytes, like) {
+  const algorithm = typeof like === 'string' && like.length === 64 ? 'sha256' : 'sha1';
+  return crypto.createHash(algorithm).update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
 }
 
 /** The index this commit uses: the hook's GIT_INDEX_FILE, else the checkout's. */
@@ -371,8 +389,7 @@ function mirrorToDisk(root, mapPath, candidate, stagedId, env) {
   if (current && current.equals(bytes)) return 'unchanged';
   try {
     if (current) {
-      const diskId = git(root, ['hash-object', '--stdin'], { env, input: current }).stdout.toString().trim();
-      if (diskId !== stagedId) return 'kept';
+      if (blobId(current, stagedId) !== stagedId) return 'kept';
     }
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const tmp = `${file}.tmp-${process.pid}`;
@@ -409,8 +426,7 @@ function repairPathspecIndex(root, options = {}) {
     } catch (e) {
       return 'skipped';
     }
-    const diskId = git(root, ['hash-object', '--stdin'], { env, input: disk }).stdout.toString().trim();
-    if (diskId !== headId) return 'clean';
+    if (blobId(disk, headId) !== headId) return 'clean';
     const update = git(root, ['update-index', '--cacheinfo', `${match[1]},${headId},${rel}`], { env, allowFailure: true });
     return update.status === 0 ? 'repaired' : 'failed';
   } catch (e) {
@@ -465,8 +481,7 @@ function reconcileTracked(root, env) {
     return { status: 'skipped', reason: 'missing' };
   }
   const diskDigest = sha256(disk);
-  const diskId = git(root, ['hash-object', '--stdin'], { env, input: disk }).stdout.toString().trim();
-  if (diskId === match[2]) return { status: 'clean', diskDigest };
+  if (blobId(disk, match[2]) === match[2]) return { status: 'clean', diskDigest };
 
   const repair = repairPathspecIndex(root, { env });
   if (repair === 'repaired') return { status: 'repaired', diskDigest };
@@ -572,6 +587,7 @@ function publishStaged(root, options = {}) {
 
 module.exports = {
   publishStaged,
+  blobId,
   repairPathspecIndex,
   reconcileTrackedMap,
   trackedReceiptPath,

@@ -54,8 +54,8 @@
 /* 11b. Frame Cloud briefs, read-only (the Briefs view under Sessions) */
 @import 'components/cloud-briefs.css';
 
-/* 12. Telemetry Notice (one-time disclosure banner) */
-@import 'components/telemetry-notice.css';
+/* 12. Analytics Notice (one-time disclosure banner) */
+@import 'components/analytics-notice.css';
 
 /* 12a. Health Notice (degraded/recovered state banner) */
 
@@ -115,3 +115,6 @@
 
 /* 19. Orchestrator (conductor-led parallel spec execution overlay) */
 @import 'components/orchestrator.css';
+
+/* Shared dropdown-menu look — last, so it wins over each menu's own box */
+@import 'components/menu.css';

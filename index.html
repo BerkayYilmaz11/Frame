@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="node_modules/@fontsource/inter/400.css">
   <link rel="stylesheet" href="node_modules/@fontsource/inter/500.css">
   <link rel="stylesheet" href="node_modules/@fontsource/inter/600.css">
+  <link rel="stylesheet" href="node_modules/@fontsource/inter/700.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/400.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/500.css">
   <link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/600.css">
@@ -18,25 +19,28 @@
   <link rel="stylesheet" href="src/renderer/styles/main.css">
 </head>
 <body>
-  <!-- Telemetry Notice (one-time, dismissable): a small solid card in the
+  <!-- Analytics Notice (one-time, dismissable): a small solid card in the
        bottom-right corner, above the status bar. It used to be a translucent
        strip across the top that sat over the app header and was hard to read
        through; the corner is free (toasts appear top-centre) and covers
        nothing the user needs on a first launch. -->
-  <div id="telemetry-notice" class="telemetry-notice" role="status" aria-labelledby="telemetry-notice-title">
-    <div class="telemetry-notice-head">
-      <span class="telemetry-notice-icon" aria-hidden="true">
+  <div id="analytics-notice" class="analytics-notice" role="status" aria-labelledby="analytics-notice-title">
+    <div class="analytics-notice-head">
+      <span class="analytics-notice-icon" aria-hidden="true">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
       </span>
-      <span id="telemetry-notice-title" class="telemetry-notice-title">Anonymous usage stats</span>
-      <button type="button" id="telemetry-notice-close" class="telemetry-notice-close" aria-label="Dismiss">&#x2715;</button>
+      <span id="analytics-notice-title" class="analytics-notice-title">Anonymous usage stats</span>
+      <button type="button" id="analytics-notice-close" class="analytics-notice-close" aria-label="Dismiss">&#x2715;</button>
     </div>
-    <p class="telemetry-notice-text">
-      Frame sends your app version and OS to count active users. No code or file paths.
+    <p class="analytics-notice-text">
+      Frame sends a random ID for this install, your app version, OS, and the country
+      your request came from, so we can count active users and see which features get
+      used. No code, file paths or prompts. Turning this off in Settings deletes the ID
+      and sends one last anonymous count that it was turned off — then nothing.
     </p>
-    <div class="telemetry-notice-actions">
-      <a href="#" id="telemetry-notice-settings-link" class="telemetry-notice-link">Manage in Settings</a>
-      <button type="button" id="telemetry-notice-ack" class="primary-btn telemetry-notice-ack">Got it</button>
+    <div class="analytics-notice-actions">
+      <a href="#" id="analytics-notice-settings-link" class="analytics-notice-link">Manage in Settings</a>
+      <button type="button" id="analytics-notice-ack" class="primary-btn analytics-notice-ack">Got it</button>
     </div>
   </div>
 
@@ -47,13 +51,6 @@
       You're exploring the <strong>sample project</strong>. Poke around freely — when you're ready, open your own project to start real work.
     </span>
     <button type="button" id="sample-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
-  </div>
-
-  <!-- First-run detection banner (shown right after a project is initialized as a Frame project) -->
-  <div id="detection-banner" class="sample-banner" role="status">
-    <span class="sample-banner-icon">&#10022;</span>
-    <span id="detection-banner-text" class="sample-banner-text"></span>
-    <button type="button" id="detection-banner-close" class="sample-banner-close" aria-label="Dismiss">&#x2715;</button>
   </div>
 
   <!-- App Loader — boot splash and, on a first run, the onboarding screen
@@ -113,9 +110,9 @@
        the center (shell-chrome-app-header-collapsible-panels spec). Static
        markup on purpose — it exists before any script runs, so nothing in
        it flashes at boot and every module that binds by id finds its
-       element at DOMContentLoaded. Left: Frame's mark. Center:
-       the current-project switcher. Right: the window-level controls and
-       the layout toggles. appHeader.js wires the behavior. -->
+       element at DOMContentLoaded. Left: Frame's mark. Right: the
+       agent picker with Start, the window-level controls and the layout
+       toggles. appHeader.js wires the behavior. -->
   <header id="app-header">
     <div class="app-header-left">
       <!-- Frame's mark (assets/frame-mark.svg): the four corner brackets that
@@ -127,32 +124,9 @@
       </svg>
       <span class="app-header-brand">Frame</span>
     </div>
-    <!-- Current-project switcher: the one project selector, in the
-         header's center (VS Code's command-center spot) so it stays
-         reachable while the sidebar is collapsed. Everything on both sides
-         — Files / Changes / GitHub on the rail, Work / Context in the
-         panel, the center — is about the project chosen here. -->
-    <div class="app-header-center">
-      <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
-        <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
-          <svg class="sidebar-current-project-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
-          </svg>
-          <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
-          <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-        <!-- Frame Cloud Connected mark (frame-cloud-projects spec): shown by
-             cloudProjectMark only while the open folder is connected. -->
-        <span id="cloud-project-mark" class="cloud-project-mark" role="img" hidden>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-          </svg>
-        </span>
-        <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
-      </div>
-    </div>
+    <!-- Spacer: keeps the brand at the left end and the controls at the
+         right end. -->
+    <div class="app-header-center"></div>
     <div class="app-header-right">
       <!-- Default Agent launcher: the tool select beside Start. Start launches
            whatever this says (index.js binds #sidebar-agent-launch by id).
@@ -175,12 +149,7 @@
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </label>
-        <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-          <span>Start</span>
-        </button>
+        <button id="sidebar-agent-launch" class="primary-btn" tabindex="-1" title="Start default agent">Start</button>
       </div>
       <!-- Layout toggles (VS Code's "toggle primary side bar" / "toggle
            panel"): each shows its region's open state and flips it. They run
@@ -230,7 +199,6 @@
       </p>
       <div class="spotlight-card-files">
         <span>.frame/AGENTS.md</span>
-        <span>.frame/STRUCTURE.json</span>
         <span>.frame/PROJECT_NOTES.md</span>
         <span>.frame/tasks.json</span>
         <span>+ more</span>
@@ -309,6 +277,29 @@
       </nav>
 
       <div class="sidebar-panel">
+        <!-- Current-project switcher: the one project selector, at the top of
+             the panel above Work (and above whatever view the rail picked), so
+             everything below it reads as "this project's". Moved back from
+             the app header on 2026-10-22 at the user's request, overturning
+             shell-chrome-app-header-collapsible-panels D1: with the sidebar
+             collapsed (⌘B) it is out of sight. index.js binds it by id. -->
+        <div id="sidebar-current-project-wrap" class="sidebar-current-project-wrap">
+          <button id="sidebar-current-project" class="sidebar-current-project" tabindex="-1" title="Switch project" aria-haspopup="true" aria-expanded="false">
+            <span class="sidebar-current-project-label">Project</span>
+            <span class="sidebar-current-project-name" id="sidebar-current-project-name">No project</span>
+            <svg class="sidebar-current-project-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <!-- Frame Cloud Connected mark (frame-cloud-projects spec): shown by
+               cloudProjectMark only while the open folder is connected. -->
+          <span id="cloud-project-mark" class="cloud-project-mark" role="img" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+          </span>
+          <div id="sidebar-project-menu" class="sidebar-project-menu" role="menu" hidden></div>
+        </div>
         <!-- Projects view (default) — the workspace panel for the selected
              project (project-dropdown spec): selection lives in the
              current-project switcher above, which also carries "+ Add a
@@ -476,7 +467,7 @@
         >
           <span class="sidebar-update-banner-icon">&uarr;</span>
           <span class="sidebar-update-banner-text">
-            <span class="sidebar-update-banner-title">New version available</span>
+            <span class="sidebar-update-banner-title" id="sidebar-update-banner-title">New version available</span>
             <span class="sidebar-update-banner-version" id="sidebar-update-banner-version">v0.0.0</span>
           </span>
           <span class="sidebar-update-banner-arrow">&rarr;</span>
@@ -619,6 +610,11 @@
             </svg>
           </button>
         </div>
+      </div>
+      <!-- One list per CLI: Claude Code transcripts and Codex rollouts. -->
+      <div id="sessions-tabs" class="sessions-tabs" role="tablist" aria-label="Session source">
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab active" role="tab" data-tool="claude" aria-selected="true" tabindex="-1">Claude Code<span class="specs-filter-count" data-count-for="claude"></span></button>
+        <button type="button" class="specs-filter-chip phase-implementing sessions-tab" role="tab" data-tool="codex" aria-selected="false" tabindex="-1">Codex<span class="specs-filter-count" data-count-for="codex"></span></button>
       </div>
       <div id="sessions-content">
         <!-- Sessions will be populated here -->
@@ -830,7 +826,6 @@
         </p>
         <div class="spotlight-card-files">
           <span>.frame/AGENTS.md</span>
-          <span>.frame/STRUCTURE.json</span>
           <span>.frame/PROJECT_NOTES.md</span>
           <span>.frame/tasks.json</span>
           <span>+ more</span>
@@ -852,11 +847,10 @@
           <ul class="init-modal-file-list">
             <li><span class="file-icon">&#128193;</span> .frame/ <span class="file-desc">everything Frame writes lives here</span></li>
             <li><span class="file-icon">&#128196;</span> .frame/AGENTS.md <span class="file-desc">AI instructions</span></li>
-            <li><span class="file-icon">&#128196;</span> .frame/STRUCTURE.json <span class="file-desc">module map</span></li>
             <li><span class="file-icon">&#128196;</span> .frame/PROJECT_NOTES.md <span class="file-desc">session notes</span></li>
             <li><span class="file-icon">&#128196;</span> .frame/tasks.json <span class="file-desc">task tracking</span></li>
             <li><span class="file-icon">&#128196;</span> .frame/QUICKSTART.md <span class="file-desc">getting started</span></li>
-            <li><span class="file-icon">&#128193;</span> .frame/bin/ <span class="file-desc">Frame's parser and helper scripts</span></li>
+            <li><span class="file-icon">&#128193;</span> .frame/bin/ <span class="file-desc">Frame's helper scripts</span></li>
             <li><span class="file-icon">&#128279;</span> .claude/rules/frame.md <span class="file-desc">a copy of .frame/AGENTS.md, kept in sync, for Claude Code to read</span></li>
           </ul>
           <p class="init-modal-note">Nothing is added to your project root, and no existing file is
@@ -932,7 +926,7 @@
       </div>
     </div>
 
-    <!-- Tasks Dashboard (Kanban) -->
+    <!-- Tasks Dashboard (Specs-style grid of task tiles) -->
     <div id="tasks-dashboard" class="tasks-dashboard">
       <div class="view-header">
         <div class="view-header-title">
@@ -940,6 +934,29 @@
           <h2>Tasks</h2>
         </div>
         <div class="view-header-actions tasks-dashboard-actions">
+          <button id="tasks-dashboard-add" class="primary-btn" tabindex="-1" title="New task">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Task</span>
+          </button>
+          <button id="tasks-dashboard-close" class="tasks-dashboard-btn-icon" tabindex="-1" title="Close dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="specs-dashboard-toolbar tasks-dashboard-toolbar">
+        <div id="tasks-dashboard-filters" class="specs-dashboard-filters"></div>
+        <div class="tasks-dashboard-toolbar-actions">
+          <label id="tasks-dashboard-spec-toggle" class="tasks-dashboard-spec-toggle" title="List the tasks that belong to specs with the others" hidden>
+            <input type="checkbox" tabindex="-1">
+            <span>Include spec tasks</span>
+            <span class="specs-filter-count">0</span>
+          </label>
           <div class="tasks-dashboard-filter-wrap">
             <button id="tasks-dashboard-filter-btn" class="tasks-dashboard-toolbar-btn" tabindex="-1" title="Filter tasks">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1061,48 +1078,10 @@
               </div>
             </div>
           </div>
-          <button id="tasks-dashboard-add" class="primary-btn" tabindex="-1" title="New task">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>New Task</span>
-          </button>
-          <button id="tasks-dashboard-close" class="tasks-dashboard-btn-icon" tabindex="-1" title="Close dashboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
         </div>
       </div>
       <div class="tasks-dashboard-body">
-        <div class="tasks-dashboard-columns">
-          <div class="tasks-dashboard-column" data-column="pending">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-pending"></span>
-              <span class="tasks-dashboard-column-title">Pending</span>
-              <span class="tasks-dashboard-column-count" data-count-for="pending">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="pending"></div>
-          </div>
-          <div class="tasks-dashboard-column" data-column="in_progress">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-in-progress"></span>
-              <span class="tasks-dashboard-column-title">In Progress</span>
-              <span class="tasks-dashboard-column-count" data-count-for="in_progress">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="in_progress"></div>
-          </div>
-          <div class="tasks-dashboard-column" data-column="completed">
-            <div class="tasks-dashboard-column-header">
-              <span class="tasks-dashboard-column-dot status-completed"></span>
-              <span class="tasks-dashboard-column-title">Completed</span>
-              <span class="tasks-dashboard-column-count" data-count-for="completed">0</span>
-            </div>
-            <div class="tasks-dashboard-cards" data-drop-status="completed"></div>
-          </div>
-        </div>
+        <div id="tasks-dashboard-list" class="tasks-dashboard-list"></div>
         <aside id="tasks-dashboard-detail" class="tasks-dashboard-detail">
           <form id="tasks-dashboard-form" class="tasks-dashboard-form" style="display:none;">
             <div class="tasks-dashboard-form-header">
@@ -1120,8 +1099,8 @@
                 <input type="text" id="tasks-dashboard-form-title" placeholder="What needs to be done?" autocomplete="off" required>
               </div>
               <div class="tasks-dashboard-form-group">
-                <label for="tasks-dashboard-form-description">Description</label>
-                <textarea id="tasks-dashboard-form-description" placeholder="Add more detail (optional)"></textarea>
+                <label for="tasks-dashboard-form-request">Request</label>
+                <textarea id="tasks-dashboard-form-request" placeholder="What you want, in your own words (optional). Play has the agent turn it into a description and acceptance criteria."></textarea>
               </div>
               <div class="tasks-dashboard-form-row">
                 <div class="tasks-dashboard-form-group">
@@ -1168,6 +1147,7 @@
           <div class="tasks-dashboard-detail-header">
             <div class="tasks-dashboard-detail-status-pill"></div>
             <div class="tasks-dashboard-detail-header-actions">
+              <div class="tasks-dashboard-detail-actions"></div>
               <button class="tasks-dashboard-detail-delete" tabindex="-1" title="Delete task">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"/>
@@ -1493,6 +1473,21 @@
         <button type="button" class="settings-close" data-settings-close aria-label="Close">&#x2715;</button>
       </div>
       <div class="settings-body">
+        <!-- Only for a project without .frame/: the one place Frame is set up
+             from. Opening such a project lands here (state.js), and the
+             button hands over to the init modal. -->
+        <div class="settings-init-banner" id="settings-init-banner" style="display:none;">
+          <div class="settings-row-text">
+            <div class="settings-init-banner-title">Frame isn't set up in this project</div>
+            <p class="settings-row-desc">
+              Initializing adds <code>.frame/</code> for AI context, specs, task tracking and
+              session notes; the settings below apply once it's set up. Nothing is added to
+              your project root.
+            </p>
+          </div>
+          <button type="button" class="settings-init-btn" id="settings-init-frame">Initialize Frame</button>
+        </div>
+
         <div class="settings-section">
           <h4 class="settings-section-title">Workflow</h4>
           <div class="settings-row">
@@ -1552,21 +1547,18 @@
             <button type="button" class="settings-action-btn" id="settings-migration-decision">Review</button>
           </div>
 
-          <!-- One row, two states: a project that has Frame can remove it, one
-               that does not can set it up. Which of the two buttons is shown
-               is decided in syncFrameSetup() — a folder that was never
-               initialized has nothing to remove, and one just removed must
-               stop offering to remove it again. -->
-          <div class="settings-row">
+          <!-- Shown only while the project has Frame (syncFrameSetup) — a folder
+               that was never initialized has nothing to remove; setting it up
+               is the banner at the top. -->
+          <div class="settings-row" id="settings-remove-frame-row">
             <div class="settings-row-text">
-              <label class="settings-row-label" id="settings-frame-setup-label">Remove Frame from this project</label>
-              <p class="settings-row-desc" id="settings-frame-setup-desc">
+              <label class="settings-row-label">Remove Frame from this project</label>
+              <p class="settings-row-desc">
                 Deletes <code>.frame/</code>, <code>.claude/rules/frame.md</code> and Frame's hook
                 entries. Your own files are never touched.
               </p>
               <p class="settings-row-desc" id="settings-remove-frame-note" style="display:none;"></p>
             </div>
-            <button type="button" class="settings-action-btn" id="settings-init-frame" style="display:none;">Initialize</button>
             <button type="button" class="settings-danger-btn" id="settings-remove-frame">Remove Frame</button>
           </div>
         </div>
@@ -1672,14 +1664,29 @@
           <h4 class="settings-section-title">Privacy &amp; Analytics</h4>
           <div class="settings-row">
             <div class="settings-row-text">
-              <label class="settings-row-label" for="settings-telemetry-toggle">Send anonymous usage stats</label>
+              <label class="settings-row-label" for="settings-analytics-toggle">Send anonymous usage stats</label>
               <p class="settings-row-desc">
-                Frame collects only your app version and OS to count active users.
+                A random ID for this install, plus your app version, OS and country, so we
+                can count active users and see which features get used.
                 No code, file paths, prompts, or personal data — ever.
               </p>
             </div>
             <label class="settings-switch">
-              <input type="checkbox" id="settings-telemetry-toggle" />
+              <input type="checkbox" id="settings-analytics-toggle" />
+              <span class="settings-switch-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <label class="settings-row-label" for="settings-error-reporting-toggle">Send error reports</label>
+              <p class="settings-row-desc">
+                Off by default. When on, crashes are sent with their message and stack,
+                stripped of secrets and of every path above the filename.
+                Requires anonymous usage stats to be on.
+              </p>
+            </div>
+            <label class="settings-switch">
+              <input type="checkbox" id="settings-error-reporting-toggle" />
               <span class="settings-switch-slider"></span>
             </label>
           </div>
@@ -1715,10 +1722,11 @@
 
             <div id="settings-update-available" class="settings-update-banner" style="display:none;">
               <div class="settings-update-banner-text">
-                <strong>New version available: <span id="settings-update-latest">v0.0.0</span></strong>
+                <strong><span id="settings-update-title">New version available</span>: <span id="settings-update-latest">v0.0.0</span></strong>
                 <span id="settings-update-released" class="settings-update-released"></span>
               </div>
               <div class="settings-update-banner-actions">
+                <button type="button" id="settings-update-install" class="settings-about-btn settings-about-btn-primary" style="display:none;">Restart to Install</button>
                 <a id="settings-update-link" href="#" target="_blank" rel="noopener" class="settings-about-btn settings-about-btn-primary">View Release Notes</a>
                 <button type="button" id="settings-update-dismiss" class="settings-about-btn">Dismiss this version</button>
               </div>

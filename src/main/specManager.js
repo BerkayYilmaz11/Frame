@@ -20,8 +20,8 @@ const frameStore = require('./frameStore');
 const tasksManager = require('./tasksManager');
 const commandStaging = require('./commandStaging');
 const frameProject = require('./frameProject');
-const telemetry = require('./telemetry');
-const { diffSpecLifecycle, renameSpecLifecycle } = require('./telemetryEvents');
+const analytics = require('./analytics');
+const { diffSpecLifecycle, renameSpecLifecycle } = require('./analyticsEvents');
 const activityLog = require('./activityLog');
 const perfMonitor = require('./perfMonitor');
 
@@ -817,7 +817,7 @@ function buildSpecCommandFile(projectPath, slug, command, aiTool, description) {
   fs.mkdirSync(promptsDir, { recursive: true });
   const slugless = isSlugless(slug, command);
   // Staging a slug-less spec.new prompt is the one thing only Frame's own New
-  // Spec launcher does — it is the origin signal for the telemetry below.
+  // Spec launcher does — it is the origin signal for the analytics below.
   if (slugless) markSpecNewLaunch(projectPath);
   const filename = slugless
     ? uniquePromptFilename(promptsDir, specNewPromptFilename())
@@ -904,6 +904,30 @@ function getSpecFootprint(projectPath, slug) {
   return parseFootprintMarkdown(plan);
 }
 
+// A task imported for the first time starts from what the spec itself
+// records, not from 'pending'. Specs are implemented in worktrees whose task
+// state lives in a tasks.json nobody commits, so a finished spec can arrive
+// by merge with its tasks.md but none of its tasks — and importing those as
+// pending walked it from `done` back to `tasks_generated`. The spec's own
+// files travel with it: a `done` phase means every task finished, and the
+// implement loop writes one `## T<n> — …` outcome entry per finished task.
+const OUTCOME_TASK_RE = /^##\s+(T\d{1,3})\b/gm;
+
+function completedTaskIdsFromOutcome(content) {
+  const ids = new Set();
+  if (!content) return ids;
+  for (const m of content.matchAll(OUTCOME_TASK_RE)) ids.add(m[1]);
+  return ids;
+}
+
+function initialTaskState(status, outcomeIds, taskId, now) {
+  if (status && status.phase === 'done') {
+    return { status: 'completed', completedAt: status.last_phase_at || status.updated_at || now };
+  }
+  if (outcomeIds.has(taskId)) return { status: 'completed', completedAt: now };
+  return { status: 'pending', completedAt: null };
+}
+
 function syncTasksFromMarkdown(projectPath, slug) {
   const tasksMdPath = path.join(getSpecDir(projectPath, slug), TASKS_FILE);
   const md = readFileSafe(tasksMdPath);
@@ -923,6 +947,10 @@ function syncTasksFromMarkdown(projectPath, slug) {
   const now = new Date().toISOString();
   const generatedIds = [];
   let added = 0, updated = 0, unchanged = 0;
+  const specStatus = readStatus(projectPath, slug);
+  const outcomeIds = completedTaskIdsFromOutcome(
+    readFileSafe(path.join(getSpecDir(projectPath, slug), OUTCOME_FILE))
+  );
 
   for (const item of parsed) {
     const sourceMarker = `spec:${slug}:${item.taskId}`;
@@ -938,18 +966,19 @@ function syncTasksFromMarkdown(projectPath, slug) {
         unchanged++;
       }
     } else {
+      const initial = initialTaskState(specStatus, outcomeIds, item.taskId, now);
       tasksData.tasks.push({
         id,
         title: item.description,
         description: '',
         source: sourceMarker,
-        status: 'pending',
+        status: initial.status,
         priority: 'medium',
         category: 'feature',
         context: `From spec: ${slug}`,
         createdAt: now,
         updatedAt: now,
-        completedAt: null
+        completedAt: initial.completedAt
       });
       tasksData.metadata = tasksData.metadata || {};
       tasksData.metadata.totalCreated = (tasksData.metadata.totalCreated || 0) + 1;
@@ -1269,6 +1298,15 @@ function startWatching(projectPath) {
   // and it arrives by whichever IPC message the renderer happens to send
   // first, which is why the gate lives here and not only in the open path.
   if (frameStore.isLegacyLayout(projectPath)) return;
+  // Same promise for a project that was never initialized: no `.frame/`
+  // until the user says so. The panel still gets an empty list so it stops
+  // showing the previous project's specs; init restarts the watch.
+  if (!frameProject.isFrameProject(projectPath)) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(IPC.SPEC_DATA, { projectPath, specs: [] });
+    }
+    return;
+  }
 
   const root = getSpecsRoot(projectPath);
   // Ensure the directory exists so fs.watch doesn't throw on a fresh project
@@ -1382,7 +1420,7 @@ function stopWatching() {
 // `spec_phase_advanced` is read off the same push, because agents write
 // status.json themselves and no Frame write path ever saw their phases move.
 // The comparison — and what keeps checkouts, renames and flip-flops out of it
-// — lives in telemetryEvents.diffSpecLifecycle.
+// — lives in analyticsEvents.diffSpecLifecycle.
 //
 // projectPath → the state diffSpecLifecycle returned last. Absent = no look
 // yet this run: the first push seeds from what is on disk, nothing is
@@ -1451,10 +1489,10 @@ function trackSpecLifecycle(projectPath, specs) {
   const attributable = created.length === 1;
   for (const _slug of created) {
     const origin = attributable ? resolveSpecOrigin(projectPath) : null;
-    telemetry.track('spec_created', origin ? { origin } : undefined);
+    analytics.track('spec_created', origin ? { origin } : undefined);
   }
   for (const { phase } of advanced) {
-    telemetry.track('spec_phase_advanced', { phase });
+    analytics.track('spec_phase_advanced', { phase });
   }
 }
 
@@ -1533,6 +1571,8 @@ function setupIPC(ipcMain) {
     // *root* AGENTS.md — writing there before the move is what dirtied the
     // file and then made the migration refuse to run.
     if (frameStore.isLegacyLayout(projectPath)) return;
+    // Nothing to stage into a project that was never initialized.
+    if (!frameProject.isFrameProject(projectPath)) return;
     try {
       commandStaging.stageCommandFiles(projectPath);
       frameProject.ensureProjectArtifacts(projectPath);
