@@ -8,8 +8,9 @@
  * effects into the core's handler for the start itself (`CLOUD_BRIEF_START`):
  * git through gitBranchesManager, spec folders through fsSafe under
  * frameStore's spec path, and task rows through tasksManager in one round.
- * It also keeps `<userData>/cloud-starts.json`, the parts this machine began
- * and on which branch. The token and every write stay in main.
+ * It also keeps `<userData>/cloud-starts.json`, the parts this machine began,
+ * on which branch and from which commit, and sends a begun part's branch to
+ * the cloud (`brief.recordBranch`). The token and every write stay in main.
  */
 
 const fs = require('fs');
@@ -23,7 +24,7 @@ const logger = require('../logger');
 const tasksManager = require('../tasksManager');
 const git = require('../gitBranchesManager');
 const cloudProjectsService = require('./cloudProjectsService');
-const { getBrief } = require('./cloudBriefs');
+const { getBrief, recordBranch } = require('./cloudBriefs');
 const core = require('./cloudStart');
 
 const BEGUN_FILE = 'cloud-starts.json';
@@ -55,6 +56,20 @@ function recordBegun(entry) {
   } catch (err) {
     logger.warn('cloudStart', `could not save ${BEGUN_FILE}: ${err.message}`);
   }
+}
+
+/** This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null. */
+function begunEntry(projectId, number, partId) {
+  return core.getBegun(begun(), projectId, number, partId);
+}
+
+/**
+ * Send a begun part's branch to the cloud. Begin fires it and never waits:
+ * a failure is logged here, and the next Briefs read sends it again.
+ */
+async function sendBranch(input) {
+  const result = await cloudProjectsService.call((ctx) => recordBranch({ ...ctx, ...input }));
+  if (!result.ok) logger.warn('cloudStart', `could not record the branch of part ${input.partId}: ${result.reason}`);
 }
 
 /**
@@ -199,6 +214,8 @@ async function start(folderPath, request) {
       recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
       stash: async (message) => orThrow(await git.stashAll(folderPath, message)),
       createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, true, base, { track })),
+      headSha: () => git.getHeadSha(folderPath),
+      recordBranch: (input) => sendBranch(input),
       writeSpec: (slug, files) => writeSpec(folderPath, slug, files),
       writeTasks: (rows) => writeTasks(folderPath, rows),
       now: () => new Date().toISOString(),
@@ -224,5 +241,6 @@ module.exports = {
   prepare,
   start,
   recordBegun,
+  begunEntry,
   withBegunBranches,
 };

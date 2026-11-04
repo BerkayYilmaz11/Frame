@@ -39,3 +39,11 @@ _Captured: 2026-11-04 · 2 file change(s)_
 _Captured: 2026-11-04 · 6 file change(s)_
 
 ---
+
+## T06 — Make Begin record the branch
+
+The begun entry now keeps an optional `baseSha` (only a 40-char lowercase hex id; anything else is dropped and older entries read unchanged). `handleStartRequest` reads `deps.headSha()` right after `createBranch` (a throw or a non-id counts as none), passes it to `recordBegun`, and once the part is recorded fires `deps.recordBranch({ id, partId, branch, baseSha })` through an async wrapper, so a synchronous throw is swallowed too; it is skipped without a `baseSha` or after a partial failure. `cloudStartService` wires `headSha` to `git.getHeadSha` and `recordBranch` to `sendBranch`, which goes through `cloudProjectsService.call` and logs a failure. It also exports `begunEntry(projectId, number, partId)` for the reporter. Files: `src/main/cloud/cloudStart.js`, `src/main/cloud/cloudStartService.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-04 · 3 file change(s)_
+
+---

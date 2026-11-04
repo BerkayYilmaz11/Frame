@@ -253,10 +253,11 @@ function startable(brief) {
 
 // ─── Begun parts ──────────────────────────────────────────────
 //
-// Which parts this machine began, and on which branch. A started brief's
-// other parts stay in the cloud until each is begun, and the cloud knows
-// nothing per part, so this store is what tells "not started" from "begun on
-// another branch". Machine-local on purpose: another machine does not know.
+// Which parts this machine began, on which branch, and from which commit
+// (`baseSha`, kept since frame-cloud-brief-done). Begin now sends the branch
+// to the cloud too (`brief.recordBranch`), so every machine can show it; this
+// store stays the machine's own record, for parts begun before that and for
+// telling this machine's deleted branch from a teammate's.
 
 function isNonEmpty(value) {
   return typeof value === 'string' && value.length > 0;
@@ -266,10 +267,18 @@ function begunKey(projectId, number, partId) {
   return `${projectId}:${number}:${partId}`;
 }
 
+/** A full commit id as `git rev-parse` prints it: 40 lowercase hex characters. */
+function isSha(value) {
+  return typeof value === 'string' && /^[0-9a-f]{40}$/.test(value);
+}
+
+/** `{ ref, branch, begunAt, baseSha? }`, or null. `baseSha` is optional: older entries have none. */
 function normalizeBegunEntry(raw) {
   const e = obj(raw);
   if (!isNonEmpty(e.ref) || !isNonEmpty(e.branch) || !isNonEmpty(e.begunAt)) return null;
-  return { ref: e.ref, branch: e.branch, begunAt: e.begunAt };
+  const entry = { ref: e.ref, branch: e.branch, begunAt: e.begunAt };
+  if (isSha(e.baseSha)) entry.baseSha = e.baseSha;
+  return entry;
 }
 
 function emptyBegun() {
@@ -287,14 +296,14 @@ function normalizeBegun(store) {
 }
 
 /** The store with one part recorded as begun (a later Begin of the same part replaces it). */
-function addBegun(store, { projectId, number, partId, ref, branch, begunAt }) {
+function addBegun(store, { projectId, number, partId, ref, branch, begunAt, baseSha }) {
   const base = normalizeBegun(store);
-  const entry = normalizeBegunEntry({ ref, branch, begunAt });
+  const entry = normalizeBegunEntry({ ref, branch, begunAt, baseSha });
   if (!isNonEmpty(projectId) || !Number.isInteger(number) || !isNonEmpty(partId) || !entry) return base;
   return { version: 1, begun: { ...base.begun, [begunKey(projectId, number, partId)]: entry } };
 }
 
-/** `{ ref, branch, begunAt }` for a part this machine began, or null. */
+/** `{ ref, branch, begunAt, baseSha? }` for a part this machine began, or null. */
 function getBegun(store, projectId, number, partId) {
   const begun = obj(obj(store).begun);
   const key = begunKey(projectId, number, partId);
@@ -453,11 +462,18 @@ function errorText(err) {
  * and the answer names the step and the part that was not written. Only a
  * part fully written is recorded as begun.
  *
+ * Once it is, the branch goes to the cloud (`deps.recordBranch`) with the
+ * commit it was cut from (`deps.headSha()`, read right after the checkout).
+ * That call is not awaited and its failure is swallowed: it never changes
+ * Begin's answer, and the next Briefs read sends it again (frame-cloud-brief-done
+ * D6, D9). Without a full commit id it is skipped.
+ *
  * `deps`: `{ call, projectSlug, specSlugs(), taskIds(), currentBranch(),
  * changeCount(), isValidBranchName(name), localBranchExists(name),
  * remoteBranchExists(name), begun(partId) → { branch } | null,
- * stash(message), createBranch(name, base, { track }), writeSpec(slug,
- * files), writeTasks(rows), recordBegun({ partId, ref, branch }), now() }`;
+ * stash(message), createBranch(name, base, { track }), headSha() → sha |
+ * null, writeSpec(slug, files), writeTasks(rows), recordBegun({ partId, ref,
+ * branch, baseSha }), recordBranch({ id, partId, branch, baseSha }), now() }`;
  * each may be async, and the effects throw on failure.
  */
 async function handleStartRequest(request, deps) {
@@ -542,6 +558,15 @@ async function handleStartRequest(request, deps) {
     return partial('branch', err);
   }
 
+  // The commit the branch was cut from: HEAD, right after the checkout.
+  let baseSha = null;
+  try {
+    const head = deps.headSha ? await deps.headSha() : null;
+    baseSha = isSha(head) ? head : null;
+  } catch {
+    baseSha = null;
+  }
+
   const now = deps.now();
   let begin;
   try {
@@ -556,7 +581,11 @@ async function handleStartRequest(request, deps) {
   } catch (err) {
     return partial('files', err);
   }
-  await deps.recordBegun({ partId: part.id, ref, branch });
+  await deps.recordBegun({ partId: part.id, ref, branch, baseSha });
+  if (baseSha && deps.recordBranch) {
+    // Fired, not awaited: a failure never reaches Begin's answer.
+    (async () => deps.recordBranch({ id: brief.id, partId: part.id, branch, baseSha }))().catch(() => {});
+  }
 
   return {
     ok: true,
@@ -587,6 +616,7 @@ module.exports = {
   startable,
   beginnable,
   startMode,
+  isSha,
   emptyBegun,
   normalizeBegun,
   addBegun,

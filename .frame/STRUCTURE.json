@@ -3191,6 +3191,7 @@
         "startable",
         "beginnable",
         "startMode",
+        "isSha",
         "emptyBegun",
         "normalizeBegun",
         "addBegun",
@@ -3342,37 +3343,45 @@
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
         "isNonEmpty": {
-          "line": 261,
+          "line": 262,
           "params": [
             "value"
           ]
         },
         "begunKey": {
-          "line": 265,
+          "line": 266,
           "params": [
             "projectId",
             "number",
             "partId"
           ]
         },
+        "isSha": {
+          "line": 271,
+          "params": [
+            "value"
+          ],
+          "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
+        },
         "normalizeBegunEntry": {
-          "line": 269,
+          "line": 276,
           "params": [
             "raw"
-          ]
+          ],
+          "purpose": "`{ ref, branch, begunAt, baseSha? }`, or null. `baseSha` is optional: older entries have none."
         },
         "emptyBegun": {
-          "line": 275
+          "line": 284
         },
         "normalizeBegun": {
-          "line": 280,
+          "line": 289,
           "params": [
             "store"
           ],
           "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
         },
         "addBegun": {
-          "line": 290,
+          "line": 299,
           "params": [
             "store",
             "{ projectId",
@@ -3380,22 +3389,23 @@
             "partId",
             "ref",
             "branch",
-            "begunAt }"
+            "begunAt",
+            "baseSha }"
           ],
           "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
         },
         "getBegun": {
-          "line": 298,
+          "line": 307,
           "params": [
             "store",
             "projectId",
             "number",
             "partId"
           ],
-          "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
+          "purpose": "`{ ref, branch, begunAt, baseSha? }` for a part this machine began, or null."
         },
         "withBegunBranches": {
-          "line": 314,
+          "line": 323,
           "params": [
             "briefs",
             "store",
@@ -3405,7 +3415,7 @@
           "purpose": "The briefs with `begunBranch` (a branch, or null) and `branchGone` on each"
         },
         "pickBase": {
-          "line": 332,
+          "line": 341,
           "params": [
             "targetBranch",
             "{ local",
@@ -3414,14 +3424,14 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "baseOptions": {
-          "line": 344,
+          "line": 353,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 356,
+          "line": 365,
           "params": [
             "base",
             "deps"
@@ -3429,35 +3439,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 363,
+          "line": 372,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 369,
+          "line": 378,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 378,
+          "line": 387,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 384,
+          "line": 393,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 402,
+          "line": 411,
           "params": [
             "{ brief",
             "currentBranch",
@@ -3469,13 +3479,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 435,
+          "line": 444,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 463,
+          "line": 479,
           "params": [
             "request",
             "deps"
@@ -3483,7 +3493,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →"
         }
       },
-      "sizeBytes": 23738,
+      "sizeBytes": 25111,
       "extraction": {
         "status": "parsed"
       },
@@ -3498,9 +3508,11 @@
           "branchSuggestions": "9102869dbbe47ce0",
           "definitionProblem": "ac8749c777a9fb84",
           "freeName": "a2f68960999c9348",
-          "getBegun": "e873049c10d89f40",
+          "getBegun": "70724b116f89928e",
           "handleStartRequest": "038b9a83dbd0a500",
+          "isSha": "6d00928ffed63886",
           "normalizeBegun": "7dda30a8c6888043",
+          "normalizeBegunEntry": "35068f758e214f10",
           "parseSpecDefinition": "b4271d554e31a4db",
           "parseTaskDefinition": "1a3ed6bbca001648",
           "partName": "28ee9181d4669474",
@@ -3528,6 +3540,7 @@
         "prepare",
         "start",
         "recordBegun",
+        "begunEntry",
         "withBegunBranches"
       ],
       "depends": [
@@ -3547,21 +3560,37 @@
       ],
       "functions": {
         "begunPath": {
-          "line": 36
+          "line": 37
         },
         "begun": {
-          "line": 41,
+          "line": 42,
           "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
         },
         "recordBegun": {
-          "line": 51,
+          "line": 52,
           "params": [
             "entry"
           ],
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
+        "begunEntry": {
+          "line": 62,
+          "params": [
+            "projectId",
+            "number",
+            "partId"
+          ],
+          "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null."
+        },
+        "sendBranch": {
+          "line": 70,
+          "params": [
+            "input"
+          ],
+          "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
+        },
         "withBegunBranches": {
-          "line": 65,
+          "line": 80,
           "params": [
             "briefs",
             "projectId",
@@ -3570,28 +3599,28 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 79,
+          "line": 94,
           "params": [
             "folderPath"
           ],
           "purpose": "The spec folder names in `.frame/specs/`."
         },
         "taskIds": {
-          "line": 90,
+          "line": 105,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "changeCount": {
-          "line": 96,
+          "line": 111,
           "params": [
             "folderPath"
           ],
           "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
         },
         "writeSpec": {
-          "line": 103,
+          "line": 118,
           "params": [
             "folderPath",
             "slug",
@@ -3600,7 +3629,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 113,
+          "line": 128,
           "params": [
             "folderPath",
             "rows"
@@ -3608,14 +3637,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 129,
+          "line": 144,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 137,
+          "line": 152,
           "params": [
             "folderPath",
             "number"
@@ -3623,7 +3652,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 176,
+          "line": 191,
           "params": [
             "folderPath",
             "request"
@@ -3631,13 +3660,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 212,
+          "line": 229,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 216,
+          "line": 233,
           "params": [
             "ipcMain"
           ]
@@ -3652,7 +3681,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 9732,
+      "sizeBytes": 10561,
       "extraction": {
         "status": "parsed"
       },
@@ -3660,10 +3689,12 @@
         "description": "f7ba367c3cc3105c",
         "purposes": {
           "begun": "3336d042818a4b3b",
+          "begunEntry": "1e5ee7187074315b",
           "changeCount": "d6fc4d3d5f145f10",
           "orThrow": "e948bf20ec6d85e5",
           "prepare": "aa49edcf2c714e1a",
           "recordBegun": "9bb4021aca478a6a",
+          "sendBranch": "26d55c57fae5a22a",
           "specSlugs": "b4a0a381b6d5bee4",
           "start": "7ab893a3749f4798",
           "taskIds": "f93103ee7873f53e",
@@ -29029,22 +29060,18 @@
       ],
       "functions": {
         "fakes": {
-          "line": 250,
+          "line": 252,
           "params": [
             "answers = {}"
-          ],
-          "purpose": "Fakes for every dep, recording each effect in `log`. `answers` overrides"
+          ]
         }
       },
-      "sizeBytes": 31411,
+      "sizeBytes": 35649,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "d80dde1285d8f9dd",
-        "purposes": {
-          "fakes": "a0d33d88c10c295a"
-        }
+        "description": "d80dde1285d8f9dd"
       }
     },
     "test/codexHookInstall.test": {
@@ -34730,6 +34757,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ff150f1754816bc368e655709c56bb031fcd4ebaccf000b991b1e938dc836503"
+    "revision": "3baba283c57e6d7a91a1f6b3a102cd5fab08af18dae2968845f876e505d0fbf1"
   }
 }

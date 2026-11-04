@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:52:41.385Z",
+  "lastUpdated": "2026-11-04T08:55:13.536Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10450,13 +10450,13 @@
       "title": "Make Begin record the branch: keep an optional 40-hex `baseSha` in the begun entry (`normalizeBegunEntry`, `addBegun`, `getBegun` in `cloudStart.js`), have `handleStartRequest` read `deps.headSha()` after `createBranch`, pass it to `recordBegun` and fire `deps.recordBranch({ id: brief.id, partId, branch, baseSha })` unawaited and caught (skipped without a `baseSha`), wire `headSha` to `git.getHeadSha` and `recordBranch` through `cloudProjectsService.call` in `cloudStartService.js` and export `begunEntry(projectId, number, partId)`, covered in `test/cloudStart.test.js` for 'start' and 'begin' modes, a rejecting `recordBranch` that leaves the answer unchanged, and an old entry without `baseSha`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:55:13.536Z",
+      "completedAt": "2026-11-04T08:55:13.536Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T07",
