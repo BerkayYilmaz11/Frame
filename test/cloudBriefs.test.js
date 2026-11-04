@@ -206,6 +206,97 @@ test('normalizeBriefDetail reads a part\'s definition and no longer its why', ()
   assert.equal(d.parts[1].definition, '');
 });
 
+const SHA_A = 'a'.repeat(40);
+const SHA_B = 'b'.repeat(40);
+
+test('normalizeBriefDetail reads a part\'s Done fields, null when absent or empty', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF,
+    parts: [
+      {
+        id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', recordRef: 'login-flow',
+        branch: 'feat/login', completionSha: SHA_A, mergedAt: '2026-11-01T10:00:00.000Z', mergedBase: 'main',
+        mergeSha: SHA_B, mergeEvidence: 'compare', droppedAt: null, dropReason: null,
+      },
+      { id: 'p2', position: 1, title: 'B', shape: 'task', type: 'fix', droppedAt: '2026-11-02T10:00:00.000Z', dropReason: 'Not needed' },
+      { id: 'p3', position: 2, title: 'C', shape: 'task', type: 'fix', branch: '', completionSha: 7 },
+    ],
+  });
+  const [merged, dropped, bare] = d.parts;
+  assert.equal(merged.branch, 'feat/login');
+  assert.equal(merged.completionSha, SHA_A);
+  assert.equal(merged.mergedAt, '2026-11-01T10:00:00.000Z');
+  assert.equal(merged.mergedBase, 'main');
+  assert.equal('mergeSha' in merged, false);
+  assert.equal('mergeEvidence' in merged, false);
+  assert.equal(dropped.droppedAt, '2026-11-02T10:00:00.000Z');
+  assert.equal(dropped.dropReason, 'Not needed');
+  assert.deepEqual(
+    [bare.branch, bare.completionSha, bare.mergedAt, bare.mergedBase, bare.droppedAt, bare.dropReason],
+    [null, null, null, null, null, null]
+  );
+});
+
+test('normalizeBrief reads mergeTracking, ready unless the server says needs_github', () => {
+  assert.equal(core.normalizeBrief(BRIEF).mergeTracking, 'ready');
+  assert.equal(core.normalizeBrief({ ...BRIEF, mergeTracking: 'needs_github' }).mergeTracking, 'needs_github');
+  assert.equal(core.normalizeBrief({ ...BRIEF, mergeTracking: 'ready' }).mergeTracking, 'ready');
+  assert.equal(core.normalizeBrief({ ...BRIEF, mergeTracking: 'maybe' }).mergeTracking, 'ready');
+  assert.equal(core.normalizeBriefDetail({ ...BRIEF, mergeTracking: 'needs_github' }).mergeTracking, 'needs_github');
+});
+
+test('normalizeBrief does not carry doneAt, since status places the card', () => {
+  assert.equal('doneAt' in core.normalizeBrief({ ...BRIEF, status: 'done', doneAt: '2026-11-03T10:00:00.000Z' }), false);
+});
+
+// ─── Done ─────────────────────────────────────────────────────
+
+const DONE_DETAIL = {
+  ...BRIEF,
+  status: 'active',
+  startedAt: '2026-09-25T10:00:00.000Z',
+  parts: [{ id: 'p1', position: 0, title: 'A', shape: 'spec', type: 'feature', recordRef: 'login-flow', branch: 'feat/login' }],
+};
+
+test('recordBranch POSTs brief.recordBranch with id, partId, branch and baseSha, and returns the detail', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.recordBranch': ok(DONE_DETAIL) });
+  const detail = await core.recordBranch({ ...ctx(fetchJson), id: 'b1', partId: 'p1', branch: 'feat/login', baseSha: SHA_A });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${API}/trpc/brief.recordBranch`);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', partId: 'p1', branch: 'feat/login', baseSha: SHA_A });
+  assert.equal(detail.parts[0].branch, 'feat/login');
+  assert.equal(detail.status, 'active');
+});
+
+test('recordCompletion POSTs brief.recordCompletion with id, partId and sha, and returns the detail', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/brief.recordCompletion': ok({ ...DONE_DETAIL, parts: [{ ...DONE_DETAIL.parts[0], completionSha: SHA_B }] }),
+  });
+  const detail = await core.recordCompletion({ ...ctx(fetchJson), id: 'b1', partId: 'p1', sha: SHA_B });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${API}/trpc/brief.recordCompletion`);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', partId: 'p1', sha: SHA_B });
+  assert.equal(detail.parts[0].completionSha, SHA_B);
+});
+
+test('recordBranch and recordCompletion surface a final refusal as a CloudError', async () => {
+  const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+  const branch = fakeFetch({ '/trpc/brief.recordBranch': refusal('PART_MERGED') });
+  await assert.rejects(
+    core.recordBranch({ ...ctx(branch.fetchJson), id: 'b1', partId: 'p1', branch: 'feat/x', baseSha: SHA_A }),
+    (err) => err.name === 'CloudError' && err.message === 'PART_MERGED'
+  );
+  const completion = fakeFetch({ '/trpc/brief.recordCompletion': refusal('PART_DROPPED') });
+  await assert.rejects(
+    core.recordCompletion({ ...ctx(completion.fetchJson), id: 'b1', partId: 'p1', sha: SHA_A }),
+    (err) => err.name === 'CloudError' && err.message === 'PART_DROPPED'
+  );
+});
+
 // ─── Web links ────────────────────────────────────────────────
 
 const WEB = { apiUrl: 'https://api.frame.test', webOrigin: 'https://app.frame.test', workspaceSlug: 'lab', projectSlug: 'my-app' };
@@ -499,10 +590,11 @@ test('addPartCounts reads open shaped work only, keeps its part rows, and surviv
   };
   const counted = await core.addPartCounts(call, briefs, 'my-app');
   assert.deepEqual(counted.map((b) => b.partCounts), [{ spec: 2, task: 1 }, null, null, null, null]);
+  const done = { branch: null, completionSha: null, mergedAt: null, mergedBase: null, droppedAt: null, dropReason: null };
   assert.deepEqual(counted[0].parts, [
-    { id: 'a', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
-    { id: 'b', title: '', shape: 'task', type: 'feature', key: null, recordRef: 'task-b' },
-    { id: 'c', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null },
+    { id: 'a', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null, ...done },
+    { id: 'b', title: '', shape: 'task', type: 'feature', key: null, recordRef: 'task-b', ...done },
+    { id: 'c', title: '', shape: 'spec', type: 'feature', key: null, recordRef: null, ...done },
   ]);
   assert.deepEqual(counted.slice(1).map((b) => b.parts), [null, null, null, null]);
   assert.deepEqual(asked.map((i) => i.number).sort(), [1, 2]);

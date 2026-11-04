@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:27:06.493Z",
+  "lastUpdated": "2026-11-04T08:33:10.705Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10385,13 +10385,13 @@
       "title": "Read the Done fields in `src/main/cloud/cloudBriefs.js`: `normalizePart` gains `branch`, `completionSha`, `mergedAt`, `mergedBase`, `droppedAt` and `dropReason` (string or null), `normalizeBrief` gains `mergeTracking` (`ready` | `needs_github`, default `ready`), `partRow` carries the six part fields, `addPartCounts`' comment stops saying the list carries no parts, and new `recordBranch({ …ctx, id, partId, branch, baseSha })` and `recordCompletion({ …ctx, id, partId, sha })` POST requests return the normalized detail, covered in `test/cloudBriefs.test.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:33:10.705Z",
+      "completedAt": "2026-11-04T08:33:10.705Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T02",
