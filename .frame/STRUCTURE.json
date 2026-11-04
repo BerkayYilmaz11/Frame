@@ -3387,17 +3387,17 @@
           "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
         },
         "withBegunBranches": {
-          "line": 310,
+          "line": 314,
           "params": [
             "briefs",
             "store",
             "projectId",
             "localBranches = null"
           ],
-          "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part."
+          "purpose": "The briefs with `begunBranch` (a branch, or null) and `branchGone` on each"
         },
         "pickBase": {
-          "line": 327,
+          "line": 332,
           "params": [
             "targetBranch",
             "{ local",
@@ -3406,14 +3406,14 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "baseOptions": {
-          "line": 339,
+          "line": 344,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 351,
+          "line": 356,
           "params": [
             "base",
             "deps"
@@ -3421,35 +3421,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 358,
+          "line": 363,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 364,
+          "line": 369,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 373,
+          "line": 378,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 379,
+          "line": 384,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 397,
+          "line": 402,
           "params": [
             "{ brief",
             "currentBranch",
@@ -3461,13 +3461,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 430,
+          "line": 435,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 458,
+          "line": 463,
           "params": [
             "request",
             "deps"
@@ -3475,7 +3475,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →"
         }
       },
-      "sizeBytes": 23354,
+      "sizeBytes": 23738,
       "extraction": {
         "status": "parsed"
       },
@@ -3507,7 +3507,7 @@
           "suggestBranchName": "c31bbf2b369fda63",
           "taskRow": "4f6c508de8105059",
           "taskTitle": "5d219d8897b255fb",
-          "withBegunBranches": "9da657fd50d44410"
+          "withBegunBranches": "48d6180ce6e25ff3"
         }
       }
     },
@@ -29016,7 +29016,7 @@
           "purpose": "Fakes for every dep, recording each effect in `log`. `answers` overrides"
         }
       },
-      "sizeBytes": 29503,
+      "sizeBytes": 31411,
       "extraction": {
         "status": "parsed"
       },
@@ -34710,6 +34710,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "20663a9e23f46e1bdf4f7a830754743246444cc7d674c67c06d4e75ff29ca47c"
+    "revision": "dfcbe91d96d77eff7c327052852ccd414022d902986d8d5f88dce51139248c5e"
   }
 }

@@ -302,10 +302,14 @@ function getBegun(store, projectId, number, partId) {
 }
 
 /**
- * The briefs with `begunBranch` (a branch, or null) on each listed part.
- * `localBranches` (a Set of this folder's branch names) drops an entry whose
- * branch is gone — deleted since, so the part waits to be begun again; left
- * out, every entry counts. Briefs without parts are left as they are.
+ * The briefs with `begunBranch` (a branch, or null) and `branchGone` on each
+ * listed part. `localBranches` (a Set of this folder's branch names) drops an
+ * entry whose branch is gone — deleted since, so the part waits to be begun
+ * again; left out, every entry counts. `branchGone` is true when that gone
+ * branch is also the part's cloud `branch`: this machine began it there and
+ * deleted it, so the cloud's branch must not keep the row at "On <branch>".
+ * A cloud branch begun on another machine is never gone here. Briefs without
+ * parts are left as they are.
  */
 function withBegunBranches(briefs, store, projectId, localBranches = null) {
   return arr(briefs).map((brief) => {
@@ -315,7 +319,8 @@ function withBegunBranches(briefs, store, projectId, localBranches = null) {
       parts: brief.parts.map((part) => {
         const entry = getBegun(store, projectId, brief.number, part.id);
         const live = entry && (!localBranches || localBranches.has(entry.branch));
-        return { ...part, begunBranch: live ? entry.branch : null };
+        const branchGone = Boolean(entry && !live && part.branch && part.branch === entry.branch);
+        return { ...part, begunBranch: live ? entry.branch : null, branchGone };
       }),
     };
   });

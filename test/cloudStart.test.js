@@ -559,6 +559,35 @@ test('withBegunBranches drops an entry whose branch this folder no longer has', 
   assert.deepEqual(out[0].parts.map((p) => p.begunBranch), ['feat/login-flow', null]);
 });
 
+test('withBegunBranches marks this machine\'s gone branch as gone when the cloud names it', () => {
+  const store = start.addBegun(start.emptyBegun(), { ...BEGUN, branch: 'feat/gone' });
+  const local = new Set(['main']);
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/gone' }] }];
+  const [part] = start.withBegunBranches(briefs, store, 'proj1', local)[0].parts;
+  assert.equal(part.begunBranch, null);
+  assert.equal(part.branchGone, true);
+});
+
+test('withBegunBranches never marks another machine\'s branch as gone', () => {
+  const local = new Set(['main']);
+  // No entry here: the cloud's branch was begun on another machine.
+  const elsewhere = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/theirs' }] }];
+  assert.equal(start.withBegunBranches(elsewhere, start.emptyBegun(), 'proj1', local)[0].parts[0].branchGone, false);
+  // This machine's entry names an older branch; the cloud has another machine's re-Begin.
+  const store = start.addBegun(start.emptyBegun(), { ...BEGUN, branch: 'feat/mine-gone' });
+  const rebegun = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/theirs' }] }];
+  assert.equal(start.withBegunBranches(rebegun, store, 'proj1', local)[0].parts[0].branchGone, false);
+});
+
+test('withBegunBranches keeps a live branch, and without a local list nothing is gone', () => {
+  const store = start.addBegun(start.emptyBegun(), BEGUN);
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: BEGUN.branch }] }];
+  const live = start.withBegunBranches(briefs, store, 'proj1', new Set([BEGUN.branch]))[0].parts[0];
+  assert.deepEqual([live.begunBranch, live.branchGone], [BEGUN.branch, false]);
+  const unknown = start.withBegunBranches(briefs, store, 'proj1')[0].parts[0];
+  assert.deepEqual([unknown.begunBranch, unknown.branchGone], [BEGUN.branch, false]);
+});
+
 test('withBegunBranches marks each listed part with the branch this machine began it on', () => {
   const store = start.addBegun(start.emptyBegun(), BEGUN);
   const briefs = [

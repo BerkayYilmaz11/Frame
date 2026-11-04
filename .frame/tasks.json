@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:36:18.533Z",
+  "lastUpdated": "2026-11-04T08:37:38.867Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10411,13 +10411,13 @@
       "title": "Add `branchGone` to `withBegunBranches` in `src/main/cloud/cloudStart.js` (true when this machine's own begun entry names the part's cloud `branch` and that branch is gone locally), covered in `test/cloudStart.test.js` for this machine's gone branch and for another machine's branch",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:37:38.867Z",
+      "completedAt": "2026-11-04T08:37:38.867Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T04",

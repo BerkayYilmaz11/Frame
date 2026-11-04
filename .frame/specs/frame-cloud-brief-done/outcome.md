@@ -15,3 +15,11 @@ Added `countsAsMerged(part, target)` and gave `partStatus` a `target` and Flow 3
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T03 — Add branchGone to withBegunBranches
+
+`withBegunBranches` now sets `branchGone` on each part: true only when this machine's begun entry is dropped for a missing local branch and that branch is also the part's cloud `branch`. A cloud branch with no entry here (another machine's), or one that differs from this machine's older entry (another machine's re-Begin), is never gone, and without a local branch list nothing is. Files: `src/main/cloud/cloudStart.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-04 · 2 file change(s)_
+
+---
