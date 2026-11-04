@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:33:10.705Z",
+  "lastUpdated": "2026-11-04T08:36:18.533Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10398,13 +10398,13 @@
       "title": "Make part rows read the cloud in `src/renderer/cloudBriefsCopy.js`: add `countsAsMerged(part, target)` (`mergedAt` set and `mergedBase === target`), give `partStatus` a `target` and the order dropped (\"Dropped · <reason>\", tone `dropped`) → merged (\"Merged into <target>\", tone `done`, no Run) → live lane → local record (a spec at `done` or a task at `completed` reads \"Implemented\", tone `implemented`) → the cloud `branch` unless `branchGone` (\"On <branch>\") → `begunBranch` → Not started with Begin, and make `partsSummary` read \"<merged> of <live> merged\", then the existing pieces, then \"· N dropped\", covered in `test/cloudBriefsCopy.test.js` including a merged part with a live lane, a part merged on an old target, and \"1 of 3 merged · 1 dropped\" for four parts",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:36:18.533Z",
+      "completedAt": "2026-11-04T08:36:18.533Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T03",

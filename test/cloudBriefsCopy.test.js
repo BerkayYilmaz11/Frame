@@ -484,14 +484,14 @@ test('partStatus reads a spec part by its phase, with the next command to run', 
   assert.deepEqual(at('implementing', { task_count: 7, completed_count: 3 }),
     { label: 'Implementing · 3/7', tone: 'active', run: 'spec.implement', laneName: null });
   assert.equal(at('implementing').label, 'Implementing');
-  assert.deepEqual(at('done'), { label: 'Done', tone: 'done', run: null, laneName: null });
+  assert.deepEqual(at('done'), { label: 'Implemented', tone: 'implemented', run: null, laneName: null });
 });
 
 test('partStatus reads a task part by its status', () => {
   const at = (status) => copy.partStatus({ part: taskPart, task: { status } });
   assert.deepEqual(at('pending'), { label: 'Not started', tone: 'idle', run: 'task', laneName: null });
   assert.deepEqual(at('in_progress'), { label: 'In progress', tone: 'active', run: 'task', laneName: null });
-  assert.deepEqual(at('completed'), { label: 'Done', tone: 'done', run: null, laneName: null });
+  assert.deepEqual(at('completed'), { label: 'Implemented', tone: 'implemented', run: null, laneName: null });
 });
 
 test('partStatus for a part the folder does not hold: On <branch> when this machine began it, else Not started with Begin', () => {
@@ -513,7 +513,7 @@ test('partStatus lets a live lane win, and offers no Run then', () => {
   assert.equal(copy.partStatus({ part: taskPart, task: { status: 'in_progress' }, lane: lane('agent-idle') }).label, 'Awaiting input');
   // A lane without a live agent, and a finished part, keep their own state.
   assert.equal(copy.partStatus({ part: taskPart, task: { status: 'pending' }, lane: lane('agent-working', null) }).run, 'task');
-  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'completed' }, lane: lane('agent-working') }).label, 'Done');
+  assert.equal(copy.partStatus({ part: taskPart, task: { status: 'completed' }, lane: lane('agent-working') }).label, 'Implemented');
 });
 
 test('partStatus of a part without a ref is empty', () => {
@@ -521,13 +521,97 @@ test('partStatus of a part without a ref is empty', () => {
   assert.deepEqual(copy.partStatus(), { label: '', tone: 'idle', laneName: null, run: null });
 });
 
-test('partsSummary counts done, in progress and missing, only with more than one part', () => {
+test('partsSummary counts merged, in progress and elsewhere, only with more than one part', () => {
   const s = (tone) => ({ tone });
   assert.equal(copy.partsSummary([s('active')]), '');
   assert.equal(copy.partsSummary([]), '');
-  assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 done');
-  assert.equal(copy.partsSummary([s('active'), s('attention'), s('elsewhere'), s('done')]), '1 of 4 done · 2 in progress · 1 on another branch');
-  assert.equal(copy.partsSummary([s('elsewhere'), s('elsewhere'), s('idle')]), '0 of 3 done · 2 on other branches');
+  assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 merged');
+  assert.equal(copy.partsSummary([s('active'), s('attention'), s('elsewhere'), s('done')]), '1 of 4 merged · 2 in progress · 1 on another branch');
+  assert.equal(copy.partsSummary([s('elsewhere'), s('elsewhere'), s('idle')]), '0 of 3 merged · 2 on other branches');
+  // An implemented part is neither merged nor in progress.
+  assert.equal(copy.partsSummary([s('implemented'), s('done')]), '1 of 2 merged');
+});
+
+test('partsSummary counts merged out of the live parts and the dropped beside them', () => {
+  const target = 'main';
+  const parts = [
+    { ...specPart, id: 'a', mergedAt: '2026-11-01T10:00:00.000Z', mergedBase: 'main' },
+    { ...taskPart, id: 'b', droppedAt: '2026-11-02T10:00:00.000Z', dropReason: 'Not needed' },
+    { ...specPart, id: 'c', recordRef: 'other-spec' },
+    { ...taskPart, id: 'd', recordRef: 'task-other' },
+  ];
+  const statuses = parts.map((part) => copy.partStatus({ part, target }));
+  assert.equal(copy.partsSummary(statuses), '1 of 3 merged · 1 dropped');
+  const s = (tone) => ({ tone });
+  assert.equal(copy.partsSummary([s('dropped'), s('dropped'), s('done')]), '1 of 1 merged · 2 dropped');
+  assert.equal(copy.partsSummary([s('active'), s('elsewhere'), s('dropped')]), '0 of 2 merged · 1 in progress · 1 on another branch · 1 dropped');
+});
+
+// ─── Done: merged, dropped and the cloud's branch ─────────────
+
+const MERGED = { mergedAt: '2026-11-01T10:00:00.000Z', mergedBase: 'main' };
+
+test('countsAsMerged needs a merge into the brief\'s current target', () => {
+  assert.equal(copy.countsAsMerged(MERGED, 'main'), true);
+  assert.equal(copy.countsAsMerged(MERGED, 'develop'), false);
+  assert.equal(copy.countsAsMerged({ mergedAt: null, mergedBase: 'main' }, 'main'), false);
+  assert.equal(copy.countsAsMerged({ mergedAt: '2026-11-01T10:00:00.000Z', mergedBase: null }, 'main'), false);
+  assert.equal(copy.countsAsMerged(MERGED, ''), false);
+  assert.equal(copy.countsAsMerged(MERGED, undefined), false);
+  assert.equal(copy.countsAsMerged(undefined, 'main'), false);
+});
+
+test('partStatus reads a dropped part first, with its reason and no Run', () => {
+  const dropped = { ...specPart, droppedAt: '2026-11-02T10:00:00.000Z', dropReason: 'Covered by #12' };
+  assert.deepEqual(copy.partStatus({ part: dropped, spec: { phase: 'implementing' }, target: 'main' }),
+    { label: 'Dropped · Covered by #12', tone: 'dropped', laneName: null, run: null });
+  assert.equal(copy.partStatus({ part: { ...dropped, dropReason: null }, target: 'main' }).label, 'Dropped');
+  // Dropped wins over a merge and a live lane.
+  const lane = { name: 'Frame 3', status: 'agent-working', agentName: 'claude' };
+  assert.equal(copy.partStatus({ part: { ...dropped, ...MERGED }, lane, target: 'main' }).tone, 'dropped');
+});
+
+test('partStatus reads a merged part as Merged into <target>, with no Run or Begin, whatever its local state', () => {
+  const merged = { ...taskPart, ...MERGED };
+  const want = { label: 'Merged into main', tone: 'done', laneName: null, run: null };
+  assert.deepEqual(copy.partStatus({ part: merged, task: { status: 'pending' }, target: 'main' }), want);
+  assert.deepEqual(copy.partStatus({ part: merged, task: { status: 'completed' }, target: 'main' }), want);
+  assert.deepEqual(copy.partStatus({ part: merged, target: 'main' }), want);
+  assert.deepEqual(copy.partStatus({ part: { ...merged, branch: 'fix/typo' }, target: 'main' }), want);
+});
+
+test('partStatus lets a merge win over a live lane', () => {
+  const lane = { name: 'Frame 3', status: 'agent-working', agentName: 'claude' };
+  assert.deepEqual(copy.partStatus({ part: { ...specPart, ...MERGED }, spec: { phase: 'implementing' }, lane, target: 'main' }),
+    { label: 'Merged into main', tone: 'done', laneName: null, run: null });
+});
+
+test('partStatus reads a part merged into an old target by its local state again', () => {
+  const part = { ...specPart, ...MERGED };
+  assert.deepEqual(copy.partStatus({ part, spec: { phase: 'done' }, target: 'develop' }),
+    { label: 'Implemented', tone: 'implemented', run: null, laneName: null });
+  assert.equal(copy.partStatus({ part: { ...part, branch: 'feat/login' }, target: 'develop' }).label, 'On feat/login');
+});
+
+test('partStatus reads the cloud\'s branch for a part begun on another machine', () => {
+  assert.deepEqual(copy.partStatus({ part: { ...specPart, branch: 'feat/login' }, target: 'main' }),
+    { label: 'On feat/login', tone: 'elsewhere', laneName: null, run: null });
+  // The cloud's branch wins over this machine's older record of it.
+  assert.equal(copy.partStatus({ part: { ...specPart, branch: 'feat/login-2', begunBranch: 'feat/login' } }).label, 'On feat/login-2');
+  // The folder's record still wins over the cloud's branch.
+  assert.equal(copy.partStatus({ part: { ...taskPart, branch: 'fix/typo' }, task: { status: 'in_progress' } }).label, 'In progress');
+});
+
+test('partStatus skips the cloud\'s branch when this machine\'s own branch is gone, so Begin comes back', () => {
+  const gone = { ...taskPart, branch: 'fix/typo', branchGone: true, begunBranch: null };
+  assert.deepEqual(copy.partStatus({ part: gone, target: 'main' }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
+});
+
+test('the Done words', () => {
+  assert.equal(copy.IMPLEMENTED_LABEL, 'Implemented');
+  assert.equal(copy.droppedLabel('Not needed'), 'Dropped · Not needed');
+  assert.equal(copy.droppedLabel(null), 'Dropped');
+  assert.equal(copy.mergedLabel('main'), 'Merged into main');
 });
 
 test('Run, its hints and the lane line', () => {

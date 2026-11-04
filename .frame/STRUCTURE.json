@@ -10655,6 +10655,10 @@
         "OPEN_SPEC_LABEL",
         "OPEN_TASK_LABEL",
         "partNotHereMessage",
+        "IMPLEMENTED_LABEL",
+        "countsAsMerged",
+        "droppedLabel",
+        "mergedLabel",
         "partStatus",
         "RUN_LABEL",
         "BEGIN_LABEL",
@@ -10977,64 +10981,87 @@
           "purpose": "The toast when a part was begun: \"Brief #5 started: “Login flow” on"
         },
         "specState": {
-          "line": 566,
+          "line": 573,
           "params": [
             "spec"
           ]
         },
         "taskState": {
-          "line": 579,
+          "line": 586,
           "params": [
             "task"
           ]
         },
+        "countsAsMerged": {
+          "line": 598,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "Whether a part counts as merged: the cloud saw it on a target"
+        },
+        "droppedLabel": {
+          "line": 604,
+          "params": [
+            "reason"
+          ],
+          "purpose": "A dropped part's row: \"Dropped · <reason>\", or \"Dropped\" without one."
+        },
+        "mergedLabel": {
+          "line": 609,
+          "params": [
+            "target"
+          ],
+          "purpose": "A merged part's row: \"Merged into <target>\"."
+        },
         "partStatus": {
-          "line": 596,
+          "line": 632,
           "params": [
             "{ part",
             "spec",
             "task",
-            "lane } = {}"
+            "lane",
+            "target } = {}"
           ],
           "purpose": "Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry"
         },
         "runLabel": {
-          "line": 621,
+          "line": 659,
           "params": [
             "run"
           ],
           "purpose": "A part row's button: Begin for a part still on the brief, Run for its next step."
         },
         "runHint": {
-          "line": 626,
+          "line": 664,
           "params": [
             "run"
           ],
           "purpose": "What Run does for a part, as its tooltip."
         },
         "laneLine": {
-          "line": 631,
+          "line": 669,
           "params": [
             "laneName"
           ],
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 640,
+          "line": 679,
           "params": [
             "statuses"
           ],
           "purpose": "A started brief's line under its parts, only with more than one:"
         },
         "partNotHereMessage": {
-          "line": 653,
+          "line": 694,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "submitLabel": {
-          "line": 671,
+          "line": 712,
           "params": [
             "kind",
             "pending"
@@ -11042,14 +11069,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 690,
+          "line": 731,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 695,
+          "line": 736,
           "params": [
             "number",
             "reason"
@@ -11057,7 +11084,7 @@
           "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       },
-      "sizeBytes": 31945,
+      "sizeBytes": 33920,
       "extraction": {
         "status": "parsed"
       },
@@ -11070,6 +11097,7 @@
           "beginDialogTitle": "6e7fe51344acb8ed",
           "beginHint": "e5bc78f91f366c30",
           "beginWithLabel": "547e05fff4310553",
+          "countsAsMerged": "64ff9be5a40b50d5",
           "createErrorMessage": "279a3b13f69e502c",
           "decideErrorMessage": "7713d9d00b7423e9",
           "dirtyWarning": "456a2bb5ed9fa6b5",
@@ -11077,6 +11105,7 @@
           "discussingIn": "11d6b1c5dba4c5a5",
           "discussionCountLabel": "ea83be640feacf5c",
           "discussionRecords": "7ff71724f1be00d2",
+          "droppedLabel": "2587d54d518f7223",
           "endingFact": "8c36c3386920b7d9",
           "endingLine": "e9a7bc5183494b05",
           "eventAction": "7690f1174a49eff2",
@@ -11087,6 +11116,7 @@
           "joinList": "0256b53389e83c79",
           "laneLabel": "e24a214671bf5f93",
           "laneLine": "0e006954d161ac9d",
+          "mergedLabel": "cc112b440a2b496d",
           "newCommentIds": "a5858594e44c6a30",
           "newCommentsLabel": "ee9023fa6fb9d6eb",
           "partCountLabel": "14c364fc21d64ca1",
@@ -28683,7 +28713,7 @@
           ]
         }
       },
-      "sizeBytes": 31712,
+      "sizeBytes": 37012,
       "extraction": {
         "status": "parsed"
       },
@@ -34680,6 +34710,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "b5ae7e9acb58c5695365c711aa18724852b47efec731b7b616622afa80c28720"
+    "revision": "20663a9e23f46e1bdf4f7a830754743246444cc7d674c67c06d4e75ff29ca47c"
   }
 }

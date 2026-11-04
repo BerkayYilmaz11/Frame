@@ -7,3 +7,11 @@ Added the six Done fields to `normalizePart` (`branch`, `completionSha`, `merged
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T02 — Make part rows read the cloud in cloudBriefsCopy.js
+
+Added `countsAsMerged(part, target)` and gave `partStatus` a `target` and Flow 3's order: dropped ("Dropped · <reason>", or "Dropped" with no reason) → merged ("Merged into <target>", tone `done`, no Run) → the local record, where a live lane still wins and a finished spec or task now reads "Implemented" (tone `implemented`) → the cloud `branch` unless `branchGone` → `begunBranch` → Not started with Begin. `partsSummary` now reads "<merged> of <live> merged", keeps the in-progress and elsewhere pieces, and ends with "· N dropped". `countsAsMerged` also refuses an empty target, so a brief without one never shows a merge; the panel passes no `target` until T04, so merged rows appear only from then. Files: `src/renderer/cloudBriefsCopy.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-04 · 2 file change(s)_
+
+---

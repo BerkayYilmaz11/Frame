@@ -563,11 +563,18 @@ const LANE_STATES = {
 };
 const LANE_WAITING = { label: 'Awaiting input', tone: 'attention' };
 
+/**
+ * A part finished on this machine but not merged: its spec is `done` or its
+ * task `completed`. Done is kept for a merge into the brief's target.
+ */
+const IMPLEMENTED_LABEL = 'Implemented';
+const IMPLEMENTED = { label: IMPLEMENTED_LABEL, tone: 'implemented', run: null };
+
 function specState(spec) {
   const done = Number.isInteger(spec.completed_count) ? spec.completed_count : 0;
   const total = Number.isInteger(spec.task_count) ? spec.task_count : 0;
   switch (spec.phase) {
-    case 'done': return { label: 'Done', tone: 'done', run: null };
+    case 'done': return IMPLEMENTED;
     case 'implementing':
       return { label: total > 0 ? `Implementing · ${done}/${total}` : 'Implementing', tone: 'active', run: 'spec.implement' };
     case 'tasks_generated': return { label: 'Tasks ready', tone: 'idle', run: 'spec.implement' };
@@ -577,34 +584,65 @@ function specState(spec) {
 }
 
 function taskState(task) {
-  if (task.status === 'completed') return { label: 'Done', tone: 'done', run: null };
+  if (task.status === 'completed') return IMPLEMENTED;
   if (task.status === 'in_progress') return { label: 'In progress', tone: 'active', run: 'task' };
   return { label: 'Not started', tone: 'idle', run: 'task' };
 }
 
 /**
+ * Whether a part counts as merged: the cloud saw it on a target
+ * (`mergedAt`), and that target is still the brief's (`mergedBase ===
+ * target`). A part merged into a target the brief has since moved off waits
+ * again. The web's `countsAsMerged` rule.
+ */
+function countsAsMerged(part, target) {
+  const p = part || {};
+  return Boolean(p.mergedAt) && typeof target === 'string' && target.length > 0 && p.mergedBase === target;
+}
+
+/** A dropped part's row: "Dropped · <reason>", or "Dropped" without one. */
+function droppedLabel(reason) {
+  return reason ? `Dropped · ${reason}` : 'Dropped';
+}
+
+/** A merged part's row: "Merged into <target>". */
+function mergedLabel(target) {
+  return `Merged into ${target}`;
+}
+
+/**
  * Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry
  * and `task` its `tasks.json` row (either absent when this folder does not
- * hold it), `lane` its lane info, and `part.begunBranch` the branch this
- * machine began it on. In order: the folder holds its record → the record's
- * state, where a live agent's wins (and then there is no Run: the lane is the
- * way in); else this machine began it → "On <branch>"; else it waits on the
- * brief → Not started, with Begin.
- * → `{ label, tone: 'idle' | 'active' | 'attention' | 'done' | 'elsewhere',
- * laneName, run: 'spec.plan' | 'spec.tasks' | 'spec.implement' | 'task' | 'begin' | null }`.
+ * hold it), `lane` its lane info, `target` the brief's target branch,
+ * `part.branch` the branch the cloud has for it, and `part.begunBranch` the
+ * branch this machine began it on. In order:
+ * - the cloud dropped it → "Dropped · <reason>";
+ * - it counts as merged into `target` → "Merged into <target>";
+ * - the folder holds its record → the record's state, where a live agent's
+ *   wins (and then there is no Run: the lane is the way in), and a finished
+ *   record reads "Implemented";
+ * - the cloud has its branch (unless `part.branchGone`: this machine's own
+ *   branch was deleted) → "On <branch>";
+ * - this machine began it → "On <branch>";
+ * - else it waits on the brief → Not started, with Begin.
+ * → `{ label, tone: 'idle' | 'active' | 'attention' | 'implemented' | 'done'
+ * | 'dropped' | 'elsewhere', laneName, run: 'spec.plan' | 'spec.tasks' |
+ * 'spec.implement' | 'task' | 'begin' | null }`.
  */
-function partStatus({ part, spec, task, lane } = {}) {
+function partStatus({ part, spec, task, lane, target } = {}) {
   const p = part || {};
   if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
+  if (p.droppedAt) return { label: droppedLabel(p.dropReason), tone: 'dropped', laneName: null, run: null };
+  if (countsAsMerged(p, target)) return { label: mergedLabel(target), tone: 'done', laneName: null, run: null };
   const record = p.shape === 'spec' ? spec : task;
-  if (!record) {
-    return p.begunBranch
-      ? { label: `On ${p.begunBranch}`, tone: 'elsewhere', laneName: null, run: null }
-      : { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
+  if (record) {
+    const own = p.shape === 'spec' ? specState(record) : taskState(record);
+    if (own.tone === 'implemented' || !lane || !lane.agentName) return { ...own, laneName: null };
+    return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
   }
-  const own = p.shape === 'spec' ? specState(record) : taskState(record);
-  if (own.tone === 'done' || !lane || !lane.agentName) return { ...own, laneName: null };
-  return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
+  if (p.branch && !p.branchGone) return { label: `On ${p.branch}`, tone: 'elsewhere', laneName: null, run: null };
+  if (p.begunBranch) return { label: `On ${p.begunBranch}`, tone: 'elsewhere', laneName: null, run: null };
+  return { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
 }
 
 const RUN_LABEL = 'Run';
@@ -634,18 +672,21 @@ function laneLine(laneName) {
 
 /**
  * A started brief's line under its parts, only with more than one:
- * "1 of 3 done · 1 in progress · 1 on another branch". `statuses` are
- * partStatus results.
+ * "1 of 3 merged · 1 in progress · 1 on another branch · 1 dropped". Merged
+ * counts out of the live parts; dropped parts are counted beside them.
+ * `statuses` are partStatus results.
  */
 function partsSummary(statuses) {
   const list = Array.isArray(statuses) ? statuses : [];
   if (list.length < 2) return '';
   const count = (...tones) => list.filter((s) => s && tones.includes(s.tone)).length;
-  const pieces = [`${count('done')} of ${list.length} done`];
+  const dropped = count('dropped');
+  const pieces = [`${count('done')} of ${list.length - dropped} merged`];
   const active = count('active', 'attention');
   if (active > 0) pieces.push(`${active} in progress`);
   const elsewhere = count('elsewhere');
   if (elsewhere > 0) pieces.push(`${elsewhere} on ${elsewhere === 1 ? 'another branch' : 'other branches'}`);
+  if (dropped > 0) pieces.push(`${dropped} dropped`);
   return pieces.join(' · ');
 }
 
@@ -771,6 +812,10 @@ module.exports = {
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
   partNotHereMessage,
+  IMPLEMENTED_LABEL,
+  countsAsMerged,
+  droppedLabel,
+  mergedLabel,
   partStatus,
   RUN_LABEL,
   BEGIN_LABEL,
