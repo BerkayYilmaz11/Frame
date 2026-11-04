@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T09:03:14.786Z",
+  "lastUpdated": "2026-11-04T09:05:28.500Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10502,13 +10502,13 @@
       "title": "Start a report after `cloudBriefsService.list` and `get` answer, and reload the board and the open detail in `cloudBriefsPanel.js` on `CLOUD_BRIEFS_CHANGED` for the current folder",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T09:05:28.500Z",
+      "completedAt": "2026-11-04T09:05:28.500Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T11",

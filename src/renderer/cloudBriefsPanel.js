@@ -146,6 +146,7 @@ function init(cloudHub) {
   agentDispatch.onTaskLaneActivity(() => renderPartSlots());
   ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onBriefWritten(payload));
   ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefShaped(payload));
+  ipcRenderer.on(IPC.CLOUD_BRIEFS_CHANGED, (event, payload) => onBriefsChanged(payload));
 }
 
 // What the open board was loaded against: the folder, its cloud project and
@@ -1238,6 +1239,17 @@ function onBriefWritten(payload) {
   if (!visible || folderPath !== state.getProjectPath()) return;
   load();
   if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
+}
+
+/**
+ * Main reported a part's branch or finish to the cloud (frame-cloud-brief-done):
+ * reload the board and the open brief, which now read the cloud's answer.
+ */
+function onBriefsChanged(payload) {
+  const { folderPath } = payload || {};
+  if (!visible || !folderPath || folderPath !== state.getProjectPath()) return;
+  load();
+  if (drawerMode === 'detail' && detail) loadDetail();
 }
 
 module.exports = {

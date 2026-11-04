@@ -73,3 +73,11 @@ Followup: a project with `gitSharing: local` never commits `tasks.json`, so `git
 _Captured: 2026-11-04 · 3 file change(s)_
 
 ---
+
+## T10 — Start a report after each read, and reload on CLOUD_BRIEFS_CHANGED
+
+`cloudBriefsService.list` and `get` now hand their briefs (after `withBegunBranches`) to `cloudDoneService.report` through `reportAfter`, which defers with `setImmediate` so the read answers first (D8). `cloudBriefsPanel.js` listens for `CLOUD_BRIEFS_CHANGED` and, while the panel is visible and the push names the open folder, reloads the board and any open brief detail. A push that follows a detail read reloads whichever brief is open, not one matched by number, because the payload carries only the folder. Files: `src/main/cloud/cloudBriefsService.js`, `src/renderer/cloudBriefsPanel.js`.
+
+_Captured: 2026-11-04 · 2 file change(s)_
+
+---

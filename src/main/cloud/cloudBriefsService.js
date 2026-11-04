@@ -12,8 +12,9 @@
  * out quietly and a forgotten device is registered again and retried once.
  * The writes are `create` (a new brief and its links) and `decide` (a
  * proposal moved to work); discussions are recorded by
- * cloudDiscussionsService. No other brief or milestone mutation is called
- * from here.
+ * cloudDiscussionsService. After a read answers, cloudDoneService reports
+ * the parts' branches and finishes (frame-cloud-brief-done). No other brief
+ * or milestone mutation is called from here.
  */
 
 const { IPC } = require('../../shared/ipcChannels');
@@ -21,6 +22,7 @@ const cloudSession = require('./cloudSession');
 const cloudProjectsService = require('./cloudProjectsService');
 const core = require('./cloudBriefs');
 const cloudStartService = require('./cloudStartService');
+const cloudDoneService = require('./cloudDoneService');
 
 const NOT_CONNECTED = { ok: false, reason: 'notConnected' };
 
@@ -28,6 +30,17 @@ const NOT_CONNECTED = { ok: false, reason: 'notConnected' };
 function meId() {
   const user = cloudSession.getPublicState().user;
   return user && typeof user.id === 'string' ? user.id : '';
+}
+
+/**
+ * Report what this machine knows about the read's parts once the read has
+ * answered, so the board never waits on git or on the cloud's GitHub check
+ * (frame-cloud-brief-done D8). The report never throws.
+ */
+function reportAfter(folderPath, project, briefs) {
+  setImmediate(() => {
+    cloudDoneService.report(folderPath, project, briefs).catch(() => {});
+  });
 }
 
 function webUrl(project, number) {
@@ -71,6 +84,7 @@ async function list(folderPath, { includeClosed } = {}) {
   const counted = await core.addPartCounts(call, discussed, project.slug);
   // Each part's branch when this machine began it (frame-cloud-brief-start T12).
   const begun = await cloudStartService.withBegunBranches(counted, project.id, folderPath);
+  reportAfter(folderPath, project, begun);
   return {
     ok: true,
     project: { name: project.name, slug: project.slug },
@@ -92,10 +106,12 @@ async function get(folderPath, number) {
   if (!brief.ok) return { ok: false, reason: brief.reason };
   const events = await call((ctx) => core.briefEvents({ ...ctx, id: brief.value.id }));
   if (!events.ok) return { ok: false, reason: events.reason };
+  // Each part's branch when this machine began it (frame-cloud-brief-start T15).
+  const [begun] = await cloudStartService.withBegunBranches([brief.value], project.id, folderPath);
+  reportAfter(folderPath, project, [begun]);
   return {
     ok: true,
-    // Each part's branch when this machine began it (frame-cloud-brief-start T15).
-    brief: (await cloudStartService.withBegunBranches([brief.value], project.id, folderPath))[0],
+    brief: begun,
     events: events.value,
     meId: meId(),
     canOpenWeb: Boolean(webUrl(project, number)),
