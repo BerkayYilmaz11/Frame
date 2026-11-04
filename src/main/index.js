@@ -49,6 +49,7 @@ const cloudBriefsService = require('./cloud/cloudBriefsService');
 const cloudDiscussionsService = require('./cloud/cloudDiscussionsService');
 const cloudShapeService = require('./cloud/cloudShapeService');
 const cloudStartService = require('./cloud/cloudStartService');
+const cloudDoneService = require('./cloud/cloudDoneService');
 const structureLifecycle = require('./structureLifecycle');
 
 // The running app keeps each open Frame checkout's STRUCTURE.json current
@@ -389,6 +390,7 @@ function initModulesWithWindow(window) {
   cloudDiscussionsService.init(window);
   cloudShapeService.init(window);
   cloudStartService.init(window);
+  cloudDoneService.init(window);
   activityLog.attachWindow(window);
 }
 

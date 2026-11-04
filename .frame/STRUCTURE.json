@@ -2212,6 +2212,126 @@
         }
       }
     },
+    "main/cloud/cloudDoneService": {
+      "file": "src/main/cloud/cloudDoneService.js",
+      "description": "cloudDoneService — the Electron shell around reporting a started brief's",
+      "exports": [
+        "init",
+        "report"
+      ],
+      "depends": [
+        "path",
+        "../shared/ipcChannels",
+        "../shared/frameConstants",
+        "logger",
+        "frameStore",
+        "gitBranchesManager",
+        "cloudProjectsService",
+        "cloudStartService",
+        "cloudBriefs",
+        "cloudDone"
+      ],
+      "functions": {
+        "errorText": {
+          "line": 39,
+          "params": [
+            "err"
+          ]
+        },
+        "tasksRelPath": {
+          "line": 44,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The folder's tasks.json, relative to the folder and with forward slashes; null when it sits outside it."
+        },
+        "localBranchNames": {
+          "line": 51,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "This folder's local branch names, or null when git cannot list them."
+        },
+        "finishedAt": {
+          "line": 62,
+          "params": [
+            "folderPath",
+            "tip",
+            "candidate",
+            "relPath",
+            "tasksAt"
+          ],
+          "purpose": "Is the candidate's record finished at `tip`? Read with `git show` from the"
+        },
+        "completionDue": {
+          "line": 86,
+          "params": [
+            "folderPath",
+            "stored",
+            "tip"
+          ],
+          "purpose": "Should `tip` be sent over the cloud's `stored` completion (D12)? git answers the two history questions."
+        },
+        "send": {
+          "line": 97,
+          "params": [
+            "label",
+            "fn"
+          ],
+          "purpose": "Send one record through `call()`. A final refusal is logged as information,"
+        },
+        "push": {
+          "line": 118,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "run": {
+          "line": 124,
+          "params": [
+            "folderPath",
+            "project",
+            "briefs"
+          ]
+        },
+        "report": {
+          "line": 169,
+          "params": [
+            "folderPath",
+            "project",
+            "briefs"
+          ],
+          "purpose": "Report what this machine knows about the listed briefs' parts. Single-flight"
+        },
+        "init": {
+          "line": 182,
+          "params": [
+            "window"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "CLOUD_BRIEFS_CHANGED"
+        ]
+      },
+      "sizeBytes": 7364,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "01441ed3ed432185",
+        "purposes": {
+          "completionDue": "fb77903b106b792a",
+          "finishedAt": "d34021e7fcef09ed",
+          "localBranchNames": "5f4e7d213d3938be",
+          "report": "27e9b88fc79cad10",
+          "send": "a47d13fe6a899234",
+          "tasksRelPath": "c0896f4e33f14898"
+        }
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
@@ -6571,31 +6691,32 @@
         "cloud/cloudDiscussionsService",
         "cloud/cloudShapeService",
         "cloud/cloudStartService",
+        "cloud/cloudDoneService",
         "structureLifecycle",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 67,
+          "line": 68,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 85,
+          "line": 86,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 192
+          "line": 193
         },
         "setupAllIPC": {
-          "line": 222,
+          "line": 223,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 325,
+          "line": 326,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 373,
+          "line": 374,
           "params": [
             "window"
           ],
@@ -6618,7 +6739,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 17105,
+      "sizeBytes": 17200,
       "extraction": {
         "status": "parsed"
       },
@@ -27688,7 +27809,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 17963,
+      "sizeBytes": 18288,
       "extraction": {
         "status": "parsed"
       },
@@ -33695,6 +33816,11 @@
         "name": "cloud-brief-start",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEFS_CHANGED": {
+        "name": "cloud-briefs-changed",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -33957,6 +34083,11 @@
         "module": "main/cloud/cloudDone",
         "file": "src/main/cloud/cloudDone.js",
         "description": "cloudDone — the pure core of reporting a started brief's parts to Frame"
+      },
+      {
+        "module": "main/cloud/cloudDoneService",
+        "file": "src/main/cloud/cloudDoneService.js",
+        "description": "cloudDoneService — the Electron shell around reporting a started brief's"
       },
       {
         "module": "renderer/doneWindow",
@@ -34514,6 +34645,11 @@
         "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       },
       {
+        "module": "main/cloud/cloudDoneService",
+        "file": "src/main/cloud/cloudDoneService.js",
+        "description": "cloudDoneService — the Electron shell around reporting a started brief's"
+      },
+      {
         "module": "main/cloud/cloudShapeService",
         "file": "src/main/cloud/cloudShapeService.js",
         "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work"
@@ -34887,7 +35023,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 354,
+        "parsed": 355,
         "unsupported": 86,
         "partial": 0
       }
@@ -34934,9 +35070,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 530,
+      "visitedEntries": 531,
       "traversedDirectories": 82,
-      "eligibleFiles": 440,
+      "eligibleFiles": 441,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -34953,7 +35089,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 440,
+      "indexedFiles": 441,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -34961,6 +35097,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "543b1cd70081e7a68390ec558e828004e547707baf50a111252d349b7d5d4549"
+    "revision": "bd85d55a04717ccd3241ed00fb0c4ca04df160d51860140556f545475d909b89"
   }
 }

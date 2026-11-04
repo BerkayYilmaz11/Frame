@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T09:00:01.689Z",
+  "lastUpdated": "2026-11-04T09:03:14.786Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10489,13 +10489,13 @@
       "title": "Add `src/main/cloud/cloudDoneService.js`: `report(folderPath, project, briefs)` runs single-flight per folder, resolves each candidate's tip once, reads the record at the tip only when needed (memoized by tip and ref, the tasks path relative to the folder), sends the due `recordBranch` and `recordCompletion` calls through `cloudProjectsService.call`, logs failures, and pushes `CLOUD_BRIEFS_CHANGED { folderPath }` after a successful send; add the channel to `src/shared/ipcChannels.js` and `cloudDoneService.init(window)` to `src/main/index.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T09:03:14.786Z",
+      "completedAt": "2026-11-04T09:03:14.786Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T10",

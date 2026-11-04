@@ -295,7 +295,12 @@ const IPC = {
   // Start Work dialog; start re-checks everything in main, calls brief.start,
   // then stashes, branches and writes every part into the folder.
   CLOUD_BRIEF_START_PREPARE: 'cloud-brief-start-prepare', // renderer → main (invoke): (path, number) → { ok, parts, suggestions, … } | { ok: false, reason }
-  CLOUD_BRIEF_START: 'cloud-brief-start'                  // renderer → main (invoke): (path, { number, beginPartId, branch, stash }) → { ok, … } | { ok: false, reason, … }
+  CLOUD_BRIEF_START: 'cloud-brief-start',                 // renderer → main (invoke): (path, { number, beginPartId, branch, stash }) → { ok, … } | { ok: false, reason, … }
+
+  // Frame Cloud brief done (frame-cloud-brief-done spec). After a Briefs read,
+  // main reports each part's branch and finish to the cloud; when one lands it
+  // pushes this so the panel reloads the board and the open detail.
+  CLOUD_BRIEFS_CHANGED: 'cloud-briefs-changed'            // main → renderer: { folderPath }
 };
 
 module.exports = { IPC };

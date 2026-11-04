@@ -63,3 +63,13 @@ Added `branchTipSha` (`rev-parse --verify --quiet refs/heads/<name>^{commit}`), 
 _Captured: 2026-11-04 · 1 file change(s)_
 
 ---
+
+## T09 — Add the reporter shell cloudDoneService.js
+
+Added `src/main/cloud/cloudDoneService.js`: `report` is single-flight per folder, skips git when no brief is Active, resolves each branch tip once, checks D12 before reading (`commitExists`/`isAncestor` only when a different SHA is stored), and reads `tasks.json` at the tip with `git show` (path from `frameStore.resolvePath`), memoized by folder, tip, shape and ref. Sends go through `cloudProjectsService.call`; final refusals log as info, other failures as warnings, and `CLOUD_BRIEFS_CHANGED { folderPath }` is pushed only when a send lands. Added the channel to `ipcChannels.js` and `init(window)` to `index.js`, and smoke-tested the shell in a throwaway repo with stubbed cloud calls across seven cases (completion from the tip while another branch is checked out, same tip, a new commit, an unknown stored SHA, a refusal, single-flight, a Done brief). Files: `src/main/cloud/cloudDoneService.js`, `src/shared/ipcChannels.js`, `src/main/index.js`.
+
+Followup: a project with `gitSharing: local` never commits `tasks.json`, so `git show` at a tip finds no record and its parts never send a completion; it needs its own decision.
+
+_Captured: 2026-11-04 · 3 file change(s)_
+
+---
