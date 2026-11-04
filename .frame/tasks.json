@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:55:13.536Z",
+  "lastUpdated": "2026-11-04T08:57:55.846Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10463,13 +10463,13 @@
       "title": "Add the pure reporter core `src/main/cloud/cloudDone.js` with `plan` (Active briefs only; live, unmerged parts with a `recordRef`; a branch due only while the cloud has none and the begun entry has `baseSha`; the cloud `branch` preferred, the begun branch for older parts, nothing for a branch this folder lacks), `isFinished` (a spec part when every task whose `source` starts with `spec:<slug>:` is `completed` and there is at least one; a task part when its row is `completed`), `completionDue` (stored null → due; equal to the tip, at or after the tip, or unknown here → not due; a rebased tip → due) and `countsAsMerged`, covered in a new `test/cloudDone.test.js`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:57:55.846Z",
+      "completedAt": "2026-11-04T08:57:55.846Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T08",

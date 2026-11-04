@@ -47,3 +47,11 @@ The begun entry now keeps an optional `baseSha` (only a 40-char lowercase hex id
 _Captured: 2026-11-04 · 3 file change(s)_
 
 ---
+
+## T07 — Add the pure reporter core cloudDone.js
+
+Added `src/main/cloud/cloudDone.js`. `plan` takes Active briefs only (status `active` with `startedAt`) and live parts (a `recordRef`, not dropped, not counted as merged). It sends a branch only while the cloud has none and this machine's entry has a 40-hex `baseSha`. For a completion it reads the cloud's `branch` when this folder has it, else the begun branch when this folder has it, else nothing. Also added `isFinished`, which mirrors `collectSpecTasks`/`derivePhase` for specs and checks a task's own row, and `completionDue` (D12), which refuses a non-id tip. `countsAsMerged` is defined here rather than imported from the renderer copy; a test asserts both give the same answer on every case. A begun branch is sent even when this folder has since lost it, since D10 does not ask for the branch to exist locally. Files: `src/main/cloud/cloudDone.js`, `test/cloudDone.test.js`.
+
+_Captured: 2026-11-04 · 2 file change(s)_
+
+---

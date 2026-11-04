@@ -2104,6 +2104,114 @@
         }
       }
     },
+    "main/cloud/cloudDone": {
+      "file": "src/main/cloud/cloudDone.js",
+      "description": "cloudDone — the pure core of reporting a started brief's parts to Frame",
+      "exports": [
+        "isSha",
+        "countsAsMerged",
+        "isActiveBrief",
+        "isLivePart",
+        "plan",
+        "isFinished",
+        "completionDue"
+      ],
+      "depends": [],
+      "functions": {
+        "arr": {
+          "line": 14,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 18,
+          "params": [
+            "value"
+          ]
+        },
+        "isNonEmpty": {
+          "line": 22,
+          "params": [
+            "value"
+          ]
+        },
+        "isSha": {
+          "line": 27,
+          "params": [
+            "value"
+          ],
+          "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
+        },
+        "countsAsMerged": {
+          "line": 36,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "Whether a part counts as merged: the cloud saw it on a target (`mergedAt`)"
+        },
+        "isActiveBrief": {
+          "line": 42,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Started, not Done, not closed: the only briefs whose parts are reported (D14)."
+        },
+        "isLivePart": {
+          "line": 48,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "A part still to report: linked to a record, not dropped, not merged into the brief's target (D14)."
+        },
+        "plan": {
+          "line": 68,
+          "params": [
+            "{ briefs",
+            "begun",
+            "localBranches } = {}"
+          ],
+          "purpose": "What to send for the listed briefs."
+        },
+        "isFinished": {
+          "line": 107,
+          "params": [
+            "{ shape",
+            "ref",
+            "tasks } = {}"
+          ],
+          "purpose": "Whether a part's record is finished in `tasks` (a `tasks.json` as read at"
+        },
+        "completionDue": {
+          "line": 134,
+          "params": [
+            "{ stored",
+            "tip",
+            "storedKnown",
+            "tipAtOrBeforeStored } = {}"
+          ],
+          "purpose": "Whether the tip should be sent as the part's completion, given that the"
+        }
+      },
+      "sizeBytes": 5970,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "620ddd06a8eb9bcc",
+        "purposes": {
+          "completionDue": "8ceb5f43c414f3ac",
+          "countsAsMerged": "89e846457c9cb081",
+          "isActiveBrief": "8d3cbd88d97eaaf5",
+          "isFinished": "b2468d444a5942fb",
+          "isLivePart": "02a29caeda5c24d9",
+          "isSha": "6d00928ffed63886",
+          "plan": "9e405b1212623da3"
+        }
+      }
+    },
     "main/cloud/cloudProjects": {
       "file": "src/main/cloud/cloudProjects.js",
       "description": "cloudProjects — the pure core of Frame Cloud projects.",
@@ -28880,6 +28988,46 @@
         }
       }
     },
+    "test/cloudDone.test": {
+      "file": "test/cloudDone.test.js",
+      "description": "cloudDone tests — the pure core of reporting a started brief's parts to",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/main/cloud/cloudDone",
+        "src/renderer/cloudBriefsCopy"
+      ],
+      "functions": {
+        "brief": {
+          "line": 20,
+          "params": [
+            "parts",
+            "extra = {}"
+          ],
+          "purpose": "A started, Active brief with `parts`."
+        },
+        "part": {
+          "line": 25,
+          "params": [
+            "id",
+            "extra = {}"
+          ],
+          "purpose": "A live part linked to a record, with nothing reported yet."
+        }
+      },
+      "sizeBytes": 9772,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "52ef667fbfb562ff",
+        "purposes": {
+          "brief": "ddfcf595908cb6d0",
+          "part": "976e2a4e403bd00b"
+        }
+      }
+    },
     "test/cloudEarlyAccess.test": {
       "file": "test/cloudEarlyAccess.test.js",
       "description": "cloudEarlyAccess tests — the Frame Cloud window's words while the server is",
@@ -33755,6 +33903,11 @@
     ],
     "done": [
       {
+        "module": "main/cloud/cloudDone",
+        "file": "src/main/cloud/cloudDone.js",
+        "description": "cloudDone — the pure core of reporting a started brief's parts to Frame"
+      },
+      {
         "module": "renderer/doneWindow",
         "file": "src/renderer/doneWindow.js",
         "description": "Done Window store — the renderer's one owner of `settings.doneWindow`."
@@ -34683,7 +34836,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 352,
+        "parsed": 354,
         "unsupported": 86,
         "partial": 0
       }
@@ -34730,9 +34883,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 528,
+      "visitedEntries": 530,
       "traversedDirectories": 82,
-      "eligibleFiles": 438,
+      "eligibleFiles": 440,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -34749,7 +34902,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 438,
+      "indexedFiles": 440,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -34757,6 +34910,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "3baba283c57e6d7a91a1f6b3a102cd5fab08af18dae2968845f876e505d0fbf1"
+    "revision": "4d1c10ec62112f7feb6b28831e66e90ed70dc0990162edec5d075916cca7a877"
   }
 }
