@@ -23,3 +23,11 @@ _Captured: 2026-11-04 · 2 file change(s)_
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T04 — Wire the new rows into cloudBriefsPanel.js and add the tones
+
+`partFacts(part, brief)` now passes `brief.targetBranch` to `partStatus`, and `renderPartRow` takes the brief instead of its number, so the card, the Parts tab and the live redraw of the open detail all read merges against the brief's target. `runPart` still calls `partFacts` without a brief: it only asks a rendered Run button for its command, and merged or dropped rows never render one. Added `tone-implemented` (a success-colored ring and status) and `tone-dropped` (muted dot and status, struck-through title) to `cloud-briefs.css`; merged keeps the existing `done` look (D16). Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-04 · 2 file change(s)_
+
+---

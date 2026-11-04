@@ -754,8 +754,11 @@ function renderMeta(brief, events, meId) {
 
 // ─── A started brief's parts ──────────────────────────────────
 
-/** Where one started part stands: its local record, its lane, and partStatus's reading of both. */
-function partFacts(part) {
+/**
+ * Where one started part stands: its local record, its lane, and partStatus's
+ * reading of both against its brief's target (a merge counts only into it).
+ */
+function partFacts(part, brief) {
   const ref = part.recordRef;
   const isSpec = part.shape === 'spec';
   const record = ref ? (isSpec ? local.specs.get(ref) : local.tasks.get(ref)) : null;
@@ -765,18 +768,19 @@ function partFacts(part) {
     spec: isSpec ? record || undefined : undefined,
     task: isSpec ? undefined : record || undefined,
     lane,
+    target: brief ? brief.targetBranch : undefined,
   });
   return { record, lane, status };
 }
 
 /**
- * One part of a started brief, `number` its brief: its shape, its title
- * (which opens its spec or task when this folder holds it), where it stands,
- * and either its live lane, Run for its next step, or Begin while it waits on
- * the brief.
+ * One part of a started `brief`: its shape, its title (which opens its spec
+ * or task when this folder holds it), where it stands, and either its live
+ * lane, Run for its next step, or Begin while it waits on the brief.
  */
-function renderPartRow(part, number) {
-  const { record, status } = partFacts(part);
+function renderPartRow(part, brief) {
+  const number = brief.number;
+  const { record, status } = partFacts(part, brief);
   const attrs = `data-shape="${escapeHtml(part.shape)}" data-ref="${escapeHtml(part.recordRef)}" data-number="${number}" data-part-id="${escapeHtml(part.id)}"`;
   const openLabel = part.shape === 'spec' ? copy.OPEN_SPEC_LABEL : copy.OPEN_TASK_LABEL;
   const title = record
@@ -800,8 +804,8 @@ function renderPartRow(part, number) {
 /** A started brief's card body: a row per part, and a summary line when there is more than one. */
 function renderCardParts(brief) {
   const parts = brief.parts.filter((p) => p.recordRef);
-  const summary = copy.partsSummary(parts.map((p) => partFacts(p).status));
-  return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p, brief.number)}</li>`).join('')}</ul>
+  const summary = copy.partsSummary(parts.map((p) => partFacts(p, brief).status));
+  return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p, brief)}</li>`).join('')}</ul>
     ${summary ? `<p class="cloud-briefs-prows-summary">${escapeHtml(summary)}</p>` : ''}`;
 }
 
@@ -815,7 +819,7 @@ function renderPartSlots() {
   if (drawerMode !== 'detail' || !detail || !detail.result) return;
   for (const el of detailContentElement.querySelectorAll('[data-part-row]')) {
     const part = detail.result.brief.parts.find((p) => p.id === el.dataset.partRow);
-    if (part) el.innerHTML = renderPartRow(part, detail.result.brief.number);
+    if (part) el.innerHTML = renderPartRow(part, detail.result.brief);
   }
 }
 
@@ -891,13 +895,13 @@ function renderTab(tab, brief, events, meId) {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
     // A definition is network content: escaped plain text, pre-wrapped, never markdown.
     const summary = brief.startedAt
-      ? copy.partsSummary(brief.parts.filter((p) => p.recordRef).map((p) => partFacts(p).status))
+      ? copy.partsSummary(brief.parts.filter((p) => p.recordRef).map((p) => partFacts(p, brief).status))
       : '';
     const since = [copy.shapedLine(brief.shapedAt), copy.startedLine(brief.startedAt), summary].filter(Boolean).join(' · ');
     return `${since ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(since)}</p>` : ''}
       <ol class="cloud-briefs-parts">${brief.parts.map((part) => `
         <li>
-          ${brief.startedAt && part.recordRef ? `<div class="cloud-briefs-prow-slot" data-part-row="${escapeHtml(part.id)}">${renderPartRow(part, brief.number)}</div>` : `
+          ${brief.startedAt && part.recordRef ? `<div class="cloud-briefs-prow-slot" data-part-row="${escapeHtml(part.id)}">${renderPartRow(part, brief)}</div>` : `
           <span class="cloud-briefs-part-head">
             <span class="cloud-briefs-part-title">${escapeHtml(part.title)}</span>
             <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>

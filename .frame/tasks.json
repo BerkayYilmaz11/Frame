@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T08:37:38.867Z",
+  "lastUpdated": "2026-11-04T08:51:02.984Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10424,13 +10424,13 @@
       "title": "Wire the new rows into `src/renderer/cloudBriefsPanel.js` by passing `brief.targetBranch` through `partFacts(part, brief)` on the card and in the Parts tab, and add the `tone-implemented` and `tone-dropped` rows (a struck-through title for a dropped part) to `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-04T08:51:02.984Z",
+      "completedAt": "2026-11-04T08:51:02.984Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-done-T05",
