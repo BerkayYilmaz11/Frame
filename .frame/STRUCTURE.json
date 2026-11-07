@@ -1215,6 +1215,8 @@
         "START_REFUSALS",
         "startBrief",
         "startThrough",
+        "recordBranch",
+        "recordCompletion",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -1223,20 +1225,20 @@
       ],
       "functions": {
         "str": {
-          "line": 40,
+          "line": 44,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 45,
+          "line": 49,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 49,
+          "line": 53,
           "params": [
             "set",
             "value",
@@ -1244,63 +1246,63 @@
           ]
         },
         "arr": {
-          "line": 53,
-          "params": [
-            "value"
-          ]
-        },
-        "obj": {
           "line": 57,
           "params": [
             "value"
           ]
         },
+        "obj": {
+          "line": 61,
+          "params": [
+            "value"
+          ]
+        },
         "normalizeBrief": {
-          "line": 64,
+          "line": 68,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 89,
+          "line": 94,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 103,
+          "line": 116,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 108,
+          "line": 121,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 114,
+          "line": 127,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 124,
+          "line": 137,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 129,
+          "line": 142,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 137,
+          "line": 150,
           "params": [
             "{ api",
             "token",
@@ -1312,7 +1314,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 145,
+          "line": 158,
           "params": [
             "{ api",
             "token",
@@ -1323,7 +1325,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 151,
+          "line": 164,
           "params": [
             "{ api",
             "token",
@@ -1335,7 +1337,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 162,
+          "line": 175,
           "params": [
             "{ api",
             "token",
@@ -1346,33 +1348,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 169,
+          "line": 182,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 178,
+          "line": 191,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 195,
+          "line": 208,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 208,
+          "line": 221,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 223,
+          "line": 236,
           "params": [
             "{ api",
             "token",
@@ -1383,7 +1385,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 229,
+          "line": 242,
           "params": [
             "{ api",
             "token",
@@ -1396,7 +1398,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 245,
+          "line": 258,
           "params": [
             "call",
             "{ input",
@@ -1405,7 +1407,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 265,
+          "line": 278,
           "params": [
             "{ api",
             "token",
@@ -1419,7 +1421,7 @@
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
         "decideBrief": {
-          "line": 284,
+          "line": 297,
           "params": [
             "{ api",
             "token",
@@ -1431,7 +1433,7 @@
           "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
         },
         "decideThrough": {
-          "line": 294,
+          "line": 307,
           "params": [
             "call",
             "{ id",
@@ -1440,7 +1442,7 @@
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
         "shapeBrief": {
-          "line": 319,
+          "line": 332,
           "params": [
             "{ api",
             "token",
@@ -1452,7 +1454,7 @@
           "purpose": "`brief.shape` → the brief with its new parts, normalized. Writes every part"
         },
         "startBrief": {
-          "line": 343,
+          "line": 356,
           "params": [
             "{ api",
             "token",
@@ -1464,7 +1466,7 @@
           "purpose": "`brief.start` → the brief detail, now started, normalized. Sets"
         },
         "startThrough": {
-          "line": 353,
+          "line": 366,
           "params": [
             "call",
             "{ id",
@@ -1472,8 +1474,35 @@
           ],
           "purpose": "Start a brief through `call`. The refusals come back as values, since"
         },
+        "recordBranch": {
+          "line": 389,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "partId",
+            "branch",
+            "baseSha }"
+          ],
+          "purpose": "`brief.recordBranch` → the brief detail, normalized. Records the branch a"
+        },
+        "recordCompletion": {
+          "line": 405,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "partId",
+            "sha }"
+          ],
+          "purpose": "`brief.recordCompletion` → the brief detail, normalized. Records the commit"
+        },
         "discussionFacts": {
-          "line": 373,
+          "line": 420,
           "params": [
             "events",
             "meId"
@@ -1481,7 +1510,7 @@
           "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
         },
         "addDiscussionCounts": {
-          "line": 394,
+          "line": 441,
           "params": [
             "call",
             "briefs",
@@ -1490,21 +1519,21 @@
           "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "partSummary": {
-          "line": 406,
+          "line": 453,
           "params": [
             "parts"
           ],
           "purpose": "A brief's parts counted by shape: `{ spec, task }`."
         },
         "partRow": {
-          "line": 415,
+          "line": 462,
           "params": [
             "part"
           ],
           "purpose": "A part as a card draws it: no definition, which only the detail shows."
         },
         "addPartCounts": {
-          "line": 427,
+          "line": 488,
           "params": [
             "call",
             "briefs",
@@ -1513,7 +1542,7 @@
           "purpose": "The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's"
         },
         "buildBriefWebUrl": {
-          "line": 443,
+          "line": 504,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1524,7 +1553,7 @@
           "purpose": "`{project url}/briefs/{number}` (the web's full brief page), or the project"
         }
       },
-      "sizeBytes": 19011,
+      "sizeBytes": 21508,
       "extraction": {
         "status": "parsed"
       },
@@ -1550,6 +1579,8 @@
           "normalizeLinks": "13d6b8a9f5ff0b50",
           "partRow": "565867792c7b3191",
           "partSummary": "3a75b77cc11977b4",
+          "recordBranch": "e9e4c5554a2ad989",
+          "recordCompletion": "5d001a6efe3ec148",
           "recordDiscussion": "e1cc4b6ba851b8bd",
           "shapeBrief": "14bd3ef6d03339c6",
           "startBrief": "93675f9dbd28b3ff",
@@ -1574,30 +1605,47 @@
         "cloudSession",
         "cloudProjectsService",
         "cloudBriefs",
-        "cloudStartService"
+        "cloudStartService",
+        "cloudDoneService"
       ],
       "functions": {
         "meId": {
-          "line": 28,
+          "line": 30,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
+        "reportAfter": {
+          "line": 40,
+          "params": [
+            "folderPath",
+            "project",
+            "briefs"
+          ],
+          "purpose": "Report what this machine knows about the read's parts once the read has"
+        },
         "webUrl": {
-          "line": 33,
+          "line": 46,
           "params": [
             "project",
             "number"
           ]
         },
+        "mergeTrackingOf": {
+          "line": 63,
+          "params": [
+            "briefs"
+          ],
+          "purpose": "Whether the cloud can see the project's merges, from the listed briefs"
+        },
         "list": {
-          "line": 46,
+          "line": 71,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
           ],
-          "purpose": "The folder's briefs and milestones. → `{ ok, project, briefs, milestones, meId, canOpenWeb }` or `{ ok: false, reason }`."
+          "purpose": "The folder's briefs and milestones."
         },
         "get": {
-          "line": 73,
+          "line": 100,
           "params": [
             "folderPath",
             "number"
@@ -1605,7 +1653,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 98,
+          "line": 127,
           "params": [
             "folderPath",
             "request"
@@ -1613,7 +1661,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 115,
+          "line": 144,
           "params": [
             "folderPath",
             "number",
@@ -1622,7 +1670,7 @@
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
         "openOnWeb": {
-          "line": 126,
+          "line": 155,
           "params": [
             "folderPath",
             "number"
@@ -1630,7 +1678,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 135,
+          "line": 164,
           "params": [
             "ipcMain"
           ]
@@ -1646,7 +1694,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 6855,
+      "sizeBytes": 7921,
       "extraction": {
         "status": "parsed"
       },
@@ -1656,9 +1704,11 @@
           "create": "c9319a030b86a7a0",
           "decide": "e1ba09feac8198a4",
           "get": "4ae9132825177c4c",
-          "list": "dea17dc306a21c64",
+          "list": "f21acc5f5b84c582",
           "meId": "7d748ee0ba9f4008",
-          "openOnWeb": "3cae68c594b76bf4"
+          "mergeTrackingOf": "56e0e6008d61343a",
+          "openOnWeb": "3cae68c594b76bf4",
+          "reportAfter": "e426294c1b832de0"
         }
       }
     },
@@ -2062,6 +2112,234 @@
           "stageCommand": "1daf0048f3df8927",
           "sweep": "6903d4b34317241b",
           "writePrompt": "eb7b413df798a740"
+        }
+      }
+    },
+    "main/cloud/cloudDone": {
+      "file": "src/main/cloud/cloudDone.js",
+      "description": "cloudDone — the pure core of reporting a started brief's parts to Frame",
+      "exports": [
+        "isSha",
+        "countsAsMerged",
+        "isActiveBrief",
+        "isLivePart",
+        "plan",
+        "isFinished",
+        "completionDue"
+      ],
+      "depends": [],
+      "functions": {
+        "arr": {
+          "line": 14,
+          "params": [
+            "value"
+          ]
+        },
+        "obj": {
+          "line": 18,
+          "params": [
+            "value"
+          ]
+        },
+        "isNonEmpty": {
+          "line": 22,
+          "params": [
+            "value"
+          ]
+        },
+        "isSha": {
+          "line": 27,
+          "params": [
+            "value"
+          ],
+          "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
+        },
+        "countsAsMerged": {
+          "line": 36,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "Whether a part counts as merged: the cloud saw it on a target (`mergedAt`)"
+        },
+        "isActiveBrief": {
+          "line": 42,
+          "params": [
+            "brief"
+          ],
+          "purpose": "Started, not Done, not closed: the only briefs whose parts are reported (D14)."
+        },
+        "isLivePart": {
+          "line": 48,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "A part still to report: linked to a record, not dropped, not merged into the brief's target (D14)."
+        },
+        "plan": {
+          "line": 68,
+          "params": [
+            "{ briefs",
+            "begun",
+            "localBranches } = {}"
+          ],
+          "purpose": "What to send for the listed briefs."
+        },
+        "isFinished": {
+          "line": 107,
+          "params": [
+            "{ shape",
+            "ref",
+            "tasks } = {}"
+          ],
+          "purpose": "Whether a part's record is finished in `tasks` (a `tasks.json` as read at"
+        },
+        "completionDue": {
+          "line": 134,
+          "params": [
+            "{ stored",
+            "tip",
+            "storedKnown",
+            "tipAtOrBeforeStored } = {}"
+          ],
+          "purpose": "Whether the tip should be sent as the part's completion, given that the"
+        }
+      },
+      "sizeBytes": 5970,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "620ddd06a8eb9bcc",
+        "purposes": {
+          "completionDue": "8ceb5f43c414f3ac",
+          "countsAsMerged": "89e846457c9cb081",
+          "isActiveBrief": "8d3cbd88d97eaaf5",
+          "isFinished": "b2468d444a5942fb",
+          "isLivePart": "02a29caeda5c24d9",
+          "isSha": "6d00928ffed63886",
+          "plan": "9e405b1212623da3"
+        }
+      }
+    },
+    "main/cloud/cloudDoneService": {
+      "file": "src/main/cloud/cloudDoneService.js",
+      "description": "cloudDoneService — the Electron shell around reporting a started brief's",
+      "exports": [
+        "init",
+        "report"
+      ],
+      "depends": [
+        "path",
+        "../shared/ipcChannels",
+        "../shared/frameConstants",
+        "logger",
+        "frameStore",
+        "gitBranchesManager",
+        "cloudProjectsService",
+        "cloudStartService",
+        "cloudBriefs",
+        "cloudDone"
+      ],
+      "functions": {
+        "errorText": {
+          "line": 39,
+          "params": [
+            "err"
+          ]
+        },
+        "tasksRelPath": {
+          "line": 44,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The folder's tasks.json, relative to the folder and with forward slashes; null when it sits outside it."
+        },
+        "localBranchNames": {
+          "line": 51,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "This folder's local branch names, or null when git cannot list them."
+        },
+        "finishedAt": {
+          "line": 62,
+          "params": [
+            "folderPath",
+            "tip",
+            "candidate",
+            "relPath",
+            "tasksAt"
+          ],
+          "purpose": "Is the candidate's record finished at `tip`? Read with `git show` from the"
+        },
+        "completionDue": {
+          "line": 86,
+          "params": [
+            "folderPath",
+            "stored",
+            "tip"
+          ],
+          "purpose": "Should `tip` be sent over the cloud's `stored` completion (D12)? git answers the two history questions."
+        },
+        "send": {
+          "line": 97,
+          "params": [
+            "label",
+            "fn"
+          ],
+          "purpose": "Send one record through `call()`. A final refusal is logged as information,"
+        },
+        "push": {
+          "line": 118,
+          "params": [
+            "folderPath"
+          ]
+        },
+        "run": {
+          "line": 124,
+          "params": [
+            "folderPath",
+            "project",
+            "briefs"
+          ]
+        },
+        "report": {
+          "line": 169,
+          "params": [
+            "folderPath",
+            "project",
+            "briefs"
+          ],
+          "purpose": "Report what this machine knows about the listed briefs' parts. Single-flight"
+        },
+        "init": {
+          "line": 182,
+          "params": [
+            "window"
+          ]
+        }
+      },
+      "ipc": {
+        "listens": [],
+        "emits": [
+          "CLOUD_BRIEFS_CHANGED"
+        ]
+      },
+      "sizeBytes": 7364,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "01441ed3ed432185",
+        "purposes": {
+          "completionDue": "fb77903b106b792a",
+          "finishedAt": "d34021e7fcef09ed",
+          "localBranchNames": "5f4e7d213d3938be",
+          "report": "27e9b88fc79cad10",
+          "send": "a47d13fe6a899234",
+          "tasksRelPath": "c0896f4e33f14898"
         }
       }
     },
@@ -3152,6 +3430,7 @@
         "startable",
         "beginnable",
         "startMode",
+        "isSha",
         "emptyBegun",
         "normalizeBegun",
         "addBegun",
@@ -3303,37 +3582,45 @@
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
         "isNonEmpty": {
-          "line": 261,
+          "line": 262,
           "params": [
             "value"
           ]
         },
         "begunKey": {
-          "line": 265,
+          "line": 266,
           "params": [
             "projectId",
             "number",
             "partId"
           ]
         },
+        "isSha": {
+          "line": 271,
+          "params": [
+            "value"
+          ],
+          "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
+        },
         "normalizeBegunEntry": {
-          "line": 269,
+          "line": 276,
           "params": [
             "raw"
-          ]
+          ],
+          "purpose": "`{ ref, branch, begunAt, baseSha? }`, or null. `baseSha` is optional: older entries have none."
         },
         "emptyBegun": {
-          "line": 275
+          "line": 284
         },
         "normalizeBegun": {
-          "line": 280,
+          "line": 289,
           "params": [
             "store"
           ],
           "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
         },
         "addBegun": {
-          "line": 290,
+          "line": 299,
           "params": [
             "store",
             "{ projectId",
@@ -3341,32 +3628,33 @@
             "partId",
             "ref",
             "branch",
-            "begunAt }"
+            "begunAt",
+            "baseSha }"
           ],
           "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
         },
         "getBegun": {
-          "line": 298,
+          "line": 307,
           "params": [
             "store",
             "projectId",
             "number",
             "partId"
           ],
-          "purpose": "`{ ref, branch, begunAt }` for a part this machine began, or null."
+          "purpose": "`{ ref, branch, begunAt, baseSha? }` for a part this machine began, or null."
         },
         "withBegunBranches": {
-          "line": 310,
+          "line": 323,
           "params": [
             "briefs",
             "store",
             "projectId",
             "localBranches = null"
           ],
-          "purpose": "The briefs with `begunBranch` (a branch, or null) on each listed part."
+          "purpose": "The briefs with `begunBranch` (a branch, or null) and `branchGone` on each"
         },
         "pickBase": {
-          "line": 327,
+          "line": 341,
           "params": [
             "targetBranch",
             "{ local",
@@ -3375,14 +3663,14 @@
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
         "baseOptions": {
-          "line": 339,
+          "line": 353,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 351,
+          "line": 365,
           "params": [
             "base",
             "deps"
@@ -3390,35 +3678,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 358,
+          "line": 372,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 364,
+          "line": 378,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 373,
+          "line": 387,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 379,
+          "line": 393,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 397,
+          "line": 411,
           "params": [
             "{ brief",
             "currentBranch",
@@ -3430,13 +3718,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
         },
         "errorText": {
-          "line": 430,
+          "line": 444,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 458,
+          "line": 479,
           "params": [
             "request",
             "deps"
@@ -3444,7 +3732,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →"
         }
       },
-      "sizeBytes": 23354,
+      "sizeBytes": 25111,
       "extraction": {
         "status": "parsed"
       },
@@ -3459,9 +3747,11 @@
           "branchSuggestions": "9102869dbbe47ce0",
           "definitionProblem": "ac8749c777a9fb84",
           "freeName": "a2f68960999c9348",
-          "getBegun": "e873049c10d89f40",
+          "getBegun": "70724b116f89928e",
           "handleStartRequest": "038b9a83dbd0a500",
+          "isSha": "6d00928ffed63886",
           "normalizeBegun": "7dda30a8c6888043",
+          "normalizeBegunEntry": "35068f758e214f10",
           "parseSpecDefinition": "b4271d554e31a4db",
           "parseTaskDefinition": "1a3ed6bbca001648",
           "partName": "28ee9181d4669474",
@@ -3476,7 +3766,7 @@
           "suggestBranchName": "c31bbf2b369fda63",
           "taskRow": "4f6c508de8105059",
           "taskTitle": "5d219d8897b255fb",
-          "withBegunBranches": "9da657fd50d44410"
+          "withBegunBranches": "48d6180ce6e25ff3"
         }
       }
     },
@@ -3489,6 +3779,7 @@
         "prepare",
         "start",
         "recordBegun",
+        "begunEntry",
         "withBegunBranches"
       ],
       "depends": [
@@ -3508,21 +3799,37 @@
       ],
       "functions": {
         "begunPath": {
-          "line": 36
+          "line": 37
         },
         "begun": {
-          "line": 41,
+          "line": 42,
           "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
         },
         "recordBegun": {
-          "line": 51,
+          "line": 52,
           "params": [
             "entry"
           ],
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
+        "begunEntry": {
+          "line": 62,
+          "params": [
+            "projectId",
+            "number",
+            "partId"
+          ],
+          "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null."
+        },
+        "sendBranch": {
+          "line": 70,
+          "params": [
+            "input"
+          ],
+          "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
+        },
         "withBegunBranches": {
-          "line": 65,
+          "line": 80,
           "params": [
             "briefs",
             "projectId",
@@ -3531,28 +3838,28 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 79,
+          "line": 94,
           "params": [
             "folderPath"
           ],
           "purpose": "The spec folder names in `.frame/specs/`."
         },
         "taskIds": {
-          "line": 90,
+          "line": 105,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "changeCount": {
-          "line": 96,
+          "line": 111,
           "params": [
             "folderPath"
           ],
           "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
         },
         "writeSpec": {
-          "line": 103,
+          "line": 118,
           "params": [
             "folderPath",
             "slug",
@@ -3561,7 +3868,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 113,
+          "line": 128,
           "params": [
             "folderPath",
             "rows"
@@ -3569,14 +3876,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 129,
+          "line": 144,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 137,
+          "line": 152,
           "params": [
             "folderPath",
             "number"
@@ -3584,7 +3891,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 176,
+          "line": 191,
           "params": [
             "folderPath",
             "request"
@@ -3592,13 +3899,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 212,
+          "line": 229,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 216,
+          "line": 233,
           "params": [
             "ipcMain"
           ]
@@ -3613,7 +3920,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 9732,
+      "sizeBytes": 10561,
       "extraction": {
         "status": "parsed"
       },
@@ -3621,10 +3928,12 @@
         "description": "f7ba367c3cc3105c",
         "purposes": {
           "begun": "3336d042818a4b3b",
+          "begunEntry": "1e5ee7187074315b",
           "changeCount": "d6fc4d3d5f145f10",
           "orThrow": "e948bf20ec6d85e5",
           "prepare": "aa49edcf2c714e1a",
           "recordBegun": "9bb4021aca478a6a",
+          "sendBranch": "26d55c57fae5a22a",
           "specSlugs": "b4a0a381b6d5bee4",
           "start": "7ab893a3749f4798",
           "taskIds": "f93103ee7873f53e",
@@ -5466,6 +5775,10 @@
         "remoteBranchExists",
         "currentBranch",
         "stashAll",
+        "branchTipSha",
+        "showFileAt",
+        "commitExists",
+        "isAncestor",
         "setupIPC",
         "getHeadSha",
         "branchExists",
@@ -5503,15 +5816,16 @@
           "purpose": "Execute git command with promise"
         },
         "execGitArgs": {
-          "line": 65,
+          "line": 66,
           "params": [
             "args",
-            "projectPath"
+            "projectPath",
+            "options = {}"
           ],
           "purpose": "Execute git with an argv array — no shell, so a branch name is one"
         },
         "localBranchExists": {
-          "line": 90,
+          "line": 91,
           "params": [
             "name",
             "projectPath"
@@ -5519,7 +5833,7 @@
           "purpose": "Does `refs/heads/<name>` exist in this repo?"
         },
         "remoteBranchExists": {
-          "line": 100,
+          "line": 101,
           "params": [
             "name",
             "projectPath"
@@ -5527,14 +5841,14 @@
           "purpose": "Does `refs/remotes/origin/<name>` exist in this repo? Nothing is fetched: it is what this machine has."
         },
         "currentBranch": {
-          "line": 110,
+          "line": 111,
           "params": [
             "projectPath"
           ],
           "purpose": "The checked-out branch's name, or '' when HEAD is detached or git fails."
         },
         "stashAll": {
-          "line": 124,
+          "line": 125,
           "params": [
             "projectPath",
             "message"
@@ -5542,21 +5856,21 @@
           "purpose": "Stash every change, untracked files included (`git stash push -u -m`), so"
         },
         "isWorkingTreeClean": {
-          "line": 136,
+          "line": 137,
           "params": [
             "projectPath"
           ],
           "purpose": "Check if working tree is clean"
         },
         "loadBranches": {
-          "line": 148,
+          "line": 149,
           "params": [
             "projectPath"
           ],
           "purpose": "Load all branches"
         },
         "switchBranch": {
-          "line": 206,
+          "line": 207,
           "params": [
             "projectPath",
             "branchName"
@@ -5564,7 +5878,7 @@
           "purpose": "Switch to a branch"
         },
         "createBranch": {
-          "line": 258,
+          "line": 259,
           "params": [
             "projectPath",
             "branchName",
@@ -5575,7 +5889,7 @@
           "purpose": "Create a new branch. `{ track: false }` cuts it with `--no-track`, so a"
         },
         "deleteBranch": {
-          "line": 284,
+          "line": 285,
           "params": [
             "projectPath",
             "branchName",
@@ -5584,14 +5898,14 @@
           "purpose": "Delete a branch"
         },
         "loadWorktrees": {
-          "line": 301,
+          "line": 302,
           "params": [
             "projectPath"
           ],
           "purpose": "Load worktrees"
         },
         "addWorktree": {
-          "line": 343,
+          "line": 344,
           "params": [
             "projectPath",
             "worktreePath",
@@ -5601,7 +5915,7 @@
           "purpose": "Add a worktree"
         },
         "removeWorktree": {
-          "line": 362,
+          "line": 363,
           "params": [
             "projectPath",
             "worktreePath",
@@ -5610,27 +5924,68 @@
           "purpose": "Remove a worktree"
         },
         "orchWorktreePath": {
-          "line": 384,
+          "line": 385,
           "params": [
             "projectPath",
             "slug"
           ]
         },
         "getHeadSha": {
-          "line": 388,
+          "line": 389,
           "params": [
             "projectPath"
           ]
         },
+        "isRevArg": {
+          "line": 404,
+          "params": [
+            "value"
+          ],
+          "purpose": "A value safe to pass as a revision: a non-empty string git cannot read as an option."
+        },
+        "branchTipSha": {
+          "line": 409,
+          "params": [
+            "projectPath",
+            "name"
+          ],
+          "purpose": "The full commit id a local branch points at, or null when there is no such branch."
+        },
+        "showFileAt": {
+          "line": 424,
+          "params": [
+            "projectPath",
+            "ref",
+            "relPath"
+          ],
+          "purpose": "A file's text as committed at `ref` (`git show <ref>:./<relPath>`, the path"
+        },
+        "commitExists": {
+          "line": 435,
+          "params": [
+            "projectPath",
+            "sha"
+          ],
+          "purpose": "Does this repository hold `sha` as a commit?"
+        },
+        "isAncestor": {
+          "line": 446,
+          "params": [
+            "projectPath",
+            "a",
+            "b"
+          ],
+          "purpose": "Is commit `a` an ancestor of `b`, or the same commit? false when either is unknown."
+        },
         "branchExists": {
-          "line": 397,
+          "line": 456,
           "params": [
             "projectPath",
             "branchName"
           ]
         },
         "createOrchWorktree": {
-          "line": 411,
+          "line": 470,
           "params": [
             "projectPath",
             "slug"
@@ -5638,7 +5993,7 @@
           "purpose": "Create a fresh worker worktree for a spec, branched from current HEAD."
         },
         "removeOrchWorktree": {
-          "line": 432,
+          "line": 491,
           "params": [
             "projectPath",
             "slug",
@@ -5647,7 +6002,7 @@
           "purpose": "Remove a spec's worker worktree (force). Optionally delete its work branch."
         },
         "worktreeChangedFiles": {
-          "line": 447,
+          "line": 506,
           "params": [
             "projectPath",
             "slug",
@@ -5656,7 +6011,7 @@
           "purpose": "Files actually changed on a spec's work branch relative to a base ref."
         },
         "mergeWorkToIntegration": {
-          "line": 464,
+          "line": 523,
           "params": [
             "projectPath",
             "slug"
@@ -5664,7 +6019,7 @@
           "purpose": "Merge a spec's work branch into its per-spec integration branch. Because the"
         },
         "isWorkMerged": {
-          "line": 483,
+          "line": 542,
           "params": [
             "projectPath",
             "slug"
@@ -5672,14 +6027,14 @@
           "purpose": "Whether a spec's work branch has been merged (its integration branch exists"
         },
         "listOrchBranches": {
-          "line": 499,
+          "line": 558,
           "params": [
             "projectPath"
           ],
           "purpose": "List orchestration branches present in the repo, grouped by slug. Used for"
         },
         "setupIPC": {
-          "line": 519,
+          "line": 578,
           "params": [
             "ipcMain"
           ],
@@ -5701,7 +6056,7 @@
           "TOGGLE_GIT_BRANCHES_PANEL"
         ]
       },
-      "sizeBytes": 19869,
+      "sizeBytes": 21951,
       "extraction": {
         "status": "parsed"
       },
@@ -5709,6 +6064,8 @@
         "description": "de7834a9081f3c52",
         "purposes": {
           "addWorktree": "9d5960b0200f2941",
+          "branchTipSha": "97221a09922c2e3a",
+          "commitExists": "4476e85f33b3a367",
           "createBranch": "65e6f97f28dbaa7a",
           "createOrchWorktree": "360f17a3e8ed35d7",
           "currentBranch": "69702a9570698b9b",
@@ -5716,6 +6073,8 @@
           "execGit": "eb4919d0bef0003b",
           "execGitArgs": "ab6b29b207a1cf6b",
           "init": "4ed6c1db9529d664",
+          "isAncestor": "998bcd6436ce512d",
+          "isRevArg": "6b803e3f7518c943",
           "isWorkMerged": "39ca7ffa9b37d991",
           "isWorkingTreeClean": "077fc8ab2e75ee0d",
           "listOrchBranches": "b6e87043dfe78d4c",
@@ -5727,6 +6086,7 @@
           "removeOrchWorktree": "ee09f7af04806f80",
           "removeWorktree": "679ea312f5b749d1",
           "setupIPC": "b41c7437e6910eb5",
+          "showFileAt": "f99bf5a1d96dc56b",
           "stashAll": "737899144285069e",
           "switchBranch": "7059dba0b5b50f79",
           "worktreeChangedFiles": "d674ac8f88bfbf50"
@@ -6342,31 +6702,32 @@
         "cloud/cloudDiscussionsService",
         "cloud/cloudShapeService",
         "cloud/cloudStartService",
+        "cloud/cloudDoneService",
         "structureLifecycle",
         "child_process"
       ],
       "functions": {
         "confirmQuitWithLiveAgents": {
-          "line": 67,
+          "line": 68,
           "purpose": "Quitting (or closing the window) tears down every PTY — killing running"
         },
         "createWindow": {
-          "line": 85,
+          "line": 86,
           "purpose": "Create main application window"
         },
         "probeCoreDeps": {
-          "line": 192
+          "line": 193
         },
         "setupAllIPC": {
-          "line": 222,
+          "line": 223,
           "purpose": "Setup all IPC handlers"
         },
         "init": {
-          "line": 325,
+          "line": 326,
           "purpose": "Initialize application"
         },
         "initModulesWithWindow": {
-          "line": 373,
+          "line": 374,
           "params": [
             "window"
           ],
@@ -6389,7 +6750,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 17105,
+      "sizeBytes": 17200,
       "extraction": {
         "status": "parsed"
       },
@@ -10624,6 +10985,12 @@
         "OPEN_SPEC_LABEL",
         "OPEN_TASK_LABEL",
         "partNotHereMessage",
+        "IMPLEMENTED_LABEL",
+        "MERGE_TRACKING_NOTICE",
+        "OPEN_ON_WEB_LABEL",
+        "countsAsMerged",
+        "droppedLabel",
+        "mergedLabel",
         "partStatus",
         "RUN_LABEL",
         "BEGIN_LABEL",
@@ -10946,64 +11313,87 @@
           "purpose": "The toast when a part was begun: \"Brief #5 started: “Login flow” on"
         },
         "specState": {
-          "line": 566,
+          "line": 573,
           "params": [
             "spec"
           ]
         },
         "taskState": {
-          "line": 579,
+          "line": 586,
           "params": [
             "task"
           ]
         },
+        "countsAsMerged": {
+          "line": 598,
+          "params": [
+            "part",
+            "target"
+          ],
+          "purpose": "Whether a part counts as merged: the cloud saw it on a target"
+        },
+        "droppedLabel": {
+          "line": 604,
+          "params": [
+            "reason"
+          ],
+          "purpose": "A dropped part's row: \"Dropped · <reason>\", or \"Dropped\" without one."
+        },
+        "mergedLabel": {
+          "line": 609,
+          "params": [
+            "target"
+          ],
+          "purpose": "A merged part's row: \"Merged into <target>\"."
+        },
         "partStatus": {
-          "line": 596,
+          "line": 632,
           "params": [
             "{ part",
             "spec",
             "task",
-            "lane } = {}"
+            "lane",
+            "target } = {}"
           ],
           "purpose": "Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry"
         },
         "runLabel": {
-          "line": 621,
+          "line": 659,
           "params": [
             "run"
           ],
           "purpose": "A part row's button: Begin for a part still on the brief, Run for its next step."
         },
         "runHint": {
-          "line": 626,
+          "line": 664,
           "params": [
             "run"
           ],
           "purpose": "What Run does for a part, as its tooltip."
         },
         "laneLine": {
-          "line": 631,
+          "line": 669,
           "params": [
             "laneName"
           ],
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 640,
+          "line": 679,
           "params": [
             "statuses"
           ],
           "purpose": "A started brief's line under its parts, only with more than one:"
         },
         "partNotHereMessage": {
-          "line": 653,
+          "line": 701,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "submitLabel": {
-          "line": 671,
+          "line": 719,
           "params": [
             "kind",
             "pending"
@@ -11011,14 +11401,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 690,
+          "line": 738,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 695,
+          "line": 743,
           "params": [
             "number",
             "reason"
@@ -11026,7 +11416,7 @@
           "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       },
-      "sizeBytes": 31945,
+      "sizeBytes": 34233,
       "extraction": {
         "status": "parsed"
       },
@@ -11039,6 +11429,7 @@
           "beginDialogTitle": "6e7fe51344acb8ed",
           "beginHint": "e5bc78f91f366c30",
           "beginWithLabel": "547e05fff4310553",
+          "countsAsMerged": "64ff9be5a40b50d5",
           "createErrorMessage": "279a3b13f69e502c",
           "decideErrorMessage": "7713d9d00b7423e9",
           "dirtyWarning": "456a2bb5ed9fa6b5",
@@ -11046,6 +11437,7 @@
           "discussingIn": "11d6b1c5dba4c5a5",
           "discussionCountLabel": "ea83be640feacf5c",
           "discussionRecords": "7ff71724f1be00d2",
+          "droppedLabel": "2587d54d518f7223",
           "endingFact": "8c36c3386920b7d9",
           "endingLine": "e9a7bc5183494b05",
           "eventAction": "7690f1174a49eff2",
@@ -11056,6 +11448,7 @@
           "joinList": "0256b53389e83c79",
           "laneLabel": "e24a214671bf5f93",
           "laneLine": "0e006954d161ac9d",
+          "mergedLabel": "cc112b440a2b496d",
           "newCommentIds": "a5858594e44c6a30",
           "newCommentsLabel": "ee9023fa6fb9d6eb",
           "partCountLabel": "14c364fc21d64ca1",
@@ -11330,101 +11723,109 @@
           ]
         },
         "onWindowFocus": {
-          "line": 160
+          "line": 161
         },
         "onCloudChange": {
-          "line": 170
+          "line": 171
         },
         "currentKey": {
-          "line": 205,
+          "line": 206,
           "purpose": "`${path}\\n${cloud project id}\\n${list time}` for the open folder."
         },
         "isAvailable": {
-          "line": 212,
+          "line": 213,
           "purpose": "True while the open folder is connected to a cloud project — the same test as the Connected mark."
         },
         "show": {
-          "line": 219,
+          "line": 220,
           "purpose": "Show the panel and load the board — the host calls this on mount. Show closed starts off each time."
         },
         "openBrief": {
-          "line": 239,
+          "line": 240,
           "params": [
             "number"
           ],
           "purpose": "Open the Briefs panel on one brief — the route a Discuss lane's chip"
         },
         "hide": {
-          "line": 256
+          "line": 257
         },
         "refresh": {
-          "line": 267,
+          "line": 268,
           "purpose": "Refresh re-reads the board, and the open brief with it. The New brief form is left as it is."
         },
         "load": {
-          "line": 274
+          "line": 275
         },
         "setRefreshing": {
-          "line": 315,
+          "line": 316,
           "params": [
             "on"
           ]
         },
         "openOnWeb": {
-          "line": 321,
+          "line": 322,
           "params": [
             "number"
           ]
         },
         "onContentClick": {
-          "line": 330,
+          "line": 331,
           "params": [
             "event"
           ]
         },
         "setHeader": {
-          "line": 374,
+          "line": 375,
           "params": [
             "{ count",
             "canOpenWeb }"
           ]
         },
         "renderBoard": {
-          "line": 381
+          "line": 382
+        },
+        "renderTrackingNotice": {
+          "line": 421,
+          "params": [
+            "mergeTracking",
+            "canOpenWeb"
+          ],
+          "purpose": "The project's merges cannot be seen until GitHub is connected, so an"
         },
         "renderNotice": {
-          "line": 413
+          "line": 429
         },
         "renderCards": {
-          "line": 423,
+          "line": 439,
           "params": [
             "briefs",
             "milestoneNames"
           ]
         },
         "renderCard": {
-          "line": 430,
+          "line": 446,
           "params": [
             "brief",
             "milestoneName"
           ]
         },
         "renderCardActions": {
-          "line": 474,
+          "line": 490,
           "params": [
             "brief"
           ],
           "purpose": "A card's controls. An open brief lane of either purpose comes first — one"
         },
         "goToLaneLabel": {
-          "line": 492,
+          "line": 508,
           "params": [
             "lane"
           ],
           "purpose": "\"Go to discussion\" or \"Go to shaping\", by the open lane's purpose."
         },
         "discussButton": {
-          "line": 497,
+          "line": 513,
           "params": [
             "number",
             "weight",
@@ -11435,7 +11836,7 @@
           "purpose": "Discuss as the stage's primary or secondary button; \"Discuss…\" while it starts."
         },
         "shapeButton": {
-          "line": 504,
+          "line": 520,
           "params": [
             "number",
             "action"
@@ -11443,7 +11844,7 @@
           "purpose": "Shape as a primary button; \"Shape…\" while its lane starts."
         },
         "startWorkButton": {
-          "line": 511,
+          "line": 527,
           "params": [
             "number",
             "action"
@@ -11451,63 +11852,63 @@
           "purpose": "Start Work as a primary button, where Shape was."
         },
         "moveToWorkButton": {
-          "line": 515,
+          "line": 531,
           "params": [
             "number",
             "action"
           ]
         },
         "boardBrief": {
-          "line": 520,
+          "line": 536,
           "params": [
             "number"
           ],
           "purpose": "The board's brief with this number, or null."
         },
         "renderEmpty": {
-          "line": 525,
+          "line": 541,
           "params": [
             "canOpenWeb"
           ]
         },
         "renderLoading": {
-          "line": 538
+          "line": 554
         },
         "renderMessage": {
-          "line": 543,
+          "line": 559,
           "params": [
             "text"
           ]
         },
         "renderError": {
-          "line": 548,
+          "line": 564,
           "params": [
             "reason"
           ]
         },
         "isVisible": {
-          "line": 556
+          "line": 572
         },
         "showDrawer": {
-          "line": 564,
+          "line": 580,
           "params": [
             "mode"
           ],
           "purpose": "Slide the drawer in, in `mode`. The drawer's Refresh belongs to a brief, not to the form."
         },
         "openDetail": {
-          "line": 572,
+          "line": 588,
           "params": [
             "number",
             "tab = 'description'"
           ]
         },
         "openNewBrief": {
-          "line": 582,
+          "line": 598,
           "purpose": "The New brief form in the drawer, empty each time it opens."
         },
         "onBriefCreated": {
-          "line": 592,
+          "line": 608,
           "params": [
             "{ number",
             "attachmentError }"
@@ -11515,24 +11916,24 @@
           "purpose": "A brief was created: back to the board, which reloads to show it. A link that failed leaves a notice."
         },
         "leaveDrawer": {
-          "line": 599,
+          "line": 615,
           "purpose": "Back and Esc: close the drawer, unless a create is still running."
         },
         "closeDrawer": {
-          "line": 605,
+          "line": 621,
           "purpose": "Close the drawer in either mode. An unsent form is discarded."
         },
         "loadDetail": {
-          "line": 616
+          "line": 632
         },
         "onDetailClick": {
-          "line": 650,
+          "line": 666,
           "params": [
             "event"
           ]
         },
         "openPart": {
-          "line": 683,
+          "line": 699,
           "params": [
             "shape",
             "ref"
@@ -11540,17 +11941,17 @@
           "purpose": "Open a started part's spec or task; a task this folder does not hold (another branch, another machine) says so."
         },
         "isWebUrl": {
-          "line": 693,
+          "line": 709,
           "params": [
             "url"
           ],
           "purpose": "Only http(s) links leave Frame, and only through the system browser."
         },
         "renderDetail": {
-          "line": 697
+          "line": 713
         },
         "tabCount": {
-          "line": 727,
+          "line": 743,
           "params": [
             "key",
             "brief",
@@ -11558,7 +11959,7 @@
           ]
         },
         "renderMeta": {
-          "line": 735,
+          "line": 751,
           "params": [
             "brief",
             "events",
@@ -11566,37 +11967,38 @@
           ]
         },
         "partFacts": {
-          "line": 758,
-          "params": [
-            "part"
-          ],
-          "purpose": "Where one started part stands: its local record, its lane, and partStatus's reading of both."
-        },
-        "renderPartRow": {
-          "line": 778,
+          "line": 777,
           "params": [
             "part",
-            "number"
+            "brief"
           ],
-          "purpose": "One part of a started brief, `number` its brief: its shape, its title"
+          "purpose": "Where one started part stands: its local record, its lane, and partStatus's"
+        },
+        "renderPartRow": {
+          "line": 797,
+          "params": [
+            "part",
+            "brief"
+          ],
+          "purpose": "One part of a started `brief`: its shape, its title (which opens its spec"
         },
         "renderCardParts": {
-          "line": 801,
+          "line": 821,
           "params": [
             "brief"
           ],
           "purpose": "A started brief's card body: a row per part, and a summary line when there is more than one."
         },
         "renderPartSlots": {
-          "line": 809,
+          "line": 829,
           "purpose": "Redraw every part row on screen: the cards' and the open detail's."
         },
         "loadLocal": {
-          "line": 823,
+          "line": 843,
           "purpose": "Read the open folder's specs and tasks; the answers arrive as SPEC_DATA-shaped lists and a TASKS_DATA push."
         },
         "onLocalData": {
-          "line": 837,
+          "line": 857,
           "params": [
             "projectPath",
             "{ specs",
@@ -11605,7 +12007,7 @@
           "purpose": "A specs list or a tasks.json for `projectPath`: keep it when it is the open folder's, and redraw the rows."
         },
         "runPart": {
-          "line": 852,
+          "line": 872,
           "params": [
             "{ shape",
             "ref",
@@ -11616,7 +12018,7 @@
           "purpose": "Run a part's next step through the path a spec or a task runs by today."
         },
         "enterPartLane": {
-          "line": 870,
+          "line": 890,
           "params": [
             "shape",
             "ref"
@@ -11624,14 +12026,14 @@
           "purpose": "Enter a part's live lane."
         },
         "onPartAction": {
-          "line": 876,
+          "line": 896,
           "params": [
             "actionEl"
           ],
           "purpose": "A part row's click, on a card or in the detail. → handled?"
         },
         "renderTab": {
-          "line": 889,
+          "line": 909,
           "params": [
             "tab",
             "brief",
@@ -11640,7 +12042,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 951,
+          "line": 971,
           "params": [
             "events",
             "meId",
@@ -11649,7 +12051,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 980,
+          "line": 1000,
           "params": [
             "brief",
             "events"
@@ -11657,7 +12059,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 999,
+          "line": 1019,
           "params": [
             "brief",
             "events",
@@ -11666,30 +12068,30 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 1015,
+          "line": 1035,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 1051
+          "line": 1071
         },
         "confirmMoveToWork": {
-          "line": 1057,
+          "line": 1077,
           "params": [
             "priority"
           ]
         },
         "startWork": {
-          "line": 1092,
+          "line": 1112,
           "params": [
             "brief"
           ],
           "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
         },
         "openStartDialog": {
-          "line": 1097,
+          "line": 1117,
           "params": [
             "number",
             "partId"
@@ -11697,21 +12099,21 @@
           "purpose": "The Start Work dialog, or Begin on part `partId` of a started brief."
         },
         "openBeginLane": {
-          "line": 1115,
+          "line": 1135,
           "params": [
             "begin"
           ],
           "purpose": "Begin: a lane on the chosen part, through the paths a spec or a task runs"
         },
         "reloadAfterStart": {
-          "line": 1130,
+          "line": 1150,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 1141,
+          "line": 1161,
           "params": [
             "brief",
             "{ purpose",
@@ -11721,39 +12123,46 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 1178,
+          "line": 1198,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 1183,
+          "line": 1203,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1188,
+          "line": 1208,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1207,
+          "line": 1227,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1217,
+          "line": 1237,
           "params": [
             "payload"
           ],
           "purpose": "A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen."
+        },
+        "onBriefsChanged": {
+          "line": 1248,
+          "params": [
+            "payload"
+          ],
+          "purpose": "Main reported a part's branch or finish to the cloud (frame-cloud-brief-done):"
         }
       },
       "ipc": {
@@ -11761,14 +12170,15 @@
           "SPEC_DATA",
           "TASKS_DATA",
           "CLOUD_BRIEF_DISCUSSION_RECORDED",
-          "CLOUD_BRIEF_SHAPED"
+          "CLOUD_BRIEF_SHAPED",
+          "CLOUD_BRIEFS_CHANGED"
         ],
         "emits": [
           "LOAD_TASKS",
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 55034,
+      "sizeBytes": 56462,
       "extraction": {
         "status": "parsed"
       },
@@ -11789,6 +12199,7 @@
           "onBriefCreated": "e4939acfc0834600",
           "onBriefShaped": "6eee9f5bc75f30c5",
           "onBriefWritten": "d2cba4c671cb1348",
+          "onBriefsChanged": "bd9fcadc3823f421",
           "onLocalData": "127e9558f146937e",
           "onPartAction": "f8e2c12541b08cb1",
           "openBeginLane": "49bea66705766eff",
@@ -11797,7 +12208,7 @@
           "openNewBrief": "22d6059b5ffe2696",
           "openPart": "d829b0527022b6c3",
           "openStartDialog": "231840d4193b7066",
-          "partFacts": "f0f2e1968fec6cc1",
+          "partFacts": "043cdf78acd25634",
           "refresh": "b18254a1d182e6ec",
           "reloadAfterStart": "e45620d4e46c7fdf",
           "renderCardActions": "5b8ff7b44558d907",
@@ -11805,9 +12216,10 @@
           "renderDiscussAction": "4cb2a45e0f64b5bf",
           "renderDiscussions": "3a1df4493496986e",
           "renderLaneSlots": "4c62389151fb39cf",
-          "renderPartRow": "3f0cc4dbd3c16df1",
+          "renderPartRow": "400a76b34711698e",
           "renderPartSlots": "2c80804fc6fa4418",
           "renderRediscuss": "e7cbda526f97c4e2",
+          "renderTrackingNotice": "98ca68e2bed74cc0",
           "runPart": "5ece223368189610",
           "shape": "7d9061249397a87a",
           "shapeButton": "604a15810d0c9f7d",
@@ -20214,7 +20626,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 28856,
+      "sizeBytes": 30032,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -27417,7 +27829,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 17948,
+      "sizeBytes": 18288,
       "extraction": {
         "status": "parsed"
       },
@@ -28597,7 +29009,7 @@
           "purpose": "Scripted fetch, one answer per path. A GET's `?input=` is decoded into `input`."
         },
         "fakeCall": {
-          "line": 315,
+          "line": 406,
           "params": [
             "{ createFails",
             "failAttachmentAt } = {}"
@@ -28605,14 +29017,14 @@
           "purpose": "A `call()` stand-in: runs each fn against a fake fetch, failing where told."
         },
         "decideCall": {
-          "line": 516,
+          "line": 608,
           "params": [
             "answer"
           ],
           "purpose": "A `call()` over a fake fetch that answers brief.decide with `answer`."
         }
       },
-      "sizeBytes": 30231,
+      "sizeBytes": 35221,
       "extraction": {
         "status": "parsed"
       },
@@ -28652,7 +29064,7 @@
           ]
         }
       },
-      "sizeBytes": 31712,
+      "sizeBytes": 37211,
       "extraction": {
         "status": "parsed"
       },
@@ -28765,6 +29177,46 @@
         "description": "c62cc460cefba8cb",
         "purposes": {
           "fakeDeps": "55362a5581b8c427"
+        }
+      }
+    },
+    "test/cloudDone.test": {
+      "file": "test/cloudDone.test.js",
+      "description": "cloudDone tests — the pure core of reporting a started brief's parts to",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/main/cloud/cloudDone",
+        "src/renderer/cloudBriefsCopy"
+      ],
+      "functions": {
+        "brief": {
+          "line": 20,
+          "params": [
+            "parts",
+            "extra = {}"
+          ],
+          "purpose": "A started, Active brief with `parts`."
+        },
+        "part": {
+          "line": 25,
+          "params": [
+            "id",
+            "extra = {}"
+          ],
+          "purpose": "A live part linked to a record, with nothing reported yet."
+        }
+      },
+      "sizeBytes": 9772,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "52ef667fbfb562ff",
+        "purposes": {
+          "brief": "ddfcf595908cb6d0",
+          "part": "976e2a4e403bd00b"
         }
       }
     },
@@ -28948,22 +29400,18 @@
       ],
       "functions": {
         "fakes": {
-          "line": 250,
+          "line": 252,
           "params": [
             "answers = {}"
-          ],
-          "purpose": "Fakes for every dep, recording each effect in `log`. `answers` overrides"
+          ]
         }
       },
-      "sizeBytes": 29503,
+      "sizeBytes": 35649,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "d80dde1285d8f9dd",
-        "purposes": {
-          "fakes": "a0d33d88c10c295a"
-        }
+        "description": "d80dde1285d8f9dd"
       }
     },
     "test/codexHookInstall.test": {
@@ -33388,6 +33836,11 @@
         "name": "cloud-brief-start",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEFS_CHANGED": {
+        "name": "cloud-briefs-changed",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -33646,6 +34099,16 @@
       }
     ],
     "done": [
+      {
+        "module": "main/cloud/cloudDone",
+        "file": "src/main/cloud/cloudDone.js",
+        "description": "cloudDone — the pure core of reporting a started brief's parts to Frame"
+      },
+      {
+        "module": "main/cloud/cloudDoneService",
+        "file": "src/main/cloud/cloudDoneService.js",
+        "description": "cloudDoneService — the Electron shell around reporting a started brief's"
+      },
       {
         "module": "renderer/doneWindow",
         "file": "src/renderer/doneWindow.js",
@@ -34202,6 +34665,11 @@
         "description": "cloudDiscussionsService — the Electron shell around discussing a Frame"
       },
       {
+        "module": "main/cloud/cloudDoneService",
+        "file": "src/main/cloud/cloudDoneService.js",
+        "description": "cloudDoneService — the Electron shell around reporting a started brief's"
+      },
+      {
         "module": "main/cloud/cloudShapeService",
         "file": "src/main/cloud/cloudShapeService.js",
         "description": "cloudShapeService — the Electron shell around shaping a Frame Cloud work"
@@ -34575,7 +35043,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 352,
+        "parsed": 355,
         "unsupported": 86,
         "partial": 0
       }
@@ -34622,9 +35090,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 528,
+      "visitedEntries": 531,
       "traversedDirectories": 82,
-      "eligibleFiles": 438,
+      "eligibleFiles": 441,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -34641,7 +35109,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 438,
+      "indexedFiles": 441,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -34649,6 +35117,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "26b6dfb8b37272756df4caafe78172d9764f0607437224956a327d1f1b7d40b0"
+    "revision": "a1e157771bc52df78154229560099d2eb88687e96e61663d4066b22c971b9659"
   }
 }

@@ -6,9 +6,11 @@
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
  * recording a discussion on a proposal (`brief.recordDiscussion`); and moving
  * a proposal to work (`brief.decide`); shaping an open work brief into its
- * parts (`brief.shape`); and marking a shaped brief started with each part's
- * local spec slug or task id (`brief.start`); every other brief or milestone
- * mutation stays on the web.
+ * parts (`brief.shape`); marking a shaped brief started with each part's
+ * local spec slug or task id (`brief.start`); and reporting the branch a part
+ * was begun on and the commit where it finished (`brief.recordBranch`,
+ * `brief.recordCompletion`). Every other brief or milestone mutation — a
+ * part merged, a brief Done — stays on the server or the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -27,6 +29,8 @@ const STATUSES = new Set(['backlog', 'active', 'done', 'closed']);
 const PART_SHAPES = new Set(['spec', 'task']);
 const PART_TYPES = new Set(['feature', 'fix', 'refactor', 'docs', 'test']);
 const MILESTONE_STATUSES = new Set(['planned', 'started', 'closed']);
+/** Whether the cloud can see the project's merges: GitHub connected, or not yet. */
+const MERGE_TRACKING = new Set(['ready', 'needs_github']);
 
 /**
  * The server's limits (FrameCloud `BRIEF_TITLE_MAX`, `BRIEF_TEXT_MAX`,
@@ -81,6 +85,7 @@ function normalizeBrief(raw) {
     recordedDecisionAt: strOrNull(b.recordedDecisionAt),
     shapedAt: strOrNull(b.shapedAt),
     startedAt: strOrNull(b.startedAt),
+    mergeTracking: oneOf(MERGE_TRACKING, b.mergeTracking, 'ready'),
     createdAt: str(b.createdAt),
     updatedAt: str(b.updatedAt),
   };
@@ -97,6 +102,14 @@ function normalizePart(raw) {
     definition: str(p.definition),
     key: strOrNull(p.key),
     recordRef: strOrNull(p.recordRef),
+    // Done (FrameCloud brief-done): the branch the part was begun on, the
+    // commit where it finished, and the merge or drop the cloud recorded.
+    branch: strOrNull(p.branch),
+    completionSha: strOrNull(p.completionSha),
+    mergedAt: strOrNull(p.mergedAt),
+    mergedBase: strOrNull(p.mergedBase),
+    droppedAt: strOrNull(p.droppedAt),
+    dropReason: strOrNull(p.dropReason),
   };
 }
 
@@ -365,6 +378,40 @@ async function startThrough(call, { id, parts }) {
   return { ok: true, detail: result.value.detail };
 }
 
+// ─── Done ─────────────────────────────────────────────────────
+
+/**
+ * `brief.recordBranch` → the brief detail, normalized. Records the branch a
+ * part was begun on and the commit it was cut from (`baseSha`, 40 lowercase
+ * hex). Replaces a live part's branch; a repeat of the stored values writes
+ * nothing. Throws CloudError (`PART_DROPPED`, `PART_MERGED`, `NOT_STARTED`, …).
+ */
+async function recordBranch({ api, token, fetchJson, signal, id, partId, branch, baseSha }) {
+  const data = await callTrpc({
+    api, token, fetchJson, signal,
+    name: 'brief.recordBranch',
+    method: 'POST',
+    input: { id, partId, branch, baseSha },
+  });
+  return normalizeBriefDetail(data);
+}
+
+/**
+ * `brief.recordCompletion` → the brief detail, normalized. Records the commit
+ * where a part finished (`sha`, 40 lowercase hex); the cloud then checks it
+ * against the brief's target. A repeat writes nothing. Throws CloudError
+ * (`PART_DROPPED`, `NOT_STARTED`, …).
+ */
+async function recordCompletion({ api, token, fetchJson, signal, id, partId, sha }) {
+  const data = await callTrpc({
+    api, token, fetchJson, signal,
+    name: 'brief.recordCompletion',
+    method: 'POST',
+    input: { id, partId, sha },
+  });
+  return normalizeBriefDetail(data);
+}
+
 /**
  * From a brief's events (oldest first): how many discussions were recorded,
  * and how many comments someone other than `meId` added after the latest
@@ -413,16 +460,30 @@ function partSummary(parts) {
 
 /** A part as a card draws it: no definition, which only the detail shows. */
 function partRow(part) {
-  return { id: part.id, title: part.title, shape: part.shape, type: part.type, key: part.key, recordRef: part.recordRef };
+  return {
+    id: part.id,
+    title: part.title,
+    shape: part.shape,
+    type: part.type,
+    key: part.key,
+    recordRef: part.recordRef,
+    branch: part.branch,
+    completionSha: part.completionSha,
+    mergedAt: part.mergedAt,
+    mergedBase: part.mergedBase,
+    droppedAt: part.droppedAt,
+    dropReason: part.dropReason,
+  };
 }
 
 /**
  * The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's
- * id, title, shape, type and `recordRef`, in order) on each open shaped work
- * brief, from its `brief.getByNumber` (the list does not carry parts). `call`
- * is cloudProjectsService's wrapper; a brief whose detail fails to load gets
- * `null`s, never a failed board. Every other brief gets `null`s without a
- * request.
+ * row, see partRow, in order) on each open shaped work brief, from its
+ * `brief.getByNumber`. `brief.list` now carries parts too, but without the
+ * definition and only since FrameCloud's brief-done, so the board keeps
+ * reading them here. `call` is cloudProjectsService's wrapper; a brief whose
+ * detail fails to load gets `null`s, never a failed board. Every other brief
+ * gets `null`s without a request.
  */
 async function addPartCounts(call, briefs, projectSlug) {
   const none = { partCounts: null, parts: null };
@@ -474,5 +535,7 @@ module.exports = {
   START_REFUSALS,
   startBrief,
   startThrough,
+  recordBranch,
+  recordCompletion,
   buildBriefWebUrl,
 };

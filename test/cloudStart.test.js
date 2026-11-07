@@ -247,9 +247,12 @@ const refusal = (code) => ({ status: 400, body: { error: { message: code, data: 
  * the cloud (`get`, `start`), the folder (`specSlugs`, `taskIds`, `local`,
  * `remote`, `changeCount`) and failures (`fail: 'stash' | 'branch' | 'spec' | 'tasks'`).
  */
+const HEAD = 'c'.repeat(40);
+
 function fakes(answers = {}) {
   const log = [];
   const sent = [];
+  const branches = [];
   const fetchJson = async (url, opts = {}) => {
     const name = url.slice(`${API}/trpc/`.length).split('?')[0];
     sent.push({ name, body: opts.body });
@@ -280,13 +283,15 @@ function fakes(answers = {}) {
     remoteBranchExists: async (name) => (answers.remote || []).includes(name),
     stash: async (message) => { failing('stash'); log.push(['stash', message]); },
     createBranch: async (name, base, opts) => { failing('branch'); log.push(['branch', name, base, opts]); },
+    headSha: async () => ('headSha' in answers ? answers.headSha : HEAD),
+    recordBranch: answers.recordBranch || (async (input) => { branches.push(input); }),
     writeSpec: async (slug, files) => { failing('spec'); log.push(['spec', slug, files]); },
     writeTasks: async (rows) => { failing('tasks'); log.push(['tasks', rows]); },
     begun: async (partId) => (answers.begun || {})[partId] || null,
     recordBegun: async (entry) => log.push(['recorded', entry]),
     now: () => NOW,
   };
-  return { deps, log, sent, starts: () => sent.filter((s) => s.name === 'brief.start') };
+  return { deps, log, sent, branches, starts: () => sent.filter((s) => s.name === 'brief.start') };
 }
 
 const REQUEST = { number: 3, beginPartId: 'p1', branch: 'feat/login-flow', stash: false };
@@ -359,7 +364,7 @@ test('Start with a spec: brief.start reserves every ref, and only the chosen par
   assert.deepEqual(log.map((e) => e[0]), ['branch', 'spec', 'recorded']);
   assert.deepEqual(log[0], ['branch', 'feat/login-flow', 'main', { track: true }]);
   assert.equal(log[1][2]['spec.md'], `# Login flow\n\n${SPEC_DEF}\n`);
-  assert.deepEqual(log[2][1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow' });
+  assert.deepEqual(log[2][1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', baseSha: HEAD });
 });
 
 test('the ref written is the one reserved, after a local collision', async () => {
@@ -521,6 +526,61 @@ test('a failure after the checks is partial, names the part, and records nothing
   }
 });
 
+// ─── Begin records the branch (frame-cloud-brief-done) ────────
+
+test('Start sends recordBranch once with the branch and the commit it was cut from', async () => {
+  const { deps, branches } = fakes();
+  const result = await start.handleStartRequest(REQUEST, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(branches, [{ id: 'b1', partId: 'p1', branch: 'feat/login-flow', baseSha: HEAD }]);
+});
+
+test('Begin sends recordBranch once with the branch and the base SHA', async () => {
+  const { deps, log, branches } = fakes({ get: ok(STARTED) });
+  const result = await start.handleStartRequest({ ...REQUEST, beginPartId: 'p2', branch: 'fix/typo' }, deps);
+  assert.equal(result.mode, 'begin');
+  assert.deepEqual(branches, [{ id: 'b1', partId: 'p2', branch: 'fix/typo', baseSha: HEAD }]);
+  assert.deepEqual(log[2][1], { partId: 'p2', ref: 'task-fix-typo', branch: 'fix/typo', baseSha: HEAD });
+});
+
+test('a rejecting or throwing recordBranch leaves Begin\'s answer unchanged', async () => {
+  for (const mode of ['start', 'begin']) {
+    const answers = mode === 'begin' ? { get: ok(STARTED) } : {};
+    const request = mode === 'begin' ? { ...REQUEST, beginPartId: 'p2', branch: 'fix/typo' } : REQUEST;
+    const want = await start.handleStartRequest(request, fakes(answers).deps);
+    let calls = 0;
+    const rejecting = fakes({ ...answers, recordBranch: async () => { calls += 1; throw new Error('offline'); } });
+    assert.deepEqual(await start.handleStartRequest(request, rejecting.deps), want, mode);
+    const throwing = fakes({ ...answers, recordBranch: () => { calls += 1; throw new Error('boom'); } });
+    assert.deepEqual(await start.handleStartRequest(request, throwing.deps), want, mode);
+    assert.equal(calls, 2, mode);
+    assert.equal(rejecting.log.some((e) => e[0] === 'recorded'), true, mode);
+  }
+  // Let the swallowed rejections settle inside this test.
+  await new Promise((resolve) => setImmediate(resolve));
+});
+
+test('without a full commit id the branch is recorded here but not sent', async () => {
+  for (const headSha of [null, '', 'abc123', 'C'.repeat(40)]) {
+    const { deps, log, branches } = fakes({ headSha });
+    assert.equal((await start.handleStartRequest(REQUEST, deps)).ok, true);
+    assert.deepEqual(branches, [], String(headSha));
+    assert.deepEqual(log[2][1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', baseSha: null });
+  }
+  const failing = fakes();
+  failing.deps.headSha = async () => { throw new Error('git broke'); };
+  assert.equal((await start.handleStartRequest(REQUEST, failing.deps)).ok, true);
+  assert.deepEqual(failing.branches, []);
+});
+
+test('a Begin that fails partway sends no branch', async () => {
+  for (const fail of ['branch', 'spec']) {
+    const { deps, branches } = fakes({ fail });
+    assert.equal((await start.handleStartRequest(REQUEST, deps)).reason, 'partial', fail);
+    assert.deepEqual(branches, [], fail);
+  }
+});
+
 // ─── Begun parts ──────────────────────────────────────────────
 
 const BEGUN = { projectId: 'proj1', number: 3, partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW };
@@ -531,6 +591,20 @@ test('addBegun records a part under its project, brief and part, and getBegun re
   assert.equal(start.getBegun(store, 'proj1', 3, 'p2'), null);
   assert.equal(start.getBegun(store, 'proj2', 3, 'p1'), null);
   assert.equal(start.getBegun(store, 'proj1', 4, 'p1'), null);
+});
+
+test('the begun entry keeps a 40-hex baseSha, and an old entry without one still reads', () => {
+  const sha = 'a'.repeat(40);
+  const store = start.addBegun(start.emptyBegun(), { ...BEGUN, baseSha: sha });
+  assert.deepEqual(start.getBegun(store, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW, baseSha: sha });
+  // An entry written before this feature: no baseSha key at all.
+  const old = start.normalizeBegun({ begun: { 'proj1:3:p1': { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW } } });
+  assert.deepEqual(start.getBegun(old, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW });
+  // A baseSha that is not a full lowercase id is dropped, the entry kept.
+  for (const bad of [null, '', 'abc', 'A'.repeat(40), 'a'.repeat(64), 7]) {
+    const kept = start.addBegun(start.emptyBegun(), { ...BEGUN, baseSha: bad });
+    assert.deepEqual(start.getBegun(kept, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW }, String(bad));
+  }
 });
 
 test('addBegun replaces a part begun again, and ignores a malformed entry', () => {
@@ -557,6 +631,35 @@ test('withBegunBranches drops an entry whose branch this folder no longer has', 
   const briefs = [{ number: 3, parts: [{ id: 'p1' }, { id: 'p2' }] }];
   const out = start.withBegunBranches(briefs, store, 'proj1', new Set(['main', 'feat/login-flow']));
   assert.deepEqual(out[0].parts.map((p) => p.begunBranch), ['feat/login-flow', null]);
+});
+
+test('withBegunBranches marks this machine\'s gone branch as gone when the cloud names it', () => {
+  const store = start.addBegun(start.emptyBegun(), { ...BEGUN, branch: 'feat/gone' });
+  const local = new Set(['main']);
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/gone' }] }];
+  const [part] = start.withBegunBranches(briefs, store, 'proj1', local)[0].parts;
+  assert.equal(part.begunBranch, null);
+  assert.equal(part.branchGone, true);
+});
+
+test('withBegunBranches never marks another machine\'s branch as gone', () => {
+  const local = new Set(['main']);
+  // No entry here: the cloud's branch was begun on another machine.
+  const elsewhere = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/theirs' }] }];
+  assert.equal(start.withBegunBranches(elsewhere, start.emptyBegun(), 'proj1', local)[0].parts[0].branchGone, false);
+  // This machine's entry names an older branch; the cloud has another machine's re-Begin.
+  const store = start.addBegun(start.emptyBegun(), { ...BEGUN, branch: 'feat/mine-gone' });
+  const rebegun = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: 'feat/theirs' }] }];
+  assert.equal(start.withBegunBranches(rebegun, store, 'proj1', local)[0].parts[0].branchGone, false);
+});
+
+test('withBegunBranches keeps a live branch, and without a local list nothing is gone', () => {
+  const store = start.addBegun(start.emptyBegun(), BEGUN);
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: BEGUN.branch }] }];
+  const live = start.withBegunBranches(briefs, store, 'proj1', new Set([BEGUN.branch]))[0].parts[0];
+  assert.deepEqual([live.begunBranch, live.branchGone], [BEGUN.branch, false]);
+  const unknown = start.withBegunBranches(briefs, store, 'proj1')[0].parts[0];
+  assert.deepEqual([unknown.begunBranch, unknown.branchGone], [BEGUN.branch, false]);
 });
 
 test('withBegunBranches marks each listed part with the branch this machine began it on', () => {

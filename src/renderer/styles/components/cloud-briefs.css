@@ -517,6 +517,29 @@
   flex-shrink: 0;
 }
 
+/* The GitHub-not-connected line: a standing fact, quieter than a notice. */
+.cloud-briefs-tracking {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cloud-briefs-tracking p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cloud-briefs-tracking .cloud-briefs-web-btn {
+  flex-shrink: 0;
+}
+
 /* ─── Detail (inside the Specs drawer shell) ─── */
 
 .cloud-briefs-detail-body {
@@ -1346,6 +1369,30 @@ button.cloud-briefs-prow-title:hover {
 
 .tone-done .cloud-briefs-prow-title {
   color: var(--text-secondary);
+}
+
+/* Implemented: finished on this machine, waiting to be merged into the target. */
+.tone-implemented .cloud-briefs-prow-dot {
+  border-color: var(--success);
+}
+
+.tone-implemented .cloud-briefs-prow-status {
+  color: var(--success);
+}
+
+/* Dropped: the cloud took the part off the brief; it stays listed, struck through. */
+.tone-dropped .cloud-briefs-prow-dot {
+  border-color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+.tone-dropped .cloud-briefs-prow-title {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+}
+
+.tone-dropped .cloud-briefs-prow-status {
+  color: var(--text-tertiary);
 }
 
 .tone-elsewhere .cloud-briefs-prow-dot {
