@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-04T09:05:28.500Z",
+  "lastUpdated": "2026-11-07T13:36:27.617Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10515,13 +10515,13 @@
       "title": "Walk it against a local FrameCloud server in a project GitHub can see: Begin a part and see its branch on the web, finish the spec and switch branch then focus Briefs to see the completion sent from the tip, merge and push to see \"Merged into <target>\" and the brief move to Done, Begin while signed out and see the branch arrive on the next read, and see the needs-GitHub notice in a folder-linked project with no installation",
       "description": "",
       "source": "spec:frame-cloud-brief-done:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-done",
       "createdAt": "2026-11-04T08:27:06.493Z",
-      "updatedAt": "2026-11-04T08:27:06.493Z",
-      "completedAt": null
+      "updatedAt": "2026-11-07T13:36:27.617Z",
+      "completedAt": "2026-11-07T13:36:27.617Z"
     }
   ],
   "metadata": {

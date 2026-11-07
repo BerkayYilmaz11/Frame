@@ -81,3 +81,13 @@ _Captured: 2026-11-04 · 3 file change(s)_
 _Captured: 2026-11-04 · 2 file change(s)_
 
 ---
+
+## T11 — Walk it against a local FrameCloud server in a project GitHub can see
+
+The developer walked it against a local FrameCloud server (`main`, which carries brief-done as #25) in a new GitHub-connected repository, `testing-todo-app`, and reported every step working; no code changed, and the agent did not drive it because sign-in, the GitHub App and the push are the developer's. Done arrived late after a direct merge, on the web and in Frame at the same moment, because the server asks GitHub only inside a read, at most once a minute per project (`MERGE_CHECK_INTERVAL_MS`), and nothing reads after a push. That finding led to the 2026-11-07 direction on the "Active ve Done Akışı" page (https://claude.ai/artifact/Upc2JqXyPWMLyeqgvKUKUQ): merge, PR and review stay as part states inside Active, and Done becomes a person's move that asks for a reason when parts are missing, so this walk's "the brief moves to Done" step describes behaviour that is going away.
+
+Followup: phase 1 of that page, moving a brief to Done by hand on the web board and in Frame's Briefs view, needs a FrameCloud spec and a Frame companion spec.
+
+_Captured: 2026-11-07 · 0 file change(s)_
+
+---
