@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:07:02.584Z",
+  "lastUpdated": "2026-11-08T09:13:14.989Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10528,13 +10528,13 @@
       "title": "Read `doneAt`, `doneBy`, `doneReason` and `readyForDone` in `normalizeBrief`. Add `moveToDone`, `moveBackToActive`, `MOVE_REFUSALS` and `moveThrough` (blank reason trimmed away; `badRequest` and blank-move-back `reasonRequired` refused before sending) to `src/main/cloud/cloudBriefs.js`. Rewrite its header's write list. In `test/cloudBriefs.test.js`, replace the `doneAt` exclusion test and cover the requests, the mapping and the pre-send refusals.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:13:14.989Z",
+      "completedAt": "2026-11-08T09:13:14.989Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T02",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 29
+    "totalCompleted": 30
   },
   "categories": {
     "feature": "New features",

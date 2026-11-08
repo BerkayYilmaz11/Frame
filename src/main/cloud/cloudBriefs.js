@@ -2,15 +2,18 @@
  * cloudBriefs — the pure core of reading and creating Frame Cloud briefs.
  *
  * Reads a cloud project's briefs, one brief with its parts, attachments and
- * comments, its history, and the project's milestones. The one write is
+ * comments, its history, and the project's milestones. The writes are:
  * creating a brief (`brief.create`, then `brief.addAttachment` per link);
- * recording a discussion on a proposal (`brief.recordDiscussion`); and moving
- * a proposal to work (`brief.decide`); shaping an open work brief into its
+ * recording a discussion on a proposal (`brief.recordDiscussion`); moving a
+ * proposal to work (`brief.decide`); shaping an open work brief into its
  * parts (`brief.shape`); marking a shaped brief started with each part's
- * local spec slug or task id (`brief.start`); and reporting the branch a part
- * was begun on and the commit where it finished (`brief.recordBranch`,
- * `brief.recordCompletion`). Every other brief or milestone mutation — a
- * part merged, a brief Done — stays on the server or the web.
+ * local spec slug or task id (`brief.start`); reporting the branch a part was
+ * begun on and the commit where it finished (`brief.recordBranch`,
+ * `brief.recordCompletion`); and moving a started brief to Done and back
+ * (`brief.moveToDone`, `brief.moveBackToActive`). Done is a person's move
+ * since FrameCloud's brief-manual-done, which overturns frame-cloud-brief-done's
+ * "a brief Done stays on the server". Every other brief or milestone mutation
+ * — a part merged, dropped or linked — stays on the server or the web.
  *
  * Like cloudProjects.js, nothing here imports Electron or touches a file:
  * every call takes `{ api, token, fetchJson, signal }`, so
@@ -86,6 +89,14 @@ function normalizeBrief(raw) {
     shapedAt: strOrNull(b.shapedAt),
     startedAt: strOrNull(b.startedAt),
     mergeTracking: oneOf(MERGE_TRACKING, b.mergeTracking, 'ready'),
+    // Manual Done (FrameCloud brief-manual-done): status still places the
+    // card; these date and explain a Done brief, and `readyForDone` says every
+    // live part is merged. A brief moved Done before that change has no
+    // `doneBy`.
+    doneAt: strOrNull(b.doneAt),
+    doneBy: strOrNull(b.doneBy),
+    doneReason: strOrNull(b.doneReason),
+    readyForDone: b.readyForDone === true,
     createdAt: str(b.createdAt),
     updatedAt: str(b.updatedAt),
   };
@@ -412,6 +423,90 @@ async function recordCompletion({ api, token, fetchJson, signal, id, partId, sha
   return normalizeBriefDetail(data);
 }
 
+// ─── Moving to Done and back ──────────────────────────────────
+
+/**
+ * The server's refusals of `brief.moveToDone` and `brief.moveBackToActive` →
+ * the reason Frame reports. `REASON_REQUIRED` means "ask the person"; every
+ * other code is final, and Frame never retries it.
+ */
+const MOVE_REFUSALS = {
+  REASON_REQUIRED: 'reasonRequired',
+  NOT_STARTED: 'notStarted',
+  ALREADY_DONE: 'alreadyDone',
+  NOT_DONE: 'notDone',
+  ALREADY_CLOSED: 'alreadyClosed',
+  NOT_WORK: 'notWork',
+  BRIEF_NOT_FOUND: 'notFound',
+};
+
+/** Where a move can go: Done, or back to Active. */
+const MOVE_TARGETS = new Set(['done', 'active']);
+
+/** The move's input: the id, and the trimmed reason unless it is blank (the server's "blank counts as absent"). */
+function moveInput(id, reason) {
+  const input = { id };
+  const trimmed = str(reason).trim();
+  if (trimmed) input.reason = trimmed;
+  return input;
+}
+
+/**
+ * `brief.moveToDone` → the brief detail, now Done, normalized. Asks GitHub
+ * nothing; the reason is needed only when tracking is ready and a live part
+ * is not merged. Throws CloudError on a refusal (see MOVE_REFUSALS).
+ */
+async function moveToDone({ api, token, fetchJson, signal, id, reason }) {
+  const data = await callTrpc({
+    api, token, fetchJson, signal,
+    name: 'brief.moveToDone',
+    method: 'POST',
+    input: moveInput(id, reason),
+  });
+  return normalizeBriefDetail(data);
+}
+
+/**
+ * `brief.moveBackToActive` → the brief detail, Active again, normalized. The
+ * server always wants a reason. Throws CloudError on a refusal (see
+ * MOVE_REFUSALS).
+ */
+async function moveBackToActive({ api, token, fetchJson, signal, id, reason }) {
+  const data = await callTrpc({
+    api, token, fetchJson, signal,
+    name: 'brief.moveBackToActive',
+    method: 'POST',
+    input: moveInput(id, reason),
+  });
+  return normalizeBriefDetail(data);
+}
+
+/**
+ * Move a brief to Done (`to: 'done'`) or back to Active (`to: 'active'`)
+ * through `call`. The refusals come back as values, since `call` folds them
+ * all into one reason. A move back with a blank reason is refused here as
+ * `reasonRequired`, before anything is sent.
+ * → `{ ok: true }` or `{ ok: false, reason }`.
+ */
+async function moveThrough(call, { id, to, reason }) {
+  if (!MOVE_TARGETS.has(to)) return { ok: false, reason: 'badRequest' };
+  if (to === 'active' && !str(reason).trim()) return { ok: false, reason: 'reasonRequired' };
+  const send = to === 'done' ? moveToDone : moveBackToActive;
+  const result = await call(async (ctx) => {
+    try {
+      await send({ ...ctx, id, reason });
+      return { refused: null };
+    } catch (err) {
+      const refused = err && MOVE_REFUSALS[err.message];
+      if (refused) return { refused };
+      throw err;
+    }
+  });
+  if (!result.ok) return { ok: false, reason: result.reason };
+  if (result.value.refused) return { ok: false, reason: result.value.refused };
+  return { ok: true };
+}
+
 /**
  * From a brief's events (oldest first): how many discussions were recorded,
  * and how many comments someone other than `meId` added after the latest
@@ -537,5 +632,9 @@ module.exports = {
   startThrough,
   recordBranch,
   recordCompletion,
+  MOVE_REFUSALS,
+  moveToDone,
+  moveBackToActive,
+  moveThrough,
   buildBriefWebUrl,
 };

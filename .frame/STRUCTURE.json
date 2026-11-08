@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "description": "Auto-generated module structure",
-  "lastUpdated": "2026-11-04",
+  "lastUpdated": "2026-11-08",
   "architecture": {},
   "modules": {
     ".claude/settings.json": {
@@ -1217,6 +1217,10 @@
         "startThrough",
         "recordBranch",
         "recordCompletion",
+        "MOVE_REFUSALS",
+        "moveToDone",
+        "moveBackToActive",
+        "moveThrough",
         "buildBriefWebUrl"
       ],
       "depends": [
@@ -1225,20 +1229,20 @@
       ],
       "functions": {
         "str": {
-          "line": 44,
+          "line": 47,
           "params": [
             "value"
           ]
         },
         "strOrNull": {
-          "line": 49,
+          "line": 52,
           "params": [
             "value"
           ],
           "purpose": "A string, or null when absent or empty."
         },
         "oneOf": {
-          "line": 53,
+          "line": 56,
           "params": [
             "set",
             "value",
@@ -1246,63 +1250,63 @@
           ]
         },
         "arr": {
-          "line": 57,
+          "line": 60,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 61,
+          "line": 64,
           "params": [
             "value"
           ]
         },
         "normalizeBrief": {
-          "line": 68,
+          "line": 71,
           "params": [
             "raw"
           ],
           "purpose": "One `brief.list` entry, reduced to the fields Frame draws."
         },
         "normalizePart": {
-          "line": 94,
+          "line": 105,
           "params": [
             "raw"
           ]
         },
         "normalizeAttachment": {
-          "line": 116,
+          "line": 127,
           "params": [
             "raw"
           ]
         },
         "normalizeComment": {
-          "line": 121,
+          "line": 132,
           "params": [
             "raw"
           ]
         },
         "normalizeBriefDetail": {
-          "line": 127,
+          "line": 138,
           "params": [
             "raw"
           ],
           "purpose": "`brief.getByNumber` → the brief with its parts (by position), attachments and comments."
         },
         "normalizeEvent": {
-          "line": 137,
+          "line": 148,
           "params": [
             "raw"
           ]
         },
         "normalizeMilestone": {
-          "line": 142,
+          "line": 153,
           "params": [
             "raw"
           ]
         },
         "listBriefs": {
-          "line": 150,
+          "line": 161,
           "params": [
             "{ api",
             "token",
@@ -1314,7 +1318,7 @@
           "purpose": "`brief.list` → the project's briefs, server (`number`) order. Ended ones only with `includeClosed`."
         },
         "listMilestones": {
-          "line": 158,
+          "line": 169,
           "params": [
             "{ api",
             "token",
@@ -1325,7 +1329,7 @@
           "purpose": "`milestone.list` → `[{ id, name, status }]`."
         },
         "getBrief": {
-          "line": 164,
+          "line": 175,
           "params": [
             "{ api",
             "token",
@@ -1337,7 +1341,7 @@
           "purpose": "`brief.getByNumber` → the detail. Throws CloudError (`BRIEF_NOT_FOUND` → notFound)."
         },
         "briefEvents": {
-          "line": 175,
+          "line": 186,
           "params": [
             "{ api",
             "token",
@@ -1348,33 +1352,33 @@
           "purpose": "`brief.events` → the brief's history, oldest first."
         },
         "badRequest": {
-          "line": 182,
+          "line": 193,
           "params": [
             "field"
           ]
         },
         "buildCreateInput": {
-          "line": 191,
+          "line": 202,
           "params": [
             "request"
           ],
           "purpose": "The renderer's request → the `brief.create` input, minus `projectSlug`."
         },
         "isHttpUrl": {
-          "line": 208,
+          "line": 219,
           "params": [
             "value"
           ]
         },
         "normalizeLinks": {
-          "line": 221,
+          "line": 232,
           "params": [
             "links"
           ],
           "purpose": "The request's links → `[{ title, url }]`, in order. Only `http(s)` URLs and"
         },
         "createBrief": {
-          "line": 236,
+          "line": 247,
           "params": [
             "{ api",
             "token",
@@ -1385,7 +1389,7 @@
           "purpose": "`brief.create` → the new brief, normalized. `input` is buildCreateInput's plus `projectSlug`."
         },
         "addAttachment": {
-          "line": 242,
+          "line": 253,
           "params": [
             "{ api",
             "token",
@@ -1398,7 +1402,7 @@
           "purpose": "`brief.addAttachment` → the attachment, normalized."
         },
         "createWithLinks": {
-          "line": 258,
+          "line": 269,
           "params": [
             "call",
             "{ input",
@@ -1407,7 +1411,7 @@
           "purpose": "Create a brief, then attach its links one by one. `call` is"
         },
         "recordDiscussion": {
-          "line": 278,
+          "line": 289,
           "params": [
             "{ api",
             "token",
@@ -1421,7 +1425,7 @@
           "purpose": "`brief.recordDiscussion` → the brief, normalized. Appends one"
         },
         "decideBrief": {
-          "line": 297,
+          "line": 308,
           "params": [
             "{ api",
             "token",
@@ -1433,7 +1437,7 @@
           "purpose": "`brief.decide` → the brief, now work, normalized. Throws CloudError on a refusal."
         },
         "decideThrough": {
-          "line": 307,
+          "line": 318,
           "params": [
             "call",
             "{ id",
@@ -1442,7 +1446,7 @@
           "purpose": "Move a proposal to work with a priority through `call`. The refusals come"
         },
         "shapeBrief": {
-          "line": 332,
+          "line": 343,
           "params": [
             "{ api",
             "token",
@@ -1454,7 +1458,7 @@
           "purpose": "`brief.shape` → the brief with its new parts, normalized. Writes every part"
         },
         "startBrief": {
-          "line": 356,
+          "line": 367,
           "params": [
             "{ api",
             "token",
@@ -1466,7 +1470,7 @@
           "purpose": "`brief.start` → the brief detail, now started, normalized. Sets"
         },
         "startThrough": {
-          "line": 366,
+          "line": 377,
           "params": [
             "call",
             "{ id",
@@ -1475,7 +1479,7 @@
           "purpose": "Start a brief through `call`. The refusals come back as values, since"
         },
         "recordBranch": {
-          "line": 389,
+          "line": 400,
           "params": [
             "{ api",
             "token",
@@ -1489,7 +1493,7 @@
           "purpose": "`brief.recordBranch` → the brief detail, normalized. Records the branch a"
         },
         "recordCompletion": {
-          "line": 405,
+          "line": 416,
           "params": [
             "{ api",
             "token",
@@ -1501,8 +1505,50 @@
           ],
           "purpose": "`brief.recordCompletion` → the brief detail, normalized. Records the commit"
         },
+        "moveInput": {
+          "line": 447,
+          "params": [
+            "id",
+            "reason"
+          ],
+          "purpose": "The move's input: the id, and the trimmed reason unless it is blank (the server's \"blank counts as absent\")."
+        },
+        "moveToDone": {
+          "line": 459,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "reason }"
+          ],
+          "purpose": "`brief.moveToDone` → the brief detail, now Done, normalized. Asks GitHub"
+        },
+        "moveBackToActive": {
+          "line": 474,
+          "params": [
+            "{ api",
+            "token",
+            "fetchJson",
+            "signal",
+            "id",
+            "reason }"
+          ],
+          "purpose": "`brief.moveBackToActive` → the brief detail, Active again, normalized. The"
+        },
+        "moveThrough": {
+          "line": 491,
+          "params": [
+            "call",
+            "{ id",
+            "to",
+            "reason }"
+          ],
+          "purpose": "Move a brief to Done (`to: 'done'`) or back to Active (`to: 'active'`)"
+        },
         "discussionFacts": {
-          "line": 420,
+          "line": 515,
           "params": [
             "events",
             "meId"
@@ -1510,7 +1556,7 @@
           "purpose": "From a brief's events (oldest first): how many discussions were recorded,"
         },
         "addDiscussionCounts": {
-          "line": 441,
+          "line": 536,
           "params": [
             "call",
             "briefs",
@@ -1519,21 +1565,21 @@
           "purpose": "The briefs with `discussionCount` and `newCommentCount` on each open"
         },
         "partSummary": {
-          "line": 453,
+          "line": 548,
           "params": [
             "parts"
           ],
           "purpose": "A brief's parts counted by shape: `{ spec, task }`."
         },
         "partRow": {
-          "line": 462,
+          "line": 557,
           "params": [
             "part"
           ],
           "purpose": "A part as a card draws it: no definition, which only the detail shows."
         },
         "addPartCounts": {
-          "line": 488,
+          "line": 583,
           "params": [
             "call",
             "briefs",
@@ -1542,7 +1588,7 @@
           "purpose": "The briefs with `partCounts` (`{ spec, task }`) and `parts` (each part's"
         },
         "buildBriefWebUrl": {
-          "line": 504,
+          "line": 599,
           "params": [
             "{ apiUrl",
             "webOrigin",
@@ -1553,7 +1599,7 @@
           "purpose": "`{project url}/briefs/{number}` (the web's full brief page), or the project"
         }
       },
-      "sizeBytes": 21508,
+      "sizeBytes": 25195,
       "extraction": {
         "status": "parsed"
       },
@@ -1574,6 +1620,10 @@
           "getBrief": "416270d1d5b1e00e",
           "listBriefs": "4da8863bcfe55029",
           "listMilestones": "49813f7ede6da48a",
+          "moveBackToActive": "0a3e8aef1bbed2b9",
+          "moveInput": "48acaf3d7bd5b0f8",
+          "moveThrough": "c36ee027a2caa60f",
+          "moveToDone": "eabccbf2ad0b2065",
           "normalizeBrief": "aab056f3d7840a2a",
           "normalizeBriefDetail": "606f399d8dd016a2",
           "normalizeLinks": "13d6b8a9f5ff0b50",
@@ -29009,7 +29059,7 @@
           "purpose": "Scripted fetch, one answer per path. A GET's `?input=` is decoded into `input`."
         },
         "fakeCall": {
-          "line": 406,
+          "line": 438,
           "params": [
             "{ createFails",
             "failAttachmentAt } = {}"
@@ -29017,14 +29067,14 @@
           "purpose": "A `call()` stand-in: runs each fn against a fake fetch, failing where told."
         },
         "decideCall": {
-          "line": 608,
+          "line": 640,
           "params": [
             "answer"
           ],
           "purpose": "A `call()` over a fake fetch that answers brief.decide with `answer`."
         }
       },
-      "sizeBytes": 35221,
+      "sizeBytes": 42083,
       "extraction": {
         "status": "parsed"
       },
@@ -35117,6 +35167,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a1e157771bc52df78154229560099d2eb88687e96e61663d4066b22c971b9659"
+    "revision": "512662b12a54a3a227339b77df93fc38a4dc6d2693eb3f9865cca1adafefb7fd"
   }
 }

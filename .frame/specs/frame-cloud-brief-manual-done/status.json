@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-brief-manual-done",
   "title": "Frame Cloud brief manual Done",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-frame-cloud-brief-manual-done-T01",
     "task-spec-frame-cloud-brief-manual-done-T02",
@@ -15,7 +15,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-11-08T07:54:49Z",
-  "updated_at": "2026-11-08T09:07:26.819Z",
-  "last_phase_at": "2026-11-08T08:14:03Z",
+  "updated_at": "2026-11-08T09:10:16.549Z",
+  "last_phase_at": "2026-11-08T09:10:16.549Z",
   "implement_mode": "autonomous"
 }
