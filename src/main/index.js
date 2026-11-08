@@ -431,7 +431,9 @@ app.whenReady().then(() => {
 // ones that say what the user did just before leaving — would otherwise die
 // with the process. The flush borrows the same preventDefault-then-re-quit
 // shape the confirmation already uses, and analytics.shutdown() carries its
-// own timeout so a dead network cannot hold the app open.
+// own timeout so a dead network cannot hold the app open. Moves to Done still
+// inside their 5-second Undo are sent in the same pause, capped at 3 s, so a
+// quit never drops one (frame-cloud-brief-manual-done D1, D19).
 app.on('before-quit', (e) => {
   if (!quitConfirmed) {
     if (!confirmQuitWithLiveAgents()) {
@@ -443,7 +445,7 @@ app.on('before-quit', (e) => {
   if (analyticsFlushed) return;
   analyticsFlushed = true;
   e.preventDefault();
-  analytics.shutdown().finally(() => app.quit());
+  Promise.allSettled([analytics.shutdown(), cloudBriefsService.flushMoves()]).finally(() => app.quit());
 });
 
 // Structure lifecycle workers (STR-02) stop once quitting is certain —

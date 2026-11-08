@@ -344,6 +344,54 @@
   line-height: 1.5;
 }
 
+/* Move to Done / Move back to Active: the reason, and the parts a move to Done leaves unmerged. */
+.cloud-briefs-move-reason {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.cloud-briefs-move-missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-move-missing ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-height: 200px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.cloud-briefs-move-missing li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px var(--space-md);
+  padding: 6px var(--space-sm);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+}
+
+.cloud-briefs-move-missing-title {
+  min-width: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-move-missing-status {
+  min-width: 0;
+  color: var(--text-tertiary);
+  overflow-wrap: anywhere;
+}
+
 /* "Discussing in <lane>": a quiet link that enters the lane. */
 .cloud-briefs-lane-link {
   display: inline-flex;
@@ -401,6 +449,18 @@
   border-color: transparent;
   background: var(--accent-subtle);
   color: var(--accent-primary);
+}
+
+/* "Ready for Done" on an Active card: every live part counts, waiting for a person. */
+.cloud-briefs-ready {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--success-subtle);
+  color: var(--success);
+  white-space: nowrap;
 }
 
 .cloud-briefs-card-title {

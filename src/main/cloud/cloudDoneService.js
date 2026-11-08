@@ -26,7 +26,13 @@ const cloudStartService = require('./cloudStartService');
 const cloudBriefs = require('./cloudBriefs');
 const core = require('./cloudDone');
 
-/** The cloud's answers that never change for that part (logged as such, never retried on purpose). */
+/**
+ * The cloud's answers that this send can never get past, logged as such and
+ * never held for a retry. `ALREADY_DONE` is no longer forever: since manual
+ * Done (frame-cloud-brief-manual-done) a person can move a Done brief back to
+ * Active, and because nothing is held, the next read after that move sends
+ * whatever is missing. Only Active briefs are reported in the first place.
+ */
 const FINAL_REFUSALS = new Set(['PART_DROPPED', 'PART_MERGED', 'NOT_STARTED', 'ALREADY_DONE', 'ALREADY_CLOSED']);
 
 /** A commit's content never changes, so "finished at this tip" is kept; the map is cleared when it grows. */

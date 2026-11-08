@@ -245,8 +245,40 @@ test('normalizeBrief reads mergeTracking, ready unless the server says needs_git
   assert.equal(core.normalizeBriefDetail({ ...BRIEF, mergeTracking: 'needs_github' }).mergeTracking, 'needs_github');
 });
 
-test('normalizeBrief does not carry doneAt, since status places the card', () => {
-  assert.equal('doneAt' in core.normalizeBrief({ ...BRIEF, status: 'done', doneAt: '2026-11-03T10:00:00.000Z' }), false);
+// Overturns frame-cloud-brief-done's "normalizeBrief does not carry doneAt":
+// status still places the card, and doneAt now dates the Done line.
+test('normalizeBrief carries doneAt, doneBy and doneReason, null when absent or empty', () => {
+  const done = core.normalizeBrief({
+    ...BRIEF, status: 'done', doneAt: '2026-11-03T10:00:00.000Z', doneBy: 'u1', doneReason: 'Shipped the rest by hand',
+  });
+  assert.equal(done.doneAt, '2026-11-03T10:00:00.000Z');
+  assert.equal(done.doneBy, 'u1');
+  assert.equal(done.doneReason, 'Shipped the rest by hand');
+  const open = core.normalizeBrief(BRIEF);
+  assert.deepEqual([open.doneAt, open.doneBy, open.doneReason], [null, null, null]);
+  const odd = core.normalizeBrief({ ...BRIEF, doneAt: '', doneBy: 7, doneReason: {} });
+  assert.deepEqual([odd.doneAt, odd.doneBy, odd.doneReason], [null, null, null]);
+  // A brief moved Done before manual Done has a date but no person.
+  const old = core.normalizeBrief({ ...BRIEF, status: 'done', doneAt: '2026-11-01T10:00:00.000Z', doneBy: null });
+  assert.equal(old.doneAt, '2026-11-01T10:00:00.000Z');
+  assert.equal(old.doneBy, null);
+});
+
+test('normalizeBrief reads readyForDone, true only when the server sends true', () => {
+  assert.equal(core.normalizeBrief({ ...BRIEF, readyForDone: true }).readyForDone, true);
+  for (const value of [false, undefined, null, 'true', 1]) {
+    assert.equal(core.normalizeBrief({ ...BRIEF, readyForDone: value }).readyForDone, false, String(value));
+  }
+});
+
+test('normalizeBriefDetail inherits the Done fields', () => {
+  const d = core.normalizeBriefDetail({
+    ...BRIEF, status: 'done', doneAt: '2026-11-03T10:00:00.000Z', doneBy: 'u1', doneReason: 'why', readyForDone: true,
+  });
+  assert.deepEqual(
+    [d.doneAt, d.doneBy, d.doneReason, d.readyForDone],
+    ['2026-11-03T10:00:00.000Z', 'u1', 'why', true]
+  );
 });
 
 // ─── Done ─────────────────────────────────────────────────────
@@ -693,6 +725,106 @@ test('startThrough keeps every server refusal as a reason', async () => {
   ]);
   const { call } = decideCall({ status: 401, body: {} });
   assert.deepEqual(await core.startThrough(call, { id: 'b1', parts: START_PARTS }), { ok: false, reason: 'unauthorized' });
+});
+
+// ─── Moving to Done and back ──────────────────────────────────
+
+const MOVED = { ...BRIEF, status: 'done', startedAt: '2026-09-25T10:00:00.000Z', doneAt: '2026-11-08T10:00:00.000Z', doneBy: 'u1' };
+
+test('moveToDone POSTs brief.moveToDone with the id and a trimmed reason, and returns the detail', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/brief.moveToDone': ok({ ...MOVED, doneReason: 'Docs later' }) });
+  const detail = await core.moveToDone({ ...ctx(fetchJson), id: 'b1', reason: '  Docs later \n' });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${API}/trpc/brief.moveToDone`);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', reason: 'Docs later' });
+  assert.equal(detail.status, 'done');
+  assert.equal(detail.doneReason, 'Docs later');
+  assert.deepEqual(detail.parts, []);
+});
+
+test('moveToDone leaves out an absent or blank reason', async () => {
+  for (const reason of [undefined, null, '', '   \n\t']) {
+    const { fetchJson, calls } = fakeFetch({ '/trpc/brief.moveToDone': ok(MOVED) });
+    await core.moveToDone({ ...ctx(fetchJson), id: 'b1', reason });
+    assert.deepEqual(calls[0].body, { id: 'b1' }, JSON.stringify(reason));
+  }
+});
+
+test('moveBackToActive POSTs brief.moveBackToActive with the id and a trimmed reason, and returns the detail', async () => {
+  const { fetchJson, calls } = fakeFetch({
+    '/trpc/brief.moveBackToActive': ok({ ...MOVED, status: 'active', doneAt: null, doneBy: null }),
+  });
+  const detail = await core.moveBackToActive({ ...ctx(fetchJson), id: 'b1', reason: ' The docs part is not done ' });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, `${API}/trpc/brief.moveBackToActive`);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 't0k');
+  assert.deepEqual(calls[0].body, { id: 'b1', reason: 'The docs part is not done' });
+  assert.equal(detail.status, 'active');
+  assert.equal(detail.doneAt, null);
+});
+
+test('moveThrough sends a move to Done with or without a reason', async () => {
+  const bare = decideCall(ok(MOVED));
+  assert.deepEqual(await core.moveThrough(bare.call, { id: 'b1', to: 'done' }), { ok: true });
+  assert.deepEqual(bare.sent, [{ name: 'brief.moveToDone', body: { id: 'b1' } }]);
+  const blank = decideCall(ok(MOVED));
+  assert.deepEqual(await core.moveThrough(blank.call, { id: 'b1', to: 'done', reason: '  ' }), { ok: true });
+  assert.deepEqual(blank.sent, [{ name: 'brief.moveToDone', body: { id: 'b1' } }]);
+  const reasoned = decideCall(ok(MOVED));
+  assert.deepEqual(await core.moveThrough(reasoned.call, { id: 'b1', to: 'done', reason: ' Docs later ' }), { ok: true });
+  assert.deepEqual(reasoned.sent, [{ name: 'brief.moveToDone', body: { id: 'b1', reason: 'Docs later' } }]);
+});
+
+test('moveThrough sends a move back to Active with its trimmed reason', async () => {
+  const { call, sent } = decideCall(ok({ ...MOVED, status: 'active' }));
+  assert.deepEqual(await core.moveThrough(call, { id: 'b1', to: 'active', reason: ' Not finished ' }), { ok: true });
+  assert.deepEqual(sent, [{ name: 'brief.moveBackToActive', body: { id: 'b1', reason: 'Not finished' } }]);
+});
+
+test('moveThrough sends nothing for an unknown direction', async () => {
+  const { call, sent } = decideCall(ok(MOVED));
+  for (const to of [undefined, '', 'closed', 'backlog', 'Done']) {
+    assert.deepEqual(await core.moveThrough(call, { id: 'b1', to, reason: 'x' }), { ok: false, reason: 'badRequest' }, String(to));
+  }
+  assert.equal(sent.length, 0);
+});
+
+test('moveThrough refuses a move back with a blank reason before sending', async () => {
+  const { call, sent } = decideCall(ok(MOVED));
+  for (const reason of [undefined, null, '', '  \n']) {
+    assert.deepEqual(
+      await core.moveThrough(call, { id: 'b1', to: 'active', reason }),
+      { ok: false, reason: 'reasonRequired' },
+      JSON.stringify(reason)
+    );
+  }
+  assert.equal(sent.length, 0);
+});
+
+test('moveThrough keeps every server refusal as a reason, in both directions', async () => {
+  const refusal = (code) => ({ status: 400, body: { error: { message: code, data: { code: 'BAD_REQUEST' } } } });
+  for (const [code, reason] of Object.entries(core.MOVE_REFUSALS)) {
+    const done = decideCall(refusal(code));
+    assert.deepEqual(await core.moveThrough(done.call, { id: 'b1', to: 'done' }), { ok: false, reason }, `done ${code}`);
+    assert.equal(done.sent.length, 1);
+    const back = decideCall(refusal(code));
+    assert.deepEqual(await core.moveThrough(back.call, { id: 'b1', to: 'active', reason: 'r' }), { ok: false, reason }, `active ${code}`);
+    assert.equal(back.sent.length, 1);
+  }
+  assert.deepEqual(core.MOVE_REFUSALS, {
+    REASON_REQUIRED: 'reasonRequired',
+    NOT_STARTED: 'notStarted',
+    ALREADY_DONE: 'alreadyDone',
+    NOT_DONE: 'notDone',
+    ALREADY_CLOSED: 'alreadyClosed',
+    NOT_WORK: 'notWork',
+    BRIEF_NOT_FOUND: 'notFound',
+  });
+  const { call } = decideCall({ status: 401, body: {} });
+  assert.deepEqual(await core.moveThrough(call, { id: 'b1', to: 'done' }), { ok: false, reason: 'unauthorized' });
 });
 
 test('discussionFacts counts records, and others\' comments after the latest one as new', () => {
