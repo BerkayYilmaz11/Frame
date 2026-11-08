@@ -7,3 +7,11 @@ Added `doneAt`, `doneBy`, `doneReason` (string or null) and `readyForDone` (true
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T02 — Write the move hold
+
+Added `src/shared/cloudMoveHold.js` with `HOLD_MS = 5000` and `createMoveHold({ holdMs, setTimer, clearTimer })`, which returns `hold`, `undo`, `flush({ timeoutMs })` and `size` and never rejects (a throwing or rejecting `run` answers `other`). Beyond the plan, `flush` also waits for sends already under way, not only the ones it starts, so the quit flush and the flush before an unheld move also cover a move whose 5 seconds ran out just before. It resolves `true` when every send settled and `false` when the timeout came first. `test/cloudMoveHold.test.js` covers every case in the plan on a hand-rolled fake clock passed in through `setTimer`/`clearTimer`. Files: `src/shared/cloudMoveHold.js`, `test/cloudMoveHold.test.js`.
+
+_Captured: 2026-11-08 · 2 file change(s)_
+
+---

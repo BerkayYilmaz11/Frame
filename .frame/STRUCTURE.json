@@ -27209,6 +27209,36 @@
         }
       }
     },
+    "shared/cloudMoveHold": {
+      "file": "src/shared/cloudMoveHold.js",
+      "description": "cloudMoveHold — the 5-second Undo window on a move to Done.",
+      "exports": [
+        "HOLD_MS",
+        "createMoveHold"
+      ],
+      "depends": [],
+      "functions": {
+        "createMoveHold": {
+          "line": 40,
+          "params": [
+            "{ holdMs = HOLD_MS",
+            "setTimer = setTimeout",
+            "clearTimer = clearTimeout } = {}"
+          ],
+          "purpose": "One hold for the whole app. `run` is the send: an async function that"
+        }
+      },
+      "sizeBytes": 3777,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "5ca4075339c03ed8",
+        "purposes": {
+          "createMoveHold": "47c27bf1c65de503"
+        }
+      }
+    },
     "shared/docsHealth": {
       "file": "src/shared/docsHealth.js",
       "description": "Doc health — does Frame's own prose still describe a project that exists?",
@@ -29286,6 +29316,49 @@
       },
       "provenance": {
         "description": "e079f4d94f05de62"
+      }
+    },
+    "test/cloudMoveHold.test": {
+      "file": "test/cloudMoveHold.test.js",
+      "description": "cloudMoveHold tests — the 5-second Undo window on a move to Done",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/shared/cloudMoveHold"
+      ],
+      "functions": {
+        "fakeClock": {
+          "line": 15,
+          "purpose": "A fake clock: `setTimer`/`clearTimer` for the hold, `advance(ms)` to move time."
+        },
+        "recorder": {
+          "line": 42,
+          "params": [
+            "answer = { ok"
+          ],
+          "purpose": "A `run` that records its calls and answers `answer` (or a deferred promise)."
+        },
+        "deferred": {
+          "line": 51
+        },
+        "makeHold": {
+          "line": 59,
+          "params": [
+            "clock"
+          ]
+        }
+      },
+      "sizeBytes": 8019,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "d182fc32ed8de262",
+        "purposes": {
+          "fakeClock": "cd0a9457bdd7254c",
+          "recorder": "6e94910b95eca7bb"
+        }
       }
     },
     "test/cloudNoWorkspace.test": {
@@ -35093,7 +35166,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 355,
+        "parsed": 357,
         "unsupported": 86,
         "partial": 0
       }
@@ -35140,9 +35213,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 531,
+      "visitedEntries": 533,
       "traversedDirectories": 82,
-      "eligibleFiles": 441,
+      "eligibleFiles": 443,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -35159,7 +35232,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 441,
+      "indexedFiles": 443,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -35167,6 +35240,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "512662b12a54a3a227339b77df93fc38a4dc6d2693eb3f9865cca1adafefb7fd"
+    "revision": "a347a417bba001d6f6adabf12dcbcb1cd5b84cfb6d92d60e92647353c7cb99cb"
   }
 }

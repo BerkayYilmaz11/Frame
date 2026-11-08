@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:13:14.989Z",
+  "lastUpdated": "2026-11-08T09:15:54.695Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10541,13 +10541,13 @@
       "title": "Write `src/shared/cloudMoveHold.js` (`HOLD_MS = 5000`, and `createMoveHold` with `hold`, `undo`, `flush({ timeoutMs })` and `size` on injectable timers) and `test/cloudMoveHold.test.js` on fake timers. Cover the send after the hold, Undo before and after the send starts, a second hold starting the first, the same key sharing one promise, `flush` with its timeout, and a throwing `run` resolving `other`.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:15:54.695Z",
+      "completedAt": "2026-11-08T09:15:54.695Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T03",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 30
+    "totalCompleted": 31
   },
   "categories": {
     "feature": "New features",
