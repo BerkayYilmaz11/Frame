@@ -4253,3 +4253,81 @@ User's request (Turkish, verbatim): "project seçimi şu an yukarıda sağda, on
 History: sidebar-project-section put the switcher above the rail-and-panel split; shell-chrome-app-header-collapsible-panels D1 (2026-09-14) moved it into the app header's center so it stayed reachable with the sidebar collapsed; bfdb629 later moved it to the header's right, beside the Agent picker. This explicitly overturns D1: the switcher is now the first child of `.sidebar-panel`, above Work (and above the Files / Changes / GitHub views — index.js already keeps it visible on every tab). Accepted consequence: with the sidebar collapsed (⌘B) the switcher is out of sight.
 
 Changed: `index.html` markup moved out of `.lane-bar-launcher`; switcher CSS moved from `app-header.css` to `project-section.css` (full panel width, 28px); the header's `:not()` button selectors dropped the switcher classes; the tour's switcher step points right; the Guide text and shell sketch show it atop the sidebar (region renamed `sidebar-switcher`).
+
+### [2026-11-08] Frame Cloud brief manual Done: move a brief to Done and back from Briefs
+
+Spec `frame-cloud-brief-manual-done`, branch
+`feat/frame-cloud-brief-manual-done` (off the `feat/frame-cloud-adaptor`
+umbrella). Frame's half of FrameCloud's `brief-manual-done`
+(`feat/brief-manual-done`, PR #26), which is phase 1 of the 2026-11-07
+"Active ve Done Akışı" direction
+(https://claude.ai/artifact/Upc2JqXyPWMLyeqgvKUKUQ). The frame-cloud-brief-done
+walk found Done arriving late and on its own after a merge. FrameCloud then
+removed automatic Done: a brief reaches Done only through
+`brief.moveToDone({ id, reason? })` and leaves it through
+`brief.moveBackToActive({ id, reason })`. T01–T07 ran autonomously; the
+developer walked T08.
+
+**Overturned, on purpose** (the spec's Constraints, and plan D15):
+- frame-cloud-brief-done's Goal, "Done means merged" and "The Done column
+  fills on its own". Done is now a person's move, and the Done hint reads
+  "Move a brief here when its work is finished."
+- frame-cloud-brief-done's Constraint "No Frame call marks … a brief Done
+  (FrameCloud C3)". Frame now moves a brief to Done and back. It still never
+  marks a part merged; the cloud alone decides that.
+- The `cloudBriefs.js` header's "a brief Done — stays on the server or the
+  web". The header now lists both moves as writes.
+- The page's "kartı Done'a taşıyarak" (drag the card). Frame follows
+  FrameCloud D3/D4: a button on the card and in the detail, no drag.
+- D15: frame-cloud-brief-done's "normalizeBrief does not carry doneAt, since
+  status places the card". `normalizeBrief` now carries `doneAt`, `doneBy`,
+  `doneReason` and `readyForDone` (true only when the server sends `true`).
+  Status still places the card; `doneAt` dates the detail's
+  "Done: reason · date" line.
+
+**D1 · The held move lives in main.** A move to Done that needs no reason
+shows in Done at once with a 5-second Undo, as on the web. The web accepted
+that a tab closed inside those 5 seconds drops the move (FrameCloud D1).
+Frame owns its process, so main holds the send (`src/shared/cloudMoveHold.js`)
+and sends it when the 5 seconds pass, when another move starts, or at quit
+(`before-quit`, capped at 3000 ms). Closing the view or switching projects
+neither cancels nor hastens it. Asked at plan time; rejected: a hold in the
+renderer with the web's trade-off.
+
+**D7 · A Done brief's parts offer no Begin or Run.** frame-cloud-brief-done
+stated this, but the code never enforced it: a Done brief only ever held
+merged parts, which have no Run anyway. With manual Done a Done brief can
+hold unmerged parts, so `partStatus({ done: true })` keeps each row's words
+and drops its action. After a move back the rows offer Begin and Run again,
+and the completion reporter (Active briefs only, no held refusal) sends what
+the cloud lacks on the next read.
+
+**When a reason is asked.** The panel decides from its last read: tracking is
+`ready` and at least one live part does not count as merged on the target.
+Then a dialog lists those parts with their row status and holds "Move to Done
+anyway" until a reason is typed; the move goes out at once, with no Undo. A
+move back always asks. A held move answered `REASON_REQUIRED` re-reads the
+brief and opens the dialog. Final refusals (`NOT_STARTED`, `ALREADY_DONE`,
+`NOT_DONE`, `ALREADY_CLOSED`, `NOT_WORK`) show their sentence and reload, and
+are never retried. The words are the web's, verbatim.
+
+**Built differently from the plan** (outcome T02–T07):
+- Main reads the brief id inside the held send, not before holding, so an
+  Undo pressed during that read still cancels and an undone move sends no
+  request at all.
+- `flush` also waits on sends already under way.
+- The panel's `moving` overlay is keyed by folder and number, so a project
+  switch never overlays another project's brief.
+- A landed move keeps the card in Done until the re-read arrives.
+- The "Ready for Done" badge is also hidden while tracking is `needs_github`.
+
+**Walk (T08).** The developer walked every Success Criterion against a local
+FrameCloud server carrying `brief-manual-done` on 2026-11-08 and reported all
+of them working, including a quit inside the 5-second hold and a brief moved
+back to Active. No findings.
+
+**State.** 9 tasks done, spec `done`; `npm test` passes 1795. The panel, the
+IPC shell and `notify.js` have no unit tests (D10); during T07 a hidden-window
+Electron harness against a fake cloud passed 49 of 49 checks. Open: phase 2
+(GitHub tracking: PR and review states, `mergeTracking: off`, webhooks), and
+`part-merged` still reads "changed this brief" in History.

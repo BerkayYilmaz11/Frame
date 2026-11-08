@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T12:36:19.460Z",
+  "lastUpdated": "2026-11-08T12:38:29.997Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10632,18 +10632,18 @@
       "title": "Append one dated entry to `.frame/PROJECT_NOTES.md` recording the overturned decisions from the spec's Constraints, plan D1, D7 and D15, and the walk's findings.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T12:38:29.997Z",
+      "completedAt": "2026-11-08T12:38:29.997Z"
     }
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 37
+    "totalCompleted": 38
   },
   "categories": {
     "feature": "New features",

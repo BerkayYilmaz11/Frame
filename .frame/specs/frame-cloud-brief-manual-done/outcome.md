@@ -63,3 +63,11 @@ The developer walked every Success Criterion against a local FrameCloud server c
 _Captured: 2026-11-08 · 0 file change(s)_
 
 ---
+
+## T09 — Record the overturned decisions
+
+Appended one dated entry to `.frame/PROJECT_NOTES.md` recording the four decisions the spec's Constraints overturn, plan D1, D7 and D15, the deviations from the plan, and the walk's result, which had no findings. Wrote `digest.md` and set the spec to `done`. Files: `.frame/PROJECT_NOTES.md`, `digest.md`, `status.json`.
+
+_Captured: 2026-11-08 · 3 file change(s)_
+
+---
