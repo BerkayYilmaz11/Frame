@@ -18,7 +18,10 @@
  * Move to Done and Move back to Active (frame-cloud-brief-manual-done spec)
  * move started work between Active and Done with a button, never a drag
  * (FrameCloud D3/D4, overturning the page's "drag the card"): a move that
- * needs a reason, and every move back, asks for it in a dialog.
+ * needs a reason, and every move back, asks for it in a dialog. A move with
+ * nothing to explain shows the card in Done at once with a "Moved #N to
+ * Done" toast offering Undo; main holds it for those 5 seconds and sends it
+ * then, when another move starts, or when Frame quits.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -30,6 +33,7 @@
 
 const { ipcRenderer, shell } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
+const { HOLD_MS } = require('../shared/cloudMoveHold');
 const state = require('./state');
 const cloudProjectMark = require('./cloudProjectMark');
 const { escapeHtml } = require('./htmlUtils');
@@ -74,8 +78,10 @@ let detail = null;
 let detailSeq = 0;
 // The brief number whose Discuss or Shape lane is starting, so a second click waits.
 let starting = null;
-// Brief numbers whose move to Done without a dialog is on its way: their
-// control reads "Moving to Done…" and is disabled until main answers.
+// Moves to Done without a dialog that are on their way (held for Undo, then
+// sent), by `${folder}\0${number}` (D17): the board shows those briefs in
+// Done, their control reads "Moving to Done…" and is disabled, and the entry
+// leaves when main answers — sent, undone or refused.
 const moving = new Set();
 // A brief to open once the panel mounts (a brief lane's chip was clicked).
 let pendingOpen = null;
@@ -391,7 +397,8 @@ function setHeader({ count, canOpenWeb }) {
 }
 
 function renderBoard() {
-  const { briefs, milestones, canOpenWeb } = board.result;
+  const { milestones, canOpenWeb } = board.result;
+  const briefs = shownBriefs();
   const groups = copy.groupByColumn(briefs);
   const openCount = groups.backlog.length + groups.active.length + groups.done.length;
   setHeader({ count: showClosed ? briefs.length : openCount, canOpenWeb });
@@ -551,10 +558,20 @@ function moveToWorkButton(number, action) {
   return `<button type="button" class="cloud-briefs-primary-btn" data-action="${action}" data-number="${number}" tabindex="-1">${escapeHtml(copy.MOVE_TO_WORK_LABEL)}</button>`;
 }
 
-/** The board's brief with this number, or null. */
-function boardBrief(number) {
+/**
+ * The board's briefs as the panel shows them: a brief whose move to Done is
+ * held reads Done already, without "Ready for Done" (D17).
+ */
+function shownBriefs() {
   const briefs = board && board.result ? board.result.briefs : [];
-  return briefs.find((b) => b.number === number) || null;
+  return briefs.map((b) => (b.status === 'active' && isMoving(b.number)
+    ? { ...b, status: 'done', readyForDone: false }
+    : b));
+}
+
+/** The board's brief with this number, as shown, or null. */
+function boardBrief(number) {
+  return shownBriefs().find((b) => b.number === number) || null;
 }
 
 function renderEmpty(canOpenWeb) {
@@ -1164,27 +1181,36 @@ function moveButton(brief, action) {
   const to = moveDirection(brief);
   if (!to) return '';
   const n = brief.number;
-  if (moving.has(n)) {
+  if (isMoving(n)) {
     return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-move-btn" disabled tabindex="-1">${escapeHtml(copy.MOVING_TO_DONE_LABEL)}</button>`;
   }
   const label = to === 'done' ? copy.MOVE_TO_DONE_LABEL : copy.MOVE_BACK_LABEL;
   return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-move-btn" data-action="${action}" data-number="${n}" tabindex="-1">${escapeHtml(label)}</button>`;
 }
 
+function movingKey(path, number) {
+  return `${path}\0${number}`;
+}
+
+/** Whether brief `number` of the open folder (or of `path`) has a move to Done on its way. */
+function isMoving(number, path = state.getProjectPath()) {
+  return Boolean(path) && moving.has(movingKey(path, number));
+}
+
 /**
  * A move button was pressed. The panel decides from its last read (D5): a
- * move to Done with nothing to explain is sent without a dialog; one that
- * leaves a part unmerged on a tracked project, and every move back, asks for
- * a reason first.
+ * move to Done with nothing to explain is held for Undo without a dialog;
+ * one that leaves a part unmerged on a tracked project, and every move back,
+ * asks for a reason first and is sent at once.
  */
 function moveBrief(brief) {
   const to = moveDirection(brief);
-  if (!to || moving.has(brief.number) || moveDialog) return;
+  if (!to || isMoving(brief.number) || moveDialog) return;
   if (to === 'active' || copy.needsReason(brief)) {
     openMoveDialog({ brief, to });
     return;
   }
-  sendMoveToDone(brief);
+  holdMoveToDone(brief);
 }
 
 async function invokeMove(path, number, options) {
@@ -1197,34 +1223,99 @@ async function invokeMove(path, number, options) {
   }
 }
 
-/** A move to Done without a reason, sent at once. */
-async function sendMoveToDone(brief) {
+/**
+ * A move to Done with nothing to explain (D1, D3, D17, D18): the card shows
+ * in Done at once, a "Moved #N to Done" toast offers Undo for exactly
+ * HOLD_MS, and main holds the move that long — sending it when the time
+ * passes, when another move starts, or when Frame quits. The invoke answers
+ * once the move was sent (or undone), whatever view is on screen by then.
+ */
+async function holdMoveToDone(brief) {
   const n = brief.number;
   const path = state.getProjectPath();
   if (!path) return;
-  moving.add(n);
-  renderLaneSlots(n);
-  const result = await invokeMove(path, n, { to: 'done', hold: false });
-  moving.delete(n);
-  afterMove(n, result);
-}
-
-/** What a move without a dialog does with main's answer: reload when it landed, or say why not. */
-function afterMove(number, result) {
+  const key = movingKey(path, n);
+  moving.add(key);
+  redrawMove(path, n);
+  notify.success(copy.movedNotice(n), {
+    action: { label: copy.UNDO_LABEL, onClick: () => undoHeldMove(path, n) },
+    visibleMs: HOLD_MS,
+  });
+  const result = await invokeMove(path, n, { to: 'done', hold: true });
+  moving.delete(key);
   if (result && result.ok) {
-    reloadAfterMove(number);
+    // Main says it is Done: keep the card there until the re-read lands, so
+    // a redraw in between cannot flash it back to Active.
+    markDone(path, n);
+    reloadAfterMove(path, n);
     return;
   }
-  renderLaneSlots(number);
-  const reason = result && result.reason;
-  if (reason === 'unauthorized') return; // the session push takes the view away
+  const reason = (result && result.reason) || 'other';
+  redrawMove(path, n);
+  if (reason === 'undone' || reason === 'unauthorized') return; // Undo says nothing; a sign-out takes the view away
+  if (reason === 'reasonRequired') {
+    reaskWithReason(path, n);
+    return;
+  }
   notify.error(copy.moveErrorMessage(reason));
-  if (STALE_MOVE_REASONS.has(reason)) reloadAfterMove(number);
+  if (STALE_MOVE_REASONS.has(reason)) reloadAfterMove(path, n);
+}
+
+/** Undo on the toast: main cancels the held move, whose invoke then answers `undone`. */
+function undoHeldMove(path, number) {
+  ipcRenderer.invoke(IPC.CLOUD_BRIEF_MOVE_UNDO, path, number).catch((err) => {
+    console.error('cloudBriefsPanel: could not undo the move', err);
+  });
+}
+
+/**
+ * A move sent without a reason came back `REASON_REQUIRED`: the panel's view
+ * was stale (a part it thought merged is not). Read the brief again and ask
+ * for the reason on its fresh parts (D8), unless the user has moved on to
+ * another folder or another dialog.
+ */
+async function reaskWithReason(path, number) {
+  let result;
+  try {
+    result = await ipcRenderer.invoke(IPC.CLOUD_BRIEF_GET, path, number);
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not read the brief again', err);
+    result = { ok: false, reason: 'other' };
+  }
+  reloadAfterMove(path, number);
+  if (path !== state.getProjectPath()) return;
+  if (!result || !result.ok) {
+    if (!result || result.reason !== 'unauthorized') notify.error(copy.moveErrorMessage(result && result.reason));
+    return;
+  }
+  if (moveDirection(result.brief) !== 'done') return; // it moved meanwhile; the reload shows where
+  if (moveDialog) {
+    notify.error(copy.moveErrorMessage('reasonRequired'));
+    return;
+  }
+  openMoveDialog({ brief: result.brief, to: 'done' });
+}
+
+/** Redraw what a held move changes: the board (its overlay) and the brief's controls. */
+function redrawMove(path, number) {
+  if (!visible || path !== state.getProjectPath()) return;
+  if (board && board.path === path) renderBoard();
+  renderLaneSlots(number);
+}
+
+/** The cached board brief is Done now (main said so); the re-read confirms it. */
+function markDone(path, number) {
+  if (!board || board.path !== path) return;
+  const brief = board.result.briefs.find((b) => b.number === number);
+  if (brief && brief.status === 'active') {
+    brief.status = 'done';
+    brief.readyForDone = false;
+  }
 }
 
 /** A move landed or was refused as stale: the board, and the brief when it is the one on screen, read again. */
-function reloadAfterMove(number) {
-  if (!visible) return;
+function reloadAfterMove(path, number) {
+  if (!visible || path !== state.getProjectPath()) return;
   load();
   if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
 }
@@ -1308,19 +1399,20 @@ async function confirmMove(reason) {
   confirmBtn.disabled = true;
   confirmBtn.textContent = `${dialog.label}…`;
   errorEl.hidden = true;
-  const result = await invokeMove(state.getProjectPath(), dialog.number, { to: dialog.to, reason });
+  const path = state.getProjectPath();
+  const result = await invokeMove(path, dialog.number, { to: dialog.to, reason });
   dialog.pending = false;
   const failure = result && result.ok ? null : (result && result.reason) || 'other';
   if (!failure || failure === 'unauthorized') {
     closeMoveDialog();
-    if (!failure) reloadAfterMove(dialog.number);
+    if (!failure) reloadAfterMove(path, dialog.number);
     return;
   }
   confirmBtn.disabled = dialog.el.querySelector('[data-ref="reason"]').value.trim() === '';
   confirmBtn.textContent = dialog.label;
   errorEl.textContent = copy.moveErrorMessage(failure);
   errorEl.hidden = false;
-  if (STALE_MOVE_REASONS.has(failure)) reloadAfterMove(dialog.number);
+  if (STALE_MOVE_REASONS.has(failure)) reloadAfterMove(path, dialog.number);
 }
 
 // ─── Start Work ───────────────────────────────────────────────

@@ -23,6 +23,11 @@
  * landed while they sat in its lane: Open brief). Clicking it runs `onClick`
  * and dismisses the toast; a toast with an action stays ACTION_MS, long
  * enough to reach the button.
+ *
+ * `{ visibleMs }` overrides how long a non-sticky toast stays — for an action
+ * that stops meaning anything after a fixed time: the Briefs view's Undo on a
+ * held move to Done lives exactly as long as the hold
+ * (frame-cloud-brief-manual-done D18). A later toast still replaces it.
  */
 
 const VISIBLE_ERROR_MS = 4000;
@@ -36,7 +41,7 @@ const ICONS = {
   info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
 };
 
-function show(message, type = 'info', { sticky = false, action = null } = {}) {
+function show(message, type = 'info', { sticky = false, action = null, visibleMs = null } = {}) {
   const existing = document.querySelector('.app-toast');
   if (existing) existing.remove();
 
@@ -90,8 +95,8 @@ function show(message, type = 'info', { sticky = false, action = null } = {}) {
 
   if (sticky) return;
 
-  const visibleMs = hasAction ? VISIBLE_ACTION_MS : type === 'error' ? VISIBLE_ERROR_MS : VISIBLE_DEFAULT_MS;
-  setTimeout(dismiss, visibleMs);
+  const defaultMs = hasAction ? VISIBLE_ACTION_MS : type === 'error' ? VISIBLE_ERROR_MS : VISIBLE_DEFAULT_MS;
+  setTimeout(dismiss, Number.isFinite(visibleMs) && visibleMs > 0 ? visibleMs : defaultMs);
 }
 
 module.exports = {

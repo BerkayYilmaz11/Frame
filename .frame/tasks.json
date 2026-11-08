@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:28:35.201Z",
+  "lastUpdated": "2026-11-08T09:35:13.789Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10606,13 +10606,13 @@
       "title": "Add `visibleMs` to `src/renderer/notify.js`. Route a move to Done without a dialog through the panel's `moving` overlay (\"Moving to Done…\"), the \"Moved #N to Done\" toast with Undo (`CLOUD_BRIEF_MOVE_UNDO`) and `hold: true`. Re-read the brief and open the dialog when the held move comes back `reasonRequired`.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:35:13.789Z",
+      "completedAt": "2026-11-08T09:35:13.789Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T08",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 35
+    "totalCompleted": 36
   },
   "categories": {
     "feature": "New features",

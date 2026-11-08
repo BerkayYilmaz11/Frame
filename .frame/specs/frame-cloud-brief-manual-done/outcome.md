@@ -47,3 +47,11 @@ _Captured: 2026-11-08 · 2 file change(s)_
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T07 — Hold and Undo in the panel
+
+`notify` takes `visibleMs`, and a move to Done with nothing to explain now runs through `holdMoveToDone`: the brief joins `moving`, shows in Done as "Moving to Done…", and gets a "Moved #N to Done" toast with Undo (`CLOUD_BRIEF_MOVE_UNDO`) for exactly `HOLD_MS`, while main holds the send (`hold: true`). A `reasonRequired` answer re-reads the brief and opens the dialog on its fresh parts (`reaskWithReason`). Diverged from D17 three ways: `moving` is keyed by folder and number (a project switch never overlays another project's brief), `boardBrief` reads the same overlaid list so part-row redraws agree with the board, and a landed move marks the cached brief Done until the re-read arrives so the card never flashes back to Active. Drove the real panel and `notify.js` in a hidden Electron window against a fake cloud on the real hold: 49 of 49 checks passed (Undo sends nothing, the send lands at ~5 s, dialogs, stale re-read, refusal not retried, another move flushes the held one, Done detail and History). Files: `src/renderer/notify.js`, `src/renderer/cloudBriefsPanel.js`.
+
+_Captured: 2026-11-08 · 2 file change(s)_
+
+---
