@@ -55,3 +55,11 @@ _Captured: 2026-11-08 · 2 file change(s)_
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T08 — Walk it against a local FrameCloud server
+
+The developer walked every Success Criterion against a local FrameCloud server carrying `brief-manual-done` and reported all of them working on 2026-11-08, including a quit inside the 5-second hold and a brief moved back to Active. No code changed. The agent did not drive the walk, because sign-in and the GitHub App are the developer's.
+
+_Captured: 2026-11-08 · 0 file change(s)_
+
+---

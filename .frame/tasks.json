@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:35:13.789Z",
+  "lastUpdated": "2026-11-08T12:36:19.460Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10619,13 +10619,13 @@
       "title": "Walk every Success Criterion against a local FrameCloud server on `feat/brief-manual-done` (or its `main` after PR #26 merges), including a quit inside the 5-second hold and a moved-back brief reporting its missing branch or completion. This is a developer-run walk.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T12:36:19.460Z",
+      "completedAt": "2026-11-08T12:36:19.460Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T09",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 36
+    "totalCompleted": 37
   },
   "categories": {
     "feature": "New features",
