@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:15:54.695Z",
+  "lastUpdated": "2026-11-08T09:18:34.771Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10554,13 +10554,13 @@
       "title": "Wire the moves through main. Add `CLOUD_BRIEF_MOVE` and `CLOUD_BRIEF_MOVE_UNDO` to `src/shared/ipcChannels.js`. Add `move`, `undoMove` and `flushMoves` (one hold, 3000 ms cap, flush before any unheld move) with their handlers and header to `src/main/cloud/cloudBriefsService.js`. Flush held moves in `src/main/index.js`'s `before-quit` beside `analytics.shutdown()`. Correct the `FINAL_REFUSALS` comment in `src/main/cloud/cloudDoneService.js`.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:18:34.771Z",
+      "completedAt": "2026-11-08T09:18:34.771Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T04",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 31
+    "totalCompleted": 32
   },
   "categories": {
     "feature": "New features",

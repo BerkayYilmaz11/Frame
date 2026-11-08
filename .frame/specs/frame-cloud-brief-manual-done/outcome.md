@@ -15,3 +15,11 @@ Added `src/shared/cloudMoveHold.js` with `HOLD_MS = 5000` and `createMoveHold({ 
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T03 — Wire the moves through main
+
+Added `CLOUD_BRIEF_MOVE` and `CLOUD_BRIEF_MOVE_UNDO`, plus `move`, `undoMove` and `flushMoves` on one `createMoveHold()` in `cloudBriefsService.js`. Diverged from the plan's order: `move` reads the brief id (`getBrief`) inside the send instead of before holding, so the hold starts the moment the renderer asks, an Undo pressed during that first read still finds the move, and an undone move sends no request at all; the flush before an unheld move reuses the quit flush's 3000 ms cap. `before-quit` now runs `Promise.allSettled([analytics.shutdown(), cloudBriefsService.flushMoves()])`, and `FINAL_REFUSALS`' comment no longer says `ALREADY_DONE` never changes, with behaviour unchanged. Smoke-tested the shell with stubbed cloud calls (instant Undo sends nothing, flush and a later unheld move send the held one first, a real 5 s hold answers `reasonRequired`, a blank move back is refused). Files: `src/shared/ipcChannels.js`, `src/main/cloud/cloudBriefsService.js`, `src/main/index.js`, `src/main/cloud/cloudDoneService.js`.
+
+_Captured: 2026-11-08 · 4 file change(s)_
+
+---

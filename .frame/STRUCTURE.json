@@ -1648,10 +1648,14 @@
         "get",
         "create",
         "decide",
+        "move",
+        "undoMove",
+        "flushMoves",
         "openOnWeb"
       ],
       "depends": [
         "../shared/ipcChannels",
+        "../shared/cloudMoveHold",
         "cloudSession",
         "cloudProjectsService",
         "cloudBriefs",
@@ -1660,11 +1664,11 @@
       ],
       "functions": {
         "meId": {
-          "line": 30,
+          "line": 41,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "reportAfter": {
-          "line": 40,
+          "line": 51,
           "params": [
             "folderPath",
             "project",
@@ -1673,21 +1677,21 @@
           "purpose": "Report what this machine knows about the read's parts once the read has"
         },
         "webUrl": {
-          "line": 46,
+          "line": 57,
           "params": [
             "project",
             "number"
           ]
         },
         "mergeTrackingOf": {
-          "line": 63,
+          "line": 74,
           "params": [
             "briefs"
           ],
           "purpose": "Whether the cloud can see the project's merges, from the listed briefs"
         },
         "list": {
-          "line": 71,
+          "line": 82,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -1695,7 +1699,7 @@
           "purpose": "The folder's briefs and milestones."
         },
         "get": {
-          "line": 100,
+          "line": 111,
           "params": [
             "folderPath",
             "number"
@@ -1703,7 +1707,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 127,
+          "line": 138,
           "params": [
             "folderPath",
             "request"
@@ -1711,7 +1715,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 144,
+          "line": 155,
           "params": [
             "folderPath",
             "number",
@@ -1719,8 +1723,39 @@
           ],
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
+        "moveKey": {
+          "line": 166,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "A held move's key: the folder and the brief number, joined by a NUL."
+        },
+        "move": {
+          "line": 182,
+          "params": [
+            "folderPath",
+            "number",
+            "{ to",
+            "reason",
+            "hold } = {}"
+          ],
+          "purpose": "Move a started brief to Done (`to: 'done'`) or back to Active"
+        },
+        "undoMove": {
+          "line": 199,
+          "params": [
+            "folderPath",
+            "number"
+          ],
+          "purpose": "Cancel a held move to Done. → whether one was still held (false once its send started)."
+        },
+        "flushMoves": {
+          "line": 205,
+          "purpose": "Send every held move now, waiting at most FLUSH_TIMEOUT_MS (quit, D19). Never rejects."
+        },
         "openOnWeb": {
-          "line": 155,
+          "line": 210,
           "params": [
             "folderPath",
             "number"
@@ -1728,7 +1763,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 164,
+          "line": 219,
           "params": [
             "ipcMain"
           ]
@@ -1740,11 +1775,13 @@
           "CLOUD_BRIEF_GET",
           "CLOUD_BRIEFS_OPEN_ON_WEB",
           "CLOUD_BRIEF_CREATE",
-          "CLOUD_BRIEF_DECIDE"
+          "CLOUD_BRIEF_DECIDE",
+          "CLOUD_BRIEF_MOVE",
+          "CLOUD_BRIEF_MOVE_UNDO"
         ],
         "emits": []
       },
-      "sizeBytes": 7921,
+      "sizeBytes": 10872,
       "extraction": {
         "status": "parsed"
       },
@@ -1753,12 +1790,16 @@
         "purposes": {
           "create": "c9319a030b86a7a0",
           "decide": "e1ba09feac8198a4",
+          "flushMoves": "bd8c89cdd0a3fd1c",
           "get": "4ae9132825177c4c",
           "list": "f21acc5f5b84c582",
           "meId": "7d748ee0ba9f4008",
           "mergeTrackingOf": "56e0e6008d61343a",
+          "move": "9c195bb4f702940d",
+          "moveKey": "174e131f10368b76",
           "openOnWeb": "3cae68c594b76bf4",
-          "reportAfter": "e426294c1b832de0"
+          "reportAfter": "e426294c1b832de0",
+          "undoMove": "0520577bba4f6139"
         }
       }
     },
@@ -2294,27 +2335,27 @@
       ],
       "functions": {
         "errorText": {
-          "line": 39,
+          "line": 45,
           "params": [
             "err"
           ]
         },
         "tasksRelPath": {
-          "line": 44,
+          "line": 50,
           "params": [
             "folderPath"
           ],
           "purpose": "The folder's tasks.json, relative to the folder and with forward slashes; null when it sits outside it."
         },
         "localBranchNames": {
-          "line": 51,
+          "line": 57,
           "params": [
             "folderPath"
           ],
           "purpose": "This folder's local branch names, or null when git cannot list them."
         },
         "finishedAt": {
-          "line": 62,
+          "line": 68,
           "params": [
             "folderPath",
             "tip",
@@ -2325,7 +2366,7 @@
           "purpose": "Is the candidate's record finished at `tip`? Read with `git show` from the"
         },
         "completionDue": {
-          "line": 86,
+          "line": 92,
           "params": [
             "folderPath",
             "stored",
@@ -2334,7 +2375,7 @@
           "purpose": "Should `tip` be sent over the cloud's `stored` completion (D12)? git answers the two history questions."
         },
         "send": {
-          "line": 97,
+          "line": 103,
           "params": [
             "label",
             "fn"
@@ -2342,13 +2383,13 @@
           "purpose": "Send one record through `call()`. A final refusal is logged as information,"
         },
         "push": {
-          "line": 118,
+          "line": 124,
           "params": [
             "folderPath"
           ]
         },
         "run": {
-          "line": 124,
+          "line": 130,
           "params": [
             "folderPath",
             "project",
@@ -2356,7 +2397,7 @@
           ]
         },
         "report": {
-          "line": 169,
+          "line": 175,
           "params": [
             "folderPath",
             "project",
@@ -2365,7 +2406,7 @@
           "purpose": "Report what this machine knows about the listed briefs' parts. Single-flight"
         },
         "init": {
-          "line": 182,
+          "line": 188,
           "params": [
             "window"
           ]
@@ -2377,7 +2418,7 @@
           "CLOUD_BRIEFS_CHANGED"
         ]
       },
-      "sizeBytes": 7364,
+      "sizeBytes": 7654,
       "extraction": {
         "status": "parsed"
       },
@@ -6800,7 +6841,7 @@
           "MAIN_PROCESS_ERROR"
         ]
       },
-      "sizeBytes": 17200,
+      "sizeBytes": 17418,
       "extraction": {
         "status": "parsed"
       },
@@ -27909,7 +27950,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 18288,
+      "sizeBytes": 18815,
       "extraction": {
         "status": "parsed"
       },
@@ -33964,6 +34005,16 @@
         "name": "cloud-briefs-changed",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_BRIEF_MOVE": {
+        "name": "cloud-brief-move",
+        "direction": "",
+        "description": ""
+      },
+      "CLOUD_BRIEF_MOVE_UNDO": {
+        "name": "cloud-brief-move-undo",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -35240,6 +35291,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a347a417bba001d6f6adabf12dcbcb1cd5b84cfb6d92d60e92647353c7cb99cb"
+    "revision": "a4a44003b2e00fcf67e7a4877a0b4cbfd00db88d9b5e6dbd1a66419f897b23d3"
   }
 }

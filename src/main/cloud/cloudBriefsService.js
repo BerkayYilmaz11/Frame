@@ -10,14 +10,19 @@
  *
  * Every request goes through cloudProjectsService's `call()`, so a 401 signs
  * out quietly and a forgotten device is registered again and retried once.
- * The writes are `create` (a new brief and its links) and `decide` (a
- * proposal moved to work); discussions are recorded by
- * cloudDiscussionsService. After a read answers, cloudDoneService reports
- * the parts' branches and finishes (frame-cloud-brief-done). No other brief
- * or milestone mutation is called from here.
+ * The writes are `create` (a new brief and its links), `decide` (a proposal
+ * moved to work) and `move` (a started brief moved to Done or back to Active,
+ * frame-cloud-brief-manual-done); discussions are recorded by
+ * cloudDiscussionsService. A move to Done that needs no reason is held here
+ * for its 5-second Undo (`undoMove`), and the held moves are sent at quit
+ * (`flushMoves`), so neither closing the view nor quitting loses one (D1).
+ * After a read answers, cloudDoneService reports the parts' branches and
+ * finishes (frame-cloud-brief-done). No other brief or milestone mutation is
+ * called from here.
  */
 
 const { IPC } = require('../../shared/ipcChannels');
+const { createMoveHold } = require('../../shared/cloudMoveHold');
 const cloudSession = require('./cloudSession');
 const cloudProjectsService = require('./cloudProjectsService');
 const core = require('./cloudBriefs');
@@ -25,6 +30,12 @@ const cloudStartService = require('./cloudStartService');
 const cloudDoneService = require('./cloudDoneService');
 
 const NOT_CONNECTED = { ok: false, reason: 'notConnected' };
+
+/** The app's one hold: a move to Done waits here for its Undo (plan D1, D12). */
+const moveHold = createMoveHold();
+
+/** The longest a flush waits for held moves, so a dead network cannot hold the app open (D19). */
+const FLUSH_TIMEOUT_MS = 3000;
 
 /** The signed-in user's id, for "You"; '' when unknown. */
 function meId() {
@@ -151,6 +162,50 @@ async function decide(folderPath, number, priority) {
   return core.decideThrough(call, { id: brief.value.id, priority });
 }
 
+/** A held move's key: the folder and the brief number, joined by a NUL. */
+function moveKey(folderPath, number) {
+  return `${folderPath}\0${number}`;
+}
+
+/**
+ * Move a started brief to Done (`to: 'done'`) or back to Active
+ * (`to: 'active'`). The brief is resolved here by number; its id never leaves
+ * main. A move to Done with `hold` and no reason waits `HOLD_MS` for Undo and
+ * is sent when the time passes, when another move starts, or at quit; every
+ * other move first sends whatever is held, then goes at once.
+ *
+ * The id is read inside the send, not before holding, so the hold starts the
+ * moment the renderer asks: an Undo pressed during that first read still
+ * finds the move, and an undone move sends nothing at all.
+ * → `{ ok: true }` or `{ ok: false, reason }` (`undone` after an Undo).
+ */
+async function move(folderPath, number, { to, reason, hold } = {}) {
+  const project = cloudProjectsService.connectedProject(folderPath);
+  if (!project) return NOT_CONNECTED;
+  if (!Number.isInteger(number) || number < 1) return { ok: false, reason: 'other' };
+  const call = cloudProjectsService.call;
+  const send = async () => {
+    const brief = await call((ctx) => core.getBrief({ ...ctx, projectSlug: project.slug, number }));
+    if (!brief.ok) return { ok: false, reason: brief.reason };
+    return core.moveThrough(call, { id: brief.value.id, to, reason });
+  };
+  const hasReason = typeof reason === 'string' && reason.trim() !== '';
+  if (hold === true && to === 'done' && !hasReason) return moveHold.hold(moveKey(folderPath, number), send);
+  await moveHold.flush({ timeoutMs: FLUSH_TIMEOUT_MS });
+  return send();
+}
+
+/** Cancel a held move to Done. → whether one was still held (false once its send started). */
+function undoMove(folderPath, number) {
+  if (!Number.isInteger(number) || number < 1) return false;
+  return moveHold.undo(moveKey(folderPath, number));
+}
+
+/** Send every held move now, waiting at most FLUSH_TIMEOUT_MS (quit, D19). Never rejects. */
+function flushMoves() {
+  return moveHold.flush({ timeoutMs: FLUSH_TIMEOUT_MS });
+}
+
 /** The project on the web, or one brief when a number is given. The URL is built and opened here. */
 function openOnWeb(folderPath, number) {
   const project = cloudProjectsService.connectedProject(folderPath);
@@ -167,6 +222,8 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_BRIEFS_OPEN_ON_WEB, (event, folderPath, number) => openOnWeb(folderPath, number));
   ipcMain.handle(IPC.CLOUD_BRIEF_CREATE, (event, folderPath, request) => create(folderPath, request));
   ipcMain.handle(IPC.CLOUD_BRIEF_DECIDE, (event, folderPath, number, priority) => decide(folderPath, number, priority));
+  ipcMain.handle(IPC.CLOUD_BRIEF_MOVE, (event, folderPath, number, options) => move(folderPath, number, options || {}));
+  ipcMain.handle(IPC.CLOUD_BRIEF_MOVE_UNDO, (event, folderPath, number) => undoMove(folderPath, number));
 }
 
 module.exports = {
@@ -175,5 +232,8 @@ module.exports = {
   get,
   create,
   decide,
+  move,
+  undoMove,
+  flushMoves,
   openOnWeb,
 };

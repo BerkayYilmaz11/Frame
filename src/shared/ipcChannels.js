@@ -300,7 +300,13 @@ const IPC = {
   // Frame Cloud brief done (frame-cloud-brief-done spec). After a Briefs read,
   // main reports each part's branch and finish to the cloud; when one lands it
   // pushes this so the panel reloads the board and the open detail.
-  CLOUD_BRIEFS_CHANGED: 'cloud-briefs-changed'            // main → renderer: { folderPath }
+  CLOUD_BRIEFS_CHANGED: 'cloud-briefs-changed',           // main → renderer: { folderPath }
+
+  // Frame Cloud brief manual Done (frame-cloud-brief-manual-done spec). A move
+  // to Done with `hold` and no reason waits 5 s in main for Undo; every other
+  // move is sent at once. Undo answers whether the move was still held.
+  CLOUD_BRIEF_MOVE: 'cloud-brief-move',                   // renderer → main (invoke): (path, number, { to: 'done'|'active', reason, hold }) → { ok } | { ok: false, reason }
+  CLOUD_BRIEF_MOVE_UNDO: 'cloud-brief-move-undo'          // renderer → main (invoke): (path, number) → undone?
 };
 
 module.exports = { IPC };
