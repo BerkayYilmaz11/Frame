@@ -39,3 +39,11 @@ An Active card now shows a "Ready for Done" badge (`.cloud-briefs-ready`, succes
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T06 — Add the move buttons and the reason dialog
+
+`moveButton` puts "Move to Done" on Active started work and "Move back to Active" on Done work, appended after an open brief lane's link on the card and after Go to the lane in the detail (D9). Backlog, proposal and closed briefs get neither. `openMoveDialog({ brief, to })` copies Move to Work's backdrop, Esc and pending handling, and adds a `textarea.cloud-briefs-input` reason (maxlength 10000, the server's limit) that holds confirm until it is not blank, plus the missing parts with `partFacts(...).status.label` for a move to Done. A move to Done with no dialog is sent directly for now through a `moving` set that shows a disabled "Moving to Done…". A landed move reloads the board and any open detail, and a stale refusal (`STALE_MOVE_REASONS`, which includes `reasonRequired` until T07) shows its sentence and reloads, while a failure to reach the cloud leaves the board as it is and is not retried. Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-08 · 2 file change(s)_
+
+---

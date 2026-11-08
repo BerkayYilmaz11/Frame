@@ -15,6 +15,10 @@
  * unshaped work; their agents write through main, never through this panel.
  * Start Work (frame-cloud-brief-start spec) opens cloudStartDialog.js on
  * open, shaped work, and main writes its parts into the folder.
+ * Move to Done and Move back to Active (frame-cloud-brief-manual-done spec)
+ * move started work between Active and Done with a button, never a drag
+ * (FrameCloud D3/D4, overturning the page's "drag the card"): a move that
+ * needs a reason, and every move back, asks for it in a dialog.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -70,6 +74,9 @@ let detail = null;
 let detailSeq = 0;
 // The brief number whose Discuss or Shape lane is starting, so a second click waits.
 let starting = null;
+// Brief numbers whose move to Done without a dialog is on its way: their
+// control reads "Moving to Done…" and is disabled until main answers.
+const moving = new Set();
 // A brief to open once the panel mounts (a brief lane's chip was clicked).
 let pendingOpen = null;
 // The open folder's specs (by slug) and tasks (by id), for a started brief's
@@ -360,6 +367,10 @@ function onContentClick(event) {
     const brief = boardBrief(Number(actionEl.dataset.number));
     if (brief) openMoveToWork(brief);
   }
+  else if (action === 'move-card') {
+    const brief = boardBrief(Number(actionEl.dataset.number));
+    if (brief) moveBrief(brief);
+  }
   else if (action === 'open-comments') {
     const number = Number(actionEl.dataset.number);
     if (Number.isInteger(number) && number > 0) openDetail(number, 'comments');
@@ -488,16 +499,20 @@ function renderCard(brief, milestoneName) {
  *   decide     → primary Move to Work, secondary Discuss — and, when someone
  *                commented after the latest record, "N new comments" first,
  *                which opens the Comments tab
- * and for work, primary Shape while it is open and unshaped; nothing for a
- * shaped or an ended brief.
+ * and for work, primary Shape while it is open and unshaped; Move to Done on
+ * Active work and Move back to Active on Done work, beside an open lane's
+ * link rather than instead of it (D9); nothing for a shaped, unstarted or an
+ * ended brief.
  */
 function renderCardActions(brief) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
   const n = brief.number;
   if (copy.workStage({ brief, laneOpen: Boolean(lane) }) === 'start') return startWorkButton(n, 'start-card');
+  const move = moveButton(brief, 'move-card');
   if (lane) {
-    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(goToLaneLabel(lane))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}</span></button>`;
+    return `<button type="button" class="cloud-briefs-lane-link" data-action="go-to-lane" data-number="${n}" title="${escapeHtml(goToLaneLabel(lane))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(n)}<span>${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}</span></button>${move}`;
   }
+  if (move) return move;
   if (copy.workStage({ brief, laneOpen: false }) === 'shape') return shapeButton(n, 'shape-card');
   const stage = copy.proposalStage({ brief, laneOpen: false, discussionCount: brief.discussionCount });
   if (stage === 'discuss') return discussButton(n, 'primary', 'discuss-card');
@@ -688,6 +703,8 @@ function onDetailClick(event) {
     if (detail && detail.result) startWork(detail.result.brief);
   } else if (action === 'move-to-work') {
     if (detail && detail.result) openMoveToWork(detail.result.brief);
+  } else if (action === 'move') {
+    if (detail && detail.result) moveBrief(detail.result.brief);
   } else if (onPartAction(actionEl)) {
     // a part row: open, run or enter its lane
   } else if (action === 'go-to-brief-lane') {
@@ -1003,14 +1020,17 @@ function renderDiscussions(events, meId, attachments) {
  * discussion or Go to shaping while a lane is open (whatever the brief has
  * become since), Discuss before any record, Move to Work + Discuss after one,
  * Shape on open unshaped work, Start Work on open shaped work (even while its
- * Shape lane is still open), nothing for a started or an ended brief.
+ * Shape lane is still open), Move to Done or Move back to Active on started
+ * work (beside an open lane's button), nothing for an ended brief.
  */
 function renderDiscussAction(brief, events) {
   const lane = agentDispatch.getBriefLaneInfo(brief.number);
   if (copy.workStage({ brief, laneOpen: Boolean(lane) }) === 'start') return startWorkButton(brief.number, 'start-work');
+  const move = moveButton(brief, 'move');
   if (lane) {
-    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-brief-lane" title="${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(goToLaneLabel(lane))}</button>`;
+    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-discuss-btn" data-action="go-to-brief-lane" title="${escapeHtml(copy.laneLabel(lane.purpose, lane.name))}" tabindex="-1">${agentDispatch.briefStatusDotHtml(brief.number)}${escapeHtml(goToLaneLabel(lane))}</button>${move}`;
   }
+  if (move) return move;
   if (copy.workStage({ brief, laneOpen: false }) === 'shape') return shapeButton(brief.number, 'shape');
   const discussionCount = copy.discussionRecords(events).length;
   const stage = copy.proposalStage({ brief, laneOpen: false, discussionCount });
@@ -1112,6 +1132,195 @@ async function confirmMoveToWork(priority) {
   confirmBtn.textContent = copy.MOVE_TO_WORK_LABEL;
   errorEl.textContent = copy.decideErrorMessage(result && result.reason);
   errorEl.hidden = false;
+}
+
+// ─── Move to Done and back (manual Done) ──────────────────────
+
+/** The server's limit on a reason (FrameCloud `BRIEF_TEXT_MAX`). */
+const REASON_MAX = 10000;
+
+/**
+ * The refusals that say the panel's view was stale: the sentence is shown and
+ * the board read again, never the move retried (D21). A failure to reach the
+ * cloud leaves the board as it is.
+ */
+const STALE_MOVE_REASONS = new Set(['alreadyDone', 'notDone', 'notStarted', 'alreadyClosed', 'notWork', 'notFound', 'reasonRequired']);
+
+/** Where a brief's move goes: 'done' for Active work, 'active' for Done work, null for anything else. */
+function moveDirection(brief) {
+  const b = brief || {};
+  if (b.kind !== 'work' || !b.startedAt) return null;
+  if (b.status === 'active') return 'done';
+  if (b.status === 'done') return 'active';
+  return null;
+}
+
+/**
+ * Move to Done on Active work, Move back to Active on Done work, and the
+ * disabled "Moving to Done…" while a move is on its way; '' for a backlog,
+ * proposal or closed brief.
+ */
+function moveButton(brief, action) {
+  const to = moveDirection(brief);
+  if (!to) return '';
+  const n = brief.number;
+  if (moving.has(n)) {
+    return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-move-btn" disabled tabindex="-1">${escapeHtml(copy.MOVING_TO_DONE_LABEL)}</button>`;
+  }
+  const label = to === 'done' ? copy.MOVE_TO_DONE_LABEL : copy.MOVE_BACK_LABEL;
+  return `<button type="button" class="cloud-briefs-web-btn cloud-briefs-move-btn" data-action="${action}" data-number="${n}" tabindex="-1">${escapeHtml(label)}</button>`;
+}
+
+/**
+ * A move button was pressed. The panel decides from its last read (D5): a
+ * move to Done with nothing to explain is sent without a dialog; one that
+ * leaves a part unmerged on a tracked project, and every move back, asks for
+ * a reason first.
+ */
+function moveBrief(brief) {
+  const to = moveDirection(brief);
+  if (!to || moving.has(brief.number) || moveDialog) return;
+  if (to === 'active' || copy.needsReason(brief)) {
+    openMoveDialog({ brief, to });
+    return;
+  }
+  sendMoveToDone(brief);
+}
+
+async function invokeMove(path, number, options) {
+  if (!path) return { ok: false, reason: 'notConnected' };
+  try {
+    return await ipcRenderer.invoke(IPC.CLOUD_BRIEF_MOVE, path, number, options);
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not move the brief', err);
+    return { ok: false, reason: 'other' };
+  }
+}
+
+/** A move to Done without a reason, sent at once. */
+async function sendMoveToDone(brief) {
+  const n = brief.number;
+  const path = state.getProjectPath();
+  if (!path) return;
+  moving.add(n);
+  renderLaneSlots(n);
+  const result = await invokeMove(path, n, { to: 'done', hold: false });
+  moving.delete(n);
+  afterMove(n, result);
+}
+
+/** What a move without a dialog does with main's answer: reload when it landed, or say why not. */
+function afterMove(number, result) {
+  if (result && result.ok) {
+    reloadAfterMove(number);
+    return;
+  }
+  renderLaneSlots(number);
+  const reason = result && result.reason;
+  if (reason === 'unauthorized') return; // the session push takes the view away
+  notify.error(copy.moveErrorMessage(reason));
+  if (STALE_MOVE_REASONS.has(reason)) reloadAfterMove(number);
+}
+
+/** A move landed or was refused as stale: the board, and the brief when it is the one on screen, read again. */
+function reloadAfterMove(number) {
+  if (!visible) return;
+  load();
+  if (drawerMode === 'detail' && detail && detail.number === number) loadDetail();
+}
+
+let moveDialog = null; // { el, number, to, label, pending }
+
+/** "2 parts not merged into main.", then each missing part with its row's status. */
+function renderMissingParts(brief, missing) {
+  if (missing.length === 0) return '';
+  return `<div class="cloud-briefs-move-missing">
+      <p>${escapeHtml(copy.missingPartsLine(missing.length, brief.targetBranch))}</p>
+      <ul aria-label="Parts not merged">${missing.map((part) => `
+        <li>
+          <span class="cloud-briefs-move-missing-title">${escapeHtml(part.title)}</span>
+          <span class="cloud-briefs-move-missing-status">${escapeHtml(partFacts(part, brief).status.label)}</span>
+        </li>`).join('')}
+      </ul>
+    </div>`;
+}
+
+/**
+ * The reason dialog, for both directions (D20), built like Move to Work's:
+ * a move to Done that leaves parts unmerged lists them under "N parts not
+ * merged into <target>."; a move back says what it reopens. Confirm waits
+ * for a reason, and the move is sent at once, with no Undo.
+ */
+function openMoveDialog({ brief, to }) {
+  if (moveDialog) return;
+  const n = brief.number;
+  const toDone = to === 'done';
+  const label = toDone ? copy.MOVE_TO_DONE_ANYWAY_LABEL : copy.MOVE_BACK_LABEL;
+  const el = document.createElement('div');
+  el.className = 'cloud-briefs-dialog-backdrop';
+  const id = `cloud-briefs-move-${n}`;
+  el.innerHTML = `<div class="cloud-briefs-dialog" role="dialog" aria-modal="true" aria-labelledby="${id}-title" aria-describedby="${id}-description">
+      <h3 id="${id}-title">${escapeHtml(toDone ? copy.moveToDoneTitle(n) : copy.moveBackTitle(n))}</h3>
+      <p id="${id}-description" class="cloud-briefs-muted">${escapeHtml(toDone ? copy.moveToDoneDescription(brief.targetBranch) : copy.MOVE_BACK_DESCRIPTION)}</p>
+      ${toDone ? renderMissingParts(brief, copy.missingParts(brief)) : ''}
+      <div class="cloud-briefs-field">
+        <label class="cloud-briefs-label" for="${id}-reason">${escapeHtml(copy.REASON_LABEL)}</label>
+        <textarea id="${id}-reason" class="cloud-briefs-input cloud-briefs-move-reason" rows="3" maxlength="${REASON_MAX}" data-ref="reason"></textarea>
+      </div>
+      <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
+      <div class="cloud-briefs-form-actions">
+        <button type="button" class="cloud-briefs-web-btn" data-ref="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>
+        <button type="button" class="cloud-briefs-primary-btn" data-ref="confirm" disabled>${escapeHtml(label)}</button>
+      </div>
+    </div>`;
+  moveDialog = { el, number: n, to, label, pending: false };
+  const ref = (name) => el.querySelector(`[data-ref="${name}"]`);
+  const reason = () => ref('reason').value.trim();
+  el.addEventListener('click', (e) => {
+    if (e.target === el || e.target === ref('cancel')) closeMoveDialog();
+    else if (e.target === ref('confirm')) confirmMove(reason());
+  });
+  el.addEventListener('input', () => {
+    if (moveDialog && !moveDialog.pending) ref('confirm').disabled = reason() === '';
+  });
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeMoveDialog();
+    }
+  });
+  document.body.appendChild(el);
+  ref('reason').focus();
+}
+
+function closeMoveDialog() {
+  if (!moveDialog || moveDialog.pending) return;
+  moveDialog.el.remove();
+  moveDialog = null;
+}
+
+async function confirmMove(reason) {
+  const dialog = moveDialog;
+  if (!dialog || dialog.pending || !reason) return;
+  const confirmBtn = dialog.el.querySelector('[data-ref="confirm"]');
+  const errorEl = dialog.el.querySelector('[data-ref="error"]');
+  dialog.pending = true;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = `${dialog.label}…`;
+  errorEl.hidden = true;
+  const result = await invokeMove(state.getProjectPath(), dialog.number, { to: dialog.to, reason });
+  dialog.pending = false;
+  const failure = result && result.ok ? null : (result && result.reason) || 'other';
+  if (!failure || failure === 'unauthorized') {
+    closeMoveDialog();
+    if (!failure) reloadAfterMove(dialog.number);
+    return;
+  }
+  confirmBtn.disabled = dialog.el.querySelector('[data-ref="reason"]').value.trim() === '';
+  confirmBtn.textContent = dialog.label;
+  errorEl.textContent = copy.moveErrorMessage(failure);
+  errorEl.hidden = false;
+  if (STALE_MOVE_REASONS.has(failure)) reloadAfterMove(dialog.number);
 }
 
 // ─── Start Work ───────────────────────────────────────────────

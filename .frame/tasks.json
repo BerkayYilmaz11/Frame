@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:24:25.156Z",
+  "lastUpdated": "2026-11-08T09:28:35.201Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10593,13 +10593,13 @@
       "title": "Add \"Move to Done\" and \"Move back to Active\" to the card (`renderCardActions`, beside an open lane link) and the detail (`renderDiscussAction`). Add `openMoveDialog({ brief, to })`, built like `openMoveToWork`, with the missing parts and their row labels, a reason field that holds confirm, and CSS. Send moves without a dialog directly for now. Reload on success, or show the refusal sentence and reload.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:28:35.201Z",
+      "completedAt": "2026-11-08T09:28:35.201Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T07",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 34
+    "totalCompleted": 35
   },
   "categories": {
     "feature": "New features",
