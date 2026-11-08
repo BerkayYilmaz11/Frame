@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:22:09.361Z",
+  "lastUpdated": "2026-11-08T09:24:25.156Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10580,13 +10580,13 @@
       "title": "Show Done facts in `src/renderer/cloudBriefsPanel.js`: the \"Ready for Done\" badge on Active cards (with its CSS in `src/renderer/styles/components/cloud-briefs.css`), `doneLine` in the detail header, and `done` passed through `partFacts` so a Done brief's part rows lose Begin and Run.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:24:25.156Z",
+      "completedAt": "2026-11-08T09:24:25.156Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T06",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 33
+    "totalCompleted": 34
   },
   "categories": {
     "feature": "New features",

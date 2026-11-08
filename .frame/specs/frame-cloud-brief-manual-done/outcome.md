@@ -31,3 +31,11 @@ Ported the web's manual-Done copy verbatim from FrameCloud `feat/brief-manual-do
 _Captured: 2026-11-08 · 2 file change(s)_
 
 ---
+
+## T05 — Show Done facts in the panel
+
+An Active card now shows a "Ready for Done" badge (`.cloud-briefs-ready`, success colours) beside its kind badge when `readyForDone` is true. As an extra guard beyond the plan, the badge is also hidden when the brief's `mergeTracking` is `needs_github`, so the spec's "absent when untracked" holds even if a server sent both. The detail header shows `copy.doneLine(brief)` where a closed brief's `endingLine` sits, and the card still shows no reason (D4). `partFacts` passes `done: brief.status === 'done'` to `partStatus`, so a Done brief's rows keep their words but lose Begin and Run (D7). Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-08 · 2 file change(s)_
+
+---

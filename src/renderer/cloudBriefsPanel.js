@@ -457,6 +457,9 @@ function renderCard(brief, milestoneName) {
   const parts = copy.partCountLabel(brief.partCounts);
   // A started brief lists its parts where they run instead of counting them.
   const started = Boolean(brief.startedAt) && Array.isArray(brief.parts) && brief.parts.length > 0;
+  // Every live part counts on a tracked project: the brief waits for a person
+  // to move it to Done (manual Done). Never on an untracked project.
+  const ready = brief.status === 'active' && brief.readyForDone === true && brief.mergeTracking !== 'needs_github';
   // The card is a container, not a button: its controls (Discuss, Shape, the
   // live lane) sit beside the open-brief button rather than inside it.
   return `<div class="cloud-briefs-card">
@@ -464,6 +467,7 @@ function renderCard(brief, milestoneName) {
         <span class="cloud-briefs-card-head">
           <span class="cloud-briefs-number">#${brief.number}</span>
           <span class="cloud-briefs-kind ${escapeHtml(brief.kind)}">${escapeHtml(kind.badge)}</span>
+          ${ready ? `<span class="cloud-briefs-ready">${escapeHtml(copy.READY_FOR_DONE_LABEL)}</span>` : ''}
         </span>
         <span class="cloud-briefs-card-title">${escapeHtml(brief.title)}</span>
         ${meta}
@@ -713,7 +717,8 @@ function isWebUrl(url) {
 function renderDetail() {
   const { brief, events, meId, canOpenWeb } = detail.result;
   const kind = copy.KIND_COPY[brief.kind] || copy.KIND_COPY.proposal;
-  const ending = copy.endingLine(brief);
+  // A Done brief's reason and date sit where a closed brief's ending does (D4).
+  const ending = copy.endingLine(brief) || copy.doneLine(brief);
   const tab = TABS.some((t) => t.key === detail.tab) ? detail.tab : 'description';
 
   detailContentElement.innerHTML = `<div class="cloud-briefs-detail-body">
@@ -773,6 +778,8 @@ function renderMeta(brief, events, meId) {
 /**
  * Where one started part stands: its local record, its lane, and partStatus's
  * reading of both against its brief's target (a merge counts only into it).
+ * A Done brief's rows keep their words but lose Begin and Run (D7) until it
+ * moves back to Active.
  */
 function partFacts(part, brief) {
   const ref = part.recordRef;
@@ -785,6 +792,7 @@ function partFacts(part, brief) {
     task: isSpec ? undefined : record || undefined,
     lane,
     target: brief ? brief.targetBranch : undefined,
+    done: Boolean(brief) && brief.status === 'done',
   });
   return { record, lane, status };
 }
