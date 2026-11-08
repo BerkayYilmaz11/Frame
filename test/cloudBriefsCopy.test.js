@@ -44,10 +44,11 @@ test('groupByColumn puts an unknown status in Backlog and survives no list', () 
   assert.deepEqual(copy.groupByColumn(undefined), { backlog: [], active: [], done: [], closed: [] });
 });
 
-test('the columns are Backlog / Active / Done, with hints on the two a brief moves into by itself', () => {
+test('the columns are Backlog / Active / Done; Active fills on its own and Done is a person\'s move', () => {
   assert.deepEqual(copy.COLUMNS.map((c) => c.title), ['Backlog', 'Active', 'Done']);
   assert.equal(copy.COLUMNS[0].hint, undefined);
-  assert.ok(copy.COLUMNS[1].hint && copy.COLUMNS[2].hint);
+  assert.equal(copy.COLUMNS[1].hint, 'A brief moves here on its own once work starts on a machine.');
+  assert.equal(copy.COLUMNS[2].hint, 'Move a brief here when its work is finished.');
 });
 
 // ─── Labels ───────────────────────────────────────────────────
@@ -617,6 +618,146 @@ test('the Done words', () => {
   assert.equal(copy.droppedLabel('Not needed'), 'Dropped · Not needed');
   assert.equal(copy.droppedLabel(null), 'Dropped');
   assert.equal(copy.mergedLabel('main'), 'Merged into main');
+});
+
+// ─── Moving to Done and back (manual Done) ────────────────────
+
+test('the move words match the web', () => {
+  assert.equal(copy.MOVE_TO_DONE_LABEL, 'Move to Done');
+  assert.equal(copy.MOVE_BACK_LABEL, 'Move back to Active');
+  assert.equal(copy.MOVING_TO_DONE_LABEL, 'Moving to Done…');
+  assert.equal(copy.READY_FOR_DONE_LABEL, 'Ready for Done');
+  assert.equal(copy.UNDO_LABEL, 'Undo');
+  assert.equal(copy.REASON_LABEL, 'Reason');
+  assert.equal(copy.MOVE_TO_DONE_ANYWAY_LABEL, 'Move to Done anyway');
+  assert.equal(copy.movedNotice(5), 'Moved #5 to Done');
+  assert.equal(copy.moveToDoneTitle(5), 'Move #5 to Done?');
+  assert.equal(copy.moveBackTitle(5), 'Move #5 back to Active?');
+  assert.equal(
+    copy.moveToDoneDescription('main'),
+    'Some parts are not merged into main yet, so the move records why the brief is done anyway.'
+  );
+  assert.equal(
+    copy.MOVE_BACK_DESCRIPTION,
+    'The brief returns to Active with its parts as they are, and Close and the target branch open again. The move records why.'
+  );
+});
+
+test('missingPartsLine counts one part and several, naming the target', () => {
+  assert.equal(copy.missingPartsLine(1, 'main'), '1 part not merged into main.');
+  assert.equal(copy.missingPartsLine(3, 'develop'), '3 parts not merged into develop.');
+  assert.equal(copy.missingPartsLine(2, ''), '2 parts not merged.');
+});
+
+const LIVE = (id, extra = {}) => ({ id, title: id, shape: 'task', recordRef: `task-${id}`, mergedAt: null, mergedBase: null, droppedAt: null, ...extra });
+
+test('missingParts keeps live parts that do not count on the current target, in part order', () => {
+  const brief = {
+    targetBranch: 'main',
+    parts: [
+      LIVE('a'),
+      LIVE('b', MERGED),
+      LIVE('c', { droppedAt: '2026-11-02T10:00:00.000Z' }),
+      LIVE('d', { mergedAt: '2026-11-01T10:00:00.000Z', mergedBase: 'develop' }),
+      LIVE('e', { branch: 'fix/e' }),
+    ],
+  };
+  assert.deepEqual(copy.missingParts(brief).map((p) => p.id), ['a', 'd', 'e']);
+  // Every live part merged, or only dropped ones left: nothing is missing.
+  assert.deepEqual(copy.missingParts({ targetBranch: 'main', parts: [LIVE('b', MERGED), LIVE('c', { droppedAt: 'x' })] }), []);
+  // No parts read yet (the card of an unshaped brief), or no brief.
+  assert.deepEqual(copy.missingParts({ targetBranch: 'main', parts: null }), []);
+  assert.deepEqual(copy.missingParts(undefined), []);
+});
+
+test('needsReason asks only when tracking is ready and a live part is missing', () => {
+  const missing = { targetBranch: 'main', parts: [LIVE('a'), LIVE('b', MERGED)] };
+  const allMerged = { targetBranch: 'main', parts: [LIVE('b', MERGED), LIVE('c', { droppedAt: 'x' })] };
+  assert.equal(copy.needsReason({ ...missing, mergeTracking: 'ready' }), true);
+  assert.equal(copy.needsReason({ ...missing, mergeTracking: 'needs_github' }), false, 'untracked: nothing can be checked');
+  assert.equal(copy.needsReason({ ...allMerged, mergeTracking: 'ready' }), false);
+  assert.equal(copy.needsReason({ ...missing }), false, 'no tracking state read');
+  assert.equal(copy.needsReason(undefined), false);
+});
+
+test('doneLine reads as the web\'s header: with a reason, without one, and empty when not Done', () => {
+  const at = '2026-11-08T12:00:00.000Z';
+  assert.equal(copy.doneLine({ status: 'done', doneAt: at, doneReason: 'Docs follow in #12' }), `Done: Docs follow in #12 · ${copy.formatDate(at)}`);
+  assert.equal(copy.doneLine({ status: 'done', doneAt: at, doneReason: null }), `Done · ${copy.formatDate(at)}`);
+  assert.equal(copy.doneLine({ status: 'done', doneAt: null, doneReason: null }), 'Done');
+  assert.equal(copy.doneLine({ status: 'active', doneAt: null, doneReason: null }), '');
+  assert.equal(copy.doneLine({ status: 'closed', doneAt: at, doneReason: 'x' }), '');
+  assert.equal(copy.doneLine(undefined), '');
+});
+
+test('the move History sentences match the web', () => {
+  assert.equal(sentence('done', { target: 'main', reason: null, missing: [] }, ME), 'You moved this brief to Done.');
+  assert.equal(sentence('done', { target: 'main', reason: 'Shipped', missing: [] }, OTHER), 'A workspace member moved this brief to Done: “Shipped”.');
+  assert.equal(
+    sentence('done', { target: 'main', reason: 'Docs later', missing: [{ partId: 'p1', title: 'Docs' }] }, ME),
+    'You moved this brief to Done with 1 part not merged into main: “Docs later”.'
+  );
+  assert.equal(
+    sentence('done', { target: 'develop', reason: 'Enough', missing: [{ partId: 'p1' }, { partId: 'p2' }] }, ME),
+    'You moved this brief to Done with 2 parts not merged into develop: “Enough”.'
+  );
+  assert.equal(sentence('done-reverted', { reason: 'Docs part is not done' }, ME), 'You moved this brief back to Active: “Docs part is not done”.');
+  assert.equal(sentence('done-reverted', {}, OTHER), 'A workspace member moved this brief back to Active.');
+});
+
+test('an old automatic done reads as an observation, with no actor in front', () => {
+  assert.equal(sentence('done', { target: 'main' }, ME), 'This brief is done: every part is merged into main.');
+  assert.equal(sentence('done', {}, OTHER), 'This brief is done: every part is merged.');
+  // Written by the cloud before manual Done, so it may have no actor at all.
+  assert.equal(copy.eventSentence({ id: 'e', at: AT, actorId: '', event: 'done', data: { target: 'main' } }, ME).sentence,
+    'This brief is done: every part is merged into main.');
+});
+
+test('isObserved covers only the old automatic done', () => {
+  assert.equal(copy.isObserved(ev('done', { target: 'main' })), true);
+  assert.equal(copy.isObserved(ev('done', { target: 'main', missing: [] })), false);
+  assert.equal(copy.isObserved(ev('done-reverted', { reason: 'x' })), false);
+  // part-merged still reads with its actor until Frame draws it (plan D8).
+  assert.equal(copy.isObserved(ev('part-merged', { title: 'A' })), false);
+  assert.equal(sentence('part-merged', { title: 'A' }, OTHER), 'A workspace member changed this brief.');
+  assert.equal(copy.isObserved(undefined), false);
+});
+
+test('moveErrorMessage has the web\'s sentence for every refusal, the shared ones and a fallback', () => {
+  assert.equal(copy.moveErrorMessage('alreadyDone'), 'This brief is done, so it cannot be closed and its target is fixed. Move it back to Active first.');
+  assert.equal(copy.moveErrorMessage('notDone'), 'This brief is not done.');
+  assert.equal(copy.moveErrorMessage('notStarted'), 'Work on this brief has not started yet.');
+  assert.equal(copy.moveErrorMessage('alreadyClosed'), 'This brief is already closed.');
+  assert.equal(copy.moveErrorMessage('notWork'), 'Only work can take a priority, a milestone, parts, a start or a close.');
+  assert.equal(copy.moveErrorMessage('reasonRequired'), 'Give a reason.');
+  assert.equal(copy.moveErrorMessage('notFound'), copy.decideErrorMessage('notFound'));
+  for (const reason of ['network', 'notConnected', 'unauthorized', 'noWorkspace']) {
+    assert.equal(copy.moveErrorMessage(reason), copy.reasonMessage(reason), reason);
+  }
+  assert.equal(copy.moveErrorMessage('other'), 'Something went wrong. Try again.');
+  assert.equal(copy.moveErrorMessage(undefined), 'Something went wrong. Try again.');
+});
+
+test('partStatus on a Done brief keeps every label but offers no Begin or Run', () => {
+  const lane = { name: 'Frame 3', status: 'agent-working', agentName: 'claude' };
+  const cases = [
+    { part: taskPart },
+    { part: specPart, spec: { phase: 'planned' } },
+    { part: specPart, spec: { phase: 'implementing', task_count: 4, completed_count: 1 } },
+    { part: taskPart, task: { status: 'in_progress' } },
+    { part: taskPart, task: { status: 'in_progress' }, lane },
+    { part: { ...taskPart, ...MERGED }, target: 'main' },
+    { part: { ...taskPart, branch: 'fix/typo' }, target: 'main' },
+  ];
+  for (const facts of cases) {
+    const open = copy.partStatus(facts);
+    const done = copy.partStatus({ ...facts, done: true });
+    assert.deepEqual(done, { ...open, run: null }, JSON.stringify(facts));
+  }
+  assert.equal(copy.partStatus({ part: taskPart, done: true }).label, 'Not started');
+  // After a move back, the same part offers Begin and Run again.
+  assert.equal(copy.partStatus({ part: taskPart, done: false }).run, 'begin');
+  assert.equal(copy.partStatus({ part: specPart, spec: { phase: 'planned' } }).run, 'spec.tasks');
 });
 
 test('Run, its hints and the lane line', () => {

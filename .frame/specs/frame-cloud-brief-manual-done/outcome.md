@@ -23,3 +23,11 @@ Added `CLOUD_BRIEF_MOVE` and `CLOUD_BRIEF_MOVE_UNDO`, plus `move`, `undoMove` an
 _Captured: 2026-11-08 · 4 file change(s)_
 
 ---
+
+## T04 — Add the move words and rules to cloudBriefsCopy.js
+
+Ported the web's manual-Done copy verbatim from FrameCloud `feat/brief-manual-done` (`lib/brief.ts`, `brief-move.tsx`, and `brief-decisions.tsx` for the Done line): the new Done hint, every move label, dialog and toast string, `missingParts`, `needsReason`, `doneLine`, `moveErrorMessage`, and the `done` / `done-reverted` History sentences, with `isObserved` dropping the actor from an old automatic `done` (not from `part-merged`, per D8). Added the web's `done-reverted` fallback with no reason ("moved this brief back to Active"), which the plan's table leaves out, and made the copy guard an empty target ("not merged." instead of "not merged into ."). `partStatus` takes `done` and then returns `run: null` with every label kept; the old body became the private `partStatusOf`. Files: `src/renderer/cloudBriefsCopy.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-08 · 2 file change(s)_
+
+---

@@ -8,16 +8,25 @@
  * the New brief form. Ported rather than shared — Frame takes no dependency on
  * the web app — and pure: no DOM, no Electron, so `node --test` covers it.
  *
- * Creating, discussing, shaping and starting are the writes: the web's other write copy
- * (Transform to Work, refusal sentences for other mutations, search params)
- * is left out.
+ * Creating, discussing, shaping, starting and moving a brief to Done and back
+ * are the writes: the web's other write copy (Transform to Work, refusal
+ * sentences for other mutations, search params) is left out.
+ *
+ * Done is a person's move (FrameCloud brief-manual-done, from `lib/brief.ts`
+ * and `brief-move.tsx`): this overturns frame-cloud-brief-done's "Done means
+ * merged" and "the Done column fills on its own". The rules that decide
+ * whether a move asks for a reason (`missingParts`, `needsReason`) live here,
+ * as on the web; the server enforces the same rule from its stored facts.
  */
 
-/** The board's open columns, in order. A brief lands in one by its derived status, never by a hand. */
+/**
+ * The board's open columns, in order. A brief lands in one by its status:
+ * Active on its own once work starts, Done by a person's move.
+ */
 const COLUMNS = [
   { status: 'backlog', title: 'Backlog' },
   { status: 'active', title: 'Active', hint: 'A brief moves here on its own once work starts on a machine.' },
-  { status: 'done', title: 'Done', hint: 'A brief moves here on its own once its work lands on the target branch.' },
+  { status: 'done', title: 'Done', hint: 'Move a brief here when its work is finished.' },
 ];
 
 /** A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog. */
@@ -181,17 +190,50 @@ function eventAction(event, meId) {
       if (assignee === event.actorId) return 'took this brief on';
       return assignee === meId ? 'assigned this brief to you' : 'assigned this brief to a workspace member';
     }
+    case 'done': {
+      const target = text(data.target);
+      // A `done` written before manual Done carries no `missing`: the cloud
+      // set it from merges, so it reads as an observation (see isObserved).
+      if (!Array.isArray(data.missing)) {
+        return target
+          ? `This brief is done: every part is merged into ${target}`
+          : 'This brief is done: every part is merged';
+      }
+      const reason = text(data.reason);
+      const quoted = reason ? `: “${reason}”` : '';
+      const missing = data.missing.length;
+      if (missing === 0) return `moved this brief to Done${quoted}`;
+      const into = target ? ` into ${target}` : '';
+      return `moved this brief to Done with ${missing} ${missing === 1 ? 'part' : 'parts'} not merged${into}${quoted}`;
+    }
+    case 'done-reverted': {
+      const reason = text(data.reason);
+      return reason ? `moved this brief back to Active: “${reason}”` : 'moved this brief back to Active';
+    }
     default:
       // A server newer than this port: say something true rather than nothing.
       return 'changed this brief';
   }
 }
 
-/** One history line: who did what, and the day it happened. → `{ sentence, date }`. */
+/**
+ * Whether the cloud observed this event rather than a person doing it: a
+ * `done` from before manual Done, whose data has no `missing` list. The web
+ * also counts `part-merged`; Frame does not draw that event yet (plan D8), so
+ * it still reads "changed this brief" with its actor.
+ */
+function isObserved(event) {
+  const e = event || {};
+  const data = e.data && typeof e.data === 'object' ? e.data : {};
+  return e.event === 'done' && !Array.isArray(data.missing);
+}
+
+/** One history line: who did what, and the day it happened; an observed event has no actor. → `{ sentence, date }`. */
 function eventSentence(event, meId) {
   const e = event || {};
+  const action = eventAction(e, meId);
   return {
-    sentence: `${actorLabel(e.actorId, meId)} ${eventAction(e, meId)}.`,
+    sentence: isObserved(e) ? `${action}.` : `${actorLabel(e.actorId, meId)} ${action}.`,
     date: formatDate(e.at),
   };
 }
@@ -615,7 +657,9 @@ function mergedLabel(target) {
  * and `task` its `tasks.json` row (either absent when this folder does not
  * hold it), `lane` its lane info, `target` the brief's target branch,
  * `part.branch` the branch the cloud has for it, and `part.begunBranch` the
- * branch this machine began it on. In order:
+ * branch this machine began it on. With `done` (the brief is Done) the row
+ * keeps its label but offers no Begin or Run (plan D7): a Done brief's facts
+ * are frozen until it moves back to Active. In order:
  * - the cloud dropped it → "Dropped · <reason>";
  * - it counts as merged into `target` → "Merged into <target>";
  * - the folder holds its record → the record's state, where a live agent's
@@ -629,7 +673,12 @@ function mergedLabel(target) {
  * | 'dropped' | 'elsewhere', laneName, run: 'spec.plan' | 'spec.tasks' |
  * 'spec.implement' | 'task' | 'begin' | null }`.
  */
-function partStatus({ part, spec, task, lane, target } = {}) {
+function partStatus({ done, ...facts } = {}) {
+  const status = partStatusOf(facts);
+  return done === true ? { ...status, run: null } : status;
+}
+
+function partStatusOf({ part, spec, task, lane, target } = {}) {
   const p = part || {};
   if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
   if (p.droppedAt) return { label: droppedLabel(p.dropReason), tone: 'dropped', laneName: null, run: null };
@@ -702,6 +751,102 @@ function partNotHereMessage(ref) {
   return `${ref} is not in this folder's tasks. It may be on another branch or machine.`;
 }
 
+// ─── Moving to Done and back (manual Done) ────────────────────
+
+const MOVE_TO_DONE_LABEL = 'Move to Done';
+const MOVE_BACK_LABEL = 'Move back to Active';
+/** A held move's control, while its Undo window is open. */
+const MOVING_TO_DONE_LABEL = 'Moving to Done…';
+/** An Active card whose every live part counts on a tracked project: waiting for a person. */
+const READY_FOR_DONE_LABEL = 'Ready for Done';
+const UNDO_LABEL = 'Undo';
+const REASON_LABEL = 'Reason';
+const MOVE_TO_DONE_ANYWAY_LABEL = 'Move to Done anyway';
+const MOVE_BACK_DESCRIPTION =
+  'The brief returns to Active with its parts as they are, and Close and the target branch open again. The move records why.';
+
+/** The Undo toast: "Moved #5 to Done". */
+function movedNotice(number) {
+  return `Moved #${number} to Done`;
+}
+
+/** The dialog's heading for a move to Done that needs a reason: "Move #5 to Done?". */
+function moveToDoneTitle(number) {
+  return `Move #${number} to Done?`;
+}
+
+/** The dialog's heading for a move back: "Move #5 back to Active?". */
+function moveBackTitle(number) {
+  return `Move #${number} back to Active?`;
+}
+
+/** The move-to-Done dialog's description, naming the brief's target. */
+function moveToDoneDescription(target) {
+  const into = target ? ` into ${target}` : '';
+  return `Some parts are not merged${into} yet, so the move records why the brief is done anyway.`;
+}
+
+/** The line over the dialog's missing parts: "1 part not merged into main.", "2 parts …". */
+function missingPartsLine(count, target) {
+  const n = Number.isInteger(count) && count > 0 ? count : 0;
+  const into = target ? ` into ${target}` : '';
+  return `${n} ${n === 1 ? 'part' : 'parts'} not merged${into}.`;
+}
+
+/**
+ * Live parts that do not count on the brief's current target: what a move to
+ * Done leaves unmerged, in the brief's part order. The web's `missingParts`.
+ */
+function missingParts(brief) {
+  const b = brief || {};
+  const parts = Array.isArray(b.parts) ? b.parts : [];
+  return parts.filter((part) => part && !part.droppedAt && !countsAsMerged(part, b.targetBranch));
+}
+
+/**
+ * Whether a move to Done asks for a reason: the project's merges are tracked
+ * and a live part does not count yet. Untracked, nothing can be checked, so
+ * nothing is asked. Decided from the panel's last read; a stale one is caught
+ * by the server's `REASON_REQUIRED`.
+ */
+function needsReason(brief) {
+  const b = brief || {};
+  return b.mergeTracking === 'ready' && missingParts(b).length > 0;
+}
+
+/**
+ * A Done brief's header line, as the web shows it: "Done: reason · date",
+ * "Done · date" without a reason, or '' for a brief that is not Done.
+ */
+function doneLine(brief) {
+  const b = brief || {};
+  if (b.status !== 'done') return '';
+  const head = b.doneReason ? `Done: ${b.doneReason}` : 'Done';
+  const date = formatDate(b.doneAt);
+  return date ? `${head} · ${date}` : head;
+}
+
+// The web's refusal sentences (`briefErrorMessage`) for the codes a move can
+// meet, keyed by the reason main reduces them to (MOVE_REFUSALS).
+const MOVE_MESSAGES = {
+  alreadyDone: 'This brief is done, so it cannot be closed and its target is fixed. Move it back to Active first.',
+  notDone: 'This brief is not done.',
+  notStarted: 'Work on this brief has not started yet.',
+  alreadyClosed: 'This brief is already closed.',
+  notWork: 'Only work can take a priority, a milestone, parts, a start or a close.',
+  reasonRequired: 'Give a reason.',
+  notFound: DECIDE_MESSAGES.notFound,
+  network: REASON_MESSAGES.network,
+  notConnected: REASON_MESSAGES.notConnected,
+  unauthorized: REASON_MESSAGES.unauthorized,
+  noWorkspace: REASON_MESSAGES.noWorkspace,
+};
+
+/** The sentence for a move that was refused or failed. */
+function moveErrorMessage(reason) {
+  return MOVE_MESSAGES[reason] || 'Something went wrong. Try again.';
+}
+
 // ─── New brief ────────────────────────────────────────────────
 
 const NEW_BRIEF_TITLE = 'New brief';
@@ -756,6 +901,7 @@ module.exports = {
   endingLine,
   actorLabel,
   formatDate,
+  isObserved,
   eventSentence,
   shapedLine,
   startedLine,
@@ -832,6 +978,23 @@ module.exports = {
   runHint,
   laneLine,
   partsSummary,
+  MOVE_TO_DONE_LABEL,
+  MOVE_BACK_LABEL,
+  MOVING_TO_DONE_LABEL,
+  READY_FOR_DONE_LABEL,
+  UNDO_LABEL,
+  REASON_LABEL,
+  MOVE_TO_DONE_ANYWAY_LABEL,
+  MOVE_BACK_DESCRIPTION,
+  movedNotice,
+  moveToDoneTitle,
+  moveBackTitle,
+  moveToDoneDescription,
+  missingPartsLine,
+  missingParts,
+  needsReason,
+  doneLine,
+  moveErrorMessage,
   NEW_BRIEF_TITLE,
   NEW_BRIEF_DESCRIPTION,
   AI_LINKS_TITLE,

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T09:18:34.771Z",
+  "lastUpdated": "2026-11-08T09:22:09.361Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10567,13 +10567,13 @@
       "title": "Add the move words and rules to `src/renderer/cloudBriefsCopy.js`: the new Done hint, every move label, dialog and toast string, `missingParts`, `needsReason`, `doneLine`, `moveErrorMessage`, the `done` and `done-reverted` sentences with `isObserved` for the old automatic `done`, `partStatus`'s `done` option (`run: null`), and the header. Cover them in `test/cloudBriefsCopy.test.js`, updating the column-hint test.",
       "description": "",
       "source": "spec:frame-cloud-brief-manual-done:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T09:07:02.584Z",
-      "completedAt": null
+      "updatedAt": "2026-11-08T09:22:09.361Z",
+      "completedAt": "2026-11-08T09:22:09.361Z"
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T05",
@@ -10643,7 +10643,7 @@
   ],
   "metadata": {
     "totalCreated": 769,
-    "totalCompleted": 32
+    "totalCompleted": 33
   },
   "categories": {
     "feature": "New features",
