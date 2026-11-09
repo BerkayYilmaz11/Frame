@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-08T12:38:29.997Z",
+  "lastUpdated": "2026-11-09T07:10:51.475Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10624,8 +10624,9 @@
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T12:36:19.460Z",
-      "completedAt": "2026-11-08T12:36:19.460Z"
+      "updatedAt": "2026-11-09T07:10:51.475Z",
+      "completedAt": "2026-11-08T12:36:19.460Z",
+      "notes": "Walked by the developer on 2026-11-08 against a local FrameCloud server carrying brief-manual-done: every Success Criterion worked, including a quit inside the 5-second hold (the held move still landed) and a brief moved back to Active, whose next read reported what the cloud lacked. No findings and no code change; the agent did not drive the walk because sign-in and the GitHub App are the developer's. Recorded in outcome.md (635c3ac)."
     },
     {
       "id": "task-spec-frame-cloud-brief-manual-done-T09",
@@ -10637,8 +10638,9 @@
       "category": "feature",
       "context": "From spec: frame-cloud-brief-manual-done",
       "createdAt": "2026-11-08T09:07:02.584Z",
-      "updatedAt": "2026-11-08T12:38:29.997Z",
-      "completedAt": "2026-11-08T12:38:29.997Z"
+      "updatedAt": "2026-11-09T07:10:51.475Z",
+      "completedAt": "2026-11-08T12:38:29.997Z",
+      "notes": "PROJECT_NOTES entry \"[2026-11-08] Frame Cloud brief manual Done\": the four decisions the spec's Constraints overturn (Done means merged, no Frame call marks a brief Done, the cloudBriefs.js header, the drag), D1 (the held move lives in main and is sent at quit), D7 (a Done brief's parts offer no Begin or Run), D15 (normalizeBrief carries the Done fields), the plan deviations, and the walk with no findings. The same commit (1c7188d) wrote digest.md and set the spec to done."
     }
   ],
   "metadata": {
