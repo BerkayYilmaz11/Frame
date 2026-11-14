@@ -103,3 +103,30 @@ test('CLAIMED_ELSEWHERE does not call an identity Connected', () => {
   assert.doesNotMatch(copy.CLAIMED_ELSEWHERE.chip, /connected/i);
   assert.match(copy.CLAIMED_ELSEWHERE.note, /takes it over and disconnects every device/);
 });
+
+test('settingsRow: connected names the project and workspace, then explains the connection', () => {
+  const row = copy.settingsRow('connected', A, { name: 'Acme', slug: 'acme' });
+  assert.equal(row.label, 'Connected to App');
+  assert.equal(row.description, `In Acme. ${copy.CONNECTED_EXPLANATION}`);
+  assert.match(copy.settingsRow('connected', A, null).description, /^In Frame Cloud\./);
+});
+
+test('settingsRow: confirmDisconnect asks about this device only', () => {
+  const row = copy.settingsRow('confirmDisconnect', A, { name: 'Acme' });
+  assert.equal(row.label, 'Connected to App');
+  assert.equal(row.description, copy.disconnectQuestion(A));
+});
+
+test('settingsRow: ready reads Ready to connect with the Ready lead', () => {
+  const row = copy.settingsRow('ready', A, { slug: 'acme' });
+  assert.equal(row.label, 'Ready to connect');
+  assert.equal(row.description, `In acme. ${copy.readyLead(A)}`);
+});
+
+test('settingsRow: anything else reads Not connected, offering connect or create', () => {
+  assert.deepEqual(copy.settingsRow('notConnected'), {
+    label: 'Not connected',
+    description: 'Connect this project to a Frame Cloud project, or create one for it.',
+  });
+  assert.equal(copy.settingsRow(undefined).label, 'Not connected');
+});

@@ -28,3 +28,10 @@ On this device lists Ready folders first under "Ready to connect" (green-ring do
 _Captured: 2026-11-14 · 4 file change(s)_
 
 ---
+## T05 — Make Project Settings speak per device
+
+Project Settings' Frame Cloud row now has three states from `cloudConnectionCopy.settingsRow`: Connected (workspace plus the connection explanation, the per-device Disconnect question when confirming), Ready to connect (the Ready lead, Connect in place through `CLOUD_LINK_CONNECT` beside Open Frame Cloud) and Not connected (as before). Connect and Disconnect refusals come from the copy module. Files: `projectSettingsModal.js`, `cloudConnectionCopy.js`, `test/cloudConnectionCopy.test.js`. The app walk against a local FrameCloud is not done yet: it needs a sign-in approved in the browser and a second member's device, so the task stays in progress until it is walked.
+
+_Captured: 2026-11-14 · 3 file change(s)_
+
+---

@@ -14468,6 +14468,7 @@
         "TAKEOVER_QUESTION",
         "CLAIMED_ELSEWHERE",
         "disconnectQuestion",
+        "settingsRow",
         "connectRefusal",
         "disconnectRefusal"
       ],
@@ -14510,22 +14511,37 @@
           ],
           "purpose": "Before this device's connection goes. Says what changes (Briefs leave this"
         },
+        "workspaceLabel": {
+          "line": 110,
+          "params": [
+            "workspace"
+          ]
+        },
+        "settingsRow": {
+          "line": 121,
+          "params": [
+            "state",
+            "project",
+            "workspace"
+          ],
+          "purpose": "Project Settings' Frame Cloud row for the open folder → `{ label, description }`."
+        },
         "connectRefusal": {
-          "line": 120,
+          "line": 148,
           "params": [
             "reason"
           ],
           "purpose": "A refused Connect → the line under it. `unauthorized` says nothing: the window is back on sign-in."
         },
         "disconnectRefusal": {
-          "line": 126,
+          "line": 154,
           "params": [
             "reason"
           ],
           "purpose": "A refused Disconnect → the line under it."
         }
       },
-      "sizeBytes": 6047,
+      "sizeBytes": 7284,
       "extraction": {
         "status": "parsed"
       },
@@ -14537,6 +14553,7 @@
           "disconnectRefusal": "ef6e8c864a670b4b",
           "notHereNote": "93f49a67bd89e035",
           "readyLead": "1f1d5f59596521b3",
+          "settingsRow": "d5c757026e5146d9",
           "statusChip": "9b020d4229640f36"
         }
       }
@@ -20599,22 +20616,23 @@
         "cloudHub",
         "cloudNoWorkspace",
         "cloudRoles",
+        "cloudConnectionCopy",
         "cloudEarlyAccess",
         "migrationModal"
       ],
       "functions": {
         "init": {
-          "line": 59
+          "line": 60
         },
         "syncFromProject": {
-          "line": 285
+          "line": 286
         },
         "syncCloudRow": {
-          "line": 303,
+          "line": 304,
           "purpose": "Re-read both Frame Cloud states on open (the hub re-renders from the"
         },
         "cloudButton": {
-          "line": 322,
+          "line": 323,
           "params": [
             "label",
             "onClick",
@@ -20623,99 +20641,107 @@
           ]
         },
         "renderCloudRow": {
-          "line": 332
+          "line": 333
+        },
+        "connectToCloud": {
+          "line": 422,
+          "params": [
+            "projectPath"
+          ],
+          "purpose": "This device connects to the project the folder's identity names."
         },
         "disconnectFromCloud": {
-          "line": 410,
+          "line": 438,
           "params": [
             "projectId"
           ],
           "purpose": "This device's connection to the cloud project, nothing else."
         },
         "setWorkspacesNote": {
-          "line": 429,
+          "line": 454,
           "params": [
             "message"
           ]
         },
         "paintWorkspaceSettings": {
-          "line": 435,
+          "line": 460,
           "params": [
             "settings"
           ]
         },
         "syncWorkspaceSettings": {
-          "line": 447,
+          "line": 472,
           "purpose": "Read `settings.workspaces`. Defaults show for a project without Frame —"
         },
         "saveWorkspaceSettings": {
-          "line": 464,
+          "line": 489,
           "params": [
             "settings"
           ]
         },
         "renderDoneWindow": {
-          "line": 484,
+          "line": 509,
           "purpose": "Paint both window selects from the store. With no project open there is"
         },
         "setDoneWindowNote": {
-          "line": 496,
+          "line": 521,
           "params": [
             "message"
           ]
         },
         "syncFrameSetup": {
-          "line": 513,
+          "line": 538,
           "purpose": "Setup and removal are two surfaces. A project without `.frame/` gets the"
         },
         "syncMigrationDecision": {
-          "line": 529,
+          "line": 554,
           "purpose": "Shown only while this project still has something to answer. The decision"
         },
         "syncDefaultProject": {
-          "line": 549,
+          "line": 574,
           "purpose": "The launch-project row. It is hidden outright below two projects: with one"
         },
         "syncSpecDrivenToggle": {
-          "line": 575,
+          "line": 600,
           "purpose": "Reflect the current project's features.specDriven flag. With no project"
         },
         "renderGitSharing": {
-          "line": 600,
+          "line": 625,
           "params": [
             "stateObj"
           ],
           "purpose": "Paint the sharing row from main's state object. `error` means the project"
         },
         "syncGitSharing": {
-          "line": 616
+          "line": 641
         },
         "setRemoveFrameNote": {
-          "line": 630,
+          "line": 655,
           "params": [
             "message"
           ]
         },
         "setGitSharingWarning": {
-          "line": 636,
+          "line": 661,
           "params": [
             "message"
           ]
         },
         "setSpecDrivenNote": {
-          "line": 642,
+          "line": 667,
           "params": [
             "message"
           ]
         }
       },
-      "sizeBytes": 27165,
+      "sizeBytes": 28288,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "7189e58be0db4170",
         "purposes": {
+          "connectToCloud": "3e653b2931d4a3e1",
           "disconnectFromCloud": "2102094e3a9c2481",
           "renderDoneWindow": "f90e651e2a0efdd7",
           "renderGitSharing": "bcc466bcbad35aaa",
@@ -34471,7 +34497,7 @@
         "src/renderer/cloudRoles"
       ],
       "functions": {},
-      "sizeBytes": 5316,
+      "sizeBytes": 6575,
       "extraction": {
         "status": "parsed"
       },
@@ -41933,6 +41959,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "57381141ca3719084abd4459bba6dc0adb24fdeb06a16c6767dd505b28812d94"
+    "revision": "27192dc0188b4788ca4e730016a6341c0b65dfa8d20c6e3eaba270234fea9519"
   }
 }

@@ -107,6 +107,34 @@ function disconnectQuestion(project, { folderHere = true } = {}) {
   return `Disconnect this device from ${projectLabel(project)}? Briefs stop showing here. ${keeps}`;
 }
 
+function workspaceLabel(workspace) {
+  return (workspace && (workspace.name || workspace.slug)) || 'Frame Cloud';
+}
+
+/**
+ * Project Settings' Frame Cloud row for the open folder → `{ label, description }`.
+ *   connected         — this device is connected: the workspace and what a connection is
+ *   confirmDisconnect — the Disconnect question in place of the description
+ *   ready             — a clone of a claimed project, one Connect away
+ *   notConnected      — nothing carries this folder's identity yet
+ */
+function settingsRow(state, project, workspace) {
+  const name = projectLabel(project);
+  switch (state) {
+    case 'connected':
+      return { label: `Connected to ${name}`, description: `In ${workspaceLabel(workspace)}. ${CONNECTED_EXPLANATION}` };
+    case 'confirmDisconnect':
+      return { label: `Connected to ${name}`, description: disconnectQuestion(project) };
+    case 'ready':
+      return { label: STATUS_CHIPS.ready.label, description: `In ${workspaceLabel(workspace)}. ${readyLead(project)}` };
+    default:
+      return {
+        label: STATUS_CHIPS.notConnected.label,
+        description: 'Connect this project to a Frame Cloud project, or create one for it.',
+      };
+  }
+}
+
 const REFUSALS = Object.freeze({
   unlinked: 'This project is no longer claimed — the list was refreshed.',
   identityChanged: 'This project now belongs to another folder — the list was refreshed.',
@@ -139,6 +167,7 @@ module.exports = {
   TAKEOVER_QUESTION,
   CLAIMED_ELSEWHERE,
   disconnectQuestion,
+  settingsRow,
   connectRefusal,
   disconnectRefusal,
 };
