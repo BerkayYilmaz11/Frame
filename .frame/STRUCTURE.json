@@ -3033,17 +3033,17 @@
       ],
       "functions": {
         "resolveUrl": {
-          "line": 89
+          "line": 90
         },
         "refusalReason": {
-          "line": 103,
+          "line": 104,
           "params": [
             "address"
           ],
           "purpose": "Scheme and host only: the rest of a mistyped address could carry anything."
         },
         "fetchJson": {
-          "line": 120,
+          "line": 121,
           "params": [
             "url",
             "{ method = 'GET'",
@@ -3054,41 +3054,44 @@
           "purpose": "`net.fetch` → `{ status, body }`. A timeout rejects with a plain Error so"
         },
         "sleep": {
-          "line": 161,
+          "line": 162,
           "params": [
             "ms",
             "signal"
           ]
         },
         "originOf": {
-          "line": 181,
+          "line": 182,
           "params": [
             "url"
           ]
         },
         "openUrl": {
-          "line": 190,
+          "line": 191,
           "params": [
             "url"
           ]
         },
         "readComputerName": {
-          "line": 203
+          "line": 204
+        },
+        "readInstallId": {
+          "line": 232
         },
         "deviceInfo": {
-          "line": 225
+          "line": 240
         },
         "toPublicState": {
-          "line": 237
-        },
-        "getPublicState": {
-          "line": 249
-        },
-        "publish": {
           "line": 253
         },
+        "getPublicState": {
+          "line": 265
+        },
+        "publish": {
+          "line": 269
+        },
         "setState": {
-          "line": 262,
+          "line": 278,
           "params": [
             "next",
             "{ userStarted = false } = {}"
@@ -3096,18 +3099,18 @@
           "purpose": "Every transition is pushed to the renderer, then told to main-process"
         },
         "onChange": {
-          "line": 276,
+          "line": 292,
           "params": [
             "listener"
           ],
           "purpose": "Subscribe to session changes. Returns the unsubscribe function."
         },
         "getAuth": {
-          "line": 285,
+          "line": 301,
           "purpose": "What a main-process caller needs to make a bearer call, or null while not"
         },
         "signedInState": {
-          "line": 296,
+          "line": 312,
           "params": [
             "serverUrl",
             "session",
@@ -3115,65 +3118,65 @@
           ]
         },
         "bringToFront": {
-          "line": 310,
+          "line": 326,
           "purpose": "Device flow has no redirect back to the app, so a completed sign-in is what"
         },
         "abortAttempt": {
-          "line": 318
+          "line": 334
         },
         "signIn": {
-          "line": 327,
+          "line": 343,
           "purpose": "Start a sign-in. Resolves when the attempt ends; callers need not wait."
         },
         "cancel": {
-          "line": 379
+          "line": 395
         },
         "readInviteMode": {
-          "line": 396,
+          "line": 412,
           "purpose": "Signed out: one `invite.mode`, so the window knows whether to lead with the"
         },
         "joinWaitlist": {
-          "line": 420,
+          "line": 436,
           "params": [
             "rawEmail"
           ],
           "purpose": "Join the waitlist with the address the renderer typed. Main normalizes it"
         },
         "refresh": {
-          "line": 437,
+          "line": 453,
           "purpose": "One silent device.me. A dead token signs out quietly; an unreachable server"
         },
         "sessionExpired": {
-          "line": 467,
+          "line": 483,
           "purpose": "A bearer call answered 401: forget the session quietly, no error shown."
         },
         "reRegister": {
-          "line": 481,
+          "line": 497,
           "purpose": "The server forgot this device (412 DEVICE_NOT_REGISTERED): register it"
         },
         "signOut": {
-          "line": 488,
+          "line": 504,
           "purpose": "Tell the server, then forget the session locally whatever it said."
         },
         "startup": {
-          "line": 514,
+          "line": 530,
           "purpose": "Launch: show the stored session at once, then refresh it in the background."
         },
         "loadSession": {
-          "line": 518
+          "line": 534
         },
         "getState": {
-          "line": 546,
+          "line": 562,
           "purpose": "The current state, re-resolving first if the server address changed underneath."
         },
         "init": {
-          "line": 553,
+          "line": 569,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 565,
+          "line": 581,
           "params": [
             "ipcMain"
           ]
@@ -3192,7 +3195,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 19114,
+      "sizeBytes": 19698,
       "extraction": {
         "status": "parsed"
       },
@@ -4144,6 +4147,8 @@
         "classifyTrpcError",
         "deviceName",
         "formatDeviceInfo",
+        "INSTALL_ID_MAX",
+        "resolveInstallId",
         "requestDeviceCode",
         "pollForToken",
         "registerDevice",
@@ -4157,24 +4162,26 @@
         "normalizeWaitlistEmail",
         "joinWaitlist"
       ],
-      "depends": [],
+      "depends": [
+        "crypto"
+      ],
       "functions": {
         "isAbort": {
-          "line": 39,
+          "line": 41,
           "params": [
             "err",
             "signal"
           ]
         },
         "checkServerUrl": {
-          "line": 54,
+          "line": 56,
           "params": [
             "url"
           ],
           "purpose": "Whether Frame may talk to `url`: https on any host, http on LOOPBACK_HOSTS"
         },
         "resolveServerUrl": {
-          "line": 72,
+          "line": 74,
           "params": [
             "{ env",
             "setting",
@@ -4183,66 +4190,75 @@
           "purpose": "The first non-empty of env → setting → default, without trailing slashes,"
         },
         "parseCodeResponse": {
-          "line": 83,
+          "line": 85,
           "params": [
             "body"
           ],
           "purpose": "`/api/auth/device/code` body → camelCase, milliseconds. Throws on a malformed body."
         },
         "formatUserCode": {
-          "line": 106,
+          "line": 108,
           "params": [
             "userCode"
           ],
           "purpose": "Display-only grouping: 'TTN4YFST' → 'TTN4-YFST'. Other shapes are returned as-is."
         },
         "classifyTokenResponse": {
-          "line": 113,
+          "line": 115,
           "params": [
             "res"
           ],
           "purpose": "One `/api/auth/device/token` answer → what the poll loop does next."
         },
         "classifyTrpcError": {
-          "line": 141,
+          "line": 143,
           "params": [
             "res"
           ],
           "purpose": "A failed tRPC answer → CloudError kind."
         },
         "looksLikeAddress": {
-          "line": 157,
+          "line": 159,
           "params": [
             "name"
           ],
           "purpose": "A hostname that is really a network address (macOS without a HostName"
         },
         "cleanName": {
-          "line": 161,
+          "line": 163,
           "params": [
             "raw"
           ]
         },
         "deviceName": {
-          "line": 171,
+          "line": 173,
           "params": [
             "hostname"
           ],
           "purpose": "A machine name → the name the server shows for this device."
         },
         "formatDeviceInfo": {
-          "line": 180,
+          "line": 183,
           "params": [
             "{ computerName",
             "hostname",
             "platform",
             "release",
-            "appVersion } = {}"
+            "appVersion",
+            "installId } = {}"
           ],
           "purpose": "Raw machine facts → the `device.register` input, cut to the server's limits."
         },
+        "resolveInstallId": {
+          "line": 206,
+          "params": [
+            "stored",
+            "mint = randomUUID"
+          ],
+          "purpose": "This Frame install's id, sent with every `device.register`. FrameCloud keeps"
+        },
         "send": {
-          "line": 190,
+          "line": 213,
           "params": [
             "fetchJson",
             "url",
@@ -4250,7 +4266,7 @@
           ]
         },
         "requestDeviceCode": {
-          "line": 199,
+          "line": 222,
           "params": [
             "{ api",
             "fetchJson",
@@ -4258,7 +4274,7 @@
           ]
         },
         "callTrpc": {
-          "line": 217,
+          "line": 240,
           "params": [
             "{ api",
             "name",
@@ -4271,7 +4287,7 @@
           "purpose": "One tRPC procedure, no transformer. A query (GET) carries its input as"
         },
         "registerDevice": {
-          "line": 235,
+          "line": 258,
           "params": [
             "{ api",
             "token",
@@ -4281,7 +4297,7 @@
           ]
         },
         "fetchMe": {
-          "line": 244,
+          "line": 267,
           "params": [
             "{ api",
             "token",
@@ -4290,7 +4306,7 @@
           ]
         },
         "signOutDevice": {
-          "line": 248,
+          "line": 271,
           "params": [
             "{ api",
             "token",
@@ -4299,7 +4315,7 @@
           ]
         },
         "fetchInviteMode": {
-          "line": 262,
+          "line": 285,
           "params": [
             "{ api",
             "fetchJson",
@@ -4308,20 +4324,20 @@
           "purpose": "Whether the server only lets invited people sign up (FrameCloud"
         },
         "normalizeWaitlistEmail": {
-          "line": 278,
+          "line": 301,
           "params": [
             "raw"
           ],
           "purpose": "A waitlist address as the server stores it — trimmed and lowercased as a"
         },
         "joinReason": {
-          "line": 289,
+          "line": 312,
           "params": [
             "err"
           ]
         },
         "joinWaitlist": {
-          "line": 304,
+          "line": 327,
           "params": [
             "{ api",
             "email",
@@ -4331,7 +4347,7 @@
           "purpose": "Put `email` on FrameCloud's waitlist from this machine (`waitlist.join`,"
         },
         "pollForToken": {
-          "line": 324,
+          "line": 347,
           "params": [
             "{ api",
             "code",
@@ -4343,13 +4359,13 @@
           "purpose": "Poll `/api/auth/device/token` until the user decides, the code expires or"
         },
         "signInReason": {
-          "line": 377,
+          "line": 400,
           "params": [
             "err"
           ]
         },
         "runSignIn": {
-          "line": 395,
+          "line": 418,
           "params": [
             "{ api",
             "fetchJson",
@@ -4363,19 +4379,19 @@
           "purpose": "The whole sign-in: code → browser → poll → register."
         },
         "refreshReason": {
-          "line": 453,
+          "line": 476,
           "params": [
             "err"
           ]
         },
         "sessionFromMe": {
-          "line": 465,
+          "line": 488,
           "params": [
             "data"
           ]
         },
         "refreshSession": {
-          "line": 479,
+          "line": 502,
           "params": [
             "{ api",
             "token",
@@ -4386,7 +4402,7 @@
           "purpose": "`device.me`, re-registering once when the server has forgotten this device."
         }
       },
-      "sizeBytes": 17958,
+      "sizeBytes": 19222,
       "extraction": {
         "status": "parsed"
       },
@@ -4407,6 +4423,7 @@
           "parseCodeResponse": "4626cbf9184c6f5c",
           "pollForToken": "b146490edbbeb889",
           "refreshSession": "1d622fffd281eb11",
+          "resolveInstallId": "96a455b0f16e9868",
           "resolveServerUrl": "ef1826ded8765dc2",
           "runSignIn": "cb6126d231cc3199"
         }
@@ -34319,14 +34336,14 @@
           ]
         },
         "signInHarness": {
-          "line": 446,
+          "line": 470,
           "params": [
             "routes",
             "extra = {}"
           ]
         }
       },
-      "sizeBytes": 32726,
+      "sizeBytes": 34079,
       "extraction": {
         "status": "parsed"
       },
@@ -41709,6 +41726,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ab0bf0440ea84d9d7679cea1121ef7d1fc5f03b4c4b031b7a8fe169beda353aa"
+    "revision": "0931a4fc16c4982f80c6f97dac2bd6081d3cf8ce626775cd37705bb458451f6e"
   }
 }

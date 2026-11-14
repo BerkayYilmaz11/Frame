@@ -10801,13 +10801,13 @@
       "title": "Give the device a stable install id: add `resolveInstallId(stored, mint)` (keeps a stored UUID, mints `randomUUID()` for anything else) and `installId` in `formatDeviceInfo` and the `device.register` input in `src/main/cloud/deviceFlow.js`; make `deviceInfo()` in `src/main/cloud/cloudSession.js` read, mint and keep it in `userSettings` under `cloudInstallId` (never the session file, never the analytics id); test both in `test/cloudDeviceFlow.test.js`",
       "description": "",
       "source": "spec:frame-cloud-teammate-connection:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-teammate-connection",
       "createdAt": "2026-11-14T16:22:14.013Z",
-      "updatedAt": "2026-11-14T16:22:14.013Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T17:03:11.588Z",
+      "completedAt": "2026-11-14T17:03:11.588Z"
     },
     {
       "id": "task-spec-frame-cloud-teammate-connection-T02",
