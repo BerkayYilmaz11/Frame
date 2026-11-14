@@ -329,3 +329,9 @@ test('replyMessage turns every outcome into a sentence', () => {
   assert.match(core.replyMessage({ ok: false, reason: 'badRequest', field: 'type', index: 1 }), /part 2 needs a type/);
   assert.match(core.replyMessage({ ok: false, reason: 'badRequest', field: 'definition', index: 0 }), /part 1 needs a definition/);
 });
+
+test('replyMessage names the role when the workspace role cannot shape', () => {
+  const message = core.replyMessage({ ok: false, reason: 'roleForbidden' });
+  assert.match(message, /^Not shaped: your role /);
+  assert.match(message, /An admin can change your role\.$/);
+});

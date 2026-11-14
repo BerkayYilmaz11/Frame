@@ -255,6 +255,12 @@ test('replyMessage turns every outcome into a sentence', () => {
   assert.match(core.replyMessage({ ok: false, reason: 'badRequest', field: 'url' }), /--url/);
 });
 
+test('replyMessage names the role when the workspace role cannot record', () => {
+  const message = core.replyMessage({ ok: false, reason: 'roleForbidden' });
+  assert.match(message, /^Not recorded: your role /);
+  assert.match(message, /An admin can change your role\.$/);
+});
+
 // ─── Comments in the prompt ───────────────────────────────────
 
 const WITH_COMMENTS = {

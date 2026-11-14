@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:48:06.718Z",
+  "lastUpdated": "2026-11-14T10:50:22.654Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10697,13 +10697,13 @@
       "title": "Guard the agent paths: make `cloudDiscussionsService.discuss` and `cloudShapeService.shape` refuse to stage a prompt without `work`, make both `handleFile`s answer `roleForbidden` without calling the server, and add the `roleForbidden` reply to `REASON_MESSAGES` in `cloudDiscussions.js` and `cloudShape.js` with tests in `test/cloudDiscussions.test.js` and `test/cloudShape.test.js`",
       "description": "",
       "source": "spec:frame-cloud-roles:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:50:22.654Z",
+      "completedAt": "2026-11-14T10:50:22.654Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T06",

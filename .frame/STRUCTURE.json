@@ -2046,14 +2046,14 @@
           "purpose": "A bus request → what happened. `deps` is"
         },
         "replyMessage": {
-          "line": 358,
+          "line": 359,
           "params": [
             "result"
           ],
           "purpose": "A handled request → the sentence the command prints."
         }
       },
-      "sizeBytes": 18017,
+      "sizeBytes": 18159,
       "extraction": {
         "status": "parsed"
       },
@@ -2154,54 +2154,61 @@
           "purpose": "Start a discussion of an open proposal with `toolId`. The full prompt is"
         },
         "writeReply": {
-          "line": 181,
+          "line": 184,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushRecorded": {
-          "line": 192,
+          "line": 195,
           "params": [
             "folderPath",
             "number"
           ]
         },
+        "workCall": {
+          "line": 206,
+          "params": [
+            "fn"
+          ],
+          "purpose": "`call`, refused locally without `work`: the request's own checks (unknown"
+        },
         "handleFile": {
-          "line": 199,
+          "line": 211,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 237
+          "line": 249
         },
         "sweep": {
-          "line": 250,
+          "line": 262,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 266
+          "line": 278
         },
         "stopWatcher": {
-          "line": 286
+          "line": 298
         },
         "followSession": {
-          "line": 295,
+          "line": 307,
           "params": [
             "publicState"
           ],
           "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 300,
+          "line": 312,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 316,
+          "line": 328,
           "params": [
             "ipcMain"
           ]
@@ -2215,7 +2222,7 @@
           "CLOUD_BRIEF_DISCUSSION_RECORDED"
         ]
       },
-      "sizeBytes": 11768,
+      "sizeBytes": 12283,
       "extraction": {
         "status": "parsed"
       },
@@ -2228,6 +2235,7 @@
           "removeStalePrompts": "4ca1456c3cfafea4",
           "stageCommand": "1daf0048f3df8927",
           "sweep": "6903d4b34317241b",
+          "workCall": "85114f7f60cf3023",
           "writePrompt": "eb7b413df798a740"
         }
       }
@@ -3381,7 +3389,7 @@
           "purpose": "A bus request (`{ shapeId, parts }`) → what happened. `deps` is"
         },
         "fieldMessage": {
-          "line": 325,
+          "line": 326,
           "params": [
             "field",
             "index"
@@ -3389,14 +3397,14 @@
           "purpose": "The sentence for a refused part, naming it by its 1-based place in the list."
         },
         "replyMessage": {
-          "line": 339,
+          "line": 340,
           "params": [
             "result"
           ],
           "purpose": "A handled request → the sentence the command prints."
         }
       },
-      "sizeBytes": 18019,
+      "sizeBytes": 18159,
       "extraction": {
         "status": "parsed"
       },
@@ -3498,55 +3506,62 @@
           "purpose": "Start shaping an open, unshaped work brief with `toolId`. The full prompt"
         },
         "writeReply": {
-          "line": 179,
+          "line": 182,
           "params": [
             "name",
             "reply"
           ]
         },
         "pushShaped": {
-          "line": 190,
+          "line": 193,
           "params": [
             "folderPath",
             "number",
             "count"
           ]
         },
+        "workCall": {
+          "line": 204,
+          "params": [
+            "fn"
+          ],
+          "purpose": "`call`, refused locally without `work`: the request's own checks (unknown"
+        },
         "handleFile": {
-          "line": 197,
+          "line": 209,
           "params": [
             "name"
           ],
           "purpose": "Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice."
         },
         "drain": {
-          "line": 235
+          "line": 247
         },
         "sweep": {
-          "line": 248,
+          "line": 260,
           "purpose": "Remove what a crash or a killed command left: claimed requests, tmp files, uncollected replies."
         },
         "startWatcher": {
-          "line": 264
+          "line": 276
         },
         "stopWatcher": {
-          "line": 284
+          "line": 296
         },
         "followSession": {
-          "line": 293,
+          "line": 305,
           "params": [
             "publicState"
           ],
           "purpose": "Watch the bus while signed in, and only then."
         },
         "init": {
-          "line": 298,
+          "line": 310,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 314,
+          "line": 326,
           "params": [
             "ipcMain"
           ]
@@ -3560,7 +3575,7 @@
           "CLOUD_BRIEF_SHAPED"
         ]
       },
-      "sizeBytes": 11781,
+      "sizeBytes": 12289,
       "extraction": {
         "status": "parsed"
       },
@@ -3574,6 +3589,7 @@
           "shape": "e1d19694f2b0fb6f",
           "stageCommand": "1daf0048f3df8927",
           "sweep": "6903d4b34317241b",
+          "workCall": "85114f7f60cf3023",
           "writePrompt": "c56dceef6940bf99"
         }
       }
@@ -34248,7 +34264,7 @@
           "purpose": "deps with a fake server: `record` answers brief.recordDiscussion, `get` answers brief.getByNumber."
         }
       },
-      "sizeBytes": 17457,
+      "sizeBytes": 17736,
       "extraction": {
         "status": "parsed"
       },
@@ -34499,7 +34515,7 @@
           "purpose": "deps with a fake server: `shape` answers brief.shape, `get` answers brief.getByNumber."
         }
       },
-      "sizeBytes": 16839,
+      "sizeBytes": 17115,
       "extraction": {
         "status": "parsed"
       },
@@ -41577,6 +41593,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2172798f3c19839bb34e3a98babf4945032422e203abad45dd4cac61da72f2ba"
+    "revision": "113f6f3e1de5656efd933873dfc491c17df58ece3f644598868e8244b110ba94"
   }
 }

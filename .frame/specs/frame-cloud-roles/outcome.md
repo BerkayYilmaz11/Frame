@@ -26,3 +26,10 @@ Chained `refuseUnless('work')` onto `linkBlocked()` in `linkClaim` and `linkRele
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T05 — Guard the agent paths
+
+Made `discuss` and `shape` refuse with `roleForbidden` after the connected-folder check and before staging a prompt. Made both `handleFile`s pass the pure core a local `workCall` that returns the refusal without `work` instead of checking ahead of `handleRecordRequest` / `handleShapeRequest`, so unknown-session, bad-input and not-connected answers (what signed out and no workspace reach today) keep precedence and the cores stay untouched. Added the `roleForbidden` reply to both `REASON_MESSAGES`, ending in "An admin can change your role.", with a `replyMessage` test in `test/cloudDiscussions.test.js` and `test/cloudShape.test.js`.
+
+_Captured: 2026-11-14 · 6 file change(s)_
+
+---
