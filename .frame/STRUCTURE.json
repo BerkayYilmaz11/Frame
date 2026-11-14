@@ -2440,7 +2440,7 @@
           "purpose": "Report what this machine knows about the listed briefs' parts. Single-flight"
         },
         "init": {
-          "line": 188,
+          "line": 190,
           "params": [
             "window"
           ]
@@ -2452,7 +2452,7 @@
           "CLOUD_BRIEFS_CHANGED"
         ]
       },
-      "sizeBytes": 7654,
+      "sizeBytes": 7780,
       "extraction": {
         "status": "parsed"
       },
@@ -4005,14 +4005,14 @@
           "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null."
         },
         "sendBranch": {
-          "line": 70,
+          "line": 71,
           "params": [
             "input"
           ],
           "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
         },
         "withBegunBranches": {
-          "line": 80,
+          "line": 82,
           "params": [
             "briefs",
             "projectId",
@@ -4021,28 +4021,28 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 94,
+          "line": 96,
           "params": [
             "folderPath"
           ],
           "purpose": "The spec folder names in `.frame/specs/`."
         },
         "taskIds": {
-          "line": 105,
+          "line": 107,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "changeCount": {
-          "line": 111,
+          "line": 113,
           "params": [
             "folderPath"
           ],
           "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
         },
         "writeSpec": {
-          "line": 118,
+          "line": 120,
           "params": [
             "folderPath",
             "slug",
@@ -4051,7 +4051,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 128,
+          "line": 130,
           "params": [
             "folderPath",
             "rows"
@@ -4059,14 +4059,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 144,
+          "line": 146,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 152,
+          "line": 154,
           "params": [
             "folderPath",
             "number"
@@ -4074,7 +4074,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 191,
+          "line": 193,
           "params": [
             "folderPath",
             "request"
@@ -4082,13 +4082,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 229,
+          "line": 233,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 233,
+          "line": 237,
           "params": [
             "ipcMain"
           ]
@@ -4103,7 +4103,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 10561,
+      "sizeBytes": 10784,
       "extraction": {
         "status": "parsed"
       },
@@ -41593,6 +41593,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "113f6f3e1de5656efd933873dfc491c17df58ece3f644598868e8244b110ba94"
+    "revision": "545e0eec2bf1431b637f87027d465fea59b4c1b6e8bea9d1209abd6b5b6a6e1b"
   }
 }

@@ -33,3 +33,10 @@ Made `discuss` and `shape` refuse with `roleForbidden` after the connected-folde
 _Captured: 2026-11-14 · 6 file change(s)_
 
 ---
+## T06 — Guard Start and Done
+
+Made `cloudStartService.start` refuse with `roleForbidden` after the connected-folder check, and made `sendBranch` and `cloudDoneService.report` return without sending when the role lacks `work`. The two background writes skip silently rather than log a warning, since a viewer's every Briefs read would otherwise log one. Files: `src/main/cloud/cloudStartService.js`, `src/main/cloud/cloudDoneService.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

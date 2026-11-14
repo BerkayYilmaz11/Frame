@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:50:22.654Z",
+  "lastUpdated": "2026-11-14T10:54:44.493Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10710,13 +10710,13 @@
       "title": "Guard Start and Done: make `cloudStartService.start` and `sendBranch` need `work`, and make `cloudDoneService.report` return at once without `work`",
       "description": "",
       "source": "spec:frame-cloud-roles:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:54:44.493Z",
+      "completedAt": "2026-11-14T10:54:44.493Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T07",
