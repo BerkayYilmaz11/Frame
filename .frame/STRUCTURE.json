@@ -14536,51 +14536,51 @@
           ]
         },
         "renderAvatar": {
-          "line": 364,
+          "line": 366,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 398,
+          "line": 400,
           "params": [
             "state"
           ]
         },
         "standInFor": {
-          "line": 427,
+          "line": 429,
           "params": [
             "state"
           ],
           "purpose": "Which card stands in for the tab bar and both tabs, or null for the tabs:"
         },
         "renderStandIn": {
-          "line": 441,
+          "line": 443,
           "params": [
             "state"
           ],
           "purpose": "The stand-in panel: the tab bar, both tabs and the devices notice give way"
         },
         "showDevicesPrompt": {
-          "line": 498,
+          "line": 500,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 525
+          "line": 527
         },
         "setTab": {
-          "line": 530,
+          "line": 532,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 560,
+          "line": 562,
           "params": [
             "{ tab",
             "folderPath",
@@ -14589,42 +14589,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 568,
+          "line": 570,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 575,
+          "line": 577,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 581,
+          "line": 583,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 587,
+          "line": 589,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 593,
+          "line": 595,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 597,
+          "line": 599,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 606,
+          "line": 608,
           "params": [
             "date"
           ]
@@ -14637,7 +14637,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 23972,
+      "sizeBytes": 24159,
       "extraction": {
         "status": "parsed"
       },
@@ -14675,35 +14675,36 @@
         "electron",
         "shared/ipcChannels",
         "tooltip",
+        "cloudRoles",
         "projectListUI"
       ],
       "functions": {
         "init": {
-          "line": 62,
+          "line": 64,
           "params": [
             "cloudHub"
           ]
         },
         "render": {
-          "line": 71,
+          "line": 73,
           "params": [
             "state",
             "activeTab"
           ]
         },
         "onShow": {
-          "line": 87,
+          "line": 89,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "requestCandidates": {
-          "line": 103,
+          "line": 105,
           "purpose": "link.candidates runs once the list is ready and on every Refresh; answers"
         },
         "el": {
-          "line": 113,
+          "line": 115,
           "params": [
             "tag",
             "className",
@@ -14711,7 +14712,7 @@
           ]
         },
         "button": {
-          "line": 120,
+          "line": 122,
           "params": [
             "label",
             "onClick",
@@ -14723,7 +14724,7 @@
           ]
         },
         "message": {
-          "line": 132,
+          "line": 134,
           "params": [
             "text",
             "{ retry = false",
@@ -14731,25 +14732,25 @@
           ]
         },
         "staleNote": {
-          "line": 139,
+          "line": 141,
           "params": [
             "state"
           ]
         },
         "workspaceName": {
-          "line": 147,
+          "line": 149,
           "params": [
             "state"
           ]
         },
         "renderProjectsTab": {
-          "line": 154,
+          "line": 156,
           "params": [
             "state"
           ]
         },
         "projectCase": {
-          "line": 192,
+          "line": 194,
           "params": [
             "project",
             "state"
@@ -14757,14 +14758,14 @@
           "purpose": "What a project row is, seen from this device:"
         },
         "projectRow": {
-          "line": 221,
+          "line": 223,
           "params": [
             "project",
             "state"
           ]
         },
         "appendConnect": {
-          "line": 276,
+          "line": 278,
           "params": [
             "row",
             "actions",
@@ -14775,65 +14776,65 @@
           "purpose": "Connect on a Ready to connect row runs the link right here, on the one"
         },
         "openFolder": {
-          "line": 293,
+          "line": 295,
           "params": [
             "folderPath"
           ]
         },
         "ui": {
-          "line": 311,
+          "line": 313,
           "params": [
             "path"
           ]
         },
         "effective": {
-          "line": 317,
+          "line": 319,
           "params": [
             "folder"
           ],
           "purpose": "What a folder does now: the plan, with whatever the user changed on top."
         },
         "folderKind": {
-          "line": 333,
+          "line": 335,
           "params": [
             "folder"
           ],
           "purpose": "Which list a folder sits in. By the plan, so a choice made in the detail never moves it."
         },
         "kindTitle": {
-          "line": 341,
+          "line": 343,
           "params": [
             "kind",
             "folders"
           ]
         },
         "shortPath": {
-          "line": 348,
+          "line": 350,
           "params": [
             "p"
           ]
         },
         "renderDeviceTab": {
-          "line": 353,
+          "line": 355,
           "params": [
             "state"
           ]
         },
         "uninitialisedNote": {
-          "line": 414,
+          "line": 416,
           "params": [
             "n"
           ]
         },
         "sideItem": {
-          "line": 424,
+          "line": 426,
           "params": [
             "folder",
             "kind"
           ]
         },
         "drawDetail": {
-          "line": 442,
+          "line": 444,
           "params": [
             "detail",
             "folder",
@@ -14842,13 +14843,13 @@
           ]
         },
         "facts": {
-          "line": 463,
+          "line": 465,
           "params": [
             "rows"
           ]
         },
         "drawConnect": {
-          "line": 475,
+          "line": 477,
           "params": [
             "detail",
             "folder",
@@ -14856,8 +14857,23 @@
             "stale"
           ]
         },
+        "canManage": {
+          "line": 524,
+          "purpose": "Whether the signed-in role may add a project (`link.create`). Main checks again."
+        },
+        "drawCreateAdminOnly": {
+          "line": 533,
+          "params": [
+            "detail",
+            "folder",
+            "e",
+            "stale",
+            "state"
+          ],
+          "purpose": "A folder no cloud project matches, for a role that cannot add one: the"
+        },
         "drawCreate": {
-          "line": 518,
+          "line": 548,
           "params": [
             "detail",
             "folder",
@@ -14867,7 +14883,7 @@
           ]
         },
         "drawConnected": {
-          "line": 559,
+          "line": 590,
           "params": [
             "detail",
             "folder",
@@ -14875,20 +14891,20 @@
           ]
         },
         "chooseCreate": {
-          "line": 603,
+          "line": 634,
           "params": [
             "folder"
           ]
         },
         "picker": {
-          "line": 612,
+          "line": 643,
           "params": [
             "folder",
             "e"
           ]
         },
         "field": {
-          "line": 638,
+          "line": 669,
           "params": [
             "folder",
             "key",
@@ -14899,20 +14915,20 @@
           ]
         },
         "slugStatus": {
-          "line": 667,
+          "line": 698,
           "params": [
             "u"
           ]
         },
         "checkSlugSoon": {
-          "line": 691,
+          "line": 722,
           "params": [
             "folderPath",
             "slug"
           ]
         },
         "appendStatus": {
-          "line": 715,
+          "line": 746,
           "params": [
             "target",
             "folder",
@@ -14921,7 +14937,7 @@
           "purpose": "Progress, a question that needs an answer, or the last error — above the folder's button."
         },
         "connectRowNow": {
-          "line": 745,
+          "line": 776,
           "params": [
             "path",
             "flags"
@@ -14929,40 +14945,40 @@
           "purpose": "Claim or create one row. `flags` carries a question the user just"
         },
         "applyRefusal": {
-          "line": 780,
+          "line": 811,
           "params": [
             "u",
             "res"
           ]
         },
         "disconnect": {
-          "line": 803,
+          "line": 834,
           "params": [
             "folder"
           ]
         },
         "rerender": {
-          "line": 828
+          "line": 859
         },
         "applyPendingFocus": {
-          "line": 836,
+          "line": 867,
           "params": [
             "folders"
           ],
           "purpose": "Selects the folder a caller asked for (a path, or the folder whose"
         },
         "captureFocus": {
-          "line": 861,
+          "line": 892,
           "purpose": "A push while the user types must not steal the caret."
         },
         "restoreFocus": {
-          "line": 867,
+          "line": 898,
           "params": [
             "focus"
           ]
         }
       },
-      "sizeBytes": 33466,
+      "sizeBytes": 34813,
       "extraction": {
         "status": "parsed"
       },
@@ -14972,8 +14988,10 @@
           "appendConnect": "41e0cc127caf971c",
           "appendStatus": "5626039285afeee9",
           "applyPendingFocus": "21b996b8e3bed484",
+          "canManage": "ebff70f5ad13bc25",
           "captureFocus": "a129819f2137f85b",
           "connectRowNow": "1baf245e0ffbe4c6",
+          "drawCreateAdminOnly": "cdc0078cde8518ea",
           "effective": "ecc71c4b3ae89d9d",
           "folderKind": "ba7830656021c4ab",
           "projectCase": "63bbf66b1b7c1643",
@@ -41691,6 +41709,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "153658c8ce93f29925675987b5105d633f4102537f54500a87138611fad29b69"
+    "revision": "ab0bf0440ea84d9d7679cea1121ef7d1fc5f03b4c4b031b7a8fe169beda353aa"
   }
 }

@@ -75,3 +75,10 @@ Added a viewer branch to `projectSettingsModal.renderCloudRow`, right after the 
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T12 — Show the role and hide Create for developers
+
+Made `cloudHub`'s workspace row read `cloudRoles.workspaceLine` whenever there is a workspace. Without `manage`, `cloudHubTabs` drops "Create a new project instead" from `drawConnect` and routes `drawCreate` to a new `drawCreateAdminOnly` that shows the developer's line after "No project in … matches this folder.", plus "Connect to an existing project…" when the row has candidates; `LINK_ERRORS` gained `roleForbidden`. The developer view also skips the live slug check that came with the form, and leaves out "Already made it on the web?", since a developer cannot create a project there either.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

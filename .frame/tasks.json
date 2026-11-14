@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T11:04:34.988Z",
+  "lastUpdated": "2026-11-14T11:06:39.948Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10788,13 +10788,13 @@
       "title": "Show the role and hide Create for developers: render `cloudRoles.workspaceLine` in `cloudHub`'s workspace row, and without `manage` make `cloudHubTabs` drop \"Create a new project instead\" from `drawConnect`, replace `drawCreate`'s form and foot with the developer's line plus \"Connect to an existing project…\" when the row has candidates, and add `LINK_ERRORS.roleForbidden`",
       "description": "",
       "source": "spec:frame-cloud-roles:T12",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T11:06:39.948Z",
+      "completedAt": "2026-11-14T11:06:39.948Z"
     }
   ],
   "metadata": {

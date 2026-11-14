@@ -350,11 +350,13 @@ function land() {
 function renderHeader(s) {
   const user = s.user || {};
   const workspaceRow = noWorkspaceCopy.workspaceRow(s.workspace);
+  // With a workspace, the role stands beside it ("Acme · Developer").
+  const workspaceValue = s.workspace && s.workspace.slug ? cloudRoles.workspaceLine(s.workspace) : workspaceRow.value;
   const device = s.device || {};
   setText('cloud-user-name', user.name || user.email || '—');
   setText('cloud-user-sub', user.githubLogin ? `@${user.githubLogin}` : user.name ? user.email || '' : '');
   renderAvatar(user);
-  setText('cloud-workspace', workspaceRow.value);
+  setText('cloud-workspace', workspaceValue);
   setText('cloud-workspace-link-label', workspaceRow.link);
   setText('cloud-device', device.name || '—');
 }
