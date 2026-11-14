@@ -14,3 +14,10 @@ Added `connect` (`link.connect { projectId, frameProjectId }`), `disconnect` (`l
 _Captured: 2026-11-14 · 6 file change(s)_
 
 ---
+## T03 — Make this device's connection decide Connected
+
+`normalizeProject` reads `thisDevice` from `connection.thisDevice`; `matchFolders` gives project rows `state` (`connected` | `ready` | `notConnected` | `notClaimed`, replacing `connected`) and folder rows `ready`, so `folder.connected` — read by the Briefs gate, the mark and the palette — now means this device connected. The service moved its cache to version 2 and skips plans and candidates for ready folders. New `src/renderer/cloudConnectionCopy.js` holds the chips, claiming line, three Not-on-this-device notes, the Disconnect question and both refusal sets; the Cloud projects tab draws the four states (Ready connects in the row through `CLOUD_LINK_CONNECT`, Not claimed shows the line and Connect a folder…, Connected with no folder asks and disconnects). Diverged from tasks.md: the Disconnect question and the refusal lines landed here rather than in T04, because the Connected-with-no-folder and Ready rows already need them; the notes became three (one per state) because the old note was right for an unclaimed project and wrong for a claimed one.
+
+_Captured: 2026-11-14 · 7 file change(s)_
+
+---

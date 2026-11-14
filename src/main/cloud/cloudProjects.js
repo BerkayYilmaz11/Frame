@@ -71,16 +71,22 @@ function slugShapeOk(slug) {
 
 // ─── Reading ──────────────────────────────────────────────────
 
-/** One `project.list` entry, reduced to the fields Frame uses. */
+/**
+ * One `project.list` entry, reduced to the fields Frame uses. `thisDevice` is
+ * whether the calling device is connected to it (FrameCloud
+ * device-connections, `connection.thisDevice`); anything but `true` is no.
+ */
 function normalizeProject(raw) {
   const p = raw && typeof raw === 'object' ? raw : {};
   const status = p.status && typeof p.status === 'object' ? p.status : {};
+  const connection = p.connection && typeof p.connection === 'object' ? p.connection : {};
   return {
     id: str(p.id),
     slug: str(p.slug),
     name: str(p.name),
     source: status.source === 'github' ? 'github' : 'scratch',
     frameProjectId: str(p.frameProjectId) || null,
+    thisDevice: connection.thisDevice === true,
     createdAt: str(p.createdAt),
   };
 }
@@ -100,14 +106,20 @@ async function listProjects({ api, token, fetchJson, signal }) {
  *   folders:  [{ path, name, projectId | null }], in display order.
  *
  * → {
- *     projectRows: [{ id, slug, name, source, connected, folderNames, openPath }],
- *     folderRows:  [{ path, name, connected, project: { id, slug, name } | null }],
+ *     projectRows: [{ id, slug, name, source, state, folderNames, openPath }],
+ *     folderRows:  [{ path, name, connected, ready, project: { id, slug, name } | null }],
  *   }
  *
- * `connected` on a project row is the server's link state (it carries an
- * identity), whether or not a folder here holds it. A folder is connected only
- * when a listed project carries its id — an id the list no longer names reads
- * as not connected (S8).
+ * A folder is a project's when the project's identity equals the folder's
+ * `projectId`; an id the list no longer names belongs to no project (S8).
+ * Connected is this device's, never the identity's: a teammate's clone of a
+ * claimed project is recognised (`ready`) but not connected until this device
+ * connects (frame-cloud-teammate-connection). A project row's `state`:
+ *
+ *   connected    — this device is connected, with or without a folder here
+ *   ready        — a folder here carries its identity; this device is not connected
+ *   notConnected — it has an identity, and no folder here carries it
+ *   notClaimed   — no folder has claimed it
  */
 function matchFolders(projects, folders) {
   const list = Array.isArray(projects) ? projects : [];
@@ -123,7 +135,8 @@ function matchFolders(projects, folders) {
     return {
       path: f.path,
       name: f.name,
-      connected: Boolean(project),
+      connected: Boolean(project && project.thisDevice),
+      ready: Boolean(project && !project.thisDevice),
       project: project ? { id: project.id, slug: project.slug, name: project.name } : null,
     };
   });
@@ -135,13 +148,19 @@ function matchFolders(projects, folders) {
       slug: p.slug,
       name: p.name,
       source: p.source,
-      connected: Boolean(p.frameProjectId),
+      state: projectState(p, here.length),
       folderNames: here.map((f) => f.name),
       openPath: here.length ? here[0].path : null,
     };
   });
 
   return { projectRows, folderRows };
+}
+
+function projectState(project, foldersHere) {
+  if (!project.frameProjectId) return 'notClaimed';
+  if (project.thisDevice) return 'connected';
+  return foldersHere > 0 ? 'ready' : 'notConnected';
 }
 
 // ─── Linking calls ────────────────────────────────────────────

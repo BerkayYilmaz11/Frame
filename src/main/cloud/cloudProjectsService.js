@@ -32,7 +32,9 @@ const cloudSession = require('./cloudSession');
 const core = require('./cloudProjects');
 
 const CACHE_FILE = 'cloud-projects.json';
-const CACHE_VERSION = 1;
+// 2: projects carry `thisDevice` (frame-cloud-teammate-connection); a v1 list
+// would read every folder as not connected.
+const CACHE_VERSION = 2;
 const FOCUS_THROTTLE_MS = 60 * 1000;
 const CANDIDATE_CONCURRENCY = 3;
 const GIT_TIMEOUT_MS = 5000;
@@ -238,7 +240,8 @@ function publicState() {
     projects: projectRows.map((p) => ({ ...p, canOpenWeb: webFor(p) })),
     folders: folderRows.map((f) => ({
       ...f,
-      plan: f.connected ? null : plans.get(f.path) || null,
+      // A connected or recognised (ready) folder already knows its project.
+      plan: f.connected || f.ready ? null : plans.get(f.path) || null,
       candidatesLoading: candidatesLoading.has(f.path),
     })),
     unconnectedCount: folderRows.filter((f) => !f.connected).length,
@@ -371,7 +374,8 @@ async function loadCandidates() {
   if (!cloudSession.getAuth() || !hasWorkspace() || stale || !lastUpdated) return;
   scanFolders();
   const { folderRows } = core.matchFolders(projects, folders);
-  const targets = folders.filter((f, i) => !folderRows[i].connected);
+  // Only folders no project carries: a ready folder's project is its identity's.
+  const targets = folders.filter((f, i) => !folderRows[i].connected && !folderRows[i].ready);
   const gen = ++candidatesGen;
   candidatesLoading.clear();
   for (const f of targets) candidatesLoading.add(f.path);

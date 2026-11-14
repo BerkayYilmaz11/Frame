@@ -1,0 +1,110 @@
+/**
+ * cloudConnectionCopy — the words Frame says about a device's Frame Cloud
+ * connection (frame-cloud-teammate-connection).
+ *
+ * Connected is this device's: each member connects on each of their devices,
+ * once. A project's identity — the `projectId` its folder commits — is never
+ * a state on screen; it only lets Frame recognise a clone, which then reads
+ * Ready to connect. A project no folder has claimed reads Not claimed, with a
+ * line saying what claiming is.
+ *
+ * Every sentence the Cloud projects tab, On this device and Project Settings
+ * say about connecting lives here. Pure: no DOM, no Electron, so `node --test`
+ * covers it.
+ */
+
+const { ROLE_FORBIDDEN } = require('./cloudRoles');
+
+/** The Cloud projects tab's chip for each project row `state` (cloudProjects.matchFolders). */
+const STATUS_CHIPS = Object.freeze({
+  connected: Object.freeze({ label: 'Connected', className: 'cloud-chip-connected' }),
+  ready: Object.freeze({ label: 'Ready to connect', className: 'cloud-chip-ready' }),
+  notConnected: Object.freeze({ label: 'Not connected', className: '' }),
+  notClaimed: Object.freeze({ label: 'Not claimed', className: '' }),
+});
+
+/** A row state → its chip; an unknown state reads Not connected. */
+function statusChip(state) {
+  return Object.prototype.hasOwnProperty.call(STATUS_CHIPS, state) ? STATUS_CHIPS[state] : STATUS_CHIPS.notConnected;
+}
+
+/** Under a Not claimed chip: what claiming is. */
+const CLAIM_LINE =
+  "Claiming picks the folder that is this project. After that, every member's clone of its " +
+  'repository is recognised and connects with one click.';
+
+/** Button labels that name a connection. */
+const ACTIONS = Object.freeze({
+  connect: 'Connect',
+  connectFolder: 'Connect a folder…',
+  disconnect: 'Disconnect…',
+  confirmDisconnect: 'Disconnect',
+  keep: 'Keep',
+});
+
+const NOT_HERE_NOTES = Object.freeze({
+  // Claimed, nothing here carries it: a clone of the repository is recognised.
+  notConnected:
+    'No folder for this project is on this computer. Add a clone of its repository with ' +
+    '"Add a project…" in the project switcher, then click Connect.',
+  // This device is connected, but the folder moved or went.
+  connected:
+    'This device is connected, but no folder for this project is on this computer. Add a clone ' +
+    'of its repository with "Add a project…" and it opens connected — or disconnect this device.',
+  // Nobody has claimed it: its folder has to be chosen.
+  notClaimed:
+    'No folder on this computer looks like this project. Open or clone its folder with ' +
+    '"Add a project…", then choose it with Connect a folder….',
+});
+
+/** The info mark beside "Not on this device", for a row in `state`. */
+function notHereNote(state) {
+  return Object.prototype.hasOwnProperty.call(NOT_HERE_NOTES, state) ? NOT_HERE_NOTES[state] : NOT_HERE_NOTES.notConnected;
+}
+
+function projectLabel(project) {
+  return (project && (project.name || project.slug)) || 'this project';
+}
+
+/**
+ * Before this device's connection goes. Says what changes (Briefs leave this
+ * device) and what does not (teammates, the user's other devices, the folder).
+ */
+function disconnectQuestion(project, { folderHere = true } = {}) {
+  const keeps = folderHere
+    ? 'Your teammates and your other devices stay connected, and the folder stays as it is.'
+    : 'Your teammates and your other devices stay connected.';
+  return `Disconnect this device from ${projectLabel(project)}? Briefs stop showing here. ${keeps}`;
+}
+
+const REFUSALS = Object.freeze({
+  unlinked: 'This project is no longer claimed — the list was refreshed.',
+  identityChanged: 'This project now belongs to another folder — the list was refreshed.',
+  notFound: 'That project no longer exists — the list was refreshed.',
+  network: "Frame Cloud couldn't be reached.",
+  noWorkspace: 'Create a workspace on the web first.',
+  roleForbidden: ROLE_FORBIDDEN,
+});
+
+/** A refused Connect → the line under it. `unauthorized` says nothing: the window is back on sign-in. */
+function connectRefusal(reason) {
+  if (reason === 'unauthorized') return null;
+  return REFUSALS[reason] || "Couldn't connect this device. Try again.";
+}
+
+/** A refused Disconnect → the line under it. */
+function disconnectRefusal(reason) {
+  if (reason === 'unauthorized') return null;
+  return REFUSALS[reason] || "Couldn't disconnect this device. Try again.";
+}
+
+module.exports = {
+  STATUS_CHIPS,
+  statusChip,
+  CLAIM_LINE,
+  ACTIONS,
+  notHereNote,
+  disconnectQuestion,
+  connectRefusal,
+  disconnectRefusal,
+};
