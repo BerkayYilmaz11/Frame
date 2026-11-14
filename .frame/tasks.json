@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:54:44.493Z",
+  "lastUpdated": "2026-11-14T10:57:51.960Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10723,13 +10723,13 @@
       "title": "Create `src/renderer/cloudRoles.js` with the role labels, `workspaceLine(ws)` (\"Acme · Developer\"), the viewer card copy, the viewer's Project Settings row, `CREATE_ADMIN_ONLY` and `ROLE_FORBIDDEN` in the web's wording, and cover it in a new `test/cloudRoles.test.js`",
       "description": "",
       "source": "spec:frame-cloud-roles:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:57:51.960Z",
+      "completedAt": "2026-11-14T10:57:51.960Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T08",

@@ -15057,6 +15057,72 @@
         }
       }
     },
+    "renderer/cloudRoles": {
+      "file": "src/renderer/cloudRoles.js",
+      "description": "cloudRoles — the words Frame says about a Frame Cloud workspace role.",
+      "exports": [
+        "ROLE_LABELS",
+        "ROLE_FORBIDDEN",
+        "CREATE_ADMIN_ONLY",
+        "roleLabel",
+        "workspaceLine",
+        "viewerPanel",
+        "viewerSettingsRow"
+      ],
+      "depends": [
+        "cloudNoWorkspace"
+      ],
+      "functions": {
+        "roleLabel": {
+          "line": 31,
+          "params": [
+            "role"
+          ],
+          "purpose": "`admin` → \"Admin\"; a role Frame does not know has no label."
+        },
+        "workspaceName": {
+          "line": 35,
+          "params": [
+            "workspace"
+          ]
+        },
+        "workspaceLine": {
+          "line": 40,
+          "params": [
+            "workspace"
+          ],
+          "purpose": "The account header's workspace → \"Acme · Developer\", or the name alone without a known role."
+        },
+        "viewerPanel": {
+          "line": 52,
+          "params": [
+            "{ workspace",
+            "canOpenWeb } = {}"
+          ],
+          "purpose": "The card in place of the Frame Cloud tabs for a viewer →"
+        },
+        "viewerSettingsRow": {
+          "line": 64,
+          "params": [
+            "workspace"
+          ],
+          "purpose": "Project Settings' Frame Cloud row for a viewer → `{ label, description, action }`."
+        }
+      },
+      "sizeBytes": 3058,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "7628f2b117511d4f",
+        "purposes": {
+          "roleLabel": "907eb65418676546",
+          "viewerPanel": "c1177cc0dd6acedb",
+          "viewerSettingsRow": "514a98cfb499c1b7",
+          "workspaceLine": "9fa9db5d83e7a8c0"
+        }
+      }
+    },
     "renderer/cloudStartDialog": {
       "file": "src/renderer/cloudStartDialog.js",
       "description": "Cloud Start Work dialog (frame-cloud-brief-start spec)",
@@ -34431,6 +34497,25 @@
         }
       }
     },
+    "test/cloudRoles.test": {
+      "file": "test/cloudRoles.test.js",
+      "description": "cloudRoles tests — the words Frame says about a workspace role.",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/cloudRoles",
+        "src/renderer/cloudNoWorkspace"
+      ],
+      "functions": {},
+      "sizeBytes": 3300,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "520a1c8c8b1d81fb"
+      }
+    },
     "test/cloudSessionStore.test": {
       "file": "test/cloudSessionStore.test.js",
       "description": "sessionStore tests — Frame Cloud sessions kept per server.",
@@ -41519,7 +41604,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 424,
+        "parsed": 426,
         "unsupported": 93,
         "partial": 0
       }
@@ -41566,9 +41651,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 612,
+      "visitedEntries": 614,
       "traversedDirectories": 87,
-      "eligibleFiles": 517,
+      "eligibleFiles": 519,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -41585,7 +41670,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 517,
+      "indexedFiles": 519,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -41593,6 +41678,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "545e0eec2bf1431b637f87027d465fea59b4c1b6e8bea9d1209abd6b5b6a6e1b"
+    "revision": "87aadde4e8494861448e97308e0bd055807c941511d1b8baa6c408d75b4b0794"
   }
 }

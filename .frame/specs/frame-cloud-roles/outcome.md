@@ -40,3 +40,10 @@ Made `cloudStartService.start` refuse with `roleForbidden` after the connected-f
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T07 — The role copy module
+
+Created `src/renderer/cloudRoles.js` with `ROLE_LABELS`, `roleLabel`, `workspaceLine`, `viewerPanel({ workspace, canOpenWeb })`, `viewerSettingsRow(workspace)`, `CREATE_ADMIN_ONLY` and `ROLE_FORBIDDEN`, worded from FrameCloud's members, invite and home pages, and covered it in a new `test/cloudRoles.test.js`. `viewerPanel` takes `cloudNoWorkspace.panel`'s shape plus a `buttonTitle` that reuses `NO_WEB_ORIGIN` when no web origin is stored. `ROLE_FORBIDDEN` names no role, since the tables in T08 take plain strings and the role may have just changed.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---
