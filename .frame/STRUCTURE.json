@@ -14463,6 +14463,10 @@
         "CLAIM_LINE",
         "ACTIONS",
         "notHereNote",
+        "CONNECTED_EXPLANATION",
+        "readyLead",
+        "TAKEOVER_QUESTION",
+        "CLAIMED_ELSEWHERE",
         "disconnectQuestion",
         "connectRefusal",
         "disconnectRefusal"
@@ -14491,8 +14495,15 @@
             "project"
           ]
         },
+        "readyLead": {
+          "line": 79,
+          "params": [
+            "project"
+          ],
+          "purpose": "A Ready folder's detail: it is the project's clone, and connecting changes no one else's."
+        },
         "disconnectQuestion": {
-          "line": 73,
+          "line": 103,
           "params": [
             "project",
             "{ folderHere = true } = {}"
@@ -14500,21 +14511,21 @@
           "purpose": "Before this device's connection goes. Says what changes (Briefs leave this"
         },
         "connectRefusal": {
-          "line": 90,
+          "line": 120,
           "params": [
             "reason"
           ],
           "purpose": "A refused Connect → the line under it. `unauthorized` says nothing: the window is back on sign-in."
         },
         "disconnectRefusal": {
-          "line": 96,
+          "line": 126,
           "params": [
             "reason"
           ],
           "purpose": "A refused Disconnect → the line under it."
         }
       },
-      "sizeBytes": 4554,
+      "sizeBytes": 6047,
       "extraction": {
         "status": "parsed"
       },
@@ -14525,6 +14536,7 @@
           "disconnectQuestion": "57c0a119354534fb",
           "disconnectRefusal": "ef6e8c864a670b4b",
           "notHereNote": "93f49a67bd89e035",
+          "readyLead": "1f1d5f59596521b3",
           "statusChip": "9b020d4229640f36"
         }
       }
@@ -14946,39 +14958,39 @@
           "purpose": "Which list a folder sits in. By the plan, so a choice made in the detail never moves it."
         },
         "kindTitle": {
-          "line": 407,
+          "line": 409,
           "params": [
             "kind",
             "folders"
           ]
         },
         "shortPath": {
-          "line": 414,
+          "line": 417,
           "params": [
             "p"
           ]
         },
         "renderDeviceTab": {
-          "line": 419,
+          "line": 422,
           "params": [
             "state"
           ]
         },
         "uninitialisedNote": {
-          "line": 480,
+          "line": 483,
           "params": [
             "n"
           ]
         },
         "sideItem": {
-          "line": 490,
+          "line": 493,
           "params": [
             "folder",
             "kind"
           ]
         },
         "drawDetail": {
-          "line": 508,
+          "line": 511,
           "params": [
             "detail",
             "folder",
@@ -14987,13 +14999,13 @@
           ]
         },
         "facts": {
-          "line": 529,
+          "line": 533,
           "params": [
             "rows"
           ]
         },
         "drawConnect": {
-          "line": 541,
+          "line": 545,
           "params": [
             "detail",
             "folder",
@@ -15002,11 +15014,11 @@
           ]
         },
         "canManage": {
-          "line": 588,
+          "line": 592,
           "purpose": "Whether the signed-in role may add a project (`link.create`). Main checks again."
         },
         "drawCreateAdminOnly": {
-          "line": 597,
+          "line": 601,
           "params": [
             "detail",
             "folder",
@@ -15017,7 +15029,7 @@
           "purpose": "A folder no cloud project matches, for a role that cannot add one: the"
         },
         "drawCreate": {
-          "line": 612,
+          "line": 616,
           "params": [
             "detail",
             "folder",
@@ -15027,28 +15039,44 @@
           ]
         },
         "drawConnected": {
-          "line": 654,
+          "line": 658,
           "params": [
             "detail",
             "folder",
             "stale"
           ]
         },
+        "drawReady": {
+          "line": 708,
+          "params": [
+            "detail",
+            "folder",
+            "stale"
+          ],
+          "purpose": "A clone of a claimed project, on a device not connected to it: the identity"
+        },
+        "connectFolderNow": {
+          "line": 732,
+          "params": [
+            "folder"
+          ],
+          "purpose": "This device connects to the project a Ready folder's identity names."
+        },
         "chooseCreate": {
-          "line": 698,
+          "line": 750,
           "params": [
             "folder"
           ]
         },
         "picker": {
-          "line": 707,
+          "line": 759,
           "params": [
             "folder",
             "e"
           ]
         },
         "field": {
-          "line": 733,
+          "line": 785,
           "params": [
             "folder",
             "key",
@@ -15059,20 +15087,20 @@
           ]
         },
         "slugStatus": {
-          "line": 762,
+          "line": 814,
           "params": [
             "u"
           ]
         },
         "checkSlugSoon": {
-          "line": 786,
+          "line": 838,
           "params": [
             "folderPath",
             "slug"
           ]
         },
         "appendStatus": {
-          "line": 810,
+          "line": 862,
           "params": [
             "target",
             "folder",
@@ -15081,7 +15109,7 @@
           "purpose": "Progress, a question that needs an answer, or the last error — above the folder's button."
         },
         "connectRowNow": {
-          "line": 840,
+          "line": 892,
           "params": [
             "path",
             "flags"
@@ -15089,40 +15117,40 @@
           "purpose": "Claim or create one row. `flags` carries a question the user just"
         },
         "applyRefusal": {
-          "line": 875,
+          "line": 927,
           "params": [
             "u",
             "res"
           ]
         },
         "disconnect": {
-          "line": 898,
+          "line": 950,
           "params": [
             "folder"
           ]
         },
         "rerender": {
-          "line": 923
+          "line": 970
         },
         "applyPendingFocus": {
-          "line": 931,
+          "line": 978,
           "params": [
             "folders"
           ],
           "purpose": "Selects the folder a caller asked for (a path, or the folder whose"
         },
         "captureFocus": {
-          "line": 956,
+          "line": 1003,
           "purpose": "A push while the user types must not steal the caret."
         },
         "restoreFocus": {
-          "line": 962,
+          "line": 1009,
           "params": [
             "focus"
           ]
         }
       },
-      "sizeBytes": 37713,
+      "sizeBytes": 39506,
       "extraction": {
         "status": "parsed"
       },
@@ -15134,10 +15162,12 @@
           "applyPendingFocus": "21b996b8e3bed484",
           "canManage": "ebff70f5ad13bc25",
           "captureFocus": "a129819f2137f85b",
+          "connectFolderNow": "97b23a5afd43f86c",
           "connectProjectNow": "38e858803bce862d",
           "connectRowNow": "1baf245e0ffbe4c6",
           "disconnectProjectNow": "f1c7574ec0617d5c",
           "drawCreateAdminOnly": "cdc0078cde8518ea",
+          "drawReady": "ce626acfe1873ef7",
           "effective": "ecc71c4b3ae89d9d",
           "folderKind": "ba7830656021c4ab",
           "projectCase": "fc9fd439927e9693",
@@ -23725,7 +23755,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 22740,
+      "sizeBytes": 22891,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -34441,7 +34471,7 @@
         "src/renderer/cloudRoles"
       ],
       "functions": {},
-      "sizeBytes": 3954,
+      "sizeBytes": 5316,
       "extraction": {
         "status": "parsed"
       },
@@ -41903,6 +41933,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "e4edf6ebac84e0fb5399862f14aa7b31946cefbcf39bfda6e088a105b82f20d5"
+    "revision": "57381141ca3719084abd4459bba6dc0adb24fdeb06a16c6767dd505b28812d94"
   }
 }

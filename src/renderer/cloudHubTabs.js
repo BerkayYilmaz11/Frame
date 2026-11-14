@@ -29,7 +29,7 @@ const SLUG_ERRORS = {
 };
 
 const LINK_ERRORS = {
-  taken: 'This folder is already connected — the list was refreshed.',
+  taken: 'This folder already belongs to a project — the list was refreshed.',
   notFound: 'That project no longer exists — the list was refreshed.',
   network: "Frame Cloud couldn't be reached.",
   noConfig: "This folder has no .frame/config.json, so it can't be connected.",
@@ -46,7 +46,7 @@ const QUESTIONS = {
     no: 'Leave'
   },
   mismatch: {
-    text: 'This project is already connected to a Frame folder with a different identity — that happens with local sharing mode, or when .frame/ was recreated. Connect this folder instead? The other folder will read Not connected.',
+    text: cloudCopy.TAKEOVER_QUESTION,
     yes: 'Connect this folder',
     no: 'Leave'
   }
@@ -398,13 +398,16 @@ function effective(folder) {
 /** Which list a folder sits in. By the plan, so a choice made in the detail never moves it. */
 function folderKind(folder) {
   if (folder.connected) return 'connected';
+  if (folder.ready) return 'ready';
   if (!folder.plan) return 'pending';
   return folder.plan.group === 'connect' ? 'suggested' : 'new';
 }
 
-const KIND_ORDER = ['suggested', 'new', 'pending', 'connected'];
+// Ready first: a recognised clone is one click from connected.
+const KIND_ORDER = ['ready', 'suggested', 'new', 'pending', 'connected'];
 
 function kindTitle(kind, folders) {
+  if (kind === 'ready') return cloudCopy.STATUS_CHIPS.ready.label;
   if (kind === 'suggested') return 'Suggested';
   if (kind === 'new') return 'Not in Frame Cloud';
   if (kind === 'connected') return 'Connected';
@@ -444,7 +447,7 @@ function renderDeviceTab(state) {
     return;
   }
 
-  const groups = { suggested: [], new: [], pending: [], connected: [] };
+  const groups = { ready: [], suggested: [], new: [], pending: [], connected: [] };
   for (const folder of folders) groups[folderKind(folder)].push(folder);
   const ordered = KIND_ORDER.flatMap((k) => groups[k]);
 
@@ -512,6 +515,7 @@ function drawDetail(detail, folder, stale, state) {
   detail.appendChild(head);
 
   if (folder.connected) return drawConnected(detail, folder, stale);
+  if (folder.ready) return drawReady(detail, folder, stale);
   if (!folder.plan) {
     const note = folder.candidatesLoading
       ? 'Looking for a matching project in Frame Cloud…'
@@ -554,8 +558,8 @@ function drawConnect(detail, folder, e, stale) {
   }
   if (target.alreadyConnected) {
     const taken = el('span', 'cloud-fact-inline');
-    taken.appendChild(el('span', 'cloud-chip cloud-chip-warn', 'Already connected'));
-    taken.appendChild(el('span', 'cloud-fact-note', 'Another folder with a different identity holds it. Connecting this one takes it over.'));
+    taken.appendChild(el('span', 'cloud-chip cloud-chip-warn', cloudCopy.CLAIMED_ELSEWHERE.chip));
+    taken.appendChild(el('span', 'cloud-fact-note', cloudCopy.CLAIMED_ELSEWHERE.note));
     rows.push(['Note', taken]);
   }
   detail.appendChild(facts(rows));
@@ -669,15 +673,16 @@ function drawConnected(detail, folder, stale) {
     }, { quiet: true }));
   }
   detail.appendChild(facts([['Status', status], ['Cloud project', cloud]]));
+  detail.appendChild(el('p', 'cloud-detail-lead', cloudCopy.CONNECTED_EXPLANATION));
 
   if (u.question === 'disconnect') {
     const q = el('div', 'cloud-question');
-    q.appendChild(el('span', '', `Disconnect ${folder.name} from ${project.name || project.slug || 'this project'}? The cloud project and this folder both stay; they stop being linked.`));
-    q.appendChild(button('Keep', () => {
+    q.appendChild(el('span', '', cloudCopy.disconnectQuestion(project)));
+    q.appendChild(button(cloudCopy.ACTIONS.keep, () => {
       u.question = null;
       rerender();
     }, { disabled: u.busy }));
-    q.appendChild(button('Disconnect', () => disconnect(folder), { danger: true, disabled: stale || u.busy }));
+    q.appendChild(button(cloudCopy.ACTIONS.confirmDisconnect, () => disconnect(folder), { danger: true, disabled: stale || u.busy }));
     detail.appendChild(q);
   }
   if (u.busy) detail.appendChild(el('p', 'settings-about-status', 'Disconnecting…'));
@@ -685,7 +690,7 @@ function drawConnected(detail, folder, stale) {
 
   const foot = el('div', 'cloud-detail-foot');
   if (u.question !== 'disconnect') {
-    foot.appendChild(button('Disconnect…', () => {
+    foot.appendChild(button(cloudCopy.ACTIONS.disconnect, () => {
       u.question = 'disconnect';
       u.message = null;
       rerender();
@@ -693,6 +698,53 @@ function drawConnected(detail, folder, stale) {
   }
   foot.appendChild(button('Open in Frame', () => openFolder(folder.path), { primary: true }));
   detail.appendChild(foot);
+}
+
+/**
+ * A clone of a claimed project, on a device not connected to it: the identity
+ * already names the project, so there is nothing to pick — one click connects
+ * this device, and nobody else's connection changes.
+ */
+function drawReady(detail, folder, stale) {
+  const u = ui(folder.path);
+  const project = folder.project || {};
+  const cloud = el('span', 'cloud-fact-inline');
+  cloud.appendChild(el('span', '', project.name || project.slug || ''));
+  cloud.appendChild(el('span', 'cloud-slug', project.slug || ''));
+  const status = el('span', 'cloud-fact-inline');
+  status.appendChild(el('span', 'cloud-state cloud-state-ready'));
+  status.appendChild(el('span', '', cloudCopy.STATUS_CHIPS.ready.label));
+  detail.appendChild(facts([['Status', status], ['Cloud project', cloud]]));
+  detail.appendChild(el('p', 'cloud-detail-lead', cloudCopy.readyLead(project)));
+
+  if (u.busy) detail.appendChild(el('p', 'settings-about-status cloud-row-status', 'Connecting…'));
+  if (u.message) detail.appendChild(el('p', 'settings-about-status cloud-row-error', u.message));
+
+  const foot = el('div', 'cloud-detail-foot');
+  foot.appendChild(button(cloudCopy.ACTIONS.connect, () => connectFolderNow(folder), {
+    primary: true,
+    disabled: stale || u.busy
+  }));
+  detail.appendChild(foot);
+}
+
+/** This device connects to the project a Ready folder's identity names. */
+async function connectFolderNow(folder) {
+  const u = ui(folder.path);
+  if (u.busy) return;
+  u.busy = true;
+  u.message = null;
+  rerender();
+  let res = null;
+  try {
+    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_CONNECT, { path: folder.path });
+  } catch (err) {
+    console.error('Frame Cloud: connect failed', err);
+  }
+  u.busy = false;
+  if (res && res.ok) rowUi.delete(folder.path);
+  else u.message = cloudCopy.connectRefusal(res ? res.reason : 'other');
+  rerender();
 }
 
 function chooseCreate(folder) {
@@ -714,7 +766,7 @@ function picker(folder, e) {
     item.appendChild(el('span', 'cloud-name', option.name || option.slug));
     item.appendChild(el('span', 'cloud-slug', option.slug));
     if (option.matchLabel) item.appendChild(el('span', 'cloud-chip', option.matchLabel));
-    if (option.alreadyConnected) item.appendChild(el('span', 'cloud-chip cloud-chip-warn', 'Already connected'));
+    if (option.alreadyConnected) item.appendChild(el('span', 'cloud-chip cloud-chip-warn', cloudCopy.CLAIMED_ELSEWHERE.chip));
     item.addEventListener('click', () => {
       u.mode = 'connect';
       u.targetId = option.id;
@@ -908,13 +960,8 @@ async function disconnect(folder) {
     console.error('Frame Cloud: disconnect failed', err);
   }
   u.busy = false;
-  if (res && res.ok) {
-    rowUi.delete(folder.path);
-  } else if (!res || res.reason !== 'unauthorized') {
-    u.message = res && res.reason === 'network'
-      ? LINK_ERRORS.network
-      : "Couldn't disconnect this folder. Try again.";
-  }
+  if (res && res.ok) rowUi.delete(folder.path);
+  else u.message = cloudCopy.disconnectRefusal(res ? res.reason : 'other');
   rerender();
 }
 

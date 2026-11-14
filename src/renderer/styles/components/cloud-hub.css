@@ -934,6 +934,11 @@
   background: var(--success);
 }
 
+/* A recognised clone: the green ring that fills once this device connects. */
+.cloud-state-ready {
+  box-shadow: inset 0 0 0 1.5px var(--success);
+}
+
 .cloud-uninitialised {
   margin: auto 0 0;
   padding: 12px 8px 6px;

@@ -10840,13 +10840,13 @@
       "title": "Make On this device speak per device: in `src/renderer/cloudHubTabs.js` list the `ready` kind first as \"Ready to connect\", with a detail naming the project, the Ready lead and a one-click Connect through `CLOUD_LINK_CONNECT`; give `drawConnected` the connection explanation and the new Disconnect question; take the take-over question and the connect and disconnect refusal lines (`unlinked`, `identityChanged`) from `cloudConnectionCopy.js`; add the Ready state dot to `cloud-hub.css`; extend `test/cloudConnectionCopy.test.js` with the explanation, the Ready lead, both questions and the refusal lines",
       "description": "",
       "source": "spec:frame-cloud-teammate-connection:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-teammate-connection",
       "createdAt": "2026-11-14T16:22:14.013Z",
-      "updatedAt": "2026-11-14T16:22:14.013Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T17:12:15.767Z",
+      "completedAt": "2026-11-14T17:12:15.767Z"
     },
     {
       "id": "task-spec-frame-cloud-teammate-connection-T05",

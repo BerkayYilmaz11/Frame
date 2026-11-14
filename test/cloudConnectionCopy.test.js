@@ -76,3 +76,30 @@ test('disconnectRefusal: network and the fallback name this device', () => {
   assert.equal(copy.disconnectRefusal('other'), "Couldn't disconnect this device. Try again.");
   assert.equal(copy.disconnectRefusal('unauthorized'), null);
 });
+
+test('CONNECTED_EXPLANATION: per device, per member, briefs through Frame Cloud, code with git', () => {
+  const e = copy.CONNECTED_EXPLANATION;
+  assert.match(e, /^Connected on this device\./);
+  assert.match(e, /Each member connects on each of their own devices\./);
+  assert.match(e, /Briefs and their progress go through Frame Cloud/);
+  assert.match(e, /code, specs and tasks move with git\./);
+});
+
+test('readyLead names the project and says connecting changes no one else', () => {
+  const lead = copy.readyLead(A);
+  assert.match(lead, /^This folder is App's repository\./);
+  assert.match(lead, /Connect this device/);
+  assert.match(lead, /nobody else's connection changes\./);
+});
+
+test('TAKEOVER_QUESTION says every device of the project, teammates included, is disconnected', () => {
+  assert.match(copy.TAKEOVER_QUESTION, /Connect this folder instead\?/);
+  assert.match(copy.TAKEOVER_QUESTION, /Every device connected to the project, teammates' included, will be disconnected\./);
+  assert.doesNotMatch(copy.TAKEOVER_QUESTION, /other folder will read/);
+});
+
+test('CLAIMED_ELSEWHERE does not call an identity Connected', () => {
+  assert.equal(copy.CLAIMED_ELSEWHERE.chip, 'Claimed');
+  assert.doesNotMatch(copy.CLAIMED_ELSEWHERE.chip, /connected/i);
+  assert.match(copy.CLAIMED_ELSEWHERE.note, /takes it over and disconnects every device/);
+});

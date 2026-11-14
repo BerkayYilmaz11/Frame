@@ -21,3 +21,10 @@ _Captured: 2026-11-14 · 6 file change(s)_
 _Captured: 2026-11-14 · 7 file change(s)_
 
 ---
+## T04 — Make On this device speak per device
+
+On this device lists Ready folders first under "Ready to connect" (green-ring dot); `drawReady` names the project, gives the Ready lead and connects this device in one click through `CLOUD_LINK_CONNECT`. `drawConnected` carries the connection explanation and the per-device Disconnect question, and Disconnect's refusals come from the copy module; the take-over question now says every device of the project is disconnected. Beyond the task: the candidate chip "Already connected" became "Claimed" and the `taken` error stopped saying "already connected", because both used Connected for an identity (spec G1). Files: `cloudHubTabs.js`, `cloudConnectionCopy.js`, `cloud-hub.css`, `test/cloudConnectionCopy.test.js`.
+
+_Captured: 2026-11-14 · 4 file change(s)_
+
+---

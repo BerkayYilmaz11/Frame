@@ -67,6 +67,36 @@ function projectLabel(project) {
 }
 
 /**
+ * What a connection is, under a connected folder in On this device and in
+ * Project Settings. The same words on every machine, because they are true on
+ * every machine.
+ */
+const CONNECTED_EXPLANATION =
+  'Connected on this device. Each member connects on each of their own devices. ' +
+  'Briefs and their progress go through Frame Cloud; code, specs and tasks move with git.';
+
+/** A Ready folder's detail: it is the project's clone, and connecting changes no one else's. */
+function readyLead(project) {
+  return `This folder is ${projectLabel(project)}'s repository. Connect this device to see its briefs here; ` +
+    "nobody else's connection changes.";
+}
+
+/**
+ * Connecting a folder whose identity differs from the project's replaces the
+ * identity (a take-over): every device's connection to the project goes.
+ */
+const TAKEOVER_QUESTION =
+  'This project belongs to a Frame folder with a different identity — that happens with local sharing ' +
+  'mode, or when .frame/ was recreated. Connect this folder instead? Every device connected to the ' +
+  "project, teammates' included, will be disconnected.";
+
+/** A candidate project another folder identity has claimed: choosing it is a take-over. */
+const CLAIMED_ELSEWHERE = Object.freeze({
+  chip: 'Claimed',
+  note: 'Another folder identity has claimed it. Connecting this one takes it over and disconnects every device of the project.',
+});
+
+/**
  * Before this device's connection goes. Says what changes (Briefs leave this
  * device) and what does not (teammates, the user's other devices, the folder).
  */
@@ -104,6 +134,10 @@ module.exports = {
   CLAIM_LINE,
   ACTIONS,
   notHereNote,
+  CONNECTED_EXPLANATION,
+  readyLead,
+  TAKEOVER_QUESTION,
+  CLAIMED_ELSEWHERE,
   disconnectQuestion,
   connectRefusal,
   disconnectRefusal,
