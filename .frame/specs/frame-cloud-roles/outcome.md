@@ -5,3 +5,10 @@ Added `WORKSPACE_PERMISSIONS` (frozen copy of the protocol's map), `can(role, pe
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T02 — Carry the role into main's services
+
+Added `role` to `cloudSession.getAuth().cloudWorkspace`, and to `cloudProjectsService` a `permissions()` reader (both false while signed out or without a workspace), `can(permission)` and `refuseUnless(permission)` — both exported so the brief, discussion, shape, start and done services can guard in T04–T06 — plus `publicState().permissions`. `onSessionChange` remembers the last `work,manage` answer and pushes only on the same-session-key path when it changes (a new key already re-lists through `refresh()`), and the auto-show rule now gets `canWork`. Files: `src/main/cloud/cloudSession.js`, `src/main/cloud/cloudProjectsService.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

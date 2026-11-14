@@ -62,6 +62,8 @@ let candidatesGen = 0;
 let autoShowPending = false; // a user-started sign-in waiting for its first list
 let autoShowDevices = false; // one-shot, cleared after the push that carries it
 
+let lastPermissions = null; // `work,manage` as last pushed for this session, or null
+
 // ─── Folders ──────────────────────────────────────────────────
 
 function hasConfig(folderPath) {
@@ -178,6 +180,34 @@ function hasWorkspace() {
   return Boolean(auth && auth.cloudWorkspace && auth.cloudWorkspace.slug);
 }
 
+/**
+ * The signed-in role's two answers, `{ work, manage }`. Both false while
+ * signed out or without a workspace: no workspace, no write.
+ */
+function permissions() {
+  const auth = cloudSession.getAuth();
+  if (!auth || !auth.cloudWorkspace || !auth.cloudWorkspace.slug) return { work: false, manage: false };
+  return core.permissionsOf(auth.cloudWorkspace.role);
+}
+
+/** Whether the signed-in role holds `permission` (`work` | `manage`). */
+function can(permission) {
+  return Boolean(permissions()[permission]);
+}
+
+/**
+ * Main's own check before a write: null when the role may, otherwise the
+ * refusal to return without sending anything. Hiding a control is not
+ * protection — the renderer is untrusted and the server enforces anyway.
+ */
+function refuseUnless(permission) {
+  return can(permission) ? null : { ok: false, reason: 'roleForbidden' };
+}
+
+function permissionsKey(p) {
+  return `${p.work},${p.manage}`;
+}
+
 function status() {
   if (!signedIn) return 'signedOut';
   if (!hasWorkspace()) return 'noWorkspace';
@@ -215,6 +245,7 @@ function publicState() {
     uninitialisedCount,
     lastUpdated,
     canOpenWeb: Boolean(auth && auth.webOrigin),
+    permissions: permissions(),
     promptDismissed: Boolean(userSettings.get(DISMISS_KEY)),
     autoShowDevices,
     error: status() === 'error' ? error : undefined,
@@ -313,6 +344,7 @@ function refresh() {
         userStartedSignIn: true,
         dismissed: Boolean(userSettings.get(DISMISS_KEY)),
         unconnectedCount,
+        canWork: can('work'),
       });
     }
     autoShowPending = false;
@@ -512,6 +544,9 @@ function onSessionChange({ state, userStarted }) {
     const slug = auth.cloudWorkspace ? auth.cloudWorkspace.slug : '';
     const key = `${auth.serverUrl} ${slug}`;
     const entering = !signedIn || key !== sessionKey;
+    const nextPermissions = permissionsKey(permissions());
+    const permissionsChanged = nextPermissions !== lastPermissions;
+    lastPermissions = nextPermissions;
     signedIn = true;
     if (userStarted) autoShowPending = true;
     if (key !== sessionKey) {
@@ -527,6 +562,9 @@ function onSessionChange({ state, userStarted }) {
       }
     }
     if (entering || userStarted) refresh();
+    // Same workspace, new role (device.me on focus, or after a ROLE_FORBIDDEN):
+    // nothing to re-list, but every surface redraws from the new answers.
+    else if (permissionsChanged) push();
     return;
   }
 
@@ -534,6 +572,7 @@ function onSessionChange({ state, userStarted }) {
     const hadSession = signedIn || sessionKey !== null;
     signedIn = false;
     sessionKey = null;
+    lastPermissions = null;
     autoShowPending = false;
     resetList();
     if (hadSession) deleteCache();
@@ -577,5 +616,7 @@ module.exports = {
   refresh,
   publicState,
   call,
+  can,
+  refuseUnless,
   connectedProject,
 };

@@ -288,7 +288,7 @@ function getAuth() {
   return {
     serverUrl: state.serverUrl,
     token,
-    cloudWorkspace: ws ? { name: ws.name, slug: ws.slug } : null,
+    cloudWorkspace: ws ? { name: ws.name, slug: ws.slug, role: ws.role } : null,
     webOrigin,
   };
 }

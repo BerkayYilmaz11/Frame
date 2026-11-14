@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:39:41.553Z",
+  "lastUpdated": "2026-11-14T10:44:42.793Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10658,13 +10658,13 @@
       "title": "Carry the role into main's services: add `role` to `cloudSession.getAuth().cloudWorkspace`, add `can(permission)`, `refuseUnless(permission)` and `publicState().permissions` (`{ work: false, manage: false }` when signed out or without a workspace) to `cloudProjectsService`, push `CLOUD_PROJECTS_STATE` from `onSessionChange` when permissions change under the same session key, and pass `canWork` to the auto-show rule",
       "description": "",
       "source": "spec:frame-cloud-roles:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:44:42.793Z",
+      "completedAt": "2026-11-14T10:44:42.793Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T03",
