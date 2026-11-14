@@ -8,6 +8,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const copy = require('../src/renderer/cloudBriefsCopy');
+const { ROLE_FORBIDDEN } = require('../src/renderer/cloudRoles');
 
 const ME = 'u-me';
 const OTHER = 'u-other';
@@ -766,4 +767,16 @@ test('Run, its hints and the lane line', () => {
   for (const run of ['spec.plan', 'spec.tasks', 'spec.implement', 'task', 'begin']) assert.match(copy.runHint(run), /\.$/, run);
   assert.equal(copy.runHint(null), '');
   assert.equal(copy.laneLine('Frame 3'), 'in Frame 3');
+});
+
+// ─── Roles ────────────────────────────────────────────────────
+
+test('roleForbidden reads the one role sentence in every message table', () => {
+  assert.equal(copy.reasonMessage('roleForbidden'), ROLE_FORBIDDEN);
+  assert.equal(copy.decideErrorMessage('roleForbidden'), ROLE_FORBIDDEN);
+  assert.equal(copy.discussErrorMessage('roleForbidden'), ROLE_FORBIDDEN);
+  assert.equal(copy.shapeErrorMessage('roleForbidden'), ROLE_FORBIDDEN);
+  assert.equal(copy.startErrorMessage({ reason: 'roleForbidden' }), ROLE_FORBIDDEN);
+  assert.equal(copy.moveErrorMessage('roleForbidden'), ROLE_FORBIDDEN);
+  assert.equal(copy.createErrorMessage('roleForbidden'), ROLE_FORBIDDEN);
 });

@@ -17,7 +17,12 @@
  * merged" and "the Done column fills on its own". The rules that decide
  * whether a move asks for a reason (`missingParts`, `needsReason`) live here,
  * as on the web; the server enforces the same rule from its stored facts.
+ *
+ * A write the workspace role cannot make (`roleForbidden`, refused in main or
+ * by the server) reads the one role sentence from cloudRoles in every table.
  */
+
+const { ROLE_FORBIDDEN } = require('./cloudRoles');
 
 /**
  * The board's open columns, in order. A brief lands in one by its status:
@@ -258,6 +263,7 @@ const REASON_MESSAGES = {
   notConnected: 'This folder is not connected to a Frame Cloud project.',
   unauthorized: 'You are signed out of Frame Cloud.',
   noWorkspace: 'Your Frame Cloud account has no workspace.',
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** The panel's sentence for a failed read's `reason`. */
@@ -323,6 +329,7 @@ const DECIDE_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** The sentence for a Move to Work that failed. */
@@ -385,6 +392,7 @@ const DISCUSS_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** The sentence for a Discuss that could not start. */
@@ -428,6 +436,7 @@ const SHAPE_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** A shaped card's parts: "1 spec", "2 specs · 1 task"; '' for none or unknown. */
@@ -542,6 +551,7 @@ const START_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`. */
@@ -840,6 +850,7 @@ const MOVE_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 
 /** The sentence for a move that was refused or failed. */
@@ -876,6 +887,7 @@ const CREATE_MESSAGES = {
   notConnected: REASON_MESSAGES.notConnected,
   unauthorized: REASON_MESSAGES.unauthorized,
   noWorkspace: REASON_MESSAGES.noWorkspace,
+  roleForbidden: ROLE_FORBIDDEN,
 };
 const CREATE_FALLBACK = 'Something went wrong. Try again.';
 

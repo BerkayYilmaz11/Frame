@@ -47,3 +47,10 @@ Created `src/renderer/cloudRoles.js` with `ROLE_LABELS`, `roleLabel`, `workspace
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T08 — roleForbidden in the Briefs message tables
+
+Made `cloudBriefsCopy.js` require `cloudRoles` and pointed `roleForbidden` at `ROLE_FORBIDDEN` in all seven tables (reason, decide, discuss, shape, start, move, create), each directly rather than through `REASON_MESSAGES`. Added one test in `test/cloudBriefsCopy.test.js` checking that every table's reader returns the sentence.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---
