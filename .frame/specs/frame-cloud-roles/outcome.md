@@ -68,3 +68,10 @@ Generalised `cloudHub`'s `renderNoWorkspace` into `renderStandIn`, driven by a n
 _Captured: 2026-11-14 · 1 file change(s)_
 
 ---
+## T11 — Remove a viewer's other cloud entry points
+
+Added a viewer branch to `projectSettingsModal.renderCloudRow`, right after the no-workspace branch and before the not-yet-listed one: it reads `cloudRoles.viewerSettingsRow` and offers only "Open Frame Cloud", which opens on the viewer card with no tab. Required `permissions.work` in the `cloud.connectProject` and `cloud.disconnectProject` palette `when`s through a local `cloudCanWork` helper in `src/renderer/index.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

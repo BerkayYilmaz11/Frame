@@ -794,14 +794,16 @@ function registerCommands() {
     run: () => cloudHub.signOut()
   });
   // The open project, as Frame Cloud lists it. Both route to the one place
-  // that picks and confirms: Frame Cloud's On this device row.
+  // that picks and confirms: Frame Cloud's On this device row, which a role
+  // without `work` does not have — its window says why (frame-cloud-roles D6).
+  const cloudCanWork = (projects) => Boolean(projects && projects.permissions && projects.permissions.work);
   r({
     id: 'cloud.connectProject',
     title: 'Frame Cloud: Connect this project',
     category: 'Help',
     when: () => {
-      const { signedIn, folder } = cloudProjectMark.openFolder();
-      return signedIn && state.getIsFrameProject() && Boolean(folder) && !folder.connected;
+      const { signedIn, folder, projects } = cloudProjectMark.openFolder();
+      return signedIn && cloudCanWork(projects) && state.getIsFrameProject() && Boolean(folder) && !folder.connected;
     },
     run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath() })
   });
@@ -810,8 +812,8 @@ function registerCommands() {
     title: 'Frame Cloud: Disconnect this project',
     category: 'Help',
     when: () => {
-      const { signedIn, folder } = cloudProjectMark.openFolder();
-      return signedIn && Boolean(folder && folder.connected);
+      const { signedIn, folder, projects } = cloudProjectMark.openFolder();
+      return signedIn && cloudCanWork(projects) && Boolean(folder && folder.connected);
     },
     run: () => cloudHub.open({ tab: 'device', folderPath: state.getProjectPath(), confirmDisconnect: true })
   });

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T11:03:04.333Z",
+  "lastUpdated": "2026-11-14T11:04:34.988Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10775,13 +10775,13 @@
       "title": "Remove a viewer's other cloud entry points: add the viewer branch to `projectSettingsModal.renderCloudRow` (viewer sentence and \"Open Frame Cloud\", no Connect… or Disconnect) and require `permissions.work` in the `cloud.connectProject` and `cloud.disconnectProject` palette `when`s in `src/renderer/index.js`",
       "description": "",
       "source": "spec:frame-cloud-roles:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T11:04:34.988Z",
+      "completedAt": "2026-11-14T11:04:34.988Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T12",
