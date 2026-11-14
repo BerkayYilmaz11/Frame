@@ -466,26 +466,55 @@ async function linkCreate({ path: folderPath, name, slug } = {}) {
   return { ok: false, reason: result.reason };
 }
 
-async function linkRelease({ path: folderPath } = {}) {
+/**
+ * Connects this device to the project that already carries the folder's
+ * identity (`link.connect`). Writes no identity: a folder without one, or
+ * whose identity no listed project carries, has nothing to connect to.
+ * A refusal that means the list was stale refreshes it; a mismatch here is
+ * another folder's take-over, not a question for this one (`identityChanged`).
+ */
+async function linkConnect({ path: folderPath } = {}) {
   const blocked = linkBlocked() || refuseUnless('work');
   if (blocked) return blocked;
   const folder = findFolder(folderPath);
   if (!folder) return { ok: false, reason: 'other' };
-  // Read, never stamp: a folder without an id has nothing to release.
+  // Read, never stamp.
   const frameProjectId = frameStore.getProjectId(folder.path);
-  const match = frameProjectId && core.matchFolders(projects, [{ ...folder, projectId: frameProjectId }]).folderRows[0];
-  if (!match || !match.project) {
+  const project = frameProjectId ? projects.find((p) => p.frameProjectId === frameProjectId) : null;
+  if (!project) {
+    await refresh();
+    return { ok: false, reason: 'notFound' };
+  }
+  const result = await call((ctx) => core.connect({ ...ctx, projectId: project.id, frameProjectId }));
+  const reason = result.ok ? null : result.reason === 'mismatch' ? 'identityChanged' : result.reason;
+  if (result.ok || reason === 'unlinked' || reason === 'identityChanged' || reason === 'notFound') {
+    plans.delete(folder.path);
+    await refresh();
+  }
+  return result.ok ? { ok: true } : { ok: false, reason };
+}
+
+/**
+ * Removes this device's connection to a project (`link.disconnect`). By
+ * project, not folder: a device stays connected to a project whose folder was
+ * moved away. Nothing else changes — the identity, other members' devices and
+ * this user's other devices stay connected.
+ */
+async function linkDisconnect({ projectId } = {}) {
+  const blocked = linkBlocked() || refuseUnless('work');
+  if (blocked) return blocked;
+  if (typeof projectId !== 'string' || !projectId) return { ok: false, reason: 'other' };
+  if (!projects.some((p) => p.id === projectId)) {
+    // Gone from the list: its connections went with it.
     await refresh();
     return { ok: true };
   }
-  const result = await call((ctx) => core.release({ ...ctx, projectId: match.project.id, frameProjectId }));
-  // A project that is gone is as detached as one that was released.
-  if (!result.ok && result.reason === 'notFound') {
+  const result = await call((ctx) => core.disconnect({ ...ctx, projectId }));
+  if (result.ok || result.reason === 'notFound') {
     await refresh();
     return { ok: true };
   }
-  await afterLink(folder.path, result);
-  return result.ok ? { ok: true } : { ok: false, reason: result.reason };
+  return { ok: false, reason: result.reason };
 }
 
 async function checkSlug(slug) {
@@ -611,7 +640,8 @@ function setupIPC(ipcMain) {
   ipcMain.handle(IPC.CLOUD_CHECK_SLUG, (event, slug) => checkSlug(slug));
   ipcMain.handle(IPC.CLOUD_LINK_CLAIM, (event, request) => linkClaim(request));
   ipcMain.handle(IPC.CLOUD_LINK_CREATE, (event, request) => linkCreate(request));
-  ipcMain.handle(IPC.CLOUD_LINK_RELEASE, (event, request) => linkRelease(request));
+  ipcMain.handle(IPC.CLOUD_LINK_CONNECT, (event, request) => linkConnect(request));
+  ipcMain.handle(IPC.CLOUD_LINK_DISCONNECT, (event, request) => linkDisconnect(request));
   ipcMain.handle(IPC.CLOUD_OPEN_ON_WEB, (event, projectId) => openOnWeb(projectId));
   ipcMain.handle(IPC.CLOUD_OPEN_WORKSPACE_ON_WEB, () => openWorkspaceOnWeb());
 }

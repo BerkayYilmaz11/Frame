@@ -839,7 +839,7 @@ async function disconnect(folder) {
   rerender();
   let res = null;
   try {
-    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_RELEASE, { path: folder.path });
+    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_DISCONNECT, { projectId: folder.project && folder.project.id });
   } catch (err) {
     console.error('Frame Cloud: disconnect failed', err);
   }

@@ -225,22 +225,40 @@ test('create posts name, slug and identity, and a taken slug classifies as slugT
   assert.deepEqual(calls[1].body, { name: 'My App', slug: 'my-app-2', frameProjectId: 'f1' });
 });
 
-test('release answers ok, and reads FRAME_PROJECT_MISMATCH as already detached', async () => {
-  const { fetchJson, calls } = fakeFetch({
-    '/trpc/link.release': [ok({ ok: true }), trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT')],
-  });
-  const args = { api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' };
-  assert.deepEqual(await core.release(args), { ok: true, notOwner: false });
+test('connect posts the project and the folder identity, and unwraps the answer', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/link.connect': [ok(LINKED)] });
+  assert.deepEqual(await core.connect({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }), LINKED);
+  assert.equal(calls[0].method, 'POST');
+  assert.equal(calls[0].token, 'tk');
   assert.deepEqual(calls[0].body, { projectId: 'p1', frameProjectId: 'f1' });
-  assert.deepEqual(await core.release(args), { ok: true, notOwner: true });
 });
 
-test('release still throws on anything but a mismatch', async () => {
-  const { fetchJson } = fakeFetch({ '/trpc/link.release': [trpcErr(404, 'PROJECT_NOT_FOUND', 'NOT_FOUND')] });
+test('connect on a stale list: an unclaimed project reads unlinked, a taken-over one mismatch', async () => {
+  const { fetchJson } = fakeFetch({
+    '/trpc/link.connect': [trpcErr(409, 'PROJECT_UNLINKED', 'CONFLICT'), trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT')],
+  });
+  const args = { api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' };
+  await assert.rejects(core.connect(args), (err) => core.classifyLinkError(err) === 'unlinked');
+  await assert.rejects(core.connect(args), (err) => core.classifyLinkError(err) === 'mismatch');
+});
+
+test('disconnect posts the project id only', async () => {
+  const { fetchJson, calls } = fakeFetch({ '/trpc/link.disconnect': [ok({ ok: true })] });
+  assert.deepEqual(await core.disconnect({ api: API, token: 'tk', fetchJson, projectId: 'p1' }), { ok: true });
+  assert.equal(calls[0].method, 'POST');
+  assert.deepEqual(calls[0].body, { projectId: 'p1' });
+});
+
+test('disconnect throws on a refusal, a missing project reading notFound', async () => {
+  const { fetchJson } = fakeFetch({ '/trpc/link.disconnect': [trpcErr(404, 'PROJECT_NOT_FOUND', 'NOT_FOUND')] });
   await assert.rejects(
-    core.release({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }),
+    core.disconnect({ api: API, token: 'tk', fetchJson, projectId: 'p1' }),
     (err) => core.classifyLinkError(err) === 'notFound'
   );
+});
+
+test('release is gone: FrameCloud removed link.release', () => {
+  assert.equal(core.release, undefined);
 });
 
 test('classifyLinkError maps server codes and transport kinds', async () => {
@@ -248,6 +266,7 @@ test('classifyLinkError maps server codes and transport kinds', async () => {
     [trpcErr(409, 'REMOTE_MISMATCH', 'CONFLICT'), 'remoteMismatch'],
     [trpcErr(409, 'FRAME_PROJECT_MISMATCH', 'CONFLICT'), 'mismatch'],
     [trpcErr(409, 'FRAME_PROJECT_TAKEN', 'CONFLICT'), 'taken'],
+    [trpcErr(409, 'PROJECT_UNLINKED', 'CONFLICT'), 'unlinked'],
     [trpcErr(409, 'SLUG_TAKEN', 'CONFLICT'), 'slugTaken'],
     [trpcErr(400, 'Invalid input', 'BAD_REQUEST'), 'badRequest'],
     [trpcErr(404, 'PROJECT_NOT_FOUND', 'NOT_FOUND'), 'notFound'],

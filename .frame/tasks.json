@@ -10814,13 +10814,13 @@
       "title": "Replace release with per-device connect and disconnect: add `connect` (`link.connect { projectId, frameProjectId }`), `disconnect` (`link.disconnect { projectId }`) and `PROJECT_UNLINKED` → `unlinked` to `src/main/cloud/cloudProjects.js` and remove `release`; add `linkConnect({ path })` to `src/main/cloud/cloudProjectsService.js` (reads the folder's `projectId` without stamping it, finds the listed project carrying it, maps `FRAME_PROJECT_MISMATCH` to `identityChanged`, refreshes after a success, `unlinked`, `identityChanged` or `notFound`) and `linkDisconnect({ projectId })` (requires a listed project, `notFound` counts as done, refreshes), both behind `linkBlocked()` and `refuseUnless('work')`, and remove `linkRelease`; add `CLOUD_LINK_CONNECT` and `CLOUD_LINK_DISCONNECT` to `src/shared/ipcChannels.js` and remove `CLOUD_LINK_RELEASE`; switch Disconnect in `src/renderer/cloudHubTabs.js` and `src/renderer/projectSettingsModal.js` to `CLOUD_LINK_DISCONNECT` with the project id; test the inputs, methods and codes in `test/cloudProjects.test.js` and drop the release tests",
       "description": "",
       "source": "spec:frame-cloud-teammate-connection:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-teammate-connection",
       "createdAt": "2026-11-14T16:22:14.013Z",
-      "updatedAt": "2026-11-14T16:22:14.013Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T17:05:46.128Z",
+      "completedAt": "2026-11-14T17:05:46.128Z"
     },
     {
       "id": "task-spec-frame-cloud-teammate-connection-T03",

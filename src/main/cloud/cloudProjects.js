@@ -204,29 +204,40 @@ function create({ api, token, fetchJson, signal, name, slug, frameProjectId, rem
 }
 
 /**
- * `link.release`. A refusal because this folder is not the one the project
- * carries means the folder is already detached — `{ ok: true, notOwner: true }`,
- * not an error. Anything else throws.
+ * `link.connect` → the same answer as claim. Connects this device to a project
+ * that already carries the folder's identity, and writes no identity. The
+ * identity is sent so a list made stale by another folder's take-over is
+ * refused (FRAME_PROJECT_MISMATCH) rather than obeyed. Throws CloudError.
  */
-async function release({ api, token, fetchJson, signal, projectId, frameProjectId }) {
-  try {
-    await callTrpc({
-      api, token, fetchJson, signal,
-      name: 'link.release',
-      method: 'POST',
-      input: { projectId, frameProjectId },
-    });
-    return { ok: true, notOwner: false };
-  } catch (err) {
-    if (classifyLinkError(err) === 'mismatch') return { ok: true, notOwner: true };
-    throw err;
-  }
+function connect({ api, token, fetchJson, signal, projectId, frameProjectId }) {
+  return callTrpc({
+    api, token, fetchJson, signal,
+    name: 'link.connect',
+    method: 'POST',
+    input: { projectId, frameProjectId },
+  });
+}
+
+/**
+ * `link.disconnect` → `{ ok: true }`. Removes this device's connection only:
+ * the project's identity, other members' devices and this user's other
+ * devices stay. Throws CloudError.
+ */
+function disconnect({ api, token, fetchJson, signal, projectId }) {
+  return callTrpc({
+    api, token, fetchJson, signal,
+    name: 'link.disconnect',
+    method: 'POST',
+    input: { projectId },
+  });
 }
 
 const CODE_KINDS = {
   REMOTE_MISMATCH: 'remoteMismatch',
   FRAME_PROJECT_MISMATCH: 'mismatch',
   FRAME_PROJECT_TAKEN: 'taken',
+  // link.connect on a project no folder has claimed (the list was stale).
+  PROJECT_UNLINKED: 'unlinked',
   SLUG_TAKEN: 'slugTaken',
   BAD_REQUEST: 'badRequest',
   PROJECT_NOT_FOUND: 'notFound',
@@ -404,7 +415,8 @@ module.exports = {
   getCandidates,
   claim,
   create,
-  release,
+  connect,
+  disconnect,
   classifyLinkError,
   TRANSLITERATE,
   suggestSlug,

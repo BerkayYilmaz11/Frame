@@ -386,7 +386,7 @@ function renderCloudRow() {
       ? `Disconnect from ${folder.project.name || folder.project.slug}? The cloud project stays.`
       : `In ${ws.name || ws.slug || 'Frame Cloud'}.`;
     if (cloudConfirmingDisconnect) {
-      actions.push(cloudButton('Disconnect', () => disconnectFromCloud(projectPath), { primary: true, disabled: stale || cloudBusy }));
+      actions.push(cloudButton('Disconnect', () => disconnectFromCloud(folder.project.id), { primary: true, disabled: stale || cloudBusy }));
       actions.push(cloudButton('Cancel', () => {
         cloudConfirmingDisconnect = false;
         renderCloudRow();
@@ -406,12 +406,13 @@ function renderCloudRow() {
   cloudActionsEl.replaceChildren(...actions);
 }
 
-async function disconnectFromCloud(projectPath) {
+// This device's connection to the cloud project, nothing else.
+async function disconnectFromCloud(projectId) {
   cloudBusy = true;
   renderCloudRow();
   let res = null;
   try {
-    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_RELEASE, { path: projectPath });
+    res = await ipcRenderer.invoke(IPC.CLOUD_LINK_DISCONNECT, { projectId });
   } catch (err) {
     console.error('Project settings: disconnect failed', err);
   }
