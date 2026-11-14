@@ -12,3 +12,10 @@ Added `role` to `cloudSession.getAuth().cloudWorkspace`, and to `cloudProjectsSe
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T03 — Re-read the role when it may have changed
+
+Made `cloudSession.init`'s focus listener re-read `device.me` on every focus while signed in, and made `cloudProjectsService.call()`'s failure path fire `cloudSession.refresh()` on `roleForbidden` and `noWorkspace` without awaiting it, so the refusal returns at once, unchanged, and the redraw follows through T02's permissions push. Nothing is retried. Files: `src/main/cloud/cloudSession.js`, `src/main/cloud/cloudProjectsService.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

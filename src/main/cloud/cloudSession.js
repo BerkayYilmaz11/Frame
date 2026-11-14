@@ -552,11 +552,12 @@ function getState() {
 
 function init(window) {
   mainWindow = window;
-  // Signed in without a workspace, every return to Frame re-reads device.me,
-  // so a workspace created in the browser shows up on the way back. No
-  // throttle: focus fires once per return and refresh() shares one request.
+  // Signed in, every return to Frame re-reads device.me: a workspace created
+  // in the browser shows up on the way back, and so does a role an admin
+  // changed there (the server reads the role per request). No throttle and no
+  // timer: focus fires once per return and refresh() shares one request.
   window.on('focus', () => {
-    if (state.state !== 'signedIn' || state.workspace) return;
+    if (state.state !== 'signedIn') return;
     refresh();
   });
 }

@@ -274,7 +274,10 @@ function resetList() {
 
 /**
  * One bearer call through the shared rules: 401 signs out quietly, a
- * forgotten device is registered again and the call retried once.
+ * forgotten device is registered again and the call retried once. A refusal
+ * that says the role or the workspace changed (ROLE_FORBIDDEN, NO_WORKSPACE)
+ * re-reads device.me so every surface redraws with what the server now says;
+ * the call itself is not retried.
  * → `{ ok: true, value }` or `{ ok: false, reason }`. Never throws.
  */
 async function call(fn) {
@@ -286,6 +289,9 @@ async function call(fn) {
   const fail = (err) => {
     const reason = core.classifyLinkError(err);
     if (reason === 'unauthorized') cloudSession.sessionExpired();
+    if (reason === 'roleForbidden' || reason === 'noWorkspace') {
+      Promise.resolve(cloudSession.refresh()).catch(() => {});
+    }
     return { ok: false, reason };
   };
   try {

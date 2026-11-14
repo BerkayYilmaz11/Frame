@@ -2852,39 +2852,39 @@
           "line": 263
         },
         "call": {
-          "line": 280,
+          "line": 283,
           "params": [
             "fn"
           ],
           "purpose": "One bearer call through the shared rules: 401 signs out quietly, a"
         },
         "refresh": {
-          "line": 305,
+          "line": 311,
           "purpose": "Re-read the project list (and the folders). Concurrent callers share one request."
         },
         "loadCandidates": {
-          "line": 364,
+          "line": 370,
           "purpose": "`link.candidates` for every unconnected folder, three at a time, pushing as answers land."
         },
         "linkBlocked": {
-          "line": 396
+          "line": 402
         },
         "identityFor": {
-          "line": 404,
+          "line": 410,
           "params": [
             "folder"
           ],
           "purpose": "Stamp the folder's identity at the moment the user links it (S6)."
         },
         "afterLink": {
-          "line": 413,
+          "line": 419,
           "params": [
             "folderPath",
             "result"
           ]
         },
         "linkClaim": {
-          "line": 420,
+          "line": 426,
           "params": [
             "{ path",
             "projectId",
@@ -2893,7 +2893,7 @@
           ]
         },
         "linkCreate": {
-          "line": 442,
+          "line": 448,
           "params": [
             "{ path",
             "name",
@@ -2901,50 +2901,50 @@
           ]
         },
         "linkRelease": {
-          "line": 463,
+          "line": 469,
           "params": [
             "{ path"
           ]
         },
         "checkSlug": {
-          "line": 485,
+          "line": 491,
           "params": [
             "slug"
           ]
         },
         "openOnWeb": {
-          "line": 498,
+          "line": 504,
           "params": [
             "projectId"
           ],
           "purpose": "The renderer sends a project id; the URL is built and opened here."
         },
         "connectedProject": {
-          "line": 518,
+          "line": 524,
           "params": [
             "folderPath"
           ],
           "purpose": "The cloud project a known folder is connected to, from this service's own"
         },
         "openWorkspaceOnWeb": {
-          "line": 527,
+          "line": 533,
           "purpose": "The workspace's page, or `/new` to create one when there is none."
         },
         "onSessionChange": {
-          "line": 541,
+          "line": 547,
           "params": [
             "{ state",
             "userStarted }"
           ]
         },
         "init": {
-          "line": 586,
+          "line": 592,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 595,
+          "line": 601,
           "params": [
             "ipcMain"
           ]
@@ -2966,7 +2966,7 @@
           "CLOUD_PROJECTS_STATE"
         ]
       },
-      "sizeBytes": 22325,
+      "sizeBytes": 22661,
       "extraction": {
         "status": "parsed"
       },
@@ -3165,7 +3165,7 @@
           ]
         },
         "setupIPC": {
-          "line": 564,
+          "line": 565,
           "params": [
             "ipcMain"
           ]
@@ -3184,7 +3184,7 @@
           "CLOUD_SESSION_STATE"
         ]
       },
-      "sizeBytes": 19055,
+      "sizeBytes": 19114,
       "extraction": {
         "status": "parsed"
       },
@@ -41577,6 +41577,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "8a9accfdbd1332176659ebcc7edb86eada90237b8f154e43c65f5d87ee3d7fc1"
+    "revision": "695407394c1d25c0ab8b90f2f6abc11c63b2c5c9276cdd1236909ce8db13ff4a"
   }
 }

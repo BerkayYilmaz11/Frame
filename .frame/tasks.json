@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:44:42.793Z",
+  "lastUpdated": "2026-11-14T10:46:31.154Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10671,13 +10671,13 @@
       "title": "Re-read the role when it may have changed: make `cloudSession.init`'s focus listener call `refresh()` whenever signed in, and make `cloudProjectsService.call()`'s failure path call `cloudSession.refresh()` on `roleForbidden` and `noWorkspace` while returning the failure unchanged",
       "description": "",
       "source": "spec:frame-cloud-roles:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:46:31.154Z",
+      "completedAt": "2026-11-14T10:46:31.154Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T04",
