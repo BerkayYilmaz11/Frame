@@ -54,3 +54,10 @@ Made `cloudBriefsCopy.js` require `cloudRoles` and pointed `roleForbidden` at `R
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T09 — Hide Briefs and the Connected mark from a viewer
+
+Made `cloudBriefsPanel.isAvailable()` and `cloudProjectMark.update()` also require `projects.permissions.work`. Both already re-run on every projects push, and T02 pushes on a permissions change, so the row, the mark and an open panel follow a role change through the existing hide path. `openFolder()` is left as it is because the palette shares it. Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/cloudProjectMark.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

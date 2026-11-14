@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:59:37.654Z",
+  "lastUpdated": "2026-11-14T11:01:07.924Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10749,13 +10749,13 @@
       "title": "Hide Briefs and the Connected mark from a viewer: make `cloudBriefsPanel.isAvailable()` and `cloudProjectMark.update()` require `permissions.work`, so a role change on the next projects push hides or shows them and an open panel leaves",
       "description": "",
       "source": "spec:frame-cloud-roles:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T11:01:07.924Z",
+      "completedAt": "2026-11-14T11:01:07.924Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T10",

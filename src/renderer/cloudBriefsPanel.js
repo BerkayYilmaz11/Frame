@@ -225,8 +225,11 @@ function currentKey() {
 /** True while the open folder is connected to a cloud project — the same test as the Connected mark. */
 function isAvailable() {
   if (!hub) return false;
-  const { folder } = cloudProjectMark.openFolder();
-  return Boolean(folder && folder.connected && folder.project);
+  const { folder, projects } = cloudProjectMark.openFolder();
+  // A viewer has no cloud surface in Frame (frame-cloud-roles D2): no row,
+  // and an open panel leaves on the projects push that carries the new role.
+  const canWork = Boolean(projects && projects.permissions && projects.permissions.work);
+  return Boolean(folder && folder.connected && folder.project && canWork);
 }
 
 /** Show the panel and load the board — the host calls this on mount. Show closed starts off each time. */
