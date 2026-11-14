@@ -27,6 +27,7 @@ const settingsOverlay = require('./settingsOverlay');
 const doneWindow = require('./doneWindow');
 const cloudHub = require('./cloudHub');
 const cloudNoWorkspace = require('./cloudNoWorkspace');
+const cloudRoles = require('./cloudRoles');
 const cloudEarlyAccess = require('./cloudEarlyAccess');
 
 let overlay = null;
@@ -364,6 +365,13 @@ function renderCloudRow() {
     cloudLabelEl.textContent = copy.label;
     cloudDescEl.textContent = copy.description;
     // The window opens on the no-workspace panel; no tab to pick.
+    actions.push(cloudButton(copy.action, () => openHub()));
+  } else if (projects && projects.permissions && projects.permissions.work === false) {
+    // A viewer connects and disconnects nothing (frame-cloud-roles D5); the
+    // window opens on the viewer card, so there is no tab to pick either.
+    const copy = cloudRoles.viewerSettingsRow(projects.cloudWorkspace);
+    cloudLabelEl.textContent = copy.label;
+    cloudDescEl.textContent = copy.description;
     actions.push(cloudButton(copy.action, () => openHub()));
   } else if (!listed) {
     cloudLabelEl.textContent = 'Frame Cloud';

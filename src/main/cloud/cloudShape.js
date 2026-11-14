@@ -318,6 +318,7 @@ const REASON_MESSAGES = {
   unauthorized: 'Not shaped: Frame is signed out of Frame Cloud. Sign in again in Frame and run the command again.',
   notRegistered: 'Not shaped: this device is not registered with Frame Cloud. Sign in again in Frame and retry.',
   noWorkspace: 'Not shaped: the Frame Cloud account has no workspace.',
+  roleForbidden: 'Not shaped: your role in this Frame Cloud workspace can read briefs but not change them. An admin can change your role.',
   network: 'Not shaped: Frame Cloud could not be reached. Check the connection and run the command again.',
 };
 

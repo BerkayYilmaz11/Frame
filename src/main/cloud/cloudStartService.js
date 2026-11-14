@@ -65,9 +65,11 @@ function begunEntry(projectId, number, partId) {
 
 /**
  * Send a begun part's branch to the cloud. Begin fires it and never waits:
- * a failure is logged here, and the next Briefs read sends it again.
+ * a failure is logged here, and the next Briefs read sends it again. A role
+ * without `work` sends nothing — the server would only refuse it.
  */
 async function sendBranch(input) {
+  if (!cloudProjectsService.can('work')) return;
   const result = await cloudProjectsService.call((ctx) => recordBranch({ ...ctx, ...input }));
   if (!result.ok) logger.warn('cloudStart', `could not record the branch of part ${input.partId}: ${result.reason}`);
 }
@@ -191,6 +193,8 @@ async function prepare(folderPath, number) {
 async function start(folderPath, request) {
   const project = cloudProjectsService.connectedProject(folderPath);
   if (!project) return { ok: false, reason: 'notConnected' };
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   const r = request && typeof request === 'object' ? request : {};
   if (!Number.isInteger(r.number) || r.number < 1) return { ok: false, reason: 'other' };
   try {

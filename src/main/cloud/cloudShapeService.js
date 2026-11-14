@@ -151,6 +151,9 @@ function isShapeable(brief) {
  */
 async function shape(folderPath, number, toolId) {
   if (!cloudProjectsService.connectedProject(folderPath)) return { ok: false, reason: 'notConnected' };
+  // A role without `work` could never send the parts: stage nothing.
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   const tool = typeof toolId === 'string' ? aiToolManager.getAvailableTools()[toolId] : null;
   if (!tool) return { ok: false, reason: 'unknownTool' };
   const detail = await cloudBriefsService.get(folderPath, number);
@@ -193,6 +196,15 @@ function pushShaped(folderPath, number, count) {
   }
 }
 
+/**
+ * `call`, refused locally without `work`: the request's own checks (unknown
+ * session, bad parts, not connected) still answer first, and a role that
+ * cannot shape is answered `roleForbidden` before anything reaches the server.
+ */
+async function workCall(fn) {
+  return cloudProjectsService.refuseUnless('work') || cloudProjectsService.call(fn);
+}
+
 /** Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice. */
 async function handleFile(name) {
   const full = path.join(busDir(), name);
@@ -218,7 +230,7 @@ async function handleFile(name) {
     result = await core.handleShapeRequest(request, {
       store,
       connectedProject: cloudProjectsService.connectedProject,
-      call: cloudProjectsService.call,
+      call: workCall,
     });
   } catch (err) {
     logger.warn('cloudShape', `shaping failed: ${err.message}`);

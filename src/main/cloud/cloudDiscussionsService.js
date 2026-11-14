@@ -145,6 +145,9 @@ function stageCommand() {
  */
 async function discuss(folderPath, number, toolId) {
   if (!cloudProjectsService.connectedProject(folderPath)) return { ok: false, reason: 'notConnected' };
+  // A role without `work` could never record the result: stage nothing.
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   const tool = typeof toolId === 'string' ? aiToolManager.getAvailableTools()[toolId] : null;
   if (!tool) return { ok: false, reason: 'unknownTool' };
   const detail = await cloudBriefsService.get(folderPath, number);
@@ -195,6 +198,15 @@ function pushRecorded(folderPath, number) {
   }
 }
 
+/**
+ * `call`, refused locally without `work`: the request's own checks (unknown
+ * discussion, bad input, not connected) still answer first, and a role that
+ * cannot record is answered `roleForbidden` before anything reaches the server.
+ */
+async function workCall(fn) {
+  return cloudProjectsService.refuseUnless('work') || cloudProjectsService.call(fn);
+}
+
 /** Claim one request by renaming it, handle it, answer it. A claimed request is never handled twice. */
 async function handleFile(name) {
   const full = path.join(busDir(), name);
@@ -220,7 +232,7 @@ async function handleFile(name) {
     result = await core.handleRecordRequest(request, {
       store,
       connectedProject: cloudProjectsService.connectedProject,
-      call: cloudProjectsService.call,
+      call: workCall,
     });
   } catch (err) {
     logger.warn('cloudDiscussions', `recording failed: ${err.message}`);

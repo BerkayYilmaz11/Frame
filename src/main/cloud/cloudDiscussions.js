@@ -346,6 +346,7 @@ const REASON_MESSAGES = {
   unauthorized: 'Not recorded: Frame is signed out of Frame Cloud. Sign in again in Frame and run the command again.',
   notRegistered: 'Not recorded: this device is not registered with Frame Cloud. Sign in again in Frame and retry.',
   noWorkspace: 'Not recorded: the Frame Cloud account has no workspace.',
+  roleForbidden: 'Not recorded: your role in this Frame Cloud workspace can read briefs but not change them. An admin can change your role.',
   network: 'Not recorded: Frame Cloud could not be reached. Check the connection and run the command again.',
 };
 

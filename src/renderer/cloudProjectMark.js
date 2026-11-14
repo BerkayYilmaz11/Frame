@@ -2,8 +2,8 @@
  * Frame Cloud — the Connected mark beside the project switcher.
  *
  * A small cloud inside #sidebar-current-project-wrap, shown only while
- * signed in and the open folder's own projectId is carried by a listed cloud
- * project. A miss is silent: no mark, no hint. It reads the pushed projects
+ * signed in with a role that can work and the open folder's own projectId is
+ * carried by a listed cloud project. A miss is silent: no mark, no hint. It reads the pushed projects
  * state and makes no request of its own.
  *
  * `openFolder()` is the same answer for the palette's project commands.
@@ -51,7 +51,9 @@ function openFolder() {
 function update() {
   if (!markEl) return;
   const { folder, projects } = openFolder();
-  const connected = Boolean(folder && folder.connected && folder.project);
+  // A viewer gets no mark (frame-cloud-roles D2); a role change redraws on the next push.
+  const canWork = Boolean(projects && projects.permissions && projects.permissions.work);
+  const connected = Boolean(folder && folder.connected && folder.project && canWork);
   markEl.hidden = !connected;
   wrapEl.classList.toggle('has-cloud-mark', connected);
   if (!connected) return;

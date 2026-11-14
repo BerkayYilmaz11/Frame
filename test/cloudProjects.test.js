@@ -409,6 +409,68 @@ test('shouldAutoShowDevices: only after a user-started sign-in, not dismissed, w
   assert.equal(core.shouldAutoShowDevices(), false);
 });
 
+test('shouldAutoShowDevices: never for a role that cannot connect a folder', () => {
+  const ready = { userStartedSignIn: true, dismissed: false, unconnectedCount: 2 };
+  assert.equal(core.shouldAutoShowDevices({ ...ready, canWork: false }), false);
+  assert.equal(core.shouldAutoShowDevices({ ...ready, canWork: true }), true);
+  // A caller that does not know the role keeps today's behaviour.
+  assert.equal(core.shouldAutoShowDevices(ready), true);
+});
+
+// ─── Roles ────────────────────────────────────────────────────
+
+test('can: the protocol map — admin works and manages, developer works, viewer neither', () => {
+  const rows = [
+    ['admin', 'work', true],
+    ['admin', 'manage', true],
+    ['developer', 'work', true],
+    ['developer', 'manage', false],
+    ['viewer', 'work', false],
+    ['viewer', 'manage', false],
+  ];
+  for (const [role, permission, expected] of rows) {
+    assert.equal(core.can(role, permission), expected, `${role} ${permission}`);
+  }
+});
+
+test('can: an unknown role, a missing role or an unknown permission holds nothing', () => {
+  for (const role of ['pm', 'owner', '', null, undefined, 42]) {
+    assert.equal(core.can(role, 'work'), false, String(role));
+    assert.equal(core.can(role, 'manage'), false, String(role));
+  }
+  assert.equal(core.can('admin', 'read'), false);
+  assert.equal(core.can('admin', 'toString'), false);
+});
+
+test('permissionsOf answers the two booleans the renderer gets', () => {
+  assert.deepEqual(core.permissionsOf('admin'), { work: true, manage: true });
+  assert.deepEqual(core.permissionsOf('developer'), { work: true, manage: false });
+  assert.deepEqual(core.permissionsOf('viewer'), { work: false, manage: false });
+  assert.deepEqual(core.permissionsOf(undefined), { work: false, manage: false });
+});
+
+test('the permission map cannot be changed at run time', () => {
+  assert.throws(() => { core.WORKSPACE_PERMISSIONS.work.push('viewer'); });
+  assert.equal(core.can('viewer', 'work'), false);
+});
+
+test('classifyLinkError: FORBIDDEN ROLE_FORBIDDEN is its own reason', async () => {
+  const { fetchJson } = fakeFetch({
+    '/trpc/link.create': [trpcErr(403, 'ROLE_FORBIDDEN', 'FORBIDDEN')],
+    '/trpc/link.claim': [trpcErr(403, 'ROLE_FORBIDDEN', 'FORBIDDEN')],
+  });
+  await assert.rejects(
+    core.create({ api: API, token: 'tk', fetchJson, name: 'My App', slug: 'my-app', frameProjectId: 'f1' }),
+    (err) => core.classifyLinkError(err) === 'roleForbidden'
+  );
+  await assert.rejects(
+    core.claim({ api: API, token: 'tk', fetchJson, projectId: 'p1', frameProjectId: 'f1' }),
+    (err) => core.classifyLinkError(err) === 'roleForbidden'
+  );
+  // A 403 the server did not name stays generic.
+  assert.equal(core.classifyLinkError(new CloudError('other', { status: 403 })), 'other');
+});
+
 // ─── Web links ────────────────────────────────────────────────
 
 const WEB = { apiUrl: 'https://api.frame.test', webOrigin: 'https://app.frame.test', workspaceSlug: 'lab', projectSlug: 'my-app' };

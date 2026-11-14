@@ -174,6 +174,8 @@ async function run(folderPath, project, briefs) {
  */
 async function report(folderPath, project, briefs) {
   if (typeof folderPath !== 'string' || !folderPath || !project || !project.id) return;
+  // Both reports are writes (`work`); a viewer's Briefs read sends nothing.
+  if (!cloudProjectsService.can('work')) return;
   if (running.has(folderPath)) return;
   running.add(folderPath);
   try {

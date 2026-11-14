@@ -13,6 +13,7 @@ const path = require('path');
 const { ipcRenderer } = require('electron');
 const { IPC } = require('../shared/ipcChannels');
 const tooltip = require('./tooltip');
+const cloudRoles = require('./cloudRoles');
 
 const SLUG_CHECK_DELAY_MS = 300;
 
@@ -29,6 +30,7 @@ const LINK_ERRORS = {
   network: "Frame Cloud couldn't be reached.",
   noConfig: "This folder has no .frame/config.json, so it can't be connected.",
   noWorkspace: 'Create a workspace on the web first.',
+  roleForbidden: cloudRoles.ROLE_FORBIDDEN,
   badRequest: 'Check the name and slug.',
   other: "Couldn't connect this folder. Try again."
 };
@@ -502,8 +504,11 @@ function drawConnect(detail, folder, e, stale) {
       rerender();
     }, { quiet: true, disabled: u.busy }));
   }
-  alt.appendChild(button('Create a new project instead', () => chooseCreate(folder), { quiet: true, disabled: u.busy }));
-  detail.appendChild(alt);
+  // Adding a project is an admin's (`manage`): a developer only connects.
+  if (canManage()) {
+    alt.appendChild(button('Create a new project instead', () => chooseCreate(folder), { quiet: true, disabled: u.busy }));
+  }
+  if (alt.childNodes.length) detail.appendChild(alt);
   if (u.pickerOpen) detail.appendChild(picker(folder, e));
 
   appendStatus(detail, folder, stale);
@@ -515,7 +520,33 @@ function drawConnect(detail, folder, e, stale) {
   detail.appendChild(foot);
 }
 
+/** Whether the signed-in role may add a project (`link.create`). Main checks again. */
+function canManage() {
+  return Boolean(lastState && lastState.permissions && lastState.permissions.manage);
+}
+
+/**
+ * A folder no cloud project matches, for a role that cannot add one: the
+ * developer's line in place of the form and its Create button, and the way
+ * to an existing project when the row has candidates.
+ */
+function drawCreateAdminOnly(detail, folder, e, stale, state) {
+  const u = ui(folder.path);
+  detail.appendChild(el('p', 'cloud-detail-lead', `No project in ${workspaceName(state)} matches this folder. ${cloudRoles.CREATE_ADMIN_ONLY}`));
+  if (e.options.length) {
+    const alt = el('div', 'cloud-alt');
+    alt.appendChild(button(u.pickerOpen ? 'Close' : 'Connect to an existing project…', () => {
+      u.pickerOpen = !u.pickerOpen;
+      rerender();
+    }, { quiet: true, disabled: u.busy }));
+    detail.appendChild(alt);
+    if (u.pickerOpen) detail.appendChild(picker(folder, e));
+  }
+  appendStatus(detail, folder, stale);
+}
+
 function drawCreate(detail, folder, e, stale, state) {
+  if (!canManage()) return drawCreateAdminOnly(detail, folder, e, stale, state);
   const u = ui(folder.path);
   const ws = state.cloudWorkspace || {};
   // The availability line shows without waiting for a keystroke.
