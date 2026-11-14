@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:11:39.025Z",
+  "lastUpdated": "2026-11-14T10:39:41.553Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10645,13 +10645,13 @@
       "title": "Add `WORKSPACE_PERMISSIONS`, `can(role, permission)` and `permissionsOf(role)` to `src/main/cloud/cloudProjects.js` as a literal copy of the protocol's map, map `ROLE_FORBIDDEN` to `roleForbidden` in `CODE_KINDS`, give `shouldAutoShowDevices` a `canWork` input, and cover each role × permission, an unknown role, the 403 classification and the auto-show rule in `test/cloudProjects.test.js`",
       "description": "",
       "source": "spec:frame-cloud-roles:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:39:41.553Z",
+      "completedAt": "2026-11-14T10:39:41.553Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T02",

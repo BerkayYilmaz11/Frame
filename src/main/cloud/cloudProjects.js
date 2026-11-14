@@ -28,6 +28,39 @@ const MATCH_LABELS = {
   name: 'Same name',
 };
 
+// ─── Roles ────────────────────────────────────────────────────
+
+/**
+ * What a workspace role may do, copied literally from FrameCloud's protocol
+ * (`WORKSPACE_PERMISSIONS` in `entities/workspace.ts`, workspace-invites-and-
+ * roles). Reading needs only membership, so no permission names it.
+ *
+ * - `work`: every brief and milestone write, linking a folder to an existing
+ *   project.
+ * - `manage`: adding projects (here, `link.create`), and the workspace's
+ *   settings, members and GitHub connection on the web.
+ *
+ * The server enforces this on every request; Frame mirrors it only to offer
+ * what the role can do and to refuse in main before sending.
+ */
+const WORKSPACE_PERMISSIONS = Object.freeze({
+  work: Object.freeze(['admin', 'developer']),
+  manage: Object.freeze(['admin']),
+});
+
+/** Whether `role` holds `permission` — the protocol's `can()`. An unknown role holds nothing. */
+function can(role, permission) {
+  const roles = Object.prototype.hasOwnProperty.call(WORKSPACE_PERMISSIONS, permission)
+    ? WORKSPACE_PERMISSIONS[permission]
+    : [];
+  return roles.includes(role);
+}
+
+/** The two answers the renderer gets: `{ work, manage }` for `role`. */
+function permissionsOf(role) {
+  return { work: can(role, 'work'), manage: can(role, 'manage') };
+}
+
 function str(value) {
   return typeof value === 'string' ? value : '';
 }
@@ -200,6 +233,8 @@ const CODE_KINDS = {
   UNAUTHORIZED: 'unauthorized',
   DEVICE_NOT_REGISTERED: 'notRegistered',
   NO_WORKSPACE: 'noWorkspace',
+  // The caller's role lacks the permission (FrameCloud FORBIDDEN, any procedure).
+  ROLE_FORBIDDEN: 'roleForbidden',
 };
 
 const TRANSPORT_KINDS = {
@@ -301,9 +336,13 @@ function planFolderRow(folderRow, candidates, projectId = null) {
   };
 }
 
-/** The one automatic tab switch: after a sign-in the user started, unless turned off. */
-function shouldAutoShowDevices({ userStartedSignIn, dismissed, unconnectedCount } = {}) {
-  return Boolean(userStartedSignIn) && !dismissed && Number(unconnectedCount) > 0;
+/**
+ * The one automatic tab switch: after a sign-in the user started, unless
+ * turned off — and never for a role that cannot connect a folder. Only an
+ * explicit `canWork: false` holds it back.
+ */
+function shouldAutoShowDevices({ userStartedSignIn, dismissed, unconnectedCount, canWork = true } = {}) {
+  return Boolean(userStartedSignIn) && !dismissed && Number(unconnectedCount) > 0 && canWork !== false;
 }
 
 // ─── Web links ────────────────────────────────────────────────
@@ -355,6 +394,9 @@ module.exports = {
   SLUG_MAX,
   RESERVED_SLUGS,
   MATCH_LABELS,
+  WORKSPACE_PERMISSIONS,
+  can,
+  permissionsOf,
   normalizeProject,
   listProjects,
   matchFolders,
