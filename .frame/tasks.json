@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T11:01:07.924Z",
+  "lastUpdated": "2026-11-14T11:03:04.333Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10762,13 +10762,13 @@
       "title": "Draw the viewer card in the Frame Cloud window: when signed in with a workspace and without `work`, `cloudHub` renders the card into the `#cloud-no-workspace` stand-in panel in place of the tab bar and both tabs, with the no-workspace card still taking precedence",
       "description": "",
       "source": "spec:frame-cloud-roles:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T11:03:04.333Z",
+      "completedAt": "2026-11-14T11:03:04.333Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T11",

@@ -61,3 +61,10 @@ Made `cloudBriefsPanel.isAvailable()` and `cloudProjectMark.update()` also requi
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T10 — Draw the viewer card in the Frame Cloud window
+
+Generalised `cloudHub`'s `renderNoWorkspace` into `renderStandIn`, driven by a new `standInFor(state)` that returns `noWorkspace` first (D7), then `viewer` on an explicit `permissions.work === false`, and drew the viewer card from `cloudRoles.viewerPanel` into the existing `#cloud-no-workspace` element with the same classes and `openWorkspace` button, so `index.html` and the CSS are untouched (D16). `setTab` now hides both tabs whenever either card stands in. File: `src/renderer/cloudHub.js`.
+
+_Captured: 2026-11-14 · 1 file change(s)_
+
+---

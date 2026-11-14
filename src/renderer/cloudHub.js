@@ -18,6 +18,7 @@ const { IPC } = require('../shared/ipcChannels');
 const settingsOverlay = require('./settingsOverlay');
 const cloudWelcome = require('./cloudWelcome');
 const noWorkspaceCopy = require('./cloudNoWorkspace');
+const cloudRoles = require('./cloudRoles');
 const earlyAccess = require('./cloudEarlyAccess');
 
 const SIGNED_IN_NOTE_MS = 4000;
@@ -409,7 +410,7 @@ function renderProjects(state) {
       : state.status === 'loading' ? 'Loading…' : '';
     updated.classList.toggle('cloud-last-updated-stale', state.status === 'stale');
   }
-  renderNoWorkspace(state);
+  renderStandIn(state);
   if (tabs) tabs.render(state, activeTab);
   // One-shot, set by main only after a sign-in the user started.
   if (state.autoShowDevices) showDevicesPrompt(state);
@@ -417,19 +418,36 @@ function renderProjects(state) {
 }
 
 /**
- * Signed in without a workspace: the tab bar, both tabs and the devices
- * notice give way to one panel that leads to creating a workspace on the web.
- * A workspace that appears brings the tabs back on the active one.
+ * Which card stands in for the tab bar and both tabs, or null for the tabs:
+ * `noWorkspace` signed in without a workspace (it wins, frame-cloud-roles D7),
+ * `viewer` with a workspace whose role cannot work (D2). Only an explicit
+ * `work: false` draws the viewer card, so a state without permissions never
+ * flashes it.
  */
-function renderNoWorkspace(state) {
+function standInFor(state) {
+  if (!state) return null;
+  if (state.status === 'noWorkspace') return 'noWorkspace';
+  if (state.status === 'signedOut') return null;
+  if (state.permissions && state.permissions.work === false) return 'viewer';
+  return null;
+}
+
+/**
+ * The stand-in panel: the tab bar, both tabs and the devices notice give way
+ * to one card. Without a workspace it leads to creating one on the web; for a
+ * viewer it says viewers follow the work on the web. A workspace that appears,
+ * or a role that can work, brings the tabs back on the active one.
+ */
+function renderStandIn(state) {
   const panelEl = document.getElementById('cloud-no-workspace');
   if (!panelEl || !rootEl) return;
   const tabbar = document.getElementById('cloud-tabbar');
-  const none = state.status === 'noWorkspace';
-  if (!none) {
+  const card = standInFor(state);
+  if (!card) {
     if (panelEl.hidden) return;
     panelEl.hidden = true;
     panelEl.replaceChildren();
+    delete panelEl.dataset.card;
     if (tabbar) tabbar.hidden = false;
     setTab(activeTab);
     return;
@@ -441,7 +459,9 @@ function renderNoWorkspace(state) {
   });
   hideDevicesPrompt();
 
-  const copy = noWorkspaceCopy.panel(Array.isArray(state.folders) ? state.folders.length : 0);
+  const copy = card === 'viewer'
+    ? cloudRoles.viewerPanel({ workspace: state.cloudWorkspace, canOpenWeb: state.canOpenWeb })
+    : noWorkspaceCopy.panel(Array.isArray(state.folders) ? state.folders.length : 0);
   const title = document.createElement('h3');
   title.className = 'cloud-no-workspace-title';
   title.textContent = copy.title;
@@ -455,16 +475,18 @@ function renderNoWorkspace(state) {
   label.textContent = copy.button;
   button.appendChild(label);
   button.insertAdjacentHTML('beforeend', EXTERNAL_ICON); // static markup, no server string
+  // Both open the workspace's web page: main picks /new when there is none.
   if (state.canOpenWeb) {
     button.addEventListener('click', () => onAction('openWorkspace', button));
   } else {
     button.disabled = true;
-    button.title = noWorkspaceCopy.NO_WEB_ORIGIN;
+    button.title = copy.buttonTitle || noWorkspaceCopy.NO_WEB_ORIGIN;
   }
   const local = document.createElement('p');
   local.className = 'cloud-no-workspace-local';
   local.textContent = copy.local;
   panelEl.replaceChildren(title, body, button, local);
+  panelEl.dataset.card = card;
   panelEl.hidden = false;
 }
 
@@ -516,10 +538,10 @@ function setTab(tab, opts = {}) {
       btn.classList.toggle('active', on);
       btn.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    // Without a workspace the no-workspace panel stands in for both tabs.
-    const noWorkspace = Boolean(projectsState && projectsState.status === 'noWorkspace');
+    // Without a workspace, or for a viewer, a card stands in for both tabs.
+    const standIn = Boolean(standInFor(projectsState));
     rootEl.querySelectorAll('[data-cloud-panel]').forEach((panel) => {
-      panel.hidden = noWorkspace || panel.dataset.cloudPanel !== tab;
+      panel.hidden = standIn || panel.dataset.cloudPanel !== tab;
     });
   }
   if (tabs) {
