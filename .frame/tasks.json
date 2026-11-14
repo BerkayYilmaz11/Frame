@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-14T10:46:31.154Z",
+  "lastUpdated": "2026-11-14T10:48:06.718Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10684,13 +10684,13 @@
       "title": "Guard link and brief writes in main: `linkClaim` and `linkRelease` need `work`, `linkCreate` needs `manage`, and `cloudBriefsService.create`, `decide` and `move` need `work`, each refusing with `roleForbidden` after the connected-folder check and before any request",
       "description": "",
       "source": "spec:frame-cloud-roles:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-roles",
       "createdAt": "2026-11-14T10:11:39.025Z",
-      "updatedAt": "2026-11-14T10:11:39.025Z",
-      "completedAt": null
+      "updatedAt": "2026-11-14T10:48:06.718Z",
+      "completedAt": "2026-11-14T10:48:06.718Z"
     },
     {
       "id": "task-spec-frame-cloud-roles-T05",

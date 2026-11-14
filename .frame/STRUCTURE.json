@@ -1741,7 +1741,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 155,
+          "line": 157,
           "params": [
             "folderPath",
             "number",
@@ -1750,7 +1750,7 @@
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
         "moveKey": {
-          "line": 166,
+          "line": 170,
           "params": [
             "folderPath",
             "number"
@@ -1758,7 +1758,7 @@
           "purpose": "A held move's key: the folder and the brief number, joined by a NUL."
         },
         "move": {
-          "line": 182,
+          "line": 186,
           "params": [
             "folderPath",
             "number",
@@ -1769,7 +1769,7 @@
           "purpose": "Move a started brief to Done (`to: 'done'`) or back to Active"
         },
         "undoMove": {
-          "line": 199,
+          "line": 207,
           "params": [
             "folderPath",
             "number"
@@ -1777,11 +1777,11 @@
           "purpose": "Cancel a held move to Done. → whether one was still held (false once its send started)."
         },
         "flushMoves": {
-          "line": 205,
+          "line": 213,
           "purpose": "Send every held move now, waiting at most FLUSH_TIMEOUT_MS (quit, D19). Never rejects."
         },
         "openOnWeb": {
-          "line": 210,
+          "line": 218,
           "params": [
             "folderPath",
             "number"
@@ -1789,7 +1789,7 @@
           "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
         },
         "setupIPC": {
-          "line": 219,
+          "line": 227,
           "params": [
             "ipcMain"
           ]
@@ -1807,7 +1807,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 10872,
+      "sizeBytes": 11319,
       "extraction": {
         "status": "parsed"
       },
@@ -2966,7 +2966,7 @@
           "CLOUD_PROJECTS_STATE"
         ]
       },
-      "sizeBytes": 22661,
+      "sizeBytes": 22735,
       "extraction": {
         "status": "parsed"
       },
@@ -41577,6 +41577,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "695407394c1d25c0ab8b90f2f6abc11c63b2c5c9276cdd1236909ce8db13ff4a"
+    "revision": "2172798f3c19839bb34e3a98babf4945032422e203abad45dd4cac61da72f2ba"
   }
 }

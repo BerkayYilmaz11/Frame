@@ -424,7 +424,7 @@ async function afterLink(folderPath, result) {
 }
 
 async function linkClaim({ path: folderPath, projectId, acceptRemoteMismatch, takeOver } = {}) {
-  const blocked = linkBlocked();
+  const blocked = linkBlocked() || refuseUnless('work');
   if (blocked) return blocked;
   const folder = findFolder(folderPath);
   if (!folder || typeof projectId !== 'string' || !projectId) return { ok: false, reason: 'other' };
@@ -446,7 +446,7 @@ async function linkClaim({ path: folderPath, projectId, acceptRemoteMismatch, ta
 }
 
 async function linkCreate({ path: folderPath, name, slug } = {}) {
-  const blocked = linkBlocked();
+  const blocked = linkBlocked() || refuseUnless('manage');
   if (blocked) return blocked;
   const folder = findFolder(folderPath);
   if (!folder) return { ok: false, reason: 'other' };
@@ -467,7 +467,7 @@ async function linkCreate({ path: folderPath, name, slug } = {}) {
 }
 
 async function linkRelease({ path: folderPath } = {}) {
-  const blocked = linkBlocked();
+  const blocked = linkBlocked() || refuseUnless('work');
   if (blocked) return blocked;
   const folder = findFolder(folderPath);
   if (!folder) return { ok: false, reason: 'other' };

@@ -19,3 +19,10 @@ Made `cloudSession.init`'s focus listener re-read `device.me` on every focus whi
 _Captured: 2026-11-14 · 2 file change(s)_
 
 ---
+## T04 — Guard link and brief writes in main
+
+Chained `refuseUnless('work')` onto `linkBlocked()` in `linkClaim` and `linkRelease` and `refuseUnless('manage')` in `linkCreate`, so no workspace still wins over the role (D7). Added a `work` guard to `cloudBriefsService.create`, `decide` and `move` right after the connected-folder check; a move already held is not re-checked and relies on the server's `ROLE_FORBIDDEN` through `call()`, as planned. Files: `src/main/cloud/cloudProjectsService.js`, `src/main/cloud/cloudBriefsService.js`.
+
+_Captured: 2026-11-14 · 2 file change(s)_
+
+---

@@ -138,6 +138,8 @@ async function get(folderPath, number) {
 async function create(folderPath, request) {
   const project = cloudProjectsService.connectedProject(folderPath);
   if (!project) return NOT_CONNECTED;
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   const built = core.buildCreateInput(request);
   if (!built.ok) return built;
   const links = core.normalizeLinks(request && request.links);
@@ -155,6 +157,8 @@ async function create(folderPath, request) {
 async function decide(folderPath, number, priority) {
   const project = cloudProjectsService.connectedProject(folderPath);
   if (!project) return NOT_CONNECTED;
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   if (!Number.isInteger(number) || number < 1) return { ok: false, reason: 'other' };
   const call = cloudProjectsService.call;
   const brief = await call((ctx) => core.getBrief({ ...ctx, projectSlug: project.slug, number }));
@@ -182,6 +186,10 @@ function moveKey(folderPath, number) {
 async function move(folderPath, number, { to, reason, hold } = {}) {
   const project = cloudProjectsService.connectedProject(folderPath);
   if (!project) return NOT_CONNECTED;
+  // Checked when asked; a move already held still goes through call(), so a
+  // role lost during the hold comes back from the server as roleForbidden.
+  const forbidden = cloudProjectsService.refuseUnless('work');
+  if (forbidden) return forbidden;
   if (!Number.isInteger(number) || number < 1) return { ok: false, reason: 'other' };
   const call = cloudProjectsService.call;
   const send = async () => {
