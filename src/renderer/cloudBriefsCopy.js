@@ -786,23 +786,64 @@ function laneLine(laneName) {
 }
 
 /**
- * A started brief's line under its parts, only with more than one:
- * "1 of 3 merged · 1 in progress · 1 on another branch · 1 dropped". Merged
- * counts out of the live parts; dropped parts are counted beside them.
- * `statuses` are partStatus results.
+ * A started brief's line under its parts, only with more than one. While
+ * tracking is `ready` (the web's `partsSummarySegments`, plus Frame's own
+ * "in progress" and "on another branch"): "1 of 5 merged · 1 in review ·
+ * 1 changes requested · 1 implemented · 1 in progress · 1 on another branch ·
+ * 1 dropped". Otherwise only completions are known, and a merged part counts
+ * as implemented: "2 of 3 implemented · 1 in progress · 1 dropped". The head
+ * counts out of the live parts; dropped parts are counted beside them, and a
+ * zero piece is left out. "In progress" counts a lane's attention, not a
+ * PR's. `statuses` are partStatus results.
  */
-function partsSummary(statuses) {
+function partsSummary(statuses, tracking = 'ready') {
   const list = Array.isArray(statuses) ? statuses : [];
   if (list.length < 2) return '';
-  const count = (...tones) => list.filter((s) => s && tones.includes(s.tone)).length;
+  const matching = (test) => list.filter((s) => s && test(s)).length;
+  const count = (...tones) => matching((s) => tones.includes(s.tone));
   const dropped = count('dropped');
-  const pieces = [`${count('done')} of ${list.length - dropped} merged`];
-  const active = count('active', 'attention');
+  const live = list.length - dropped;
+  const pieces = [];
+  if (tracking === 'ready') {
+    pieces.push(`${count('done')} of ${live} merged`);
+    const review = count('review');
+    if (review > 0) pieces.push(`${review} in review`);
+    const changes = matching((s) => s.pr && s.pr.kind === 'changes');
+    if (changes > 0) pieces.push(`${changes} changes requested`);
+    const implemented = count('implemented');
+    if (implemented > 0) pieces.push(`${implemented} implemented`);
+  } else {
+    pieces.push(`${count('implemented', 'done')} of ${live} implemented`);
+  }
+  const active = matching((s) => s.tone === 'active' || (s.tone === 'attention' && !s.pr));
   if (active > 0) pieces.push(`${active} in progress`);
   const elsewhere = count('elsewhere');
   if (elsewhere > 0) pieces.push(`${elsewhere} on ${elsewhere === 1 ? 'another branch' : 'other branches'}`);
   if (dropped > 0) pieces.push(`${dropped} dropped`);
   return pieces.join(' · ');
+}
+
+/**
+ * A card's attention line (the web's K2 row): the first part, in order, a
+ * person should look at — "Changes requested on <title>" or "<title> merged
+ * into <base>, not <target>" — plus " · N more", or '' when nothing asks.
+ * `entries` are `[{ title, status }]` with partStatus results, so the line
+ * never contradicts its rows: a part whose lane wins is not flagged, and
+ * there are no PR rows unless tracking is `ready`.
+ */
+function partAttention(entries, target) {
+  const list = Array.isArray(entries) ? entries : [];
+  const flagged = [];
+  for (const entry of list) {
+    const status = entry && entry.status;
+    const pr = status && status.tone === 'attention' ? status.pr : null;
+    if (!pr) continue;
+    const title = entry.title || '';
+    if (pr.kind === 'changes') flagged.push(`Changes requested on ${title}`);
+    else if (pr.kind === 'offTarget') flagged.push(`${title} merged into ${pr.base || 'another branch'}, not ${target}`);
+  }
+  if (flagged.length === 0) return '';
+  return flagged.length > 1 ? `${flagged[0]} · ${flagged.length - 1} more` : flagged[0];
 }
 
 /**
@@ -1048,6 +1089,7 @@ module.exports = {
   runHint,
   laneLine,
   partsSummary,
+  partAttention,
   MOVE_TO_DONE_LABEL,
   MOVE_BACK_LABEL,
   MOVING_TO_DONE_LABEL,

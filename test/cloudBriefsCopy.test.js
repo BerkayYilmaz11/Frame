@@ -530,8 +530,8 @@ test('partsSummary counts merged, in progress and elsewhere, only with more than
   assert.equal(copy.partsSummary([s('done'), s('idle')]), '1 of 2 merged');
   assert.equal(copy.partsSummary([s('active'), s('attention'), s('elsewhere'), s('done')]), '1 of 4 merged · 2 in progress · 1 on another branch');
   assert.equal(copy.partsSummary([s('elsewhere'), s('elsewhere'), s('idle')]), '0 of 3 merged · 2 on other branches');
-  // An implemented part is neither merged nor in progress.
-  assert.equal(copy.partsSummary([s('implemented'), s('done')]), '1 of 2 merged');
+  // An implemented part is neither merged nor in progress: it has its own piece (the web's).
+  assert.equal(copy.partsSummary([s('implemented'), s('done')]), '1 of 2 merged · 1 implemented');
 });
 
 test('partsSummary counts merged out of the live parts and the dropped beside them', () => {
@@ -713,6 +713,87 @@ test('partStatus gives no pr to a row without PR fields', () => {
     copy.partStatus({ part: { ...taskPart, ...MERGED }, target: 'main' }),
   ];
   for (const row of rows) assert.equal('pr' in row, false, row.label);
+});
+
+// ─── GitHub tracking: the summary and the attention line ──────
+
+/** A status with a tone, and a PR of `kind` when given. */
+const st = (tone, kind) => (kind ? { tone, pr: { number: 7, url: null, kind, base: kind === 'offTarget' ? 'release' : 'main' } } : { tone });
+
+test('partsSummary under ready reads every piece in the web\'s order, then Frame\'s own', () => {
+  const all = [
+    st('done'), st('review', 'review'), st('review', 'review'), st('attention', 'changes'), st('implemented'),
+    st('active'), st('elsewhere'), st('dropped'), st('attention', 'offTarget'),
+  ];
+  assert.equal(copy.partsSummary(all, 'ready'),
+    '1 of 8 merged · 2 in review · 1 changes requested · 1 implemented · 1 in progress · 1 on another branch · 1 dropped');
+  assert.equal(copy.partsSummary(all), copy.partsSummary(all, 'ready'));
+});
+
+test('partsSummary leaves out every zero piece', () => {
+  assert.equal(copy.partsSummary([st('review', 'review'), st('idle')]), '0 of 2 merged · 1 in review');
+  assert.equal(copy.partsSummary([st('attention', 'changes'), st('attention', 'changes'), st('done')]), '1 of 3 merged · 2 changes requested');
+  assert.equal(copy.partsSummary([st('idle'), st('idle')]), '0 of 2 merged');
+});
+
+test('partsSummary counts a lane\'s attention as in progress, but not a PR\'s', () => {
+  assert.equal(copy.partsSummary([st('attention'), st('attention', 'changes'), st('attention', 'offTarget')]),
+    '0 of 3 merged · 1 changes requested · 1 in progress');
+});
+
+test('partsSummary when tracking is not ready counts merged parts as implemented', () => {
+  for (const tracking of ['off', 'needs_github']) {
+    assert.equal(copy.partsSummary([st('done'), st('implemented'), st('idle')], tracking), '2 of 3 implemented', tracking);
+    assert.equal(copy.partsSummary([st('implemented'), st('active'), st('attention'), st('elsewhere'), st('dropped')], tracking),
+      '1 of 4 implemented · 2 in progress · 1 on another branch · 1 dropped', tracking);
+    assert.equal(copy.partsSummary([st('idle'), st('idle')], tracking), '0 of 2 implemented', tracking);
+  }
+});
+
+test('partsSummary is still empty for one part or none, in both modes', () => {
+  for (const tracking of ['ready', 'off']) {
+    assert.equal(copy.partsSummary([st('review', 'review')], tracking), '');
+    assert.equal(copy.partsSummary([], tracking), '');
+    assert.equal(copy.partsSummary(undefined, tracking), '');
+  }
+});
+
+test('partsSummary over real rows: an off project reads implemented', () => {
+  const parts = [
+    { ...taskPart, id: 'a', ...MERGED },
+    { ...taskPart, id: 'b', recordRef: 'task-b', completionSha: 'a'.repeat(40) },
+    { ...taskPart, id: 'c', recordRef: 'task-c', prNumber: 3, prState: 'open', prBase: 'main', prReview: null },
+  ];
+  const rows = (tracking) => parts.map((part) => copy.partStatus({ part, target: 'main', tracking }));
+  assert.equal(copy.partsSummary(rows('off'), 'off'), '2 of 3 implemented');
+  assert.equal(copy.partsSummary(rows('ready'), 'ready'), '1 of 3 merged · 1 in review · 1 implemented');
+});
+
+test('partAttention names the first flagged part, in order, and how many more', () => {
+  const entries = [
+    { title: 'Read it', status: st('review', 'review') },
+    { title: 'Store it', status: st('attention', 'changes') },
+    { title: 'Ship it', status: st('attention', 'offTarget') },
+  ];
+  assert.equal(copy.partAttention(entries, 'main'), 'Changes requested on Store it · 1 more');
+  assert.equal(copy.partAttention(entries.slice(2), 'main'), 'Ship it merged into release, not main');
+  assert.equal(copy.partAttention([entries[1]], 'main'), 'Changes requested on Store it');
+  assert.equal(copy.partAttention([...entries, ...entries], 'main'), 'Changes requested on Store it · 3 more');
+});
+
+test('partAttention is empty when nothing asks, and ignores a lane\'s attention', () => {
+  assert.equal(copy.partAttention([{ title: 'A', status: st('review', 'review') }, { title: 'B', status: st('attention') }], 'main'), '');
+  assert.equal(copy.partAttention([], 'main'), '');
+  assert.equal(copy.partAttention(undefined, 'main'), '');
+});
+
+test('partAttention over real rows: a live lane on the part, or tracking off, flags nothing', () => {
+  const part = openPr('changes_requested');
+  const lane = { name: 'Frame 3', status: 'agent-working', agentName: 'claude' };
+  const at = (facts) => copy.partAttention([{ title: 'Store it', status: copy.partStatus({ part, target: 'main', ...facts }) }], 'main');
+  assert.equal(at({}), 'Changes requested on Store it');
+  assert.equal(at({ task: { status: 'in_progress' }, lane }), '');
+  assert.equal(at({ tracking: 'off' }), '');
 });
 
 test('prLabel and the review words match the web', () => {

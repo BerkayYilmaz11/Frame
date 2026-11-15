@@ -26,3 +26,10 @@ Passed `tracking: brief.mergeTracking` from `partFacts`, and drew a PR row's wor
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T05 — Summary and attention in the copy
+
+Gave `partsSummary` a `tracking` (default `'ready'`) with D13's pieces in `src/renderer/cloudBriefsCopy.js`, counting "changes requested" by `pr.kind === 'changes'` and "in progress" as `active` plus attention without `pr`; under not-ready the head counts `implemented` + `done` tones. Added `partAttention(entries, target)` with the web's two K2 sentences (falling back to "another branch" when an off-target PR has no base, as the web does) and " · N more". In `test/cloudBriefsCopy.test.js`, the old `[implemented, done]` → "1 of 2 merged" assertion now expects "· 1 implemented" (the drift D13 names), and nine cases cover both modes and the attention line over real rows.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

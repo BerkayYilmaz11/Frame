@@ -13008,6 +13008,7 @@
         "runHint",
         "laneLine",
         "partsSummary",
+        "partAttention",
         "MOVE_TO_DONE_LABEL",
         "MOVE_BACK_LABEL",
         "MOVING_TO_DONE_LABEL",
@@ -13439,49 +13440,58 @@
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 794,
+          "line": 799,
           "params": [
-            "statuses"
+            "statuses",
+            "tracking = 'ready'"
           ],
-          "purpose": "A started brief's line under its parts, only with more than one:"
+          "purpose": "A started brief's line under its parts, only with more than one. While"
+        },
+        "partAttention": {
+          "line": 834,
+          "params": [
+            "entries",
+            "target"
+          ],
+          "purpose": "A card's attention line (the web's K2 row): the first part, in order, a"
         },
         "partNotHereMessage": {
-          "line": 816,
+          "line": 857,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "movedNotice": {
-          "line": 835,
+          "line": 876,
           "params": [
             "number"
           ],
           "purpose": "The Undo toast: \"Moved #5 to Done\"."
         },
         "moveToDoneTitle": {
-          "line": 840,
+          "line": 881,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move to Done that needs a reason: \"Move #5 to Done?\"."
         },
         "moveBackTitle": {
-          "line": 845,
+          "line": 886,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move back: \"Move #5 back to Active?\"."
         },
         "moveToDoneDescription": {
-          "line": 850,
+          "line": 891,
           "params": [
             "target"
           ],
           "purpose": "The move-to-Done dialog's description, naming the brief's target."
         },
         "missingPartsLine": {
-          "line": 856,
+          "line": 897,
           "params": [
             "count",
             "target"
@@ -13489,35 +13499,35 @@
           "purpose": "The line over the dialog's missing parts: \"1 part not merged into main.\", \"2 parts …\"."
         },
         "missingParts": {
-          "line": 866,
+          "line": 907,
           "params": [
             "brief"
           ],
           "purpose": "Live parts that do not count on the brief's current target: what a move to"
         },
         "needsReason": {
-          "line": 878,
+          "line": 919,
           "params": [
             "brief"
           ],
           "purpose": "Whether a move to Done asks for a reason: the project's merges are tracked"
         },
         "doneLine": {
-          "line": 887,
+          "line": 928,
           "params": [
             "brief"
           ],
           "purpose": "A Done brief's header line, as the web shows it: \"Done: reason · date\","
         },
         "moveErrorMessage": {
-          "line": 913,
+          "line": 954,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a move that was refused or failed."
         },
         "submitLabel": {
-          "line": 931,
+          "line": 972,
           "params": [
             "kind",
             "pending"
@@ -13525,14 +13535,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 951,
+          "line": 992,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 956,
+          "line": 997,
           "params": [
             "number",
             "reason"
@@ -13540,7 +13550,7 @@
           "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       },
-      "sizeBytes": 43799,
+      "sizeBytes": 45943,
       "extraction": {
         "status": "parsed"
       },
@@ -13585,12 +13595,13 @@
           "needsReason": "f70fac0973373991",
           "newCommentIds": "a5858594e44c6a30",
           "newCommentsLabel": "ee9023fa6fb9d6eb",
+          "partAttention": "0b674847571e5f8b",
           "partCountLabel": "14c364fc21d64ca1",
           "partNotHereMessage": "ea8e9ffa0213fd0c",
           "partProblemMessage": "a4154bea916d64b0",
           "partStatus": "0f9b450424ccff52",
           "partialMessage": "7227e50419fef68b",
-          "partsSummary": "804022fd6c4011b5",
+          "partsSummary": "e40b613dae990843",
           "prLabel": "2f0730c2cf64491f",
           "prStatus": "47c6ab364b0f422d",
           "priorityLabel": "a6789113c09482a0",
@@ -34534,7 +34545,7 @@
           ]
         }
       },
-      "sizeBytes": 53831,
+      "sizeBytes": 58544,
       "extraction": {
         "status": "parsed"
       },
@@ -42033,6 +42044,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "18c8bd5b00f194cb6957f7a0e89e89ffeeecf337d65d8990a5114ac8ae72ebbc"
+    "revision": "2977e04bb85438ab78f99b91a67b770414165ec4d00b7f0d6e66aab2c0b2dd85"
   }
 }

@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:07:17.413Z",
+  "lastUpdated": "2026-11-15T09:09:24.430Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10918,13 +10918,13 @@
       "title": "In `src/renderer/cloudBriefsCopy.js`, give `partsSummary(statuses, tracking = 'ready')` the web's pieces plus Frame's own: under `ready` \"N of M merged · N in review · N changes requested · N implemented · N in progress · N on another branch · N dropped\" (the \"implemented\" piece is new; \"in progress\" counts `active` and lane `attention` without `pr`), otherwise \"N of M implemented\" counting `implemented` + `done` tones, then in progress, on another branch and dropped; add `partAttention(entries, target)` returning \"Changes requested on `<title>`\" or \"`<title>` merged into `<base>`, not `<target>`\" plus \" · N more\", or `''`; cover every piece in order with zeros left out, lane vs PR attention, the not-ready head, the one-part and empty cases, and both attention sentences in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:09:24.430Z",
+      "completedAt": "2026-11-15T09:09:24.430Z"
     },
     {
       "id": "task-spec-frame-cloud-github-tracking-T06",
