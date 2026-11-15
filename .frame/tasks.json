@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T08:53:03.661Z",
+  "lastUpdated": "2026-11-15T08:59:19.092Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10866,13 +10866,13 @@
       "title": "In `src/main/cloud/cloudBriefs.js`, add `off` to `MERGE_TRACKING`; read `prNumber` (int > 0 or null), `prState` (`open | closed | merged` or null), `prBase`, `prReview` (`requested | approved | changes_requested` or null) and `prUrl` (kept only when `isHttpUrl`, else null) in `normalizePart` and carry all five in `partRow`; move `mergeTrackingOf` in from the service as `needs_github` → `off` → `ready`; add `buildSettingsWebUrl` (`{project url}/settings#github`, null under `buildWebUrl`'s guards); export both and update the header; cover `off`, every PR field's valid/unknown/missing values, a non-positive number, a `javascript:`/`ftp:` `prUrl` folded to null, PR fields reaching the board through `addPartCounts`, `mergeTrackingOf` (empty, all ready, off, needs_github beside off) and `buildSettingsWebUrl` in `test/cloudBriefs.test.js`",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T08:59:19.092Z",
+      "completedAt": "2026-11-15T08:59:19.092Z"
     },
     {
       "id": "task-spec-frame-cloud-github-tracking-T02",
