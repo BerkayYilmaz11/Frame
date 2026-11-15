@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:12:57.182Z",
+  "lastUpdated": "2026-11-15T09:15:31.542Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10957,13 +10957,13 @@
       "title": "Replace `MERGE_TRACKING_NOTICE` in `src/renderer/cloudBriefsCopy.js` with `TRACKING_WARNINGS` and `trackingWarning(tracking)` carrying the web's box verbatim (off: \"GitHub tracking is off\" · \"Pull requests and merges are not tracked. Turn it on in Settings.\"; needs_github: \"Not connected to GitHub\" · \"Pull requests and merges are not tracked. Connect GitHub in Settings.\"; null for ready); in `src/renderer/cloudBriefsPanel.js`, have `renderTrackingNotice` draw the title and description with \"Open on web\" as `open-settings-web`, have `openOnWeb` pass `'settings'` through to `CLOUD_BRIEFS_OPEN_ON_WEB`, change the Ready for Done badge rule to `mergeTracking === 'ready'` and update the header; add the notice title's style to `src/renderer/styles/components/cloud-briefs.css`; replace the assertion at `test/cloudBriefsCopy.test.js:613` with both warnings and `trackingWarning('ready') === null`",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:15:31.542Z",
+      "completedAt": "2026-11-15T09:15:31.542Z"
     }
   ],
   "metadata": {

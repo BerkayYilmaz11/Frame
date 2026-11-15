@@ -801,8 +801,19 @@ test('prLabel and the review words match the web', () => {
   assert.deepEqual(copy.REVIEW_LABELS, { requested: 'In review', approved: 'Approved', changes_requested: 'Changes requested' });
 });
 
-test('the GitHub-not-connected words', () => {
-  assert.equal(copy.MERGE_TRACKING_NOTICE, 'Merges are tracked once GitHub is connected.');
+// Overturns frame-cloud-brief-done D2's "Merges are tracked once GitHub is connected." (plan D4).
+test('the tracking box is the web\'s, word for word, for no GitHub and for tracking off', () => {
+  assert.deepEqual(copy.trackingWarning('needs_github'), {
+    title: 'Not connected to GitHub',
+    description: 'Pull requests and merges are not tracked. Connect GitHub in Settings.',
+  });
+  assert.deepEqual(copy.trackingWarning('off'), {
+    title: 'GitHub tracking is off',
+    description: 'Pull requests and merges are not tracked. Turn it on in Settings.',
+  });
+  assert.equal(copy.trackingWarning('ready'), null);
+  assert.equal(copy.trackingWarning(undefined), null);
+  assert.equal(copy.trackingWarning('maybe'), null);
   assert.equal(copy.OPEN_ON_WEB_LABEL, 'Open on web');
 });
 

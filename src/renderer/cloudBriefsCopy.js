@@ -862,11 +862,28 @@ function partAttention(entries, target) {
 }
 
 /**
- * The board's line while the project's merges cannot be seen
- * (`mergeTracking: 'needs_github'`): parts stay short of merged until then.
+ * The board's box while the project's pull requests and merges are not
+ * tracked, word for word the web's (`project-header.tsx` `WARNING`): no
+ * GitHub, or tracking turned off. Both lead to the project's Settings, the
+ * only place either changes. This overturns frame-cloud-brief-done D2's
+ * "Merges are tracked once GitHub is connected." (plan D4).
  */
-const MERGE_TRACKING_NOTICE = 'Merges are tracked once GitHub is connected.';
+const TRACKING_WARNINGS = {
+  needs_github: {
+    title: 'Not connected to GitHub',
+    description: 'Pull requests and merges are not tracked. Connect GitHub in Settings.',
+  },
+  off: {
+    title: 'GitHub tracking is off',
+    description: 'Pull requests and merges are not tracked. Turn it on in Settings.',
+  },
+};
 const OPEN_ON_WEB_LABEL = 'Open on web';
+
+/** The board's tracking box for a `mergeTracking` → `{ title, description }`, or null while tracking is ready. */
+function trackingWarning(tracking) {
+  return Object.prototype.hasOwnProperty.call(TRACKING_WARNINGS, tracking) ? TRACKING_WARNINGS[tracking] : null;
+}
 
 /** A part link whose task this folder does not hold. */
 function partNotHereMessage(ref) {
@@ -1090,7 +1107,8 @@ module.exports = {
   OPEN_TASK_LABEL,
   partNotHereMessage,
   IMPLEMENTED_LABEL,
-  MERGE_TRACKING_NOTICE,
+  TRACKING_WARNINGS,
+  trackingWarning,
   OPEN_ON_WEB_LABEL,
   countsAsMerged,
   droppedLabel,

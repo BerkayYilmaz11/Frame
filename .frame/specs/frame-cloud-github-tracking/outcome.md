@@ -47,3 +47,10 @@ Ported the web's `part-merged` case into `eventAction` in `src/renderer/cloudBri
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T08 — The board under `off`
+
+Replaced `MERGE_TRACKING_NOTICE` with `TRACKING_WARNINGS`/`trackingWarning` in `src/renderer/cloudBriefsCopy.js`, copied from FrameCloud's `project-header.tsx` (an own-key lookup, null for `ready` and anything unknown). In `src/renderer/cloudBriefsPanel.js`, `renderTrackingNotice` draws the box's title and description for `needs_github` and `off`, "Open on web" became `open-settings-web` → `openOnWeb('settings')`, Ready for Done needs `mergeTracking === 'ready'`, and the header names the tracking work; `cloud-briefs.css` adds the title style. Move to Done under `off` needed no code: `needsReason` already keys on `ready` (D20). Replaced the old notice assertion in `test/cloudBriefsCopy.test.js` (no longer at line 613) with both warnings and the null cases.
+
+_Captured: 2026-11-15 · 4 file change(s)_
+
+---

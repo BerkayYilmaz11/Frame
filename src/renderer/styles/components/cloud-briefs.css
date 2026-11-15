@@ -577,7 +577,7 @@
   flex-shrink: 0;
 }
 
-/* The GitHub-not-connected line: a standing fact, quieter than a notice. */
+/* The tracking box (no GitHub, or tracking off): a standing fact, quieter than a notice. */
 .cloud-briefs-tracking {
   display: flex;
   align-items: center;
@@ -594,6 +594,16 @@
 .cloud-briefs-tracking p {
   margin: 0;
   line-height: 1.5;
+}
+
+.cloud-briefs-tracking-text {
+  min-width: 0;
+}
+
+/* The box's title ("GitHub tracking is off"), over its description, as on the web. */
+.cloud-briefs-tracking .cloud-briefs-tracking-title {
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .cloud-briefs-tracking .cloud-briefs-web-btn {
