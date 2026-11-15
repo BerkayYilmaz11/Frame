@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:01:30.655Z",
+  "lastUpdated": "2026-11-15T09:05:04.788Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10892,13 +10892,13 @@
       "title": "In `src/renderer/cloudBriefsCopy.js`, give `partStatus`/`partStatusOf` a `tracking` (default `'ready'`) and the plan's Flow 1 order: a live lane on an unfinished record first, then, only while `ready`, the off-target row \"Merged into `<prBase>`, not `<target>`\" (`attention`, `pr.kind: 'offTarget'`) and the open-PR rows \"PR #N · Open / In review / Approved\" (new tone `review`) and \"PR #N · Changes requested\" (`attention`), each with `pr: { number, url, kind, base }` and the folder record's Run (null when not held or when `done`), then the record's own state, then `completionSha` → \"Implemented\" for a part the folder does not hold; leave every non-PR row's `{ label, tone, laneName, run }` shape unchanged; cover each label and tone, a target merge still reading \"Merged into `<target>`\", lane over PR, Run kept and dropped, PR rows hidden under `off` and `needs_github`, the completion row losing to the folder's record, a closed PR falling through, and the existing `deepEqual` rows in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:05:04.788Z",
+      "completedAt": "2026-11-15T09:05:04.788Z"
     },
     {
       "id": "task-spec-frame-cloud-github-tracking-T04",

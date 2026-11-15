@@ -609,6 +609,117 @@ test('partStatus skips the cloud\'s branch when this machine\'s own branch is go
   assert.deepEqual(copy.partStatus({ part: gone, target: 'main' }), { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' });
 });
 
+// ─── GitHub tracking: a part's pull request ───────────────────
+
+const PR_URL = 'https://github.com/lab/my-app/pull/7';
+/** A part with an open PR #7 into main, and the given review. */
+const openPr = (review = null, extra = {}) => ({
+  ...taskPart, branch: 'fix/typo', prNumber: 7, prState: 'open', prBase: 'main', prReview: review, prUrl: PR_URL, ...extra,
+});
+
+test('partStatus reads an open PR by its review, after its number', () => {
+  const at = (review) => copy.partStatus({ part: openPr(review), target: 'main' });
+  const pr = (kind) => ({ number: 7, url: PR_URL, kind, base: 'main' });
+  assert.deepEqual(at(null), { label: 'PR #7 · Open', tone: 'review', laneName: null, run: null, pr: pr('review') });
+  assert.deepEqual(at('requested'), { label: 'PR #7 · In review', tone: 'review', laneName: null, run: null, pr: pr('review') });
+  assert.deepEqual(at('approved'), { label: 'PR #7 · Approved', tone: 'review', laneName: null, run: null, pr: pr('review') });
+  assert.deepEqual(at('changes_requested'),
+    { label: 'PR #7 · Changes requested', tone: 'attention', laneName: null, run: null, pr: pr('changes') });
+});
+
+test('partStatus reads a PR merged into another base as Merged into <base>, not <target>', () => {
+  const part = openPr(null, { prState: 'merged', prBase: 'release' });
+  assert.deepEqual(copy.partStatus({ part, target: 'main' }), {
+    label: 'Merged into release, not main', tone: 'attention', laneName: null, run: null,
+    pr: { number: 7, url: PR_URL, kind: 'offTarget', base: 'release' },
+  });
+});
+
+test('partStatus still reads a part the cloud counts as merged into the target as Merged into <target>', () => {
+  const part = openPr(null, { prState: 'merged', ...MERGED });
+  assert.deepEqual(copy.partStatus({ part, target: 'main' }), { label: 'Merged into main', tone: 'done', laneName: null, run: null });
+});
+
+test('partStatus lets a closed PR, or one merged into the target before the cloud counts it, fall through', () => {
+  assert.equal(copy.partStatus({ part: openPr(null, { prState: 'closed' }), target: 'main' }).label, 'On fix/typo');
+  assert.equal(copy.partStatus({ part: openPr('approved', { prState: 'merged' }), target: 'main' }).label, 'On fix/typo');
+  assert.equal(copy.partStatus({ part: openPr(null, { prState: 'closed' }), task: { status: 'in_progress' }, target: 'main' }).label,
+    'In progress');
+});
+
+test('partStatus lets a live lane on an unfinished record win over an open PR', () => {
+  const lane = { name: 'Frame 3', status: 'agent-working', agentName: 'claude' };
+  assert.deepEqual(copy.partStatus({ part: openPr('changes_requested'), task: { status: 'in_progress' }, lane, target: 'main' }),
+    { label: 'Working', tone: 'active', laneName: 'Frame 3', run: null });
+  // A finished record's lane does not win: the PR does.
+  assert.equal(copy.partStatus({ part: openPr('approved'), task: { status: 'completed' }, lane, target: 'main' }).label, 'PR #7 · Approved');
+  // A lane without a live agent does not win either.
+  assert.equal(copy.partStatus({ part: openPr(), task: { status: 'pending' }, lane: { ...lane, agentName: null }, target: 'main' }).label,
+    'PR #7 · Open');
+});
+
+test('partStatus keeps the folder record\'s Run on a PR row, and none when the folder does not hold it', () => {
+  assert.equal(copy.partStatus({ part: openPr('changes_requested'), task: { status: 'pending' }, target: 'main' }).run, 'task');
+  const spec = copy.partStatus({ part: { ...openPr(), shape: 'spec', recordRef: 'login-flow' }, spec: { phase: 'implementing' }, target: 'main' });
+  assert.deepEqual([spec.label, spec.run], ['PR #7 · Open', 'spec.implement']);
+  assert.equal(copy.partStatus({ part: openPr(), task: { status: 'completed' }, target: 'main' }).run, null);
+  assert.equal(copy.partStatus({ part: openPr(), target: 'main' }).run, null);
+  const offTarget = openPr(null, { prState: 'merged', prBase: 'release' });
+  assert.equal(copy.partStatus({ part: offTarget, task: { status: 'in_progress' }, target: 'main' }).run, 'task');
+});
+
+test('partStatus on a Done brief keeps a PR row\'s label and link but offers no Run', () => {
+  const facts = { part: openPr('changes_requested'), task: { status: 'pending' }, target: 'main' };
+  const open = copy.partStatus(facts);
+  assert.deepEqual(copy.partStatus({ ...facts, done: true }), { ...open, run: null });
+  assert.equal(copy.partStatus({ ...facts, done: true }).pr.url, PR_URL);
+});
+
+test('partStatus shows no PR row unless tracking is ready', () => {
+  for (const tracking of ['off', 'needs_github']) {
+    assert.deepEqual(copy.partStatus({ part: openPr('approved'), target: 'main', tracking }),
+      { label: 'On fix/typo', tone: 'elsewhere', laneName: null, run: null }, tracking);
+    const offTarget = openPr(null, { prState: 'merged', prBase: 'release' });
+    assert.equal(copy.partStatus({ part: offTarget, task: { status: 'in_progress' }, target: 'main', tracking }).label, 'In progress', tracking);
+  }
+  assert.equal(copy.partStatus({ part: openPr('approved'), target: 'main', tracking: 'ready' }).label, 'PR #7 · Approved');
+  assert.equal(copy.partStatus({ part: openPr('approved'), target: 'main' }).label, 'PR #7 · Approved');
+});
+
+test('partStatus reads a PR with no URL with a null url, and no PR row for a bad number', () => {
+  assert.equal(copy.partStatus({ part: openPr(null, { prUrl: null }), target: 'main' }).pr.url, null);
+  assert.equal(copy.partStatus({ part: openPr(null, { prNumber: null }), target: 'main' }).label, 'On fix/typo');
+  assert.equal(copy.partStatus({ part: openPr(null, { prNumber: 0 }), target: 'main' }).label, 'On fix/typo');
+});
+
+test('partStatus reads the cloud\'s completion as Implemented for a part the folder does not hold', () => {
+  const completed = { ...taskPart, branch: 'fix/typo', completionSha: 'a'.repeat(40) };
+  for (const tracking of ['ready', 'off', 'needs_github']) {
+    assert.deepEqual(copy.partStatus({ part: completed, target: 'main', tracking }),
+      { label: 'Implemented', tone: 'implemented', laneName: null, run: null }, tracking);
+  }
+  // The folder's own record wins: work restarted after the completion.
+  assert.deepEqual(copy.partStatus({ part: completed, task: { status: 'in_progress' }, target: 'main' }),
+    { label: 'In progress', tone: 'active', laneName: null, run: 'task' });
+  // An open PR wins over the completion while tracking is ready.
+  assert.equal(copy.partStatus({ part: { ...openPr(), completionSha: 'a'.repeat(40) }, target: 'main' }).label, 'PR #7 · Open');
+});
+
+test('partStatus gives no pr to a row without PR fields', () => {
+  const rows = [
+    copy.partStatus({ part: taskPart }),
+    copy.partStatus({ part: taskPart, task: { status: 'in_progress' } }),
+    copy.partStatus({ part: { ...taskPart, branch: 'fix/typo' }, target: 'main' }),
+    copy.partStatus({ part: { ...taskPart, ...MERGED }, target: 'main' }),
+  ];
+  for (const row of rows) assert.equal('pr' in row, false, row.label);
+});
+
+test('prLabel and the review words match the web', () => {
+  assert.equal(copy.prLabel(12), 'PR #12');
+  assert.deepEqual(copy.REVIEW_LABELS, { requested: 'In review', approved: 'Approved', changes_requested: 'Changes requested' });
+});
+
 test('the GitHub-not-connected words', () => {
   assert.equal(copy.MERGE_TRACKING_NOTICE, 'Merges are tracked once GitHub is connected.');
   assert.equal(copy.OPEN_ON_WEB_LABEL, 'Open on web');

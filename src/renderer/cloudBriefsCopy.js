@@ -20,6 +20,12 @@
  *
  * A write the workspace role cannot make (`roleForbidden`, refused in main or
  * by the server) reads the one role sentence from cloudRoles in every table.
+ *
+ * GitHub tracking (FrameCloud brief-github-tracking, the web's `partRow`): while
+ * the project's tracking is `ready`, a part's pull request takes its row —
+ * "PR #N · Open / In review / Approved / Changes requested", or "Merged into
+ * <base>, not <target>" — unless a live agent lane is working on it. A PR is
+ * a pointer, never a merge: only the cloud's `mergedAt` counts.
  */
 
 const { ROLE_FORBIDDEN } = require('./cloudRoles');
@@ -662,43 +668,93 @@ function mergedLabel(target) {
   return `Merged into ${target}`;
 }
 
+/** An open pull request's review after its number (the web's `REVIEW_LABEL`); no review reads "Open". */
+const REVIEW_LABELS = {
+  requested: 'In review',
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+};
+const PR_OPEN_LABEL = 'Open';
+
+/** "PR #7", the number a PR row shows (and links when the server gave a URL). */
+function prLabel(number) {
+  return `PR #${number}`;
+}
+
+/**
+ * A part's pull request as a row, while tracking is `ready` (the web's
+ * `partRow`): merged into a base other than the target ("Merged into <base>,
+ * not <target>", attention), or open ("PR #N · Open / In review / Approved",
+ * review; "PR #N · Changes requested", attention). Null for no PR, a closed
+ * one, or one merged into the target before the cloud counts the part. `run`
+ * is the folder record's next step, kept so a task added after "Changes
+ * requested" can run from the row (plan D7).
+ */
+function prStatus(p, target, run) {
+  if (!Number.isInteger(p.prNumber) || p.prNumber <= 0) return null;
+  const pr = (kind) => ({ number: p.prNumber, url: p.prUrl || null, kind, base: p.prBase || null });
+  if (p.prState === 'merged' && p.prBase && p.prBase !== target) {
+    return { label: `Merged into ${p.prBase}, not ${target}`, tone: 'attention', laneName: null, run, pr: pr('offTarget') };
+  }
+  if (p.prState === 'open') {
+    const changes = p.prReview === 'changes_requested';
+    return {
+      label: `${prLabel(p.prNumber)} · ${REVIEW_LABELS[p.prReview] || PR_OPEN_LABEL}`,
+      tone: changes ? 'attention' : 'review',
+      laneName: null,
+      run,
+      pr: pr(changes ? 'changes' : 'review'),
+    };
+  }
+  return null;
+}
+
 /**
  * Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry
  * and `task` its `tasks.json` row (either absent when this folder does not
  * hold it), `lane` its lane info, `target` the brief's target branch,
- * `part.branch` the branch the cloud has for it, and `part.begunBranch` the
- * branch this machine began it on. With `done` (the brief is Done) the row
- * keeps its label but offers no Begin or Run (plan D7): a Done brief's facts
- * are frozen until it moves back to Active. In order:
+ * `tracking` the brief's `mergeTracking`, `part.branch` the branch the cloud
+ * has for it, and `part.begunBranch` the branch this machine began it on.
+ * With `done` (the brief is Done) the row keeps its label but offers no Begin
+ * or Run (plan D7): a Done brief's facts are frozen until it moves back to
+ * Active. In order:
  * - the cloud dropped it → "Dropped · <reason>";
  * - it counts as merged into `target` → "Merged into <target>";
- * - the folder holds its record → the record's state, where a live agent's
- *   wins (and then there is no Run: the lane is the way in), and a finished
+ * - the folder holds an unfinished record and a live agent lane → the lane's
+ *   state, with no Run: the lane is the way in;
+ * - only while tracking is `ready`, its pull request (see prStatus), keeping
+ *   the record's Run;
+ * - the folder holds its record → the record's state, where a finished
  *   record reads "Implemented";
+ * - the cloud recorded its completion → "Implemented";
  * - the cloud has its branch (unless `part.branchGone`: this machine's own
  *   branch was deleted) → "On <branch>";
  * - this machine began it → "On <branch>";
  * - else it waits on the brief → Not started, with Begin.
- * → `{ label, tone: 'idle' | 'active' | 'attention' | 'implemented' | 'done'
- * | 'dropped' | 'elsewhere', laneName, run: 'spec.plan' | 'spec.tasks' |
- * 'spec.implement' | 'task' | 'begin' | null }`.
+ * → `{ label, tone: 'idle' | 'active' | 'attention' | 'implemented' |
+ * 'review' | 'done' | 'dropped' | 'elsewhere', laneName, run: 'spec.plan' |
+ * 'spec.tasks' | 'spec.implement' | 'task' | 'begin' | null }`, and on a PR
+ * row only `pr: { number, url, kind: 'review' | 'changes' | 'offTarget', base }`.
  */
 function partStatus({ done, ...facts } = {}) {
   const status = partStatusOf(facts);
   return done === true ? { ...status, run: null } : status;
 }
 
-function partStatusOf({ part, spec, task, lane, target } = {}) {
+function partStatusOf({ part, spec, task, lane, target, tracking = 'ready' } = {}) {
   const p = part || {};
   if (!p.recordRef) return { label: '', tone: 'idle', laneName: null, run: null };
   if (p.droppedAt) return { label: droppedLabel(p.dropReason), tone: 'dropped', laneName: null, run: null };
   if (countsAsMerged(p, target)) return { label: mergedLabel(target), tone: 'done', laneName: null, run: null };
   const record = p.shape === 'spec' ? spec : task;
-  if (record) {
-    const own = p.shape === 'spec' ? specState(record) : taskState(record);
-    if (own.tone === 'implemented' || !lane || !lane.agentName) return { ...own, laneName: null };
+  const own = record ? (p.shape === 'spec' ? specState(record) : taskState(record)) : null;
+  if (own && own.tone !== 'implemented' && lane && lane.agentName) {
     return { ...(LANE_STATES[lane.status] || LANE_WAITING), laneName: lane.name || '', run: null };
   }
+  const pr = tracking === 'ready' ? prStatus(p, target, own ? own.run : null) : null;
+  if (pr) return pr;
+  if (own) return { ...own, laneName: null };
+  if (p.completionSha) return { ...IMPLEMENTED, laneName: null };
   if (p.branch && !p.branchGone) return { label: `On ${p.branch}`, tone: 'elsewhere', laneName: null, run: null };
   if (p.begunBranch) return { label: `On ${p.begunBranch}`, tone: 'elsewhere', laneName: null, run: null };
   return { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
@@ -983,6 +1039,8 @@ module.exports = {
   countsAsMerged,
   droppedLabel,
   mergedLabel,
+  REVIEW_LABELS,
+  prLabel,
   partStatus,
   RUN_LABEL,
   BEGIN_LABEL,

@@ -12,3 +12,10 @@ Swapped `list` to `core.mergeTrackingOf` and deleted the service's own copy. Spl
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T03 — The row order in the copy
+
+Gave `partStatus`/`partStatusOf` a `tracking` (default `'ready'`) and Flow 1's order in `src/renderer/cloudBriefsCopy.js`: the lane check now runs before the PR rows (new `prStatus`, `REVIEW_LABELS`, `prLabel`), the record's own state after them, then a new `completionSha` → "Implemented" row; PR rows carry `pr: { number, url, kind, base }` (url and base null when absent) and the record's Run. Ported the labels from FrameCloud's `partRow` source, and exported `prLabel`/`REVIEW_LABELS` (not named in the plan) so the panel can split "PR #N" from "· state" in T04. Twelve new cases in `test/cloudBriefsCopy.test.js`; every existing row assertion is unchanged.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---
