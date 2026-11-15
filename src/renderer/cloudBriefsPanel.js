@@ -829,9 +829,36 @@ function partFacts(part, brief) {
     task: isSpec ? undefined : record || undefined,
     lane,
     target: brief ? brief.targetBranch : undefined,
+    tracking: brief ? brief.mergeTracking : undefined,
     done: Boolean(brief) && brief.status === 'done',
   });
   return { record, lane, status };
+}
+
+/**
+ * "PR #N" on a part row: a button that opens the server's pull request URL,
+ * or plain text without one. Frame never builds the URL (C3). A Done brief
+ * keeps the link: it is a pointer, not an action.
+ */
+function renderPrLink(pr, attrs) {
+  const label = escapeHtml(copy.prLabel(pr.number));
+  if (!isWebUrl(pr.url)) return `<span class="cloud-briefs-prow-pr">${label}</span>`;
+  return `<button type="button" class="cloud-briefs-prow-pr" data-action="open-pr" ${attrs} data-url="${escapeHtml(pr.url)}" title="${escapeHtml(pr.url)}" tabindex="-1">${label}</button>`;
+}
+
+/**
+ * A part row's status words. A PR row puts its number first and then
+ * "· state" for an open pull request, or the label and then the number for
+ * one merged into another base, as the web draws it.
+ */
+function renderPartStatusText(status, attrs) {
+  const pr = status.pr;
+  if (!pr) return escapeHtml(status.label);
+  const prefix = `${copy.prLabel(pr.number)} · `;
+  if (status.label.startsWith(prefix)) {
+    return `${renderPrLink(pr, attrs)}<span>· ${escapeHtml(status.label.slice(prefix.length))}</span>`;
+  }
+  return `<span>${escapeHtml(status.label)}</span>${renderPrLink(pr, attrs)}`;
 }
 
 /**
@@ -857,7 +884,7 @@ function renderPartRow(part, brief) {
   return `<div class="cloud-briefs-prow tone-${escapeHtml(status.tone)}">
       <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
       ${title}
-      <span class="cloud-briefs-prow-status"><span class="cloud-briefs-prow-dot" aria-hidden="true"></span>${escapeHtml(status.label)}</span>
+      <span class="cloud-briefs-prow-status"><span class="cloud-briefs-prow-dot" aria-hidden="true"></span>${renderPartStatusText(status, attrs)}</span>
       <span class="cloud-briefs-prow-action">${action}</span>
     </div>`;
 }
@@ -947,6 +974,10 @@ function onPartAction(actionEl) {
     runPart({ shape, ref, run, number, partId });
   }
   else if (action === 'enter-part-lane') enterPartLane(shape, ref);
+  else if (action === 'open-pr') {
+    const url = actionEl.dataset.url || '';
+    if (isWebUrl(url)) shell.openExternal(url);
+  }
   else return false;
   return true;
 }

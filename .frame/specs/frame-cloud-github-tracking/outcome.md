@@ -19,3 +19,10 @@ Gave `partStatus`/`partStatusOf` a `tracking` (default `'ready'`) and Flow 1's o
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T04 — Draw the PR rows in the panel
+
+Passed `tracking: brief.mergeTracking` from `partFacts`, and drew a PR row's words through new `renderPartStatusText`/`renderPrLink` in `src/renderer/cloudBriefsPanel.js`: "PR #N" then "· state" for an open PR (split on the `prLabel` prefix), the label then "PR #N" off-target, the number as an `open-pr` button with `data-ref` and escaped `data-url`, or plain text without an http(s) URL. Handled `open-pr` in `onPartAction` (`isWebUrl` → `shell.openExternal`), and added the `tone-review` dot/label (`--info`, as the web's info tone) and `.cloud-briefs-prow-pr` to `cloud-briefs.css`. Panel untested per D6.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---
