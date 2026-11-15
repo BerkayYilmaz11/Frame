@@ -13084,54 +13084,75 @@
         "LINK_TITLE_REQUIRED",
         "submitLabel",
         "createErrorMessage",
-        "attachmentNotice"
+        "attachmentNotice",
+        "MILESTONE_STATUS_LABEL",
+        "OVERDUE_LABEL",
+        "MILESTONE_LABEL",
+        "STARTED_MILESTONE_LABEL",
+        "SHOW_ONLY_MILESTONE_LABEL",
+        "ALL_BRIEFS_LABEL",
+        "NARROWED_EMPTY_LABEL",
+        "NO_END_DATE_LABEL",
+        "milestoneStatusLabel",
+        "startedMilestone",
+        "briefsInMilestone",
+        "countsWithBriefs",
+        "milestoneProgress",
+        "localToday",
+        "isOverdue",
+        "formatTargetDate",
+        "endsLine",
+        "targetBranchLine",
+        "milestoneSummary",
+        "milestoneRowFacts",
+        "milestoneProgressLabel"
       ],
       "depends": [
         "cloudRoles"
       ],
       "functions": {
         "groupByColumn": {
-          "line": 45,
+          "line": 55,
           "params": [
             "briefs"
           ],
           "purpose": "A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog."
         },
         "statusLabel": {
-          "line": 71,
+          "line": 81,
           "params": [
             "status"
           ]
         },
         "isPriority": {
-          "line": 77,
+          "line": 87,
           "params": [
             "value"
           ]
         },
         "priorityLabel": {
-          "line": 82,
+          "line": 92,
           "params": [
             "priority"
           ],
           "purpose": "'High' / 'Medium' / 'Low', or '' for anything else."
         },
         "endingFact": {
-          "line": 87,
+          "line": 97,
           "params": [
             "brief"
           ],
           "purpose": "How a closed brief ended — `{ label, reason, at }` — or null for an open one. Close wins over drop over decision."
         },
         "endingLine": {
-          "line": 96,
+          "line": 106,
           "params": [
             "brief"
           ],
           "purpose": "The ending as one line: \"Closed: reason\", \"Dropped\", \"Recorded as decision\"; '' for an open brief."
         },
         "actorLabel": {
-          "line": 103,
+          "line": 113,
           "params": [
             "id",
             "meId"
@@ -13139,27 +13160,27 @@
           "purpose": "\"You\" for the caller, \"A workspace member\" for anyone else: there is no member list."
         },
         "formatDate": {
-          "line": 110,
+          "line": 120,
           "params": [
             "iso"
           ],
           "purpose": "An ISO timestamp as \"18 Sept 2026\" in the viewer's time zone; '' when missing or unreadable."
         },
         "text": {
-          "line": 116,
+          "line": 126,
           "params": [
             "value"
           ]
         },
         "joinList": {
-          "line": 121,
+          "line": 131,
           "params": [
             "items"
           ],
           "purpose": "\"a\", \"a and b\", \"a, b and c\"."
         },
         "eventAction": {
-          "line": 127,
+          "line": 137,
           "params": [
             "event",
             "meId"
@@ -13167,14 +13188,14 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "isObserved": {
-          "line": 250,
+          "line": 260,
           "params": [
             "event"
           ],
           "purpose": "Whether the cloud observed this event rather than a person doing it, as the"
         },
         "eventSentence": {
-          "line": 258,
+          "line": 268,
           "params": [
             "event",
             "meId"
@@ -13182,35 +13203,35 @@
           "purpose": "One history line: who did what, and the day it happened; an observed event has no actor. → `{ sentence, date }`."
         },
         "shapedLine": {
-          "line": 268,
+          "line": 278,
           "params": [
             "iso"
           ],
           "purpose": "The Parts tab's line for a shaped brief: \"Shaped 18 Sept 2026\"; '' when unshaped or unreadable."
         },
         "startedLine": {
-          "line": 274,
+          "line": 284,
           "params": [
             "iso"
           ],
           "purpose": "The Parts tab's line for a started brief: \"Started 18 Sept 2026\"; '' when unstarted or unreadable."
         },
         "reasonMessage": {
-          "line": 291,
+          "line": 301,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
         "discussionCountLabel": {
-          "line": 300,
+          "line": 310,
           "params": [
             "count"
           ],
           "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
         },
         "proposalStage": {
-          "line": 311,
+          "line": 321,
           "params": [
             "{ brief",
             "laneOpen",
@@ -13219,14 +13240,14 @@
           "purpose": "Where an open proposal stands, which decides its controls:"
         },
         "newCommentsLabel": {
-          "line": 319,
+          "line": 329,
           "params": [
             "count"
           ],
           "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
         },
         "newCommentIds": {
-          "line": 328,
+          "line": 338,
           "params": [
             "comments",
             "events",
@@ -13235,34 +13256,34 @@
           "purpose": "The ids of the comments that are new: added by someone other than `meId`"
         },
         "decideErrorMessage": {
-          "line": 357,
+          "line": 367,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Move to Work that failed."
         },
         "discussingIn": {
-          "line": 362,
+          "line": 372,
           "params": [
             "laneName"
           ],
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 372,
+          "line": 382,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 376,
+          "line": 386,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 388,
+          "line": 398,
           "params": [
             "events",
             "meId",
@@ -13271,14 +13292,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 420,
+          "line": 430,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "workStage": {
-          "line": 434,
+          "line": 444,
           "params": [
             "{ brief",
             "laneOpen }"
@@ -13286,7 +13307,7 @@
           "purpose": "Where a work brief stands, which decides its work control:"
         },
         "laneLabel": {
-          "line": 443,
+          "line": 453,
           "params": [
             "purpose",
             "laneName"
@@ -13294,14 +13315,14 @@
           "purpose": "A brief lane's link: \"Discussing in <lane>\" or \"Shaping in <lane>\". A lane without a purpose is a Discuss lane."
         },
         "partCountLabel": {
-          "line": 464,
+          "line": 474,
           "params": [
             "counts"
           ],
           "purpose": "A shaped card's parts: \"1 spec\", \"2 specs · 1 task\"; '' for none or unknown."
         },
         "shapedNotice": {
-          "line": 471,
+          "line": 481,
           "params": [
             "number",
             "count"
@@ -13309,49 +13330,49 @@
           "purpose": "The toast when a Shape landed: \"Brief #5 was shaped into 2 parts and is ready to run.\"; the count is left out when unknown."
         },
         "shapeErrorMessage": {
-          "line": 479,
+          "line": 489,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Shape that could not start."
         },
         "startDialogTitle": {
-          "line": 489,
+          "line": 499,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading: \"Start work on brief #5\"."
         },
         "beginDialogTitle": {
-          "line": 494,
+          "line": 504,
           "params": [
             "title"
           ],
           "purpose": "The Begin dialog's heading, for one part of a started brief: \"Begin “Fix typo”\"."
         },
         "beginWithLabel": {
-          "line": 503,
+          "line": 513,
           "params": [
             "title"
           ],
           "purpose": "A Begin choice: \"Begin with “Login flow”\"."
         },
         "beginHint": {
-          "line": 508,
+          "line": 518,
           "params": [
             "shape"
           ],
           "purpose": "What Begin opens, by the part's shape."
         },
         "baseMissingLine": {
-          "line": 526,
+          "line": 536,
           "params": [
             "targetBranch"
           ],
           "purpose": "The line under the branch row when the brief's target branch is on neither this machine nor origin."
         },
         "dirtyWarning": {
-          "line": 533,
+          "line": 543,
           "params": [
             "branch",
             "count"
@@ -13359,14 +13380,14 @@
           "purpose": "The dirty folder's warning: \"feat/x has 3 uncommitted changes. …\"."
         },
         "startSubmitLabel": {
-          "line": 543,
+          "line": 553,
           "params": [
             "pending"
           ],
           "purpose": "The confirm button: \"Start\", or \"Starting…\" while it runs."
         },
         "partProblemMessage": {
-          "line": 556,
+          "line": 566,
           "params": [
             "title",
             "reason"
@@ -13374,21 +13395,21 @@
           "purpose": "A part whose definition does not parse: \"“Fix typo” has no Description section. Edit it on the web.\""
         },
         "startErrorMessage": {
-          "line": 579,
+          "line": 589,
           "params": [
             "result"
           ],
           "purpose": "The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`."
         },
         "partialMessage": {
-          "line": 600,
+          "line": 610,
           "params": [
             "result"
           ],
           "purpose": "A start that went through in the cloud and then failed locally: which step"
         },
         "startedNotice": {
-          "line": 619,
+          "line": 629,
           "params": [
             "{ mode",
             "number",
@@ -13399,19 +13420,19 @@
           "purpose": "The toast when a part was begun: \"Brief #5 started: “Login flow” on"
         },
         "specState": {
-          "line": 646,
+          "line": 656,
           "params": [
             "spec"
           ]
         },
         "taskState": {
-          "line": 659,
+          "line": 669,
           "params": [
             "task"
           ]
         },
         "countsAsMerged": {
-          "line": 671,
+          "line": 681,
           "params": [
             "part",
             "target"
@@ -13419,28 +13440,28 @@
           "purpose": "Whether a part counts as merged: the cloud saw it on a target"
         },
         "droppedLabel": {
-          "line": 677,
+          "line": 687,
           "params": [
             "reason"
           ],
           "purpose": "A dropped part's row: \"Dropped · <reason>\", or \"Dropped\" without one."
         },
         "mergedLabel": {
-          "line": 682,
+          "line": 692,
           "params": [
             "target"
           ],
           "purpose": "A merged part's row: \"Merged into <target>\"."
         },
         "prLabel": {
-          "line": 695,
+          "line": 705,
           "params": [
             "number"
           ],
           "purpose": "\"PR #7\", the number a PR row shows (and links when the server gave a URL)."
         },
         "prStatus": {
-          "line": 708,
+          "line": 718,
           "params": [
             "p",
             "target",
@@ -13449,7 +13470,7 @@
           "purpose": "A part's pull request as a row, while tracking is `ready` (the web's"
         },
         "partStatus": {
-          "line": 754,
+          "line": 764,
           "params": [
             "{ done",
             "...facts } = {}"
@@ -13457,7 +13478,7 @@
           "purpose": "Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry"
         },
         "partStatusOf": {
-          "line": 759,
+          "line": 769,
           "params": [
             "{ part",
             "spec",
@@ -13468,28 +13489,28 @@
           ]
         },
         "runLabel": {
-          "line": 789,
+          "line": 799,
           "params": [
             "run"
           ],
           "purpose": "A part row's button: Begin for a part still on the brief, Run for its next step."
         },
         "runHint": {
-          "line": 794,
+          "line": 804,
           "params": [
             "run"
           ],
           "purpose": "What Run does for a part, as its tooltip."
         },
         "laneLine": {
-          "line": 799,
+          "line": 809,
           "params": [
             "laneName"
           ],
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 814,
+          "line": 824,
           "params": [
             "statuses",
             "tracking = 'ready'"
@@ -13497,7 +13518,7 @@
           "purpose": "A started brief's line under its parts, only with more than one. While"
         },
         "partAttention": {
-          "line": 849,
+          "line": 859,
           "params": [
             "entries",
             "target"
@@ -13505,49 +13526,49 @@
           "purpose": "A card's attention line (the web's K2 row): the first part, in order, a"
         },
         "trackingWarning": {
-          "line": 884,
+          "line": 894,
           "params": [
             "tracking"
           ],
           "purpose": "The board's tracking box for a `mergeTracking` → `{ title, description }`, or null while tracking is ready."
         },
         "partNotHereMessage": {
-          "line": 889,
+          "line": 899,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "movedNotice": {
-          "line": 908,
+          "line": 918,
           "params": [
             "number"
           ],
           "purpose": "The Undo toast: \"Moved #5 to Done\"."
         },
         "moveToDoneTitle": {
-          "line": 913,
+          "line": 923,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move to Done that needs a reason: \"Move #5 to Done?\"."
         },
         "moveBackTitle": {
-          "line": 918,
+          "line": 928,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move back: \"Move #5 back to Active?\"."
         },
         "moveToDoneDescription": {
-          "line": 923,
+          "line": 933,
           "params": [
             "target"
           ],
           "purpose": "The move-to-Done dialog's description, naming the brief's target."
         },
         "missingPartsLine": {
-          "line": 929,
+          "line": 939,
           "params": [
             "count",
             "target"
@@ -13555,35 +13576,35 @@
           "purpose": "The line over the dialog's missing parts: \"1 part not merged into main.\", \"2 parts …\"."
         },
         "missingParts": {
-          "line": 939,
+          "line": 949,
           "params": [
             "brief"
           ],
           "purpose": "Live parts that do not count on the brief's current target: what a move to"
         },
         "needsReason": {
-          "line": 951,
+          "line": 961,
           "params": [
             "brief"
           ],
           "purpose": "Whether a move to Done asks for a reason: the project's merges are tracked"
         },
         "doneLine": {
-          "line": 960,
+          "line": 970,
           "params": [
             "brief"
           ],
           "purpose": "A Done brief's header line, as the web shows it: \"Done: reason · date\","
         },
         "moveErrorMessage": {
-          "line": 986,
+          "line": 996,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a move that was refused or failed."
         },
         "submitLabel": {
-          "line": 1004,
+          "line": 1014,
           "params": [
             "kind",
             "pending"
@@ -13591,14 +13612,115 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 1024,
+          "line": 1034,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
+        "milestoneStatusLabel": {
+          "line": 1051,
+          "params": [
+            "status"
+          ]
+        },
+        "timeOf": {
+          "line": 1056,
+          "params": [
+            "iso"
+          ],
+          "purpose": "A timestamp as milliseconds, or null when missing or unreadable."
+        },
+        "startedMilestone": {
+          "line": 1067,
+          "params": [
+            "milestones"
+          ],
+          "purpose": "The project's started milestone, or null. A project has at most one, but an"
+        },
+        "briefsInMilestone": {
+          "line": 1081,
+          "params": [
+            "briefs",
+            "milestoneId"
+          ],
+          "purpose": "The briefs under `milestoneId`, in the list's order."
+        },
+        "countsWithBriefs": {
+          "line": 1093,
+          "params": [
+            "milestone",
+            "briefs"
+          ],
+          "purpose": "The milestone's counts with backlog, active and done taken from `briefs`"
+        },
+        "milestoneProgress": {
+          "line": 1105,
+          "params": [
+            "counts"
+          ],
+          "purpose": "Done over unfinished plus done: `{ done, total, percent, label }`, the"
+        },
+        "localToday": {
+          "line": 1117,
+          "params": [
+            "now = new Date("
+          ],
+          "purpose": "The viewer's calendar date as `YYYY-MM-DD`, the shape `targetDate` has."
+        },
+        "isOverdue": {
+          "line": 1126,
+          "params": [
+            "milestone",
+            "today = localToday("
+          ],
+          "purpose": "A started milestone whose end date has passed with briefs still to finish."
+        },
+        "formatTargetDate": {
+          "line": 1144,
+          "params": [
+            "date"
+          ],
+          "purpose": "A calendar date as \"Nov 20, 2026\". It names a day, not an instant, so no time zone moves it."
+        },
+        "endsLine": {
+          "line": 1150,
+          "params": [
+            "targetDate"
+          ],
+          "purpose": "\"Ends Nov 20, 2026\", or \"No end date\"."
+        },
+        "targetBranchLine": {
+          "line": 1158,
+          "params": [
+            "milestone"
+          ],
+          "purpose": "\"Targets release/1.0\" for a milestone with a target branch of its own, or"
+        },
+        "milestoneSummary": {
+          "line": 1170,
+          "params": [
+            "milestone",
+            "today = localToday("
+          ],
+          "purpose": "What the strip and Home's tracker draw for `milestone` (its `briefs` already"
+        },
+        "milestoneRowFacts": {
+          "line": 1188,
+          "params": [
+            "milestone"
+          ],
+          "purpose": "The detail's Milestone row after the name: its status, and its end date"
+        },
+        "milestoneProgressLabel": {
+          "line": 1198,
+          "params": [
+            "name"
+          ],
+          "purpose": "The progress bar's accessible name."
+        },
         "attachmentNotice": {
-          "line": 1029,
+          "line": 1203,
           "params": [
             "number",
             "reason"
@@ -13606,7 +13728,7 @@
           "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       },
-      "sizeBytes": 47559,
+      "sizeBytes": 54958,
       "extraction": {
         "status": "parsed"
       },
@@ -13619,7 +13741,9 @@
           "beginDialogTitle": "6e7fe51344acb8ed",
           "beginHint": "e5bc78f91f366c30",
           "beginWithLabel": "547e05fff4310553",
+          "briefsInMilestone": "b3cf3a457b13e247",
           "countsAsMerged": "64ff9be5a40b50d5",
+          "countsWithBriefs": "47f1df1672588d25",
           "createErrorMessage": "279a3b13f69e502c",
           "decideErrorMessage": "7713d9d00b7423e9",
           "dirtyWarning": "456a2bb5ed9fa6b5",
@@ -13631,16 +13755,24 @@
           "droppedLabel": "2587d54d518f7223",
           "endingFact": "8c36c3386920b7d9",
           "endingLine": "e9a7bc5183494b05",
+          "endsLine": "f0e4c24af053c6fc",
           "eventAction": "7690f1174a49eff2",
           "eventSentence": "81801f2fda4c7591",
           "eventText": "50e574c4925f2257",
           "formatDate": "e6b43d1d523c3d27",
+          "formatTargetDate": "847858045fd60f7a",
           "groupByColumn": "45ade8b2eeef6f7d",
           "isObserved": "8e455807491e8906",
+          "isOverdue": "1706059508034fd1",
           "joinList": "0256b53389e83c79",
           "laneLabel": "e24a214671bf5f93",
           "laneLine": "0e006954d161ac9d",
+          "localToday": "14a8b075a476a5cb",
           "mergedLabel": "cc112b440a2b496d",
+          "milestoneProgress": "6f3ecd909842f6fe",
+          "milestoneProgressLabel": "5bded5892a11142c",
+          "milestoneRowFacts": "34446b7417c374f3",
+          "milestoneSummary": "d4c7c3c9fb43e157",
           "missingParts": "ab9c96b9323a115a",
           "missingPartsLine": "2a6d44f2e85815b5",
           "moveBackTitle": "7ea01a85fefc588f",
@@ -13672,8 +13804,11 @@
           "startErrorMessage": "0b813e3ce3bc48ef",
           "startSubmitLabel": "2b1ac5a0cec7d54b",
           "startedLine": "f4cacdab3b5b9fbf",
+          "startedMilestone": "52a2be0b7b69f5a4",
           "startedNotice": "e8cbb50b2b5a5125",
           "submitLabel": "17819e59143014e2",
+          "targetBranchLine": "a331f5a82629ad98",
+          "timeOf": "6ee9952cc2421ce9",
           "trackingWarning": "4ae0349b26cfc3a5",
           "workStage": "1ed805ddd775063b"
         }
@@ -34602,9 +34737,15 @@
             "data",
             "actorId"
           ]
+        },
+        "milestone": {
+          "line": 1013,
+          "params": [
+            "overrides = {}"
+          ]
         }
       },
-      "sizeBytes": 60631,
+      "sizeBytes": 69058,
       "extraction": {
         "status": "parsed"
       },
@@ -42108,6 +42249,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "de13f5703bb3a0db4c9fdc1d2f4a931e6f04a3f4adf24964050c7b5a35eef57f"
+    "revision": "2a42ad1f9f5d7d88dee5d3b15bf5a98a26f5276eea76ad3b24d9f75fc30cad95"
   }
 }

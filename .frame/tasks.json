@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:54:04.357Z",
+  "lastUpdated": "2026-11-15T09:58:40.856Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10996,13 +10996,13 @@
       "title": "Port the web's milestone rules and words into `src/renderer/cloudBriefsCopy.js` (`MILESTONE_STATUS_LABEL`, `OVERDUE_LABEL`, the strip labels, `startedMilestone` with the earliest `startedAt` winning and a missing one last, `briefsInMilestone`, `countsWithBriefs`, `milestoneProgress`, `localToday`, `isOverdue`, UTC `formatTargetDate`, `targetBranchLine`, `milestoneSummary` with the name-only case when `briefs` is null, `milestoneRowFacts`), and cover each in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:58:40.856Z",
+      "completedAt": "2026-11-15T09:58:40.856Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T04",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 40
+    "totalCompleted": 41
   },
   "categories": {
     "feature": "New features",

@@ -15,3 +15,12 @@ Added `milestones(folderPath)` to `src/main/cloud/cloudBriefsService.js` (one `m
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T03 — Port the milestone rules and words
+
+Ported `lib/milestone.ts` and the strip's words from `board-milestone.tsx` into a Milestones section of `src/renderer/cloudBriefsCopy.js`, with tests for every rule in `test/cloudBriefsCopy.test.js`. Diverged from the web on purpose: `countsWithBriefs` filters to the milestone's own briefs itself (the panel passes every shown brief) and returns null without server counts, so D11's name-only case needs no extra checks. Added `endsLine`, `NO_END_DATE_LABEL`, `STARTED_MILESTONE_LABEL` and `milestoneProgressLabel` beyond the plan's list so the panel and Home share one wording; `milestoneRowFacts` shows the end date only while the milestone is open.
+Followup: the existing `formatDate` test fails under `TZ=Pacific/Kiritimati` (noon UTC is the next day at UTC+14); unrelated to this spec.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---
