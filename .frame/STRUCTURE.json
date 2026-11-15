@@ -19262,25 +19262,28 @@
         "title",
         "icon",
         "sources",
+        "'milestone']",
         "defaultSpan",
         "defaultEnabled",
         "isAvailable",
         "mount(el",
-        "ctx) {\n    this.ctx = ctx;\n    this._starting = false;\n\n    this.el = document.createElement('div');\n    this.el.className = 'home-composer';\n    // The picker is the shared .ai-tool-picker (the terminal header's)",
+        "ctx) {\n    this.ctx = ctx;\n    this._starting = false;\n    this._milestoneKey = undefined;\n    this._milestoneId = null;\n\n    this.el = document.createElement('div');\n    this.el.className = 'home-composer';\n    // The picker is the shared .ai-tool-picker (the terminal header's)",
         "the native <select> underneath stays the\n    // interactive element",
         "so clicking anywhere on the box opens it.\n    // The greeting sits over the box; the agent picker and Start share the\n    // box's bottom row",
         "picker left",
-        "Start right.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n        <div class=\"home-composer-box\">\n          <textarea class=\"home-composer-input\" rows=\"5\" spellcheck=\"false\"\n                    aria-label=\"Prompt for the agent\" placeholder=\"${escapeHtml(PLACEHOLDER)"
+        "Start right.\n    this.el.innerHTML = `\n      <div class=\"home-composer-stack\">\n        <div class=\"home-composer-head\">\n          <h1 class=\"home-composer-title\">Welcome to Frame!</h1>\n          <button type=\"button\" class=\"home-milestone\" title=\"${escapeHtml(MILESTONE_HINT)"
       ],
       "depends": [
         "lucide",
         "../../htmlUtils",
         "../../notify",
         "../homeData",
+        "../../cloudBriefsCopy",
+        "../../cloudBriefsPanel",
         "../../agentDispatch"
       ],
       "functions": {},
-      "sizeBytes": 6533,
+      "sizeBytes": 9878,
       "extraction": {
         "status": "parsed"
       },
@@ -24308,7 +24311,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 37599,
+      "sizeBytes": 39953,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -42385,6 +42388,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "75495088f4ca5fa05eb027965258c64fbddf8ebbf7e22a7f98a617ea7abe8f65"
+    "revision": "da76a8d588cc0062ca236ba0e30371d35e89a79719e603ae61889136b259f4ae"
   }
 }

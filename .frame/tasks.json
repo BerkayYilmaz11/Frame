@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:12:56.987Z",
+  "lastUpdated": "2026-11-15T10:15:43.175Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11100,18 +11100,18 @@
       "title": "Add Home's milestone tracker to `src/renderer/home/widgets/agents.js`: declare `sources: ['aiTool', 'milestone']`, wrap the title in `.home-composer-head` beside a hidden `<button class=\"home-milestone\">` filled from `milestoneSummary(value.milestone, localToday())` (escaped, rebuilt only when the summary changes, hidden on null), open `cloudBriefsPanel.openMilestone(id)` on click, call `homeData.refreshMilestoneIfStale()` on mount and on window focus while connected, remove the focus listener in a new `dispose()`, and style the row and pill (wrapping under the title at narrow widths, hover and `:focus-visible`) in `src/renderer/styles/components/home-board.css`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T11",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:15:43.175Z",
+      "completedAt": "2026-11-15T10:15:43.175Z"
     }
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 48
+    "totalCompleted": 49
   },
   "categories": {
     "feature": "New features",

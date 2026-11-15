@@ -80,3 +80,11 @@ _Captured: 2026-11-15 · 1 file change(s)_
 _Captured: 2026-11-15 · 1 file change(s)_
 
 ---
+
+## T11 — Draw Home's milestone tracker
+
+The Agents widget (`src/renderer/home/widgets/agents.js`) reads `['aiTool', 'milestone']` and puts a hidden `.home-milestone` button beside "Welcome to Frame!" in a new `.home-composer-head`, filled from `milestoneSummary` (name, Overdue, end date, bar, "N of M done", chevron) and rebuilt only when the summary changes. A click calls `cloudBriefsPanel.openMilestone(id)`; `mount` and window focus (while connected) call `homeData.refreshMilestoneIfStale()`, and the existing `dispose()` now removes that listener. `home-board.css` styles the wrapping row and the pill (hover, `:focus-visible`, light scheme); the `[hidden]` rule is restated because the pill's `display` would override it.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---
