@@ -40,3 +40,10 @@ Passed `brief.mergeTracking` to both `partsSummary` calls (`renderCardParts` and
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T07 — The `part-merged` sentence
+
+Ported the web's `part-merged` case into `eventAction` in `src/renderer/cloudBriefsCopy.js` (the sha shortened to 7 characters inline, as the web's `shortSha` does) and made `isObserved` true for it, so the History tab reads it as a whole sentence with no actor; this overturns frame-cloud-brief-manual-done D8, which the `isObserved` comment and the header now say. The plan's test lines 721–723 had moved to 913–915; replaced them there with the full sentence, " through PR #N", the no-title/target/sha cases, a non-number `pr` and an actorless event.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

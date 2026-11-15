@@ -13042,47 +13042,47 @@
       ],
       "functions": {
         "groupByColumn": {
-          "line": 44,
+          "line": 45,
           "params": [
             "briefs"
           ],
           "purpose": "A list grouped by status, each group keeping the list's order. Unknown statuses fall into Backlog."
         },
         "statusLabel": {
-          "line": 70,
+          "line": 71,
           "params": [
             "status"
           ]
         },
         "isPriority": {
-          "line": 76,
+          "line": 77,
           "params": [
             "value"
           ]
         },
         "priorityLabel": {
-          "line": 81,
+          "line": 82,
           "params": [
             "priority"
           ],
           "purpose": "'High' / 'Medium' / 'Low', or '' for anything else."
         },
         "endingFact": {
-          "line": 86,
+          "line": 87,
           "params": [
             "brief"
           ],
           "purpose": "How a closed brief ended — `{ label, reason, at }` — or null for an open one. Close wins over drop over decision."
         },
         "endingLine": {
-          "line": 95,
+          "line": 96,
           "params": [
             "brief"
           ],
           "purpose": "The ending as one line: \"Closed: reason\", \"Dropped\", \"Recorded as decision\"; '' for an open brief."
         },
         "actorLabel": {
-          "line": 102,
+          "line": 103,
           "params": [
             "id",
             "meId"
@@ -13090,27 +13090,27 @@
           "purpose": "\"You\" for the caller, \"A workspace member\" for anyone else: there is no member list."
         },
         "formatDate": {
-          "line": 109,
+          "line": 110,
           "params": [
             "iso"
           ],
           "purpose": "An ISO timestamp as \"18 Sept 2026\" in the viewer's time zone; '' when missing or unreadable."
         },
         "text": {
-          "line": 115,
+          "line": 116,
           "params": [
             "value"
           ]
         },
         "joinList": {
-          "line": 120,
+          "line": 121,
           "params": [
             "items"
           ],
           "purpose": "\"a\", \"a and b\", \"a, b and c\"."
         },
         "eventAction": {
-          "line": 126,
+          "line": 127,
           "params": [
             "event",
             "meId"
@@ -13118,14 +13118,14 @@
           "purpose": "What happened, without who or when. `data` is whatever that event's write recorded."
         },
         "isObserved": {
-          "line": 236,
+          "line": 250,
           "params": [
             "event"
           ],
-          "purpose": "Whether the cloud observed this event rather than a person doing it: a"
+          "purpose": "Whether the cloud observed this event rather than a person doing it, as the"
         },
         "eventSentence": {
-          "line": 243,
+          "line": 258,
           "params": [
             "event",
             "meId"
@@ -13133,35 +13133,35 @@
           "purpose": "One history line: who did what, and the day it happened; an observed event has no actor. → `{ sentence, date }`."
         },
         "shapedLine": {
-          "line": 253,
+          "line": 268,
           "params": [
             "iso"
           ],
           "purpose": "The Parts tab's line for a shaped brief: \"Shaped 18 Sept 2026\"; '' when unshaped or unreadable."
         },
         "startedLine": {
-          "line": 259,
+          "line": 274,
           "params": [
             "iso"
           ],
           "purpose": "The Parts tab's line for a started brief: \"Started 18 Sept 2026\"; '' when unstarted or unreadable."
         },
         "reasonMessage": {
-          "line": 276,
+          "line": 291,
           "params": [
             "reason"
           ],
           "purpose": "The panel's sentence for a failed read's `reason`."
         },
         "discussionCountLabel": {
-          "line": 285,
+          "line": 300,
           "params": [
             "count"
           ],
           "purpose": "A card's record count: \"1 discussion recorded\", \"2 discussions recorded\"; '' for none or unknown."
         },
         "proposalStage": {
-          "line": 296,
+          "line": 311,
           "params": [
             "{ brief",
             "laneOpen",
@@ -13170,14 +13170,14 @@
           "purpose": "Where an open proposal stands, which decides its controls:"
         },
         "newCommentsLabel": {
-          "line": 304,
+          "line": 319,
           "params": [
             "count"
           ],
           "purpose": "\"1 new comment\", \"3 new comments\"; '' for none or unknown."
         },
         "newCommentIds": {
-          "line": 313,
+          "line": 328,
           "params": [
             "comments",
             "events",
@@ -13186,34 +13186,34 @@
           "purpose": "The ids of the comments that are new: added by someone other than `meId`"
         },
         "decideErrorMessage": {
-          "line": 342,
+          "line": 357,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Move to Work that failed."
         },
         "discussingIn": {
-          "line": 347,
+          "line": 362,
           "params": [
             "laneName"
           ],
           "purpose": "A card's live lane: \"Discussing in <lane>\"."
         },
         "eventText": {
-          "line": 357,
+          "line": 372,
           "params": [
             "value"
           ],
           "purpose": "A trimmed string, or '' — a `brief_event.data` field is unknown on the wire."
         },
         "httpUrl": {
-          "line": 361,
+          "line": 376,
           "params": [
             "value"
           ]
         },
         "discussionRecords": {
-          "line": 373,
+          "line": 388,
           "params": [
             "events",
             "meId",
@@ -13222,14 +13222,14 @@
           "purpose": "The brief's discussion records, newest first (`brief.events` is oldest"
         },
         "discussErrorMessage": {
-          "line": 405,
+          "line": 420,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Discuss that could not start."
         },
         "workStage": {
-          "line": 419,
+          "line": 434,
           "params": [
             "{ brief",
             "laneOpen }"
@@ -13237,7 +13237,7 @@
           "purpose": "Where a work brief stands, which decides its work control:"
         },
         "laneLabel": {
-          "line": 428,
+          "line": 443,
           "params": [
             "purpose",
             "laneName"
@@ -13245,14 +13245,14 @@
           "purpose": "A brief lane's link: \"Discussing in <lane>\" or \"Shaping in <lane>\". A lane without a purpose is a Discuss lane."
         },
         "partCountLabel": {
-          "line": 449,
+          "line": 464,
           "params": [
             "counts"
           ],
           "purpose": "A shaped card's parts: \"1 spec\", \"2 specs · 1 task\"; '' for none or unknown."
         },
         "shapedNotice": {
-          "line": 456,
+          "line": 471,
           "params": [
             "number",
             "count"
@@ -13260,49 +13260,49 @@
           "purpose": "The toast when a Shape landed: \"Brief #5 was shaped into 2 parts and is ready to run.\"; the count is left out when unknown."
         },
         "shapeErrorMessage": {
-          "line": 464,
+          "line": 479,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a Shape that could not start."
         },
         "startDialogTitle": {
-          "line": 474,
+          "line": 489,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading: \"Start work on brief #5\"."
         },
         "beginDialogTitle": {
-          "line": 479,
+          "line": 494,
           "params": [
             "title"
           ],
           "purpose": "The Begin dialog's heading, for one part of a started brief: \"Begin “Fix typo”\"."
         },
         "beginWithLabel": {
-          "line": 488,
+          "line": 503,
           "params": [
             "title"
           ],
           "purpose": "A Begin choice: \"Begin with “Login flow”\"."
         },
         "beginHint": {
-          "line": 493,
+          "line": 508,
           "params": [
             "shape"
           ],
           "purpose": "What Begin opens, by the part's shape."
         },
         "baseMissingLine": {
-          "line": 511,
+          "line": 526,
           "params": [
             "targetBranch"
           ],
           "purpose": "The line under the branch row when the brief's target branch is on neither this machine nor origin."
         },
         "dirtyWarning": {
-          "line": 518,
+          "line": 533,
           "params": [
             "branch",
             "count"
@@ -13310,14 +13310,14 @@
           "purpose": "The dirty folder's warning: \"feat/x has 3 uncommitted changes. …\"."
         },
         "startSubmitLabel": {
-          "line": 528,
+          "line": 543,
           "params": [
             "pending"
           ],
           "purpose": "The confirm button: \"Start\", or \"Starting…\" while it runs."
         },
         "partProblemMessage": {
-          "line": 541,
+          "line": 556,
           "params": [
             "title",
             "reason"
@@ -13325,21 +13325,21 @@
           "purpose": "A part whose definition does not parse: \"“Fix typo” has no Description section. Edit it on the web.\""
         },
         "startErrorMessage": {
-          "line": 564,
+          "line": 579,
           "params": [
             "result"
           ],
           "purpose": "The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`."
         },
         "partialMessage": {
-          "line": 585,
+          "line": 600,
           "params": [
             "result"
           ],
           "purpose": "A start that went through in the cloud and then failed locally: which step"
         },
         "startedNotice": {
-          "line": 604,
+          "line": 619,
           "params": [
             "{ mode",
             "number",
@@ -13350,19 +13350,19 @@
           "purpose": "The toast when a part was begun: \"Brief #5 started: “Login flow” on"
         },
         "specState": {
-          "line": 631,
+          "line": 646,
           "params": [
             "spec"
           ]
         },
         "taskState": {
-          "line": 644,
+          "line": 659,
           "params": [
             "task"
           ]
         },
         "countsAsMerged": {
-          "line": 656,
+          "line": 671,
           "params": [
             "part",
             "target"
@@ -13370,28 +13370,28 @@
           "purpose": "Whether a part counts as merged: the cloud saw it on a target"
         },
         "droppedLabel": {
-          "line": 662,
+          "line": 677,
           "params": [
             "reason"
           ],
           "purpose": "A dropped part's row: \"Dropped · <reason>\", or \"Dropped\" without one."
         },
         "mergedLabel": {
-          "line": 667,
+          "line": 682,
           "params": [
             "target"
           ],
           "purpose": "A merged part's row: \"Merged into <target>\"."
         },
         "prLabel": {
-          "line": 680,
+          "line": 695,
           "params": [
             "number"
           ],
           "purpose": "\"PR #7\", the number a PR row shows (and links when the server gave a URL)."
         },
         "prStatus": {
-          "line": 693,
+          "line": 708,
           "params": [
             "p",
             "target",
@@ -13400,7 +13400,7 @@
           "purpose": "A part's pull request as a row, while tracking is `ready` (the web's"
         },
         "partStatus": {
-          "line": 739,
+          "line": 754,
           "params": [
             "{ done",
             "...facts } = {}"
@@ -13408,7 +13408,7 @@
           "purpose": "Where one part of a started brief stands. `spec` is its `SPEC_DATA` entry"
         },
         "partStatusOf": {
-          "line": 744,
+          "line": 759,
           "params": [
             "{ part",
             "spec",
@@ -13419,28 +13419,28 @@
           ]
         },
         "runLabel": {
-          "line": 774,
+          "line": 789,
           "params": [
             "run"
           ],
           "purpose": "A part row's button: Begin for a part still on the brief, Run for its next step."
         },
         "runHint": {
-          "line": 779,
+          "line": 794,
           "params": [
             "run"
           ],
           "purpose": "What Run does for a part, as its tooltip."
         },
         "laneLine": {
-          "line": 784,
+          "line": 799,
           "params": [
             "laneName"
           ],
           "purpose": "A part's lane link: \"in Frame 3\"."
         },
         "partsSummary": {
-          "line": 799,
+          "line": 814,
           "params": [
             "statuses",
             "tracking = 'ready'"
@@ -13448,7 +13448,7 @@
           "purpose": "A started brief's line under its parts, only with more than one. While"
         },
         "partAttention": {
-          "line": 834,
+          "line": 849,
           "params": [
             "entries",
             "target"
@@ -13456,42 +13456,42 @@
           "purpose": "A card's attention line (the web's K2 row): the first part, in order, a"
         },
         "partNotHereMessage": {
-          "line": 857,
+          "line": 872,
           "params": [
             "ref"
           ],
           "purpose": "A part link whose task this folder does not hold."
         },
         "movedNotice": {
-          "line": 876,
+          "line": 891,
           "params": [
             "number"
           ],
           "purpose": "The Undo toast: \"Moved #5 to Done\"."
         },
         "moveToDoneTitle": {
-          "line": 881,
+          "line": 896,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move to Done that needs a reason: \"Move #5 to Done?\"."
         },
         "moveBackTitle": {
-          "line": 886,
+          "line": 901,
           "params": [
             "number"
           ],
           "purpose": "The dialog's heading for a move back: \"Move #5 back to Active?\"."
         },
         "moveToDoneDescription": {
-          "line": 891,
+          "line": 906,
           "params": [
             "target"
           ],
           "purpose": "The move-to-Done dialog's description, naming the brief's target."
         },
         "missingPartsLine": {
-          "line": 897,
+          "line": 912,
           "params": [
             "count",
             "target"
@@ -13499,35 +13499,35 @@
           "purpose": "The line over the dialog's missing parts: \"1 part not merged into main.\", \"2 parts …\"."
         },
         "missingParts": {
-          "line": 907,
+          "line": 922,
           "params": [
             "brief"
           ],
           "purpose": "Live parts that do not count on the brief's current target: what a move to"
         },
         "needsReason": {
-          "line": 919,
+          "line": 934,
           "params": [
             "brief"
           ],
           "purpose": "Whether a move to Done asks for a reason: the project's merges are tracked"
         },
         "doneLine": {
-          "line": 928,
+          "line": 943,
           "params": [
             "brief"
           ],
           "purpose": "A Done brief's header line, as the web shows it: \"Done: reason · date\","
         },
         "moveErrorMessage": {
-          "line": 954,
+          "line": 969,
           "params": [
             "reason"
           ],
           "purpose": "The sentence for a move that was refused or failed."
         },
         "submitLabel": {
-          "line": 972,
+          "line": 987,
           "params": [
             "kind",
             "pending"
@@ -13535,14 +13535,14 @@
           "purpose": "\"Create work\" / \"Create proposal\", or \"Creating…\" while the request runs."
         },
         "createErrorMessage": {
-          "line": 992,
+          "line": 1007,
           "params": [
             "reason"
           ],
           "purpose": "The form's sentence for a failed create's `reason`."
         },
         "attachmentNotice": {
-          "line": 997,
+          "line": 1012,
           "params": [
             "number",
             "reason"
@@ -13550,7 +13550,7 @@
           "purpose": "The board's notice when a brief was created but a link was not attached."
         }
       },
-      "sizeBytes": 45943,
+      "sizeBytes": 46817,
       "extraction": {
         "status": "parsed"
       },
@@ -13580,7 +13580,7 @@
           "eventText": "50e574c4925f2257",
           "formatDate": "e6b43d1d523c3d27",
           "groupByColumn": "45ade8b2eeef6f7d",
-          "isObserved": "69ece3bdf9093526",
+          "isObserved": "8e455807491e8906",
           "joinList": "0256b53389e83c79",
           "laneLabel": "e24a214671bf5f93",
           "laneLine": "0e006954d161ac9d",
@@ -34545,7 +34545,7 @@
           ]
         }
       },
-      "sizeBytes": 58544,
+      "sizeBytes": 60040,
       "extraction": {
         "status": "parsed"
       },
@@ -42044,6 +42044,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ea50687ffc2b36963f82558272846a0a79afea89eb79e1b53e4c311c7ea19c37"
+    "revision": "0dc7867838996b1bafee840682dcea668b3146123da7101bd08a98ba125177de"
   }
 }

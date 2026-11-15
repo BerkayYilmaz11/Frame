@@ -25,7 +25,8 @@
  * the project's tracking is `ready`, a part's pull request takes its row —
  * "PR #N · Open / In review / Approved / Changes requested", or "Merged into
  * <base>, not <target>" — unless a live agent lane is working on it. A PR is
- * a pointer, never a merge: only the cloud's `mergedAt` counts.
+ * a pointer, never a merge: only the cloud's `mergedAt` counts. The history
+ * reads `part-merged` as the web does, an observation with no actor.
  */
 
 const { ROLE_FORBIDDEN } = require('./cloudRoles');
@@ -221,6 +222,18 @@ function eventAction(event, meId) {
       const reason = text(data.reason);
       return reason ? `moved this brief back to Active: “${reason}”` : 'moved this brief back to Active';
     }
+    // Observed by the cloud, not done by a person, so it reads as a whole
+    // sentence without an actor (see isObserved).
+    case 'part-merged': {
+      const title = text(data.title);
+      const sha = text(data.sha);
+      const target = text(data.target);
+      const subject = title ? `“${title}”` : 'A part';
+      const into = target ? ` into ${target}` : '';
+      // A merge GitHub reported through a pull request (brief-github-tracking).
+      const through = typeof data.pr === 'number' ? ` through PR #${data.pr}` : '';
+      return sha ? `${subject} merged${into} at ${sha.slice(0, 7)}${through}` : `${subject} merged${into}${through}`;
+    }
     default:
       // A server newer than this port: say something true rather than nothing.
       return 'changed this brief';
@@ -228,14 +241,16 @@ function eventAction(event, meId) {
 }
 
 /**
- * Whether the cloud observed this event rather than a person doing it: a
- * `done` from before manual Done, whose data has no `missing` list. The web
- * also counts `part-merged`; Frame does not draw that event yet (plan D8), so
- * it still reads "changed this brief" with its actor.
+ * Whether the cloud observed this event rather than a person doing it, as the
+ * web reads it: a part merged (`part-merged`), and a `done` from before
+ * manual Done, whose data has no `missing` list. Drawing `part-merged`
+ * overturns frame-cloud-brief-manual-done D8, which left it reading "changed
+ * this brief" with its actor (frame-cloud-github-tracking D19).
  */
 function isObserved(event) {
   const e = event || {};
   const data = e.data && typeof e.data === 'object' ? e.data : {};
+  if (e.event === 'part-merged') return true;
   return e.event === 'done' && !Array.isArray(data.missing);
 }
 

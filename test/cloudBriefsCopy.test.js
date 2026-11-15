@@ -906,14 +906,36 @@ test('an old automatic done reads as an observation, with no actor in front', ()
     'This brief is done: every part is merged into main.');
 });
 
-test('isObserved covers only the old automatic done', () => {
+test('isObserved covers the old automatic done and a part merged', () => {
   assert.equal(copy.isObserved(ev('done', { target: 'main' })), true);
   assert.equal(copy.isObserved(ev('done', { target: 'main', missing: [] })), false);
   assert.equal(copy.isObserved(ev('done-reverted', { reason: 'x' })), false);
-  // part-merged still reads with its actor until Frame draws it (plan D8).
-  assert.equal(copy.isObserved(ev('part-merged', { title: 'A' })), false);
-  assert.equal(sentence('part-merged', { title: 'A' }, OTHER), 'A workspace member changed this brief.');
+  // Overturns frame-cloud-brief-manual-done D8: part-merged reads as the cloud's observation (D19).
+  assert.equal(copy.isObserved(ev('part-merged', { title: 'A' })), true);
+  assert.equal(copy.isObserved(ev('part-merged')), true);
   assert.equal(copy.isObserved(undefined), false);
+});
+
+const MERGE_SHA = '0123456789abcdef0123456789abcdef01234567';
+
+test('part-merged reads as the web says it, with no actor', () => {
+  assert.equal(sentence('part-merged', { title: 'Store it', target: 'main', sha: MERGE_SHA }, OTHER),
+    '“Store it” merged into main at 0123456.');
+  assert.equal(sentence('part-merged', { title: 'Store it', target: 'main', sha: MERGE_SHA, pr: 12 }, ME),
+    '“Store it” merged into main at 0123456 through PR #12.');
+  // Written by the cloud, so it may have no actor at all.
+  assert.equal(copy.eventSentence({ id: 'e', at: AT, actorId: '', event: 'part-merged', data: { title: 'A', target: 'main' } }, ME).sentence,
+    '“A” merged into main.');
+});
+
+test('part-merged leaves out what the event does not carry', () => {
+  assert.equal(sentence('part-merged', { target: 'main', sha: MERGE_SHA }, OTHER), 'A part merged into main at 0123456.');
+  assert.equal(sentence('part-merged', { title: 'Store it', sha: MERGE_SHA }, OTHER), '“Store it” merged at 0123456.');
+  assert.equal(sentence('part-merged', { title: 'Store it', target: 'main' }, OTHER), '“Store it” merged into main.');
+  assert.equal(sentence('part-merged', { title: 'Store it', target: 'main', pr: 12 }, OTHER), '“Store it” merged into main through PR #12.');
+  assert.equal(sentence('part-merged', {}, OTHER), 'A part merged.');
+  // " through PR #N" only for a number.
+  assert.equal(sentence('part-merged', { title: 'Store it', pr: '12' }, OTHER), '“Store it” merged.');
 });
 
 test('moveErrorMessage has the web\'s sentence for every refusal, the shared ones and a fallback', () => {

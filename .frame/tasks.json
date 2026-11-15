@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:11:00.224Z",
+  "lastUpdated": "2026-11-15T09:12:57.182Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10944,13 +10944,13 @@
       "title": "In `src/renderer/cloudBriefsCopy.js`, add the `part-merged` case to `eventAction` with the web's sentence `“title” merged into <target> at <sha7> through PR #N` (\"A part\" without a title, no \" into\" without a target, no \" at\" without a sha, \" through PR #N\" only when `data.pr` is a number), make `isObserved` cover `part-merged` so it reads with no actor, and update the header lines citing manual-done D8; replace the assertions at `test/cloudBriefsCopy.test.js:721-723` with the full sentence, the PR suffix, and the no-title/target/sha cases",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:12:57.182Z",
+      "completedAt": "2026-11-15T09:12:57.182Z"
     },
     {
       "id": "task-spec-frame-cloud-github-tracking-T08",
