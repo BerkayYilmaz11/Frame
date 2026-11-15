@@ -5,3 +5,10 @@ Added `off` to `MERGE_TRACKING`, read the five PR fields in `normalizePart` with
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T02 — Use them in main
+
+Swapped `list` to `core.mergeTrackingOf` and deleted the service's own copy. Split the auth lookup into `webInputs` so `webUrl` and the new `settingsWebUrl` share it, and made `openOnWeb(folderPath, target)` open Settings for `'settings'`, the brief for a number, the project for `undefined`/`null`, and nothing otherwise; the handler, the header and the `CLOUD_BRIEFS_OPEN_ON_WEB` comment follow. Files: `src/main/cloud/cloudBriefsService.js`, `src/shared/ipcChannels.js`; no service tests exist, as before.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

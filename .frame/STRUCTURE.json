@@ -1711,11 +1711,11 @@
       ],
       "functions": {
         "meId": {
-          "line": 41,
+          "line": 47,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "reportAfter": {
-          "line": 51,
+          "line": 57,
           "params": [
             "folderPath",
             "project",
@@ -1723,22 +1723,28 @@
           ],
           "purpose": "Report what this machine knows about the read's parts once the read has"
         },
+        "webInputs": {
+          "line": 64,
+          "params": [
+            "project"
+          ],
+          "purpose": "What every web link of the project is built from, or null when signed out."
+        },
         "webUrl": {
-          "line": 57,
+          "line": 75,
           "params": [
             "project",
             "number"
           ]
         },
-        "mergeTrackingOf": {
-          "line": 74,
+        "settingsWebUrl": {
+          "line": 80,
           "params": [
-            "briefs"
-          ],
-          "purpose": "Whether the cloud can see the project's merges, from the listed briefs"
+            "project"
+          ]
         },
         "list": {
-          "line": 82,
+          "line": 89,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
@@ -1746,7 +1752,7 @@
           "purpose": "The folder's briefs and milestones."
         },
         "get": {
-          "line": 111,
+          "line": 118,
           "params": [
             "folderPath",
             "number"
@@ -1754,7 +1760,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 138,
+          "line": 145,
           "params": [
             "folderPath",
             "request"
@@ -1762,7 +1768,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 157,
+          "line": 164,
           "params": [
             "folderPath",
             "number",
@@ -1771,7 +1777,7 @@
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
         "moveKey": {
-          "line": 170,
+          "line": 177,
           "params": [
             "folderPath",
             "number"
@@ -1779,7 +1785,7 @@
           "purpose": "A held move's key: the folder and the brief number, joined by a NUL."
         },
         "move": {
-          "line": 186,
+          "line": 193,
           "params": [
             "folderPath",
             "number",
@@ -1790,7 +1796,7 @@
           "purpose": "Move a started brief to Done (`to: 'done'`) or back to Active"
         },
         "undoMove": {
-          "line": 207,
+          "line": 214,
           "params": [
             "folderPath",
             "number"
@@ -1798,19 +1804,19 @@
           "purpose": "Cancel a held move to Done. → whether one was still held (false once its send started)."
         },
         "flushMoves": {
-          "line": 213,
+          "line": 220,
           "purpose": "Send every held move now, waiting at most FLUSH_TIMEOUT_MS (quit, D19). Never rejects."
         },
         "openOnWeb": {
-          "line": 218,
+          "line": 229,
           "params": [
             "folderPath",
-            "number"
+            "target"
           ],
-          "purpose": "The project on the web, or one brief when a number is given. The URL is built and opened here."
+          "purpose": "The project on the web: its Settings at the GitHub section for"
         },
         "setupIPC": {
-          "line": 227,
+          "line": 241,
           "params": [
             "ipcMain"
           ]
@@ -1828,7 +1834,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 11319,
+      "sizeBytes": 11896,
       "extraction": {
         "status": "parsed"
       },
@@ -1841,12 +1847,12 @@
           "get": "4ae9132825177c4c",
           "list": "f21acc5f5b84c582",
           "meId": "7d748ee0ba9f4008",
-          "mergeTrackingOf": "56e0e6008d61343a",
           "move": "9c195bb4f702940d",
           "moveKey": "174e131f10368b76",
-          "openOnWeb": "3cae68c594b76bf4",
+          "openOnWeb": "ae3813ba599d5572",
           "reportAfter": "e426294c1b832de0",
-          "undoMove": "0520577bba4f6139"
+          "undoMove": "0520577bba4f6139",
+          "webInputs": "e81a039ab05db540"
         }
       }
     },
@@ -32192,7 +32198,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 24374,
+      "sizeBytes": 24387,
       "extraction": {
         "status": "parsed"
       },
@@ -41988,6 +41994,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "063ad9462593508df0e55e11072f93cd6e9b72b88ce680f6a8b2241ccc37b0cb"
+    "revision": "a96312e7367f53be8758918cd4811b626e79783f80a6abaf45b2816fd8ccd2ae"
   }
 }
