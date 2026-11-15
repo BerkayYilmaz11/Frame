@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:11:26.447Z",
+  "lastUpdated": "2026-11-15T10:12:56.987Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11087,13 +11087,13 @@
       "title": "Hand the board's started milestone to Home from `src/renderer/cloudBriefsPanel.js`: `renderBoard` calls `homeData.setBoardMilestone` with the started milestone, its `briefs` counted from `shownBriefs()` (or null when there is none), and `holdMoveToDone` calls `homeData.refresh('milestone')` once the move settles if the panel is hidden; `homeData` is required lazily",
       "description": "",
       "source": "spec:frame-cloud-milestones:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:12:56.987Z",
+      "completedAt": "2026-11-15T10:12:56.987Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T11",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 47
+    "totalCompleted": 48
   },
   "categories": {
     "feature": "New features",

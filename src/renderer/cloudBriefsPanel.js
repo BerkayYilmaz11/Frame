@@ -36,7 +36,9 @@
  * The strip is also the board's one filter (FrameCloud board-active-milestone
  * D3): "Show only this milestone" narrows the columns, Closed and the count to
  * its briefs, "All briefs" widens them again. The narrowing lives in the panel
- * and is cleared by hide() and a change of folder.
+ * and is cleared by hide() and a change of folder. Every board draw hands
+ * the started milestone, counted the same way, to Home's tracker (homeData),
+ * so Home matches the strip with no request of its own.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -58,6 +60,11 @@ const cloudStartDialog = require('./cloudStartDialog');
 const agentDispatch = require('./agentDispatch');
 const aiToolSelector = require('./aiToolSelector');
 const notify = require('./notify');
+
+// homeData requires this module, so it is required lazily.
+function homeData() {
+  return require('./home/homeData');
+}
 
 let hub = null;
 let panelElement = null;
@@ -505,6 +512,19 @@ function renderBoard() {
   const tracking = anyActive ? renderTrackingNotice(board.result.mergeTracking, canOpenWeb) : '';
   const strip = started ? renderMilestoneStrip(started, briefs, canOpenWeb, narrowed) : '';
   contentElement.innerHTML = renderNotice() + tracking + strip + open + closed;
+  handOffMilestone(started, briefs);
+}
+
+/**
+ * Home's tracker takes the board's started milestone with the board's counts
+ * (held moves included), so it matches the strip without a read (D12).
+ */
+function handOffMilestone(started, briefs) {
+  try {
+    homeData().setBoardMilestone(board.path, started ? { ...started, briefs: copy.countsWithBriefs(started, briefs) } : null);
+  } catch (err) {
+    console.error('cloudBriefsPanel: could not hand the milestone to Home', err);
+  }
 }
 
 /** "Show only this milestone" or "All briefs": narrow the board to the started milestone, or widen it again. */
@@ -1460,6 +1480,9 @@ async function holdMoveToDone(brief) {
   });
   const result = await invokeMove(path, n, { to: 'done', hold: true });
   moving.delete(key);
+  // Home's tracker last heard counts that held this move. Left behind with
+  // the panel gone, it reads the milestone again now that the move settled (D20).
+  if (!visible) homeData().refresh('milestone');
   if (result && result.ok) {
     // Main says it is Done: keep the card there until the re-read lands, so
     // a redraw in between cannot flash it back to Active.

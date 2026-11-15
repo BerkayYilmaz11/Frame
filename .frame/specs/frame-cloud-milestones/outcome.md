@@ -72,3 +72,11 @@ Added the `milestone` source to `src/renderer/home/homeData.js`: `refresh('miles
 _Captured: 2026-11-15 · 1 file change(s)_
 
 ---
+
+## T10 — Hand the board's started milestone to Home
+
+`renderBoard` in `src/renderer/cloudBriefsPanel.js` now ends with `handOffMilestone`, passing `homeData.setBoardMilestone` the started milestone with `countsWithBriefs` over `shownBriefs()` (or null), so every draw, the held-move redraws included, keeps Home in step. `holdMoveToDone` calls `homeData.refresh('milestone')` once the move settles if the panel is hidden (D20); `homeData` is required lazily and the handoff is wrapped so Home can never break the board. Harness-checked: the first draw, a held move, a hidden settle and no started milestone.
+
+_Captured: 2026-11-15 · 1 file change(s)_
+
+---
