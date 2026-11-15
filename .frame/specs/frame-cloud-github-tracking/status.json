@@ -1,10 +1,20 @@
 {
   "slug": "frame-cloud-github-tracking",
   "title": "Frame Cloud GitHub tracking",
-  "phase": "specified",
-  "generated_task_ids": [],
+  "phase": "tasks_generated",
+  "generated_task_ids": [
+    "task-spec-frame-cloud-github-tracking-T01",
+    "task-spec-frame-cloud-github-tracking-T02",
+    "task-spec-frame-cloud-github-tracking-T03",
+    "task-spec-frame-cloud-github-tracking-T04",
+    "task-spec-frame-cloud-github-tracking-T05",
+    "task-spec-frame-cloud-github-tracking-T06",
+    "task-spec-frame-cloud-github-tracking-T07",
+    "task-spec-frame-cloud-github-tracking-T08"
+  ],
   "ai_tool": "claude-code",
   "created_at": "2026-11-14T08:16:30Z",
-  "updated_at": "2026-11-14T08:16:30Z",
-  "last_phase_at": "2026-11-14T08:16:30Z"
+  "updated_at": "2026-11-15T08:53:38.235Z",
+  "last_phase_at": "2026-11-15T08:48:18Z",
+  "implement_mode": "autonomous"
 }
