@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:03:48.223Z",
+  "lastUpdated": "2026-11-15T10:05:23.988Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11035,13 +11035,13 @@
       "title": "Add and export `openMilestone(id)` in `src/renderer/cloudBriefsPanel.js`, guarded like `openBrief`: narrow at once when the panel is visible, otherwise set `pendingNarrow` and call `showPanel('cloudBriefs')`, with `show()` setting `narrowedTo = pendingNarrow` and clearing it",
       "description": "",
       "source": "spec:frame-cloud-milestones:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:05:23.988Z",
+      "completedAt": "2026-11-15T10:05:23.988Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T07",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 43
+    "totalCompleted": 44
   },
   "categories": {
     "feature": "New features",

@@ -104,6 +104,8 @@ let pendingOpen = null;
 // counts only while it names the board's started milestone (D8); otherwise
 // the board shows every brief. Cleared by hide() and a change of folder (D5).
 let narrowedTo = null;
+// A milestone to narrow to once the panel mounts (Home's tracker was clicked).
+let pendingNarrow = null;
 // The open folder's specs (by slug) and tasks (by id), for a started brief's
 // part rows. Filled on show() and kept live by SPEC_DATA / TASKS_DATA.
 let local = { path: null, specs: new Map(), tasks: new Map() };
@@ -259,6 +261,9 @@ function show() {
   visible = true;
   showClosed = false;
   if (showClosedInput) showClosedInput.checked = false;
+  // The board opens on every brief, unless Home's tracker asked for its milestone (D5).
+  narrowedTo = pendingNarrow;
+  pendingNarrow = null;
   load();
   loadLocal();
   if (pendingOpen !== null) {
@@ -288,6 +293,30 @@ function openBrief(number) {
   pendingOpen = number;
   if (ui) ui.showPanel('cloudBriefs');
   if (pendingOpen !== null && !visible) pendingOpen = null; // the host did not mount it
+}
+
+/**
+ * Open the Briefs panel narrowed to a milestone — the route Home's tracker
+ * takes. The host mounts the panel (show() then narrows the first draw); when
+ * it is already on screen, the board narrows directly. The narrowing counts
+ * only while the id names the board's started milestone (D8).
+ */
+function openMilestone(milestoneId) {
+  if (typeof milestoneId !== 'string' || !milestoneId) return;
+  if (!isAvailable()) {
+    notify.error(copy.reasonMessage('notConnected'));
+    return;
+  }
+  const ui = require('./terminal').getMultiTerminalUI();
+  if (visible) {
+    if (ui) ui.showPanel('cloudBriefs');
+    narrowedTo = milestoneId;
+    if (board && board.path === state.getProjectPath()) renderBoard();
+    return;
+  }
+  pendingNarrow = milestoneId;
+  if (ui) ui.showPanel('cloudBriefs');
+  if (pendingNarrow !== null && !visible) pendingNarrow = null; // the host did not mount it
 }
 
 function hide() {
@@ -1718,4 +1747,5 @@ module.exports = {
   isVisible,
   isAvailable,
   openBrief,
+  openMilestone,
 };

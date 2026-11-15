@@ -40,3 +40,11 @@ Added `narrowedTo` to `src/renderer/cloudBriefsPanel.js`, toggled by the strip's
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T06 — Open Briefs narrowed to a milestone
+
+Added and exported `openMilestone(id)` in `src/renderer/cloudBriefsPanel.js`, guarded like `openBrief`. It narrows at once when the panel is visible; otherwise it goes through `pendingNarrow` and `showPanel('cloudBriefs')`, and `show()` moves `pendingNarrow` into `narrowedTo` before the first load. As planned; the harness confirmed the mounted, visible and stale-milestone paths.
+
+_Captured: 2026-11-15 · 1 file change(s)_
+
+---
