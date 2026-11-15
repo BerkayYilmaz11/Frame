@@ -14151,22 +14151,22 @@
           "purpose": "One part of a started `brief`: its shape, its title (which opens its spec"
         },
         "renderCardParts": {
-          "line": 893,
+          "line": 897,
           "params": [
             "brief"
           ],
-          "purpose": "A started brief's card body: a row per part, and a summary line when there is more than one."
+          "purpose": "A started brief's card body: a row per part, a summary line when there is"
         },
         "renderPartSlots": {
-          "line": 901,
+          "line": 910,
           "purpose": "Redraw every part row on screen: the cards' and the open detail's."
         },
         "loadLocal": {
-          "line": 915,
+          "line": 924,
           "purpose": "Read the open folder's specs and tasks; the answers arrive as SPEC_DATA-shaped lists and a TASKS_DATA push."
         },
         "onLocalData": {
-          "line": 929,
+          "line": 938,
           "params": [
             "projectPath",
             "{ specs",
@@ -14175,7 +14175,7 @@
           "purpose": "A specs list or a tasks.json for `projectPath`: keep it when it is the open folder's, and redraw the rows."
         },
         "runPart": {
-          "line": 944,
+          "line": 953,
           "params": [
             "{ shape",
             "ref",
@@ -14186,7 +14186,7 @@
           "purpose": "Run a part's next step through the path a spec or a task runs by today."
         },
         "enterPartLane": {
-          "line": 962,
+          "line": 971,
           "params": [
             "shape",
             "ref"
@@ -14194,14 +14194,14 @@
           "purpose": "Enter a part's live lane."
         },
         "onPartAction": {
-          "line": 968,
+          "line": 977,
           "params": [
             "actionEl"
           ],
           "purpose": "A part row's click, on a card or in the detail. → handled?"
         },
         "renderTab": {
-          "line": 985,
+          "line": 994,
           "params": [
             "tab",
             "brief",
@@ -14210,7 +14210,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 1047,
+          "line": 1056,
           "params": [
             "events",
             "meId",
@@ -14219,7 +14219,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 1077,
+          "line": 1086,
           "params": [
             "brief",
             "events"
@@ -14227,7 +14227,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 1098,
+          "line": 1107,
           "params": [
             "brief",
             "events",
@@ -14236,30 +14236,30 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 1114,
+          "line": 1123,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 1150
+          "line": 1159
         },
         "confirmMoveToWork": {
-          "line": 1156,
+          "line": 1165,
           "params": [
             "priority"
           ]
         },
         "moveDirection": {
-          "line": 1201,
+          "line": 1210,
           "params": [
             "brief"
           ],
           "purpose": "Where a brief's move goes: 'done' for Active work, 'active' for Done work, null for anything else."
         },
         "moveButton": {
-          "line": 1214,
+          "line": 1223,
           "params": [
             "brief",
             "action"
@@ -14267,14 +14267,14 @@
           "purpose": "Move to Done on Active work, Move back to Active on Done work, and the"
         },
         "movingKey": {
-          "line": 1225,
+          "line": 1234,
           "params": [
             "path",
             "number"
           ]
         },
         "isMoving": {
-          "line": 1230,
+          "line": 1239,
           "params": [
             "number",
             "path = state.getProjectPath("
@@ -14282,14 +14282,14 @@
           "purpose": "Whether brief `number` of the open folder (or of `path`) has a move to Done on its way."
         },
         "moveBrief": {
-          "line": 1240,
+          "line": 1249,
           "params": [
             "brief"
           ],
           "purpose": "A move button was pressed. The panel decides from its last read (D5): a"
         },
         "invokeMove": {
-          "line": 1250,
+          "line": 1259,
           "params": [
             "path",
             "number",
@@ -14297,14 +14297,14 @@
           ]
         },
         "holdMoveToDone": {
-          "line": 1267,
+          "line": 1276,
           "params": [
             "brief"
           ],
           "purpose": "A move to Done with nothing to explain (D1, D3, D17, D18): the card shows"
         },
         "undoHeldMove": {
-          "line": 1299,
+          "line": 1308,
           "params": [
             "path",
             "number"
@@ -14312,7 +14312,7 @@
           "purpose": "Undo on the toast: main cancels the held move, whose invoke then answers `undone`."
         },
         "reaskWithReason": {
-          "line": 1311,
+          "line": 1320,
           "params": [
             "path",
             "number"
@@ -14320,7 +14320,7 @@
           "purpose": "A move sent without a reason came back `REASON_REQUIRED`: the panel's view"
         },
         "redrawMove": {
-          "line": 1334,
+          "line": 1343,
           "params": [
             "path",
             "number"
@@ -14328,7 +14328,7 @@
           "purpose": "Redraw what a held move changes: the board (its overlay) and the brief's controls."
         },
         "markDone": {
-          "line": 1341,
+          "line": 1350,
           "params": [
             "path",
             "number"
@@ -14336,7 +14336,7 @@
           "purpose": "The cached board brief is Done now (main said so); the re-read confirms it."
         },
         "reloadAfterMove": {
-          "line": 1351,
+          "line": 1360,
           "params": [
             "path",
             "number"
@@ -14344,7 +14344,7 @@
           "purpose": "A move landed or was refused as stale: the board, and the brief when it is the one on screen, read again."
         },
         "renderMissingParts": {
-          "line": 1360,
+          "line": 1369,
           "params": [
             "brief",
             "missing"
@@ -14352,7 +14352,7 @@
           "purpose": "\"2 parts not merged into main.\", then each missing part with its row's status."
         },
         "openMoveDialog": {
-          "line": 1379,
+          "line": 1388,
           "params": [
             "{ brief",
             "to }"
@@ -14360,23 +14360,23 @@
           "purpose": "The reason dialog, for both directions (D20), built like Move to Work's:"
         },
         "closeMoveDialog": {
-          "line": 1421
+          "line": 1430
         },
         "confirmMove": {
-          "line": 1427,
+          "line": 1436,
           "params": [
             "reason"
           ]
         },
         "startWork": {
-          "line": 1455,
+          "line": 1464,
           "params": [
             "brief"
           ],
           "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
         },
         "openStartDialog": {
-          "line": 1460,
+          "line": 1469,
           "params": [
             "number",
             "partId"
@@ -14384,21 +14384,21 @@
           "purpose": "The Start Work dialog, or Begin on part `partId` of a started brief."
         },
         "openBeginLane": {
-          "line": 1478,
+          "line": 1487,
           "params": [
             "begin"
           ],
           "purpose": "Begin: a lane on the chosen part, through the paths a spec or a task runs"
         },
         "reloadAfterStart": {
-          "line": 1493,
+          "line": 1502,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 1504,
+          "line": 1513,
           "params": [
             "brief",
             "{ purpose",
@@ -14408,42 +14408,42 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 1541,
+          "line": 1550,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 1546,
+          "line": 1555,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1551,
+          "line": 1560,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1570,
+          "line": 1579,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1580,
+          "line": 1589,
           "params": [
             "payload"
           ],
           "purpose": "A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen."
         },
         "onBriefsChanged": {
-          "line": 1591,
+          "line": 1600,
           "params": [
             "payload"
           ],
@@ -14463,7 +14463,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 71465,
+      "sizeBytes": 71898,
       "extraction": {
         "status": "parsed"
       },
@@ -14507,7 +14507,7 @@
           "reloadAfterMove": "2e22c888249e8853",
           "reloadAfterStart": "e45620d4e46c7fdf",
           "renderCardActions": "5b8ff7b44558d907",
-          "renderCardParts": "cd91f7bf8697be55",
+          "renderCardParts": "4f27185574d667cd",
           "renderDiscussAction": "4cb2a45e0f64b5bf",
           "renderDiscussions": "3a1df4493496986e",
           "renderLaneSlots": "4c62389151fb39cf",
@@ -23846,7 +23846,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 32075,
+      "sizeBytes": 32492,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -42044,6 +42044,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "2977e04bb85438ab78f99b91a67b770414165ec4d00b7f0d6e66aab2c0b2dd85"
+    "revision": "ea50687ffc2b36963f82558272846a0a79afea89eb79e1b53e4c311c7ea19c37"
   }
 }

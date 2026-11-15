@@ -1546,6 +1546,25 @@ button.cloud-briefs-prow-pr:hover {
   color: var(--text-tertiary);
 }
 
+/* The card's attention line: the first part with changes requested or merged into another base. */
+.cloud-briefs-prows-attention {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: 11px;
+  color: var(--warning-ink);
+}
+
+.cloud-briefs-prows-attention::before {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
 /* In the Parts tab the row heads each part, over its definition. */
 .cloud-briefs-prow-slot .cloud-briefs-prow {
   padding: 0;

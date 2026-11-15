@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:09:24.430Z",
+  "lastUpdated": "2026-11-15T09:11:00.224Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10931,13 +10931,13 @@
       "title": "In `src/renderer/cloudBriefsPanel.js`, pass `brief.mergeTracking` to both `partsSummary` calls (the card in `renderCardParts` and the Parts tab in `renderTab`), and draw `partAttention`'s line under the parts of Active cards only, with its style in `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-github-tracking:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-github-tracking",
       "createdAt": "2026-11-15T08:53:03.660Z",
-      "updatedAt": "2026-11-15T08:53:03.660Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:11:00.224Z",
+      "completedAt": "2026-11-15T09:11:00.224Z"
     },
     {
       "id": "task-spec-frame-cloud-github-tracking-T07",

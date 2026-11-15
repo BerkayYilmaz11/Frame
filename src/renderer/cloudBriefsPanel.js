@@ -889,12 +889,21 @@ function renderPartRow(part, brief) {
     </div>`;
 }
 
-/** A started brief's card body: a row per part, and a summary line when there is more than one. */
+/**
+ * A started brief's card body: a row per part, a summary line when there is
+ * more than one, and on an Active card the first part a person should look
+ * at (the web's K2 attention row, D14).
+ */
 function renderCardParts(brief) {
   const parts = brief.parts.filter((p) => p.recordRef);
-  const summary = copy.partsSummary(parts.map((p) => partFacts(p, brief).status));
+  const statuses = parts.map((p) => partFacts(p, brief).status);
+  const summary = copy.partsSummary(statuses, brief.mergeTracking);
+  const attention = brief.status === 'active'
+    ? copy.partAttention(parts.map((p, i) => ({ title: p.title, status: statuses[i] })), brief.targetBranch)
+    : '';
   return `<ul class="cloud-briefs-prows">${parts.map((p) => `<li>${renderPartRow(p, brief)}</li>`).join('')}</ul>
-    ${summary ? `<p class="cloud-briefs-prows-summary">${escapeHtml(summary)}</p>` : ''}`;
+    ${summary ? `<p class="cloud-briefs-prows-summary">${escapeHtml(summary)}</p>` : ''}
+    ${attention ? `<p class="cloud-briefs-prows-attention">${escapeHtml(attention)}</p>` : ''}`;
 }
 
 /** Redraw every part row on screen: the cards' and the open detail's. */
@@ -987,7 +996,7 @@ function renderTab(tab, brief, events, meId) {
     if (brief.parts.length === 0) return '<p class="cloud-briefs-muted">Parts appear once the brief is shaped.</p>';
     // A definition is network content: escaped plain text, pre-wrapped, never markdown.
     const summary = brief.startedAt
-      ? copy.partsSummary(brief.parts.filter((p) => p.recordRef).map((p) => partFacts(p, brief).status))
+      ? copy.partsSummary(brief.parts.filter((p) => p.recordRef).map((p) => partFacts(p, brief).status), brief.mergeTracking)
       : '';
     const since = [copy.shapedLine(brief.shapedAt), copy.startedLine(brief.startedAt), summary].filter(Boolean).join(' · ');
     return `${since ? `<p class="cloud-briefs-muted cloud-briefs-shaped">${escapeHtml(since)}</p>` : ''}

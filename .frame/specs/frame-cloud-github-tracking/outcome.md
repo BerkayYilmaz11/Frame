@@ -33,3 +33,10 @@ Gave `partsSummary` a `tracking` (default `'ready'`) with D13's pieces in `src/r
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+## T06 — Summary and attention on the card
+
+Passed `brief.mergeTracking` to both `partsSummary` calls (`renderCardParts` and the Parts tab in `renderTab`) in `src/renderer/cloudBriefsPanel.js`, computing the card's statuses once so the summary and the new attention line share them. Drew `partAttention`'s line only on Active cards, inside `renderCardParts` so `renderPartSlots` keeps it in step with the rows, and styled `.cloud-briefs-prows-attention` (warning ink, filled dot) in `cloud-briefs.css`. Panel untested per D6.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---
