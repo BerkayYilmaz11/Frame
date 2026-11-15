@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:42:59.260Z",
+  "lastUpdated": "2026-11-15T09:52:21.260Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10970,13 +10970,13 @@
       "title": "Extend `normalizeMilestone` in `src/main/cloud/cloudBriefs.js` to keep `goal`, `targetDate` (only as `YYYY-MM-DD`), `targetBranch`, `startedAt`, `closedAt` and `briefs` (null unless all four counts are non-negative integers), add and export `buildMilestoneWebUrl` (`{project url}/milestones/{encodeURIComponent(id)}`, null under `buildWebUrl`'s guards or for an empty id), update the header and `listMilestones` doc, and cover the full shape, an older server's `{ id, name, status }`, malformed counts, a bad date and the URL builder in `test/cloudBriefs.test.js`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:52:21.260Z",
+      "completedAt": "2026-11-15T09:52:21.260Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T02",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 38
+    "totalCompleted": 39
   },
   "categories": {
     "feature": "New features",
