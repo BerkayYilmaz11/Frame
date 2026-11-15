@@ -471,7 +471,11 @@ function renderBoard() {
   const groups = copy.groupByColumn(listed);
   const openCount = groups.backlog.length + groups.active.length + groups.done.length;
   setHeader({ count: showClosed ? listed.length : openCount, canOpenWeb });
-  const milestoneNames = new Map((milestones || []).map((m) => [m.id, m.name]));
+  // Cards name their milestone; the started one's name is a badge (D9).
+  const milestoneIndex = {
+    byId: new Map((milestones || []).map((m) => [m.id, m])),
+    startedId: started ? started.id : null,
+  };
 
   const open = openCount > 0
     ? `<div class="cloud-briefs-columns">${copy.COLUMNS.map((column) => `
@@ -481,7 +485,7 @@ function renderBoard() {
             <span class="cloud-briefs-column-count">${groups[column.status].length}</span>
           </h3>
           ${column.hint ? `<p class="cloud-briefs-column-hint">${escapeHtml(column.hint)}</p>` : ''}
-          ${renderCards(groups[column.status], milestoneNames)}
+          ${renderCards(groups[column.status], milestoneIndex)}
         </section>`).join('')}
       </div>`
     : narrowed ? renderNarrowedEmpty() : renderEmpty(canOpenWeb);
@@ -490,7 +494,7 @@ function renderBoard() {
     ? `<section class="cloud-briefs-closed" aria-label="Closed">
         <h3 class="cloud-briefs-closed-title">Closed</h3>
         ${groups.closed.length > 0
-          ? renderCards(groups.closed, milestoneNames)
+          ? renderCards(groups.closed, milestoneIndex)
           : '<p class="cloud-briefs-muted">No closed briefs.</p>'}
       </section>`
     : '';
@@ -592,21 +596,31 @@ function renderNotice() {
     </div>`;
 }
 
-function renderCards(briefs, milestoneNames) {
+/** `milestoneIndex`: `{ byId, startedId }` — the board's milestones by id, and the started one's id or null. */
+function renderCards(briefs, milestoneIndex) {
   if (briefs.length === 0) return '';
   return `<ul class="cloud-briefs-cards">${briefs.map((brief) => `
-    <li>${renderCard(brief, brief.milestoneId ? milestoneNames.get(brief.milestoneId) : '')}</li>`).join('')}
+    <li>${renderCard(brief, milestoneIndex)}</li>`).join('')}
   </ul>`;
 }
 
-function renderCard(brief, milestoneName) {
+/** A card's milestone name: a badge for the started milestone, plain text for a planned or closed one (D9). */
+function renderCardMilestone(milestone, startedId) {
+  if (!milestone || !milestone.name) return '';
+  const cls = milestone.id === startedId ? 'cloud-briefs-milestone-badge' : 'cloud-briefs-milestone';
+  return `<span class="${cls}">${escapeHtml(milestone.name)}</span>`;
+}
+
+function renderCard(brief, milestoneIndex) {
+  const milestone = brief.milestoneId ? milestoneIndex.byId.get(brief.milestoneId) : null;
+  const milestoneHtml = renderCardMilestone(milestone, milestoneIndex.startedId);
   const kind = copy.KIND_COPY[brief.kind] || copy.KIND_COPY.proposal;
   const priority = brief.kind === 'work' && brief.priority ? copy.priorityLabel(brief.priority) : '';
   const ending = copy.endingLine(brief);
-  const meta = priority || milestoneName
+  const meta = priority || milestoneHtml
     ? `<span class="cloud-briefs-card-meta">
         ${priority ? `<span class="cloud-briefs-priority"><span class="cloud-briefs-priority-dot ${escapeHtml(brief.priority)}" aria-hidden="true"></span>${escapeHtml(priority)}</span>` : ''}
-        ${milestoneName ? `<span class="cloud-briefs-milestone">${escapeHtml(milestoneName)}</span>` : ''}
+        ${milestoneHtml}
       </span>`
     : '';
   const records = copy.discussionCountLabel(brief.discussionCount);

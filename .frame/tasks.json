@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:05:23.988Z",
+  "lastUpdated": "2026-11-15T10:06:58.658Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11048,13 +11048,13 @@
       "title": "Show a started milestone's name on a card as a `.cloud-briefs-milestone-badge` in `renderCards` / `renderCard` of `src/renderer/cloudBriefsPanel.js` (milestones passed by id), keep every other milestone's name as plain `.cloud-briefs-milestone` text, and style the badge in `cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:06:58.658Z",
+      "completedAt": "2026-11-15T10:06:58.658Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T08",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 44
+    "totalCompleted": 45
   },
   "categories": {
     "feature": "New features",

@@ -48,3 +48,11 @@ Added and exported `openMilestone(id)` in `src/renderer/cloudBriefsPanel.js`, gu
 _Captured: 2026-11-15 · 1 file change(s)_
 
 ---
+
+## T07 — Badge the started milestone on cards
+
+`renderCards` / `renderCard` in `src/renderer/cloudBriefsPanel.js` now take `{ byId, startedId }`, and a new `renderCardMilestone` draws the started milestone's name as `.cloud-briefs-milestone-badge` (styled in `cloud-briefs.css`), leaving planned and closed names as plain `.cloud-briefs-milestone` text. The badge follows the board's `startedMilestone` pick, not the status alone, so an older server's extra started milestones get no badge.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

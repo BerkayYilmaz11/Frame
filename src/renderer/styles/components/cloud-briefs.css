@@ -505,6 +505,21 @@
   max-width: 100%;
 }
 
+/* The started milestone's name on a card (frame-cloud-milestones D9): a badge,
+   so its briefs stand out on the full board. */
+.cloud-briefs-milestone-badge {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
 .cloud-briefs-ending {
   font-size: 11px;
   color: var(--text-tertiary);
