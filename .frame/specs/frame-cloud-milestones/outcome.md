@@ -7,3 +7,11 @@ Extended `normalizeMilestone` in `src/main/cloud/cloudBriefs.js` to keep `goal`,
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T02 — Serve milestones from main
+
+Added `milestones(folderPath)` to `src/main/cloud/cloudBriefsService.js` (one `milestone.list` through `call`, `NOT_CONNECTED` for an unconnected folder) and registered it on the new `IPC.CLOUD_MILESTONES_LIST` in `src/shared/ipcChannels.js`, placed right after `CLOUD_BRIEFS_OPEN_ON_WEB` as planned. `openOnWeb` now opens `buildMilestoneWebUrl` for a `{ milestoneId: string }` target; the service header and the channel comment say so. No test, per D14 (the service is the Electron shell).
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

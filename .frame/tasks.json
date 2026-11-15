@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:52:21.260Z",
+  "lastUpdated": "2026-11-15T09:54:04.357Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -10983,13 +10983,13 @@
       "title": "Add `milestones(folderPath)` to `src/main/cloud/cloudBriefsService.js` (`NOT_CONNECTED` for an unconnected folder, else `milestone.list` through `call` → `{ ok: true, milestones }` or `{ ok: false, reason }`), register it on a new `IPC.CLOUD_MILESTONES_LIST` appended in `src/shared/ipcChannels.js`, let `openOnWeb` open `buildMilestoneWebUrl` for a `{ milestoneId }` target, and update the service header and the `CLOUD_BRIEFS_OPEN_ON_WEB` comment",
       "description": "",
       "source": "spec:frame-cloud-milestones:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T09:54:04.357Z",
+      "completedAt": "2026-11-15T09:54:04.357Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T03",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 39
+    "totalCompleted": 40
   },
   "categories": {
     "feature": "New features",

@@ -1723,6 +1723,7 @@
       "exports": [
         "setupIPC",
         "list",
+        "milestones",
         "get",
         "create",
         "decide",
@@ -1742,11 +1743,11 @@
       ],
       "functions": {
         "meId": {
-          "line": 47,
+          "line": 53,
           "purpose": "The signed-in user's id, for \"You\"; '' when unknown."
         },
         "reportAfter": {
-          "line": 57,
+          "line": 63,
           "params": [
             "folderPath",
             "project",
@@ -1755,35 +1756,49 @@
           "purpose": "Report what this machine knows about the read's parts once the read has"
         },
         "webInputs": {
-          "line": 64,
+          "line": 70,
           "params": [
             "project"
           ],
           "purpose": "What every web link of the project is built from, or null when signed out."
         },
         "webUrl": {
-          "line": 75,
+          "line": 81,
           "params": [
             "project",
             "number"
           ]
         },
         "settingsWebUrl": {
-          "line": 80,
+          "line": 86,
           "params": [
             "project"
           ]
         },
+        "milestoneWebUrl": {
+          "line": 91,
+          "params": [
+            "project",
+            "milestoneId"
+          ]
+        },
         "list": {
-          "line": 89,
+          "line": 100,
           "params": [
             "folderPath",
             "{ includeClosed } = {}"
           ],
           "purpose": "The folder's briefs and milestones."
         },
+        "milestones": {
+          "line": 133,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "The folder's milestones and nothing else: one `milestone.list`, for Home's"
+        },
         "get": {
-          "line": 118,
+          "line": 142,
           "params": [
             "folderPath",
             "number"
@@ -1791,7 +1806,7 @@
           "purpose": "One brief by number, with its history. → `{ ok, brief, events, meId, canOpenWeb }` or `{ ok: false, reason }`."
         },
         "create": {
-          "line": 145,
+          "line": 169,
           "params": [
             "folderPath",
             "request"
@@ -1799,7 +1814,7 @@
           "purpose": "Create a brief in the folder's project, then attach its links. The request"
         },
         "decide": {
-          "line": 164,
+          "line": 188,
           "params": [
             "folderPath",
             "number",
@@ -1808,7 +1823,7 @@
           "purpose": "Move an open proposal to work with a priority. The brief is resolved here by"
         },
         "moveKey": {
-          "line": 177,
+          "line": 201,
           "params": [
             "folderPath",
             "number"
@@ -1816,7 +1831,7 @@
           "purpose": "A held move's key: the folder and the brief number, joined by a NUL."
         },
         "move": {
-          "line": 193,
+          "line": 217,
           "params": [
             "folderPath",
             "number",
@@ -1827,7 +1842,7 @@
           "purpose": "Move a started brief to Done (`to: 'done'`) or back to Active"
         },
         "undoMove": {
-          "line": 214,
+          "line": 238,
           "params": [
             "folderPath",
             "number"
@@ -1835,11 +1850,11 @@
           "purpose": "Cancel a held move to Done. → whether one was still held (false once its send started)."
         },
         "flushMoves": {
-          "line": 220,
+          "line": 244,
           "purpose": "Send every held move now, waiting at most FLUSH_TIMEOUT_MS (quit, D19). Never rejects."
         },
         "openOnWeb": {
-          "line": 229,
+          "line": 254,
           "params": [
             "folderPath",
             "target"
@@ -1847,7 +1862,7 @@
           "purpose": "The project on the web: its Settings at the GitHub section for"
         },
         "setupIPC": {
-          "line": 241,
+          "line": 269,
           "params": [
             "ipcMain"
           ]
@@ -1858,6 +1873,7 @@
           "CLOUD_BRIEFS_LIST",
           "CLOUD_BRIEF_GET",
           "CLOUD_BRIEFS_OPEN_ON_WEB",
+          "CLOUD_MILESTONES_LIST",
           "CLOUD_BRIEF_CREATE",
           "CLOUD_BRIEF_DECIDE",
           "CLOUD_BRIEF_MOVE",
@@ -1865,7 +1881,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 11896,
+      "sizeBytes": 13291,
       "extraction": {
         "status": "parsed"
       },
@@ -1878,6 +1894,7 @@
           "get": "4ae9132825177c4c",
           "list": "f21acc5f5b84c582",
           "meId": "7d748ee0ba9f4008",
+          "milestones": "9adc5325d37b6b11",
           "move": "9c195bb4f702940d",
           "moveKey": "174e131f10368b76",
           "openOnWeb": "ae3813ba599d5572",
@@ -32290,7 +32307,7 @@
       ],
       "depends": [],
       "functions": {},
-      "sizeBytes": 24387,
+      "sizeBytes": 24616,
       "extraction": {
         "status": "parsed"
       },
@@ -40564,6 +40581,11 @@
         "name": "cloud-link-disconnect",
         "direction": "",
         "description": ""
+      },
+      "CLOUD_MILESTONES_LIST": {
+        "name": "cloud-milestones-list",
+        "direction": "",
+        "description": ""
       }
     }
   },
@@ -42086,6 +42108,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "9260582ffd012eaf7f363659dad1896a96bacb78fae00d8d48ea527136ad754c"
+    "revision": "de13f5703bb3a0db4c9fdc1d2f4a931e6f04a3f4adf24964050c7b5a35eef57f"
   }
 }
