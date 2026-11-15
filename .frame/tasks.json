@@ -10853,13 +10853,13 @@
       "title": "Make Project Settings speak per device: in `src/renderer/projectSettingsModal.js` add the Ready state with Connect in place through `CLOUD_LINK_CONNECT` beside Open Frame Cloud, and give the connected state the explanation and the new Disconnect question from `cloudConnectionCopy.js`; extend `test/cloudConnectionCopy.test.js` with the row copy per state; then walk it in the app against a local FrameCloud carrying device-connections — a clone reads Ready to connect, Connect brings the mark and Briefs, Disconnect removes them while another member's device stays connected, and signing out and back in keeps the folder Connected",
       "description": "",
       "source": "spec:frame-cloud-teammate-connection:T05",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-teammate-connection",
       "createdAt": "2026-11-14T16:22:14.013Z",
-      "updatedAt": "2026-11-14T17:25:09.926Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T07:40:26.852Z",
+      "completedAt": "2026-11-15T07:40:26.852Z"
     }
   ],
   "metadata": {

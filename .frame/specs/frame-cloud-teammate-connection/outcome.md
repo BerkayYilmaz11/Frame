@@ -30,8 +30,19 @@ _Captured: 2026-11-14 · 4 file change(s)_
 ---
 ## T05 — Make Project Settings speak per device
 
-Project Settings' Frame Cloud row now has three states from `cloudConnectionCopy.settingsRow`: Connected (workspace plus the connection explanation, the per-device Disconnect question when confirming), Ready to connect (the Ready lead, Connect in place through `CLOUD_LINK_CONNECT` beside Open Frame Cloud) and Not connected (as before). Connect and Disconnect refusals come from the copy module. Files: `projectSettingsModal.js`, `cloudConnectionCopy.js`, `test/cloudConnectionCopy.test.js`. The app walk against a local FrameCloud is not done yet: it needs a sign-in approved in the browser and a second member's device, so the task stays in progress until it is walked.
+Project Settings' Frame Cloud row now has three states from `cloudConnectionCopy.settingsRow`: Connected (workspace plus the connection explanation, the per-device Disconnect question when confirming), Ready to connect (the Ready lead, Connect in place through `CLOUD_LINK_CONNECT` beside Open Frame Cloud) and Not connected (as before). Connect and Disconnect refusals come from the copy module. Files: `projectSettingsModal.js`, `cloudConnectionCopy.js`, `test/cloudConnectionCopy.test.js`. The app walk against a local FrameCloud was deferred (user's call, 2026-11-15): the task closes on the code and `npm test`, and the whole flow is to be walked end to end later — see "Deferred: app walk" below.
 
 _Captured: 2026-11-14 · 3 file change(s)_
 
 ---
+
+## Deferred: app walk
+
+Not done in this spec, by the user's decision on 2026-11-15; to be walked in full later. Nothing here has run against a live FrameCloud — only `npm test` (pure logic) covers it. The walk needs a local FrameCloud with `device-connections` (migration 0021 applied), Frame's dev build (the installed app sends no `installId` and cannot sign in), a browser sign-in approval and a second member's device. Check:
+
+- a clone of a claimed project reads Ready to connect (Cloud projects, On this device, Project Settings);
+- Connect brings the Connected mark and the Briefs row;
+- Disconnect removes them on this device while another member's device stays connected;
+- signing out and back in keeps the folder Connected (same install id, same device);
+- a Not claimed project's Connect a folder… opens On this device on the suggested folder;
+- a take-over disconnects every device of the project.
