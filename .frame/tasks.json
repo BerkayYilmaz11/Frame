@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:06:58.658Z",
+  "lastUpdated": "2026-11-15T10:08:35.745Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11061,13 +11061,13 @@
       "title": "Rewrite the detail's Milestone row in `renderMeta` of `src/renderer/cloudBriefsPanel.js` to show the name as an `open-milestone-web` button when the detail's `canOpenWeb`, then `milestoneRowFacts`, then an Overdue badge for the started milestone counted like the strip; route `open-milestone-web` in `onDetailClick`, and style the facts in `cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:08:35.745Z",
+      "completedAt": "2026-11-15T10:08:35.745Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T09",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 45
+    "totalCompleted": 46
   },
   "categories": {
     "feature": "New features",

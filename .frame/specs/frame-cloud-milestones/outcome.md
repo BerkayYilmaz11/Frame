@@ -56,3 +56,11 @@ _Captured: 2026-11-15 · 1 file change(s)_
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T08 — Rewrite the detail's Milestone row
+
+`renderMeta` in `src/renderer/cloudBriefsPanel.js` now receives the detail's `canOpenWeb` and draws the Milestone row with a new `renderMilestoneRow`: the name as an `open-milestone-web` button, `milestoneRowFacts`, and Overdue for the started milestone, counted from `shownBriefs()` exactly as the strip counts. `onDetailClick` routes `open-milestone-web`, and `cloud-briefs.css` styles the row. As planned; the harness confirmed the started, done and planned readings.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

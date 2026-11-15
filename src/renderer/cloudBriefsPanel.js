@@ -865,6 +865,8 @@ function onDetailClick(event) {
     loadDetail();
   } else if (action === 'open-brief-web') {
     if (detail) openOnWeb(detail.number);
+  } else if (action === 'open-milestone-web') {
+    openMilestoneOnWeb(actionEl.dataset.milestoneId);
   } else if (action === 'discuss') {
     if (detail && detail.result) discuss(detail.result.brief);
   } else if (action === 'shape') {
@@ -924,7 +926,7 @@ function renderDetail() {
           ${canOpenWeb ? '<button type="button" class="cloud-briefs-web-btn" data-action="open-brief-web" tabindex="-1">Open on web</button>' : ''}
         </div>
       </header>
-      ${renderMeta(brief, events, meId)}
+      ${renderMeta(brief, events, meId, canOpenWeb)}
       <div class="cloud-briefs-tabs" role="tablist">
         ${TABS.map((t) => `<button type="button" role="tab" class="cloud-briefs-tab${t.key === tab ? ' active' : ''}" aria-selected="${t.key === tab}" data-action="tab" data-tab="${t.key}" tabindex="-1">${escapeHtml(t.label)}${tabCount(t.key, brief, events)}</button>`).join('')}
       </div>
@@ -940,7 +942,7 @@ function tabCount(key, brief, events) {
   return n > 0 ? ` <span class="cloud-briefs-tab-count">${n}</span>` : '';
 }
 
-function renderMeta(brief, events, meId) {
+function renderMeta(brief, events, meId, canOpenWeb) {
   const milestones = board && board.result ? board.result.milestones || [] : [];
   const milestone = brief.milestoneId ? milestones.find((m) => m.id === brief.milestoneId) : null;
   const created = events.find((e) => e.event === 'created');
@@ -951,13 +953,35 @@ function renderMeta(brief, events, meId) {
     rows.push(['Priority', `<span class="cloud-briefs-priority"><span class="cloud-briefs-priority-dot ${escapeHtml(brief.priority)}" aria-hidden="true"></span>${escapeHtml(copy.priorityLabel(brief.priority))}</span>`]);
   }
   rows.push(['Milestone', milestone && milestone.name
-    ? escapeHtml(milestone.name)
+    ? renderMilestoneRow(milestone, canOpenWeb)
     : '<span class="cloud-briefs-muted">None</span>']);
   if (brief.targetBranch) rows.push(['Target branch', `<code>${escapeHtml(brief.targetBranch)}</code>`]);
   if (createdDate) rows.push(['Created', escapeHtml(creator ? `${createdDate} by ${creator}` : createdDate)]);
   return `<dl class="cloud-briefs-meta">${rows.map(([label, value]) => `
       <div><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`).join('')}
     </dl>`;
+}
+
+/**
+ * The detail's Milestone row: the name — a button to its page on the web when
+ * the brief has a web link — then its status and, while open, its end date
+ * ("Started · Ends Nov 20, 2026"), then Overdue when it is the started
+ * milestone and the board counts it overdue, the same count as the strip.
+ * Read-only: a brief's milestone changes on the web (D1).
+ */
+function renderMilestoneRow(milestone, canOpenWeb) {
+  const name = canOpenWeb
+    ? `<button type="button" class="cloud-briefs-milestone-name" data-action="open-milestone-web" data-milestone-id="${escapeHtml(milestone.id)}" title="${escapeHtml(copy.OPEN_ON_WEB_LABEL)}" tabindex="-1">${escapeHtml(milestone.name)}</button>`
+    : `<span class="cloud-briefs-milestone-name">${escapeHtml(milestone.name)}</span>`;
+  const facts = copy.milestoneRowFacts(milestone);
+  const started = board && board.result ? copy.startedMilestone(board.result.milestones) : null;
+  const overdue = Boolean(started) && started.id === milestone.id
+    && copy.isOverdue({ ...started, briefs: copy.countsWithBriefs(started, shownBriefs()) }, copy.localToday());
+  return `<span class="cloud-briefs-milestone-row">
+      ${name}
+      ${facts ? `<span class="cloud-briefs-milestone-row-facts">${escapeHtml(facts)}</span>` : ''}
+      ${overdue ? renderOverdue() : ''}
+    </span>`;
 }
 
 // ─── A started brief's parts ──────────────────────────────────
