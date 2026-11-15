@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:08:35.745Z",
+  "lastUpdated": "2026-11-15T10:11:26.447Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11074,13 +11074,13 @@
       "title": "Add a `milestone` source to `src/renderer/home/homeData.js`: `refresh('milestone')` pulls `CLOUD_MILESTONES_LIST` for the open project when `cloudBriefsPanel.isAvailable()` (else null) and drops a late answer for another project; `refreshMilestoneIfStale()` pulls only when the value is older than 30 s; `setBoardMilestone(path, milestone)` takes the board's handoff; a project change in `setHostState` clears and pulls; `init()` subscribes to `cloudHub.onProjects` / `onSession` and acts only when the folder's path, cloud project or availability changes; `cloudBriefsPanel` is required lazily",
       "description": "",
       "source": "spec:frame-cloud-milestones:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:11:26.447Z",
+      "completedAt": "2026-11-15T10:11:26.447Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T10",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 46
+    "totalCompleted": 47
   },
   "categories": {
     "feature": "New features",

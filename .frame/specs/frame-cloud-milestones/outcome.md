@@ -64,3 +64,11 @@ _Captured: 2026-11-15 · 2 file change(s)_
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T09 — Home reads the started milestone
+
+Added the `milestone` source to `src/renderer/home/homeData.js`: `refresh('milestone')` (one `CLOUD_MILESTONES_LIST` read, gated on `cloudBriefsPanel.isAvailable()`), `refreshMilestoneIfStale()` (30 s), `setBoardMilestone(path, milestone)`, a clear-and-read on project change, and `cloudHub` subscriptions keyed on the folder's path, cloud project and availability. Beyond the plan: reads and handoffs share one sequence so a handoff is never overwritten by an older read, and a failed read keeps the last value except on `notConnected` / `unauthorized` / `roleForbidden`. Checked with a throwaway stubbed harness (pull, freshness, push keying, handoff order, project change, failure handling).
+
+_Captured: 2026-11-15 · 1 file change(s)_
+
+---

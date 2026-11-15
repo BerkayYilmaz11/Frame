@@ -18840,61 +18840,78 @@
         "setHostState",
         "getProjectPath",
         "reloadSessions",
-        "setAiTool"
+        "setAiTool",
+        "refreshMilestoneIfStale",
+        "setBoardMilestone"
       ],
       "depends": [
         "electron",
         "../shared/ipcChannels",
         "../laneStatus",
-        "../agentDispatch"
+        "../cloudBriefsPanel",
+        "../agentDispatch",
+        "../cloudHub",
+        "../cloudProjectMark",
+        "../cloudBriefsCopy"
       ],
       "functions": {
+        "cloudBriefsPanel": {
+          "line": 73,
+          "purpose": "cloudBriefsPanel requires this module, so both sides require lazily."
+        },
         "assertSource": {
-          "line": 50,
+          "line": 77,
           "params": [
             "source"
           ]
         },
         "emit": {
-          "line": 54,
+          "line": 81,
           "params": [
             "source"
           ]
         },
         "recomputeLanes": {
-          "line": 66,
+          "line": 93,
           "purpose": "A terminal on its own says nothing about what it is doing; a status on its"
         },
         "init": {
-          "line": 76,
+          "line": 103,
           "purpose": "Install every subscription, once per renderer. Safe to call repeatedly —"
         },
+        "currentCloudKey": {
+          "line": 149,
+          "purpose": "`${path}\\n${cloud project id}\\n${available}` for the open folder."
+        },
+        "onCloudChange": {
+          "line": 155
+        },
         "filterSpecs": {
-          "line": 119,
+          "line": 166,
           "params": [
             "specs"
           ],
           "purpose": "A spec whose folder cannot be read is not an active spec, it is a broken"
         },
         "setHostState": {
-          "line": 131,
+          "line": 178,
           "params": [
             "state"
           ],
           "purpose": "The host's render state, pushed in on every board update. Only the board"
         },
         "getProjectPath": {
-          "line": 154,
+          "line": 203,
           "purpose": "The project every project-scoped source is currently reading."
         },
         "get": {
-          "line": 158,
+          "line": 207,
           "params": [
             "source"
           ]
         },
         "subscribe": {
-          "line": 164,
+          "line": 213,
           "params": [
             "source",
             "cb"
@@ -18902,24 +18919,48 @@
           "purpose": "Subscribe to one source. Returns the unsubscribe."
         },
         "refresh": {
-          "line": 175,
+          "line": 224,
           "params": [
             "source"
           ],
           "purpose": "Ask a source to re-read. `lanes` and `git` are push-only — they arrive"
         },
+        "setMilestone": {
+          "line": 271,
+          "params": [
+            "value",
+            "at = Date.now("
+          ],
+          "purpose": "The milestone source's value. `at` is when it was read (0 marks it stale)."
+        },
+        "loadMilestone": {
+          "line": 288,
+          "purpose": "Read the open project's milestones (one `milestone.list`) and keep its"
+        },
+        "refreshMilestoneIfStale": {
+          "line": 309,
+          "purpose": "Read the milestone again only when it is older than MILESTONE_STALE_MS — a Home visit, a window focus."
+        },
+        "setBoardMilestone": {
+          "line": 319,
+          "params": [
+            "path",
+            "milestone"
+          ],
+          "purpose": "The Briefs board's started milestone, its `briefs` counted from the board"
+        },
         "reloadSessions": {
-          "line": 217,
+          "line": 329,
           "purpose": "Re-scan the transcripts rather than serving the cache — what the panel's"
         },
         "loadSessions": {
-          "line": 222,
+          "line": 334,
           "params": [
             "channel"
           ]
         },
         "setAiTool": {
-          "line": 245,
+          "line": 357,
           "params": [
             "toolId"
           ],
@@ -18937,21 +18978,27 @@
           "LOAD_TASKS"
         ]
       },
-      "sizeBytes": 8331,
+      "sizeBytes": 12970,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "d9d495ae1552508c",
         "purposes": {
+          "cloudBriefsPanel": "a0ea37d769112e23",
+          "currentCloudKey": "56518c0561ad4ac4",
           "filterSpecs": "26d98690b536b5d4",
           "getProjectPath": "6f39315cdea36e38",
           "init": "705536364a3c1185",
+          "loadMilestone": "4e14b750a2375565",
           "recomputeLanes": "dd678bec39f6a76f",
           "refresh": "9da956f6a298ea4e",
+          "refreshMilestoneIfStale": "b83a3dd60db74ce2",
           "reloadSessions": "391e261157ab9cc6",
           "setAiTool": "4f23a1489b6f822a",
+          "setBoardMilestone": "a56ea730a576966a",
           "setHostState": "e8688717f54bdd64",
+          "setMilestone": "5498a4314f53c55a",
           "subscribe": "a47692ea767baad7"
         }
       }
@@ -42323,6 +42370,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "e7d3f6d31269883bccab90b0ce9ddba123891b6788de8de32bdda0efca14fddb"
+    "revision": "8235479a8b9f611ffcb82d823a068419cf40f41affe1e400a7c106dc34fad844"
   }
 }
