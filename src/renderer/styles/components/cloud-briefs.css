@@ -722,6 +722,16 @@ button.cloud-briefs-milestone-name:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+/* The board's one filter: pressed while the board shows only this milestone. */
+.cloud-briefs-milestone-toggle {
+  flex-shrink: 0;
+}
+
+.cloud-briefs-milestone-toggle[aria-pressed="true"] {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 /* ─── Detail (inside the Specs drawer shell) ─── */
 
 .cloud-briefs-detail-body {

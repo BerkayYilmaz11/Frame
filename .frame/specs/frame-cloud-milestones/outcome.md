@@ -32,3 +32,11 @@ _Captured: 2026-11-15 · 2 file change(s)_
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T05 — Narrow the board to the started milestone
+
+Added `narrowedTo` to `src/renderer/cloudBriefsPanel.js`, toggled by the strip's `aria-pressed` "Show only this milestone" / "All briefs" button and honored only while it names the started milestone. While it does, `renderBoard` filters the columns, Closed and the count with `briefsInMilestone` and shows `NARROWED_EMPTY_LABEL` when nothing is open; `hide()` and a folder change in `onCloudChange` clear it. The tracking box now tests the whole board for an Active brief (D22), and the strip always draws its facts row, so an older server's name-only strip still carries the toggle. Checked with the throwaway harness: narrowing, widening, hide/show, a folder change and the empty state.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

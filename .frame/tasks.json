@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T10:01:42.661Z",
+  "lastUpdated": "2026-11-15T10:03:48.223Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11022,13 +11022,13 @@
       "title": "Narrow the Briefs board to the started milestone in `src/renderer/cloudBriefsPanel.js`: a `narrowedTo` id toggled by the strip's `aria-pressed` \"Show only this milestone\" / \"All briefs\" button, applied only while it names the started milestone, filtering the columns, the Closed section and the header count with `briefsInMilestone`, reading \"No open briefs in this milestone.\" when nothing is open, keeping the GitHub tracking box counted from the full board, and cleared by `hide()` and by a change of folder in `onCloudChange`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:03:48.223Z",
+      "completedAt": "2026-11-15T10:03:48.223Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T06",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 42
+    "totalCompleted": 43
   },
   "categories": {
     "feature": "New features",

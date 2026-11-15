@@ -33,6 +33,10 @@
  * web's words — its name (which opens its page on the web), Overdue, the end
  * date, its own target branch and "N of M done" with a bar — counted from the
  * board's own briefs, held moves included. Frame never changes a milestone.
+ * The strip is also the board's one filter (FrameCloud board-active-milestone
+ * D3): "Show only this milestone" narrows the columns, Closed and the count to
+ * its briefs, "All briefs" widens them again. The narrowing lives in the panel
+ * and is cleared by hide() and a change of folder.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -96,6 +100,10 @@ let starting = null;
 const moving = new Set();
 // A brief to open once the panel mounts (a brief lane's chip was clicked).
 let pendingOpen = null;
+// The milestone id the board is narrowed to, or null for every brief. It
+// counts only while it names the board's started milestone (D8); otherwise
+// the board shows every brief. Cleared by hide() and a change of folder (D5).
+let narrowedTo = null;
 // The open folder's specs (by slug) and tasks (by id), for a started brief's
 // part rows. Filled on show() and kept live by SPEC_DATA / TASKS_DATA.
 let local = { path: null, specs: new Map(), tasks: new Map() };
@@ -217,10 +225,11 @@ function onCloudChange() {
     loadedKey = key;
     return;
   }
-  // Another folder: its board, not the last one's brief, form or notice.
+  // Another folder: its board, not the last one's brief, form, notice or narrowing.
   if (path !== loadedPath) {
     closeDrawer();
     notice = null;
+    narrowedTo = null;
   }
   load();
   if (detail) loadDetail();
@@ -288,6 +297,7 @@ function hide() {
   loadSeq += 1; // an answer still in flight lands nowhere
   loadedKey = null;
   notice = null;
+  narrowedTo = null;
   closeDrawer();
 }
 
@@ -372,6 +382,7 @@ function onContentClick(event) {
   else if (action === 'open-web') openOnWeb();
   else if (action === 'open-settings-web') openOnWeb('settings');
   else if (action === 'open-milestone-web') openMilestoneOnWeb(actionEl.dataset.milestoneId);
+  else if (action === 'toggle-milestone') toggleMilestone(actionEl.dataset.milestoneId);
   else if (action === 'new-brief') openNewBrief();
   else if (action === 'dismiss-notice') {
     notice = null;
@@ -425,9 +436,12 @@ function renderBoard() {
   const { milestones, canOpenWeb } = board.result;
   const briefs = shownBriefs();
   const started = copy.startedMilestone(milestones);
-  const groups = copy.groupByColumn(briefs);
+  // Narrowed only while narrowedTo names the started milestone (D8).
+  const narrowed = Boolean(started) && narrowedTo === started.id;
+  const listed = narrowed ? copy.briefsInMilestone(briefs, started.id) : briefs;
+  const groups = copy.groupByColumn(listed);
   const openCount = groups.backlog.length + groups.active.length + groups.done.length;
-  setHeader({ count: showClosed ? briefs.length : openCount, canOpenWeb });
+  setHeader({ count: showClosed ? listed.length : openCount, canOpenWeb });
   const milestoneNames = new Map((milestones || []).map((m) => [m.id, m.name]));
 
   const open = openCount > 0
@@ -441,7 +455,7 @@ function renderBoard() {
           ${renderCards(groups[column.status], milestoneNames)}
         </section>`).join('')}
       </div>`
-    : renderEmpty(canOpenWeb);
+    : narrowed ? renderNarrowedEmpty() : renderEmpty(canOpenWeb);
 
   const closed = showClosed
     ? `<section class="cloud-briefs-closed" aria-label="Closed">
@@ -452,9 +466,28 @@ function renderBoard() {
       </section>`
     : '';
 
-  const tracking = groups.active.length > 0 ? renderTrackingNotice(board.result.mergeTracking, canOpenWeb) : '';
-  const strip = started ? renderMilestoneStrip(started, briefs, canOpenWeb) : '';
+  // The tracking box states the project's tracking, so it reads the whole
+  // board's Active column, not the narrowed one (D22).
+  const anyActive = briefs.some((b) => b.status === 'active');
+  const tracking = anyActive ? renderTrackingNotice(board.result.mergeTracking, canOpenWeb) : '';
+  const strip = started ? renderMilestoneStrip(started, briefs, canOpenWeb, narrowed) : '';
   contentElement.innerHTML = renderNotice() + tracking + strip + open + closed;
+}
+
+/** "Show only this milestone" or "All briefs": narrow the board to the started milestone, or widen it again. */
+function toggleMilestone(milestoneId) {
+  if (!board || !board.result) return;
+  const started = copy.startedMilestone(board.result.milestones);
+  if (!started || started.id !== milestoneId) return;
+  narrowedTo = narrowedTo === started.id ? null : started.id;
+  renderBoard();
+}
+
+/** A narrowed board with nothing open (D7). */
+function renderNarrowedEmpty() {
+  return `<div class="cloud-briefs-state cloud-briefs-narrowed-empty">
+      <p>${escapeHtml(copy.NARROWED_EMPTY_LABEL)}</p>
+    </div>`;
 }
 
 /**
@@ -464,9 +497,10 @@ function renderBoard() {
  * Overdue, the end date, its own target branch, and a bar with "N of M done".
  * The numbers come from `briefs`, the board as shown, so a held Move to Done
  * moves them at once and Undo moves them back. A milestone from an older
- * server reads as its name alone (D11). Read-only, as on the web.
+ * server reads as its name alone (D11). Read-only, as on the web; its one
+ * control is the board's filter, pressed while `narrowed`.
  */
-function renderMilestoneStrip(started, briefs, canOpenWeb) {
+function renderMilestoneStrip(started, briefs, canOpenWeb, narrowed) {
   const summary = copy.milestoneSummary({ ...started, briefs: copy.countsWithBriefs(started, briefs) }, copy.localToday());
   const name = canOpenWeb
     ? `<button type="button" class="cloud-briefs-milestone-name" data-action="open-milestone-web" data-milestone-id="${escapeHtml(summary.id)}" title="${escapeHtml(copy.OPEN_ON_WEB_LABEL)}" tabindex="-1">${escapeHtml(summary.name)}</button>`
@@ -475,13 +509,14 @@ function renderMilestoneStrip(started, briefs, canOpenWeb) {
   if (summary.ends) facts.push(`<span>${escapeHtml(summary.ends)}</span>`);
   if (summary.target) facts.push(`<span class="cloud-briefs-milestone-target">${escapeHtml(summary.target)}</span>`);
   if (summary.progress) facts.push(renderMilestoneProgress(summary.name, summary.progress));
+  facts.push(`<button type="button" class="cloud-briefs-web-btn cloud-briefs-milestone-toggle" data-action="toggle-milestone" data-milestone-id="${escapeHtml(summary.id)}" aria-pressed="${narrowed ? 'true' : 'false'}" tabindex="-1">${escapeHtml(narrowed ? copy.ALL_BRIEFS_LABEL : copy.SHOW_ONLY_MILESTONE_LABEL)}</button>`);
   return `<section class="cloud-briefs-milestone-strip" aria-label="${escapeHtml(copy.STARTED_MILESTONE_LABEL)}">
       <div class="cloud-briefs-milestone-head">
         <span class="cloud-briefs-milestone-label">${escapeHtml(copy.MILESTONE_LABEL)}</span>
         ${name}
         ${summary.overdue ? renderOverdue() : ''}
       </div>
-      ${facts.length > 0 ? `<div class="cloud-briefs-milestone-facts">${facts.join('')}</div>` : ''}
+      <div class="cloud-briefs-milestone-facts">${facts.join('')}</div>
     </section>`;
 }
 
