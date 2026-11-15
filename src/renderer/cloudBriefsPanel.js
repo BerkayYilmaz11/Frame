@@ -28,6 +28,11 @@
  * line; and, when the project has no GitHub or tracking is off, the web's box
  * above the columns leading to the project's Settings. Frame never asks
  * GitHub itself and never changes the setting.
+ * Milestones (frame-cloud-milestones spec): while the project has a started
+ * milestone, a strip between the tracking box and the columns shows it in the
+ * web's words — its name (which opens its page on the web), Overdue, the end
+ * date, its own target branch and "N of M done" with a bar — counted from the
+ * board's own briefs, held moves included. Frame never changes a milestone.
  *
  * Names are `cloudBriefs*` / `cloud-briefs`, not `briefs`: the local briefs
  * of brief-capture-and-shaping own those, and the two must meet in one tree.
@@ -341,7 +346,10 @@ function setRefreshing(on) {
   refreshButton.disabled = on;
 }
 
-/** The project on the web, one brief by number, or the project's Settings for `'settings'`; main builds the URL. */
+/**
+ * The project on the web, one brief by number, the project's Settings for
+ * `'settings'`, or a milestone's page for `{ milestoneId }`; main builds the URL.
+ */
 function openOnWeb(target) {
   const path = state.getProjectPath();
   if (!path) return;
@@ -351,6 +359,11 @@ function openOnWeb(target) {
   });
 }
 
+/** A milestone's page on the web. */
+function openMilestoneOnWeb(milestoneId) {
+  if (typeof milestoneId === 'string' && milestoneId) openOnWeb({ milestoneId });
+}
+
 function onContentClick(event) {
   const actionEl = event.target.closest('[data-action]');
   if (!actionEl || !contentElement.contains(actionEl)) return;
@@ -358,6 +371,7 @@ function onContentClick(event) {
   if (action === 'retry') load();
   else if (action === 'open-web') openOnWeb();
   else if (action === 'open-settings-web') openOnWeb('settings');
+  else if (action === 'open-milestone-web') openMilestoneOnWeb(actionEl.dataset.milestoneId);
   else if (action === 'new-brief') openNewBrief();
   else if (action === 'dismiss-notice') {
     notice = null;
@@ -410,6 +424,7 @@ function setHeader({ count, canOpenWeb }) {
 function renderBoard() {
   const { milestones, canOpenWeb } = board.result;
   const briefs = shownBriefs();
+  const started = copy.startedMilestone(milestones);
   const groups = copy.groupByColumn(briefs);
   const openCount = groups.backlog.length + groups.active.length + groups.done.length;
   setHeader({ count: showClosed ? briefs.length : openCount, canOpenWeb });
@@ -438,7 +453,49 @@ function renderBoard() {
     : '';
 
   const tracking = groups.active.length > 0 ? renderTrackingNotice(board.result.mergeTracking, canOpenWeb) : '';
-  contentElement.innerHTML = renderNotice() + tracking + open + closed;
+  const strip = started ? renderMilestoneStrip(started, briefs, canOpenWeb) : '';
+  contentElement.innerHTML = renderNotice() + tracking + strip + open + closed;
+}
+
+/**
+ * The project's started milestone above the columns (FrameCloud
+ * board-active-milestone D10): "Milestone", its name — a button to its page
+ * on the web when the project has a web link, plain text otherwise —
+ * Overdue, the end date, its own target branch, and a bar with "N of M done".
+ * The numbers come from `briefs`, the board as shown, so a held Move to Done
+ * moves them at once and Undo moves them back. A milestone from an older
+ * server reads as its name alone (D11). Read-only, as on the web.
+ */
+function renderMilestoneStrip(started, briefs, canOpenWeb) {
+  const summary = copy.milestoneSummary({ ...started, briefs: copy.countsWithBriefs(started, briefs) }, copy.localToday());
+  const name = canOpenWeb
+    ? `<button type="button" class="cloud-briefs-milestone-name" data-action="open-milestone-web" data-milestone-id="${escapeHtml(summary.id)}" title="${escapeHtml(copy.OPEN_ON_WEB_LABEL)}" tabindex="-1">${escapeHtml(summary.name)}</button>`
+    : `<span class="cloud-briefs-milestone-name">${escapeHtml(summary.name)}</span>`;
+  const facts = [];
+  if (summary.ends) facts.push(`<span>${escapeHtml(summary.ends)}</span>`);
+  if (summary.target) facts.push(`<span class="cloud-briefs-milestone-target">${escapeHtml(summary.target)}</span>`);
+  if (summary.progress) facts.push(renderMilestoneProgress(summary.name, summary.progress));
+  return `<section class="cloud-briefs-milestone-strip" aria-label="${escapeHtml(copy.STARTED_MILESTONE_LABEL)}">
+      <div class="cloud-briefs-milestone-head">
+        <span class="cloud-briefs-milestone-label">${escapeHtml(copy.MILESTONE_LABEL)}</span>
+        ${name}
+        ${summary.overdue ? renderOverdue() : ''}
+      </div>
+      ${facts.length > 0 ? `<div class="cloud-briefs-milestone-facts">${facts.join('')}</div>` : ''}
+    </section>`;
+}
+
+/** The milestone's bar and "N of M done". */
+function renderMilestoneProgress(name, progress) {
+  const percent = Number(progress.percent) || 0;
+  return `<span class="cloud-briefs-milestone-progress">
+      <span class="cloud-briefs-progress" role="progressbar" aria-label="${escapeHtml(copy.milestoneProgressLabel(name))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span class="cloud-briefs-progress-fill" style="width: ${percent}%"></span></span>
+      <span class="cloud-briefs-progress-label">${escapeHtml(progress.label)}</span>
+    </span>`;
+}
+
+function renderOverdue() {
+  return `<span class="cloud-briefs-overdue">${escapeHtml(copy.OVERDUE_LABEL)}</span>`;
 }
 
 /**

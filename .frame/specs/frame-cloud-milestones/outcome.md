@@ -24,3 +24,11 @@ Followup: the existing `formatDate` test fails under `TZ=Pacific/Kiritimati` (no
 _Captured: 2026-11-15 · 2 file change(s)_
 
 ---
+
+## T04 — Draw the started-milestone strip above the columns
+
+`renderBoard` in `src/renderer/cloudBriefsPanel.js` now draws `renderMilestoneStrip` between the tracking box and the columns, from `milestoneSummary` over `countsWithBriefs(started, shownBriefs())`, so held moves count at once. The name is an `open-milestone-web` button when `canOpenWeb`, routed through a small `openMilestoneOnWeb` to `openOnWeb({ milestoneId })`; styles for the strip, name link, Overdue badge and bar are in `cloud-briefs.css`. As planned; checked with a throwaway fake-DOM harness, since the project has no DOM tests.
+
+_Captured: 2026-11-15 · 2 file change(s)_
+
+---

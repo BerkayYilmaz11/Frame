@@ -7,7 +7,7 @@
   },
   "project": "Frame",
   "version": "2.0",
-  "lastUpdated": "2026-11-15T09:58:40.856Z",
+  "lastUpdated": "2026-11-15T10:01:42.661Z",
   "taskSchema": {
     "_comment": "This schema shows the expected structure for each task",
     "id": "unique-id (task-xxx format)",
@@ -11009,13 +11009,13 @@
       "title": "Draw the started-milestone strip in `src/renderer/cloudBriefsPanel.js` between the GitHub tracking box and the columns (\"Milestone\", the name as an `open-milestone-web` button when `canOpenWeb` else text, Overdue, \"Ends …\", \"Targets …\", a `role=\"progressbar\"` bar and \"N of M done\", all counted from `shownBriefs()`), route `open-milestone-web` to `openOnWeb({ milestoneId })`, and style it in `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-milestones:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-milestones",
       "createdAt": "2026-11-15T09:42:59.260Z",
-      "updatedAt": "2026-11-15T09:42:59.260Z",
-      "completedAt": null
+      "updatedAt": "2026-11-15T10:01:42.661Z",
+      "completedAt": "2026-11-15T10:01:42.661Z"
     },
     {
       "id": "task-spec-frame-cloud-milestones-T05",
@@ -11111,7 +11111,7 @@
   ],
   "metadata": {
     "totalCreated": 800,
-    "totalCompleted": 41
+    "totalCompleted": 42
   },
   "categories": {
     "feature": "New features",
