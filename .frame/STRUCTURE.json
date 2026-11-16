@@ -15609,108 +15609,108 @@
           "purpose": "Opening re-reads both states and asks the server once: device.me when"
         },
         "initEarlyAccess": {
-          "line": 119,
+          "line": 121,
           "purpose": "Fill the early-access pane's static words once and wire its controls."
         },
         "showJoinFailure": {
-          "line": 186,
+          "line": 188,
           "params": [
             "reason"
           ],
           "purpose": "One line under the form for a failed join (null clears it), and frame.cool as the way out."
         },
         "renderEarlyAccess": {
-          "line": 198,
+          "line": 200,
           "params": [
             "s"
           ],
           "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 212
+          "line": 214
         },
         "pullProjects": {
-          "line": 225
+          "line": 227
         },
         "refreshProjects": {
-          "line": 239,
+          "line": 241,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 255,
+          "line": 257,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 290,
+          "line": 292,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 303,
+          "line": 305,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 341
+          "line": 343
         },
         "renderHeader": {
-          "line": 351,
+          "line": 353,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 367,
+          "line": 369,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 401,
+          "line": 403,
           "params": [
             "state"
           ]
         },
         "standInFor": {
-          "line": 430,
+          "line": 432,
           "params": [
             "state"
           ],
           "purpose": "Which card stands in for the tab bar and both tabs, or null for the tabs:"
         },
         "renderStandIn": {
-          "line": 444,
+          "line": 446,
           "params": [
             "state"
           ],
           "purpose": "The stand-in panel: the tab bar, both tabs and the devices notice give way"
         },
         "showDevicesPrompt": {
-          "line": 501,
+          "line": 503,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 528
+          "line": 530
         },
         "setTab": {
-          "line": 533,
+          "line": 535,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 563,
+          "line": 565,
           "params": [
             "{ tab",
             "folderPath",
@@ -15719,42 +15719,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 571,
+          "line": 573,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 578,
+          "line": 580,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 584,
+          "line": 586,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 590,
+          "line": 592,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 596,
+          "line": 598,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 600,
+          "line": 602,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 609,
+          "line": 611,
           "params": [
             "date"
           ]
@@ -15767,7 +15767,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 24229,
+      "sizeBytes": 24330,
       "extraction": {
         "status": "parsed"
       },
@@ -16566,43 +16566,95 @@
     },
     "renderer/cloudWelcome": {
       "file": "src/renderer/cloudWelcome.js",
-      "description": "Frame Cloud — the case for it, beside the sign-in.",
+      "description": "Frame Cloud — the tour beside the sign-in (frame-cloud-header-entry spec).",
       "exports": [
-        "render"
+        "render",
+        "show",
+        "reset"
       ],
-      "depends": [],
+      "depends": [
+        "cloudTour"
+      ],
       "functions": {
-        "icon": {
-          "line": 34,
-          "params": [
-            "name",
-            "size = 16"
-          ]
-        },
         "el": {
-          "line": 40,
+          "line": 24,
           "params": [
             "tag",
             "className",
             "text"
           ]
         },
-        "render": {
+        "toneClass": {
+          "line": 31,
+          "params": [
+            "tone"
+          ]
+        },
+        "buildFeatures": {
+          "line": 37,
+          "params": [
+            "example"
+          ]
+        },
+        "buildPartsList": {
           "line": 48,
+          "params": [
+            "parts"
+          ]
+        },
+        "buildCard": {
+          "line": 60,
+          "params": [
+            "card"
+          ]
+        },
+        "buildBoard": {
+          "line": 74,
+          "params": [
+            "example"
+          ]
+        },
+        "buildLane": {
+          "line": 104,
+          "params": [
+            "example"
+          ]
+        },
+        "buildParts": {
+          "line": 121,
+          "params": [
+            "example"
+          ]
+        },
+        "render": {
+          "line": 145,
           "params": [
             "root"
           ],
-          "purpose": "Fill the pitch once; it never changes with the session."
+          "purpose": "Build the tour once; `show` repaints it from then on."
+        },
+        "show": {
+          "line": 201,
+          "params": [
+            "i"
+          ],
+          "purpose": "Show step `i` (clamped): the words, the example, the dots and the buttons."
+        },
+        "reset": {
+          "line": 232,
+          "purpose": "Back to step one — every time the window opens."
         }
       },
-      "sizeBytes": 4219,
+      "sizeBytes": 8812,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "9a11918b6d6a6e09",
+        "description": "04d0f4282b8e0f36",
         "purposes": {
-          "render": "071b9f03ea3e2740"
+          "render": "37c94909ba1982f2",
+          "reset": "755649aa66c9e22a",
+          "show": "c20ddd9e18fad761"
         }
       }
     },
@@ -25125,7 +25177,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 22891,
+      "sizeBytes": 28941,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -44666,6 +44718,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "9535719e8d542b7dbb9fd109152c3531009b7219ae5eed3e5d281fbd2682952b"
+    "revision": "5d18055738666cdf244bac70260f369d1e8095889a1ab5b8418672fd5946c943"
   }
 }

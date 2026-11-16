@@ -27,3 +27,10 @@ Wrote the pure `src/renderer/cloudTour.js` (copy and fixed sample data of mockup
 _Captured: 2026-11-16 · 2 file change(s)_
 
 ---
+## T05 — The tour in the window: cloudWelcome as the DOM host
+
+Rewrote `cloudWelcome.js` as the tour's host (`render`, `show`, `reset`, one builder per example kind), replaced `.cloud-feats` / `.cloud-feat*` in `cloud-hub.css` with token-based `.cloud-tour-*` rules, and called `cloudWelcome.reset()` from `cloudHub.onOpen`. Beyond plan.md: focus is handed over in both directions (Back also turns disabled under focus on step one), the dead `#cloud-btn[hidden]` rule left over from T03 was removed here, and the pitch column's gap went from 26px to 20px.
+
+_Captured: 2026-11-16 · 3 file change(s)_
+
+---

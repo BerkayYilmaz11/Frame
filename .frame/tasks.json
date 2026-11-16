@@ -10591,13 +10591,13 @@
       "title": "Rewrite `src/renderer/cloudWelcome.js` as the tour's DOM host: `render(root)` builds the skeleton once (eyebrow with counter, title, lede, stage, a nav row of dots, Back and Next, the trust line), `show(i)` repaints the step with one builder per example kind and sets `disabled` and `aria-current`, `reset()` shows step one, the nav buttons are never replaced and focus moves to Back when Next becomes disabled under it; replace the `.cloud-feats` / `.cloud-feat*` rules in `src/renderer/styles/components/cloud-hub.css` with `.cloud-tour-*` rules from tokens whose stage takes the free height; call `cloudWelcome.reset()` from `cloudHub.onOpen` in `src/renderer/cloudHub.js`",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:34:18.245Z",
+      "completedAt": "2026-11-16T08:34:18.245Z"
     },
     {
       "id": "task-spec-frame-cloud-header-entry-T06",
@@ -10626,7 +10626,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-16T08:32:32.777Z",
+  "lastUpdated": "2026-11-16T08:34:18.245Z",
   "metadata": {
     "totalCreated": 814
   }

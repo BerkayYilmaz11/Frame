@@ -25,7 +25,7 @@ const earlyAccess = require('./cloudEarlyAccess');
 const SIGNED_IN_NOTE_MS = 4000;
 const TABS = ['projects', 'device'];
 const PROMPT_DISMISSED_KEY = 'cloudConnectPromptDismissed';
-// The states drawn inside the welcome layout (pitch + sign-in card).
+// The states drawn inside the welcome layout (the tour + sign-in card).
 const WELCOME_STATES = ['signedOut', 'requestingCode', 'awaitingApproval', 'registering', 'failed'];
 
 // The ↗ after links that leave Frame, as in the Workspace row.
@@ -105,6 +105,8 @@ function init(opts = {}) {
 function onOpen() {
   // The after-sign-in notice belongs to that moment, not to later visits.
   hideDevicesPrompt();
+  // The tour's step is not remembered: every opening starts at step one.
+  cloudWelcome.reset();
   pullSession().then((state) => {
     if (!state || state.state === 'unavailable') return;
     ipcRenderer.invoke(IPC.CLOUD_REFRESH).then(renderSession).catch(() => {});
