@@ -364,6 +364,8 @@ function init() {
   frameSettingsModal.init();
   // Frame Cloud never lands over the first-run screen or the guided tour.
   cloudHub.init({ isBlocked: () => onboarding.isOpen() || guidedTour.isOpen(), tabs: cloudHubTabs });
+  // The header's Frame Cloud entry follows the session the hub publishes.
+  appHeader.bindCloudEntry(cloudHub);
   cloudProjectMark.init(cloudHub);
   cloudBriefsPanel.init(cloudHub);
   feedbackPanel.init();

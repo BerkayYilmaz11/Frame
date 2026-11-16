@@ -6,3 +6,10 @@ Followup: `test/serverConnection.test.js` and `test/specManagerServer.test.js` p
 _Captured: 2026-11-16 · 3 file change(s)_
 
 ---
+## T02 — The entry in the header: markup, styles and bindCloudEntry
+
+Added the hidden `button#cloud-entry` to `index.html`, its token-based styles and the `max-width: 760px` icon-only rule to `app-header.css`, and `appHeader.bindCloudEntry(cloudHub)`, called from `index.js` after `cloudHub.init`. Diverged from plan.md in two details: the separator is the button's `::before` rather than a child element, and the `24ch` cap applies to the workspace name only so the waitlist call is never cut. The entry carries its own `[hidden]` rule because the stylesheets have no global one.
+
+_Captured: 2026-11-16 · 4 file change(s)_
+
+---

@@ -10552,13 +10552,13 @@
       "title": "Add the hidden static `button#cloud-entry` (separator, cloud icon, initial box, label, tag) to `.app-header-left` in `index.html`, style it in `src/renderer/styles/components/app-header.css` from tokens (quiet at rest, the waitlist call one step brighter, the label capped at `24ch` with an ellipsis, and a `max-width: 760px` media query that leaves the cloud icon alone), and add `bindCloudEntry(cloudHub)` to `src/renderer/appHeader.js`: paint from `entryFor` with `textContent` on every `onSession` push, set `aria-label`, `hidden`, `data-kind` and `.cloud-entry-call`, toggle the window on click, rebind the tooltip (`placement: 'bottom'`) by cloning the button when its text changes and hand focus to the clone; call it from `src/renderer/index.js` after `cloudHub.init`",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:30:36.100Z",
+      "completedAt": "2026-11-16T08:30:36.100Z"
     },
     {
       "id": "task-spec-frame-cloud-header-entry-T03",
@@ -10626,7 +10626,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-16T08:29:05.639Z",
+  "lastUpdated": "2026-11-16T08:30:36.100Z",
   "metadata": {
     "totalCreated": 814
   }

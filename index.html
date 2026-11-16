@@ -110,7 +110,8 @@
        the center (shell-chrome-app-header-collapsible-panels spec). Static
        markup on purpose — it exists before any script runs, so nothing in
        it flashes at boot and every module that binds by id finds its
-       element at DOMContentLoaded. Left: Frame's mark. Right: the
+       element at DOMContentLoaded. Left: Frame's mark, then the Frame
+       Cloud entry. Right: the
        agent picker with Start, the window-level controls and the layout
        toggles. appHeader.js wires the behavior. -->
   <header id="app-header">
@@ -123,6 +124,21 @@
         <path d="M2 2h7.72v1.52H3.52V9.72H2V2Z"/><path d="M22 2v7.72h-1.52V3.52H14.28V2H22Z"/><path d="M2 22v-7.72h1.52V20.48H9.72V22H2Z"/><path d="M22 22h-7.72v-1.52H20.48V14.28H22V22Z"/>
       </svg>
       <span class="app-header-brand">Frame</span>
+      <!-- Frame Cloud (frame-cloud-header-entry spec): opens #cloud-overlay.
+           Hidden while no server address resolves, so a build without one
+           keeps this header as it was. appHeader.bindCloudEntry paints it
+           from cloudEntry.entryFor on every session push: the cloud icon or
+           the workspace's initial, a label, a tag. Never a badge or a dot. -->
+      <button id="cloud-entry" class="cloud-entry" type="button" data-kind="cloud" aria-label="Frame Cloud" hidden>
+        <span class="cloud-entry-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          </svg>
+        </span>
+        <span class="cloud-entry-initial" aria-hidden="true"></span>
+        <span class="cloud-entry-label"></span>
+        <span class="cloud-entry-tag" hidden></span>
+      </button>
     </div>
     <!-- Spacer: keeps the brand at the left end and the controls at the
          right end. -->
