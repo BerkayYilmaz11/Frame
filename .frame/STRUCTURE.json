@@ -302,7 +302,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 129358,
+      "sizeBytes": 128871,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -15585,7 +15585,7 @@
     },
     "renderer/cloudHub": {
       "file": "src/renderer/cloudHub.js",
-      "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail.",
+      "description": "Frame Cloud — the modal behind the app header's Frame Cloud entry",
       "exports": [],
       "depends": [
         "electron",
@@ -15598,119 +15598,119 @@
       ],
       "functions": {
         "init": {
-          "line": 62,
+          "line": 63,
           "params": [
             "opts = {}"
           ],
           "purpose": "tabs: the tab renderer ({ init(hub), render(state, activeTab), onShow(tab) })."
         },
         "onOpen": {
-          "line": 104,
+          "line": 105,
           "purpose": "Opening re-reads both states and asks the server once: device.me when"
         },
         "initEarlyAccess": {
-          "line": 118,
+          "line": 119,
           "purpose": "Fill the early-access pane's static words once and wire its controls."
         },
         "showJoinFailure": {
-          "line": 185,
+          "line": 186,
           "params": [
             "reason"
           ],
           "purpose": "One line under the form for a failed join (null clears it), and frame.cool as the way out."
         },
         "renderEarlyAccess": {
-          "line": 197,
+          "line": 198,
           "params": [
             "s"
           ],
           "purpose": "Signed out: today's pane, the waitlist form, or the joined card."
         },
         "pullSession": {
-          "line": 211
+          "line": 212
         },
         "pullProjects": {
-          "line": 224
+          "line": 225
         },
         "refreshProjects": {
-          "line": 238,
+          "line": 239,
           "purpose": "Re-read the list; the candidates follow (both tabs read them)."
         },
         "onAction": {
-          "line": 254,
+          "line": 255,
           "params": [
             "action",
             "btn"
           ]
         },
         "invokeSession": {
-          "line": 289,
+          "line": 290,
           "params": [
             "channel",
             "btn"
           ]
         },
         "renderSession": {
-          "line": 302,
+          "line": 303,
           "params": [
             "state"
           ]
         },
         "land": {
-          "line": 340
+          "line": 341
         },
         "renderHeader": {
-          "line": 350,
+          "line": 351,
           "params": [
             "s"
           ]
         },
         "renderAvatar": {
-          "line": 366,
+          "line": 367,
           "params": [
             "user"
           ],
           "purpose": "The account picture when the server has one and it loads; initials"
         },
         "renderProjects": {
-          "line": 400,
+          "line": 401,
           "params": [
             "state"
           ]
         },
         "standInFor": {
-          "line": 429,
+          "line": 430,
           "params": [
             "state"
           ],
           "purpose": "Which card stands in for the tab bar and both tabs, or null for the tabs:"
         },
         "renderStandIn": {
-          "line": 443,
+          "line": 444,
           "params": [
             "state"
           ],
           "purpose": "The stand-in panel: the tab bar, both tabs and the devices notice give way"
         },
         "showDevicesPrompt": {
-          "line": 500,
+          "line": 501,
           "params": [
             "state"
           ],
           "purpose": "After a user-started sign-in with folders left to connect: switch the"
         },
         "hideDevicesPrompt": {
-          "line": 527
+          "line": 528
         },
         "setTab": {
-          "line": 532,
+          "line": 533,
           "params": [
             "tab",
             "opts = {}"
           ]
         },
         "open": {
-          "line": 562,
+          "line": 563,
           "params": [
             "{ tab",
             "folderPath",
@@ -15719,42 +15719,42 @@
           "purpose": "Open Frame Cloud. `tab` picks 'projects' or 'device'; `folderPath` asks the"
         },
         "signIn": {
-          "line": 570,
+          "line": 571,
           "purpose": "Palette \"Frame Cloud: Sign in\" and the Sign in buttons in both settings surfaces: open here and start."
         },
         "signOut": {
-          "line": 577,
+          "line": 578,
           "purpose": "Palette \"Frame Cloud: Sign out\": no modal."
         },
         "setNote": {
-          "line": 583,
+          "line": 584,
           "params": [
             "name",
             "visible"
           ]
         },
         "setText": {
-          "line": 589,
+          "line": 590,
           "params": [
             "id",
             "text"
           ]
         },
         "isWebUrl": {
-          "line": 595,
+          "line": 596,
           "params": [
             "url"
           ],
           "purpose": "\"Primary · secondary\", built from text nodes — server strings never become HTML."
         },
         "webOrigin": {
-          "line": 599,
+          "line": 600,
           "params": [
             "url"
           ]
         },
         "formatRelative": {
-          "line": 608,
+          "line": 609,
           "params": [
             "date"
           ]
@@ -15767,12 +15767,12 @@
         ],
         "emits": []
       },
-      "sizeBytes": 24159,
+      "sizeBytes": 24229,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "e430ebf4df6d0b4e",
+        "description": "7509c3abfce9d7e5",
         "purposes": {
           "init": "9a0c0e6482f0308d",
           "initEarlyAccess": "467835ef44b64a7e",
@@ -20119,30 +20119,30 @@
           "purpose": "Setup button click handlers"
         },
         "setupProjectSwitcher": {
-          "line": 540,
+          "line": 515,
           "purpose": "Wire the current-project dropdown: build the project list on open, switch on"
         },
         "setupUpdateDot": {
-          "line": 671,
+          "line": 646,
           "purpose": "Show the sidebar's update banner (version + arrow, click-to-act) when a"
         },
         "revealSidebarTab": {
-          "line": 710,
+          "line": 685,
           "params": [
             "tabName"
           ],
           "purpose": "Show the sidebar (if hidden) and switch to the given tab. Used by focus"
         },
         "registerCommands": {
-          "line": 736,
+          "line": 711,
           "purpose": "Register every app command with the central registry. Commands are the"
         },
         "startAiSession": {
-          "line": 1338,
+          "line": 1313,
           "purpose": "Start the selected AI tool (Claude Code / Codex CLI / etc.) in a fresh"
         },
         "forwardException": {
-          "line": 1363,
+          "line": 1338,
           "params": [
             "err"
           ],
@@ -20163,7 +20163,7 @@
           "ANALYTICS_EXCEPTION"
         ]
       },
-      "sizeBytes": 51274,
+      "sizeBytes": 50218,
       "extraction": {
         "status": "parsed"
       },
@@ -43112,7 +43112,7 @@
       {
         "module": "renderer/cloudHub",
         "file": "src/renderer/cloudHub.js",
-        "description": "Frame Cloud — the modal behind the cloud icon at the foot of the rail."
+        "description": "Frame Cloud — the modal behind the app header's Frame Cloud entry"
       },
       {
         "module": "renderer/cloudHubTabs",
@@ -44556,6 +44556,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "6c3acd1bfafa198253c63468a14bcf1f8a9376e10cbb8556b2356e369104f482"
+    "revision": "ae4711e599b16cff0efe7c06b68bea68a7409a7e5cb28fcbaa82dafb75fc6786"
   }
 }

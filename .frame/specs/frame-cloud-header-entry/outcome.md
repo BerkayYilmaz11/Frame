@@ -13,3 +13,10 @@ Added the hidden `button#cloud-entry` to `index.html`, its token-based styles an
 _Captured: 2026-11-16 · 4 file change(s)_
 
 ---
+## T03 — The rail loses its Frame Cloud button
+
+Removed `#cloud-btn` from the rail in `index.html` and the `bindCloudBtn` block from `index.js`, and rewrote the rail-foot comments (five buttons: Add Server, Plugins, Feedback, Frame Settings, How to Use Frame) and `cloudHub.js`'s header comment. No divergence from plan.md; the dead `#cloud-btn[hidden]` rule in `cloud-hub.css` goes with T05.
+
+_Captured: 2026-11-16 · 3 file change(s)_
+
+---

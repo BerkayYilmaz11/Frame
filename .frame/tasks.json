@@ -10565,13 +10565,13 @@
       "title": "Remove `#cloud-btn` from the sidebar rail in `index.html` and the `bindCloudBtn` block from `src/renderer/index.js`, and correct the rail-foot comments in `src/renderer/index.js` and the header comment of `src/renderer/cloudHub.js`",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:31:12.746Z",
+      "completedAt": "2026-11-16T08:31:12.746Z"
     },
     {
       "id": "task-spec-frame-cloud-header-entry-T04",
@@ -10626,7 +10626,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-16T08:30:36.100Z",
+  "lastUpdated": "2026-11-16T08:31:12.746Z",
   "metadata": {
     "totalCreated": 814
   }

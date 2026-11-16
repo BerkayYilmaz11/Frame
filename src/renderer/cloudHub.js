@@ -1,5 +1,6 @@
 /**
- * Frame Cloud — the modal behind the cloud icon at the foot of the rail.
+ * Frame Cloud — the modal behind the app header's Frame Cloud entry
+ * (#cloud-entry, right of the Frame mark; frame-cloud-header-entry spec).
  *
  * One home for everything project-independent about Frame Cloud: the
  * account (the sign-in panes that used to live in Settings → Account), the
