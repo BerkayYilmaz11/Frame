@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-header-entry",
   "title": "Frame Cloud header entry and window tour",
-  "phase": "tasks_generated",
+  "phase": "implementing",
   "generated_task_ids": [
     "task-spec-frame-cloud-header-entry-T01",
     "task-spec-frame-cloud-header-entry-T02",
@@ -13,7 +13,7 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-11-16T07:59:27Z",
-  "updated_at": "2026-11-16T08:11:26.674Z",
-  "last_phase_at": "2026-11-16T08:09:15.039Z",
+  "updated_at": "2026-11-16T08:13:24.815Z",
+  "last_phase_at": "2026-11-16T08:13:24.815Z",
   "implement_mode": "autonomous"
 }

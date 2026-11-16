@@ -10539,13 +10539,13 @@
       "title": "Add the three entry strings to `cloudEarlyAccess.COPY` (the waitlist call \"Join Frame Cloud waitlist\", the tags \"Early access\" and \"On the list\") and write the pure `src/renderer/cloudEntry.js` with `entryFor(session)` → `null` for `unavailable`, else `{ kind, label, tag, initial, tooltip, call }` per the plan's table (words taken from `cloudEarlyAccess`, `cloudNoWorkspace.workspaceRow(null).value` and `cloudRoles.workspaceName` / `workspaceLine`), with `test/cloudEntry.test.js` covering every row, a missing session, the sign-in steps reading as signed out, a workspace without a known role, a non-ASCII name's initial, and the full pricing guard over every label, tag and tooltip",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:29:05.639Z",
+      "completedAt": "2026-11-16T08:29:05.639Z"
     },
     {
       "id": "task-spec-frame-cloud-header-entry-T02",
@@ -10626,7 +10626,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-16T08:09:15.321Z",
+  "lastUpdated": "2026-11-16T08:29:05.639Z",
   "metadata": {
     "totalCreated": 814
   }
