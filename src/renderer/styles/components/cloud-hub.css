@@ -94,7 +94,7 @@
   font-size: 11px;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .cloud-tour-stage {
@@ -169,11 +169,13 @@
   outline-offset: 2px;
 }
 
-/* Tones: what a part's or a card's state reads as. */
+/* Tones: what a part's or a card's state reads as. The quiet text here is
+   --text-secondary, not --text-tertiary: at these sizes the tertiary ink
+   falls under 4.5:1 in the light-plus theme. */
 .cloud-tour-tone-ok { color: var(--accent-primary); }
 .cloud-tour-tone-review { color: var(--info); }
 .cloud-tour-tone-active { color: var(--doc-task); }
-.cloud-tour-tone-muted { color: var(--text-tertiary); }
+.cloud-tour-tone-muted { color: var(--text-secondary); }
 
 /* Overview: six features in two columns. */
 .cloud-tour-features {
@@ -262,7 +264,7 @@
   font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .cloud-tour-card {
@@ -282,7 +284,7 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .cloud-tour-kind {
@@ -388,7 +390,7 @@
 .cloud-tour-record small {
   display: block;
   font-size: 11.5px;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .cloud-tour-row {
@@ -406,7 +408,7 @@
 .cloud-tour-note {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   overflow-wrap: anywhere;
 }
 

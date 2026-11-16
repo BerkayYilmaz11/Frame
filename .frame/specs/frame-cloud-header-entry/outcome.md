@@ -41,3 +41,13 @@ Changed the one phrase in `PRIVACY.md` that located the window ("the cloud icon 
 _Captured: 2026-11-16 · 1 file change(s)_
 
 ---
+## T07 — The walk in the running app
+
+Walked a dev build with an isolated data folder against a local stand-in server, driven over the DevTools protocol: no address (no entry, five rail buttons), open server, invite-only before and after joining, a restart, "Use another address", the sidebar hidden, the palette's "Frame Cloud: Open", and every tour step by Next, Back and dots with an email typed (email, focus, pane, the 1040×720 modal and the nav row all held; reopening returned to step one). The walk produced two fixes outside plan.md's design: `cloudHub.js` now presents the session without the joined address while "Use another address" has the form back (the entry kept reading "On the list"), and the entry's tag and the tour's quiet text use `--text-secondary` because `--text-tertiary` measured 3.2:1 in light-plus. Not walked for real: both signed-in states were session messages pushed into the renderer, the narrow header was a 750px viewport emulation (cloud kind only), themes were checked by computed contrast, and the window stayed in the background, so there are no screenshots and nobody has looked at it yet. `npm test` at the end: 2246 passed, 1 skipped, and `serverConnection.test.js` / `specManagerServer.test.js` passed every subtest but never exited.
+Followup: `test/serverConnection.test.js` leaves two `fake-ssh` child processes alive and `test/specManagerServer.test.js` leaves two file watchers open, so `npm test` hangs on this machine (Node 20.5.1).
+Followup: in the light themes the status tones are below 4.5:1 (`--accent-primary` 3.1–3.5, `--doc-task` 3.3–3.7); that is the palette's work, out of this spec's scope.
+Followup: the guide and the guided tour were not checked for text that still points at the rail's cloud icon (out of scope here).
+
+_Captured: 2026-11-16 · 3 file change(s)_
+
+---

@@ -10617,16 +10617,16 @@
       "title": "Walk the change in the running app and record the walk in `.frame/specs/frame-cloud-header-entry/outcome.md`: no server address (no entry, five rail buttons); signed out on an open server; invite-only before and after joining, across a restart, and \"Use another address\"; signed in with and without a workspace; the sidebar hidden; interface zoom until the label drops; every tour step by Next, Back and dots with an email typed in the card; reopening the window; the palette's \"Frame Cloud: Open\"; a light theme",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:52:49.883Z",
+      "completedAt": "2026-11-16T08:52:49.883Z"
     }
   ],
-  "lastUpdated": "2026-11-16T08:34:32.068Z",
+  "lastUpdated": "2026-11-16T08:52:49.883Z",
   "metadata": {
     "totalCreated": 814
   }

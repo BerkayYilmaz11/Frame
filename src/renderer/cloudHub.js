@@ -168,6 +168,8 @@ function initEarlyAccess() {
           joining = false;
           syncJoin();
           renderEarlyAccess(sessionState);
+          // Main's push can land before the flag above is cleared.
+          notifySession();
         });
     });
   }
@@ -180,6 +182,9 @@ function initEarlyAccess() {
       showWaitlistForm = true;
       renderEarlyAccess(sessionState);
       if (input) input.focus();
+      // The header entry follows the window: with the form back, it calls
+      // to the waitlist again.
+      notifySession();
     });
   }
 }
@@ -209,6 +214,22 @@ function renderEarlyAccess(s) {
   show('cloud-early-form', mode === 'form');
   show('cloud-early-joined', mode === 'joined');
   if (mode === 'joined') setText('cloud-waitlist-joined-body', earlyAccess.joinedBody(s.waitlistEmail));
+}
+
+/**
+ * The session as the window presents it. "Use another address" brings the
+ * waitlist form back without forgetting the stored address, so until the next
+ * join the listeners (the header entry) read it as not joined, like the pane.
+ */
+function presentedSession() {
+  if (!showWaitlistForm || !sessionState.waitlistEmail) return sessionState;
+  const { waitlistEmail, ...rest } = sessionState;
+  return rest;
+}
+
+function notifySession() {
+  const s = presentedSession();
+  for (const listener of sessionListeners) listener(s);
 }
 
 function pullSession() {
@@ -337,7 +358,7 @@ function renderSession(state) {
   }
   // A server address that stops resolving takes the modal with it.
   if (s.state === 'unavailable' && overlay && overlay.isOpen()) overlay.close();
-  for (const listener of sessionListeners) listener(s);
+  notifySession();
 }
 
 function land() {
@@ -636,7 +657,7 @@ const api = {
   refreshProjects,
   formatRelative,
   accountState: () => sessionState.state,
-  session: () => sessionState,
+  session: () => presentedSession(),
   projects: () => projectsState,
   activeTab: () => activeTab,
   /** Listen to session renders. Returns the unsubscribe function. */
