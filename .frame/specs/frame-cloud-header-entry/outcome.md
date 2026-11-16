@@ -20,3 +20,10 @@ Removed `#cloud-btn` from the rail in `index.html` and the `bindCloudBtn` block 
 _Captured: 2026-11-16 · 3 file change(s)_
 
 ---
+## T04 — The tour's data: cloudTour.js
+
+Wrote the pure `src/renderer/cloudTour.js` (copy and fixed sample data of mockup alternative D, plus `clamp`, `next`, `back`, `canNext`, `canBack`, `counter`, `strings`) and `test/cloudTour.test.js` (17 tests, including the dropped claims and the tour's pricing guard that lets "plan" through). Additions beyond plan.md's shape: `TRUST_LEAD`, a structured `milestone` (`{ name, due, progress, ratio }`), and exported `EXAMPLE_KINDS` / `TONES`.
+
+_Captured: 2026-11-16 · 2 file change(s)_
+
+---

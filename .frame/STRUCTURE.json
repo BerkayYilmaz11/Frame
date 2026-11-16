@@ -16477,6 +16477,93 @@
         }
       }
     },
+    "renderer/cloudTour": {
+      "file": "src/renderer/cloudTour.js",
+      "description": "cloudTour — the five-step tour on the left of the signed-out Frame Cloud",
+      "exports": [
+        "EYEBROW",
+        "TRUST",
+        "TRUST_LEAD",
+        "EXAMPLE_KINDS",
+        "TONES",
+        "STEPS",
+        "clamp",
+        "next",
+        "back",
+        "canNext",
+        "canBack",
+        "counter",
+        "strings"
+      ],
+      "depends": [],
+      "functions": {
+        "clamp": {
+          "line": 142,
+          "params": [
+            "i"
+          ],
+          "purpose": "Any value → a step index that exists; anything that is not a number is step one."
+        },
+        "next": {
+          "line": 149,
+          "params": [
+            "i"
+          ],
+          "purpose": "The step after `i`; the last step stays the last."
+        },
+        "back": {
+          "line": 154,
+          "params": [
+            "i"
+          ],
+          "purpose": "The step before `i`; the first step stays the first."
+        },
+        "canNext": {
+          "line": 158,
+          "params": [
+            "i"
+          ]
+        },
+        "canBack": {
+          "line": 162,
+          "params": [
+            "i"
+          ]
+        },
+        "counter": {
+          "line": 167,
+          "params": [
+            "i"
+          ],
+          "purpose": "\"2 of 5 · Board\""
+        },
+        "collect": {
+          "line": 172,
+          "params": [
+            "value",
+            "out"
+          ]
+        },
+        "strings": {
+          "line": 180,
+          "purpose": "Every string the tour can show, counters included — what the copy guards read."
+        }
+      },
+      "sizeBytes": 7460,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "596ee7db71e9f4d0",
+        "purposes": {
+          "back": "7f4b413e7f96a13a",
+          "clamp": "89436bdae582260b",
+          "counter": "84e7d97d8f62be70",
+          "next": "e33b78cd15d2de6a",
+          "strings": "05f67b794004a814"
+        }
+      }
+    },
     "renderer/cloudWelcome": {
       "file": "src/renderer/cloudWelcome.js",
       "description": "Frame Cloud — the case for it, beside the sign-in.",
@@ -36883,6 +36970,24 @@
         "description": "d80dde1285d8f9dd"
       }
     },
+    "test/cloudTour.test": {
+      "file": "test/cloudTour.test.js",
+      "description": "cloudTour tests — the signed-out Frame Cloud window's five-step tour: its",
+      "exports": [],
+      "depends": [
+        "node:test",
+        "node:assert/strict",
+        "src/renderer/cloudTour"
+      ],
+      "functions": {},
+      "sizeBytes": 6985,
+      "extraction": {
+        "status": "parsed"
+      },
+      "provenance": {
+        "description": "96364586819dce21"
+      }
+    },
     "test/codexHookInstall.test": {
       "file": "test/codexHookInstall.test.js",
       "description": "Codex hook install/remove tests.",
@@ -44354,6 +44459,11 @@
     ],
     "tour": [
       {
+        "module": "renderer/cloudTour",
+        "file": "src/renderer/cloudTour.js",
+        "description": "cloudTour — the five-step tour on the left of the signed-out Frame Cloud"
+      },
+      {
         "module": "renderer/guidedTour",
         "file": "src/renderer/guidedTour.js",
         "description": "Guided tour — the DOM host (first-run-guided-tour spec)."
@@ -44482,7 +44592,7 @@
     "extraction": {
       "coverage": "complete",
       "counts": {
-        "parsed": 454,
+        "parsed": 456,
         "unsupported": 94,
         "partial": 0
       }
@@ -44529,9 +44639,9 @@
       }
     },
     "counts": {
-      "visitedEntries": 643,
+      "visitedEntries": 645,
       "traversedDirectories": 87,
-      "eligibleFiles": 548,
+      "eligibleFiles": 550,
       "unreadable": 0,
       "binaryFiles": 5,
       "symlinks": 0,
@@ -44548,7 +44658,7 @@
         "config": 0,
         "depth": 0
       },
-      "indexedFiles": 548,
+      "indexedFiles": 550,
       "legacyGroups": 0
     },
     "diagnostics": {
@@ -44556,6 +44666,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "ae4711e599b16cff0efe7c06b68bea68a7409a7e5cb28fcbaa82dafb75fc6786"
+    "revision": "9535719e8d542b7dbb9fd109152c3531009b7219ae5eed3e5d281fbd2682952b"
   }
 }
