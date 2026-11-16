@@ -10604,13 +10604,13 @@
       "title": "Change the phrase in `PRIVACY.md` that says the Frame Cloud window opens from \"the cloud icon at the foot of the sidebar\" to name the Frame Cloud button in the header, beside the Frame mark",
       "description": "",
       "source": "spec:frame-cloud-header-entry:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-header-entry",
       "createdAt": "2026-11-16T08:09:15.321Z",
-      "updatedAt": "2026-11-16T08:09:15.321Z",
-      "completedAt": null
+      "updatedAt": "2026-11-16T08:34:32.068Z",
+      "completedAt": "2026-11-16T08:34:32.068Z"
     },
     {
       "id": "task-spec-frame-cloud-header-entry-T07",
@@ -10626,7 +10626,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-16T08:34:18.245Z",
+  "lastUpdated": "2026-11-16T08:34:32.068Z",
   "metadata": {
     "totalCreated": 814
   }

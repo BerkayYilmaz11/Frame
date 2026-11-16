@@ -34,3 +34,10 @@ Rewrote `cloudWelcome.js` as the tour's host (`render`, `show`, `reset`, one bui
 _Captured: 2026-11-16 · 3 file change(s)_
 
 ---
+## T06 — PRIVACY.md: where the Frame Cloud window opens from
+
+Changed the one phrase in `PRIVACY.md` that located the window ("the cloud icon at the foot of the sidebar") to "the Frame Cloud button in the header, beside the Frame mark". No divergence from plan.md.
+
+_Captured: 2026-11-16 · 1 file change(s)_
+
+---
