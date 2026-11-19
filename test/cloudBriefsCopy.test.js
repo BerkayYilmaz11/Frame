@@ -442,14 +442,23 @@ test('partialMessage names the failed step, what was written and what is missing
     + 'Not written — create these by hand under the same names: “Fix typo” (task task-fix-typo).');
   assert.equal(copy.partialMessage({ step: 'branch', written: [], missing: [{ title: 'A', shape: 'spec', ref: 'a' }] }),
     'The brief is started in Frame Cloud, but creating the branch failed. Not written — create these by hand under the same names: “A” (spec a).');
-  assert.match(copy.partialMessage({ step: 'stash', written: [], missing: [] }), /stashing your changes failed\.$/);
+  assert.equal(copy.partialMessage({ step: 'workspace', error: 'disk full', written: [], missing: [{ title: 'A', shape: 'spec', ref: 'a' }] }),
+    'The brief is started in Frame Cloud, but opening a workspace on its branch failed: disk full. Not written — create these by hand under the same names: “A” (spec a).');
+  assert.match(copy.partialMessage({ step: 'stash', written: [], missing: [] }), /but a step failed\.$/, 'stash is no longer a step');
 });
 
-test('startedNotice names the part and its branch, the brief on its first part, and the stash when there was one', () => {
-  assert.equal(copy.startedNotice({ mode: 'start', number: 5, part: { title: 'Login flow' }, branch: 'feat/login', stashMessage: null }),
-    'Brief #5 started: “Login flow” on feat/login.');
-  assert.equal(copy.startedNotice({ mode: 'begin', number: 5, part: { title: 'Fix typo' }, branch: 'fix/typo', stashMessage: 'Start Work #5' }),
-    'Began “Fix typo” on fix/typo. Your changes were stashed as “Start Work #5”.');
+test('startedNotice names the part, its branch and its workspace, and the brief on its first part', () => {
+  assert.equal(copy.startedNotice({ mode: 'start', number: 5, part: { title: 'Login flow' }, branch: 'feat/login', workspace: { name: 'login' } }),
+    'Brief #5 started: “Login flow” on feat/login, in workspace login.');
+  assert.equal(copy.startedNotice({ mode: 'begin', number: 5, part: { title: 'Fix typo' }, branch: 'fix/typo', workspace: { name: 'typo' } }),
+    'Began “Fix typo” on fix/typo, in workspace typo.');
+  assert.equal(copy.startedNotice({ mode: 'begin', number: 5, part: { title: 'Fix typo' }, branch: 'fix/typo' }),
+    'Began “Fix typo” on fix/typo.');
+});
+
+test('startedNotice never mentions a stash', () => {
+  const notice = copy.startedNotice({ mode: 'start', number: 5, part: { title: 'A' }, branch: 'feat/a', workspace: { name: 'a' }, stashMessage: 'Start Work #5' });
+  assert.equal(notice, 'Brief #5 started: “A” on feat/a, in workspace a.');
 });
 
 test('the Start Work dialog words', () => {

@@ -597,8 +597,8 @@ function startErrorMessage(result) {
 }
 
 const PARTIAL_STEPS = {
-  stash: 'stashing your changes failed',
   branch: 'creating the branch failed',
+  workspace: 'opening a workspace on its branch failed',
   files: 'writing the parts failed',
 };
 
@@ -622,16 +622,17 @@ function partialMessage(result) {
 }
 
 /**
- * The toast when a part was begun: "Brief #5 started: “Login flow” on
- * feat/login." for the brief's first part, "Began “Fix typo” on fix/typo."
- * for a later one, plus the stash when there was one.
+ * The toast when a part was begun in its own workspace: "Brief #5 started:
+ * “Login flow” on feat/login, in workspace login." for the brief's first
+ * part, "Began “Fix typo” on fix/typo, in workspace typo." for a later one.
+ * Without a workspace name the sentence ends at the branch.
  */
-function startedNotice({ mode, number, part, branch, stashMessage } = {}) {
+function startedNotice({ mode, number, part, branch, workspace } = {}) {
   const title = part && part.title ? `“${part.title}”` : 'the part';
-  const main = mode === 'begin'
-    ? `Began ${title} on ${branch}.`
-    : `Brief #${number} started: ${title} on ${branch}.`;
-  return stashMessage ? `${main} Your changes were stashed as “${stashMessage}”.` : main;
+  const where = workspace && workspace.name ? `${branch}, in workspace ${workspace.name}` : branch;
+  return mode === 'begin'
+    ? `Began ${title} on ${where}.`
+    : `Brief #${number} started: ${title} on ${where}.`;
 }
 
 const OPEN_SPEC_LABEL = 'Open spec';

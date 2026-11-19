@@ -10712,13 +10712,13 @@
       "title": "Update the start copy in `src/renderer/cloudBriefsCopy.js`: add the `workspace` partial step, drop `stash` from `PARTIAL_STEPS`, and make `startedNotice` name the workspace with no stash sentence; tests in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:48:19.580Z",
+      "completedAt": "2026-11-19T09:48:19.580Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T06",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T09:42:27.479Z",
+  "lastUpdated": "2026-11-19T09:48:19.580Z",
   "metadata": {
     "totalCreated": 853
   }

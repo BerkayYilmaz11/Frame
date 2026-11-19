@@ -31,3 +31,11 @@ _Captured: 2026-11-19 · 3 file change(s)_
 _Captured: 2026-11-19 · 3 file change(s)_
 
 ---
+
+## T05 — The start copy names the workspace
+
+In `src/renderer/cloudBriefsCopy.js`, `PARTIAL_STEPS` drops `stash` and gains `workspace` ("opening a workspace on its branch failed"), which tells the reader the branch is there. `startedNotice` drops `stashMessage` and ends with ", in workspace <name>" when the result carries a workspace name. Without one, it ends at the branch as before. Tests in `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-19 · 2 file change(s)_
+
+---
