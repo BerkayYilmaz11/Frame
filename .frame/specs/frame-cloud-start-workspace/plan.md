@@ -19,22 +19,24 @@ Technical
 - **The base commit comes from the branch** — `recordBranch`'s `baseSha` is `git.branchTipSha(folderPath, branch)` (`gitBranchesManager.js:833`), read right after the branch is cut. It no longer comes from the main checkout's HEAD (`cloudStartService.js:221`). Worktrees share refs with the main repository. (Silent.)
 - **The workspace's base is a branch name** — The workspace record's `base` (↓behind, PR base, Update from base) is the picked base without an `origin/` prefix (`origin/main` → `main`). This is a pure `workspaceBase(base)` in `cloudStart.js`. (Silent.)
 - **Completion stays off for workspace parts** — `cloudDoneService` is unchanged. Rows are never on the part's branch, so `isFinished` at the tip stays false and `brief.recordCompletion` is never sent (spec Constraints, agreed 2026-11-19). (Silent.)
+- **The base is origin's, fetched at start** (added 2026-11-19, T11; asked after T10) — The default base is `origin/<targetBranch>` when this folder has it, else the local `targetBranch`. When the base is an `origin/` ref, the start runs `git fetch origin <branch>` (`gitBranchesManager.fetchBranch`, 15 s cap) after the checks and before `brief.start`. A failed fetch is never a refusal: the branch is cut from the last fetched copy, the result carries `fetch: { fetched: false, error }`, and the panel shows "Couldn't fetch origin/<base> — cut from the last fetched copy." A local base the user picks from the menu is cut as it is, with no fetch. The closed "from" button shows the local or origin icon, which until now appeared only inside the menu. This is New Workspace's rule (`workspaceManager.js:524`), so both ways of opening a workspace cut from the same place. It overturns `frame-cloud-brief-start`'s "The base is the local `targetBranch`, else `origin/<targetBranch>` … Frame does not fetch", which predates workspaces: the branch was checked out in the main checkout then, so the user's own local branch was a reasonable start. Rejected: fetching when the dialog opens, which holds the dialog for up to 15 s, and listing remotes other than `origin`, which New Workspace does not do either. (Asked.)
 - **Coming soon reuses what exists** — `copy.COMING_SOON` and `.cloud-briefs-start-soon`, as Orchestrate shows them (`cloudStartDialog.js:152`). (Silent.)
 
 ### The start, in order
 
 `cloudStart.handleStartRequest` (pure, `cloudStart.js:479`) keeps every check before `brief.start` and drops the dirty check and the stash (`cloudStart.js:523`, 545–552):
 
-1. Read the brief and check the part, definition, ref, branch name (`badBranch`, `branchTaken`) and base (`baseMissing`), as today.
-2. `brief.start` reserves every ref (start mode only).
-3. `deps.createBranch(branch, base, { track })`, which the service runs with `checkout = false`. Failure → `partial('branch')`.
-4. `deps.branchSha(branch)` → `baseSha` (null when not a full id, as today).
-5. `deps.createWorkspace(branch, workspaceBase(base))` → `{ workspace, setupScript }`. Failure → `partial('workspace')`.
-6. A spec part → `deps.writeSpec(ref, files, workspace.path)`, into the worktree. A task part → `deps.writeTasks([row])`, into the main checkout as today. Failure → `partial('files')`.
-7. `deps.recordBegun({ partId, ref, branch, baseSha })`, then fire `deps.recordBranch` as today.
+1. Read the brief and check the part, definition, ref, branch name (`badBranch`, `branchTaken`) and base (`baseMissing`), as today. With no base in the request, the default is `origin/<target>`, else the local target (T11).
+2. An `origin/` base is fetched: `deps.fetchBase(<branch>)`. A failure is noted in the result's `fetch` and the start goes on (T11).
+3. `brief.start` reserves every ref (start mode only).
+4. `deps.createBranch(branch, base, { track })`, which the service runs with `checkout = false`. Failure → `partial('branch')`.
+5. `deps.branchSha(branch)` → `baseSha` (null when not a full id, as today).
+6. `deps.createWorkspace(branch, workspaceBase(base))` → `{ workspace, setupScript }`. Failure → `partial('workspace')`.
+7. A spec part → `deps.writeSpec(ref, files, workspace.path)`, into the worktree. A task part → `deps.writeTasks([row])`, into the main checkout as today. Failure → `partial('files')`.
+8. `deps.recordBegun({ partId, ref, branch, baseSha })`, then fire `deps.recordBranch` as today.
 
 Request: `{ number, beginPartId, branch, base }`; `stash` is gone.
-Success: today's fields without `stashMessage`, plus `workspace: { id, name, path, branch, base }` and `setupScript`. A task part's `begin` carries `tasksPath`, the main checkout's absolute `tasks.json` path from `frameStore.resolvePath`.
+Success: today's fields without `stashMessage`, plus `workspace: { id, name, path, branch, base }`, `setupScript` and `fetch: { fetched, error, skipped }` (T11). A task part's `begin` carries `tasksPath`, the main checkout's absolute `tasks.json` path from `frameStore.resolvePath`.
 Partial steps: `branch | workspace | files`.
 `prepareView` drops `changeCount` and `currentBranch`.
 
@@ -65,16 +67,16 @@ The cloud contract (`brief.start`, `brief.recordBranch`, part refs), `cloudDoneS
 
 ## Files
 
-- `src/main/cloud/cloudStart.js` — **Modified**. Start order without dirty/stash; new `branchSha`, `createWorkspace` and `writeSpec(root)` deps; `partial('workspace')`; result carries `workspace`, `setupScript` and `begin.tasksPath`; `workspaceBase()`; `prepareView` without `changeCount`/`currentBranch`.
-- `src/main/cloud/cloudStartService.js` — **Modified**. Non-checkout `createBranch`; `branchSha` via `git.branchTipSha`; `createWorkspace` via `workspaceManager.create({ from: 'branch' })`; `writeSpec` into the workspace root; `specSlugs` across checkouts; the `tasksPath` value; changeCount/stash/currentBranch wiring removed.
-- `src/renderer/cloudStartDialog.js` — **Modified**. Dirty prompt and stash removed; Workspace name line; Location line with Coming soon when a server is saved.
-- `src/renderer/cloudBriefsPanel.js` — **Modified**. `openBeginLane` selects the new workspace, waits for setup, then opens the lane; the part row shows the workspace chip and selects it on click; rows redraw on workspace changes.
-- `src/renderer/cloudBriefsCopy.js` — **Modified**. `partWorkspace()`; the `workspace` partial step; `startedNotice` names the workspace and loses the stash sentence; Workspace and Location labels; dialog descriptions; `dirtyWarning` and `STASH_AND_CONTINUE_LABEL` removed.
+- `src/main/cloud/cloudStart.js` — **Modified**. Start order without dirty/stash; new `branchSha`, `createWorkspace` and `writeSpec(root)` deps; `partial('workspace')`; result carries `workspace`, `setupScript` and `begin.tasksPath`; `workspaceBase()`; `prepareView` without `changeCount`/`currentBranch`. T11: `pickBase` prefers `origin/`; the `fetchBase` dep and the result's `fetch`.
+- `src/main/cloud/cloudStartService.js` — **Modified**. Non-checkout `createBranch`; `branchSha` via `git.branchTipSha`; `createWorkspace` via `workspaceManager.create({ from: 'branch' })`; `writeSpec` into the workspace root; `specSlugs` across checkouts; the `tasksPath` value; changeCount/stash/currentBranch wiring removed. T11: `fetchBase` via `git.fetchBranch`.
+- `src/renderer/cloudStartDialog.js` — **Modified**. Dirty prompt and stash removed; Workspace name line; Location line with Coming soon when a server is saved. T11: the closed base button shows the local or origin icon.
+- `src/renderer/cloudBriefsPanel.js` — **Modified**. `openBeginLane` selects the new workspace, waits for setup, then opens the lane; the part row shows the workspace chip and selects it on click; rows redraw on workspace changes. T11: a failed fetch's notice after the start.
+- `src/renderer/cloudBriefsCopy.js` — **Modified**. `partWorkspace()`; the `workspace` partial step; `startedNotice` names the workspace and loses the stash sentence; Workspace and Location labels; dialog descriptions; `dirtyWarning` and `STASH_AND_CONTINUE_LABEL` removed. T11: `fetchFailedNotice()`.
 - `src/renderer/workspaceSection.js` — **Modified**. `onChange(fn)`, called after each `load()`.
 - `src/renderer/tasks/runPrompt.js` — **Modified**. Optional `tasksPath` in `buildTaskPrompt`.
 - `src/renderer/styles/components/cloud-briefs.css` — **Modified**. Workspace and Location lines in the dialog; the part row's workspace chip.
-- `test/cloudStart.test.js` — **Modified**. Start order and steps, `partial('workspace')`, base from branch, spec written to the workspace root, no dirty/stash, `workspaceBase`, `prepareView`.
-- `test/cloudBriefsCopy.test.js` — **Modified**. `partWorkspace`, the partial message for `workspace`, `startedNotice` without stash.
+- `test/cloudStart.test.js` — **Modified**. Start order and steps, `partial('workspace')`, base from branch, spec written to the workspace root, no dirty/stash, `workspaceBase`, `prepareView`. T11: `pickBase` order, the fetch before `brief.start`, a failed fetch, no fetch for a local base.
+- `test/cloudBriefsCopy.test.js` — **Modified**. `partWorkspace`, the partial message for `workspace`, `startedNotice` without stash. T11: `fetchFailedNotice`.
 - `test/taskRunPrompt.test.js` — **Modified**. `tasksPath` named in the prompt; unchanged without it.
 
 ## Footprint
@@ -111,3 +113,4 @@ None.
    - Update the dialog descriptions and the CSS.
    - Copy tests in `test/cloudBriefsCopy.test.js`.
 5. **The card names the workspace.** `cloudBriefsCopy.partWorkspace`; `workspaceSection.onChange`; the part row's workspace chip, which selects the workspace on click and redraws on workspace changes; CSS. Tests for `partWorkspace` in `test/cloudBriefsCopy.test.js`.
+6. **The base is fresh** (added after T10). `pickBase` prefers `origin/<target>`; an `origin/` base is fetched after the checks and before `brief.start`, and a failure falls back to the last fetched copy with a notice; the closed base button shows its icon. Tests in `test/cloudStart.test.js` and `test/cloudBriefsCopy.test.js`.

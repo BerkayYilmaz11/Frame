@@ -10784,10 +10784,22 @@
       "createdAt": "2026-11-19T08:56:43.090Z",
       "updatedAt": "2026-11-19T10:19:38.333Z",
       "completedAt": "2026-11-19T10:19:38.333Z"
+    },
+    {
+      "id": "task-spec-frame-cloud-start-workspace-T11",
+      "title": "Cut the part from a fresh base: `pickBase` in `src/main/cloud/cloudStart.js` prefers `origin/<target>`, `handleStartRequest` fetches an `origin/` base through a new `fetchBase` dep before `brief.start` (a failure falls back to the last fetched copy) and returns `fetch`, wired to `git.fetchBranch` in `cloudStartService.js`; `fetchFailedNotice` in `cloudBriefsCopy.js` shown by `cloudBriefsPanel.js`; the dialog's closed base button shows the local or origin icon; tests in `test/cloudStart.test.js` and `test/cloudBriefsCopy.test.js`",
+      "description": "",
+      "source": "spec:frame-cloud-start-workspace:T11",
+      "status": "in_progress",
+      "priority": "medium",
+      "category": "feature",
+      "context": "From spec: frame-cloud-start-workspace",
+      "createdAt": "2026-11-19T11:34:54.275Z",
+      "updatedAt": "2026-11-19T11:35:28.264Z"
     }
   ],
-  "lastUpdated": "2026-11-19T10:19:38.333Z",
+  "lastUpdated": "2026-11-19T11:35:28.264Z",
   "metadata": {
-    "totalCreated": 853
+    "totalCreated": 854
   }
 }

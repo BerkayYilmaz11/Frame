@@ -40,6 +40,12 @@ phase 1; phase 2 brings the same to a Frame Server.
 - **Server is Coming soon.** The Start Work and Begin dialogs show where the
   workspace will be created: This Mac. A server location is shown, disabled,
   as Coming soon.
+- **The base is fresh** (added 2026-11-19, T11). The part's branch is cut
+  from origin's copy of the brief's target, fetched first, as New Workspace
+  cuts its branch. The local branch is the default only when origin has no
+  copy, and a local branch the user picks is cut as it is. This overturns
+  `frame-cloud-brief-start`'s "Frame does not fetch: the base is what this
+  machine has", which predates workspaces.
 
 ## Constraints
 
@@ -102,6 +108,11 @@ phase 1; phase 2 brings the same to a Frame Server.
   main checkout, then it neither warns about them nor offers to stash them.
 - **COMING SOON.** When the Start Work or Begin dialog opens, then the location
   reads This Mac, and a server location is shown disabled as Coming soon.
+- **BASE.** When the dialog opens on a brief whose target exists on origin,
+  then the base reads `origin/<target>` with origin's icon. When the user
+  starts the part, then `origin/<target>` is fetched first and the branch is
+  cut from it. If the fetch fails, the branch is cut from the last fetched copy
+  and the user is told. A local base the user picks is not fetched.
 
 ## Out of Scope
 
@@ -116,6 +127,7 @@ phase 1; phase 2 brings the same to a Frame Server.
 - Giving Resolve with agent the sibling part's spec and outcome
 - Shape and Discuss lanes on a server; a Frame Cloud runner on the server
 - Orchestration
+- Bases on remotes other than `origin` (such as a fork's `upstream`)
 
 ## Open Questions
 
