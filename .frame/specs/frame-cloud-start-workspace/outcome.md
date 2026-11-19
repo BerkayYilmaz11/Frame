@@ -55,3 +55,11 @@ Removed `showDirty`, the `stash` dialog state and its `data-action`, the dirty p
 _Captured: 2026-11-19 · 3 file change(s)_
 
 ---
+
+## T08 — The dialog shows where the work goes
+
+`src/renderer/cloudStartDialog.js` shows a Workspace line under the branch row. It follows the typed branch, or the suggestion when the field is empty, through `copy.beginWorkspaceName`, which uses `toSlug`/`uniquify` against the loaded local workspaces' names. With a saved server (`serverConnect.getServers()`), a Location line shows "This Mac" checked and a disabled "Server · Coming soon" (`.cloud-briefs-start-soon`), and `onChange` now ignores radios outside the part choice. The naming helper lives in `cloudBriefsCopy.js`, beside the new labels and the updated descriptions and `beginHint`, so it is testable. Styles for both lines replace the dead `.cloud-briefs-start-dirty` rule. The layout was not checked in the running app.
+
+_Captured: 2026-11-19 · 4 file change(s)_
+
+---

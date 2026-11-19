@@ -10751,13 +10751,13 @@
       "title": "Show where the work goes in the Start Work dialog: a Workspace name line under the branch row that follows the branch field (`toSlug`/`uniquify` from `src/shared/workspaceNames.js`), a Location line with \"This Mac\" and a disabled \"Server · Coming soon\" shown only when a server is saved, the dialog descriptions and labels in `cloudBriefsCopy.js` with tests, and styles in `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T10:07:24.847Z",
+      "completedAt": "2026-11-19T10:07:24.847Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T09",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T10:00:15.561Z",
+  "lastUpdated": "2026-11-19T10:07:24.847Z",
   "metadata": {
     "totalCreated": 853
   }

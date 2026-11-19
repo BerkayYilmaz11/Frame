@@ -456,6 +456,20 @@ test('startedNotice names the part, its branch and its workspace, and the brief 
     'Began “Fix typo” on fix/typo.');
 });
 
+test('beginWorkspaceName names the workspace as create does: the branch\'s last segment, slugged and unique', () => {
+  assert.equal(copy.beginWorkspaceName('feat/export-api'), 'export-api');
+  assert.equal(copy.beginWorkspaceName('feat/export-api', ['export-api']), 'export-api-2');
+  assert.equal(copy.beginWorkspaceName('feat/export-api', ['Export-API', 'export-api-2']), 'export-api-3');
+  assert.equal(copy.beginWorkspaceName('fix/Fix_Typo'), 'fix-typo');
+  assert.equal(copy.beginWorkspaceName('main'), 'main');
+  assert.equal(copy.beginWorkspaceName('  feat/x  '), 'x');
+  assert.equal(copy.beginWorkspaceName('feat/'), null);
+  assert.equal(copy.beginWorkspaceName(''), null);
+  assert.equal(copy.beginWorkspaceName(undefined), null);
+  assert.equal(copy.workspaceNameText('x'), 'x');
+  assert.equal(copy.workspaceNameText(null), 'Named when it is created');
+});
+
 test('startedNotice never mentions a stash', () => {
   const notice = copy.startedNotice({ mode: 'start', number: 5, part: { title: 'A' }, branch: 'feat/a', workspace: { name: 'a' }, stashMessage: 'Start Work #5' });
   assert.equal(notice, 'Brief #5 started: “A” on feat/a, in workspace a.');
@@ -469,6 +483,14 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.COMING_SOON, 'Coming soon');
   assert.equal(copy.beginDialogTitle('Fix typo'), 'Begin “Fix typo”');
   assert.equal(copy.FROM_LABEL, 'from');
+  assert.equal(copy.WORKSPACE_LABEL, 'Workspace');
+  assert.equal(copy.LOCATION_LABEL, 'Location');
+  assert.equal(copy.THIS_MAC_LABEL, 'This Mac');
+  assert.equal(copy.SERVER_LOCATION_LABEL, 'Server');
+  assert.match(copy.START_DIALOG_DESCRIPTION, /its own branch and workspace/);
+  assert.match(copy.BEGIN_DIALOG_DESCRIPTION, /its own branch and workspace/);
+  assert.match(copy.beginHint('spec'), /new workspace/);
+  assert.match(copy.beginHint('task'), /new workspace/);
   assert.equal(copy.dirtyWarning, undefined, 'no dirty-folder warning: nothing is stashed');
   assert.equal(copy.STASH_AND_CONTINUE_LABEL, undefined);
   assert.equal(copy.startSubmitLabel(true), 'Starting…');

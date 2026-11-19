@@ -10,7 +10,9 @@
  * target unless the user picks another local or origin branch. The folder's
  * uncommitted changes are not asked about: the part opens in a workspace of
  * its own, and the main checkout is never switched or stashed
- * (frame-cloud-start-workspace).
+ * (frame-cloud-start-workspace). Under the branch row, the workspace's name
+ * follows the branch as it is typed; with a server saved, a Location line
+ * reads This Mac, with Server shown disabled as Coming soon (phase 2).
  *
  * Main prepares the view and does every check and write again: this module
  * sends a folder path, a brief number and the user's choices. Its words live
@@ -187,7 +189,61 @@ function renderBranchRow() {
         </span>
       </div>
       <p class="cloud-briefs-field-error" data-ref="basemissing" hidden>${escapeHtml(copy.baseMissingLine(view.targetBranch))}</p>
+      <div class="cloud-briefs-start-where">
+        <span class="cloud-briefs-start-where-label">${escapeHtml(copy.WORKSPACE_LABEL)}</span>
+        <span class="cloud-briefs-start-workspace" data-ref="wsname"></span>
+      </div>
+      ${renderLocation()}
     </div>`;
+}
+
+/**
+ * Where the workspace is created: This Mac, the only place in phase 1, and a
+ * server location shown disabled as Coming soon. Shown only once a server is
+ * saved, as New Workspace's Location row is.
+ */
+function renderLocation() {
+  if (savedServers().length === 0) return '';
+  const name = `${dialog.id}-location`;
+  return `<div class="cloud-briefs-start-where" role="radiogroup" aria-label="${escapeHtml(copy.LOCATION_LABEL)}">
+      <span class="cloud-briefs-start-where-label">${escapeHtml(copy.LOCATION_LABEL)}</span>
+      <label class="cloud-briefs-start-location">
+        <input type="radio" name="${name}" value="" checked> ${escapeHtml(copy.THIS_MAC_LABEL)}
+      </label>
+      <label class="cloud-briefs-start-location disabled">
+        <input type="radio" name="${name}" value="" disabled> ${escapeHtml(copy.SERVER_LOCATION_LABEL)}
+        <span class="cloud-briefs-start-soon">${escapeHtml(copy.COMING_SOON)}</span>
+      </label>
+    </div>`;
+}
+
+/** The project's saved Frame Servers; none when the list cannot be read. */
+function savedServers() {
+  try {
+    // Lazy-required, as New Workspace reaches it.
+    return require('./serverConnect').getServers() || [];
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * The workspace name line: what workspaceManager.create will call a
+ * workspace opened on this branch (an empty field begins on the
+ * suggestion), against this Mac's loaded workspaces.
+ */
+function renderWorkspaceName() {
+  const el = ref('wsname');
+  if (!el) return;
+  const typed = ref('branch').value.trim();
+  const branch = typed || dialog.view.suggestions[dialog.choice] || '';
+  let taken = [];
+  try {
+    taken = require('./workspaceSection').getWorkspaces()
+      .filter((w) => w.location !== 'server')
+      .map((w) => w.name);
+  } catch (_) { /* the sidebar is not loaded: no names taken */ }
+  el.textContent = copy.workspaceNameText(copy.beginWorkspaceName(branch, taken));
 }
 
 function renderReady() {
@@ -203,6 +259,7 @@ function renderReady() {
       <button type="button" class="cloud-briefs-primary-btn" data-action="confirm">${escapeHtml(copy.startSubmitLabel(false))}</button>
     </div>`;
   renderBase();
+  renderWorkspaceName();
   const name = ref('branch');
   name.focus();
   name.select();
@@ -287,16 +344,20 @@ function onClick(e) {
 
 function onChange(e) {
   if (!dialog || !dialog.view || e.target.type !== 'radio' || !e.target.value) return;
+  if (e.target.name !== `${dialog.id}-choice`) return;
   dialog.choice = e.target.value;
   // The name follows the choice until the user types in it.
   if (!dialog.edited) ref('branch').value = dialog.view.suggestions[dialog.choice] || '';
+  renderWorkspaceName();
   syncConfirm();
 }
 
 function onInput(e) {
   if (!dialog) return;
-  if (e.target === ref('branch')) dialog.edited = true;
-  else if (e.target === ref('basefilter')) renderBaseList();
+  if (e.target === ref('branch')) {
+    dialog.edited = true;
+    renderWorkspaceName();
+  } else if (e.target === ref('basefilter')) renderBaseList();
 }
 
 function onKeydown(e) {

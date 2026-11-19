@@ -40,6 +40,7 @@
  */
 
 const { ROLE_FORBIDDEN } = require('./cloudRoles');
+const { toSlug, uniquify } = require('../shared/workspaceNames');
 
 /**
  * The board's open columns, in order. A brief lands in one by its status:
@@ -505,8 +506,8 @@ function beginDialogTitle(title) {
   return `Begin “${title}”`;
 }
 
-const START_DIALOG_DESCRIPTION = 'The part you begin gets its own branch and opens in a lane. The other parts wait on the brief until you begin them.';
-const BEGIN_DIALOG_DESCRIPTION = 'This part gets its own branch and opens in a lane.';
+const START_DIALOG_DESCRIPTION = 'The part you begin gets its own branch and workspace, and opens in a lane there. The other parts wait on the brief until you begin them.';
+const BEGIN_DIALOG_DESCRIPTION = 'This part gets its own branch and workspace, and opens in a lane there.';
 const START_CHOICE_TITLE = 'Begin with';
 
 /** A Begin choice: "Begin with “Login flow”". */
@@ -517,8 +518,8 @@ function beginWithLabel(title) {
 /** What Begin opens, by the part's shape. */
 function beginHint(shape) {
   return shape === 'spec'
-    ? 'Writes this spec on its own branch, then opens a lane that plans it.'
-    : 'Writes this task on its own branch, then opens a lane that runs it.';
+    ? 'Writes this spec in a new workspace on its own branch, then opens a lane there that plans it.'
+    : 'Adds this task, opens a new workspace on its own branch, then a lane there that runs it.';
 }
 
 const ORCHESTRATE_LABEL = 'Orchestrate';
@@ -526,6 +527,27 @@ const ORCHESTRATE_HINT = 'Run every part side by side, each on its own branch.';
 const COMING_SOON = 'Coming soon';
 const BRANCH_LABEL = 'Branch';
 const FROM_LABEL = 'from';
+const WORKSPACE_LABEL = 'Workspace';
+const LOCATION_LABEL = 'Location';
+const THIS_MAC_LABEL = 'This Mac';
+const SERVER_LOCATION_LABEL = 'Server';
+
+/**
+ * The name the part's new workspace will get, as workspaceManager.create
+ * names one opened from a branch: the branch's last segment, slugged and made
+ * unique against `taken` (`feat/export-api` → `export-api`, then
+ * `export-api-2`). null when the branch leaves no usable name, in which case
+ * the workspace gets an automatic one.
+ */
+function beginWorkspaceName(branch, taken = []) {
+  const slug = toSlug(String(branch || '').trim().split('/').pop());
+  return slug ? uniquify(slug, taken) : null;
+}
+
+/** The workspace line's value: the name, or what happens without one. */
+function workspaceNameText(name) {
+  return name || 'Named when it is created';
+}
 const BASE_FILTER_PLACEHOLDER = 'Find a branch…';
 const BASE_LOCAL_TITLE = 'Local';
 const BASE_REMOTE_TITLE = 'origin';
@@ -1256,6 +1278,12 @@ module.exports = {
   COMING_SOON,
   BRANCH_LABEL,
   FROM_LABEL,
+  WORKSPACE_LABEL,
+  LOCATION_LABEL,
+  THIS_MAC_LABEL,
+  SERVER_LOCATION_LABEL,
+  beginWorkspaceName,
+  workspaceNameText,
   BASE_FILTER_PLACEHOLDER,
   BASE_LOCAL_TITLE,
   BASE_REMOTE_TITLE,
