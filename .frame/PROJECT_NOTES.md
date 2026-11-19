@@ -4470,3 +4470,82 @@ fake-DOM harness, not in the running app. Open: a walk of the Success
 Criteria against a FrameCloud server carrying `board-active-milestone`; the
 existing `formatDate` test fails under `TZ=Pacific/Kiritimati` (UTC+14),
 unrelated to this spec.
+
+### [2026-11-19] Start Work in workspaces: each brief part opens in its own workspace on this Mac
+
+Spec `frame-cloud-start-workspace`, branch `feat/frame-cloud-start-workspace`
+(off the `feat/frame-cloud-adaptor` umbrella). Start Work and Begin
+(`frame-cloud-brief-start`, 2026-09-25) predated workspaces: they stashed the
+main checkout, cut the part's branch there and opened the lane there, so one
+checkout held one part at a time. Now each part that is started gets a new
+workspace on its own branch, so parts can run side by side. T01–T10 ran
+autonomously on 2026-11-19; there was no developer walk yet.
+
+**Scope agreed with the user before the spec:**
+- Two phases (2026-11-19). Phase 1 (this spec) always creates the workspace on
+  this Mac. Starting a part on a Frame Server is phase 2, a separate spec on
+  its own branch. Phase 1 only shows the server as Coming soon.
+- Frame opens the work and the user coordinates it (2026-11-18): "diğer
+  parçaları başlatmak vs kullanıcının inisiyatifine kalır, isterse begin diye
+  başlatır ama merge etmesi vs onun inisiyatifinde olur". Merge order and
+  conflicts stay with Update from base and Resolve with agent. There is no
+  cross-workspace coordination, and Orchestrate stays disabled (the
+  2026-11-09 "orchestration is out of scope" decision).
+- Implemented stays on this Mac (2026-11-19). Task state stays in the main
+  checkout's `tasks.json` (spec-in-workspace), so `brief.recordCompletion` is
+  never sent for a part begun in a workspace: its rows are not on the branch.
+  PR and merge still reach Frame Cloud through GitHub. Accepted: another
+  machine does not see Implemented, and a merge without a PR is caught only by
+  Link commit.
+
+**Decisions asked at plan time:**
+- The branch is cut first (`git branch`, no checkout) and then opened with
+  `workspaceManager.create({ from: 'branch' })` (spec Open Question 1).
+  Rejected: a branch-name option on `create({ from: 'new' })`, which always
+  cuts from `origin/<base>` and changes the call Frame Server's
+  `workspaces.create` shares. A failed workspace leaves the branch and is
+  `partial` with step `workspace`.
+- The card finds a part's workspace by branch (`begunBranch`, else the cloud
+  `branch`; git checks a branch out in at most one worktree). This overturns
+  the spec's "the begun record stores the workspace": `cloud-starts.json`
+  keeps `{ ref, branch, begunAt, baseSha }`. Rejected: storing the workspace
+  id, which goes stale on archive, rename or re-open. Workspace records
+  already carry `location`, so phase 2 still needs no migration.
+- An archived workspace's chip just drops and the row reads as before (spec
+  Open Question 2). Rejected: a Restore chip.
+- The workspace is named after the branch's last segment, as `create` names
+  one opened from a branch; the dialog shows the name, not a field for it.
+- Setup runs to the end before the lane opens, as New Workspace does. This
+  corrects the spec's citation: a spec created from main runs setup
+  alongside its lane. Rejected: alongside, where a task run could start
+  before dependencies are installed.
+- Coming soon (Location: This Mac + disabled Server) shows only when a server
+  is saved, by New Workspace's rule. Rejected: always showing it.
+- Tests cover the pure logic only (no DOM harness).
+
+**Decided silently (plan):** the task-run prompt names the main checkout's
+`tasks.json` by path (`buildTaskPrompt({ tasksPath })`); ref allocation counts
+specs in every checkout (`specManager.listSpecs`); `baseSha` is read from the
+new branch's tip, not the main checkout's HEAD; the workspace's base is a
+branch name (`origin/main` → `main`); `cloudDoneService` is unchanged.
+
+**Built differently from the plan** (outcome T01–T10):
+- The task prompt also names the path in its format step, not only in the
+  completion line. A Begin task row has no acceptance criteria, so that step
+  would otherwise send the agent to the worktree's copy, where the row is not.
+- Start Work calls `workspaceManager.create` directly, outside the
+  per-project `serialize` queue the IPC path uses, because the plan kept
+  `workspaceManager` unchanged. Followup: a `createQueued` export, like
+  `archiveQueued`.
+- The implement loop's "amend the hash in" step was skipped again:
+  `report-data.json` is gitignored.
+
+**State.** 10 tasks done, spec `done`, digest written; `npm test` passes
+2253 of 2254 (0 fail). Under Node 20.5.1 on this Mac,
+`test/serverConnection.test.js` and `test/specManagerServer.test.js` pass
+every test but never exit (an open handle, from the merged server work), so
+`npm test` hangs. The run tested them separately with a time cap. The
+installed app keeps re-adding 27 completed `server-*` task rows to
+`tasks.json`; they were left out of every commit. Open: a walk of the Success
+Criteria in the running app (dialog lines, the lane after setup, two parts
+running at once, the card's chip).
