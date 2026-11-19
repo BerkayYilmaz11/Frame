@@ -4479,7 +4479,8 @@ Spec `frame-cloud-start-workspace`, branch `feat/frame-cloud-start-workspace`
 main checkout, cut the part's branch there and opened the lane there, so one
 checkout held one part at a time. Now each part that is started gets a new
 workspace on its own branch, so parts can run side by side. T01–T10 ran
-autonomously on 2026-11-19; there was no developer walk yet.
+autonomously on 2026-11-19. T11 was added the same day after the user's
+first look at the dialog. There was no full developer walk yet.
 
 **Scope agreed with the user before the spec:**
 - Two phases (2026-11-19). Phase 1 (this spec) always creates the workspace on
@@ -4523,13 +4524,34 @@ autonomously on 2026-11-19; there was no developer walk yet.
   is saved, by New Workspace's rule. Rejected: always showing it.
 - Tests cover the pure logic only (no DOM harness).
 
+**Asked after T10 (T11, the base):** looking at the dialog's "from main ⌄",
+the user asked: "arayüzün böyle olması branch seçimi için mantıklı mı sence ?
+Çünkü kullanıcı remote repo'sundan da base alabilir gibi geliyor bana ? Burada
+sadece local repo'lar listeleniyor ?". The menu already listed origin's
+branches, but the closed button gave no sign of it. The real gap was that
+nothing was fetched, and the default was the local target, which can be
+behind origin. `frame-cloud-brief-start` had decided "Frame does not fetch:
+the base is what this machine has". That made sense when the branch was
+checked out in the main checkout, but not now that Start Work opens a
+workspace, as New Workspace does from a fetched `origin/<base>`. The user
+chose to fix it as T11 in this PR. The decision is overturned:
+- The default base is `origin/<target>`, else the local target.
+- An `origin/` base is fetched at start (after the checks, before
+  `brief.start`). A failed fetch cuts from the last fetched copy and shows
+  "Couldn't fetch origin/<base> — cut from the last fetched copy."
+- A local base the user picks is cut as it is.
+- The closed button shows the local or origin icon.
+- Rejected: fetching when the dialog opens (up to 15 s of waiting), and
+  listing remotes other than `origin`, such as a fork's `upstream`, which New
+  Workspace does not do either.
+
 **Decided silently (plan):** the task-run prompt names the main checkout's
 `tasks.json` by path (`buildTaskPrompt({ tasksPath })`); ref allocation counts
 specs in every checkout (`specManager.listSpecs`); `baseSha` is read from the
 new branch's tip, not the main checkout's HEAD; the workspace's base is a
 branch name (`origin/main` → `main`); `cloudDoneService` is unchanged.
 
-**Built differently from the plan** (outcome T01–T10):
+**Built differently from the plan** (outcome T01–T11):
 - The task prompt also names the path in its format step, not only in the
   completion line. A Begin task row has no acceptance criteria, so that step
   would otherwise send the agent to the worktree's copy, where the row is not.
@@ -4540,8 +4562,8 @@ branch name (`origin/main` → `main`); `cloudDoneService` is unchanged.
 - The implement loop's "amend the hash in" step was skipped again:
   `report-data.json` is gitignored.
 
-**State.** 10 tasks done, spec `done`, digest written; `npm test` passes
-2253 of 2254 (0 fail). Under Node 20.5.1 on this Mac,
+**State.** 11 tasks done, spec `done`, digest written; `npm test` passes
+2259 of 2260 (0 fail). Under Node 20.5.1 on this Mac,
 `test/serverConnection.test.js` and `test/specManagerServer.test.js` pass
 every test but never exit (an open handle, from the merged server work), so
 `npm test` hangs. The run tested them separately with a time cap. The
