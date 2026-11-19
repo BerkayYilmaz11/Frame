@@ -3735,6 +3735,7 @@
         "getBegun",
         "withBegunBranches",
         "pickBase",
+        "workspaceBase",
         "baseOptions",
         "prepareView",
         "handleStartRequest"
@@ -3960,15 +3961,22 @@
           ],
           "purpose": "What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null."
         },
-        "baseOptions": {
+        "workspaceBase": {
           "line": 353,
+          "params": [
+            "base"
+          ],
+          "purpose": "The workspace's base for a branch cut from `base`: a branch name, never a"
+        },
+        "baseOptions": {
+          "line": 363,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "baseExists": {
-          "line": 365,
+          "line": 375,
           "params": [
             "base",
             "deps"
@@ -3976,35 +3984,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 372,
+          "line": 382,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 378,
+          "line": 388,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 387,
+          "line": 397,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 393,
+          "line": 403,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 411,
+          "line": 421,
           "params": [
             "{ brief",
             "base",
@@ -4014,13 +4022,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's branches."
         },
         "errorText": {
-          "line": 442,
+          "line": 452,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 478,
+          "line": 501,
           "params": [
             "request",
             "deps"
@@ -4028,7 +4036,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →"
         }
       },
-      "sizeBytes": 24545,
+      "sizeBytes": 26684,
       "extraction": {
         "status": "parsed"
       },
@@ -4062,7 +4070,8 @@
           "suggestBranchName": "c31bbf2b369fda63",
           "taskRow": "4f6c508de8105059",
           "taskTitle": "5d219d8897b255fb",
-          "withBegunBranches": "48d6180ce6e25ff3"
+          "withBegunBranches": "48d6180ce6e25ff3",
+          "workspaceBase": "7f1758e719917a73"
         }
       }
     },
@@ -4083,6 +4092,7 @@
         "path",
         "electron",
         "../shared/ipcChannels",
+        "../shared/frameConstants",
         "../shared/gitRefNames",
         "fsSafe",
         "frameStore",
@@ -4090,27 +4100,28 @@
         "tasksManager",
         "specManager",
         "gitBranchesManager",
+        "workspaceManager",
         "cloudProjectsService",
         "cloudBriefs",
         "cloudStart"
       ],
       "functions": {
         "begunPath": {
-          "line": 38
+          "line": 42
         },
         "begun": {
-          "line": 43,
+          "line": 47,
           "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
         },
         "recordBegun": {
-          "line": 53,
+          "line": 57,
           "params": [
             "entry"
           ],
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
         "begunEntry": {
-          "line": 63,
+          "line": 67,
           "params": [
             "projectId",
             "number",
@@ -4119,14 +4130,14 @@
           "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null."
         },
         "sendBranch": {
-          "line": 72,
+          "line": 76,
           "params": [
             "input"
           ],
           "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
         },
         "withBegunBranches": {
-          "line": 83,
+          "line": 87,
           "params": [
             "briefs",
             "projectId",
@@ -4135,30 +4146,30 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 103,
+          "line": 107,
           "params": [
             "folderPath"
           ],
           "purpose": "Every spec slug the project holds, across checkouts: the folder names in"
         },
         "taskIds": {
-          "line": 123,
+          "line": 127,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id in `tasks.json`."
         },
         "writeSpec": {
-          "line": 129,
+          "line": 136,
           "params": [
-            "folderPath",
+            "root",
             "slug",
             "files"
           ],
-          "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
+          "purpose": "Write a spec folder under `root`, the part's workspace. It is created,"
         },
         "writeTasks": {
-          "line": 139,
+          "line": 147,
           "params": [
             "folderPath",
             "rows"
@@ -4166,14 +4177,23 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 155,
+          "line": 163,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
+        "createWorkspace": {
+          "line": 172,
+          "params": [
+            "folderPath",
+            "branch",
+            "base"
+          ],
+          "purpose": "Open the part's branch in a new local workspace, the way New Workspace"
+        },
         "prepare": {
-          "line": 163,
+          "line": 183,
           "params": [
             "folderPath",
             "number"
@@ -4181,7 +4201,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 198,
+          "line": 218,
           "params": [
             "folderPath",
             "request"
@@ -4189,13 +4209,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 234,
+          "line": 256,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 238,
+          "line": 260,
           "params": [
             "ipcMain"
           ]
@@ -4210,7 +4230,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 10884,
+      "sizeBytes": 11975,
       "extraction": {
         "status": "parsed"
       },
@@ -4219,6 +4239,7 @@
         "purposes": {
           "begun": "3336d042818a4b3b",
           "begunEntry": "1e5ee7187074315b",
+          "createWorkspace": "a0a5a1b641fd7436",
           "orThrow": "e948bf20ec6d85e5",
           "prepare": "aa49edcf2c714e1a",
           "recordBegun": "9bb4021aca478a6a",
@@ -4227,7 +4248,7 @@
           "start": "7ab893a3749f4798",
           "taskIds": "f93103ee7873f53e",
           "withBegunBranches": "301d33efb39d551b",
-          "writeSpec": "10bdd0489712a265",
+          "writeSpec": "bc4e7cb07842242b",
           "writeTasks": "6a6af201083e83a2"
         }
       }
@@ -37216,13 +37237,13 @@
       ],
       "functions": {
         "fakes": {
-          "line": 252,
+          "line": 256,
           "params": [
             "answers = {}"
           ]
         }
       },
-      "sizeBytes": 35350,
+      "sizeBytes": 41172,
       "extraction": {
         "status": "parsed"
       },
@@ -44960,6 +44981,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "0231d7fdd688269d99743d64dacca3cb50370d858404c29ed2bddb8b3188e569"
+    "revision": "4c142e7e424326d1713fc35c6dfd3b6a15c41a39f039eb5ecf9b22181b9085fa"
   }
 }

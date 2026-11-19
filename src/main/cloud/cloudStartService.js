@@ -6,8 +6,10 @@
  * folder's connected project, reads the brief and the folder's git state for
  * the Start Work dialog (`CLOUD_BRIEF_START_PREPARE`), and wires the real
  * effects into the core's handler for the start itself (`CLOUD_BRIEF_START`):
- * git through gitBranchesManager, spec folders through fsSafe under
- * frameStore's spec path, and task rows through tasksManager in one round.
+ * git through gitBranchesManager (the branch is cut, never checked out), the
+ * part's workspace through workspaceManager.create, spec folders through
+ * fsSafe under the workspace's spec path, and task rows through tasksManager
+ * into the main checkout in one round.
  * It also keeps `<userData>/cloud-starts.json`, the parts this machine began,
  * on which branch and from which commit, and sends a begun part's branch to
  * the cloud (`brief.recordBranch`). The token and every write stay in main.
@@ -17,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 const { IPC } = require('../../shared/ipcChannels');
+const { FRAME_FILES } = require('../../shared/frameConstants');
 const { isValidBranchName } = require('../../shared/gitRefNames');
 const fsSafe = require('../fsSafe');
 const frameStore = require('../frameStore');
@@ -24,6 +27,7 @@ const logger = require('../logger');
 const tasksManager = require('../tasksManager');
 const specManager = require('../specManager');
 const git = require('../gitBranchesManager');
+const workspaceManager = require('../workspaceManager');
 const cloudProjectsService = require('./cloudProjectsService');
 const { getBrief, recordBranch } = require('./cloudBriefs');
 const core = require('./cloudStart');
@@ -125,9 +129,13 @@ function taskIds(folderPath) {
   return data && Array.isArray(data.tasks) ? data.tasks.map((t) => t && t.id).filter(Boolean) : [];
 }
 
-/** Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write. */
-function writeSpec(folderPath, slug, files) {
-  const dir = frameStore.resolveSpecDir(folderPath, slug);
+/**
+ * Write a spec folder under `root`, the part's workspace. It is created,
+ * never overwritten: a folder the new branch already holds fails the write.
+ */
+function writeSpec(root, slug, files) {
+  if (!root) throw new Error('no workspace to write the spec into');
+  const dir = frameStore.resolveSpecDir(root, slug);
   if (fs.existsSync(dir)) throw new Error(`.frame/specs/${slug} already exists on this branch`);
   fs.mkdirSync(dir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
@@ -154,6 +162,18 @@ function writeTasks(folderPath, rows) {
 /** A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure. */
 function orThrow(result) {
   if (result && result.error) throw new Error(result.error);
+}
+
+/**
+ * Open the part's branch in a new local workspace, the way New Workspace
+ * does (naming, the registry, copyFiles, tooling, the setup script).
+ * → `{ workspace, setupScript }`; throws on failure.
+ */
+async function createWorkspace(folderPath, branch, base) {
+  const result = await workspaceManager.create(folderPath, { from: 'branch', branch, base: base || undefined });
+  orThrow(result);
+  if (!result || !result.workspace) throw new Error('the workspace was not created');
+  return { workspace: result.workspace, setupScript: result.setupScript || '' };
 }
 
 /**
@@ -218,11 +238,13 @@ async function start(folderPath, request) {
       remoteBranchExists: (name) => git.remoteBranchExists(name, folderPath),
       begun: (partId) => core.getBegun(begun(), project.id, r.number, partId),
       recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
-      createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, true, base, { track })),
-      headSha: () => git.getHeadSha(folderPath),
+      createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, false, base, { track })),
+      branchSha: (name) => git.branchTipSha(folderPath, name),
+      createWorkspace: (branch, base) => createWorkspace(folderPath, branch, base),
       recordBranch: (input) => sendBranch(input),
-      writeSpec: (slug, files) => writeSpec(folderPath, slug, files),
+      writeSpec: (slug, files, root) => writeSpec(root, slug, files),
       writeTasks: (rows) => writeTasks(folderPath, rows),
+      tasksPath: () => frameStore.resolvePath(folderPath, FRAME_FILES.TASKS),
       now: () => new Date().toISOString(),
     });
   } catch (err) {

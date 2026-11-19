@@ -346,6 +346,16 @@ function pickBase(targetBranch, { local, remote }) {
 }
 
 /**
+ * The workspace's base for a branch cut from `base`: a branch name, never a
+ * remote ref (`origin/main` → `main`), because the workspace record's base
+ * drives ↓behind, the PR's base and Update from base.
+ */
+function workspaceBase(base) {
+  const b = str(base).trim();
+  return b.startsWith('origin/') ? b.slice('origin/'.length) : b;
+}
+
+/**
  * The branches the dialog's "from" menu offers, from gitBranchesManager's
  * list: local branches newest first, then origin's (its HEAD pointer left
  * out). → `[{ name, remote }]`.
@@ -445,8 +455,12 @@ function errorText(err) {
 
 /**
  * A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →
- * what happened. One part is begun each time: its branch is cut from the
- * brief's target and only that part is written. On a brief not started yet
+ * what happened. One part is begun each time, in a workspace of its own
+ * (frame-cloud-start-workspace): its branch is cut from the brief's target
+ * without touching the main checkout, a new workspace opens that branch, and
+ * only that part is written — a spec part's folder into the workspace, a
+ * task part's row into the main checkout's `tasks.json`, where task state
+ * lives (spec-in-workspace). On a brief not started yet
  * ('start'), every part's ref is picked against the folder and exactly one
  * `brief.start` reserves them all; the other parts stay in the cloud. On a
  * started brief ('begin'), the part's reserved ref is used and nothing is
@@ -462,7 +476,8 @@ function errorText(err) {
  * part fully written is recorded as begun.
  *
  * Once it is, the branch goes to the cloud (`deps.recordBranch`) with the
- * commit it was cut from (`deps.headSha()`, read right after the checkout).
+ * commit it was cut from (`deps.branchSha(branch)`, the new branch's tip,
+ * read right after it is cut — never the main checkout's HEAD).
  * That call is not awaited and its failure is swallowed: it never changes
  * Begin's answer, and the next Briefs read sends it again (frame-cloud-brief-done
  * D6, D9). Without a full commit id it is skipped.
@@ -470,10 +485,18 @@ function errorText(err) {
  * `deps`: `{ call, projectSlug, specSlugs(), taskIds(),
  * isValidBranchName(name), localBranchExists(name),
  * remoteBranchExists(name), begun(partId) → { branch } | null,
- * createBranch(name, base, { track }), headSha() → sha |
- * null, writeSpec(slug, files), writeTasks(rows), recordBegun({ partId, ref,
- * branch, baseSha }), recordBranch({ id, partId, branch, baseSha }), now() }`;
- * each may be async, and the effects throw on failure.
+ * createBranch(name, base, { track }) (cut, not checked out),
+ * branchSha(name) → sha | null, createWorkspace(branch, base) → { workspace:
+ * { id, name, path, branch, base }, setupScript }, writeSpec(slug, files,
+ * root), writeTasks(rows), tasksPath() → the main checkout's tasks.json,
+ * recordBegun({ partId, ref, branch, baseSha }), recordBranch({ id, partId,
+ * branch, baseSha }), now() }`; each may be async, and the effects throw on
+ * failure.
+ *
+ * Success carries `workspace` and its `setupScript`, which the renderer runs
+ * before it opens the lane there; a task part's `begin` also carries
+ * `tasksPath`, so the task run updates the main checkout's file. Partial
+ * steps: `branch`, `workspace` (the branch stays) and `files`.
  */
 async function handleStartRequest(request, deps) {
   const r = obj(request);
@@ -543,25 +566,46 @@ async function handleStartRequest(request, deps) {
     return partial('branch', err);
   }
 
-  // The commit the branch was cut from: HEAD, right after the checkout.
+  // The commit the branch was cut from: its own tip, right after it is cut.
+  // Worktrees share refs with the main repository, so this is the same
+  // commit the workspace starts at.
   let baseSha = null;
   try {
-    const head = deps.headSha ? await deps.headSha() : null;
-    baseSha = isSha(head) ? head : null;
+    const tip = deps.branchSha ? await deps.branchSha(branch) : null;
+    baseSha = isSha(tip) ? tip : null;
   } catch {
     baseSha = null;
+  }
+
+  // The part's own workspace, opened on the branch just cut. A failure leaves
+  // the branch where it is: Start Work can be finished from it by hand.
+  let workspace;
+  let setupScript = '';
+  try {
+    const created = obj(await deps.createWorkspace(branch, workspaceBase(base)));
+    const ws = obj(created.workspace);
+    if (!isNonEmpty(ws.id) || !isNonEmpty(ws.path)) throw new Error('the workspace was not created');
+    workspace = { id: ws.id, name: str(ws.name), path: ws.path, branch: str(ws.branch) || branch, base: ws.base || null };
+    setupScript = str(created.setupScript);
+  } catch (err) {
+    return partial('workspace', err);
   }
 
   const now = deps.now();
   let begin;
   try {
     if (part.shape === 'spec') {
-      await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }));
+      await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }), workspace.path);
       begin = { shape: 'spec', slug: ref, title: part.title };
     } else {
       const row = taskRow({ part, fields: parseTaskDefinition(part.definition).fields, id: ref, brief, now });
+      const tasksPath = str(deps.tasksPath ? await deps.tasksPath() : '') || null;
       await deps.writeTasks([row]);
-      begin = { shape: 'task', task: { id: row.id, title: row.title, description: row.description, priority: row.priority } };
+      begin = {
+        shape: 'task',
+        task: { id: row.id, title: row.title, description: row.description, priority: row.priority },
+        tasksPath,
+      };
     }
   } catch (err) {
     return partial('files', err);
@@ -581,6 +625,8 @@ async function handleStartRequest(request, deps) {
     specs: part.shape === 'spec' ? 1 : 0,
     tasks: part.shape === 'task' ? 1 : 0,
     begin,
+    workspace,
+    setupScript,
   };
 }
 
@@ -607,6 +653,7 @@ module.exports = {
   getBegun,
   withBegunBranches,
   pickBase,
+  workspaceBase,
   baseOptions,
   prepareView,
   handleStartRequest,

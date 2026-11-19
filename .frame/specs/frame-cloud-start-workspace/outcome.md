@@ -23,3 +23,11 @@ Removed the `changeCount`/`dirty` refusal, the stash step, `stashMessage` and th
 _Captured: 2026-11-19 · 3 file change(s)_
 
 ---
+
+## T04 — Start Work opens the part in a new workspace
+
+`handleStartRequest` now cuts the branch without a checkout (`git.createBranch(…, false, …)`), reads `baseSha` from the new branch's tip (`deps.branchSha` → `git.branchTipSha`, replacing `headSha`), and opens the branch with `workspaceManager.create({ from: 'branch', branch, base: workspaceBase(base) })`. A failure there, or an answer with no id or path, returns `partial('workspace')` and leaves the branch in place. A spec part's files go to the workspace root (`writeSpec(slug, files, root)`) and a task part's row stays in the main checkout. Success adds `workspace`, `setupScript` and, for a task, `begin.tasksPath` (`frameStore.resolvePath`); tests in `test/cloudStart.test.js` (65 pass). Followup: the service calls `workspaceManager.create` outside the per-project `serialize` queue the IPC path uses, because the plan keeps `workspaceManager` unchanged. A `createQueued` export, like `archiveQueued`, would order it behind a New Workspace create started at the same moment.
+
+_Captured: 2026-11-19 · 3 file change(s)_
+
+---

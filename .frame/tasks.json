@@ -10699,13 +10699,13 @@
       "title": "Open the started part in a new workspace from main: cut the branch with `git.createBranch(…, false, base, { track })`, read `baseSha` with `git.branchTipSha`, open it with `workspaceManager.create({ from: 'branch', branch, base: workspaceBase(base) })` (failure → `partial('workspace')`), write spec files into the worktree, keep the task row in the main checkout, and return `workspace`, `setupScript` and `begin.tasksPath`; tests in `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:42:27.479Z",
+      "completedAt": "2026-11-19T09:42:27.479Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T05",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T09:34:54.269Z",
+  "lastUpdated": "2026-11-19T09:42:27.479Z",
   "metadata": {
     "totalCreated": 853
   }
