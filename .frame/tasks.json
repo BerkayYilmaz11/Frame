@@ -10725,13 +10725,13 @@
       "title": "Open the lane in the new workspace after setup: `openBeginLane` in `src/renderer/cloudBriefsPanel.js` loads and selects the result's workspace, awaits `runSetupThenAgent({ setupScript, openAgent: false })`, selects it again, then runs `/spec.plan` or the task run with `tasksPath`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:54:26.596Z",
+      "completedAt": "2026-11-19T09:54:26.596Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T07",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T09:48:19.580Z",
+  "lastUpdated": "2026-11-19T09:54:26.596Z",
   "metadata": {
     "totalCreated": 853
   }

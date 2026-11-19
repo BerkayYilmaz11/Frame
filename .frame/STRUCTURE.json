@@ -14677,7 +14677,9 @@
         "home/homeData",
         "projectListUI",
         "terminal",
-        "tasksPanel"
+        "tasksPanel",
+        "workspaceSection",
+        "newWorkspaceModal"
       ],
       "functions": {
         "homeData": {
@@ -15277,21 +15279,30 @@
           "purpose": "The Start Work dialog, or Begin on part `partId` of a started brief."
         },
         "openBeginLane": {
-          "line": 1684,
+          "line": 1689,
           "params": [
-            "begin"
+            "result"
           ],
-          "purpose": "Begin: a lane on the chosen part, through the paths a spec or a task runs"
+          "purpose": "Begin: a lane on the chosen part, in the workspace Start Work created for"
+        },
+        "selectBegunWorkspace": {
+          "line": 1716,
+          "params": [
+            "path",
+            "workspace",
+            "setupScript"
+          ],
+          "purpose": "Select the begun part's new workspace, wait for its setup script, and"
         },
         "reloadAfterStart": {
-          "line": 1699,
+          "line": 1739,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 1710,
+          "line": 1750,
           "params": [
             "brief",
             "{ purpose",
@@ -15301,42 +15312,42 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 1747,
+          "line": 1787,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 1752,
+          "line": 1792,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1757,
+          "line": 1797,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1776,
+          "line": 1816,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1786,
+          "line": 1826,
           "params": [
             "payload"
           ],
           "purpose": "A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen."
         },
         "onBriefsChanged": {
-          "line": 1797,
+          "line": 1837,
           "params": [
             "payload"
           ],
@@ -15356,7 +15367,7 @@
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 82682,
+      "sizeBytes": 84256,
       "extraction": {
         "status": "parsed"
       },
@@ -15388,7 +15399,7 @@
           "onBriefsChanged": "bd9fcadc3823f421",
           "onLocalData": "127e9558f146937e",
           "onPartAction": "f8e2c12541b08cb1",
-          "openBeginLane": "49bea66705766eff",
+          "openBeginLane": "61847c25755d4fdd",
           "openBrief": "fd1722a6c6bcf7ad",
           "openMilestone": "35aa912c19e774af",
           "openMilestoneOnWeb": "6bd4d16168bb64b0",
@@ -15423,6 +15434,7 @@
           "renderRediscuss": "e7cbda526f97c4e2",
           "renderTrackingNotice": "f70e470d9446caa6",
           "runPart": "5ece223368189610",
+          "selectBegunWorkspace": "7865c6fbda72a5df",
           "shape": "7d9061249397a87a",
           "shapeButton": "604a15810d0c9f7d",
           "show": "a715d3b07c52ffa7",
@@ -44981,6 +44993,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "50938f9dd58357337053f1f68099ed12196a7ee9606c25015f9e51734575ea1f"
+    "revision": "3dd687c1bee8d614210e16a58e3c01da5891e6629d760c754753c212193a161a"
   }
 }

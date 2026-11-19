@@ -1670,29 +1670,69 @@ function openStartDialog(number, partId) {
     onStarted: (result) => {
       notify.success(copy.startedNotice(result));
       reloadAfterStart(number);
-      openBeginLane(result.begin);
+      openBeginLane(result);
     },
     onPartial: () => reloadAfterStart(number),
   });
 }
 
 /**
- * Begin: a lane on the chosen part, through the paths a spec or a task runs
- * by today — `/spec.plan` for a spec, the task run for a task, which then
- * goes in progress. Frame cut the branch already, so the task stays on it.
+ * Begin: a lane on the chosen part, in the workspace Start Work created for
+ * it (frame-cloud-start-workspace). The workspace is listed and selected, its
+ * setup script runs to the end (as New Workspace runs it, without an agent),
+ * and it is selected again, since the user may have moved during setup.
+ * Then the lane opens through the paths a spec or a task runs by today:
+ * `/spec.plan` for a spec, the task run for a task, which names the main
+ * checkout's tasks.json and then goes in progress there. Frame opened the
+ * workspace on the part's branch, so the task stays on it.
  */
-async function openBeginLane(begin) {
+async function openBeginLane(result) {
+  const begin = result && result.begin;
   if (!begin) return;
+  const path = state.getProjectPath();
+  if (!path) return;
+  if (result.workspace) {
+    const opened = await selectBegunWorkspace(path, result.workspace, result.setupScript);
+    if (!opened) return; // another project now: the lane is not opened anywhere
+  }
   if (begin.shape === 'spec') {
     await agentDispatch.dispatchSpecCommand({ slug: begin.slug, title: begin.title, command: 'spec.plan' });
     return;
   }
-  const path = state.getProjectPath();
-  if (!path || !begin.task) return;
+  if (!begin.task) return;
   // Lazy-required: tasksPanel reaches agentDispatch lazily too, and neither needs the other at load.
-  const ok = await require('./tasksPanel').runTaskWithOptions(begin.task, { branchMode: 'current' });
+  const ok = await require('./tasksPanel').runTaskWithOptions(begin.task, {
+    branchMode: 'current',
+    tasksPath: begin.tasksPath || undefined,
+  });
   if (!ok) return;
   ipcRenderer.send(IPC.UPDATE_TASK, { projectPath: path, taskId: begin.task.id, updates: { status: 'in_progress' } });
+}
+
+/**
+ * Select the begun part's new workspace, wait for its setup script, and
+ * select it again. → false when the project changed meanwhile.
+ */
+async function selectBegunWorkspace(path, workspace, setupScript) {
+  // Lazy-required, as agentDispatch reaches them: neither is needed at load.
+  const section = require('./workspaceSection');
+  const pick = () => {
+    const listed = section.getWorkspaces().find((w) => w.id === workspace.id);
+    section.select(listed || workspace);
+  };
+  await section.load();
+  if (state.getProjectPath() !== path) return false;
+  pick();
+  if (setupScript) {
+    try {
+      await require('./newWorkspaceModal').runSetupThenAgent({ setupScript, openAgent: false });
+    } catch (err) {
+      console.error('cloudBriefsPanel: the setup script of the begun workspace failed', err);
+    }
+    if (state.getProjectPath() !== path) return false;
+    pick();
+  }
+  return true;
 }
 
 /** The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen. */

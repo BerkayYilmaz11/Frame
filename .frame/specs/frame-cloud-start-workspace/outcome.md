@@ -39,3 +39,11 @@ In `src/renderer/cloudBriefsCopy.js`, `PARTIAL_STEPS` drops `stash` and gains `w
 _Captured: 2026-11-19 · 2 file change(s)_
 
 ---
+
+## T06 — The lane opens in the new workspace after setup
+
+`openBeginLane` in `src/renderer/cloudBriefsPanel.js` now takes the whole start result. A new `selectBegunWorkspace` runs `workspaceSection.load()`, selects the listed record (falling back to the result's workspace), awaits `runSetupThenAgent({ setupScript, openAgent: false })` when there is a script, and selects again. If the project changed meanwhile, no lane opens. Then `/spec.plan` or the task run opens as before, with `tasksPath` passed through `runTaskWithOptions` to `buildTaskPrompt`, and `UPDATE_TASK in_progress` still goes to the main checkout. The re-select runs only after a setup script, since nothing can move the user without one. DOM code, so no new test.
+
+_Captured: 2026-11-19 · 1 file change(s)_
+
+---
