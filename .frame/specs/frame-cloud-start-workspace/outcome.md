@@ -15,3 +15,11 @@ _Captured: 2026-11-19 · 2 file change(s)_
 _Captured: 2026-11-19 · 1 file change(s)_
 
 ---
+
+## T03 — Start Work drops the dirty check and the stash
+
+Removed the `changeCount`/`dirty` refusal, the stash step, `stashMessage` and the `currentBranch`, `changeCount` and `stash` deps from `handleStartRequest`. `prepareView` no longer takes or returns `currentBranch` and `changeCount`, and the service lost its `changeCount` helper and the matching wiring. Tests in `test/cloudStart.test.js` replace the two stash tests with one asserting that no dirty-folder dep is ever called, even when a request still sends `stash: true`. Until T04 lands, the branch is still checked out in the main checkout, so uncommitted changes carry over onto it instead of being stashed.
+
+_Captured: 2026-11-19 · 3 file change(s)_
+
+---

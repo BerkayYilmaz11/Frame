@@ -397,18 +397,18 @@ function startMode(brief) {
 }
 
 /**
- * What the Start Work dialog shows for a brief detail and the folder's state.
+ * What the Start Work dialog shows for a brief detail and the folder's branches.
  * `begun` maps a part id to the branch this machine began it on. In 'start'
  * mode every part can be begun; in 'begin' mode only one with a reserved ref
  * that was not begun yet. A part whose definition does not parse carries its
  * `problem` and cannot be begun.
  * → `{ ok: true, mode, number, title, targetBranch, parts: [{ partId, title,
- * shape, type, ref, begunBranch, problem, canBegin }], suggestions,
- * currentBranch, changeCount, base, bases }` or `{ ok: false, reason: 'notStartable' }`.
+ * shape, type, ref, begunBranch, problem, canBegin }], suggestions, base,
+ * bases }` or `{ ok: false, reason: 'notStartable' }`.
  * `base` is the default (the target, local or origin's) and `bases` what the
  * "from" menu offers.
  */
-function prepareView({ brief, currentBranch, changeCount, base, begun = {}, branches = [] }) {
+function prepareView({ brief, base, begun = {}, branches = [] }) {
   const b = obj(brief);
   const mode = startMode(b);
   if (!mode) return { ok: false, reason: 'notStartable' };
@@ -434,8 +434,6 @@ function prepareView({ brief, currentBranch, changeCount, base, begun = {}, bran
       };
     }),
     suggestions: branchSuggestions(b),
-    currentBranch: currentBranch || '',
-    changeCount: Number.isInteger(changeCount) ? changeCount : 0,
     base: base || null,
     bases: baseOptions(branches),
   };
@@ -446,7 +444,7 @@ function errorText(err) {
 }
 
 /**
- * A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →
+ * A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →
  * what happened. One part is begun each time: its branch is cut from the
  * brief's target and only that part is written. On a brief not started yet
  * ('start'), every part's ref is picked against the folder and exactly one
@@ -456,9 +454,10 @@ function errorText(err) {
  *
  * Every local check runs first — the part exists and can be begun, its
  * definition parses, the branch name is valid and free, the base (the
- * user's pick, else the brief's target) exists, a
- * dirty folder has consent — so a refusal writes nothing, locally or in the
- * cloud. A failure after that is `partial`: the brief is started either way,
+ * user's pick, else the brief's target) exists — so a refusal writes
+ * nothing, locally or in the cloud. The folder's uncommitted changes are not
+ * asked about (frame-cloud-start-workspace): nothing is stashed. A failure
+ * after that is `partial`: the brief is started either way,
  * and the answer names the step and the part that was not written. Only a
  * part fully written is recorded as begun.
  *
@@ -468,10 +467,10 @@ function errorText(err) {
  * Begin's answer, and the next Briefs read sends it again (frame-cloud-brief-done
  * D6, D9). Without a full commit id it is skipped.
  *
- * `deps`: `{ call, projectSlug, specSlugs(), taskIds(), currentBranch(),
- * changeCount(), isValidBranchName(name), localBranchExists(name),
+ * `deps`: `{ call, projectSlug, specSlugs(), taskIds(),
+ * isValidBranchName(name), localBranchExists(name),
  * remoteBranchExists(name), begun(partId) → { branch } | null,
- * stash(message), createBranch(name, base, { track }), headSha() → sha |
+ * createBranch(name, base, { track }), headSha() → sha |
  * null, writeSpec(slug, files), writeTasks(rows), recordBegun({ partId, ref,
  * branch, baseSha }), recordBranch({ id, partId, branch, baseSha }), now() }`;
  * each may be async, and the effects throw on failure.
@@ -519,11 +518,6 @@ async function handleStartRequest(request, deps) {
     if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
   }
 
-  const changeCount = await deps.changeCount();
-  if (changeCount > 0 && r.stash !== true) {
-    return { ok: false, reason: 'dirty', changeCount, currentBranch: await deps.currentBranch() };
-  }
-
   if (refs) {
     const started = await startThrough(deps.call, {
       id: brief.id,
@@ -541,15 +535,6 @@ async function handleStartRequest(request, deps) {
     missing: [{ title: part.title, shape: part.shape, ref }],
     error: errorText(err),
   });
-
-  const stashMessage = changeCount > 0 ? `Start Work #${brief.number}` : null;
-  if (stashMessage) {
-    try {
-      await deps.stash(stashMessage);
-    } catch (err) {
-      return partial('stash', err);
-    }
-  }
 
   try {
     // A remote base is cut without tracking, so the work branch does not track it.
@@ -595,7 +580,6 @@ async function handleStartRequest(request, deps) {
     part: { title: part.title, shape: part.shape, ref },
     specs: part.shape === 'spec' ? 1 : 0,
     tasks: part.shape === 'task' ? 1 : 0,
-    stashMessage,
     begin,
   };
 }

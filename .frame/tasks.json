@@ -10686,13 +10686,13 @@
       "title": "Remove the dirty check and the stash from Start Work: `handleStartRequest` and `prepareView` in `src/main/cloud/cloudStart.js` and the wiring in `cloudStartService.js` lose `changeCount`, `stash`, `currentBranch`, `stashMessage` and the `dirty` reason; update `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:34:54.269Z",
+      "completedAt": "2026-11-19T09:34:54.269Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T04",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T09:28:40.417Z",
+  "lastUpdated": "2026-11-19T09:34:54.269Z",
   "metadata": {
     "totalCreated": 853
   }

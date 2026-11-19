@@ -4007,30 +4007,28 @@
           "line": 411,
           "params": [
             "{ brief",
-            "currentBranch",
-            "changeCount",
             "base",
             "begun = {}",
             "branches = [] }"
           ],
-          "purpose": "What the Start Work dialog shows for a brief detail and the folder's state."
+          "purpose": "What the Start Work dialog shows for a brief detail and the folder's branches."
         },
         "errorText": {
-          "line": 444,
+          "line": 442,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 479,
+          "line": 478,
           "params": [
             "request",
             "deps"
           ],
-          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base, stash }`) →"
+          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →"
         }
       },
-      "sizeBytes": 25111,
+      "sizeBytes": 24545,
       "extraction": {
         "status": "parsed"
       },
@@ -4046,7 +4044,7 @@
           "definitionProblem": "ac8749c777a9fb84",
           "freeName": "a2f68960999c9348",
           "getBegun": "70724b116f89928e",
-          "handleStartRequest": "038b9a83dbd0a500",
+          "handleStartRequest": "534e4bdaa423e9dd",
           "isSha": "6d00928ffed63886",
           "normalizeBegun": "7dda30a8c6888043",
           "normalizeBegunEntry": "35068f758e214f10",
@@ -4054,7 +4052,7 @@
           "parseTaskDefinition": "1a3ed6bbca001648",
           "partName": "28ee9181d4669474",
           "pickBase": "4556c451d7832467",
-          "prepareView": "8e315fbee323de4f",
+          "prepareView": "72e60bff39bbe572",
           "sectionBody": "be9db64754cda8ac",
           "slugify": "342d33e58592ed3b",
           "specFiles": "cb21d25dcb22d240",
@@ -4150,15 +4148,8 @@
           ],
           "purpose": "Every task id in `tasks.json`."
         },
-        "changeCount": {
-          "line": 129,
-          "params": [
-            "folderPath"
-          ],
-          "purpose": "How many changes `git status --porcelain` lists. Throws when git cannot tell."
-        },
         "writeSpec": {
-          "line": 136,
+          "line": 129,
           "params": [
             "folderPath",
             "slug",
@@ -4167,7 +4158,7 @@
           "purpose": "Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write."
         },
         "writeTasks": {
-          "line": 146,
+          "line": 139,
           "params": [
             "folderPath",
             "rows"
@@ -4175,14 +4166,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 162,
+          "line": 155,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "prepare": {
-          "line": 170,
+          "line": 163,
           "params": [
             "folderPath",
             "number"
@@ -4190,7 +4181,7 @@
           "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
         },
         "start": {
-          "line": 209,
+          "line": 198,
           "params": [
             "folderPath",
             "request"
@@ -4198,13 +4189,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 249,
+          "line": 234,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 253,
+          "line": 238,
           "params": [
             "ipcMain"
           ]
@@ -4219,7 +4210,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 11513,
+      "sizeBytes": 10884,
       "extraction": {
         "status": "parsed"
       },
@@ -4228,7 +4219,6 @@
         "purposes": {
           "begun": "3336d042818a4b3b",
           "begunEntry": "1e5ee7187074315b",
-          "changeCount": "d6fc4d3d5f145f10",
           "orThrow": "e948bf20ec6d85e5",
           "prepare": "aa49edcf2c714e1a",
           "recordBegun": "9bb4021aca478a6a",
@@ -37232,7 +37222,7 @@
           ]
         }
       },
-      "sizeBytes": 35649,
+      "sizeBytes": 35350,
       "extraction": {
         "status": "parsed"
       },
@@ -44970,6 +44960,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "c8f9d4231ab7c6bce401b5ab59c5c7d0932788d599cd9e527320a762522423be"
+    "revision": "0231d7fdd688269d99743d64dacca3cb50370d858404c29ed2bddb8b3188e569"
   }
 }

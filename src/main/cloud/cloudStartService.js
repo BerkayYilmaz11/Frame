@@ -125,13 +125,6 @@ function taskIds(folderPath) {
   return data && Array.isArray(data.tasks) ? data.tasks.map((t) => t && t.id).filter(Boolean) : [];
 }
 
-/** How many changes `git status --porcelain` lists. Throws when git cannot tell. */
-async function changeCount(folderPath) {
-  const status = await git.isWorkingTreeClean(folderPath);
-  if (status.error) throw new Error(status.error);
-  return status.changes.length;
-}
-
 /** Write a spec folder. It is created, never overwritten: a folder the new branch already holds fails the write. */
 function writeSpec(folderPath, slug, files) {
   const dir = frameStore.resolveSpecDir(folderPath, slug);
@@ -175,9 +168,7 @@ async function prepare(folderPath, number) {
   if (!read.ok) return { ok: false, reason: read.reason };
   const brief = read.value;
   try {
-    const [currentBranch, count, list, local, remote] = await Promise.all([
-      git.currentBranch(folderPath),
-      changeCount(folderPath),
+    const [list, local, remote] = await Promise.all([
       git.loadBranches(folderPath),
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
@@ -193,8 +184,6 @@ async function prepare(folderPath, number) {
     }
     return core.prepareView({
       brief,
-      currentBranch,
-      changeCount: count,
       base: core.pickBase(brief.targetBranch, { local, remote }),
       begun: begunBranches,
       branches: list && Array.isArray(list.branches) ? list.branches : [],
@@ -219,20 +208,16 @@ async function start(folderPath, request) {
       beginPartId: typeof r.beginPartId === 'string' ? r.beginPartId : null,
       branch: typeof r.branch === 'string' ? r.branch : '',
       base: typeof r.base === 'string' ? r.base : '',
-      stash: r.stash === true,
     }, {
       call: cloudProjectsService.call,
       projectSlug: project.slug,
       specSlugs: () => specSlugs(folderPath),
       taskIds: () => taskIds(folderPath),
-      currentBranch: () => git.currentBranch(folderPath),
-      changeCount: () => changeCount(folderPath),
       isValidBranchName,
       localBranchExists: (name) => git.localBranchExists(name, folderPath),
       remoteBranchExists: (name) => git.remoteBranchExists(name, folderPath),
       begun: (partId) => core.getBegun(begun(), project.id, r.number, partId),
       recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
-      stash: async (message) => orThrow(await git.stashAll(folderPath, message)),
       createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, true, base, { track })),
       headSha: () => git.getHeadSha(folderPath),
       recordBranch: (input) => sendBranch(input),
