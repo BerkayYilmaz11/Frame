@@ -27394,6 +27394,7 @@
         "render",
         "select",
         "setActions",
+        "onChange",
         "getWorkspaces",
         "selectedWorkspace",
         "workspaceChipHtml",
@@ -27427,43 +27428,53 @@
           ],
           "purpose": "Let the dialogs plug in without this module requiring them."
         },
+        "onChange": {
+          "line": 77,
+          "params": [
+            "fn"
+          ],
+          "purpose": "Run `fn(workspaces)` after each load() completes. → a function that stops it."
+        },
+        "emitChange": {
+          "line": 83
+        },
         "init": {
-          "line": 71
+          "line": 94
         },
         "load": {
-          "line": 134,
+          "line": 157,
           "params": [
             "{ reselect = false } = {}"
           ],
           "purpose": "Re-read the project's workspaces; with `reselect`, restore the remembered selection."
         },
         "select": {
-          "line": 181,
+          "line": 205,
           "params": [
             "ws"
           ]
         },
         "scheduleRender": {
-          "line": 197
+          "line": 221
         },
         "summaries": {
-          "line": 207
+          "line": 231
         },
         "dotHtml": {
-          "line": 224,
+          "line": 248,
           "params": [
             "summary"
           ]
         },
         "branchLabel": {
-          "line": 235,
+          "line": 259,
           "params": [
             "ws"
           ],
           "purpose": "The branch a row is labelled with: the one git reports for its folder now"
         },
         "rowHtml": {
-          "line": 239,
+          "line": 263,
           "params": [
             "ws",
             "{ selectedId",
@@ -27471,18 +27482,18 @@
           ]
         },
         "linkView": {
-          "line": 275,
+          "line": 299,
           "params": [
             "srv"
           ],
           "purpose": "A saved server as the Remote group reads it: `{ key, host, phase, state }`."
         },
         "serverViews": {
-          "line": 285,
+          "line": 309,
           "purpose": "Every saved server, in list order (multi-server-connections)."
         },
         "serverHeadHtml": {
-          "line": 295,
+          "line": 319,
           "params": [
             "link",
             "{ collapsed",
@@ -27492,46 +27503,46 @@
           "purpose": "One server's sub-header in Remote, drawn as a labelled sub-separator: the"
         },
         "isServerOpen": {
-          "line": 327,
+          "line": 351,
           "params": [
             "key",
             "count"
           ]
         },
         "setServerOpen": {
-          "line": 331,
+          "line": 355,
           "params": [
             "key",
             "open"
           ]
         },
         "toggleServer": {
-          "line": 336,
+          "line": 360,
           "params": [
             "key"
           ]
         },
         "serverCounts": {
-          "line": 347,
+          "line": 371,
           "params": [
             "list"
           ]
         },
         "openServersThatGrew": {
-          "line": 353,
+          "line": 377,
           "params": [
             "list"
           ]
         },
         "serverEmptyHtml": {
-          "line": 362,
+          "line": 386,
           "params": [
             "link"
           ],
           "purpose": "What a server with no workspaces of this project offers: the next step for its link."
         },
         "remoteGroupHtml": {
-          "line": 380,
+          "line": 404,
           "params": [
             "remote",
             "{ canCreate",
@@ -27541,11 +27552,11 @@
           "purpose": "The Remote group: one sub-header per saved server with its own rows or its"
         },
         "mainLabel": {
-          "line": 408,
+          "line": 432,
           "purpose": "The main row's label: the branch the project's own checkout is on, like"
         },
         "triggerHtml": {
-          "line": 417,
+          "line": 441,
           "params": [
             "{ selectedId",
             "sums }"
@@ -27553,60 +27564,60 @@
           "purpose": "The header: the same section title as the nav's Work and Context — a"
         },
         "render": {
-          "line": 436
+          "line": 460
         },
         "readListOpen": {
-          "line": 508
+          "line": 532
         },
         "setListOpen": {
-          "line": 512,
+          "line": 536,
           "params": [
             "open"
           ]
         },
         "openList": {
-          "line": 518,
+          "line": 542,
           "params": [
             "{ focus = false } = {}"
           ],
           "purpose": "Expand the list; `focus` lands on the selected row so arrows and Enter work straight away."
         },
         "closeList": {
-          "line": 530
+          "line": 554
         },
         "moveFocus": {
-          "line": 539,
+          "line": 563,
           "params": [
             "step"
           ],
           "purpose": "Arrow keys walk the list's rows and buttons, top to bottom."
         },
         "findWs": {
-          "line": 547,
+          "line": 571,
           "params": [
             "id"
           ]
         },
         "onClick": {
-          "line": 551,
+          "line": 575,
           "params": [
             "e"
           ]
         },
         "onKeyDown": {
-          "line": 585,
+          "line": 609,
           "params": [
             "e"
           ]
         },
         "onContextMenu": {
-          "line": 617,
+          "line": 641,
           "params": [
             "e"
           ]
         },
         "showMenu": {
-          "line": 630,
+          "line": 654,
           "params": [
             "ws",
             "x",
@@ -27614,48 +27625,48 @@
           ]
         },
         "hideMenu": {
-          "line": 657
+          "line": 681
         },
         "onMenuClick": {
-          "line": 661,
+          "line": 685,
           "params": [
             "e"
           ]
         },
         "sendFilesTo": {
-          "line": 673,
+          "line": 697,
           "params": [
             "ws"
           ]
         },
         "openNew": {
-          "line": 683,
+          "line": 707,
           "params": [
             "opts"
           ]
         },
         "startRename": {
-          "line": 691,
+          "line": 715,
           "params": [
             "ws",
             "field"
           ]
         },
         "commitRename": {
-          "line": 698,
+          "line": 722,
           "params": [
             "input"
           ]
         },
         "archiveWorkspace": {
-          "line": 718,
+          "line": 742,
           "params": [
             "ws"
           ],
           "purpose": "Archive a workspace (T09). Clean → archived straight away. Uncommitted"
         },
         "rescueBranchName": {
-          "line": 759,
+          "line": 783,
           "params": [
             "ws",
             "head"
@@ -27663,7 +27674,7 @@
           "purpose": "The branch name archive's rescue creates; the sha may be unknown before a commit is made."
         },
         "askRescue": {
-          "line": 765,
+          "line": 789,
           "params": [
             "ws",
             "head"
@@ -27671,14 +27682,14 @@
           "purpose": "The rescue dialog: keep unreachable commits on a rescue branch, or cancel. Resolves true/false."
         },
         "closeWorkspaceTerminals": {
-          "line": 802,
+          "line": 826,
           "params": [
             "workspaceId"
           ],
           "purpose": "Close every terminal of one workspace of the current project."
         },
         "askArchiveChoice": {
-          "line": 815,
+          "line": 839,
           "params": [
             "ws",
             "count"
@@ -27686,41 +27697,41 @@
           "purpose": "The dirty-archive dialog. Resolves `{ action, message }`, or null on cancel."
         },
         "selectedWorkspace": {
-          "line": 873,
+          "line": 897,
           "purpose": "The selected workspace's record, or null on main."
         },
         "restoreWorkspace": {
-          "line": 879,
+          "line": 903,
           "params": [
             "ws"
           ]
         },
         "removeRecord": {
-          "line": 892,
+          "line": 916,
           "params": [
             "ws"
           ]
         },
         "workspaceChipHtml": {
-          "line": 901,
+          "line": 925,
           "params": [
             "ws"
           ],
           "purpose": "A small chip naming the workspace a spec lives in; '' for main."
         },
         "selectSpecWorkspace": {
-          "line": 914,
+          "line": 938,
           "params": [
             "ws"
           ],
           "purpose": "Select the checkout a spec lives in (its workspace, or main). Returns true"
         },
         "getWorkspaces": {
-          "line": 928,
+          "line": 952,
           "purpose": "Active workspaces of the current project, as last loaded."
         },
         "serverOpen": {
-          "line": 323,
+          "line": 347,
           "params": [
             "("
           ]
@@ -27733,7 +27744,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 42570,
+      "sizeBytes": 43305,
       "extraction": {
         "status": "parsed"
       },
@@ -27750,6 +27761,7 @@
           "load": "e807754c516c9be1",
           "mainLabel": "edac7efb729dd2d6",
           "moveFocus": "95c1b6649ae48ff8",
+          "onChange": "7abd241736e3a2d3",
           "openList": "9beebe76e5da95f3",
           "remoteGroupHtml": "adc0ab63d3466cbd",
           "rescueBranchName": "9535b434ca8c9ced",
@@ -45014,6 +45026,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f539f15fa6b9494e37fbb51c3a2871632c0cf354c916ae235828683dbf585977"
+    "revision": "9332b9c466e96a1e190a23e80e549dbc8e66b129ddf908df5f3e36c00199414c"
   }
 }

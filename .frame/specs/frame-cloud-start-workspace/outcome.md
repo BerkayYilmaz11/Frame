@@ -63,3 +63,11 @@ _Captured: 2026-11-19 · 3 file change(s)_
 _Captured: 2026-11-19 · 4 file change(s)_
 
 ---
+
+## T09 — workspaceSection.onChange
+
+Added `onChange(fn)` to `src/renderer/workspaceSection.js`. It returns an unsubscribe function, and each listener gets the active workspace list after every `load()` that lands, right after `render()`. A load overtaken by a newer one, or by a project switch, calls nothing, and a throwing listener is logged without stopping the others. DOM module, so no new test.
+
+_Captured: 2026-11-19 · 1 file change(s)_
+
+---

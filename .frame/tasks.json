@@ -10764,13 +10764,13 @@
       "title": "Add `onChange(fn)` to `src/renderer/workspaceSection.js`, called after each `load()` completes",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T10:12:58.285Z",
+      "completedAt": "2026-11-19T10:12:58.285Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T10",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T10:07:24.847Z",
+  "lastUpdated": "2026-11-19T10:12:58.285Z",
   "metadata": {
     "totalCreated": 853
   }
