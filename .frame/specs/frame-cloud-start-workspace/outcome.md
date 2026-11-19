@@ -47,3 +47,11 @@ _Captured: 2026-11-19 · 2 file change(s)_
 _Captured: 2026-11-19 · 1 file change(s)_
 
 ---
+
+## T07 — The dialog drops the dirty prompt and the stash
+
+Removed `showDirty`, the `stash` dialog state and its `data-action`, the dirty placeholder element, the `stash` request field and the `reason === 'dirty'` branch from `src/renderer/cloudStartDialog.js`. `dirtyWarning` and `STASH_AND_CONTINUE_LABEL` are gone from `src/renderer/cloudBriefsCopy.js`, and the copy test now asserts both are absent. The now-unused `.cloud-briefs-start-dirty` CSS rule is left for T08, which owns the dialog styles.
+
+_Captured: 2026-11-19 · 3 file change(s)_
+
+---

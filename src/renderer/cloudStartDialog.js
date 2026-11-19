@@ -7,8 +7,10 @@
  * started brief's part opens the same dialog for that part alone. The branch
  * row reads like a code host's new-branch control: the name as an editable
  * chip, prefilled with the suggestion, and "from <base> ⌄", the brief's
- * target unless the user picks another local or origin branch. A dirty folder
- * is asked about before anything is sent.
+ * target unless the user picks another local or origin branch. The folder's
+ * uncommitted changes are not asked about: the part opens in a workspace of
+ * its own, and the main checkout is never switched or stashed
+ * (frame-cloud-start-workspace).
  *
  * Main prepares the view and does every check and write again: this module
  * sends a folder path, a brief number and the user's choices. Its words live
@@ -33,7 +35,7 @@ const ICON = {
 };
 
 // The one open dialog: { el, id, number, partId, view, choice, edited, base,
-// menuOpen, pending, stash, done, onStarted, onPartial }.
+// menuOpen, pending, done, onStarted, onPartial }.
 let dialog = null;
 
 function ref(name) {
@@ -57,7 +59,7 @@ function open({ number, partId = null, onStarted, onPartial }) {
     </div>`;
   dialog = {
     el, id, number, partId, view: null, choice: null, edited: false, base: null,
-    menuOpen: false, pending: false, stash: false, done: false, onStarted, onPartial,
+    menuOpen: false, pending: false, done: false, onStarted, onPartial,
   };
   el.addEventListener('click', onClick);
   el.addEventListener('change', onChange);
@@ -195,7 +197,6 @@ function renderReady() {
     <p class="cloud-briefs-muted">${escapeHtml(view.mode === 'begin' ? copy.BEGIN_DIALOG_DESCRIPTION : copy.START_DIALOG_DESCRIPTION)}</p>
     ${choose ? renderChoices() : renderSinglePart()}
     ${renderBranchRow()}
-    <div class="cloud-briefs-start-dirty" data-ref="dirty" hidden></div>
     <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
     <div class="cloud-briefs-start-actions" data-ref="actions">
       <button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>
@@ -245,19 +246,6 @@ function setMenu(openIt) {
   }
 }
 
-/** Ask before stashing: the folder's branch and change count, Stash and continue or Cancel. */
-function showDirty(branch, count) {
-  const dirty = ref('dirty');
-  dirty.innerHTML = `<p>${escapeHtml(copy.dirtyWarning(branch, count))}</p>
-    <div class="cloud-briefs-start-actions">
-      <button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>
-      <button type="button" class="cloud-briefs-primary-btn" data-action="stash">${escapeHtml(copy.STASH_AND_CONTINUE_LABEL)}</button>
-    </div>`;
-  dirty.hidden = false;
-  ref('actions').hidden = true;
-  dirty.querySelector('[data-action="stash"]').focus();
-}
-
 function showError(message) {
   const errorEl = ref('error');
   errorEl.textContent = message;
@@ -268,8 +256,6 @@ function setPending(on) {
   dialog.pending = on;
   const confirm = ref('body').querySelector('[data-action="confirm"]');
   if (confirm) confirm.textContent = copy.startSubmitLabel(on);
-  const stash = ref('body').querySelector('[data-action="stash"]');
-  if (stash) stash.disabled = on;
   for (const input of dialog.el.querySelectorAll('input')) input.disabled = on || input.closest('.disabled') !== null;
   ref('base').disabled = on;
   syncConfirm();
@@ -289,10 +275,7 @@ function onClick(e) {
   const name = action.dataset.action;
   if (name === 'cancel') close();
   else if (name === 'confirm') confirm();
-  else if (name === 'stash') {
-    dialog.stash = true;
-    confirm();
-  } else if (name === 'toggle-base') {
+  else if (name === 'toggle-base') {
     setMenu(!dialog.menuOpen);
   } else if (name === 'pick-base') {
     dialog.base = action.dataset.base;
@@ -333,17 +316,12 @@ async function confirm() {
   if (!current || current.pending || current.done || !current.view) return;
   const part = chosenPart();
   if (!part || !part.canBegin || !current.base) return;
-  if (current.view.changeCount > 0 && !current.stash) {
-    showDirty(current.view.currentBranch, current.view.changeCount);
-    return;
-  }
   const path = state.getProjectPath();
   const request = {
     number: current.number,
     beginPartId: part.partId,
     branch: ref('branch').value.trim(),
     base: current.base,
-    stash: current.stash,
   };
   ref('error').hidden = true;
   setPending(true);
@@ -364,17 +342,6 @@ async function confirm() {
     if (current.onStarted) current.onStarted(result);
     return;
   }
-  if (result && result.reason === 'dirty') {
-    // The folder changed after the dialog opened: ask now, never stash silently.
-    current.view.changeCount = result.changeCount;
-    current.view.currentBranch = result.currentBranch;
-    showDirty(result.currentBranch, result.changeCount);
-    return;
-  }
-  // A refusal returns to the form; the dirty question is asked again next time.
-  current.stash = false;
-  ref('dirty').hidden = true;
-  ref('actions').hidden = false;
   if (result && result.reason === 'partial') {
     // Past the checks: nothing to retry here, only what to finish by hand.
     current.done = true;

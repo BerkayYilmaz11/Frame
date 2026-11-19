@@ -539,14 +539,6 @@ function baseMissingLine(targetBranch) {
     : 'This brief has no target branch. Pick a base to cut from.';
 }
 
-/** The dirty folder's warning: "feat/x has 3 uncommitted changes. …". */
-function dirtyWarning(branch, count) {
-  const changes = `${count} uncommitted ${count === 1 ? 'change' : 'changes'}`;
-  const where = branch ? `${branch} has ${changes}` : `This folder has ${changes}`;
-  return `${where}. Stash them so the new branch starts clean, or cancel and commit them first.`;
-}
-
-const STASH_AND_CONTINUE_LABEL = 'Stash and continue';
 const CANCEL_LABEL = 'Cancel';
 
 /** The confirm button: "Start", or "Starting…" while it runs. */
@@ -1270,8 +1262,6 @@ module.exports = {
   NO_BASE_MATCH,
   PICK_BASE_LABEL,
   baseMissingLine,
-  dirtyWarning,
-  STASH_AND_CONTINUE_LABEL,
   CANCEL_LABEL,
   startSubmitLabel,
   partProblemMessage,

@@ -469,8 +469,8 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.COMING_SOON, 'Coming soon');
   assert.equal(copy.beginDialogTitle('Fix typo'), 'Begin “Fix typo”');
   assert.equal(copy.FROM_LABEL, 'from');
-  assert.equal(copy.dirtyWarning('feat/x', 1), 'feat/x has 1 uncommitted change. Stash them so the new branch starts clean, or cancel and commit them first.');
-  assert.match(copy.dirtyWarning('', 3), /^This folder has 3 uncommitted changes\./);
+  assert.equal(copy.dirtyWarning, undefined, 'no dirty-folder warning: nothing is stashed');
+  assert.equal(copy.STASH_AND_CONTINUE_LABEL, undefined);
   assert.equal(copy.startSubmitLabel(true), 'Starting…');
   assert.match(copy.baseMissingLine(''), /no target branch/);
   assert.match(copy.baseMissingLine('main'), /^The target branch main is not on this machine\./);
