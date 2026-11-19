@@ -1699,6 +1699,8 @@ function openStartDialog(number, partId) {
     partId,
     onStarted: (result) => {
       notify.success(copy.startedNotice(result));
+      const fetchNote = copy.fetchFailedNotice(result);
+      if (fetchNote) notify.info(fetchNote);
       reloadAfterStart(number);
       openBeginLane(result);
     },

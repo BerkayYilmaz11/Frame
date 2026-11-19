@@ -6,7 +6,8 @@
  * folder's connected project, reads the brief and the folder's git state for
  * the Start Work dialog (`CLOUD_BRIEF_START_PREPARE`), and wires the real
  * effects into the core's handler for the start itself (`CLOUD_BRIEF_START`):
- * git through gitBranchesManager (the branch is cut, never checked out), the
+ * git through gitBranchesManager (an `origin/` base is fetched first; the
+ * branch is cut, never checked out), the
  * part's workspace through workspaceManager.create, spec folders through
  * fsSafe under the workspace's spec path, and task rows through tasksManager
  * into the main checkout in one round.
@@ -236,6 +237,7 @@ async function start(folderPath, request) {
       isValidBranchName,
       localBranchExists: (name) => git.localBranchExists(name, folderPath),
       remoteBranchExists: (name) => git.remoteBranchExists(name, folderPath),
+      fetchBase: (name) => git.fetchBranch(folderPath, name),
       begun: (partId) => core.getBegun(begun(), project.id, r.number, partId),
       recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
       createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, false, base, { track })),

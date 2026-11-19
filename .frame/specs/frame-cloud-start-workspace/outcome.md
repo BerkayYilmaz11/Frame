@@ -79,3 +79,11 @@ Added `partWorkspace(part, workspaces)` and `partWorkspaceHint(name)` to `src/re
 _Captured: 2026-11-19 · 4 file change(s)_
 
 ---
+
+## T11 — The part is cut from a fresh base
+
+Added after T10, when the user asked whether the base menu should offer origin's branches. It already did, but nothing was fetched, and the default was the local target, which can be behind origin. `pickBase` in `src/main/cloud/cloudStart.js` now prefers `origin/<target>`, then the local target. `handleStartRequest` fetches an `origin/` base through a new `fetchBase` dep, after every check and before `brief.start`, and returns `fetch: { fetched, error, skipped }`. A failed or throwing fetch is no refusal: the branch is cut from the last fetched copy. A local base, picked or defaulted, is not fetched. `cloudStartService.js` wires `fetchBase` to `git.fetchBranch` (15 s cap, never throws). `fetchFailedNotice` in `cloudBriefsCopy.js` reads "Couldn't fetch origin/<base> — cut from the last fetched copy.", shown by `cloudBriefsPanel.js` as an info toast after the started one, as New Workspace does. The dialog's closed "from" button now shows the base's local or origin icon. This overturns `frame-cloud-brief-start`'s "Frame does not fetch" (plan decision "The base is origin's, fetched at start"). Tests in `test/cloudStart.test.js` (70 pass) and `test/cloudBriefsCopy.test.js` (119 pass). Neither the button nor the toast was checked in the running app.
+
+_Captured: 2026-11-19 · 7 file change(s)_
+
+---

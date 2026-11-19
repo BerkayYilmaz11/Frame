@@ -257,6 +257,7 @@ function fakes(answers = {}) {
   const log = [];
   const sent = [];
   const branches = [];
+  const fetches = [];
   const fetchJson = async (url, opts = {}) => {
     const name = url.slice(`${API}/trpc/`.length).split('?')[0];
     sent.push({ name, body: opts.body });
@@ -283,6 +284,11 @@ function fakes(answers = {}) {
     isValidBranchName: (name) => /^[a-z0-9/_-]+$/.test(name),
     localBranchExists: async (name) => local.has(name),
     remoteBranchExists: async (name) => (answers.remote || []).includes(name),
+    fetchBase: async (name) => {
+      fetches.push({ name, afterStart: sent.some((s) => s.name === 'brief.start') });
+      if (answers.fetch instanceof Error) throw answers.fetch;
+      return answers.fetch || { fetched: true, error: null };
+    },
     createBranch: async (name, base, opts) => { failing('branch'); log.push(['branch', name, base, opts]); },
     branchSha: async (name) => { log.push(['sha', name]); return 'tip' in answers ? answers.tip : HEAD; },
     createWorkspace: async (branch, base) => {
@@ -298,7 +304,7 @@ function fakes(answers = {}) {
     recordBegun: async (entry) => log.push(['recorded', entry]),
     now: () => NOW,
   };
-  return { deps, log, sent, branches, starts: () => sent.filter((s) => s.name === 'brief.start') };
+  return { deps, log, sent, branches, fetches, starts: () => sent.filter((s) => s.name === 'brief.start') };
 }
 
 const REQUEST = { number: 3, beginPartId: 'p1', branch: 'feat/login-flow' };
@@ -308,9 +314,10 @@ const steps = (log) => log.map((e) => e[0]).filter((name) => name !== 'sha');
 /** The first logged effect named `name`. */
 const effect = (log, name) => log.find((e) => e[0] === name);
 
-test('pickBase prefers the local target, then origin/, then nothing', () => {
-  assert.equal(start.pickBase('main', { local: true, remote: true }), 'main');
+test('pickBase prefers origin\'s target, then the local one, then nothing', () => {
+  assert.equal(start.pickBase('main', { local: true, remote: true }), 'origin/main');
   assert.equal(start.pickBase('main', { local: false, remote: true }), 'origin/main');
+  assert.equal(start.pickBase('main', { local: true, remote: false }), 'main');
   assert.equal(start.pickBase('main', { local: false, remote: false }), null);
   assert.equal(start.pickBase('', { local: true, remote: true }), null);
 });
@@ -370,6 +377,7 @@ test('Start with a spec: brief.start reserves every ref, and only the chosen par
     begin: { shape: 'spec', slug: 'login-flow', title: 'Login flow' },
     workspace: { id: 'ws1', name: 'login-flow', path: WS_PATH, branch: 'feat/login-flow', base: 'main' },
     setupScript: 'npm ci',
+    fetch: { fetched: false, error: null, skipped: true },
   });
   assert.equal(starts().length, 1);
   assert.deepEqual(starts()[0].body, { id: 'b1', parts: [{ partId: 'p1', recordRef: 'login-flow' }, { partId: 'p2', recordRef: 'task-fix-typo' }] });
@@ -441,6 +449,52 @@ test('a remote base is cut without tracking', async () => {
   const result = await start.handleStartRequest(REQUEST, deps);
   assert.equal(result.ok, true);
   assert.deepEqual(log[0], ['branch', 'feat/login-flow', 'origin/main', { track: false }]);
+});
+
+test('with no base picked, origin\'s target wins over the local one and is fetched before brief.start', async () => {
+  const { deps, log, fetches, starts } = fakes({ local: ['main'], remote: ['main'] });
+  const result = await start.handleStartRequest(REQUEST, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(fetches, [{ name: 'main', afterStart: false }]);
+  assert.equal(starts().length, 1);
+  assert.deepEqual(effect(log, 'branch'), ['branch', 'feat/login-flow', 'origin/main', { track: false }]);
+  assert.deepEqual(effect(log, 'workspace'), ['workspace', 'feat/login-flow', 'main']);
+  assert.deepEqual(result.fetch, { fetched: true, error: null, skipped: false });
+});
+
+test('an origin base the user picks is fetched by its branch name', async () => {
+  const { deps, log, fetches } = fakes({ local: ['main'], remote: ['main', 'dev'] });
+  const result = await start.handleStartRequest({ ...REQUEST, base: 'origin/dev' }, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(fetches.map((f) => f.name), ['dev']);
+  assert.deepEqual(effect(log, 'branch'), ['branch', 'feat/login-flow', 'origin/dev', { track: false }]);
+});
+
+test('a failed fetch is no refusal: the branch is cut from the last fetched copy and the answer says so', async () => {
+  const offline = fakes({ local: [], remote: ['main'], fetch: { fetched: false, error: 'Could not resolve host' } });
+  const result = await start.handleStartRequest(REQUEST, offline.deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(effect(offline.log, 'branch'), ['branch', 'feat/login-flow', 'origin/main', { track: false }]);
+  assert.deepEqual(result.fetch, { fetched: false, error: 'Could not resolve host', skipped: false });
+  const thrown = fakes({ local: [], remote: ['main'], fetch: new Error('git is gone') });
+  const answer = await start.handleStartRequest(REQUEST, thrown.deps);
+  assert.equal(answer.ok, true);
+  assert.deepEqual(answer.fetch, { fetched: false, error: 'git is gone', skipped: false });
+});
+
+test('a local base is cut as it is, with no fetch', async () => {
+  const { deps, log, fetches } = fakes({ local: ['main'], remote: ['main'] });
+  const result = await start.handleStartRequest({ ...REQUEST, base: 'main' }, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(fetches, []);
+  assert.deepEqual(effect(log, 'branch'), ['branch', 'feat/login-flow', 'main', { track: true }]);
+  assert.deepEqual(result.fetch, { fetched: false, error: null, skipped: true });
+});
+
+test('a refused start fetches nothing', async () => {
+  const { deps, fetches } = fakes({ local: ['main', 'feat/login-flow'], remote: ['main'] });
+  assert.equal((await start.handleStartRequest(REQUEST, deps)).reason, 'branchTaken');
+  assert.deepEqual(fetches, []);
 });
 
 test('baseOptions lists local branches newest first, then origin\'s, without its HEAD', () => {

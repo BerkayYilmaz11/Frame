@@ -337,11 +337,16 @@ function withBegunBranches(briefs, store, projectId, localBranches = null) {
 
 // ─── The dialog and the start ─────────────────────────────────
 
-/** What the branch is cut from: the local `targetBranch`, else `origin/<targetBranch>`, else null. */
+/**
+ * What the branch is cut from by default: `origin/<targetBranch>`, which the
+ * start fetches first, else the local `targetBranch`, else null. Origin's
+ * copy wins because a local branch can be behind it, and New Workspace cuts
+ * from origin's copy too (frame-cloud-start-workspace T11).
+ */
 function pickBase(targetBranch, { local, remote }) {
   if (!targetBranch) return null;
-  if (local) return targetBranch;
   if (remote) return `origin/${targetBranch}`;
+  if (local) return targetBranch;
   return null;
 }
 
@@ -369,6 +374,22 @@ function baseOptions(branches) {
     .sort(byTime)
     .map((b) => ({ name: b.name, remote: true }));
   return [...local, ...remote];
+}
+
+/**
+ * Fetch an `origin/<name>` base, so the branch is cut from origin's latest.
+ * Never throws: a failure is reported, and the branch is cut from the last
+ * fetched copy. A local base is not fetched (`skipped`).
+ * → `{ fetched, error, skipped }`.
+ */
+async function fetchBase(base, deps) {
+  if (!base.startsWith('origin/') || !deps.fetchBase) return { fetched: false, error: null, skipped: true };
+  try {
+    const result = obj(await deps.fetchBase(base.slice('origin/'.length)));
+    return { fetched: result.fetched === true, error: result.fetched === true ? null : errorText(result.error || 'the fetch failed'), skipped: false };
+  } catch (err) {
+    return { fetched: false, error: errorText(err), skipped: false };
+  }
 }
 
 /** Does `base` name a branch this folder has: a local one, or `origin/<name>`? */
@@ -415,8 +436,8 @@ function startMode(brief) {
  * → `{ ok: true, mode, number, title, targetBranch, parts: [{ partId, title,
  * shape, type, ref, begunBranch, problem, canBegin }], suggestions, base,
  * bases }` or `{ ok: false, reason: 'notStartable' }`.
- * `base` is the default (the target, local or origin's) and `bases` what the
- * "from" menu offers.
+ * `base` is the default (the target, origin's else local) and `bases` what
+ * the "from" menu offers.
  */
 function prepareView({ brief, base, begun = {}, branches = [] }) {
   const b = obj(brief);
@@ -469,7 +490,10 @@ function errorText(err) {
  * Every local check runs first — the part exists and can be begun, its
  * definition parses, the branch name is valid and free, the base (the
  * user's pick, else the brief's target) exists — so a refusal writes
- * nothing, locally or in the cloud. The folder's uncommitted changes are not
+ * nothing, locally or in the cloud. An `origin/` base is then fetched
+ * (`deps.fetchBase`), before `brief.start`; a failed fetch is no refusal,
+ * the branch is cut from the last fetched copy and the answer's `fetch`
+ * says so. A local base is cut as it is. The folder's uncommitted changes are not
  * asked about (frame-cloud-start-workspace): nothing is stashed. A failure
  * after that is `partial`: the brief is started either way,
  * and the answer names the step and the part that was not written. Only a
@@ -484,7 +508,8 @@ function errorText(err) {
  *
  * `deps`: `{ call, projectSlug, specSlugs(), taskIds(),
  * isValidBranchName(name), localBranchExists(name),
- * remoteBranchExists(name), begun(partId) → { branch } | null,
+ * remoteBranchExists(name), fetchBase(name) → { fetched, error },
+ * begun(partId) → { branch } | null,
  * createBranch(name, base, { track }) (cut, not checked out),
  * branchSha(name) → sha | null, createWorkspace(branch, base) → { workspace:
  * { id, name, path, branch, base }, setupScript }, writeSpec(slug, files,
@@ -494,7 +519,7 @@ function errorText(err) {
  * failure.
  *
  * Success carries `workspace` and its `setupScript`, which the renderer runs
- * before it opens the lane there; a task part's `begin` also carries
+ * before it opens the lane there, and `fetch: { fetched, error, skipped }`; a task part's `begin` also carries
  * `tasksPath`, so the task run updates the main checkout's file. Partial
  * steps: `branch`, `workspace` (the branch stays) and `files`.
  */
@@ -527,7 +552,7 @@ async function handleStartRequest(request, deps) {
   if (!deps.isValidBranchName(branch)) return { ok: false, reason: 'badBranch', detail: branch };
   if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
 
-  // The base the user picked, else the brief's target (local, else origin's).
+  // The base the user picked, else the brief's target (origin's, else local).
   const chosenBase = str(r.base).trim();
   let base;
   if (chosenBase) {
@@ -540,6 +565,8 @@ async function handleStartRequest(request, deps) {
     });
     if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
   }
+
+  const fetch = await fetchBase(base, deps);
 
   if (refs) {
     const started = await startThrough(deps.call, {
@@ -627,6 +654,7 @@ async function handleStartRequest(request, deps) {
     begin,
     workspace,
     setupScript,
+    fetch,
   };
 }
 

@@ -456,6 +456,17 @@ test('startedNotice names the part, its branch and its workspace, and the brief 
     'Began “Fix typo” on fix/typo.');
 });
 
+test('fetchFailedNotice speaks only when an origin base could not be fetched', () => {
+  assert.equal(copy.fetchFailedNotice({ fetch: { fetched: false, error: 'offline', skipped: false }, workspace: { base: 'main' } }),
+    'Couldn\'t fetch origin/main — cut from the last fetched copy.');
+  assert.equal(copy.fetchFailedNotice({ fetch: { fetched: false, error: 'offline', skipped: false } }),
+    'Couldn\'t fetch the base — cut from the last fetched copy.');
+  assert.equal(copy.fetchFailedNotice({ fetch: { fetched: true, error: null, skipped: false }, workspace: { base: 'main' } }), null);
+  assert.equal(copy.fetchFailedNotice({ fetch: { fetched: false, error: null, skipped: true }, workspace: { base: 'main' } }), null);
+  assert.equal(copy.fetchFailedNotice({}), null);
+  assert.equal(copy.fetchFailedNotice(), null);
+});
+
 test('beginWorkspaceName names the workspace as create does: the branch\'s last segment, slugged and unique', () => {
   assert.equal(copy.beginWorkspaceName('feat/export-api'), 'export-api');
   assert.equal(copy.beginWorkspaceName('feat/export-api', ['export-api']), 'export-api-2');

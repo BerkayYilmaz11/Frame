@@ -1394,6 +1394,10 @@ button.cloud-briefs-milestone-name:focus-visible {
   cursor: pointer;
 }
 
+.cloud-briefs-branchrow-base svg {
+  flex-shrink: 0;
+}
+
 .cloud-briefs-branchrow-base span {
   overflow: hidden;
   text-overflow: ellipsis;

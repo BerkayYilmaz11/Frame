@@ -649,6 +649,17 @@ function startedNotice({ mode, number, part, branch, workspace } = {}) {
     : `Brief #${number} started: ${title} on ${where}.`;
 }
 
+/**
+ * The note after a start whose `origin/` base could not be fetched: the
+ * branch was cut from the last fetched copy. Null when the fetch worked or
+ * the base was local.
+ */
+function fetchFailedNotice({ fetch, workspace } = {}) {
+  if (!fetch || fetch.skipped || fetch.fetched) return null;
+  const base = workspace && workspace.base ? `origin/${workspace.base}` : 'the base';
+  return `Couldn't fetch ${base} — cut from the last fetched copy.`;
+}
+
 const OPEN_SPEC_LABEL = 'Open spec';
 const OPEN_TASK_LABEL = 'Open task';
 
@@ -1316,6 +1327,7 @@ module.exports = {
   startErrorMessage,
   partialMessage,
   startedNotice,
+  fetchFailedNotice,
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
   partWorkspace,

@@ -265,11 +265,16 @@ function renderReady() {
   name.select();
 }
 
-/** The base button, the missing-base line and whether confirm can go. */
+/**
+ * The base button, the missing-base line and whether confirm can go. The
+ * button carries the base's icon, local or origin, as its menu row does.
+ */
 function renderBase() {
   const { base } = dialog;
   const button = ref('base');
-  button.innerHTML = `<span>${escapeHtml(base || copy.PICK_BASE_LABEL)}</span>${ICON.chevron}`;
+  const known = base ? dialog.view.bases.find((b) => b.name === base) : null;
+  const icon = !base ? '' : (known ? known.remote : base.startsWith('origin/')) ? ICON.remote : ICON.local;
+  button.innerHTML = `${icon}<span>${escapeHtml(base || copy.PICK_BASE_LABEL)}</span>${ICON.chevron}`;
   ref('basemissing').hidden = Boolean(base);
   syncConfirm();
 }
