@@ -22,6 +22,7 @@ const fsSafe = require('../fsSafe');
 const frameStore = require('../frameStore');
 const logger = require('../logger');
 const tasksManager = require('../tasksManager');
+const specManager = require('../specManager');
 const git = require('../gitBranchesManager');
 const cloudProjectsService = require('./cloudProjectsService');
 const { getBrief, recordBranch } = require('./cloudBriefs');
@@ -92,15 +93,30 @@ async function withBegunBranches(briefs, projectId, folderPath) {
   return core.withBegunBranches(briefs, begun(), projectId, localBranches);
 }
 
-/** The spec folder names in `.frame/specs/`. */
+/**
+ * Every spec slug the project holds, across checkouts: the folder names in
+ * the main checkout's `.frame/specs/` (a folder that is not a valid spec
+ * still takes its name) and every slug specManager lists, which adds the
+ * specs living in active workspaces. A part started in a workspace writes its
+ * spec there, so the main folder alone would hand out a slug already taken.
+ */
 function specSlugs(folderPath) {
+  const slugs = new Set();
   try {
-    return fs.readdirSync(frameStore.specsRoot(folderPath), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
+    for (const entry of fs.readdirSync(frameStore.specsRoot(folderPath), { withFileTypes: true })) {
+      if (entry.isDirectory()) slugs.add(entry.name);
+    }
   } catch {
-    return [];
+    // No specs folder yet: nothing taken here.
   }
+  try {
+    for (const spec of specManager.listSpecs(folderPath)) {
+      if (spec && typeof spec.slug === 'string' && spec.slug) slugs.add(spec.slug);
+    }
+  } catch (err) {
+    logger.warn('cloudStart', `could not list the workspaces' specs: ${err.message}`);
+  }
+  return [...slugs];
 }
 
 /** Every task id in `tasks.json`. */

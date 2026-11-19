@@ -10673,13 +10673,13 @@
       "title": "Allocate Start Work refs against every checkout: `specSlugs` in `src/main/cloud/cloudStartService.js` returns the union of the main `.frame/specs` folder names and `specManager.listSpecs(folderPath)` slugs",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:28:40.417Z",
+      "completedAt": "2026-11-19T09:28:40.417Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T03",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T09:22:47.828Z",
+  "lastUpdated": "2026-11-19T09:28:40.417Z",
   "metadata": {
     "totalCreated": 853
   }

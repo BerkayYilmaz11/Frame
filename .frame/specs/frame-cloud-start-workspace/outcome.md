@@ -7,3 +7,11 @@ Added an optional `tasksPath` to `buildTaskPrompt` in `src/renderer/tasks/runPro
 _Captured: 2026-11-19 · 2 file change(s)_
 
 ---
+
+## T02 — Refs are unique across checkouts
+
+`specSlugs` in `src/main/cloud/cloudStartService.js` now returns the union of the main checkout's `.frame/specs/` folder names and every slug `specManager.listSpecs(folderPath)` reports (main, active workspaces, cached server workspaces). A failed `listSpecs` is logged and falls back to the folder names alone. No test was added: the service needs Electron, and `allocateRefs`, which consumes the list, is already covered.
+
+_Captured: 2026-11-19 · 1 file change(s)_
+
+---
