@@ -25983,11 +25983,12 @@
           "line": 32,
           "params": [
             "task",
-            "missing"
+            "missing",
+            "tasksFile"
           ]
         },
         "buildTaskPrompt": {
-          "line": 52,
+          "line": 58,
           "params": [
             "task",
             "opts = {}"
@@ -25995,7 +25996,7 @@
           "purpose": "Build the task prompt that gets injected into the AI CLI. A task missing"
         }
       },
-      "sizeBytes": 4178,
+      "sizeBytes": 4742,
       "extraction": {
         "status": "parsed"
       },
@@ -41689,7 +41690,7 @@
           "purpose": "The builder as it stood in tasksPanel.js before this spec, kept verbatim"
         }
       },
-      "sizeBytes": 6767,
+      "sizeBytes": 8079,
       "extraction": {
         "status": "parsed"
       },
@@ -44968,6 +44969,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "7a6f36268be1f1c1a4aa6797a540d750ac9d1bec12b0ced246db23c395558324"
+    "revision": "7da80a090ac3c7ff2412008c939243f636dc8e92f1b2a847ca81aa18825e7f5b"
   }
 }

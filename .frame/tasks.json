@@ -10660,13 +10660,13 @@
       "title": "Add an optional `tasksPath` to `buildTaskPrompt` in `src/renderer/tasks/runPrompt.js` so the completion sentence names that file, and keep today's sentence without it; tests in `test/taskRunPrompt.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T09:22:47.828Z",
+      "completedAt": "2026-11-19T09:22:47.828Z"
     },
     {
       "id": "task-spec-frame-cloud-start-workspace-T02",
@@ -10786,7 +10786,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-19T08:56:43.091Z",
+  "lastUpdated": "2026-11-19T09:22:47.828Z",
   "metadata": {
     "totalCreated": 853
   }
