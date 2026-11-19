@@ -185,6 +185,8 @@ function init(cloudHub) {
   ipcRenderer.on(IPC.TASKS_DATA, (event, { projectPath, tasks }) => onLocalData(projectPath, { tasks }));
   agentDispatch.onSpecLaneActivity(() => renderPartSlots());
   agentDispatch.onTaskLaneActivity(() => renderPartSlots());
+  // ...and the workspaces the rows name: created, renamed or archived.
+  require('./workspaceSection').onChange(() => renderPartSlots());
   ipcRenderer.on(IPC.CLOUD_BRIEF_DISCUSSION_RECORDED, (event, payload) => onBriefWritten(payload));
   ipcRenderer.on(IPC.CLOUD_BRIEF_SHAPED, (event, payload) => onBriefShaped(payload));
   ipcRenderer.on(IPC.CLOUD_BRIEFS_CHANGED, (event, payload) => onBriefsChanged(payload));
@@ -1055,10 +1057,37 @@ function renderPartStatusText(status, attrs) {
   return `<span>${escapeHtml(status.label)}</span>${renderPrLink(pr, attrs)}`;
 }
 
+/** The project's active workspaces as the sidebar last loaded them; none before it has. */
+function loadedWorkspaces() {
+  try {
+    // Lazy-required, as openBeginLane reaches it.
+    return require('./workspaceSection').getWorkspaces();
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * The chip naming the workspace on this Mac a part is in, which selects it
+ * (frame-cloud-start-workspace); '' when it is in none.
+ */
+function renderPartWorkspace(part, attrs) {
+  const ws = copy.partWorkspace(part, loadedWorkspaces());
+  if (!ws) return '';
+  return `<button type="button" class="cloud-briefs-prow-ws" data-action="select-part-workspace" ${attrs} data-ws-id="${escapeHtml(ws.id)}" title="${escapeHtml(copy.partWorkspaceHint(ws.name))}" tabindex="-1">${escapeHtml(ws.name)}</button>`;
+}
+
+/** Select the workspace a part row's chip names, if it is still listed. */
+function selectPartWorkspace(id) {
+  const ws = loadedWorkspaces().find((w) => w.id === id);
+  if (ws) require('./workspaceSection').select(ws);
+}
+
 /**
  * One part of a started `brief`: its shape, its title (which opens its spec
- * or task when this folder holds it), where it stands, and either its live
- * lane, Run for its next step, or Begin while it waits on the brief.
+ * or task when this folder holds it), where it stands and the workspace on
+ * this Mac it is in, and either its live lane, Run for its next step, or
+ * Begin while it waits on the brief.
  */
 function renderPartRow(part, brief) {
   const number = brief.number;
@@ -1078,7 +1107,7 @@ function renderPartRow(part, brief) {
   return `<div class="cloud-briefs-prow tone-${escapeHtml(status.tone)}">
       <span class="cloud-briefs-chip">${escapeHtml(part.shape)}</span>
       ${title}
-      <span class="cloud-briefs-prow-status"><span class="cloud-briefs-prow-dot" aria-hidden="true"></span>${renderPartStatusText(status, attrs)}</span>
+      <span class="cloud-briefs-prow-status"><span class="cloud-briefs-prow-dot" aria-hidden="true"></span>${renderPartStatusText(status, attrs)}${renderPartWorkspace(part, attrs)}</span>
       <span class="cloud-briefs-prow-action">${action}</span>
     </div>`;
 }
@@ -1177,6 +1206,7 @@ function onPartAction(actionEl) {
     runPart({ shape, ref, run, number, partId });
   }
   else if (action === 'enter-part-lane') enterPartLane(shape, ref);
+  else if (action === 'select-part-workspace') selectPartWorkspace(actionEl.dataset.wsId);
   else if (action === 'open-pr') {
     const url = actionEl.dataset.url || '';
     if (isWebUrl(url)) shell.openExternal(url);

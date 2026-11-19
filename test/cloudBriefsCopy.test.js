@@ -470,6 +470,30 @@ test('beginWorkspaceName names the workspace as create does: the branch\'s last 
   assert.equal(copy.workspaceNameText(null), 'Named when it is created');
 });
 
+test('partWorkspace finds the active local workspace on the part\'s begun branch, else its cloud branch', () => {
+  const ws = (id, branch, extra = {}) => ({ id, name: id, branch, path: `/w/${id}`, ...extra });
+  const list = [ws('a', 'feat/a'), ws('b', 'feat/b'), ws('c', 'feat/c', { location: 'local' })];
+  assert.equal(copy.partWorkspace({ begunBranch: 'feat/b', branch: 'feat/a' }, list).id, 'b', 'the begun branch wins');
+  assert.equal(copy.partWorkspace({ begunBranch: null, branch: 'feat/a' }, list).id, 'a', 'else the cloud branch');
+  assert.equal(copy.partWorkspace({ branch: 'feat/c' }, list).id, 'c');
+  assert.equal(copy.partWorkspace({ begunBranch: 'feat/z' }, list), null);
+  assert.equal(copy.partWorkspace({}, list), null);
+  assert.equal(copy.partWorkspace({ branch: 'feat/a' }, null), null);
+  assert.equal(copy.partWorkspace(null, list), null);
+});
+
+test('partWorkspace skips a workspace that is archived, missing or on a server', () => {
+  const part = { begunBranch: 'feat/x' };
+  for (const extra of [{ archivedAt: '2026-11-19T00:00:00Z' }, { missing: true }, { location: 'server', host: 'box' }]) {
+    assert.equal(copy.partWorkspace(part, [{ id: 'x', name: 'x', branch: 'feat/x', ...extra }]), null, JSON.stringify(extra));
+  }
+  assert.equal(copy.partWorkspace(part, [
+    { id: 'srv', name: 'x', branch: 'feat/x', location: 'server' },
+    { id: 'mac', name: 'x', branch: 'feat/x' },
+  ]).id, 'mac');
+  assert.equal(copy.partWorkspaceHint('login-flow'), 'Switch to workspace login-flow');
+});
+
 test('startedNotice never mentions a stash', () => {
   const notice = copy.startedNotice({ mode: 'start', number: 5, part: { title: 'A' }, branch: 'feat/a', workspace: { name: 'a' }, stashMessage: 'Start Work #5' });
   assert.equal(notice, 'Brief #5 started: “A” on feat/a, in workspace a.');

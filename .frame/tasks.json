@@ -10777,16 +10777,16 @@
       "title": "Name the part's workspace on the Briefs card: `partWorkspace(part, workspaces)` in `cloudBriefsCopy.js` (the active local workspace on `begunBranch`, else the cloud `branch`) with tests, a chip in `renderPartRow` that selects the workspace on click, rows redrawn on `workspaceSection.onChange`, and styles in `cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-start-workspace:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-workspace",
       "createdAt": "2026-11-19T08:56:43.090Z",
-      "updatedAt": "2026-11-19T08:56:43.090Z",
-      "completedAt": null
+      "updatedAt": "2026-11-19T10:19:38.333Z",
+      "completedAt": "2026-11-19T10:19:38.333Z"
     }
   ],
-  "lastUpdated": "2026-11-19T10:12:58.285Z",
+  "lastUpdated": "2026-11-19T10:19:38.333Z",
   "metadata": {
     "totalCreated": 853
   }

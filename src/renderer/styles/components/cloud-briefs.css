@@ -1697,6 +1697,32 @@ button.cloud-briefs-prow-pr:hover {
   color: var(--accent-primary);
 }
 
+/* The workspace on this Mac a part is in: a chip that selects it. */
+.cloud-briefs-prow-ws {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 160px;
+  margin-left: var(--space-xs);
+  padding: 0 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cloud-briefs-prow-ws:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 .cloud-briefs-prow-action {
   grid-area: action;
   justify-self: end;

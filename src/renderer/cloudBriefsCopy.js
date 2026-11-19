@@ -800,6 +800,26 @@ function partStatusOf({ part, spec, task, lane, target, tracking = 'ready' } = {
   return { label: 'Not started', tone: 'idle', laneName: null, run: 'begin' };
 }
 
+/**
+ * The workspace on this Mac a begun part is in: the active, local workspace
+ * whose branch is the part's `begunBranch`, else its cloud `branch`. Git
+ * checks a branch out in at most one worktree, so the match is unique. A
+ * workspace that is archived, missing or on a server is not a match, and the
+ * row then reads as it does without one. → the workspace record, or null.
+ */
+function partWorkspace(part, workspaces) {
+  const p = part || {};
+  const branch = p.begunBranch || p.branch;
+  if (!branch || !Array.isArray(workspaces)) return null;
+  return workspaces.find((w) => w && w.branch === branch && !w.archivedAt && !w.missing
+    && (w.location || 'local') === 'local') || null;
+}
+
+/** The part row's workspace chip, as its tooltip: "Switch to workspace login-flow". */
+function partWorkspaceHint(name) {
+  return `Switch to workspace ${name}`;
+}
+
 const RUN_LABEL = 'Run';
 const BEGIN_LABEL = 'Begin';
 const RUN_HINTS = {
@@ -1298,6 +1318,8 @@ module.exports = {
   startedNotice,
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
+  partWorkspace,
+  partWorkspaceHint,
   partNotHereMessage,
   IMPLEMENTED_LABEL,
   TRACKING_WARNINGS,

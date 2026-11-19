@@ -71,3 +71,11 @@ Added `onChange(fn)` to `src/renderer/workspaceSection.js`. It returns an unsubs
 _Captured: 2026-11-19 · 1 file change(s)_
 
 ---
+
+## T10 — The Briefs card names the part's workspace
+
+Added `partWorkspace(part, workspaces)` and `partWorkspaceHint(name)` to `src/renderer/cloudBriefsCopy.js`. `partWorkspace` returns the active local workspace (not archived, missing or on a server) on `begunBranch`, else the cloud `branch`. `renderPartRow` in `src/renderer/cloudBriefsPanel.js` adds a `.cloud-briefs-prow-ws` chip after the status text, and its `select-part-workspace` action selects the listed workspace. Rows redraw through `renderPartSlots` on `workspaceSection.onChange`, so an archived workspace's chip drops and the row reads its plain state (plan decision, spec Open Question 2). The match uses the record's `branch`, not the git-reported `headBranch`. Tests in `test/cloudBriefsCopy.test.js` (118 pass).
+
+_Captured: 2026-11-19 · 4 file change(s)_
+
+---
