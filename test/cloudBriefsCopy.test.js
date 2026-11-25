@@ -518,14 +518,12 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.COMING_SOON, 'Coming soon');
   assert.equal(copy.beginDialogTitle('Fix typo'), 'Begin “Fix typo”');
   assert.equal(copy.FROM_LABEL, 'from');
-  assert.equal(copy.WORKSPACE_LABEL, 'Workspace');
-  assert.equal(copy.LOCATION_LABEL, 'Location');
   assert.equal(copy.THIS_MAC_LABEL, 'This Mac');
   assert.equal(copy.SERVER_LOCATION_LABEL, undefined, 'servers are listed by host now (frame-cloud-start-on-server)');
-  assert.match(copy.START_DIALOG_DESCRIPTION, /its own branch and workspace/);
-  assert.match(copy.BEGIN_DIALOG_DESCRIPTION, /its own branch and workspace/);
-  assert.match(copy.beginHint('spec'), /new workspace/);
-  assert.match(copy.beginHint('task'), /new workspace/);
+  assert.equal(copy.START_DIALOG_DESCRIPTION, 'Every part is reserved on the brief. Pick the one to begin now; the others wait on the brief until you begin them.');
+  assert.doesNotMatch(copy.BEGIN_DIALOG_DESCRIPTION, /workspace/, 'the place is picked in step 2');
+  assert.equal(copy.beginHint('spec'), 'Writes this spec on its own branch, then opens a lane that plans it.');
+  assert.equal(copy.beginHint('task'), 'Adds this task on its own branch, then opens a lane that runs it.');
   assert.equal(copy.dirtyWarning, undefined, 'no dirty-folder warning: nothing is stashed');
   assert.equal(copy.STASH_AND_CONTINUE_LABEL, undefined);
   assert.equal(copy.startSubmitLabel(true), 'Starting…');
@@ -1301,4 +1299,113 @@ test('start-on-server T12: sentNotice says the committed history went to the ser
   assert.equal(copy.sentNotice({ sent: { uncommitted: 0 }, workspace: { host: 'box.local' } }), 'Sent this project\'s committed history to box.local.');
   assert.equal(copy.sentNotice({ workspace: { host: 'box.local' } }), null);
   assert.equal(copy.sentNotice(), null);
+});
+
+// ─── frame-cloud-start-places T05: the three places' words ─
+
+test('start-places T05: the two steps', () => {
+  assert.equal(copy.START_CHOICE_TITLE, 'What to work on');
+  assert.equal(copy.PLACE_TITLE, 'Where to work');
+  assert.equal(copy.stepLabel(1), 'Step 1 of 2 · What to work on');
+  assert.equal(copy.stepLabel(2), 'Step 2 of 2 · Where to work');
+  assert.deepEqual([copy.NEXT_LABEL, copy.BACK_LABEL, copy.CHANGE_LABEL, copy.PART_LABEL], ['Next', 'Back', 'Change', 'Part']);
+});
+
+test('start-places T05: the three cards, their meta and their facts', () => {
+  assert.deepEqual(copy.PLACE_LABELS, { checkout: 'Project checkout', workspace: 'New workspace', server: 'Server workspace' });
+  assert.equal(copy.checkoutMeta('~/code/app', 'main'), '~/code/app · on main');
+  assert.equal(copy.checkoutMeta('~/code/app', ''), '~/code/app', 'a detached HEAD shows the path only');
+  assert.deepEqual(copy.placeFacts('checkout'), ['Your project folder switches to the part’s branch', 'Starts right away, no setup', 'One part at a time here']);
+  assert.deepEqual(copy.placeFacts('workspace', { branch: 'main' }), ['Its own folder; the checkout stays on main', 'Setup runs first', 'Other parts can run beside it']);
+  assert.equal(copy.placeFacts('workspace')[0], 'Its own folder; the checkout stays as it is');
+  assert.deepEqual(copy.placeFacts('server'), ['Keeps running while this Mac sleeps', 'Committed work only; you tick extra files', 'Setup runs there first']);
+  for (const place of ['checkout', 'workspace', 'server']) assert.equal(copy.placeFacts(place).length, 3, place);
+});
+
+test('start-places T05: the checkout lock names a busy part before uncommitted changes', () => {
+  const busy = { title: 'Export API', ref: 'export-api', branch: 'feat/export-api' };
+  assert.equal(copy.checkoutLock({ changes: 3, busy }), '“Export API” is in progress here, on feat/export-api. Switching the branch would pull it out from under that part.');
+  assert.equal(copy.checkoutLock({ changes: 3, busy: null }), '3 uncommitted changes here. Commit them to start in the project checkout.');
+  assert.equal(copy.checkoutLock({ changes: 1, busy: null }), '1 uncommitted change here. Commit them to start in the project checkout.');
+  assert.equal(copy.checkoutLock({ changes: 0, busy: null }), null);
+  assert.equal(copy.checkoutLock(null), null);
+});
+
+test('start-places T05: the server card\'s state from the saved servers and local mode', () => {
+  const up = (key, host) => ({ key, host, status: { state: 'connected' } });
+  const down = (key, host) => ({ key, host, status: { state: 'off' } });
+  assert.deepEqual(copy.serverCardState([]), { kind: 'none', connected: [], offline: [] });
+  assert.deepEqual(copy.serverCardState(null), { kind: 'none', connected: [], offline: [] });
+  assert.deepEqual(copy.serverCardState([down('a', 'build-server')]), { kind: 'offline', connected: [], offline: [{ key: 'a', host: 'build-server' }] });
+  assert.deepEqual(copy.serverCardState([up('a', 'build-server')]), { kind: 'ready', connected: [{ key: 'a', host: 'build-server' }], offline: [] });
+  const two = copy.serverCardState([up('a', 'build-server'), up('b', 'gpu-box'), down('c', 'old')]);
+  assert.equal(two.kind, 'ready');
+  assert.deepEqual(two.connected.map((s) => s.host), ['build-server', 'gpu-box']);
+  assert.deepEqual(two.offline.map((s) => s.host), ['old']);
+  assert.equal(copy.serverCardState([up('a', 'x')], { localMode: true }).kind, 'localMode', 'local mode wins over every state');
+  assert.equal(copy.serverCardState([], { localMode: true }).kind, 'localMode', 'no Add in local mode');
+  assert.equal(copy.serverCardMeta(['build-server', 'gpu-box']), 'build-server, gpu-box');
+  assert.equal(copy.serverOfflineLine('build-server'), 'build-server is not connected.');
+  assert.equal(copy.serverOptionLabel('gpu-box'), 'gpu-box');
+  assert.equal(copy.serverOptionLabel('old', { offline: true }), 'old (not connected)');
+  assert.deepEqual([copy.CONNECT_LABEL, copy.ADD_SERVER_LABEL, copy.NO_SERVER_TAG, copy.SERVER_SELECT_LABEL], ['Connect', 'Add a server…', 'No server yet', 'Server']);
+  assert.match(copy.NO_SERVER_TEXT, /keep going while this Mac sleeps/);
+  assert.equal(copy.NO_SERVER_FACTS.length, 2);
+  assert.match(copy.SERVER_HANDOFF_NOTICE, /terminal/);
+});
+
+test('start-places T05: the branch section names the place, the base note and what will happen', () => {
+  assert.equal(copy.placePendingLine('main'), 'Pick where it runs, and its branch is set up for that place: your local main for the project checkout, a fetched origin/main for a workspace.');
+  assert.equal(copy.placePendingLine(null), 'Pick where it runs, and its branch is set up for that place.');
+  assert.equal(copy.branchPlaceLabel('checkout'), 'in the project checkout');
+  assert.equal(copy.branchPlaceLabel('workspace'), 'for the new workspace');
+  assert.equal(copy.branchPlaceLabel('server', 'box'), 'for the workspace on box');
+
+  assert.equal(copy.baseNote('checkout', 'main', { path: '~/code/app' }), 'Cut from your local main as it is on this Mac, then checked out in ~/code/app.');
+  assert.equal(copy.baseNote('checkout', 'origin/main', { path: '~/code/app' }), 'Fetched from origin first, then cut and checked out in ~/code/app.');
+  assert.equal(copy.baseNote('workspace', 'origin/main'), 'Fetched from origin first, so the workspace starts from the latest main.');
+  assert.equal(copy.baseNote('workspace', 'release'), 'Cut from your local release as it is on this Mac.');
+  assert.equal(copy.baseNote('server', 'origin/main', { host: 'box' }), 'Fetched on box first, so the workspace starts from the latest main there.');
+  assert.equal(copy.baseNote('workspace', null), '');
+
+  assert.equal(copy.placeOutcome('checkout', { branch: 'feat/x', from: 'main' }), 'The checkout switches from main to feat/x.');
+  assert.equal(copy.placeOutcome('checkout', { branch: 'feat/x' }), 'The checkout switches to feat/x.', 'a detached HEAD');
+  assert.equal(copy.placeOutcome('workspace', { name: 'x', folder: '~/frame/workspaces/app' }), 'Workspace x, in ~/frame/workspaces/app.');
+  assert.equal(copy.placeOutcome('workspace', { name: null }), 'The workspace is named when it is created.');
+  assert.equal(copy.placeOutcome('server', { name: 'x', host: 'box' }), 'Workspace x on box. If this project is not on box yet, Frame sends its committed history there first.');
+  assert.equal(copy.placeOutcome('server', { name: 'x', host: 'box', changes: 1 }), 'Workspace x on box. If this project is not on box yet, Frame sends its committed history there first. The uncommitted change stays on this Mac.');
+  assert.equal(copy.placeOutcome('server', { name: 'x', host: 'box', changes: 3 }), 'Workspace x on box. If this project is not on box yet, Frame sends its committed history there first. The 3 uncommitted changes stay on this Mac.');
+  assert.equal(copy.placeBranchLine('checkout', { base: 'main', branch: 'feat/x', from: 'main', path: '~/code/app' }),
+    'Cut from your local main as it is on this Mac, then checked out in ~/code/app. The checkout switches from main to feat/x.');
+});
+
+test('start-places T05: the Start button names the place', () => {
+  assert.equal(copy.startPlaceLabel(null), 'Start');
+  assert.equal(copy.startPlaceLabel('checkout'), 'Start in project checkout');
+  assert.equal(copy.startPlaceLabel('workspace'), 'Start in new workspace');
+  assert.equal(copy.startPlaceLabel('server', { host: 'build-server' }), 'Start on build-server');
+  assert.equal(copy.startPlaceLabel('server', { host: 'build-server', pending: true }), 'Starting…');
+});
+
+test('start-places T05: a busy or dirty checkout refused by main, and the checkout notice', () => {
+  assert.equal(copy.startErrorMessage({ reason: 'checkoutDirty', detail: 2 }), '2 uncommitted changes in the project checkout. Commit them to start there, or pick another place.');
+  assert.equal(copy.startErrorMessage({ reason: 'checkoutDirty' }), 'Uncommitted changes in the project checkout. Commit them to start there, or pick another place.');
+  assert.equal(copy.startErrorMessage({ reason: 'checkoutBusy', part: 'Export API', detail: 'feat/export-api' }),
+    '“Export API” is in progress in the project checkout, on feat/export-api. Pick another place, or finish that part first.');
+  assert.equal(copy.startedNotice({ mode: 'start', number: 12, part: { title: 'Export' }, branch: 'feat/export', workspace: null, place: 'checkout' }),
+    'Brief #12 started: “Export” on feat/export, in the project checkout.');
+  assert.equal(copy.startedNotice({ mode: 'begin', part: { title: 'Limit' }, branch: 'feat/limit', workspace: null, place: 'checkout' }),
+    'Began “Limit” on feat/limit, in the project checkout.');
+});
+
+test('start-places T05: a part being set up reads so, with its host; dropped and merged still win', () => {
+  const spec = { recordRef: 'export-api', shape: 'spec' };
+  assert.deepEqual(copy.partStatus({ part: spec, spec: { phase: 'specified' }, setup: { host: null } }),
+    { label: 'Setting up the workspace', tone: 'active', laneName: null, run: null });
+  assert.equal(copy.partStatus({ part: spec, setup: { host: 'build-server' } }).label, 'Setting up on build-server');
+  assert.equal(copy.partStatus({ part: { ...spec, droppedAt: 'x' }, setup: { host: null } }).tone, 'dropped');
+  assert.equal(copy.partStatus({ part: spec, spec: { phase: 'specified' } }).label, 'Not started', 'no setup: as before');
+  assert.equal(copy.settingUpLabel(''), 'Setting up the workspace');
+  assert.equal(copy.checkoutRowLabel('feat/export-api'), 'project checkout · feat/export-api');
+  assert.equal(copy.checkoutRowHint('feat/export-api'), 'This part runs in the project checkout, on feat/export-api.');
 });

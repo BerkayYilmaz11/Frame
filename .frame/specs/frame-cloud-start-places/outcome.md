@@ -32,3 +32,11 @@ _Captured: 2026-11-25T11:48:26.177Z · 1 file change(s)_
 
 ---
 
+## T05 — The three places' words
+
+Added the three places' words and rules to `cloudBriefsCopy.js` — step labels, card titles/meta/facts, `checkoutLock`, `serverCardState`, the server states, the branch section's label/base note/outcome line, `startPlaceLabel`, the `checkoutDirty`/`checkoutBusy` sentences, the checkout `startedNotice`, `partStatus`'s `setup` and the checkout row label — and rewrote the dialog description and `beginHint` without a workspace. Diverged from the plan's T05 step: the Location radio words are not retired yet, because the dialog still uses them until T09 (D21's own rule); T09 removes them. Files: `src/renderer/cloudBriefsCopy.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-25T11:51:14.434Z · 2 file change(s)_
+
+---
+

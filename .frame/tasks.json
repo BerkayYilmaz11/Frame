@@ -11624,13 +11624,13 @@
       "title": "Write the three places' words in `src/renderer/cloudBriefsCopy.js`: step labels and buttons, card titles, meta (path only on a detached HEAD), facts, checkout locks, server card states, Add a server… and Connect, the per-place branch label, base note and outcome line (conditional \"sent first\" sentence, uncommitted count), Start labels per place, `checkoutDirty` / `checkoutBusy` sentences, the checkout `startedNotice`, the terminal-handoff notice, `partStatus`'s `setup` state and the \"project checkout · <branch>\" row label; retire the Location radio words and update the descriptions and `beginHint`; test in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:51:14.434Z",
+      "completedAt": "2026-11-25T11:51:14.434Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T06",
