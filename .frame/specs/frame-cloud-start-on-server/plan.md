@@ -332,3 +332,6 @@ None.
     and a task part on the server, a Mac part and a server part of one brief
     side by side, Begin refused while the server is offline, an older server
     refused at Start (D1), a `gitSharing: local` project, and the Mac path.
+    Deferred (user, 2026-11-25): walked at the end of
+    `frame-cloud-start-places`, in one walk that tests both specs. Until then
+    this spec stays `implementing`.
