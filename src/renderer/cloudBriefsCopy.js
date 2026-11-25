@@ -531,6 +531,22 @@ const WORKSPACE_LABEL = 'Workspace';
 const LOCATION_LABEL = 'Location';
 const THIS_MAC_LABEL = 'This Mac';
 const SERVER_LOCATION_LABEL = 'Server';
+const LOCAL_MODE_LOCATION_HINT = 'This project keeps Frame files out of git (local mode), so its parts start on This Mac only.';
+
+/**
+ * A saved Frame Server as a Location choice (frame-cloud-start-on-server):
+ * its host, and "offline" while it is not connected.
+ */
+function serverLocationLabel(host, { offline = false } = {}) {
+  return offline ? `${host} · offline` : String(host || '');
+}
+
+/** A server location's hint: why it cannot be chosen (local mode first, then offline), else what it does. */
+function serverLocationHint(host, { offline = false, localMode = false } = {}) {
+  if (localMode) return LOCAL_MODE_LOCATION_HINT;
+  if (offline) return `Not connected to ${host}. Connect it to start parts there.`;
+  return `Opens the workspace on ${host}, on a branch cut from origin.`;
+}
 
 /**
  * The name the part's new workspace will get, as workspaceManager.create
@@ -591,6 +607,7 @@ const START_MESSAGES = {
   recordRefTaken: 'Another brief already uses one of these spec or task names. Pull the latest changes and start again.',
   baseMissing: baseMissingLine(''),
   badRequest: 'Pick the part to begin and try again.',
+  localMode: 'This project keeps Frame files out of git (local mode), so its parts cannot start on a server. Start it on This Mac.',
   notFound: 'This brief was not found in Frame Cloud. It may have been removed.',
   network: REASON_MESSAGES.network,
   notConnected: REASON_MESSAGES.notConnected,
@@ -602,6 +619,15 @@ const START_MESSAGES = {
 /** The sentence for a start that was refused before anything was written. `result` is `{ reason, part?, detail? }`. */
 function startErrorMessage(result) {
   const r = result || {};
+  if (r.reason === 'serverUnavailable') {
+    const why = String(r.detail || '').trim();
+    return why ? `Could not start on the server. ${/[.!?]$/.test(why) ? why : `${why}.`}` : 'Could not start on the server. Check that it is connected, then try again.';
+  }
+  if (r.reason === 'serverOld') return `Update Frame Server on ${r.detail || 'that server'} to start parts there (Connect to Server ▸ Update).`;
+  if (r.reason === 'baseNotOnOrigin') {
+    const name = String(r.detail || '').replace(/^origin\//, '');
+    return `${name ? `The branch ${name}` : 'That base'} is not on origin, and a server cuts only from origin. Push it first, or pick another base.`;
+  }
   if (r.reason === 'badBranch') return `${r.detail ? `“${r.detail}”` : 'That'} is not a branch name git accepts.`;
   if (r.reason === 'branchTaken') return `A branch named ${r.detail || 'that'} already exists. Pick another name.`;
   if (r.reason === 'baseMissing' && r.detail) return `The branch ${r.detail} is not on this machine. Fetch it, or pick another base.`;
@@ -643,7 +669,8 @@ function partialMessage(result) {
  */
 function startedNotice({ mode, number, part, branch, workspace } = {}) {
   const title = part && part.title ? `“${part.title}”` : 'the part';
-  const where = workspace && workspace.name ? `${branch}, in workspace ${workspace.name}` : branch;
+  const host = workspace && workspace.host ? ` on ${workspace.host}` : '';
+  const where = workspace && workspace.name ? `${branch}, in workspace ${workspace.name}${host}` : branch;
   return mode === 'begin'
     ? `Began ${title} on ${where}.`
     : `Brief #${number} started: ${title} on ${where}.`;
@@ -812,23 +839,46 @@ function partStatusOf({ part, spec, task, lane, target, tracking = 'ready' } = {
 }
 
 /**
- * The workspace on this Mac a begun part is in: the active, local workspace
- * whose branch is the part's `begunBranch`, else its cloud `branch`. Git
- * checks a branch out in at most one worktree, so the match is unique. A
- * workspace that is archived, missing or on a server is not a match, and the
- * row then reads as it does without one. → the workspace record, or null.
+ * The workspace a begun part is in. A part begun on a Frame Server
+ * (`begunServerKey`, frame-cloud-start-on-server) matches that server's
+ * workspace on its `begunBranch`, offline or not. Otherwise: the active,
+ * local workspace whose branch is the part's `begunBranch`, else its cloud
+ * `branch`. Git checks a branch out in at most one worktree, so the match is
+ * unique. A workspace that is archived or missing, or in another location,
+ * is not a match, and the row then reads as it does without one.
+ * → the workspace record, or null.
  */
 function partWorkspace(part, workspaces) {
   const p = part || {};
+  if (!Array.isArray(workspaces)) return null;
+  const usable = (w) => w && !w.archivedAt && !w.missing;
+  if (p.begunServerKey) {
+    if (!p.begunBranch) return null;
+    return workspaces.find((w) => usable(w) && w.location === 'server' && w.serverKey === p.begunServerKey
+      && w.branch === p.begunBranch) || null;
+  }
   const branch = p.begunBranch || p.branch;
-  if (!branch || !Array.isArray(workspaces)) return null;
-  return workspaces.find((w) => w && w.branch === branch && !w.archivedAt && !w.missing
-    && (w.location || 'local') === 'local') || null;
+  if (!branch) return null;
+  return workspaces.find((w) => usable(w) && w.branch === branch && (w.location || 'local') === 'local') || null;
 }
 
 /** The part row's workspace chip, as its tooltip: "Switch to workspace login-flow". */
 function partWorkspaceHint(name) {
   return `Switch to workspace ${name}`;
+}
+
+/**
+ * The part row's chip for its workspace (D3): `name` on This Mac, `name ·
+ * host` on a server, `name · host · offline` while that server is down —
+ * which cannot be switched to. → `{ label, hint, offline }`.
+ */
+function partWorkspaceChip(ws) {
+  const w = ws || {};
+  const name = String(w.name || '');
+  if (w.location !== 'server') return { label: name, hint: partWorkspaceHint(name), offline: false };
+  const host = String(w.host || 'the server');
+  if (w.offline) return { label: `${name} · ${host} · offline`, hint: `${host} is offline. Connect it to switch to workspace ${name}.`, offline: true };
+  return { label: `${name} · ${host}`, hint: `Switch to workspace ${name} on ${host}`, offline: false };
 }
 
 const RUN_LABEL = 'Run';
@@ -1313,6 +1363,9 @@ module.exports = {
   LOCATION_LABEL,
   THIS_MAC_LABEL,
   SERVER_LOCATION_LABEL,
+  serverLocationLabel,
+  serverLocationHint,
+  LOCAL_MODE_LOCATION_HINT,
   beginWorkspaceName,
   workspaceNameText,
   BASE_FILTER_PLACEHOLDER,
@@ -1332,6 +1385,7 @@ module.exports = {
   OPEN_TASK_LABEL,
   partWorkspace,
   partWorkspaceHint,
+  partWorkspaceChip,
   partNotHereMessage,
   IMPLEMENTED_LABEL,
   TRACKING_WARNINGS,

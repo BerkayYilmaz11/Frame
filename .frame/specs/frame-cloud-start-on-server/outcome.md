@@ -56,3 +56,11 @@ _Captured: 2026-11-25T09:23:14.505Z · 2 file change(s)_
 
 ---
 
+## T08 — Copy: server refusals, server-aware partWorkspace, chip and Location
+
+Added the server refusal sentences, a server-aware `partWorkspace`, `partWorkspaceChip` (D3), the Location label/hint copy, and the host in `startedNotice`. Diverged from plan.md: `SERVER_LOCATION_LABEL` is not dropped here, because `cloudStartDialog.js` still renders it until T09 replaces the Coming soon radio. It goes in T09, "once unused" as the Files section words it. Files: `src/renderer/cloudBriefsCopy.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-25T09:25:00.463Z · 2 file change(s)_
+
+---
+

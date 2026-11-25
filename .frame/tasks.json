@@ -11507,13 +11507,13 @@
       "title": "Update `src/renderer/cloudBriefsCopy.js`: `startErrorMessage` sentences for `serverUnavailable`, `serverOld`, `localMode` and `baseNotOnOrigin`, a `partWorkspace` that matches a server row by `begunServerKey` and branch, the server chip's `name · host` / `· offline` label and hint, the Location copy (offline and local-mode hints), and drop the unused `SERVER_LOCATION_LABEL`; test in `test/cloudBriefsCopy.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:25:00.463Z",
+      "completedAt": "2026-11-25T09:25:00.463Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T09",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:23:14.505Z",
+  "lastUpdated": "2026-11-25T09:25:00.463Z",
   "metadata": {
     "totalCreated": 912
   }

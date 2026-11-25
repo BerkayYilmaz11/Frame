@@ -1230,3 +1230,65 @@ test('milestoneRowFacts reads the status and, while open, the end date', () => {
   assert.equal(copy.milestoneRowFacts(milestone({ briefs: null })), 'Started');
   assert.equal(copy.milestoneRowFacts(null), '');
 });
+
+// ─── frame-cloud-start-on-server T08 ──────────────────────────
+
+test('start-on-server T08: startErrorMessage names the server refusals', () => {
+  assert.equal(copy.startErrorMessage({ reason: 'serverUnavailable', detail: 'Not connected to box.local — connect it first.' }),
+    'Could not start on the server. Not connected to box.local — connect it first.');
+  assert.equal(copy.startErrorMessage({ reason: 'serverUnavailable', detail: 'box.local: clone failed' }),
+    'Could not start on the server. box.local: clone failed.');
+  assert.equal(copy.startErrorMessage({ reason: 'serverUnavailable' }),
+    'Could not start on the server. Check that it is connected, then try again.');
+  assert.equal(copy.startErrorMessage({ reason: 'serverOld', detail: 'box.local' }),
+    'Update Frame Server on box.local to start parts there (Connect to Server ▸ Update).');
+  assert.equal(copy.startErrorMessage({ reason: 'localMode' }),
+    'This project keeps Frame files out of git (local mode), so its parts cannot start on a server. Start it on This Mac.');
+  assert.equal(copy.startErrorMessage({ reason: 'baseNotOnOrigin', detail: 'origin/release' }),
+    'The branch release is not on origin, and a server cuts only from origin. Push it first, or pick another base.');
+  assert.equal(copy.startErrorMessage({ reason: 'baseNotOnOrigin', detail: 'my-local' }),
+    'The branch my-local is not on origin, and a server cuts only from origin. Push it first, or pick another base.');
+  assert.equal(copy.startErrorMessage({ reason: 'alreadyBegun', detail: 'fix/typo on box.local' }),
+    'This part was already begun on fix/typo on box.local.', 'D5: the existing sentence names the host');
+});
+
+test('start-on-server T08: the started notice names a server workspace\'s host', () => {
+  assert.equal(copy.startedNotice({ mode: 'begin', part: { title: 'Fix typo' }, branch: 'fix/typo', workspace: { name: 'typo', host: 'box.local' } }),
+    'Began “Fix typo” on fix/typo, in workspace typo on box.local.');
+  assert.equal(copy.startedNotice({ mode: 'begin', part: { title: 'Fix typo' }, branch: 'fix/typo', workspace: { name: 'typo' } }),
+    'Began “Fix typo” on fix/typo, in workspace typo.');
+});
+
+test('start-on-server T08: partWorkspace matches a server part by its server and begun branch only', () => {
+  const ws = (id, branch, extra = {}) => ({ id, name: id, branch, path: `/w/${id}`, ...extra });
+  const list = [
+    ws('mac', 'fix/typo'),
+    ws('other', 'fix/typo', { location: 'server', serverKey: 'k-other', host: 'other' }),
+    ws('box', 'fix/typo', { location: 'server', serverKey: 'k-box', host: 'box.local' }),
+  ];
+  const part = { begunBranch: 'fix/typo', begunServerKey: 'k-box', branch: 'fix/typo' };
+  assert.equal(copy.partWorkspace(part, list).id, 'box');
+  assert.equal(copy.partWorkspace(part, [list[0], list[1]]), null, 'never the Mac\'s or another server\'s');
+  const offline = [ws('box', 'fix/typo', { location: 'server', serverKey: 'k-box', host: 'box.local', offline: true })];
+  assert.equal(copy.partWorkspace(part, offline).id, 'box', 'an offline server\'s last known row still matches');
+  assert.equal(copy.partWorkspace({ ...part, begunBranch: null }, list), null);
+  assert.equal(copy.partWorkspace({ begunBranch: 'fix/typo' }, list).id, 'mac', 'without begunServerKey: today\'s local match');
+});
+
+test('start-on-server T08: the server chip reads name · host, and offline while its server is down (D3)', () => {
+  assert.deepEqual(copy.partWorkspaceChip({ name: 'login-flow' }),
+    { label: 'login-flow', hint: 'Switch to workspace login-flow', offline: false });
+  assert.deepEqual(copy.partWorkspaceChip({ name: 'typo', location: 'server', host: 'box.local' }),
+    { label: 'typo · box.local', hint: 'Switch to workspace typo on box.local', offline: false });
+  assert.deepEqual(copy.partWorkspaceChip({ name: 'typo', location: 'server', host: 'box.local', offline: true }),
+    { label: 'typo · box.local · offline', hint: 'box.local is offline. Connect it to switch to workspace typo.', offline: true });
+});
+
+test('start-on-server T08: the Location copy labels servers by host and says why one is disabled', () => {
+  assert.equal(copy.serverLocationLabel('box.local'), 'box.local');
+  assert.equal(copy.serverLocationLabel('box.local', { offline: true }), 'box.local · offline');
+  assert.equal(copy.serverLocationHint('box.local', { offline: true }), 'Not connected to box.local. Connect it to start parts there.');
+  assert.equal(copy.serverLocationHint('box.local', { offline: true, localMode: true }), copy.LOCAL_MODE_LOCATION_HINT, 'local mode wins');
+  assert.equal(copy.serverLocationHint('box.local'), 'Opens the workspace on box.local, on a branch cut from origin.');
+  assert.match(copy.LOCAL_MODE_LOCATION_HINT, /local mode/);
+});
