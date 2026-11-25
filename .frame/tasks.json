@@ -11637,13 +11637,13 @@
       "title": "Let `serverConnect.open` in `src/renderer/serverConnect.js` take `onClose`, kept by an `open` without one, called once on close with `handoff: true` from `openServerTerminal` and `openSetupTerminal`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:51:37.064Z",
+      "completedAt": "2026-11-25T11:51:37.064Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T07",

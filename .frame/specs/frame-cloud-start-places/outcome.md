@@ -40,3 +40,11 @@ _Captured: 2026-11-25T11:51:14.434Z · 2 file change(s)_
 
 ---
 
+## T06 — serverConnect.open({ onClose })
+
+Gave `serverConnect.open` an `onClose({ handoff })` listener, called once on the next close and kept by an `open` without one, with `handoff: true` from `openServerTerminal` and `openSetupTerminal`. Files: `src/renderer/serverConnect.js`.
+
+_Captured: 2026-11-25T11:51:37.064Z · 1 file change(s)_
+
+---
+

@@ -23652,63 +23652,63 @@
       ],
       "functions": {
         "labelOf": {
-          "line": 60,
+          "line": 61,
           "params": [
             "s"
           ],
           "purpose": "A status's label: an ssh failure only the user can fix waits, it does not retry (server-first-connect)."
         },
         "getStatus": {
-          "line": 67
+          "line": 68
         },
         "getServers": {
-          "line": 71
+          "line": 72
         },
         "getServer": {
-          "line": 75,
+          "line": 76,
           "params": [
             "key"
           ]
         },
         "onChange": {
-          "line": 79,
+          "line": 80,
           "params": [
             "cb"
           ]
         },
         "onServersChange": {
-          "line": 84,
+          "line": 85,
           "params": [
             "cb"
           ]
         },
         "statusOf": {
-          "line": 89,
+          "line": 90,
           "params": [
             "key"
           ]
         },
         "m": {
-          "line": 94,
+          "line": 95,
           "params": [
             "key = selectedKey"
           ]
         },
         "setModel": {
-          "line": 98,
+          "line": 99,
           "params": [
             "key",
             "next"
           ]
         },
         "updateAvailable": {
-          "line": 102,
+          "line": 103,
           "params": [
             "s"
           ]
         },
         "onServerStatus": {
-          "line": 107,
+          "line": 108,
           "params": [
             "key",
             "prev",
@@ -23717,40 +23717,40 @@
           "purpose": "One server's status changed: its model, toasts and check-up."
         },
         "apply": {
-          "line": 129,
+          "line": 130,
           "params": [
             "payload"
           ],
           "purpose": "A status payload from main: `{ ...default server status, servers, notice? }`."
         },
         "isOpen": {
-          "line": 159
+          "line": 160
         },
         "init": {
-          "line": 165
+          "line": 166
         },
         "select": {
-          "line": 236,
+          "line": 237,
           "params": [
             "key"
           ]
         },
         "loadDoctor": {
-          "line": 244,
+          "line": 245,
           "params": [
             "key",
             "force = false"
           ]
         },
         "finishIfClean": {
-          "line": 258,
+          "line": 259,
           "params": [
             "key"
           ],
           "purpose": "A connect started here closes the dialog once that server's check-up has nothing to fix."
         },
         "el": {
-          "line": 267,
+          "line": 268,
           "params": [
             "tag",
             "cls",
@@ -23758,63 +23758,68 @@
           ]
         },
         "renderList": {
-          "line": 274
+          "line": 275
         },
         "renderModal": {
-          "line": 294
+          "line": 295
         },
         "open": {
-          "line": 413,
+          "line": 418,
           "params": [
             "{ key = null",
-            "add = false } = {}"
+            "add = false",
+            "onClose = null } = {}"
           ],
           "purpose": "Open the Servers dialog. `key` selects that server; `add` (or no saved"
         },
         "openServerTerminal": {
-          "line": 447,
+          "line": 453,
           "params": [
             "command"
           ],
           "purpose": "A terminal on the selected server, in its home folder, in the current view"
         },
         "openSetupTerminal": {
-          "line": 468,
+          "line": 474,
           "purpose": "\"Set up access in a terminal\" (server-first-connect): a terminal on this"
         },
         "close": {
-          "line": 482
+          "line": 493,
+          "params": [
+            "{ handoff = false } = {}"
+          ],
+          "purpose": "Close the dialog. `handoff` says it closed for a terminal (a check-up fix,"
         },
         "addServer": {
-          "line": 489,
+          "line": 505,
           "purpose": "Add the host typed in the form, select it and connect it."
         },
         "connect": {
-          "line": 506,
+          "line": 522,
           "params": [
             "key"
           ]
         },
         "disconnectOne": {
-          "line": 520,
+          "line": 536,
           "params": [
             "key"
           ],
           "purpose": "Disconnect one server; it stays in the list and off at the next launch."
         },
         "disconnect": {
-          "line": 528,
+          "line": 544,
           "purpose": "Disconnect every server (File ▸ Disconnect from Server, palette)."
         },
         "removeServer": {
-          "line": 534,
+          "line": 550,
           "params": [
             "key"
           ],
           "purpose": "Forget a server after asking; nothing on the server is touched."
         },
         "runAction": {
-          "line": 546,
+          "line": 562,
           "params": [
             "kind",
             "confirmAgents = false"
@@ -23829,7 +23834,7 @@
         ],
         "emits": []
       },
-      "sizeBytes": 24888,
+      "sizeBytes": 25804,
       "extraction": {
         "status": "parsed"
       },
@@ -23838,6 +23843,7 @@
         "purposes": {
           "addServer": "e7b1403e53882fd8",
           "apply": "0d8abca74cbdedee",
+          "close": "6ac58c89cf68668d",
           "disconnect": "a847ac5d29403a41",
           "disconnectOne": "4dc36968184ed11c",
           "finishIfClean": "8c1e9953e3f6ad74",
@@ -46794,6 +46800,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f886a8955fa028fee23ba120bf989ba7eb085778938ecc7b561a3fa048dee74c"
+    "revision": "1a76b9bcbe5b2cb7c04f360f7145edd3e4b4e6f07ac2280f8fcdc42785d8a6f2"
   }
 }
