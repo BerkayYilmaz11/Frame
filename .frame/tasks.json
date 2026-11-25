@@ -11455,13 +11455,13 @@
       "title": "Add `tasks.insert { projectPath, rows }` to `src/server/tasks.js` behind `needFrame(project())`, appending rows whole in one load/save, refusing an id clash with nothing written, bumping `metadata.totalCreated` and answering `{ tasksPath }`; test in `test/serverTasks.test.js` (reserved id, acceptance criteria and notes kept; clash, local mode and no-Frame refused)",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:16:34.372Z",
+      "completedAt": "2026-11-25T09:16:34.372Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T05",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:15:34.669Z",
+  "lastUpdated": "2026-11-25T09:16:34.372Z",
   "metadata": {
     "totalCreated": 912
   }

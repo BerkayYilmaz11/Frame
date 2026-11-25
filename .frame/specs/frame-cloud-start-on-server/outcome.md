@@ -24,3 +24,11 @@ _Captured: 2026-11-25T09:15:34.669Z · 2 file change(s)_
 
 ---
 
+## T04 — Server tasks.insert
+
+Added `tasks.insert` to `src/server/tasks.js`: `needFrame(project())`, one load/save, rows appended whole, `metadata.totalCreated` bumped, `{ tasksPath }` answered. It also refuses an id repeated inside the same call and rows without a string id, neither of which the plan named. Files: `src/server/tasks.js`, `test/serverTasks.test.js`.
+
+_Captured: 2026-11-25T09:16:34.372Z · 2 file change(s)_
+
+---
+
