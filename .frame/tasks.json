@@ -11676,13 +11676,13 @@
       "title": "Show the branch section only once a place is picked in `src/renderer/cloudStartDialog.js`: the per-place label, the shared name chip, each place's base from `view.placeBases` with origin-only bases on a server, the base note and outcome line, the Start label naming the place, `place` and `serverKey` in the request, and the old Location row removed along with its styles",
       "description": "",
       "source": "spec:frame-cloud-start-places:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:57:52.568Z",
+      "completedAt": "2026-11-25T11:57:52.568Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T10",

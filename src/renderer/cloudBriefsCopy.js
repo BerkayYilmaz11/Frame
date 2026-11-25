@@ -537,25 +537,9 @@ const ORCHESTRATE_HINT = 'Run every part side by side, each on its own branch.';
 const COMING_SOON = 'Coming soon';
 const BRANCH_LABEL = 'Branch';
 const FROM_LABEL = 'from';
-const WORKSPACE_LABEL = 'Workspace';
-const LOCATION_LABEL = 'Location';
 const THIS_MAC_LABEL = 'This Mac';
+/** Why the server card is disabled in local mode (frame-cloud-start-on-server C6). */
 const LOCAL_MODE_LOCATION_HINT = 'This project keeps Frame files out of git (local mode), so its parts start on This Mac only.';
-
-/**
- * A saved Frame Server as a Location choice (frame-cloud-start-on-server):
- * its host, and "offline" while it is not connected.
- */
-function serverLocationLabel(host, { offline = false } = {}) {
-  return offline ? `${host} · offline` : String(host || '');
-}
-
-/** A server location's hint: why it cannot be chosen (local mode first, then offline), else what it does. */
-function serverLocationHint(host, { offline = false, localMode = false } = {}) {
-  if (localMode) return LOCAL_MODE_LOCATION_HINT;
-  if (offline) return `Not connected to ${host}. Connect it to start parts there.`;
-  return `Opens the workspace on ${host}, on a branch cut from origin.`;
-}
 
 // ─── Start Work's three places (frame-cloud-start-places) ─────
 
@@ -733,10 +717,6 @@ function beginWorkspaceName(branch, taken = []) {
   return slug ? uniquify(slug, taken) : null;
 }
 
-/** The workspace line's value: the name, or what happens without one. */
-function workspaceNameText(name) {
-  return name || 'Named when it is created';
-}
 const BASE_FILTER_PLACEHOLDER = 'Find a branch…';
 const BASE_LOCAL_TITLE = 'Local';
 const BASE_REMOTE_TITLE = 'origin';
@@ -751,11 +731,6 @@ function baseMissingLine(targetBranch) {
 }
 
 const CANCEL_LABEL = 'Cancel';
-
-/** The confirm button: "Start", or "Starting…" while it runs. */
-function startSubmitLabel(pending) {
-  return pending ? 'Starting…' : 'Start';
-}
 
 const PART_PROBLEMS = {
   empty: 'has no definition',
@@ -1581,11 +1556,7 @@ module.exports = {
   COMING_SOON,
   BRANCH_LABEL,
   FROM_LABEL,
-  WORKSPACE_LABEL,
-  LOCATION_LABEL,
   THIS_MAC_LABEL,
-  serverLocationLabel,
-  serverLocationHint,
   LOCAL_MODE_LOCATION_HINT,
   PLACE_LABELS,
   checkoutMeta,
@@ -1609,7 +1580,6 @@ module.exports = {
   placeBranchLine,
   startPlaceLabel,
   beginWorkspaceName,
-  workspaceNameText,
   BASE_FILTER_PLACEHOLDER,
   BASE_LOCAL_TITLE,
   BASE_REMOTE_TITLE,
@@ -1617,7 +1587,6 @@ module.exports = {
   PICK_BASE_LABEL,
   baseMissingLine,
   CANCEL_LABEL,
-  startSubmitLabel,
   partProblemMessage,
   startErrorMessage,
   partialMessage,

@@ -1465,53 +1465,10 @@ button.cloud-briefs-milestone-name:focus-visible {
   padding: var(--space-sm);
 }
 
-/* Where the part opens: its workspace's name, and (with a server saved) the location. */
-.cloud-briefs-start-where {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  min-width: 0;
-  padding: 0 var(--space-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.cloud-briefs-start-where-label {
-  flex: 0 0 72px;
+/* The branch label's place: "Branch · in the project checkout". */
+.cloud-briefs-label-sub {
+  font-weight: 400;
   color: var(--text-tertiary);
-}
-
-.cloud-briefs-start-workspace {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
-
-.cloud-briefs-start-location {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.cloud-briefs-start-location.disabled {
-  cursor: default;
-  color: var(--text-tertiary);
-}
-
-.cloud-briefs-start-location input {
-  margin: 0;
-  accent-color: var(--accent-primary);
-}
-
-/* Under Location: why servers are disabled (local mode), or what the chosen one does. */
-.cloud-briefs-start-location-hint {
-  padding-left: calc(var(--space-sm) + 72px + var(--space-sm));
 }
 
 .cloud-briefs-start-actions {

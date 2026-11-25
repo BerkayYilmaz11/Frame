@@ -64,3 +64,11 @@ _Captured: 2026-11-25T11:56:19.555Z · 2 file change(s)_
 
 ---
 
+## T09 — The branch section and Start
+
+Made the branch section depend on the picked place — a pending line before, then the place-named label, the row and `copy.placeBranchLine`'s base note and outcome — and named the place on Start; removed the Workspace line, the Location words, their tests and the Location row styles, and added `.cloud-briefs-label-sub`. Beyond D21's list, `startSubmitLabel` was retired too, since `startPlaceLabel` replaced its only use. Files: `src/renderer/cloudStartDialog.js`, `src/renderer/cloudBriefsCopy.js`, `src/renderer/styles/components/cloud-briefs.css`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-25T11:57:52.568Z · 4 file change(s)_
+
+---
+

@@ -20,8 +20,14 @@
  * (serverConnect.open's `onClose`). Each place keeps its own base, from main's
  * defaults; a server's menu offers origin's branches only.
  *
- * The branch row reads like a code host's new-branch control: the name as an
- * editable chip, prefilled with the suggestion, and "from <base> ⌄".
+ * The branch row appears once a place is picked, set up for it: "Branch · in
+ * the project checkout / for the new workspace / for the workspace on
+ * <host>", then a code host's new-branch control — the name as an editable
+ * chip, prefilled with the suggestion and kept across places, and "from
+ * <base> ⌄" — and one line saying where it is cut from and what will happen:
+ * the checkout switching branches, the new workspace's name and folder, or
+ * the workspace on the server, the project sent there if missing, and the
+ * uncommitted changes staying here. Start names the place.
  *
  * Main prepares the view and does every check and write again: this module
  * sends a folder path, a brief number and the user's choices. Its words live
@@ -412,11 +418,23 @@ function currentBase() {
   return dialog.place ? dialog.bases[dialog.place] || null : null;
 }
 
-/** The branch row: icon, the name as an editable chip, and "from <base> ⌄" with its menu. */
+/**
+ * The branch section. Before a place is picked, only what it will be set up
+ * from; then the row — icon, the name as an editable chip, and "from <base>
+ * ⌄" with its menu — under a label naming the place, and the line saying
+ * what will happen.
+ */
 function renderBranchRow() {
-  const { view, id } = dialog;
+  const { view, id, place } = dialog;
+  if (!place) {
+    return `<div class="cloud-briefs-field">
+        <span class="cloud-briefs-label">${escapeHtml(copy.BRANCH_LABEL)}</span>
+        <p class="cloud-briefs-field-hint">${escapeHtml(copy.placePendingLine(view.targetBranch))}</p>
+      </div>`;
+  }
+  const srv = chosenServer();
   return `<div class="cloud-briefs-field">
-      <label class="cloud-briefs-label" for="${id}-branch">${escapeHtml(copy.BRANCH_LABEL)}</label>
+      <label class="cloud-briefs-label" for="${id}-branch">${escapeHtml(copy.BRANCH_LABEL)} <span class="cloud-briefs-label-sub">· ${escapeHtml(copy.branchPlaceLabel(place, srv ? srv.host : ''))}</span></label>
       <div class="cloud-briefs-branchrow">
         <span class="cloud-briefs-branchrow-icon">${ICON.branch}</span>
         <input id="${id}-branch" class="cloud-briefs-branchrow-name" data-ref="branch" spellcheck="false" autocomplete="off" value="${escapeHtml(dialog.branchText)}">
@@ -430,10 +448,7 @@ function renderBranchRow() {
         </span>
       </div>
       <p class="cloud-briefs-field-error" data-ref="basemissing" hidden>${escapeHtml(copy.baseMissingLine(view.targetBranch))}</p>
-      <div class="cloud-briefs-start-where">
-        <span class="cloud-briefs-start-where-label">${escapeHtml(copy.WORKSPACE_LABEL)}</span>
-        <span class="cloud-briefs-start-workspace" data-ref="wsname"></span>
-      </div>
+      <p class="cloud-briefs-field-hint" data-ref="branchline"></p>
     </div>`;
 }
 
@@ -444,16 +459,18 @@ function basesFor() {
 }
 
 /**
- * The workspace name line: what workspaceManager.create will call a
- * workspace opened on this branch (an empty field begins on the
- * suggestion), against the loaded workspaces of the picked place — this
- * Mac's, or that server's.
+ * The line under the branch row (copy.placeBranchLine): where the branch is
+ * cut from, and what starting there will do. A workspace's name is what
+ * workspaceManager.create will call one opened on this branch (an empty
+ * field begins on the suggestion), against the loaded workspaces of the
+ * picked place — this Mac's, or that server's.
  */
-function renderWorkspaceName() {
-  const el = ref('wsname');
-  if (!el) return;
-  const typed = dialog.branchText.trim();
-  const branch = typed || dialog.view.suggestions[dialog.choice] || '';
+function renderBranchLine() {
+  const el = ref('branchline');
+  if (!el || !dialog.place) return;
+  const checkout = dialog.view.checkout || {};
+  const srv = chosenServer();
+  const branch = dialog.branchText.trim() || dialog.view.suggestions[dialog.choice] || '';
   const here = dialog.place === 'server'
     ? (w) => w.location === 'server' && w.serverKey === dialog.serverKey
     : (w) => w.location !== 'server';
@@ -463,7 +480,22 @@ function renderWorkspaceName() {
       .filter(here)
       .map((w) => w.name);
   } catch (_) { /* the sidebar is not loaded: no names taken */ }
-  el.textContent = copy.workspaceNameText(copy.beginWorkspaceName(branch, taken));
+  el.textContent = copy.placeBranchLine(dialog.place, {
+    base: currentBase(),
+    branch,
+    from: checkout.branch,
+    path: checkout.path,
+    name: copy.beginWorkspaceName(branch, taken),
+    folder: dialog.view.workspaceFolder,
+    host: srv ? srv.host : '',
+    changes: checkout.changes,
+  });
+}
+
+/** Start, naming the picked place: "Start in project checkout", "Start on <host>"; "Starting…" while it runs. */
+function startLabel() {
+  const srv = chosenServer();
+  return copy.startPlaceLabel(dialog.place, { host: srv ? srv.host : '', pending: dialog.pending });
 }
 
 // ─── Steps ────────────────────────────────────────────────────
@@ -516,11 +548,10 @@ function renderStepTwo({ focusPlace = false, keepFocus = false } = {}) {
     <div class="cloud-briefs-start-actions" data-ref="actions">
       ${renderStepper()}
       ${leave}
-      <button type="button" class="cloud-briefs-primary-btn" data-action="confirm">${escapeHtml(copy.startSubmitLabel(false))}</button>
+      <button type="button" class="cloud-briefs-primary-btn" data-action="confirm">${escapeHtml(startLabel())}</button>
     </div>`;
   renderBase();
-  renderWorkspaceName();
-  if (typing) {
+  if (typing && ref('branch')) {
     const name = ref('branch');
     name.focus();
     name.setSelectionRange(name.value.length, name.value.length);
@@ -556,11 +587,14 @@ function goToStep(step) {
 function renderBase() {
   const base = currentBase();
   const button = ref('base');
-  const known = base ? dialog.view.bases.find((b) => b.name === base) : null;
-  const icon = !base ? '' : (known ? known.remote : base.startsWith('origin/')) ? ICON.remote : ICON.local;
-  button.innerHTML = `${icon}<span>${escapeHtml(base || copy.PICK_BASE_LABEL)}</span>${ICON.chevron}`;
-  button.disabled = !dialog.place || dialog.pending;
-  ref('basemissing').hidden = !dialog.place || Boolean(base);
+  if (button) {
+    const known = base ? dialog.view.bases.find((b) => b.name === base) : null;
+    const icon = !base ? '' : (known ? known.remote : base.startsWith('origin/')) ? ICON.remote : ICON.local;
+    button.innerHTML = `${icon}<span>${escapeHtml(base || copy.PICK_BASE_LABEL)}</span>${ICON.chevron}`;
+    button.disabled = dialog.pending;
+    ref('basemissing').hidden = Boolean(base);
+    renderBranchLine();
+  }
   syncConfirm();
 }
 
@@ -608,10 +642,10 @@ function showError(message) {
 function setPending(on) {
   dialog.pending = on;
   const confirm = ref('body').querySelector('[data-action="confirm"]');
-  if (confirm) confirm.textContent = copy.startSubmitLabel(on);
+  if (confirm) confirm.textContent = startLabel();
   for (const input of dialog.el.querySelectorAll('input, select')) input.disabled = on || input.closest('.disabled, .off') !== null;
   for (const button of dialog.el.querySelectorAll('[data-action="connect-server"], [data-action="add-server"], [data-action="back"]')) button.disabled = on;
-  ref('base').disabled = on || !dialog.place;
+  if (ref('base')) ref('base').disabled = on;
   syncConfirm();
 }
 
@@ -639,7 +673,7 @@ function onClick(e) {
     if (dialog.place) dialog.bases[dialog.place] = action.dataset.base;
     setMenu(false);
     renderBase();
-    ref('branch').focus();
+    if (ref('branch')) ref('branch').focus();
   }
 }
 
@@ -668,7 +702,7 @@ function onInput(e) {
   if (e.target === ref('branch')) {
     dialog.edited = true;
     dialog.branchText = e.target.value;
-    renderWorkspaceName();
+    renderBranchLine();
   } else if (e.target === ref('basefilter')) renderBaseList();
 }
 
@@ -678,7 +712,7 @@ function onKeydown(e) {
   // Esc closes the menu first, then the dialog.
   if (dialog.menuOpen) {
     setMenu(false);
-    ref('base').focus();
+    if (ref('base')) ref('base').focus();
   } else {
     close();
   }
@@ -728,7 +762,7 @@ async function confirm() {
     if (confirmBtn) confirmBtn.remove();
     for (const input of current.el.querySelectorAll('input, select')) input.disabled = true;
     for (const button of current.el.querySelectorAll('[data-action="connect-server"], [data-action="add-server"], [data-action="back"]')) button.disabled = true;
-    ref('base').disabled = true;
+    if (ref('base')) ref('base').disabled = true;
     if (current.onPartial) current.onPartial(result);
     return;
   }

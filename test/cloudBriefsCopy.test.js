@@ -477,8 +477,6 @@ test('beginWorkspaceName names the workspace as create does: the branch\'s last 
   assert.equal(copy.beginWorkspaceName('feat/'), null);
   assert.equal(copy.beginWorkspaceName(''), null);
   assert.equal(copy.beginWorkspaceName(undefined), null);
-  assert.equal(copy.workspaceNameText('x'), 'x');
-  assert.equal(copy.workspaceNameText(null), 'Named when it is created');
 });
 
 test('partWorkspace finds the active local workspace on the part\'s begun branch, else its cloud branch', () => {
@@ -520,13 +518,15 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.FROM_LABEL, 'from');
   assert.equal(copy.THIS_MAC_LABEL, 'This Mac');
   assert.equal(copy.SERVER_LOCATION_LABEL, undefined, 'servers are listed by host now (frame-cloud-start-on-server)');
+  for (const retired of ['WORKSPACE_LABEL', 'LOCATION_LABEL', 'serverLocationLabel', 'serverLocationHint', 'workspaceNameText', 'startSubmitLabel']) {
+    assert.equal(copy[retired], undefined, `${retired}: the Location row and its Start are gone (frame-cloud-start-places D21)`);
+  }
   assert.equal(copy.START_DIALOG_DESCRIPTION, 'Every part is reserved on the brief. Pick the one to begin now; the others wait on the brief until you begin them.');
   assert.doesNotMatch(copy.BEGIN_DIALOG_DESCRIPTION, /workspace/, 'the place is picked in step 2');
   assert.equal(copy.beginHint('spec'), 'Writes this spec on its own branch, then opens a lane that plans it.');
   assert.equal(copy.beginHint('task'), 'Adds this task on its own branch, then opens a lane that runs it.');
   assert.equal(copy.dirtyWarning, undefined, 'no dirty-folder warning: nothing is stashed');
   assert.equal(copy.STASH_AND_CONTINUE_LABEL, undefined);
-  assert.equal(copy.startSubmitLabel(true), 'Starting…');
   assert.match(copy.baseMissingLine(''), /no target branch/);
   assert.match(copy.baseMissingLine('main'), /^The target branch main is not on this machine\./);
 });
@@ -1282,12 +1282,7 @@ test('start-on-server T08: the server chip reads name · host, and offline while
     { label: 'typo · box.local · offline', hint: 'box.local is offline. Connect it to switch to workspace typo.', offline: true });
 });
 
-test('start-on-server T08: the Location copy labels servers by host and says why one is disabled', () => {
-  assert.equal(copy.serverLocationLabel('box.local'), 'box.local');
-  assert.equal(copy.serverLocationLabel('box.local', { offline: true }), 'box.local · offline');
-  assert.equal(copy.serverLocationHint('box.local', { offline: true }), 'Not connected to box.local. Connect it to start parts there.');
-  assert.equal(copy.serverLocationHint('box.local', { offline: true, localMode: true }), copy.LOCAL_MODE_LOCATION_HINT, 'local mode wins');
-  assert.equal(copy.serverLocationHint('box.local'), 'Opens the workspace on box.local, on a branch cut from origin.');
+test('start-on-server T08: the local-mode sentence stays, for the server card', () => {
   assert.match(copy.LOCAL_MODE_LOCATION_HINT, /local mode/);
 });
 
