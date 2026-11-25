@@ -11494,13 +11494,13 @@
       "title": "Wire the server location in `src/main/cloud/cloudStartService.js` and `src/main/workspaceManager.js`: export `serverProject(projectPath, serverKey, { ensure })`, refuse `localMode`, build the server deps (preflight with `ensure`, `create({ from: 'new', branch, location: 'server', serverKey })`, `specs.create`, `tasks.insert` + `tasksManager.refreshServerTasks`, `tasksPath` from the preflight, `begunStands`, `hostOf`), read `taskIds` from `tasksManager.tasksPayload`, build the `servers` map for `withBegunBranches` through the server's `git.branches`, and make `prepare` use it and return `localMode`",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T07",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:23:14.505Z",
+      "completedAt": "2026-11-25T09:23:14.505Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T08",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:21:07.359Z",
+  "lastUpdated": "2026-11-25T09:23:14.505Z",
   "metadata": {
     "totalCreated": 912
   }

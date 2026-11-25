@@ -14,6 +14,16 @@
  * It also keeps `<userData>/cloud-starts.json`, the parts this machine began,
  * on which branch and from which commit, and sends a begun part's branch to
  * the cloud (`brief.recordBranch`). The token and every write stay in main.
+ *
+ * A part can also start on a saved Frame Server (frame-cloud-start-on-server):
+ * the start's effects are then bound to that server's link — its preflight
+ * (`workspaces.preflight`, after the project is sent if missing), the
+ * workspace cut there (`workspaceManager.create({ from: 'new', branch,
+ * location: 'server' })`), `specs.create` and `tasks.insert`. The begun
+ * record keeps the server's key, and a server part stands while that server
+ * has its branch (`git.branches` on its clone) or cannot say. Nothing is
+ * mirrored onto this Mac, and a server that fails is never replaced by
+ * another or by the Mac.
  */
 
 const fs = require('fs');
@@ -34,6 +44,11 @@ const { getBrief, recordBranch } = require('./cloudBriefs');
 const core = require('./cloudStart');
 
 const BEGUN_FILE = 'cloud-starts.json';
+
+/** How long a begun server part's branch list may take before it reads as unknown. */
+const SERVER_BRANCHES_MS = 5000;
+/** The preflight fetches the base on the server. */
+const SERVER_PREFLIGHT_MS = 60 * 1000;
 
 let mainWindow = null;
 let begunStore = null; // loaded on first use
@@ -64,7 +79,7 @@ function recordBegun(entry) {
   }
 }
 
-/** This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null. */
+/** This machine's record of a begun part (`{ ref, branch, begunAt, baseSha?, serverKey? }`), or null. */
 function begunEntry(projectId, number, partId) {
   return core.getBegun(begun(), projectId, number, partId);
 }
@@ -80,22 +95,99 @@ async function sendBranch(input) {
   if (!result.ok) logger.warn('cloudStart', `could not record the branch of part ${input.partId}: ${result.reason}`);
 }
 
+function serverConnection() {
+  return require('../serverConnection');
+}
+
+/** The saved server's host, or null. */
+function hostOf(serverKey) {
+  try {
+    const link = serverConnection().of(serverKey);
+    return link ? link.host : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Is the folder's project keeping Frame files out of git? Then no server can hold its parts. */
+function localMode(folderPath) {
+  try {
+    return require('../gitSharing').getMode(folderPath) === 'local';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The local branch names in a server's clone of the folder's project, or
+ * null when that cannot be said: the server is offline, holds no copy we can
+ * find, or does not answer in time. Null keeps a begun part standing.
+ */
+async function serverBranches(folderPath, serverKey) {
+  const sp = await workspaceManager.serverProject(folderPath, serverKey);
+  if (sp.error || !sp.serverProjectPath) return null;
+  try {
+    const list = await sp.link.call('git.branches', { root: sp.serverProjectPath }, SERVER_BRANCHES_MS);
+    if (!list || list.error || !Array.isArray(list.branches)) return null;
+    return new Set(list.branches.filter((b) => b && !b.isRemote).map((b) => b.name));
+  } catch (err) {
+    logger.warn('cloudStart', `could not list the branches on ${sp.host}: ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * `{ [serverKey]: Set | null }` for every saved server (D13): the branches
+ * of each server that `keys` names, read once each; null for the rest.
+ */
+async function serverBranchSets(folderPath, keys) {
+  const out = {};
+  let saved = [];
+  try { saved = serverConnection().all(); } catch { saved = []; }
+  for (const link of saved) out[link.key] = null;
+  const wanted = [...new Set(keys)].filter((k) => Object.prototype.hasOwnProperty.call(out, k));
+  await Promise.all(wanted.map(async (key) => { out[key] = await serverBranches(folderPath, key); }));
+  return out;
+}
+
+/** The servers this project's begun parts were begun on. */
+function begunServerKeys(projectId) {
+  const prefix = `${projectId}:`;
+  const keys = [];
+  for (const [key, entry] of Object.entries(begun().begun)) {
+    if (key.startsWith(prefix) && entry && entry.serverKey) keys.push(entry.serverKey);
+  }
+  return keys;
+}
+
+/** The Mac's local branch names from a gitBranchesManager list, or null. */
+function localNames(list) {
+  return list && !list.error && Array.isArray(list.branches)
+    ? new Set(list.branches.filter((b) => !b.isRemote).map((b) => b.name))
+    : null;
+}
+
+/** Does a begun entry still stand in the way of Begin (D14)? Answered by core.begunLive. */
+async function begunStands(folderPath, entry) {
+  if (!entry.serverKey) return git.localBranchExists(entry.branch, folderPath);
+  return core.begunLive(entry, null, await serverBranchSets(folderPath, [entry.serverKey]));
+}
+
 /**
  * The listed briefs with each part's `begunBranch`, for the folder's cloud
  * project. A part begun on a branch this folder no longer has reads as not
- * begun. When the branches cannot be read, every entry counts.
+ * begun; a part begun on a server, by that server's branches (D13). When the
+ * Mac's branches cannot be read, every Mac entry counts.
  */
 async function withBegunBranches(briefs, projectId, folderPath) {
   let localBranches = null;
   try {
-    const list = await git.loadBranches(folderPath);
-    if (list && !list.error && Array.isArray(list.branches)) {
-      localBranches = new Set(list.branches.filter((b) => !b.isRemote).map((b) => b.name));
-    }
+    localBranches = localNames(await git.loadBranches(folderPath));
   } catch (err) {
     logger.warn('cloudStart', `could not list branches: ${err.message || err.error}`);
   }
-  return core.withBegunBranches(briefs, begun(), projectId, localBranches);
+  const servers = await serverBranchSets(folderPath, begunServerKeys(projectId));
+  return core.withBegunBranches(briefs, begun(), projectId, localBranches, servers);
 }
 
 /**
@@ -124,10 +216,12 @@ function specSlugs(folderPath) {
   return [...slugs];
 }
 
-/** Every task id in `tasks.json`. */
+/** Every task id the project holds: the Mac's `tasks.json` merged with the cached server tasks (D12). */
 function taskIds(folderPath) {
   const data = tasksManager.loadTasks(folderPath);
-  return data && Array.isArray(data.tasks) ? data.tasks.map((t) => t && t.id).filter(Boolean) : [];
+  const merged = tasksManager.tasksPayload(folderPath, data).tasks;
+  const list = merged && Array.isArray(merged.tasks) ? merged.tasks : (data && Array.isArray(data.tasks) ? data.tasks : []);
+  return list.map((t) => t && t.id).filter(Boolean);
 }
 
 /**
@@ -178,8 +272,54 @@ async function createWorkspace(folderPath, branch, base) {
 }
 
 /**
- * What the Start Work dialog shows. → prepareView's shape, or
- * `{ ok: false, reason }` for a folder not connected or a failed read.
+ * The start's effects bound to one saved server (`serverKey`): its
+ * preflight — the project sent there first when missing — the workspace cut
+ * there, and the spec or task written into it. Every failure names the host.
+ */
+function serverDeps(folderPath, serverKey) {
+  const reach = async () => {
+    const sp = await workspaceManager.serverProject(folderPath, serverKey);
+    if (sp.error) throw new Error(sp.error);
+    if (!sp.serverProjectPath) throw new Error(`${sp.host} no longer holds this project`);
+    return sp;
+  };
+  return {
+    serverPreflight: async ({ branch, base }) => {
+      const sp = await workspaceManager.serverProject(folderPath, serverKey, { ensure: true });
+      if (sp.error) return { ok: false, reason: 'serverUnavailable', detail: sp.error };
+      if (!sp.serverProjectPath) return { ok: false, reason: 'serverUnavailable', detail: `${sp.host} could not take this project` };
+      try {
+        const res = await sp.link.call('workspaces.preflight', { projectPath: sp.serverProjectPath, branch, base }, SERVER_PREFLIGHT_MS);
+        return { ok: true, ...(res || {}) };
+      } catch (err) {
+        const msg = err.message || String(err);
+        // A server without this spec's methods (D1, D8): update it, never fall back.
+        if (/Unknown method/i.test(msg)) return { ok: false, reason: 'serverOld', detail: sp.host };
+        return { ok: false, reason: 'serverUnavailable', detail: msg.includes(sp.host) ? msg : `${sp.host}: ${msg}` };
+      }
+    },
+    createWorkspace: async (branch, base) => {
+      const result = await workspaceManager.create(folderPath, { from: 'new', branch, base: base || undefined, location: 'server', serverKey });
+      orThrow(result);
+      if (!result || !result.workspace) throw new Error('the workspace was not created');
+      return { workspace: result.workspace, setupScript: result.setupScript || '', startSha: result.startSha || null };
+    },
+    writeSpec: async (slug, files, root) => {
+      const sp = await reach();
+      await sp.link.call('specs.create', { projectPath: sp.serverProjectPath, root, slug, files });
+    },
+    writeTasks: async (rows) => {
+      const sp = await reach();
+      await sp.link.call('tasks.insert', { projectPath: sp.serverProjectPath, rows });
+      // TASKS_DATA carries the new row from the server's list (D11).
+      try { await tasksManager.refreshServerTasks(folderPath, { onlyKey: serverKey }); } catch { /* reported inside */ }
+    },
+  };
+}
+
+/**
+ * What the Start Work dialog shows. → prepareView's shape plus `localMode`,
+ * or `{ ok: false, reason }` for a folder not connected or a failed read.
  */
 async function prepare(folderPath, number) {
   const project = cloudProjectsService.connectedProject(folderPath);
@@ -194,21 +334,21 @@ async function prepare(folderPath, number) {
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
     ]);
-    // A part begun on a branch this folder no longer has can be begun again,
-    // as the board shows it (the same filter as withBegunBranches).
-    const branches = list && !list.error && Array.isArray(list.branches) ? list.branches : null;
-    const [live] = core.withBegunBranches([brief], begun(), project.id,
-      branches ? new Set(branches.filter((b) => !b.isRemote).map((b) => b.name)) : null);
+    // A part begun on a branch this folder (or its server) no longer has can
+    // be begun again, as the board shows it (the same filter as withBegunBranches).
+    const servers = await serverBranchSets(folderPath, begunServerKeys(project.id));
+    const [live] = core.withBegunBranches([brief], begun(), project.id, localNames(list), servers);
     const begunBranches = {};
     for (const part of live.parts) {
       if (part.begunBranch) begunBranches[part.id] = part.begunBranch;
     }
-    return core.prepareView({
+    const view = core.prepareView({
       brief,
       base: core.pickBase(brief.targetBranch, { local, remote }),
       begun: begunBranches,
       branches: list && Array.isArray(list.branches) ? list.branches : [],
     });
+    return view.ok ? { ...view, localMode: localMode(folderPath) } : view;
   } catch (err) {
     logger.warn('cloudStart', `could not read the folder: ${err.message}`);
     return { ok: false, reason: 'other' };
@@ -223,12 +363,16 @@ async function start(folderPath, request) {
   if (forbidden) return forbidden;
   const r = request && typeof request === 'object' ? request : {};
   if (!Number.isInteger(r.number) || r.number < 1) return { ok: false, reason: 'other' };
+  const serverKey = typeof r.serverKey === 'string' && r.serverKey ? r.serverKey : null;
+  // Server specs and tasks refuse local mode; the desktop decides it (C6).
+  if (serverKey && localMode(folderPath)) return { ok: false, reason: 'localMode' };
   try {
     return await core.handleStartRequest({
       number: r.number,
       beginPartId: typeof r.beginPartId === 'string' ? r.beginPartId : null,
       branch: typeof r.branch === 'string' ? r.branch : '',
       base: typeof r.base === 'string' ? r.base : '',
+      serverKey,
     }, {
       call: cloudProjectsService.call,
       projectSlug: project.slug,
@@ -247,7 +391,11 @@ async function start(folderPath, request) {
       writeSpec: (slug, files, root) => writeSpec(root, slug, files),
       writeTasks: (rows) => writeTasks(folderPath, rows),
       tasksPath: () => frameStore.resolvePath(folderPath, FRAME_FILES.TASKS),
+      begunStands: (entry) => begunStands(folderPath, entry),
+      hostOf,
       now: () => new Date().toISOString(),
+      // On a server, its own effects replace the Mac's (the core never cuts there).
+      ...(serverKey ? serverDeps(folderPath, serverKey) : {}),
     });
   } catch (err) {
     logger.warn('cloudStart', `start failed: ${err.message}`);

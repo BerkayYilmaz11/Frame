@@ -48,3 +48,11 @@ _Captured: 2026-11-25T09:21:07.359Z · 2 file change(s)_
 
 ---
 
+## T07 — Service wiring for the server location
+
+Exported `workspaceManager.serverProject` and wired the server location into `cloudStartService`: `localMode` refusal, `serverDeps` (preflight with ensure, server create, `specs.create`, `tasks.insert` + `refreshServerTasks`), `begunStands`/`hostOf`, merged `taskIds`, and a `servers` map from `git.branches` for `withBegunBranches` and `prepare` (which now returns `localMode`). There is no service `tasksPath` dep for a server: T06's core takes it from the preflight. A server that holds no findable clone reads as unknown, not gone, a choice the plan left open. Files: `src/main/workspaceManager.js`, `src/main/cloud/cloudStartService.js`.
+
+_Captured: 2026-11-25T09:23:14.505Z · 2 file change(s)_
+
+---
+

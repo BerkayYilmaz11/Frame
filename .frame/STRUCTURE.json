@@ -4167,41 +4167,98 @@
         "workspaceManager",
         "cloudProjectsService",
         "cloudBriefs",
-        "cloudStart"
+        "cloudStart",
+        "serverConnection",
+        "gitSharing"
       ],
       "functions": {
         "begunPath": {
-          "line": 43
+          "line": 58
         },
         "begun": {
-          "line": 48,
+          "line": 63,
           "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
         },
         "recordBegun": {
-          "line": 58,
+          "line": 73,
           "params": [
             "entry"
           ],
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
         "begunEntry": {
-          "line": 68,
+          "line": 83,
           "params": [
             "projectId",
             "number",
             "partId"
           ],
-          "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha? }`), or null."
+          "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha?, serverKey? }`), or null."
         },
         "sendBranch": {
-          "line": 77,
+          "line": 92,
           "params": [
             "input"
           ],
           "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
         },
+        "serverConnection": {
+          "line": 98
+        },
+        "hostOf": {
+          "line": 103,
+          "params": [
+            "serverKey"
+          ],
+          "purpose": "The saved server's host, or null."
+        },
+        "localMode": {
+          "line": 113,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "Is the folder's project keeping Frame files out of git? Then no server can hold its parts."
+        },
+        "serverBranches": {
+          "line": 126,
+          "params": [
+            "folderPath",
+            "serverKey"
+          ],
+          "purpose": "The local branch names in a server's clone of the folder's project, or"
+        },
+        "serverBranchSets": {
+          "line": 143,
+          "params": [
+            "folderPath",
+            "keys"
+          ],
+          "purpose": "`{ [serverKey]: Set | null }` for every saved server (D13): the branches"
+        },
+        "begunServerKeys": {
+          "line": 154,
+          "params": [
+            "projectId"
+          ],
+          "purpose": "The servers this project's begun parts were begun on."
+        },
+        "localNames": {
+          "line": 164,
+          "params": [
+            "list"
+          ],
+          "purpose": "The Mac's local branch names from a gitBranchesManager list, or null."
+        },
+        "begunStands": {
+          "line": 171,
+          "params": [
+            "folderPath",
+            "entry"
+          ],
+          "purpose": "Does a begun entry still stand in the way of Begin (D14)? Answered by core.begunLive."
+        },
         "withBegunBranches": {
-          "line": 88,
+          "line": 182,
           "params": [
             "briefs",
             "projectId",
@@ -4210,21 +4267,21 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 108,
+          "line": 200,
           "params": [
             "folderPath"
           ],
           "purpose": "Every spec slug the project holds, across checkouts: the folder names in"
         },
         "taskIds": {
-          "line": 128,
+          "line": 220,
           "params": [
             "folderPath"
           ],
-          "purpose": "Every task id in `tasks.json`."
+          "purpose": "Every task id the project holds: the Mac's `tasks.json` merged with the cached server tasks (D12)."
         },
         "writeSpec": {
-          "line": 137,
+          "line": 231,
           "params": [
             "root",
             "slug",
@@ -4233,7 +4290,7 @@
           "purpose": "Write a spec folder under `root`, the part's workspace. It is created,"
         },
         "writeTasks": {
-          "line": 148,
+          "line": 242,
           "params": [
             "folderPath",
             "rows"
@@ -4241,14 +4298,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 164,
+          "line": 258,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "createWorkspace": {
-          "line": 173,
+          "line": 267,
           "params": [
             "folderPath",
             "branch",
@@ -4256,16 +4313,24 @@
           ],
           "purpose": "Open the part's branch in a new local workspace, the way New Workspace"
         },
+        "serverDeps": {
+          "line": 279,
+          "params": [
+            "folderPath",
+            "serverKey"
+          ],
+          "purpose": "The start's effects bound to one saved server (`serverKey`): its"
+        },
         "prepare": {
-          "line": 184,
+          "line": 324,
           "params": [
             "folderPath",
             "number"
           ],
-          "purpose": "What the Start Work dialog shows. → prepareView's shape, or"
+          "purpose": "What the Start Work dialog shows. → prepareView's shape plus `localMode`,"
         },
         "start": {
-          "line": 219,
+          "line": 359,
           "params": [
             "folderPath",
             "request"
@@ -4273,13 +4338,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 258,
+          "line": 406,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 262,
+          "line": 410,
           "params": [
             "ipcMain"
           ]
@@ -4294,7 +4359,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 12076,
+      "sizeBytes": 18990,
       "extraction": {
         "status": "parsed"
       },
@@ -4302,15 +4367,23 @@
         "description": "f7ba367c3cc3105c",
         "purposes": {
           "begun": "3336d042818a4b3b",
-          "begunEntry": "1e5ee7187074315b",
+          "begunEntry": "1f5e7812388d5898",
+          "begunServerKeys": "aaa20677d6c96024",
+          "begunStands": "f6f52c9c4536e48b",
           "createWorkspace": "a0a5a1b641fd7436",
+          "hostOf": "6fbd174d2df2209f",
+          "localMode": "1bc473d10521ecb6",
+          "localNames": "f174e4d507761de2",
           "orThrow": "e948bf20ec6d85e5",
-          "prepare": "aa49edcf2c714e1a",
+          "prepare": "1dfc9cb63f68aba6",
           "recordBegun": "9bb4021aca478a6a",
           "sendBranch": "26d55c57fae5a22a",
+          "serverBranchSets": "1db605a97480fc0b",
+          "serverBranches": "d2406bae0bd33f7f",
+          "serverDeps": "0dc58eef5c85bf7f",
           "specSlugs": "eea97957cd810170",
           "start": "7ab893a3749f4798",
-          "taskIds": "f93103ee7873f53e",
+          "taskIds": "aec2d76af0ac630e",
           "withBegunBranches": "301d33efb39d551b",
           "writeSpec": "bc4e7cb07842242b",
           "writeTasks": "6a6af201083e83a2"
@@ -12422,6 +12495,7 @@
         "list",
         "serverLocation",
         "serverRoots",
+        "serverProject",
         "provision",
         "status",
         "baseForBranch",
@@ -12643,8 +12717,17 @@
             "extra = {}"
           ]
         },
+        "serverProject": {
+          "line": 358,
+          "params": [
+            "projectPath",
+            "serverKey",
+            "{ ensure = false } = {}"
+          ],
+          "purpose": "One saved server's link and its clone of `projectPath`, for a caller that"
+        },
         "createOnServer": {
-          "line": 352,
+          "line": 377,
           "params": [
             "projectPath",
             "{ from",
@@ -12655,35 +12738,35 @@
           "purpose": "Create a workspace on one server (`serverKey`). Without a key — a caller"
         },
         "notifyRenderer": {
-          "line": 380,
+          "line": 405,
           "params": [
             "projectPath"
           ],
           "purpose": "Tell the renderer only (no spec/git refresh — those are local concerns)."
         },
         "wireServerEvents": {
-          "line": 385
+          "line": 410
         },
         "list": {
-          "line": 406,
+          "line": 431,
           "params": [
             "projectPath"
           ]
         },
         "realPath": {
-          "line": 419,
+          "line": 444,
           "params": [
             "p"
           ]
         },
         "listLocal": {
-          "line": 423,
+          "line": 448,
           "params": [
             "projectPath"
           ]
         },
         "withHeadBranch": {
-          "line": 448,
+          "line": 473,
           "params": [
             "rows",
             "worktrees"
@@ -12691,7 +12774,7 @@
           "purpose": "Display only: each row's `headBranch` is the branch git reports for its"
         },
         "withBase": {
-          "line": 458,
+          "line": 483,
           "params": [
             "projectPath",
             "rows"
@@ -12699,7 +12782,7 @@
           "purpose": "Records stored before workspaces knew their base (`base: null`) read as the"
         },
         "baseForBranch": {
-          "line": 465,
+          "line": 490,
           "params": [
             "projectPath",
             "branch"
@@ -12707,14 +12790,14 @@
           "purpose": "The base to prefill for a workspace opened from `branch` (decision B2)."
         },
         "status": {
-          "line": 474,
+          "line": 499,
           "params": [
             "projectPath",
             "id"
           ]
         },
         "create": {
-          "line": 497,
+          "line": 522,
           "params": [
             "projectPath",
             "{ from = 'new'",
@@ -12727,14 +12810,14 @@
           "purpose": "Create a workspace."
         },
         "refExists": {
-          "line": 610,
+          "line": 635,
           "params": [
             "ref",
             "projectPath"
           ]
         },
         "archive": {
-          "line": 626,
+          "line": 651,
           "params": [
             "projectPath",
             "id",
@@ -12745,7 +12828,7 @@
           "purpose": "Archive. With uncommitted changes and no `action`, nothing happens and"
         },
         "restore": {
-          "line": 681,
+          "line": 706,
           "params": [
             "projectPath",
             "id"
@@ -12753,7 +12836,7 @@
           "purpose": "Restore: recreate the worktree from the branch, copy files again; refused when the branch is open elsewhere."
         },
         "rename": {
-          "line": 709,
+          "line": 734,
           "params": [
             "projectPath",
             "id",
@@ -12763,7 +12846,7 @@
           "purpose": "Rename the short name (label only; the folder stays) and/or the branch (`git branch -m`)."
         },
         "removeRecord": {
-          "line": 743,
+          "line": 768,
           "params": [
             "projectPath",
             "id"
@@ -12771,13 +12854,13 @@
           "purpose": "Forget a record whose worktree is gone (missing) or that is archived."
         },
         "setupIPC": {
-          "line": 759,
+          "line": 784,
           "params": [
             "ipcMain"
           ]
         },
         "provision": {
-          "line": 788,
+          "line": 813,
           "params": [
             "projectPath",
             "id"
@@ -12785,7 +12868,7 @@
           "purpose": "Refresh Frame's gitignored tooling in a workspace (on selection): copied"
         },
         "archiveQueued": {
-          "line": 807,
+          "line": 832,
           "params": [
             "projectPath",
             "id",
@@ -12812,7 +12895,7 @@
           "WORKSPACES_UPDATED"
         ]
       },
-      "sizeBytes": 37233,
+      "sizeBytes": 38547,
       "extraction": {
         "status": "parsed"
       },
@@ -12841,6 +12924,7 @@
           "rowsFor": "cc556456743da787",
           "serialize": "e12d4daf0f07ad77",
           "serverLocation": "f418cade415c24c4",
+          "serverProject": "ed83b76f51eb0d68",
           "serverProjectFor": "16b973c83496d03e",
           "serverRoots": "a6296ff018796775",
           "withBase": "5fcc74b573fe69cf",
@@ -46366,6 +46450,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a39e614e90853b10f1d686590e481241a2565106aaffc8ab1b715fdb53dec854"
+    "revision": "bf87ed8f187bd04ba558f02ada270814f44b91f740ab01f4cdc8935c060bec9e"
   }
 }
