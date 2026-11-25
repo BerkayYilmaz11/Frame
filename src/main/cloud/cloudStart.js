@@ -502,8 +502,55 @@ function errorText(err) {
 }
 
 /**
- * A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →
- * what happened. One part is begun each time, in a workspace of its own
+ * Does this machine's begun entry still stand in the way of Begin? The
+ * service answers it (`deps.begunStands`) for a server entry by D13's rule;
+ * without that dep, the Mac's branch decides, as before.
+ */
+async function begunStands(entry, deps) {
+  if (deps.begunStands) return Boolean(await deps.begunStands(entry));
+  return deps.localBranchExists(entry.branch);
+}
+
+/** `alreadyBegun`'s detail: the branch, and the host when the part is on a server (D5). */
+async function begunDetail(entry, deps) {
+  if (!entry.serverKey || !deps.hostOf) return entry.branch;
+  const host = str(await deps.hostOf(entry.serverKey));
+  return host ? `${entry.branch} on ${host}` : entry.branch;
+}
+
+/**
+ * The checks a server start runs before `brief.start` (D9, D15): a base on
+ * origin only, then the server's own preflight — reached, new enough, the
+ * project on it, the branch free in its clone, origin holding the base.
+ * → `{ ok: true, base, fetch, tasksPath }` or a refusal.
+ */
+async function serverChecks({ brief, branch, chosenBase }, deps) {
+  let base;
+  if (chosenBase) {
+    if (!chosenBase.startsWith('origin/')) return { ok: false, reason: 'baseNotOnOrigin', detail: chosenBase };
+    base = chosenBase;
+  } else {
+    if (!isNonEmpty(brief.targetBranch)) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
+    base = `origin/${brief.targetBranch}`;
+  }
+  if (!deps.serverPreflight) return { ok: false, reason: 'serverUnavailable', detail: '' };
+  let pre;
+  try {
+    pre = obj(await deps.serverPreflight({ branch, base: workspaceBase(base) }));
+  } catch (err) {
+    return { ok: false, reason: 'serverUnavailable', detail: errorText(err) };
+  }
+  if (pre.ok === false) return { ok: false, reason: pre.reason === 'serverOld' ? 'serverOld' : 'serverUnavailable', detail: str(pre.detail) };
+  if (pre.branchTaken) return { ok: false, reason: 'branchTaken', detail: branch };
+  if (!pre.baseOnOrigin) return { ok: false, reason: 'baseNotOnOrigin', detail: base };
+  const f = obj(pre.fetch);
+  const fetch = { fetched: f.fetched === true, error: f.fetched === true ? null : errorText(f.error || 'the fetch failed'), skipped: false };
+  return { ok: true, base, fetch, tasksPath: str(pre.tasksPath) || null };
+}
+
+/**
+ * A Start Work or Begin request (`{ number, beginPartId, branch, base,
+ * serverKey? }`) → what happened. One part is begun each time, in a workspace of its own
  * (frame-cloud-start-workspace): its branch is cut from the brief's target
  * without touching the main checkout, a new workspace opens that branch, and
  * only that part is written — a spec part's folder into the workspace, a
@@ -549,6 +596,19 @@ function errorText(err) {
  * before it opens the lane there, and `fetch: { fetched, error, skipped }`; a task part's `begin` also carries
  * `tasksPath`, so the task run updates the main checkout's file. Partial
  * steps: `branch`, `workspace` (the branch stays) and `files`.
+ *
+ * With `serverKey` the part starts on that Frame Server
+ * (frame-cloud-start-on-server). The base must be `origin/<x>` (D15), and
+ * `deps.serverPreflight({ branch, base })` → `{ branchTaken, baseOnOrigin,
+ * fetch, tasksPath }`, or `{ ok: false, reason: 'serverUnavailable' |
+ * 'serverOld', detail }`, runs before `brief.start` (D9); the Mac's branches
+ * are not asked. No branch is cut here: `deps.createWorkspace` cuts it on
+ * the server and answers `startSha`, the `baseSha` (D6). The service binds
+ * `createWorkspace`, `writeSpec` and `writeTasks` to that server; the task
+ * part's `tasksPath` is the server clone's, from the preflight. The begun
+ * record keeps `serverKey`. Begin's guard asks `deps.begunStands(entry)`
+ * when given (D14), and `deps.hostOf(serverKey)` names the host in
+ * `alreadyBegun` (D5).
  */
 async function handleStartRequest(request, deps) {
   const r = obj(request);
@@ -564,7 +624,7 @@ async function handleStartRequest(request, deps) {
     if (!part.recordRef) return { ok: false, reason: 'notStartable' };
     const begun = await deps.begun(part.id);
     // A record whose branch is gone (deleted since) no longer stands in the way.
-    if (begun && await deps.localBranchExists(begun.branch)) return { ok: false, reason: 'alreadyBegun', detail: begun.branch };
+    if (begun && await begunStands(begun, deps)) return { ok: false, reason: 'alreadyBegun', detail: await begunDetail(begun, deps) };
   }
 
   const problem = definitionProblem(part);
@@ -577,23 +637,32 @@ async function handleStartRequest(request, deps) {
 
   const branch = str(r.branch).trim() || branchSuggestions(brief)[part.id];
   if (!deps.isValidBranchName(branch)) return { ok: false, reason: 'badBranch', detail: branch };
-  if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
 
+  const serverKey = isNonEmpty(r.serverKey) ? r.serverKey : null;
   // The base the user picked, else the brief's target (origin's, else local).
   const chosenBase = str(r.base).trim();
   let base;
-  if (chosenBase) {
-    if (!await baseExists(chosenBase, deps)) return { ok: false, reason: 'baseMissing', detail: chosenBase };
-    base = chosenBase;
+  let fetch;
+  let serverTasksPath = null;
+  if (serverKey) {
+    const checked = await serverChecks({ brief, branch, chosenBase }, deps);
+    if (!checked.ok) return checked;
+    ({ base, fetch } = checked);
+    serverTasksPath = checked.tasksPath;
   } else {
-    base = pickBase(brief.targetBranch, {
-      local: await deps.localBranchExists(brief.targetBranch),
-      remote: await deps.remoteBranchExists(brief.targetBranch),
-    });
-    if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
+    if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
+    if (chosenBase) {
+      if (!await baseExists(chosenBase, deps)) return { ok: false, reason: 'baseMissing', detail: chosenBase };
+      base = chosenBase;
+    } else {
+      base = pickBase(brief.targetBranch, {
+        local: await deps.localBranchExists(brief.targetBranch),
+        remote: await deps.remoteBranchExists(brief.targetBranch),
+      });
+      if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
+    }
+    fetch = await fetchBase(base, deps);
   }
-
-  const fetch = await fetchBase(base, deps);
 
   if (refs) {
     const started = await startThrough(deps.call, {
@@ -613,26 +682,30 @@ async function handleStartRequest(request, deps) {
     error: errorText(err),
   });
 
-  try {
-    // A remote base is cut without tracking, so the work branch does not track it.
-    await deps.createBranch(branch, base, { track: !base.startsWith('origin/') });
-  } catch (err) {
-    return partial('branch', err);
-  }
-
-  // The commit the branch was cut from: its own tip, right after it is cut.
-  // Worktrees share refs with the main repository, so this is the same
-  // commit the workspace starts at.
   let baseSha = null;
-  try {
-    const tip = deps.branchSha ? await deps.branchSha(branch) : null;
-    baseSha = isSha(tip) ? tip : null;
-  } catch {
-    baseSha = null;
+  if (!serverKey) {
+    try {
+      // A remote base is cut without tracking, so the work branch does not track it.
+      await deps.createBranch(branch, base, { track: !base.startsWith('origin/') });
+    } catch (err) {
+      return partial('branch', err);
+    }
+
+    // The commit the branch was cut from: its own tip, right after it is cut.
+    // Worktrees share refs with the main repository, so this is the same
+    // commit the workspace starts at.
+    try {
+      const tip = deps.branchSha ? await deps.branchSha(branch) : null;
+      baseSha = isSha(tip) ? tip : null;
+    } catch {
+      baseSha = null;
+    }
   }
 
-  // The part's own workspace, opened on the branch just cut. A failure leaves
-  // the branch where it is: Start Work can be finished from it by hand.
+  // The part's own workspace, opened on the branch just cut — or, on a
+  // server, cut and opened there in one call. A failure leaves a Mac branch
+  // where it is: Start Work can be finished from it by hand. The server
+  // drops its own half-made branch.
   let workspace;
   let setupScript = '';
   try {
@@ -640,6 +713,12 @@ async function handleStartRequest(request, deps) {
     const ws = obj(created.workspace);
     if (!isNonEmpty(ws.id) || !isNonEmpty(ws.path)) throw new Error('the workspace was not created');
     workspace = { id: ws.id, name: str(ws.name), path: ws.path, branch: str(ws.branch) || branch, base: ws.base || null };
+    if (serverKey) {
+      workspace.location = 'server';
+      workspace.serverKey = serverKey;
+      if (isNonEmpty(ws.host)) workspace.host = ws.host;
+      baseSha = isSha(created.startSha) ? created.startSha : null;
+    }
     setupScript = str(created.setupScript);
   } catch (err) {
     return partial('workspace', err);
@@ -653,7 +732,7 @@ async function handleStartRequest(request, deps) {
       begin = { shape: 'spec', slug: ref, title: part.title };
     } else {
       const row = taskRow({ part, fields: parseTaskDefinition(part.definition).fields, id: ref, brief, now });
-      const tasksPath = str(deps.tasksPath ? await deps.tasksPath() : '') || null;
+      const tasksPath = serverKey ? serverTasksPath : (str(deps.tasksPath ? await deps.tasksPath() : '') || null);
       await deps.writeTasks([row]);
       begin = {
         shape: 'task',
@@ -664,7 +743,7 @@ async function handleStartRequest(request, deps) {
   } catch (err) {
     return partial('files', err);
   }
-  await deps.recordBegun({ partId: part.id, ref, branch, baseSha });
+  await deps.recordBegun(serverKey ? { partId: part.id, ref, branch, baseSha, serverKey } : { partId: part.id, ref, branch, baseSha });
   if (baseSha && deps.recordBranch) {
     // Fired, not awaited: a failure never reaches Begin's answer.
     (async () => deps.recordBranch({ id: brief.id, partId: part.id, branch, baseSha }))().catch(() => {});

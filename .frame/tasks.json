@@ -11481,13 +11481,13 @@
       "title": "Add the server path to `handleStartRequest` in `src/main/cloud/cloudStart.js`: optional `begunStands(entry)` with the `localBranchExists` fallback and an `alreadyBegun` detail naming the host, the origin-only base (`baseNotOnOrigin`), `serverPreflight` and its refusals (`serverUnavailable`, `serverOld`, `branchTaken`, `baseNotOnOrigin`) before `brief.start`, no `createBranch` on a server, `baseSha` from `createWorkspace`'s answer, and `serverKey` into `recordBegun`; test in `test/cloudStart.test.js` (each refusal sends no `brief.start` and writes nothing, a server success writes through the server deps, the Mac path is unchanged)",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T06",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:21:07.359Z",
+      "completedAt": "2026-11-25T09:21:07.359Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T07",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:18:54.503Z",
+  "lastUpdated": "2026-11-25T09:21:07.359Z",
   "metadata": {
     "totalCreated": 912
   }

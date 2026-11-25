@@ -4060,16 +4060,42 @@
             "err"
           ]
         },
+        "begunStands": {
+          "line": 509,
+          "params": [
+            "entry",
+            "deps"
+          ],
+          "purpose": "Does this machine's begun entry still stand in the way of Begin? The"
+        },
+        "begunDetail": {
+          "line": 515,
+          "params": [
+            "entry",
+            "deps"
+          ],
+          "purpose": "`alreadyBegun`'s detail: the branch, and the host when the part is on a server (D5)."
+        },
+        "serverChecks": {
+          "line": 527,
+          "params": [
+            "{ brief",
+            "branch",
+            "chosenBase }",
+            "deps"
+          ],
+          "purpose": "The checks a server start runs before `brief.start` (D9, D15): a base on"
+        },
         "handleStartRequest": {
-          "line": 553,
+          "line": 613,
           "params": [
             "request",
             "deps"
           ],
-          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →"
+          "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base,"
         }
       },
-      "sizeBytes": 29352,
+      "sizeBytes": 33287,
       "extraction": {
         "status": "parsed"
       },
@@ -4081,13 +4107,15 @@
           "baseExists": "bb07c81cac0950b3",
           "baseOptions": "307d97a5d1f13a51",
           "beginnable": "c780392902f9d374",
+          "begunDetail": "7139348ccda819e4",
           "begunLive": "7b6868d3fc7846c3",
+          "begunStands": "f3eeae1bbe477fac",
           "branchSuggestions": "9102869dbbe47ce0",
           "definitionProblem": "ac8749c777a9fb84",
           "fetchBase": "b96d06ef387ba9ee",
           "freeName": "a2f68960999c9348",
           "getBegun": "557cd0b080f7f7ef",
-          "handleStartRequest": "534e4bdaa423e9dd",
+          "handleStartRequest": "24820e2ea2e0cbfe",
           "isSha": "6d00928ffed63886",
           "normalizeBegun": "7dda30a8c6888043",
           "normalizeBegunEntry": "6cd99067db7372a5",
@@ -4097,6 +4125,7 @@
           "pickBase": "e28812fe52b57b2e",
           "prepareView": "72e60bff39bbe572",
           "sectionBody": "be9db64754cda8ac",
+          "serverChecks": "76e535222b282235",
           "slugify": "342d33e58592ed3b",
           "specFiles": "cb21d25dcb22d240",
           "splitSections": "9a98e9d1fbf5ac75",
@@ -38167,14 +38196,24 @@
           "params": [
             "answers = {}"
           ]
+        },
+        "serverFakes": {
+          "line": 894,
+          "params": [
+            "answers = {}"
+          ],
+          "purpose": "fakes() with the server deps the service binds for one server: the"
         }
       },
-      "sizeBytes": 47951,
+      "sizeBytes": 55055,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
-        "description": "d80dde1285d8f9dd"
+        "description": "d80dde1285d8f9dd",
+        "purposes": {
+          "serverFakes": "6cf2b3381d265ef5"
+        }
       }
     },
     "test/cloudTour.test": {
@@ -46327,6 +46366,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "39a97b00a3053d4c21f14a97a52f110a75444441c1a56c39b2fe1376dc953aa7"
+    "revision": "a39e614e90853b10f1d686590e481241a2565106aaffc8ab1b715fdb53dec854"
   }
 }

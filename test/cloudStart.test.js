@@ -879,3 +879,116 @@ test('start-on-server T05: Mac entries are judged by the Mac\'s branches only an
   const live = start.withBegunBranches(briefs, store, 'proj1', new Set([BEGUN.branch]), servers)[0].parts[0];
   assert.deepEqual(Object.keys(live).sort(), ['begunBranch', 'branch', 'branchGone', 'id', 'recordRef'], 'a Mac part\'s shape is unchanged');
 });
+
+// ─── frame-cloud-start-on-server T06: starting a part on a server ─
+
+const SERVER_TIP = 'e'.repeat(40);
+const SERVER_TASKS = '/srv/projects/my-app/.frame/tasks.json';
+const SERVER_REQUEST = { ...REQUEST, serverKey: 'k-box' };
+
+/**
+ * fakes() with the server deps the service binds for one server: the
+ * preflight (answer or Error in `answers.preflight`), a createWorkspace that
+ * cuts on the server and answers `startSha`, the host and begun lookups.
+ */
+function serverFakes(answers = {}) {
+  const f = fakes(answers);
+  f.preflights = [];
+  f.deps.serverPreflight = async (input) => {
+    f.preflights.push(input);
+    if (answers.preflight instanceof Error) throw answers.preflight;
+    return answers.preflight || { branchTaken: false, baseOnOrigin: true, fetch: { fetched: true, error: null }, tasksPath: SERVER_TASKS };
+  };
+  f.deps.createWorkspace = async (branch, base) => {
+    if (answers.fail === 'workspace') throw new Error('workspace broke');
+    f.log.push(['workspace', branch, base]);
+    return { workspace: { id: 'srv-ws1', name: branch.split('/').pop(), path: '/srv/ws/my-app/login-flow', branch, base, host: 'box.local' }, setupScript: 'npm ci', startSha: SERVER_TIP };
+  };
+  f.deps.hostOf = (key) => (key === 'k-box' ? 'box.local' : null);
+  return f;
+}
+
+test('start-on-server T06: a spec part starts on the server — no Mac branch, baseSha from the server, serverKey recorded', async () => {
+  const { deps, log, branches, starts, preflights } = serverFakes({ remote: ['main'] });
+  const result = await start.handleStartRequest(SERVER_REQUEST, deps);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.deepEqual(preflights, [{ branch: 'feat/login-flow', base: 'main' }]);
+  assert.equal(starts().length, 1);
+  assert.deepEqual(log.map((e) => e[0]), ['workspace', 'spec', 'recorded'], 'nothing is cut or read on the Mac');
+  assert.deepEqual(effect(log, 'workspace'), ['workspace', 'feat/login-flow', 'main']);
+  assert.equal(effect(log, 'spec')[3], '/srv/ws/my-app/login-flow', 'written into the server workspace');
+  assert.deepEqual(effect(log, 'recorded')[1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', baseSha: SERVER_TIP, serverKey: 'k-box' });
+  await new Promise((r) => setImmediate(r));
+  assert.deepEqual(branches, [{ id: 'b1', partId: 'p1', branch: 'feat/login-flow', baseSha: SERVER_TIP }]);
+  assert.deepEqual(result.workspace, { id: 'srv-ws1', name: 'login-flow', path: '/srv/ws/my-app/login-flow', branch: 'feat/login-flow', base: 'main', location: 'server', serverKey: 'k-box', host: 'box.local' });
+  assert.deepEqual(result.fetch, { fetched: true, error: null, skipped: false });
+});
+
+test('start-on-server T06: a task part begun on a server names the server clone\'s tasks.json', async () => {
+  const { deps, log } = serverFakes({ get: ok(STARTED) });
+  const result = await start.handleStartRequest({ number: 3, beginPartId: 'p2', branch: 'fix/typo', serverKey: 'k-box' }, deps);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.begin.tasksPath, SERVER_TASKS);
+  assert.equal(effect(log, 'tasks')[1][0].id, 'task-fix-typo');
+  assert.equal(effect(log, 'tasks')[1][0].acceptanceCriteria, '- Spelled right.');
+});
+
+test('start-on-server T06: each server refusal comes before brief.start and writes nothing', async () => {
+  const cases = [
+    [{ base: 'main' }, {}, { reason: 'baseNotOnOrigin', detail: 'main' }],
+    [{}, { preflight: { ok: false, reason: 'serverOld', detail: 'box.local' } }, { reason: 'serverOld', detail: 'box.local' }],
+    [{}, { preflight: { ok: false, reason: 'serverUnavailable', detail: 'Not connected to box.local.' } }, { reason: 'serverUnavailable', detail: 'Not connected to box.local.' }],
+    [{}, { preflight: new Error('box.local went away') }, { reason: 'serverUnavailable', detail: 'box.local went away' }],
+    [{}, { preflight: { branchTaken: true, baseOnOrigin: true, fetch: { fetched: true } } }, { reason: 'branchTaken', detail: 'feat/login-flow' }],
+    [{ base: 'origin/release' }, { preflight: { branchTaken: false, baseOnOrigin: false, fetch: { fetched: false, error: 'no such ref' } } }, { reason: 'baseNotOnOrigin', detail: 'origin/release' }],
+  ];
+  for (const [extra, answers, want] of cases) {
+    const { deps, log, starts } = serverFakes(answers);
+    const result = await start.handleStartRequest({ ...SERVER_REQUEST, ...extra }, deps);
+    assert.deepEqual(result, { ok: false, ...want }, JSON.stringify(want));
+    assert.equal(starts().length, 0, `${want.reason}: no brief.start`);
+    assert.deepEqual(log, [], `${want.reason}: nothing written`);
+  }
+  const { deps, starts } = serverFakes();
+  delete deps.serverPreflight;
+  assert.deepEqual(await start.handleStartRequest(SERVER_REQUEST, deps), { ok: false, reason: 'serverUnavailable', detail: '' });
+  assert.equal(starts().length, 0);
+});
+
+test('start-on-server T06: the Mac having the branch name does not refuse a server start', async () => {
+  const { deps } = serverFakes({ local: ['main', 'feat/login-flow'] });
+  assert.equal((await start.handleStartRequest(SERVER_REQUEST, deps)).ok, true);
+});
+
+test('start-on-server T06: a workspace failure on the server is partial and cuts nothing on the Mac', async () => {
+  const { deps, log, starts } = serverFakes({ fail: 'workspace' });
+  const result = await start.handleStartRequest(SERVER_REQUEST, deps);
+  assert.equal(result.reason, 'partial');
+  assert.equal(result.step, 'workspace');
+  assert.equal(starts().length, 1);
+  assert.deepEqual(log, []);
+});
+
+test('start-on-server T06: Begin of a part begun on a server is refused with the host while it stands', async () => {
+  const entry = { ref: 'task-fix-typo', branch: 'fix/typo', serverKey: 'k-box' };
+  const stands = serverFakes({ get: ok(STARTED), begun: { p2: entry } });
+  const asked = [];
+  stands.deps.begunStands = async (e) => { asked.push(e); return true; };
+  assert.deepEqual(await start.handleStartRequest({ number: 3, beginPartId: 'p2', branch: 'fix/typo-2', serverKey: 'k-box' }, stands.deps),
+    { ok: false, reason: 'alreadyBegun', detail: 'fix/typo on box.local' });
+  assert.deepEqual(asked, [entry]);
+
+  const gone = serverFakes({ get: ok(STARTED), begun: { p2: entry } });
+  gone.deps.begunStands = async () => false;
+  assert.equal((await start.handleStartRequest({ number: 3, beginPartId: 'p2', branch: 'fix/typo-2' }, gone.deps)).ok, true, 'begun again, here on the Mac');
+});
+
+test('start-on-server T06: a Mac start never asks the server deps', async () => {
+  const { deps, log, preflights } = serverFakes({ remote: ['main'] });
+  deps.createWorkspace = async (branch, base) => { log.push(['workspace', branch, base]); return { workspace: workspaceOf(branch, base), setupScript: '' }; };
+  const result = await start.handleStartRequest(REQUEST, deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(preflights, []);
+  assert.deepEqual(steps(log), ['branch', 'workspace', 'spec', 'recorded']);
+  assert.deepEqual(effect(log, 'recorded')[1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', baseSha: HEAD });
+});

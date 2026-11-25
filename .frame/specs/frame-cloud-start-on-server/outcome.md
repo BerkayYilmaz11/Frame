@@ -40,3 +40,11 @@ _Captured: 2026-11-25T09:18:54.503Z · 2 file change(s)_
 
 ---
 
+## T06 — Server path of handleStartRequest
+
+Added the server path to `handleStartRequest`: origin-only base, `serverPreflight` refusals before `brief.start`, no Mac `createBranch`, `baseSha` from the server's `startSha`, `serverKey` in `recordBegun`, and `begunStands`/`hostOf` in Begin's guard. Two choices the plan left open: the server task part's `tasksPath` comes from the preflight answer inside the core (not a service `tasksPath` dep), and a server start skips the Mac's `branchTaken` check, deferring to the server's. The core's workspace answer also gains `location`/`serverKey`/`host` on a server so the renderer's fallback select is correct. Files: `src/main/cloud/cloudStart.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-25T09:21:07.359Z · 2 file change(s)_
+
+---
+
