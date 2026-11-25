@@ -80,3 +80,56 @@ test('a corrupt bundle leaves nothing behind and names the cause', async () => {
 test('a bundle path outside the server\'s tmp folder is refused', async () => {
   await assert.rejects(methods['projects.receive']({ bundlePath: '/etc/passwd', originUrl: 'https://github.com/me/x', root: 'd'.repeat(40), name: 'x' }), /tmp/);
 });
+
+/**
+ * A project on the server whose `origin` is a real (bare) repository, with
+ * a commit pushed to origin's `main` after the server got its copy — so only
+ * a fetch on the server sees it. Returns { projectPath, bare, local, tip }.
+ */
+async function onServerWithOrigin() {
+  const n = ++seq;
+  const bare = path.join(SANDBOX, `origin-${n}.git`);
+  git(['init', '-q', '--bare', '-b', 'main', bare]);
+  const { dir: local, root, bundle } = localRepo({ remote: bare });
+  git(['push', '-q', 'origin', 'main'], local);
+  const { projectPath } = await methods['projects.receive']({ bundlePath: bundle, originUrl: `https://github.com/me/app-${n}.git`, root, name: `app-${n}` });
+  git(['remote', 'set-url', 'origin', bare], projectPath);
+  fs.writeFileSync(path.join(local, 'c.txt'), 'three\n');
+  git(['add', '.'], local); git(['commit', '-qm', 'third'], local);
+  git(['push', '-q', 'origin', 'main'], local);
+  return { projectPath, bare, local, tip: git(['rev-parse', 'main'], local) };
+}
+
+test('workspaces.create with a branch cuts it from the fetched origin/<base> and names the workspace from it', async () => {
+  const { projectPath, tip } = await onServerWithOrigin();
+  assert.notEqual(git(['rev-parse', 'refs/remotes/origin/main'], projectPath), tip, 'the server has not seen the new commit yet');
+  const res = await methods['workspaces.create']({ projectPath, from: 'new', base: 'main', branch: 'frame/cloud-12-login' });
+  assert.equal(res.error, null, res.error);
+  assert.equal(res.workspace.branch, 'frame/cloud-12-login');
+  assert.equal(res.workspace.name, 'cloud-12-login');
+  assert.equal(res.workspace.base, 'main');
+  assert.equal(res.fetch.fetched, true);
+  assert.equal(git(['rev-parse', 'refs/heads/frame/cloud-12-login'], projectPath), tip, 'cut from origin/main after the fetch');
+  assert.equal(res.startSha, tip, 'startSha is the commit the branch was cut from');
+  assert.equal(git(['rev-parse', '--abbrev-ref', 'HEAD'], res.workspace.path), 'frame/cloud-12-login');
+});
+
+test('workspaces.create refuses a branch name that is taken or invalid, and creates nothing', async () => {
+  const { projectPath } = await onServerWithOrigin();
+  git(['branch', 'frame/cloud-13-taken', 'main'], projectPath);
+  const before = (await methods['workspaces.list']({ projectPath })).workspaces.length;
+  const taken = await methods['workspaces.create']({ projectPath, from: 'new', base: 'main', branch: 'frame/cloud-13-taken' });
+  assert.match(taken.error, /already exists/);
+  const invalid = await methods['workspaces.create']({ projectPath, from: 'new', base: 'main', branch: '--upload-pack=touch x' });
+  assert.match(invalid.error, /not a valid branch name/);
+  assert.equal((await methods['workspaces.list']({ projectPath })).workspaces.length, before, 'no workspace was made');
+});
+
+test('workspaces.create without a branch still picks its own name and answers startSha', async () => {
+  const { projectPath, tip } = await onServerWithOrigin();
+  const res = await methods['workspaces.create']({ projectPath, from: 'new', base: 'main' });
+  assert.equal(res.error, null, res.error);
+  assert.match(res.workspace.branch, /\//);
+  assert.equal(res.startSha, tip);
+  assert.equal(git(['rev-parse', `refs/heads/${res.workspace.branch}`], projectPath), tip);
+});

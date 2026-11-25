@@ -12613,35 +12613,35 @@
           "purpose": "Create a workspace on one server (`serverKey`). Without a key — a caller"
         },
         "notifyRenderer": {
-          "line": 375,
+          "line": 380,
           "params": [
             "projectPath"
           ],
           "purpose": "Tell the renderer only (no spec/git refresh — those are local concerns)."
         },
         "wireServerEvents": {
-          "line": 380
+          "line": 385
         },
         "list": {
-          "line": 401,
+          "line": 406,
           "params": [
             "projectPath"
           ]
         },
         "realPath": {
-          "line": 414,
+          "line": 419,
           "params": [
             "p"
           ]
         },
         "listLocal": {
-          "line": 418,
+          "line": 423,
           "params": [
             "projectPath"
           ]
         },
         "withHeadBranch": {
-          "line": 443,
+          "line": 448,
           "params": [
             "rows",
             "worktrees"
@@ -12649,7 +12649,7 @@
           "purpose": "Display only: each row's `headBranch` is the branch git reports for its"
         },
         "withBase": {
-          "line": 453,
+          "line": 458,
           "params": [
             "projectPath",
             "rows"
@@ -12657,7 +12657,7 @@
           "purpose": "Records stored before workspaces knew their base (`base: null`) read as the"
         },
         "baseForBranch": {
-          "line": 460,
+          "line": 465,
           "params": [
             "projectPath",
             "branch"
@@ -12665,14 +12665,14 @@
           "purpose": "The base to prefill for a workspace opened from `branch` (decision B2)."
         },
         "status": {
-          "line": 469,
+          "line": 474,
           "params": [
             "projectPath",
             "id"
           ]
         },
         "create": {
-          "line": 488,
+          "line": 497,
           "params": [
             "projectPath",
             "{ from = 'new'",
@@ -12685,14 +12685,14 @@
           "purpose": "Create a workspace."
         },
         "refExists": {
-          "line": 593,
+          "line": 610,
           "params": [
             "ref",
             "projectPath"
           ]
         },
         "archive": {
-          "line": 609,
+          "line": 626,
           "params": [
             "projectPath",
             "id",
@@ -12703,7 +12703,7 @@
           "purpose": "Archive. With uncommitted changes and no `action`, nothing happens and"
         },
         "restore": {
-          "line": 664,
+          "line": 681,
           "params": [
             "projectPath",
             "id"
@@ -12711,7 +12711,7 @@
           "purpose": "Restore: recreate the worktree from the branch, copy files again; refused when the branch is open elsewhere."
         },
         "rename": {
-          "line": 692,
+          "line": 709,
           "params": [
             "projectPath",
             "id",
@@ -12721,7 +12721,7 @@
           "purpose": "Rename the short name (label only; the folder stays) and/or the branch (`git branch -m`)."
         },
         "removeRecord": {
-          "line": 726,
+          "line": 743,
           "params": [
             "projectPath",
             "id"
@@ -12729,13 +12729,13 @@
           "purpose": "Forget a record whose worktree is gone (missing) or that is archived."
         },
         "setupIPC": {
-          "line": 742,
+          "line": 759,
           "params": [
             "ipcMain"
           ]
         },
         "provision": {
-          "line": 771,
+          "line": 788,
           "params": [
             "projectPath",
             "id"
@@ -12743,7 +12743,7 @@
           "purpose": "Refresh Frame's gitignored tooling in a workspace (on selection): copied"
         },
         "archiveQueued": {
-          "line": 790,
+          "line": 807,
           "params": [
             "projectPath",
             "id",
@@ -12770,7 +12770,7 @@
           "WORKSPACES_UPDATED"
         ]
       },
-      "sizeBytes": 36256,
+      "sizeBytes": 37233,
       "extraction": {
         "status": "parsed"
       },
@@ -41226,16 +41226,21 @@
             "{ remote = null } = {}"
           ],
           "purpose": "A local repo with two commits on main and a feature branch; returns { dir, root, bundle }."
+        },
+        "onServerWithOrigin": {
+          "line": 89,
+          "purpose": "A project on the server whose `origin` is a real (bare) repository, with"
         }
       },
-      "sizeBytes": 5128,
+      "sizeBytes": 8410,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "7bbacf9208526c71",
         "purposes": {
-          "localRepo": "08e593b4175a153e"
+          "localRepo": "08e593b4175a153e",
+          "onServerWithOrigin": "73ac036a0e269919"
         }
       }
     },
@@ -46306,6 +46311,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f7fbfba6d8c67fa1ea26100ed318b14ae6d608f4ed79c7cd8a3ea04c397f63ba"
+    "revision": "f4479133ce35bff808f22f8644991453c9fa236589c15fcc42a9b96a6b46d1cd"
   }
 }

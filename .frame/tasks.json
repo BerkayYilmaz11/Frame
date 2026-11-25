@@ -11416,13 +11416,13 @@
       "title": "Let `workspaceManager.create({ from: 'new', branch })` in `src/main/workspaceManager.js` cut a caller-named branch (validate `branch` for any `from`, refuse it when taken, cut it from the fetched `origin/<base>`, name the workspace from the branch's last segment), return `startSha` from both `from: 'new'` paths and pass it through `createOnServer`; test it through the server's `workspaces.create` in `test/serverProjects.test.js` (branch at `origin/<base>`'s tip, name, taken and invalid refusals, `startSha` equal to the branch tip)",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:12:25.109Z",
+      "completedAt": "2026-11-25T09:12:25.109Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T02",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:02:48.657Z",
+  "lastUpdated": "2026-11-25T09:12:25.109Z",
   "metadata": {
     "totalCreated": 912
   }
