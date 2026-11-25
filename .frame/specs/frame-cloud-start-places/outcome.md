@@ -24,3 +24,11 @@ _Captured: 2026-11-25T11:47:17.719Z · 2 file change(s)_
 
 ---
 
+## T04 — The service wires the checkout
+
+Wired the checkout into `cloudStartService`: `checkoutState` (current branch, change count, busy via `core.checkoutBusy` and a project-folder `finishedIn`), `prepare` passing `targetOn`, the checkout with a `~`-short path and the workspace folder, and `start` passing `place`, `checkoutState`, `checkoutPath` and the `checkout` flag to `git.createBranch`. A git status failure fails `prepare` as `other`, like any other unreadable folder state, and a record the folder no longer holds keeps the checkout locked. Files: `src/main/cloud/cloudStartService.js`.
+
+_Captured: 2026-11-25T11:48:26.177Z · 1 file change(s)_
+
+---
+

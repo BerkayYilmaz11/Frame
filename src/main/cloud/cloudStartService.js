@@ -7,7 +7,8 @@
  * the Start Work dialog (`CLOUD_BRIEF_START_PREPARE`), and wires the real
  * effects into the core's handler for the start itself (`CLOUD_BRIEF_START`):
  * git through gitBranchesManager (an `origin/` base is fetched first; the
- * branch is cut, never checked out), the
+ * branch is cut, and checked out only for a part begun in the project
+ * checkout), the
  * part's workspace through workspaceManager.create, spec folders through
  * fsSafe under the workspace's spec path, and task rows through tasksManager
  * into the main checkout in one round.
@@ -24,9 +25,16 @@
  * has its branch (`git.branches` on its clone) or cannot say. Nothing is
  * mirrored onto this Mac, and a server that fails is never replaced by
  * another or by the Mac.
+ *
+ * A part can also start in the project checkout itself
+ * (frame-cloud-start-places): the dialog is told the checkout's branch, its
+ * uncommitted changes and the begun part that keeps it busy, and the start
+ * reads them again (`checkoutState`), cuts and checks the branch out there,
+ * and writes the part into the project folder. Nothing is ever stashed.
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { app } = require('electron');
 const { IPC } = require('../../shared/ipcChannels');
@@ -165,6 +173,53 @@ function localNames(list) {
   return list && !list.error && Array.isArray(list.branches)
     ? new Set(list.branches.filter((b) => !b.isRemote).map((b) => b.name))
     : null;
+}
+
+/** `p` with the home folder shown as `~`, as the dialog prints paths. */
+function shortPath(p) {
+  const home = os.homedir();
+  return home && (p === home || p.startsWith(home + path.sep)) ? `~${p.slice(home.length)}` : p;
+}
+
+/**
+ * Is a checkout part's record finished in the project folder (D1)? Its spec
+ * when `.frame/specs/<ref>/status.json` exists (phase `done`), else its
+ * `tasks.json` row (`completed`). A record that cannot be found is not
+ * finished, so the checkout stays locked rather than switched from under it.
+ * The tasks file is read at most once per answer.
+ */
+function finishedIn(folderPath) {
+  let tasks = null;
+  return (entry) => {
+    try {
+      const statusPath = path.join(frameStore.resolveSpecDir(folderPath, entry.ref), 'status.json');
+      if (fs.existsSync(statusPath)) return JSON.parse(fs.readFileSync(statusPath, 'utf8')).phase === 'done';
+    } catch {
+      return false;
+    }
+    if (!tasks) {
+      const data = tasksManager.loadTasks(folderPath);
+      tasks = data && Array.isArray(data.tasks) ? data.tasks : [];
+    }
+    const row = tasks.find((t) => t && t.id === entry.ref);
+    return Boolean(row && row.status === 'completed');
+  };
+}
+
+/**
+ * The project checkout as Start Work reads it: its current branch ('' when
+ * HEAD is detached), how many changes `git status --porcelain` lists, and the
+ * begun part that keeps it busy (core.checkoutBusy). Throws when git cannot
+ * tell the changes.
+ */
+async function checkoutState(folderPath, projectId) {
+  const [branch, status] = await Promise.all([git.currentBranch(folderPath), git.isWorkingTreeClean(folderPath)]);
+  if (!status || status.error || !Array.isArray(status.changes)) throw new Error((status && status.error) || 'git status failed');
+  return {
+    branch: branch || '',
+    changes: status.changes.length,
+    busy: core.checkoutBusy(begun(), projectId, branch, finishedIn(folderPath)),
+  };
 }
 
 /** Does a begun entry still stand in the way of Begin (D14)? Answered by core.begunLive. */
@@ -319,8 +374,10 @@ function serverDeps(folderPath, serverKey) {
 }
 
 /**
- * What the Start Work dialog shows. → prepareView's shape plus `localMode`,
- * or `{ ok: false, reason }` for a folder not connected or a failed read.
+ * What the Start Work dialog shows. → prepareView's shape (with the
+ * checkout's state, each place's base and the workspace folder) plus
+ * `localMode`, or `{ ok: false, reason }` for a folder not connected or a
+ * failed read.
  */
 async function prepare(folderPath, number) {
   const project = cloudProjectsService.connectedProject(folderPath);
@@ -330,10 +387,11 @@ async function prepare(folderPath, number) {
   if (!read.ok) return { ok: false, reason: read.reason };
   const brief = read.value;
   try {
-    const [list, local, remote] = await Promise.all([
+    const [list, local, remote, checkout] = await Promise.all([
       git.loadBranches(folderPath),
       brief.targetBranch ? git.localBranchExists(brief.targetBranch, folderPath) : false,
       brief.targetBranch ? git.remoteBranchExists(brief.targetBranch, folderPath) : false,
+      checkoutState(folderPath, project.id),
     ]);
     // A part begun on a branch this folder (or its server) no longer has can
     // be begun again, as the board shows it (the same filter as withBegunBranches).
@@ -348,6 +406,9 @@ async function prepare(folderPath, number) {
       base: core.pickBase(brief.targetBranch, { local, remote }),
       begun: begunBranches,
       branches: list && Array.isArray(list.branches) ? list.branches : [],
+      targetOn: { local, remote },
+      checkout: { ...checkout, path: shortPath(folderPath) },
+      workspaceFolder: shortPath(path.join(workspaceManager.workspacesRoot(), path.basename(folderPath))),
     });
     return view.ok ? { ...view, localMode: localMode(folderPath) } : view;
   } catch (err) {
@@ -373,6 +434,7 @@ async function start(folderPath, request) {
       beginPartId: typeof r.beginPartId === 'string' ? r.beginPartId : null,
       branch: typeof r.branch === 'string' ? r.branch : '',
       base: typeof r.base === 'string' ? r.base : '',
+      place: typeof r.place === 'string' ? r.place : undefined,
       serverKey,
     }, {
       call: cloudProjectsService.call,
@@ -385,7 +447,8 @@ async function start(folderPath, request) {
       fetchBase: (name) => git.fetchBranch(folderPath, name),
       begun: (partId) => core.getBegun(begun(), project.id, r.number, partId),
       recordBegun: (entry) => recordBegun({ ...entry, projectId: project.id, number: r.number, begunAt: new Date().toISOString() }),
-      createBranch: async (name, base, { track }) => orThrow(await git.createBranch(folderPath, name, false, base, { track })),
+      // Cut, not checked out — except in the project checkout (frame-cloud-start-places D12).
+      createBranch: async (name, base, { track, checkout }) => orThrow(await git.createBranch(folderPath, name, checkout === true, base, { track })),
       branchSha: (name) => git.branchTipSha(folderPath, name),
       createWorkspace: (branch, base) => createWorkspace(folderPath, branch, base),
       recordBranch: (input) => sendBranch(input),
@@ -394,6 +457,8 @@ async function start(folderPath, request) {
       tasksPath: () => frameStore.resolvePath(folderPath, FRAME_FILES.TASKS),
       begunStands: (entry) => begunStands(folderPath, entry),
       hostOf,
+      checkoutState: () => checkoutState(folderPath, project.id),
+      checkoutPath: folderPath,
       now: () => new Date().toISOString(),
       // On a server, its own effects replace the Mac's (the core never cuts there).
       ...(serverKey ? serverDeps(folderPath, serverKey) : {}),

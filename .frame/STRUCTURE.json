@@ -4200,6 +4200,7 @@
       ],
       "depends": [
         "fs",
+        "os",
         "path",
         "electron",
         "../shared/ipcChannels",
@@ -4220,21 +4221,21 @@
       ],
       "functions": {
         "begunPath": {
-          "line": 58
+          "line": 66
         },
         "begun": {
-          "line": 63,
+          "line": 71,
           "purpose": "The parts this machine began (`<userData>/cloud-starts.json`), read once."
         },
         "recordBegun": {
-          "line": 73,
+          "line": 81,
           "params": [
             "entry"
           ],
           "purpose": "Record a part as begun on `branch`. A failed save is logged: the part is begun either way."
         },
         "begunEntry": {
-          "line": 83,
+          "line": 91,
           "params": [
             "projectId",
             "number",
@@ -4243,31 +4244,31 @@
           "purpose": "This machine's record of a begun part (`{ ref, branch, begunAt, baseSha?, serverKey? }`), or null."
         },
         "sendBranch": {
-          "line": 92,
+          "line": 100,
           "params": [
             "input"
           ],
           "purpose": "Send a begun part's branch to the cloud. Begin fires it and never waits:"
         },
         "serverConnection": {
-          "line": 98
+          "line": 106
         },
         "hostOf": {
-          "line": 103,
+          "line": 111,
           "params": [
             "serverKey"
           ],
           "purpose": "The saved server's host, or null."
         },
         "localMode": {
-          "line": 113,
+          "line": 121,
           "params": [
             "folderPath"
           ],
           "purpose": "Is the folder's project keeping Frame files out of git? Then no server can hold its parts."
         },
         "serverBranches": {
-          "line": 126,
+          "line": 134,
           "params": [
             "folderPath",
             "serverKey"
@@ -4275,7 +4276,7 @@
           "purpose": "The local branch names in a server's clone of the folder's project, or"
         },
         "serverBranchSets": {
-          "line": 143,
+          "line": 151,
           "params": [
             "folderPath",
             "keys"
@@ -4283,21 +4284,43 @@
           "purpose": "`{ [serverKey]: Set | null }` for every saved server (D13): the branches"
         },
         "begunServerKeys": {
-          "line": 154,
+          "line": 162,
           "params": [
             "projectId"
           ],
           "purpose": "The servers this project's begun parts were begun on."
         },
         "localNames": {
-          "line": 164,
+          "line": 172,
           "params": [
             "list"
           ],
           "purpose": "The Mac's local branch names from a gitBranchesManager list, or null."
         },
+        "shortPath": {
+          "line": 179,
+          "params": [
+            "p"
+          ],
+          "purpose": "`p` with the home folder shown as `~`, as the dialog prints paths."
+        },
+        "finishedIn": {
+          "line": 191,
+          "params": [
+            "folderPath"
+          ],
+          "purpose": "Is a checkout part's record finished in the project folder (D1)? Its spec"
+        },
+        "checkoutState": {
+          "line": 215,
+          "params": [
+            "folderPath",
+            "projectId"
+          ],
+          "purpose": "The project checkout as Start Work reads it: its current branch ('' when"
+        },
         "begunStands": {
-          "line": 171,
+          "line": 226,
           "params": [
             "folderPath",
             "entry"
@@ -4305,7 +4328,7 @@
           "purpose": "Does a begun entry still stand in the way of Begin (D14)? Answered by core.begunLive."
         },
         "withBegunBranches": {
-          "line": 182,
+          "line": 237,
           "params": [
             "briefs",
             "projectId",
@@ -4314,21 +4337,21 @@
           "purpose": "The listed briefs with each part's `begunBranch`, for the folder's cloud"
         },
         "specSlugs": {
-          "line": 200,
+          "line": 255,
           "params": [
             "folderPath"
           ],
           "purpose": "Every spec slug the project holds, across checkouts: the folder names in"
         },
         "taskIds": {
-          "line": 220,
+          "line": 275,
           "params": [
             "folderPath"
           ],
           "purpose": "Every task id the project holds: the Mac's `tasks.json` merged with the cached server tasks (D12)."
         },
         "writeSpec": {
-          "line": 231,
+          "line": 286,
           "params": [
             "root",
             "slug",
@@ -4337,7 +4360,7 @@
           "purpose": "Write a spec folder under `root`, the part's workspace. It is created,"
         },
         "writeTasks": {
-          "line": 242,
+          "line": 297,
           "params": [
             "folderPath",
             "rows"
@@ -4345,14 +4368,14 @@
           "purpose": "Append the task rows in one load/save round, then push the list so the Tasks panel shows them."
         },
         "orThrow": {
-          "line": 258,
+          "line": 313,
           "params": [
             "result"
           ],
           "purpose": "A gitBranchesManager answer (`{ error }`) as a throw, which is what the core's effects do on failure."
         },
         "createWorkspace": {
-          "line": 267,
+          "line": 322,
           "params": [
             "folderPath",
             "branch",
@@ -4361,7 +4384,7 @@
           "purpose": "Open the part's branch in a new local workspace, the way New Workspace"
         },
         "serverDeps": {
-          "line": 279,
+          "line": 334,
           "params": [
             "folderPath",
             "serverKey"
@@ -4369,15 +4392,15 @@
           "purpose": "The start's effects bound to one saved server (`serverKey`): its"
         },
         "prepare": {
-          "line": 325,
+          "line": 382,
           "params": [
             "folderPath",
             "number"
           ],
-          "purpose": "What the Start Work dialog shows. → prepareView's shape plus `localMode`,"
+          "purpose": "What the Start Work dialog shows. → prepareView's shape (with the"
         },
         "start": {
-          "line": 360,
+          "line": 421,
           "params": [
             "folderPath",
             "request"
@@ -4385,13 +4408,13 @@
           "purpose": "Start the brief: every check again (the renderer is not trusted), then the order. → handleStartRequest's shapes."
         },
         "init": {
-          "line": 407,
+          "line": 472,
           "params": [
             "window"
           ]
         },
         "setupIPC": {
-          "line": 411,
+          "line": 476,
           "params": [
             "ipcMain"
           ]
@@ -4406,7 +4429,7 @@
           "TASKS_DATA"
         ]
       },
-      "sizeBytes": 19119,
+      "sizeBytes": 22087,
       "extraction": {
         "status": "parsed"
       },
@@ -4417,17 +4440,20 @@
           "begunEntry": "1f5e7812388d5898",
           "begunServerKeys": "aaa20677d6c96024",
           "begunStands": "f6f52c9c4536e48b",
+          "checkoutState": "f6bb9874e45ab59b",
           "createWorkspace": "a0a5a1b641fd7436",
+          "finishedIn": "6b530a8f68ee89ab",
           "hostOf": "6fbd174d2df2209f",
           "localMode": "1bc473d10521ecb6",
           "localNames": "f174e4d507761de2",
           "orThrow": "e948bf20ec6d85e5",
-          "prepare": "1dfc9cb63f68aba6",
+          "prepare": "c41ca26fbdf44415",
           "recordBegun": "9bb4021aca478a6a",
           "sendBranch": "26d55c57fae5a22a",
           "serverBranchSets": "1db605a97480fc0b",
           "serverBranches": "d2406bae0bd33f7f",
           "serverDeps": "0dc58eef5c85bf7f",
+          "shortPath": "7898ea95c507d9c1",
           "specSlugs": "eea97957cd810170",
           "start": "7ab893a3749f4798",
           "taskIds": "aec2d76af0ac630e",
@@ -46575,6 +46601,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "68b6bdab5f182686ba8928980ebbc93e71633c1e4a9cd3bb62d84a573f848579"
+    "revision": "0a840dd39c54a8a5d1c23f23d11f1162f4f82af7e968f0fd38ea269f06cc8721"
   }
 }

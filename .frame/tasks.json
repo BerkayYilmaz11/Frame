@@ -11611,13 +11611,13 @@
       "title": "Wire the checkout into `src/main/cloud/cloudStartService.js`: `prepare` reads the current branch, the change count and busy (`core.checkoutBusy` with a spec-`done` / task-`completed` check in the project folder) plus the workspace folder, with `~`-shortened paths; `start` passes `place` and the checkout deps (`checkoutState`, the `checkout` flag on `createBranch`, the project folder as the spec root, `recordBegun` with `place` and `title`)",
       "description": "",
       "source": "spec:frame-cloud-start-places:T04",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:48:26.177Z",
+      "completedAt": "2026-11-25T11:48:26.177Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T05",
