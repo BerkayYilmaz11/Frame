@@ -11585,13 +11585,13 @@
       "title": "Give each place its default base in `src/main/cloud/cloudStart.js`: `pickBase(…, { prefer: 'local' })` for the checkout, and `prepareView` passing `checkout`, `placeBases: { checkout, workspace, server }` and `workspaceFolder`; test in `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:45:34.068Z",
+      "completedAt": "2026-11-25T11:45:34.068Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T03",

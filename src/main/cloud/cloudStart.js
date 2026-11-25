@@ -412,13 +412,45 @@ function checkoutBlock({ changes, busy } = {}) {
  * What the branch is cut from by default: `origin/<targetBranch>`, which the
  * start fetches first, else the local `targetBranch`, else null. Origin's
  * copy wins because a local branch can be behind it, and New Workspace cuts
- * from origin's copy too (frame-cloud-start-workspace T11).
+ * from origin's copy too (frame-cloud-start-workspace T11). The project
+ * checkout prefers the local target (`prefer: 'local'`,
+ * frame-cloud-start-places D13): it is switched where the user works.
  */
-function pickBase(targetBranch, { local, remote }) {
+function pickBase(targetBranch, { local, remote }, { prefer = 'origin' } = {}) {
   if (!targetBranch) return null;
+  if (prefer === 'local' && local) return targetBranch;
   if (remote) return `origin/${targetBranch}`;
   if (local) return targetBranch;
   return null;
+}
+
+/**
+ * Each place's default base (D13, D17): the checkout's local target first,
+ * a workspace's `origin/<target>` first, and a server's `origin/<target>`
+ * only, since a server cuts from origin alone. `targetOn` says where the
+ * brief's target exists: `{ local, remote }`.
+ */
+function placeBases(targetBranch, targetOn) {
+  const on = obj(targetOn);
+  return {
+    checkout: pickBase(targetBranch, on, { prefer: 'local' }),
+    workspace: pickBase(targetBranch, on),
+    server: targetBranch && on.remote ? `origin/${targetBranch}` : null,
+  };
+}
+
+/** The checkout's facts as the dialog reads them, or null when main gave none. */
+function checkoutView(checkout) {
+  if (!checkout || typeof checkout !== 'object') return null;
+  const busy = checkout.busy && isNonEmpty(checkout.busy.branch)
+    ? { title: str(checkout.busy.title) || str(checkout.busy.ref), ref: str(checkout.busy.ref), branch: checkout.busy.branch }
+    : null;
+  return {
+    path: str(checkout.path),
+    branch: str(checkout.branch),
+    changes: Number.isInteger(checkout.changes) && checkout.changes > 0 ? checkout.changes : 0,
+    busy,
+  };
 }
 
 /**
@@ -509,8 +541,14 @@ function startMode(brief) {
  * bases }` or `{ ok: false, reason: 'notStartable' }`.
  * `base` is the default (the target, origin's else local) and `bases` what
  * the "from" menu offers.
+ *
+ * For the three places (frame-cloud-start-places D17) the view also carries
+ * `placeBases` (each place's default base, from `targetOn: { local, remote }`,
+ * all null without it), `checkout: { path, branch, changes, busy }` (the
+ * project checkout's state; null when not given) and `workspaceFolder`
+ * (where a new workspace's folder goes on this Mac; null when not given).
  */
-function prepareView({ brief, base, begun = {}, branches = [] }) {
+function prepareView({ brief, base, begun = {}, branches = [], targetOn = null, checkout = null, workspaceFolder = null }) {
   const b = obj(brief);
   const mode = startMode(b);
   if (!mode) return { ok: false, reason: 'notStartable' };
@@ -538,6 +576,9 @@ function prepareView({ brief, base, begun = {}, branches = [] }) {
     suggestions: branchSuggestions(b),
     base: base || null,
     bases: baseOptions(branches),
+    placeBases: placeBases(b.targetBranch, targetOn),
+    checkout: checkoutView(checkout),
+    workspaceFolder: isNonEmpty(workspaceFolder) ? workspaceFolder : null,
   };
 }
 
@@ -838,6 +879,7 @@ module.exports = {
   checkoutBusy,
   checkoutBlock,
   pickBase,
+  placeBases,
   workspaceBase,
   baseOptions,
   prepareView,

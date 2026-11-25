@@ -349,6 +349,9 @@ test('prepareView in start mode: every part can be begun unless its definition d
     suggestions: { p1: 'feat/login-flow', p2: 'fix/fix-typo', p3: 'docs/docs' },
     base: 'origin/main',
     bases: [],
+    placeBases: { checkout: null, workspace: null, server: null },
+    checkout: null,
+    workspaceFolder: null,
   });
 });
 
@@ -1057,4 +1060,43 @@ test('start-places T01: checkoutBlock locks on a busy part first, then on uncomm
   assert.equal(start.checkoutBlock({ changes: 0, busy: null }), null);
   assert.equal(start.checkoutBlock({}), null);
   assert.equal(start.checkoutBlock(), null);
+});
+
+// ─── frame-cloud-start-places T02: each place's base, and the view ─
+
+test('start-places T02: pickBase prefers the local target for the checkout, and falls back to origin', () => {
+  const local = { prefer: 'local' };
+  assert.equal(start.pickBase('main', { local: true, remote: true }, local), 'main');
+  assert.equal(start.pickBase('main', { local: false, remote: true }, local), 'origin/main');
+  assert.equal(start.pickBase('main', { local: true, remote: false }, local), 'main');
+  assert.equal(start.pickBase('main', { local: false, remote: false }, local), null);
+  assert.equal(start.pickBase('', { local: true, remote: true }, local), null);
+  assert.equal(start.pickBase('main', { local: true, remote: true }, { prefer: 'origin' }), 'origin/main', 'the default is unchanged');
+});
+
+test('start-places T02: placeBases gives the checkout local first, a workspace origin first, a server origin only', () => {
+  assert.deepEqual(start.placeBases('main', { local: true, remote: true }), { checkout: 'main', workspace: 'origin/main', server: 'origin/main' });
+  assert.deepEqual(start.placeBases('main', { local: true, remote: false }), { checkout: 'main', workspace: 'main', server: null });
+  assert.deepEqual(start.placeBases('main', { local: false, remote: true }), { checkout: 'origin/main', workspace: 'origin/main', server: 'origin/main' });
+  assert.deepEqual(start.placeBases('main', { local: false, remote: false }), { checkout: null, workspace: null, server: null });
+  assert.deepEqual(start.placeBases(null, { local: true, remote: true }), { checkout: null, workspace: null, server: null });
+  assert.deepEqual(start.placeBases('main'), { checkout: null, workspace: null, server: null });
+});
+
+test('start-places T02: prepareView carries each place\'s base, the checkout\'s state and the workspace folder', () => {
+  const busy = { title: 'Login flow', ref: 'login-flow', branch: 'feat/login-flow', extra: 1 };
+  const view = start.prepareView({
+    brief: STARTED,
+    base: 'origin/main',
+    targetOn: { local: true, remote: true },
+    checkout: { path: '~/code/my-app', branch: 'feat/login-flow', changes: 2, busy },
+    workspaceFolder: '~/frame/workspaces/my-app',
+  });
+  assert.deepEqual(view.placeBases, { checkout: 'main', workspace: 'origin/main', server: 'origin/main' });
+  assert.deepEqual(view.checkout, { path: '~/code/my-app', branch: 'feat/login-flow', changes: 2, busy: { title: 'Login flow', ref: 'login-flow', branch: 'feat/login-flow' } });
+  assert.equal(view.workspaceFolder, '~/frame/workspaces/my-app');
+  assert.equal(view.base, 'origin/main', 'the workspace default is still `base`');
+
+  const detached = start.prepareView({ brief: STARTED, base: 'main', checkout: { path: '/repo', branch: '', changes: -1, busy: { title: 'x' } } });
+  assert.deepEqual(detached.checkout, { path: '/repo', branch: '', changes: 0, busy: null }, 'a busy part without a branch, and a bad count, read as none');
 });

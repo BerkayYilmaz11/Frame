@@ -8,3 +8,11 @@ _Captured: 2026-11-25T11:44:44.166Z · 2 file change(s)_
 
 ---
 
+## T02 — Bases per place and the view
+
+Gave `pickBase` a `prefer: 'local'` option, added `placeBases(target, targetOn)` and made `prepareView` return `placeBases`, `checkout` (busy without a branch and a non-positive count read as none) and `workspaceFolder`; without `targetOn` every place's base is null, so the service must pass it (T04). Files: `src/main/cloud/cloudStart.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-25T11:45:34.068Z · 2 file change(s)_
+
+---
+
