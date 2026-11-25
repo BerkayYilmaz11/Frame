@@ -11689,13 +11689,13 @@
       "title": "Show where each part is in `src/renderer/cloudBriefsPanel.js`: mark a workspace or server part as setting up from `openBeginLane` until its lane opens, show \"project checkout · <branch>\" for `begunPlace`, and open a checkout part's lane in the project checkout after selecting it and refreshing git status; add the row style to `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T10",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:58:43.593Z",
+      "completedAt": "2026-11-25T11:58:43.593Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T11",

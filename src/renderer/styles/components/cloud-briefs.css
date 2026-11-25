@@ -1921,6 +1921,16 @@ button.cloud-briefs-prow-pr:hover {
   max-width: 220px;
 }
 
+/* Begun in the project checkout: "project checkout · <branch>", as text (frame-cloud-start-places D10). */
+.cloud-briefs-prow-ws.checkout,
+.cloud-briefs-prow-ws.checkout:hover {
+  display: inline-block;
+  max-width: 260px;
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+  cursor: default;
+}
+
 /* Its server is offline: the last known name, not a way in. */
 .cloud-briefs-prow-ws.offline,
 .cloud-briefs-prow-ws.offline:hover {

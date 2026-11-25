@@ -15796,8 +15796,15 @@
           ],
           "purpose": "Where one started part stands: its local record, its lane, and partStatus's"
         },
+        "markSettingUp": {
+          "line": 1042,
+          "params": [
+            "ref",
+            "host"
+          ]
+        },
         "renderPrLink": {
-          "line": 1039,
+          "line": 1054,
           "params": [
             "pr",
             "attrs"
@@ -15805,7 +15812,7 @@
           "purpose": "\"PR #N\" on a part row: a button that opens the server's pull request URL,"
         },
         "renderPartStatusText": {
-          "line": 1050,
+          "line": 1065,
           "params": [
             "status",
             "attrs"
@@ -15813,11 +15820,11 @@
           "purpose": "A part row's status words. A PR row puts its number first and then"
         },
         "loadedWorkspaces": {
-          "line": 1061,
+          "line": 1076,
           "purpose": "The project's active workspaces as the sidebar last loaded them; none before it has."
         },
         "renderPartWorkspace": {
-          "line": 1076,
+          "line": 1093,
           "params": [
             "part",
             "attrs"
@@ -15825,14 +15832,14 @@
           "purpose": "The chip naming the workspace a part is in, which selects it"
         },
         "selectPartWorkspace": {
-          "line": 1088,
+          "line": 1108,
           "params": [
             "id"
           ],
           "purpose": "Select the workspace a part row's chip names, if it is still listed."
         },
         "renderPartRow": {
-          "line": 1099,
+          "line": 1119,
           "params": [
             "part",
             "brief"
@@ -15840,22 +15847,22 @@
           "purpose": "One part of a started `brief`: its shape, its title (which opens its spec"
         },
         "renderCardParts": {
-          "line": 1127,
+          "line": 1147,
           "params": [
             "brief"
           ],
           "purpose": "A started brief's card body: a row per part, a summary line when there is"
         },
         "renderPartSlots": {
-          "line": 1140,
+          "line": 1160,
           "purpose": "Redraw every part row on screen: the cards' and the open detail's."
         },
         "loadLocal": {
-          "line": 1154,
+          "line": 1174,
           "purpose": "Read the open folder's specs and tasks; the answers arrive as SPEC_DATA-shaped lists and a TASKS_DATA push."
         },
         "onLocalData": {
-          "line": 1168,
+          "line": 1188,
           "params": [
             "projectPath",
             "{ specs",
@@ -15864,7 +15871,7 @@
           "purpose": "A specs list or a tasks.json for `projectPath`: keep it when it is the open folder's, and redraw the rows."
         },
         "runPart": {
-          "line": 1183,
+          "line": 1203,
           "params": [
             "{ shape",
             "ref",
@@ -15875,7 +15882,7 @@
           "purpose": "Run a part's next step through the path a spec or a task runs by today."
         },
         "enterPartLane": {
-          "line": 1201,
+          "line": 1221,
           "params": [
             "shape",
             "ref"
@@ -15883,14 +15890,14 @@
           "purpose": "Enter a part's live lane."
         },
         "onPartAction": {
-          "line": 1207,
+          "line": 1227,
           "params": [
             "actionEl"
           ],
           "purpose": "A part row's click, on a card or in the detail. → handled?"
         },
         "renderTab": {
-          "line": 1225,
+          "line": 1245,
           "params": [
             "tab",
             "brief",
@@ -15899,7 +15906,7 @@
           ]
         },
         "renderDiscussions": {
-          "line": 1287,
+          "line": 1307,
           "params": [
             "events",
             "meId",
@@ -15908,7 +15915,7 @@
           "purpose": "The discussion records, newest first; absent rather than empty when none was recorded, as on the web."
         },
         "renderDiscussAction": {
-          "line": 1317,
+          "line": 1337,
           "params": [
             "brief",
             "events"
@@ -15916,7 +15923,7 @@
           "purpose": "The detail header's controls, by the same stages as the card: Go to"
         },
         "renderRediscuss": {
-          "line": 1338,
+          "line": 1358,
           "params": [
             "brief",
             "events",
@@ -15925,30 +15932,30 @@
           "purpose": "Above the comments, when someone commented after the latest record and no"
         },
         "openMoveToWork": {
-          "line": 1354,
+          "line": 1374,
           "params": [
             "brief"
           ],
           "purpose": "A confirm with a priority (Medium by default), as the web's Transform to Work."
         },
         "closeMoveToWork": {
-          "line": 1390
+          "line": 1410
         },
         "confirmMoveToWork": {
-          "line": 1396,
+          "line": 1416,
           "params": [
             "priority"
           ]
         },
         "moveDirection": {
-          "line": 1441,
+          "line": 1461,
           "params": [
             "brief"
           ],
           "purpose": "Where a brief's move goes: 'done' for Active work, 'active' for Done work, null for anything else."
         },
         "moveButton": {
-          "line": 1454,
+          "line": 1474,
           "params": [
             "brief",
             "action"
@@ -15956,14 +15963,14 @@
           "purpose": "Move to Done on Active work, Move back to Active on Done work, and the"
         },
         "movingKey": {
-          "line": 1465,
+          "line": 1485,
           "params": [
             "path",
             "number"
           ]
         },
         "isMoving": {
-          "line": 1470,
+          "line": 1490,
           "params": [
             "number",
             "path = state.getProjectPath("
@@ -15971,14 +15978,14 @@
           "purpose": "Whether brief `number` of the open folder (or of `path`) has a move to Done on its way."
         },
         "moveBrief": {
-          "line": 1480,
+          "line": 1500,
           "params": [
             "brief"
           ],
           "purpose": "A move button was pressed. The panel decides from its last read (D5): a"
         },
         "invokeMove": {
-          "line": 1490,
+          "line": 1510,
           "params": [
             "path",
             "number",
@@ -15986,14 +15993,14 @@
           ]
         },
         "holdMoveToDone": {
-          "line": 1507,
+          "line": 1527,
           "params": [
             "brief"
           ],
           "purpose": "A move to Done with nothing to explain (D1, D3, D17, D18): the card shows"
         },
         "undoHeldMove": {
-          "line": 1542,
+          "line": 1562,
           "params": [
             "path",
             "number"
@@ -16001,7 +16008,7 @@
           "purpose": "Undo on the toast: main cancels the held move, whose invoke then answers `undone`."
         },
         "reaskWithReason": {
-          "line": 1554,
+          "line": 1574,
           "params": [
             "path",
             "number"
@@ -16009,7 +16016,7 @@
           "purpose": "A move sent without a reason came back `REASON_REQUIRED`: the panel's view"
         },
         "redrawMove": {
-          "line": 1577,
+          "line": 1597,
           "params": [
             "path",
             "number"
@@ -16017,7 +16024,7 @@
           "purpose": "Redraw what a held move changes: the board (its overlay) and the brief's controls."
         },
         "markDone": {
-          "line": 1584,
+          "line": 1604,
           "params": [
             "path",
             "number"
@@ -16025,7 +16032,7 @@
           "purpose": "The cached board brief is Done now (main said so); the re-read confirms it."
         },
         "reloadAfterMove": {
-          "line": 1594,
+          "line": 1614,
           "params": [
             "path",
             "number"
@@ -16033,7 +16040,7 @@
           "purpose": "A move landed or was refused as stale: the board, and the brief when it is the one on screen, read again."
         },
         "renderMissingParts": {
-          "line": 1603,
+          "line": 1623,
           "params": [
             "brief",
             "missing"
@@ -16041,7 +16048,7 @@
           "purpose": "\"2 parts not merged into main.\", then each missing part with its row's status."
         },
         "openMoveDialog": {
-          "line": 1622,
+          "line": 1642,
           "params": [
             "{ brief",
             "to }"
@@ -16049,23 +16056,23 @@
           "purpose": "The reason dialog, for both directions (D20), built like Move to Work's:"
         },
         "closeMoveDialog": {
-          "line": 1664
+          "line": 1684
         },
         "confirmMove": {
-          "line": 1670,
+          "line": 1690,
           "params": [
             "reason"
           ]
         },
         "startWork": {
-          "line": 1698,
+          "line": 1718,
           "params": [
             "brief"
           ],
           "purpose": "Open the Start Work dialog on open, shaped, unstarted work."
         },
         "openStartDialog": {
-          "line": 1703,
+          "line": 1723,
           "params": [
             "number",
             "partId"
@@ -16073,14 +16080,14 @@
           "purpose": "The Start Work dialog, or Begin on part `partId` of a started brief."
         },
         "openBeginLane": {
-          "line": 1731,
+          "line": 1756,
           "params": [
             "result"
           ],
           "purpose": "Begin: a lane on the chosen part, in the workspace Start Work created for"
         },
         "selectBegunWorkspace": {
-          "line": 1758,
+          "line": 1793,
           "params": [
             "path",
             "workspace",
@@ -16089,14 +16096,14 @@
           "purpose": "Select the begun part's new workspace, wait for its setup script, and"
         },
         "reloadAfterStart": {
-          "line": 1794,
+          "line": 1829,
           "params": [
             "number"
           ],
           "purpose": "The brief is started in the cloud: reload the board (the card moves to Active) and the brief when it is on screen."
         },
         "startLane": {
-          "line": 1805,
+          "line": 1840,
           "params": [
             "brief",
             "{ purpose",
@@ -16106,42 +16113,42 @@
           "purpose": "Open a lane with the current AI tool and hand it main's prompt for"
         },
         "discuss": {
-          "line": 1842,
+          "line": 1877,
           "params": [
             "brief"
           ],
           "purpose": "Discuss an open proposal in a new lane."
         },
         "shape": {
-          "line": 1847,
+          "line": 1882,
           "params": [
             "brief"
           ],
           "purpose": "Shape open, unshaped work in a new lane."
         },
         "renderLaneSlots": {
-          "line": 1852,
+          "line": 1887,
           "params": [
             "number"
           ],
           "purpose": "Redraw the cards' lane controls and the detail's Discuss / Shape / Go to the lane. `number` null means any brief."
         },
         "onBriefShaped": {
-          "line": 1871,
+          "line": 1906,
           "params": [
             "payload"
           ],
           "purpose": "A Shape landed. For the open folder, a toast says so wherever the user is —"
         },
         "onBriefWritten": {
-          "line": 1881,
+          "line": 1916,
           "params": [
             "payload"
           ],
           "purpose": "A record or a shape landed: reload the board (its counts and buttons) and the brief when it is the one on screen."
         },
         "onBriefsChanged": {
-          "line": 1892,
+          "line": 1927,
           "params": [
             "payload"
           ],
@@ -16158,10 +16165,11 @@
         ],
         "emits": [
           "LOAD_TASKS",
+          "REFRESH_GIT_STATUS",
           "UPDATE_TASK"
         ]
       },
-      "sizeBytes": 86956,
+      "sizeBytes": 88532,
       "extraction": {
         "status": "parsed"
       },
@@ -26267,7 +26275,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 41785,
+      "sizeBytes": 42103,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -46883,6 +46891,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a2a30c89352c4c1b3769522e060c8ab8f2086818c8174f6271627583a439e0af"
+    "revision": "f40584de1dc0e70d3148efb143f595224157ee1af5b63e7d66225aca674127b2"
   }
 }

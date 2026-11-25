@@ -72,3 +72,11 @@ _Captured: 2026-11-25T11:57:52.568Z · 4 file change(s)_
 
 ---
 
+## T10 — The card rows and the checkout lane
+
+Added the panel's `settingUp` state (set around `selectBegunWorkspace`, passed to `copy.partStatus`), the plain-text 'project checkout · <branch>' row label for `begunPlace`, and the checkout path of `openBeginLane` (select the project checkout, `REFRESH_GIT_STATUS`, then the lane with no setup), with a non-clickable chip style for the label. Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-25T11:58:43.593Z · 2 file change(s)_
+
+---
+
