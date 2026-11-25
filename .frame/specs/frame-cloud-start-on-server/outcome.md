@@ -72,3 +72,11 @@ _Captured: 2026-11-25T09:26:18.292Z · 3 file change(s)_
 
 ---
 
+## T10 — Card chip for a server part
+
+Made `renderPartWorkspace` draw the D3 chip from `copy.partWorkspaceChip`: a button for This Mac and connected servers, and a dashed, non-clickable span while the server is offline. Added the server, offline and location-hint styles to `cloud-briefs.css`, and removed the Location row's `.cloud-briefs-start-soon` override left unused by T09. Files: `src/renderer/cloudBriefsPanel.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-25T09:27:02.951Z · 2 file change(s)_
+
+---
+

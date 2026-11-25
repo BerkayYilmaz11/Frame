@@ -1518,8 +1518,9 @@ button.cloud-briefs-milestone-name:focus-visible {
   accent-color: var(--accent-primary);
 }
 
-.cloud-briefs-start-location .cloud-briefs-start-soon {
-  margin-left: 0;
+/* Under Location: why servers are disabled (local mode), or what the chosen one does. */
+.cloud-briefs-start-location-hint {
+  padding-left: calc(var(--space-sm) + 72px + var(--space-sm));
 }
 
 .cloud-briefs-start-actions {
@@ -1725,6 +1726,21 @@ button.cloud-briefs-prow-pr:hover {
 .cloud-briefs-prow-ws:hover {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+}
+
+/* On a Frame Server: `name · host`, a little wider (frame-cloud-start-on-server). */
+.cloud-briefs-prow-ws.server {
+  max-width: 220px;
+}
+
+/* Its server is offline: the last known name, not a way in. */
+.cloud-briefs-prow-ws.offline,
+.cloud-briefs-prow-ws.offline:hover {
+  display: inline-block;
+  border-style: dashed;
+  border-color: var(--border-default);
+  color: var(--text-tertiary);
+  cursor: default;
 }
 
 .cloud-briefs-prow-action {

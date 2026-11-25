@@ -1068,13 +1068,20 @@ function loadedWorkspaces() {
 }
 
 /**
- * The chip naming the workspace on this Mac a part is in, which selects it
- * (frame-cloud-start-workspace); '' when it is in none.
+ * The chip naming the workspace a part is in, which selects it
+ * (frame-cloud-start-workspace); '' when it is in none. A server part's chip
+ * reads `name · host` (frame-cloud-start-on-server D3); while that server is
+ * offline it reads `· offline` and cannot be clicked.
  */
 function renderPartWorkspace(part, attrs) {
   const ws = copy.partWorkspace(part, loadedWorkspaces());
   if (!ws) return '';
-  return `<button type="button" class="cloud-briefs-prow-ws" data-action="select-part-workspace" ${attrs} data-ws-id="${escapeHtml(ws.id)}" title="${escapeHtml(copy.partWorkspaceHint(ws.name))}" tabindex="-1">${escapeHtml(ws.name)}</button>`;
+  const chip = copy.partWorkspaceChip(ws);
+  const where = ws.location === 'server' ? ' server' : '';
+  if (chip.offline) {
+    return `<span class="cloud-briefs-prow-ws${where} offline" title="${escapeHtml(chip.hint)}">${escapeHtml(chip.label)}</span>`;
+  }
+  return `<button type="button" class="cloud-briefs-prow-ws${where}" data-action="select-part-workspace" ${attrs} data-ws-id="${escapeHtml(ws.id)}" title="${escapeHtml(chip.hint)}" tabindex="-1">${escapeHtml(chip.label)}</button>`;
 }
 
 /** Select the workspace a part row's chip names, if it is still listed. */
