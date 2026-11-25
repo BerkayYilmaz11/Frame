@@ -11468,13 +11468,13 @@
       "title": "Make the begun store keep an optional `serverKey` (`normalizeBegunEntry`, `addBegun`) and give `withBegunBranches` in `src/main/cloud/cloudStart.js` a `servers` argument (`{ [serverKey]: Set | null }`) that keeps a server entry live while its server is listed and its branch is there or unknown, sets `branchGone` against that server's set and adds `begunServerKey`; test in `test/cloudStart.test.js` (saved and known, saved and unknown, unsaved, gone on its server, Mac entries unchanged)",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T05",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:18:54.503Z",
+      "completedAt": "2026-11-25T09:18:54.503Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T06",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:16:34.372Z",
+  "lastUpdated": "2026-11-25T09:18:54.503Z",
   "metadata": {
     "totalCreated": 912
   }

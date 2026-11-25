@@ -3746,6 +3746,7 @@
         "normalizeBegun",
         "addBegun",
         "getBegun",
+        "begunLive",
         "withBegunBranches",
         "pickBase",
         "workspaceBase",
@@ -3894,13 +3895,13 @@
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
         "isNonEmpty": {
-          "line": 262,
+          "line": 264,
           "params": [
             "value"
           ]
         },
         "begunKey": {
-          "line": 266,
+          "line": 268,
           "params": [
             "projectId",
             "number",
@@ -3908,31 +3909,31 @@
           ]
         },
         "isSha": {
-          "line": 271,
+          "line": 273,
           "params": [
             "value"
           ],
           "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
         },
         "normalizeBegunEntry": {
-          "line": 276,
+          "line": 282,
           "params": [
             "raw"
           ],
-          "purpose": "`{ ref, branch, begunAt, baseSha? }`, or null. `baseSha` is optional: older entries have none."
+          "purpose": "`{ ref, branch, begunAt, baseSha?, serverKey? }`, or null. `baseSha` is"
         },
         "emptyBegun": {
-          "line": 284
+          "line": 291
         },
         "normalizeBegun": {
-          "line": 289,
+          "line": 296,
           "params": [
             "store"
           ],
           "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
         },
         "addBegun": {
-          "line": 299,
+          "line": 306,
           "params": [
             "store",
             "{ projectId",
@@ -3941,32 +3942,43 @@
             "ref",
             "branch",
             "begunAt",
-            "baseSha }"
+            "baseSha",
+            "serverKey }"
           ],
           "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
         },
         "getBegun": {
-          "line": 307,
+          "line": 314,
           "params": [
             "store",
             "projectId",
             "number",
             "partId"
           ],
-          "purpose": "`{ ref, branch, begunAt, baseSha? }` for a part this machine began, or null."
+          "purpose": "`{ ref, branch, begunAt, baseSha?, serverKey? }` for a part this machine began, or null."
+        },
+        "begunLive": {
+          "line": 329,
+          "params": [
+            "entry",
+            "localBranches = null",
+            "servers = null"
+          ],
+          "purpose": "Does a begun entry still stand? A Mac entry while `localBranches` (a Set"
         },
         "withBegunBranches": {
-          "line": 323,
+          "line": 348,
           "params": [
             "briefs",
             "store",
             "projectId",
-            "localBranches = null"
+            "localBranches = null",
+            "servers = null"
           ],
           "purpose": "The briefs with `begunBranch` (a branch, or null) and `branchGone` on each"
         },
         "pickBase": {
-          "line": 346,
+          "line": 373,
           "params": [
             "targetBranch",
             "{ local",
@@ -3975,21 +3987,21 @@
           "purpose": "What the branch is cut from by default: `origin/<targetBranch>`, which the"
         },
         "workspaceBase": {
-          "line": 358,
+          "line": 385,
           "params": [
             "base"
           ],
           "purpose": "The workspace's base for a branch cut from `base`: a branch name, never a"
         },
         "baseOptions": {
-          "line": 368,
+          "line": 395,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "fetchBase": {
-          "line": 385,
+          "line": 412,
           "params": [
             "base",
             "deps"
@@ -3997,7 +4009,7 @@
           "purpose": "Fetch an `origin/<name>` base, so the branch is cut from origin's latest."
         },
         "baseExists": {
-          "line": 396,
+          "line": 423,
           "params": [
             "base",
             "deps"
@@ -4005,35 +4017,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 403,
+          "line": 430,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 409,
+          "line": 436,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 418,
+          "line": 445,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 424,
+          "line": 451,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 442,
+          "line": 469,
           "params": [
             "{ brief",
             "base",
@@ -4043,13 +4055,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's branches."
         },
         "errorText": {
-          "line": 473,
+          "line": 500,
           "params": [
             "err"
           ]
         },
         "handleStartRequest": {
-          "line": 526,
+          "line": 553,
           "params": [
             "request",
             "deps"
@@ -4057,7 +4069,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base }`) →"
         }
       },
-      "sizeBytes": 27984,
+      "sizeBytes": 29352,
       "extraction": {
         "status": "parsed"
       },
@@ -4069,15 +4081,16 @@
           "baseExists": "bb07c81cac0950b3",
           "baseOptions": "307d97a5d1f13a51",
           "beginnable": "c780392902f9d374",
+          "begunLive": "7b6868d3fc7846c3",
           "branchSuggestions": "9102869dbbe47ce0",
           "definitionProblem": "ac8749c777a9fb84",
           "fetchBase": "b96d06ef387ba9ee",
           "freeName": "a2f68960999c9348",
-          "getBegun": "70724b116f89928e",
+          "getBegun": "557cd0b080f7f7ef",
           "handleStartRequest": "534e4bdaa423e9dd",
           "isSha": "6d00928ffed63886",
           "normalizeBegun": "7dda30a8c6888043",
-          "normalizeBegunEntry": "35068f758e214f10",
+          "normalizeBegunEntry": "6cd99067db7372a5",
           "parseSpecDefinition": "b4271d554e31a4db",
           "parseTaskDefinition": "1a3ed6bbca001648",
           "partName": "28ee9181d4669474",
@@ -33579,14 +33592,14 @@
       ],
       "functions": {
         "setup": {
-          "line": 41,
+          "line": 42,
           "params": [
             "{ registerMethods",
             "broadcast }"
           ]
         }
       },
-      "sizeBytes": 6941,
+      "sizeBytes": 8319,
       "extraction": {
         "status": "parsed"
       },
@@ -38156,7 +38169,7 @@
           ]
         }
       },
-      "sizeBytes": 44360,
+      "sizeBytes": 47951,
       "extraction": {
         "status": "parsed"
       },
@@ -41559,7 +41572,7 @@
           "purpose": "A project on \"the Mac\" received by the server. `frame`: a Frame project; `mode`: its gitSharing."
         },
         "waitFor": {
-          "line": 152,
+          "line": 190,
           "params": [
             "pred",
             "ms",
@@ -41567,7 +41580,7 @@
           ]
         }
       },
-      "sizeBytes": 11973,
+      "sizeBytes": 14675,
       "extraction": {
         "status": "parsed"
       },
@@ -46314,6 +46327,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "73044a991d7ee065de95fcf646f65d76bbdb9a1bbc6da79cd772fdf2943fef4f"
+    "revision": "39a97b00a3053d4c21f14a97a52f110a75444441c1a56c39b2fe1376dc953aa7"
   }
 }

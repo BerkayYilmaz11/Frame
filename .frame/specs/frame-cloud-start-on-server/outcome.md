@@ -32,3 +32,11 @@ _Captured: 2026-11-25T09:16:34.372Z · 2 file change(s)_
 
 ---
 
+## T05 — Begun store keeps serverKey; per-server liveness
+
+Gave the begun entry an optional `serverKey` and factored liveness into an exported `begunLive`, which `withBegunBranches(…, servers)` now uses; live server parts carry `begunServerKey`, Mac parts keep their exact shape. With `servers` left out every server entry counts, which the plan did not state, matching the existing `localBranches` default. Files: `src/main/cloud/cloudStart.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-25T09:18:54.503Z · 2 file change(s)_
+
+---
+

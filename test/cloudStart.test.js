@@ -830,3 +830,52 @@ test('withBegunBranches marks each listed part with the branch this machine bega
   assert.equal('parts' in out[2], false);
   assert.equal(briefs[0].parts[0].begunBranch, undefined);
 });
+
+// ─── frame-cloud-start-on-server T05: a part begun on a server ─
+
+const SERVER_BEGUN = { ...BEGUN, partId: 'p2', ref: 'task-fix-typo', branch: 'fix/typo', serverKey: 'k-box' };
+
+test('start-on-server T05: the begun entry keeps a serverKey, and an entry without one reads as This Mac', () => {
+  const store = start.addBegun(start.addBegun(start.emptyBegun(), BEGUN), SERVER_BEGUN);
+  assert.deepEqual(start.getBegun(store, 'proj1', 3, 'p2'), { ref: 'task-fix-typo', branch: 'fix/typo', begunAt: NOW, serverKey: 'k-box' });
+  assert.deepEqual(start.getBegun(store, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW }, 'no serverKey key on a Mac entry');
+  for (const bad of [null, '', 7]) {
+    const kept = start.addBegun(start.emptyBegun(), { ...SERVER_BEGUN, serverKey: bad });
+    assert.equal('serverKey' in start.getBegun(kept, 'proj1', 3, 'p2'), false, String(bad));
+  }
+  const reread = start.normalizeBegun(JSON.parse(JSON.stringify(store)));
+  assert.equal(start.getBegun(reread, 'proj1', 3, 'p2').serverKey, 'k-box', 'survives the file round trip');
+});
+
+test('start-on-server T05: a server entry stands while its server is saved and has the branch or cannot say', () => {
+  const store = start.addBegun(start.emptyBegun(), SERVER_BEGUN);
+  const briefs = [{ number: 3, parts: [{ id: 'p2', recordRef: 'task-fix-typo', branch: 'fix/typo' }] }];
+  const mac = new Set(['main']); // the Mac never has a server part's branch
+  const run = (servers) => start.withBegunBranches(briefs, store, 'proj1', mac, servers)[0].parts[0];
+
+  const known = run({ 'k-box': new Set(['main', 'fix/typo']) });
+  assert.deepEqual([known.begunBranch, known.branchGone, known.begunServerKey], ['fix/typo', false, 'k-box'], 'saved and known');
+
+  const offline = run({ 'k-box': null });
+  assert.deepEqual([offline.begunBranch, offline.branchGone, offline.begunServerKey], ['fix/typo', false, 'k-box'], 'saved, offline or unknown');
+
+  const unsaved = run({ 'k-other': new Set(['fix/typo']) });
+  assert.deepEqual([unsaved.begunBranch, unsaved.branchGone, 'begunServerKey' in unsaved], [null, true, false], 'server no longer saved (D4)');
+
+  const gone = run({ 'k-box': new Set(['main']) });
+  assert.deepEqual([gone.begunBranch, gone.branchGone, 'begunServerKey' in gone], [null, true, false], 'deleted on its server');
+
+  const unlisted = start.withBegunBranches(briefs, store, 'proj1', mac)[0].parts[0];
+  assert.deepEqual([unlisted.begunBranch, unlisted.begunServerKey], ['fix/typo', 'k-box'], 'without a servers map every server entry counts');
+});
+
+test('start-on-server T05: Mac entries are judged by the Mac\'s branches only and carry no server key', () => {
+  const store = start.addBegun(start.addBegun(start.emptyBegun(), BEGUN), SERVER_BEGUN);
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow', branch: BEGUN.branch }, { id: 'p2', recordRef: 'task-fix-typo' }] }];
+  const servers = { 'k-box': new Set(['fix/typo', BEGUN.branch]) };
+  const [macPart, serverPart] = start.withBegunBranches(briefs, store, 'proj1', new Set(['main']), servers)[0].parts;
+  assert.deepEqual([macPart.begunBranch, macPart.branchGone, 'begunServerKey' in macPart], [null, true, false], 'the server having the name does not keep a Mac entry');
+  assert.equal(serverPart.begunBranch, 'fix/typo');
+  const live = start.withBegunBranches(briefs, store, 'proj1', new Set([BEGUN.branch]), servers)[0].parts[0];
+  assert.deepEqual(Object.keys(live).sort(), ['begunBranch', 'branch', 'branchGone', 'id', 'recordRef'], 'a Mac part\'s shape is unchanged');
+});

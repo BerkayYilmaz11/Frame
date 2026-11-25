@@ -257,7 +257,9 @@ function startable(brief) {
 // (`baseSha`, kept since frame-cloud-brief-done). Begin now sends the branch
 // to the cloud too (`brief.recordBranch`), so every machine can show it; this
 // store stays the machine's own record, for parts begun before that and for
-// telling this machine's deleted branch from a teammate's.
+// telling this machine's deleted branch from a teammate's. A part begun in a
+// workspace on a Frame Server also keeps that server's key (`serverKey`,
+// frame-cloud-start-on-server D13); an entry without one is This Mac's.
 
 function isNonEmpty(value) {
   return typeof value === 'string' && value.length > 0;
@@ -272,12 +274,17 @@ function isSha(value) {
   return typeof value === 'string' && /^[0-9a-f]{40}$/.test(value);
 }
 
-/** `{ ref, branch, begunAt, baseSha? }`, or null. `baseSha` is optional: older entries have none. */
+/**
+ * `{ ref, branch, begunAt, baseSha?, serverKey? }`, or null. `baseSha` is
+ * optional: older entries have none. No `serverKey` means This Mac, so the
+ * store grows without a migration.
+ */
 function normalizeBegunEntry(raw) {
   const e = obj(raw);
   if (!isNonEmpty(e.ref) || !isNonEmpty(e.branch) || !isNonEmpty(e.begunAt)) return null;
   const entry = { ref: e.ref, branch: e.branch, begunAt: e.begunAt };
   if (isSha(e.baseSha)) entry.baseSha = e.baseSha;
+  if (isNonEmpty(e.serverKey)) entry.serverKey = e.serverKey;
   return entry;
 }
 
@@ -296,14 +303,14 @@ function normalizeBegun(store) {
 }
 
 /** The store with one part recorded as begun (a later Begin of the same part replaces it). */
-function addBegun(store, { projectId, number, partId, ref, branch, begunAt, baseSha }) {
+function addBegun(store, { projectId, number, partId, ref, branch, begunAt, baseSha, serverKey }) {
   const base = normalizeBegun(store);
-  const entry = normalizeBegunEntry({ ref, branch, begunAt, baseSha });
+  const entry = normalizeBegunEntry({ ref, branch, begunAt, baseSha, serverKey });
   if (!isNonEmpty(projectId) || !Number.isInteger(number) || !isNonEmpty(partId) || !entry) return base;
   return { version: 1, begun: { ...base.begun, [begunKey(projectId, number, partId)]: entry } };
 }
 
-/** `{ ref, branch, begunAt, baseSha? }` for a part this machine began, or null. */
+/** `{ ref, branch, begunAt, baseSha?, serverKey? }` for a part this machine began, or null. */
 function getBegun(store, projectId, number, partId) {
   const begun = obj(obj(store).begun);
   const key = begunKey(projectId, number, partId);
@@ -311,25 +318,45 @@ function getBegun(store, projectId, number, partId) {
 }
 
 /**
- * The briefs with `begunBranch` (a branch, or null) and `branchGone` on each
- * listed part. `localBranches` (a Set of this folder's branch names) drops an
- * entry whose branch is gone — deleted since, so the part waits to be begun
- * again; left out, every entry counts. `branchGone` is true when that gone
- * branch is also the part's cloud `branch`: this machine began it there and
- * deleted it, so the cloud's branch must not keep the row at "On <branch>".
- * A cloud branch begun on another machine is never gone here. Briefs without
- * parts are left as they are.
+ * Does a begun entry still stand? A Mac entry while `localBranches` (a Set
+ * of this folder's branch names) has its branch. A server entry while its
+ * server is in `servers` (`{ [serverKey]: Set | null }`, the saved servers)
+ * and that server's set has the branch, or is null because the server is
+ * offline or could not list it (D13). A server no longer saved cannot be
+ * reached or listed, so its entry no longer stands (D4). Left out, either
+ * map counts every entry of its kind.
  */
-function withBegunBranches(briefs, store, projectId, localBranches = null) {
+function begunLive(entry, localBranches = null, servers = null) {
+  if (!entry) return false;
+  if (!entry.serverKey) return !localBranches || localBranches.has(entry.branch);
+  if (!servers) return true;
+  if (!Object.prototype.hasOwnProperty.call(servers, entry.serverKey)) return false;
+  const onServer = servers[entry.serverKey];
+  return !onServer || onServer.has(entry.branch);
+}
+
+/**
+ * The briefs with `begunBranch` (a branch, or null) and `branchGone` on each
+ * listed part, and `begunServerKey` on a part begun on a Frame Server.
+ * An entry that no longer stands (`begunLive`) — its branch deleted since,
+ * or its server removed — lets the part wait to be begun again.
+ * `branchGone` is true when that entry's branch is also the part's cloud
+ * `branch`: this machine began it there and lost it, so the cloud's branch
+ * must not keep the row at "On <branch>". A cloud branch begun on another
+ * machine is never gone here. Briefs without parts are left as they are.
+ */
+function withBegunBranches(briefs, store, projectId, localBranches = null, servers = null) {
   return arr(briefs).map((brief) => {
     if (!Array.isArray(brief.parts)) return brief;
     return {
       ...brief,
       parts: brief.parts.map((part) => {
         const entry = getBegun(store, projectId, brief.number, part.id);
-        const live = entry && (!localBranches || localBranches.has(entry.branch));
+        const live = begunLive(entry, localBranches, servers);
         const branchGone = Boolean(entry && !live && part.branch && part.branch === entry.branch);
-        return { ...part, begunBranch: live ? entry.branch : null, branchGone };
+        const out = { ...part, begunBranch: live ? entry.branch : null, branchGone };
+        if (live && entry.serverKey) out.begunServerKey = entry.serverKey;
+        return out;
       }),
     };
   });
@@ -679,6 +706,7 @@ module.exports = {
   normalizeBegun,
   addBegun,
   getBegun,
+  begunLive,
   withBegunBranches,
   pickBase,
   workspaceBase,
