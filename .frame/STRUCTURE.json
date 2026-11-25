@@ -17253,13 +17253,13 @@
       ],
       "functions": {
         "ref": {
-          "line": 48,
+          "line": 52,
           "params": [
             "name"
           ]
         },
         "open": {
-          "line": 58,
+          "line": 62,
           "params": [
             "{ number",
             "partId = null",
@@ -17269,141 +17269,163 @@
           "purpose": "Open the dialog for brief `number`; `partId` names the part to begin on a"
         },
         "close": {
-          "line": 80
+          "line": 84
         },
         "prepare": {
-          "line": 86
+          "line": 90
         },
         "renderFailure": {
-          "line": 119,
+          "line": 126,
           "params": [
             "message"
           ]
         },
         "chosenPart": {
-          "line": 127
+          "line": 134
         },
         "partChips": {
-          "line": 131,
+          "line": 138,
           "params": [
             "part"
           ]
         },
         "problemLine": {
-          "line": 136,
+          "line": 143,
           "params": [
             "part"
           ]
         },
         "renderChoices": {
-          "line": 143,
-          "purpose": "Several parts on a brief not started yet: a choice each, and Orchestrate (not yet)."
+          "line": 150,
+          "purpose": "Step 1 on a brief not started yet: a choice per part, and Orchestrate (not yet)."
         },
-        "renderSinglePart": {
-          "line": 171,
-          "purpose": "One part (a single-part brief, or Begin): the part itself, no choice."
+        "renderPicked": {
+          "line": 181,
+          "purpose": "Step 2's first line: the part chosen, and on Start Work a Change link back"
+        },
+        "renderStepper": {
+          "line": 195,
+          "purpose": "Start Work's step counter, left of the buttons; Begin has one step and none."
         },
         "renderBranchRow": {
-          "line": 180,
+          "line": 205,
           "purpose": "The branch row: icon, the name as an editable chip, and \"from <base> ⌄\" with its menu."
         },
         "renderLocation": {
-          "line": 213,
+          "line": 238,
           "purpose": "Where the workspace is created: This Mac, checked, and each saved Frame"
         },
         "renderLocationHint": {
-          "line": 237,
+          "line": 262,
           "purpose": "The hint under Location: local mode's reason, else what the chosen server does; hidden on This Mac."
         },
         "savedServers": {
-          "line": 249,
+          "line": 274,
           "purpose": "The project's saved Frame Servers; none when the list cannot be read."
         },
         "isConnected": {
-          "line": 258,
+          "line": 283,
           "params": [
             "srv"
           ]
         },
         "chosenServer": {
-          "line": 263,
+          "line": 288,
           "purpose": "The saved server chosen as the location, or null for This Mac."
         },
         "basesFor": {
-          "line": 269,
+          "line": 294,
           "purpose": "What the base menu offers: every base on This Mac, origin's alone on a server (D15)."
         },
         "setLocation": {
-          "line": 279,
+          "line": 304,
           "params": [
             "location"
           ],
           "purpose": "Move to `location`. A server keeps an origin base and swaps any other for"
         },
         "renderWorkspaceName": {
-          "line": 304,
+          "line": 329,
           "purpose": "The workspace name line: what workspaceManager.create will call a"
         },
-        "renderReady": {
-          "line": 321
+        "renderStep": {
+          "line": 346
+        },
+        "renderStepOne": {
+          "line": 357,
+          "purpose": "Step 1 · What to work on (Start Work only, D5): every part, even when"
+        },
+        "renderStepTwo": {
+          "line": 373,
+          "purpose": "Step 2 · Where to work: the part chosen, then the branch, and Start. Back (Cancel on Begin) leaves it."
+        },
+        "syncNext": {
+          "line": 397,
+          "purpose": "Step 1's Next: only for a part that can be begun."
+        },
+        "goToStep": {
+          "line": 403,
+          "params": [
+            "step"
+          ]
         },
         "renderBase": {
-          "line": 345,
+          "line": 417,
           "purpose": "The base button, the missing-base line and whether confirm can go. The"
         },
         "syncConfirm": {
-          "line": 355
+          "line": 427
         },
         "renderBaseList": {
-          "line": 361
+          "line": 433
         },
         "setMenu": {
-          "line": 373,
+          "line": 445,
           "params": [
             "openIt"
           ]
         },
         "showError": {
-          "line": 384,
+          "line": 456,
           "params": [
             "message"
           ]
         },
         "setPending": {
-          "line": 390,
+          "line": 462,
           "params": [
             "on"
           ]
         },
         "onClick": {
-          "line": 401,
+          "line": 473,
           "params": [
             "e"
           ]
         },
         "onChange": {
-          "line": 423,
+          "line": 497,
           "params": [
             "e"
           ]
         },
         "onInput": {
-          "line": 437,
+          "line": 510,
           "params": [
             "e"
           ]
         },
         "onKeydown": {
-          "line": 445,
+          "line": 519,
           "params": [
             "e"
           ]
         },
         "confirm": {
-          "line": 457
+          "line": 531
         }
       },
-      "sizeBytes": 21081,
+      "sizeBytes": 23980,
       "extraction": {
         "status": "parsed"
       },
@@ -17415,13 +17437,17 @@
           "open": "6a918af92066ac2e",
           "renderBase": "356c65cb6d84c1ea",
           "renderBranchRow": "0dd5e1b4d8750b55",
-          "renderChoices": "80271de76f07c98c",
+          "renderChoices": "ef2ed67e422604b2",
           "renderLocation": "5d77329ea101c3e2",
           "renderLocationHint": "859af2aeb0a3be03",
-          "renderSinglePart": "2f5119c646918f61",
+          "renderPicked": "59ffcc93fd1e13c2",
+          "renderStepOne": "4793f73c9173b8d9",
+          "renderStepTwo": "07b677e8de0f1631",
+          "renderStepper": "6d0c3c84f8db6d3c",
           "renderWorkspaceName": "19527a0b1afeab3c",
           "savedServers": "1d59145a44438fe7",
-          "setLocation": "5e225d723a626d4c"
+          "setLocation": "5e225d723a626d4c",
+          "syncNext": "da78891caea58149"
         }
       }
     },
@@ -26184,7 +26210,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 37958,
+      "sizeBytes": 38947,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -46800,6 +46826,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "1a76b9bcbe5b2cb7c04f360f7145edd3e4b4e6f07ac2280f8fcdc42785d8a6f2"
+    "revision": "a2f687da212a2a397c5fe44c116db29dc3f52e92a5caabacb339af413cf109f7"
   }
 }

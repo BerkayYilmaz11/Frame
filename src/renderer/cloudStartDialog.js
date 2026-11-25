@@ -1,10 +1,12 @@
 /**
  * Cloud Start Work dialog (frame-cloud-brief-start spec)
  *
- * Begins one part of a shaped work brief on a branch of its own. Start Work
- * on a brief not started yet picks the part to begin (no choice when there is
- * one; Orchestrate shows, disabled, when there are several); Begin on a
- * started brief's part opens the same dialog for that part alone. The branch
+ * Begins one part of a shaped work brief on a branch of its own, in two
+ * steps (frame-cloud-start-places): Start Work on a brief not started yet
+ * first asks what to work on — every part, and Orchestrate, disabled — then,
+ * after Next, where to work. Begin on a started brief's part opens on the
+ * second step for that part alone. Back returns to the first step and keeps
+ * every choice. The branch
  * row reads like a code host's new-branch control: the name as an editable
  * chip, prefilled with the suggestion, and "from <base> ⌄", the brief's
  * target unless the user picks another local or origin branch. The folder's
@@ -40,9 +42,11 @@ const ICON = {
   check: dock.lucideIcon(Check, 12),
 };
 
-// The one open dialog: { el, id, number, partId, view, choice, edited, base,
-// location ('local' or a saved server's key), macBase (the base to restore
-// when This Mac is chosen again), menuOpen, pending, done, onStarted, onPartial }.
+// The one open dialog: { el, id, number, partId, view, step (1: what to work
+// on, 2: where to work), choice, edited, branchText (the branch name as
+// typed, kept across steps), base, location ('local' or a saved server's
+// key), macBase (the base to restore when This Mac is chosen again),
+// menuOpen, pending, done, onStarted, onPartial }.
 let dialog = null;
 
 function ref(name) {
@@ -65,7 +69,7 @@ function open({ number, partId = null, onStarted, onPartial }) {
       <div data-ref="body"><p class="cloud-briefs-muted">Loading…</p></div>
     </div>`;
   dialog = {
-    el, id, number, partId, view: null, choice: null, edited: false, base: null,
+    el, id, number, partId, view: null, step: 1, choice: null, edited: false, branchText: '', base: null,
     location: 'local', macBase: null,
     menuOpen: false, pending: false, done: false, onStarted, onPartial,
   };
@@ -109,9 +113,12 @@ async function prepare() {
   const first = view.parts.find((p) => p.canBegin) || view.parts[0];
   current.view = view;
   current.choice = (wanted || first).partId;
+  current.branchText = view.suggestions[current.choice] || '';
   current.base = view.base;
+  // Begin knows its part: it opens on where to work.
+  current.step = view.mode === 'begin' ? 2 : 1;
   if (view.mode === 'begin') ref('title').textContent = copy.beginDialogTitle(wanted.title);
-  renderReady();
+  renderStep();
 }
 
 // ─── Rendering ────────────────────────────────────────────────
@@ -139,7 +146,7 @@ function problemLine(part) {
     : '';
 }
 
-/** Several parts on a brief not started yet: a choice each, and Orchestrate (not yet). */
+/** Step 1 on a brief not started yet: a choice per part, and Orchestrate (not yet). */
 function renderChoices() {
   const { view, id, choice } = dialog;
   const rows = view.parts.map((p) => {
@@ -167,13 +174,31 @@ function renderChoices() {
     </fieldset>`;
 }
 
-/** One part (a single-part brief, or Begin): the part itself, no choice. */
-function renderSinglePart() {
+/**
+ * Step 2's first line: the part chosen, and on Start Work a Change link back
+ * to step 1.
+ */
+function renderPicked() {
   const part = chosenPart();
-  return `<div class="cloud-briefs-start-part">
+  const change = dialog.view.mode === 'start'
+    ? `<button type="button" class="cloud-briefs-start-change" data-action="back">${escapeHtml(copy.CHANGE_LABEL)}</button>`
+    : '';
+  return `<div class="cloud-briefs-start-picked">
+      <span class="cloud-briefs-start-picked-what">${escapeHtml(copy.PART_LABEL)}</span>
       <span class="cloud-briefs-start-choice-label">${escapeHtml(part.title)} ${partChips(part)}</span>
-      ${problemLine(part) || `<span class="cloud-briefs-field-hint">${escapeHtml(copy.beginHint(part.shape))}</span>`}
-    </div>`;
+      ${change}
+    </div>
+    ${problemLine(part)}`;
+}
+
+/** Start Work's step counter, left of the buttons; Begin has one step and none. */
+function renderStepper() {
+  if (dialog.view.mode !== 'start') return '';
+  const two = dialog.step === 2;
+  return `<span class="cloud-briefs-start-stepper">
+      <span class="cloud-briefs-start-pips" aria-hidden="true"><span class="cloud-briefs-start-pip on"></span><span class="cloud-briefs-start-pip${two ? ' on' : ''}"></span></span>
+      ${escapeHtml(copy.stepLabel(dialog.step))}
+    </span>`;
 }
 
 /** The branch row: icon, the name as an editable chip, and "from <base> ⌄" with its menu. */
@@ -184,7 +209,7 @@ function renderBranchRow() {
       <label class="cloud-briefs-label" for="${id}-branch">${escapeHtml(copy.BRANCH_LABEL)}</label>
       <div class="cloud-briefs-branchrow">
         <span class="cloud-briefs-branchrow-icon">${ICON.branch}</span>
-        <input id="${id}-branch" class="cloud-briefs-branchrow-name" data-ref="branch" spellcheck="false" autocomplete="off" value="${escapeHtml(view.suggestions[part.partId] || '')}">
+        <input id="${id}-branch" class="cloud-briefs-branchrow-name" data-ref="branch" spellcheck="false" autocomplete="off" value="${escapeHtml(dialog.branchText)}">
         <span class="cloud-briefs-branchrow-from">${escapeHtml(copy.FROM_LABEL)}</span>
         <span class="cloud-briefs-branchrow-base-wrap">
           <button type="button" class="cloud-briefs-branchrow-base" data-action="toggle-base" data-ref="base" aria-haspopup="listbox" aria-expanded="false"></button>
@@ -304,7 +329,7 @@ function setLocation(location) {
 function renderWorkspaceName() {
   const el = ref('wsname');
   if (!el) return;
-  const typed = ref('branch').value.trim();
+  const typed = dialog.branchText.trim();
   const branch = typed || dialog.view.suggestions[dialog.choice] || '';
   const here = dialog.location === 'local'
     ? (w) => w.location !== 'server'
@@ -318,16 +343,46 @@ function renderWorkspaceName() {
   el.textContent = copy.workspaceNameText(copy.beginWorkspaceName(branch, taken));
 }
 
-function renderReady() {
-  const { view } = dialog;
-  const choose = view.mode === 'start' && view.parts.length > 1;
+function renderStep() {
+  if (dialog.menuOpen) dialog.menuOpen = false;
+  if (dialog.step === 1) renderStepOne();
+  else renderStepTwo();
+}
+
+/**
+ * Step 1 · What to work on (Start Work only, D5): every part, even when
+ * there is one, and Orchestrate, disabled. Next goes on with the chosen
+ * part when it can be begun.
+ */
+function renderStepOne() {
   ref('body').innerHTML = `
-    <p class="cloud-briefs-muted">${escapeHtml(view.mode === 'begin' ? copy.BEGIN_DIALOG_DESCRIPTION : copy.START_DIALOG_DESCRIPTION)}</p>
-    ${choose ? renderChoices() : renderSinglePart()}
+    <p class="cloud-briefs-muted">${escapeHtml(copy.START_DIALOG_DESCRIPTION)}</p>
+    ${renderChoices()}
+    <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
+    <div class="cloud-briefs-start-actions" data-ref="actions">
+      ${renderStepper()}
+      <button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>
+      <button type="button" class="cloud-briefs-primary-btn" data-action="next">${escapeHtml(copy.NEXT_LABEL)}</button>
+    </div>`;
+  syncNext();
+  const picked = dialog.el.querySelector(`input[name="${dialog.id}-choice"]:checked`) || ref('body').querySelector('[data-action="next"]');
+  if (picked) picked.focus();
+}
+
+/** Step 2 · Where to work: the part chosen, then the branch, and Start. Back (Cancel on Begin) leaves it. */
+function renderStepTwo() {
+  const { view } = dialog;
+  const leave = view.mode === 'start'
+    ? `<button type="button" class="cloud-briefs-web-btn" data-action="back">${escapeHtml(copy.BACK_LABEL)}</button>`
+    : `<button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>`;
+  ref('body').innerHTML = `
+    ${view.mode === 'begin' ? `<p class="cloud-briefs-muted">${escapeHtml(copy.BEGIN_DIALOG_DESCRIPTION)}</p>` : ''}
+    ${renderPicked()}
     ${renderBranchRow()}
     <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
     <div class="cloud-briefs-start-actions" data-ref="actions">
-      <button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>
+      ${renderStepper()}
+      ${leave}
       <button type="button" class="cloud-briefs-primary-btn" data-action="confirm">${escapeHtml(copy.startSubmitLabel(false))}</button>
     </div>`;
   renderBase();
@@ -336,6 +391,23 @@ function renderReady() {
   const name = ref('branch');
   name.focus();
   name.select();
+}
+
+/** Step 1's Next: only for a part that can be begun. */
+function syncNext() {
+  const next = ref('body').querySelector('[data-action="next"]');
+  const part = chosenPart();
+  if (next) next.disabled = !part || !part.canBegin;
+}
+
+function goToStep(step) {
+  if (!dialog || dialog.pending || dialog.done) return;
+  if (step === 2) {
+    const part = chosenPart();
+    if (!part || !part.canBegin) return;
+  }
+  dialog.step = step;
+  renderStep();
 }
 
 /**
@@ -409,6 +481,8 @@ function onClick(e) {
   if (!action) return;
   const name = action.dataset.action;
   if (name === 'cancel') close();
+  else if (name === 'next') goToStep(2);
+  else if (name === 'back') goToStep(1);
   else if (name === 'confirm') confirm();
   else if (name === 'toggle-base') {
     setMenu(!dialog.menuOpen);
@@ -429,15 +503,15 @@ function onChange(e) {
   if (e.target.name !== `${dialog.id}-choice`) return;
   dialog.choice = e.target.value;
   // The name follows the choice until the user types in it.
-  if (!dialog.edited) ref('branch').value = dialog.view.suggestions[dialog.choice] || '';
-  renderWorkspaceName();
-  syncConfirm();
+  if (!dialog.edited) dialog.branchText = dialog.view.suggestions[dialog.choice] || '';
+  syncNext();
 }
 
 function onInput(e) {
   if (!dialog) return;
   if (e.target === ref('branch')) {
     dialog.edited = true;
+    dialog.branchText = e.target.value;
     renderWorkspaceName();
   } else if (e.target === ref('basefilter')) renderBaseList();
 }
@@ -463,7 +537,7 @@ async function confirm() {
   const request = {
     number: current.number,
     beginPartId: part.partId,
-    branch: ref('branch').value.trim(),
+    branch: current.branchText.trim(),
     base: current.base,
     ...(current.location !== 'local' ? { serverKey: current.location } : {}),
   };

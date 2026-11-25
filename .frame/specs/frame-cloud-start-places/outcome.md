@@ -48,3 +48,11 @@ _Captured: 2026-11-25T11:51:37.064Z · 1 file change(s)_
 
 ---
 
+## T07 — The dialog's two steps
+
+Split `cloudStartDialog.js` into step 1 (every part, Orchestrate disabled, Next) and step 2 (the picked part with Change, the branch row, Back/Cancel and Start), with Begin opening on step 2 and the branch name kept in `branchText` across steps; added the step counter and picked-line styles and removed the now-unused `.cloud-briefs-start-part`. Step 2 keeps the Location radios until T08. Files: `src/renderer/cloudStartDialog.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-25T11:53:21.782Z · 2 file change(s)_
+
+---
+

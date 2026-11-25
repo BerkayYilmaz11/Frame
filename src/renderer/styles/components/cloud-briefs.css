@@ -1263,15 +1263,6 @@ button.cloud-briefs-milestone-name:focus-visible {
   gap: var(--space-lg);
 }
 
-.cloud-briefs-start-part {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-sm) var(--space-md);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-}
-
 .cloud-briefs-start-choices {
   display: flex;
   flex-direction: column;
@@ -1525,8 +1516,64 @@ button.cloud-briefs-milestone-name:focus-visible {
 
 .cloud-briefs-start-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-sm);
+}
+
+/* Start Work's two steps (frame-cloud-start-places): the counter left of the buttons. */
+.cloud-briefs-start-stepper {
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-start-pips {
+  display: inline-flex;
+  gap: var(--space-xs);
+}
+
+.cloud-briefs-start-pip {
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-strong);
+}
+
+.cloud-briefs-start-pip.on {
+  background: var(--accent-primary);
+}
+
+/* Step 2's first line: the part chosen, and Change on Start Work. */
+.cloud-briefs-start-picked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.cloud-briefs-start-picked-what {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-start-change {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-primary);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
 }
 
 /* ─── A started brief's parts: a row each, on the card and in the Parts tab ─── */
