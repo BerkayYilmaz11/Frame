@@ -11598,13 +11598,13 @@
       "title": "Add the checkout path to `handleStartRequest` in `src/main/cloud/cloudStart.js`: validate `place` (`badRequest` for a mismatched `serverKey`), refuse `checkoutBusy` / `checkoutDirty` from `deps.checkoutState()` before any fetch or `brief.start`, use the local-first base, cut with `createBranch(…, { checkout: true })` (partial `branch`), write the spec or task into the project folder (partial `files`), record `place` and `title`, send `recordBranch`, and answer `place`, `workspace: null`, `checkout.from` and `tasksPath`; workspace and server answers gain `place` only; test in `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T03",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:47:17.719Z",
+      "completedAt": "2026-11-25T11:47:17.719Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T04",

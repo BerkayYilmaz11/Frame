@@ -28,6 +28,9 @@ const TASK_TITLE_MAX = 60;
 /** A part's type → its branch prefix. */
 const BRANCH_PREFIXES = { feature: 'feat/', fix: 'fix/', refactor: 'refactor/', docs: 'docs/', test: 'test/' };
 
+/** Where a begun part runs (frame-cloud-start-places): the project checkout, a new workspace, or a server workspace. */
+const PLACES = ['checkout', 'workspace', 'server'];
+
 function str(value) {
   return typeof value === 'string' ? value : '';
 }
@@ -696,9 +699,28 @@ async function serverChecks({ brief, branch, chosenBase }, deps) {
  * when given (D14), and `deps.hostOf(serverKey)` names the host in
  * `alreadyBegun` (D5). When the preflight had to send the project there
  * (`sent: { uncommitted }`), the answer carries `sent` too (T12).
+ *
+ * `place` names where the part runs (frame-cloud-start-places D11):
+ * 'checkout', 'workspace' or 'server'. Without it a `serverKey` means a
+ * server, else a workspace; a server without a `serverKey`, or another place
+ * with one, is `badRequest`. In the project checkout ('checkout', D12) the
+ * lock is checked first, from `deps.checkoutState()` → `{ branch, changes,
+ * busy }` (`checkoutBusy` / `checkoutDirty`, D14) — the checkout is never
+ * stashed. The base defaults to the local target (D13). After `brief.start`
+ * the branch is cut and checked out in the project folder
+ * (`deps.createBranch(name, base, { track, checkout: true })`), no workspace
+ * is opened, and the spec is written under `deps.checkoutPath`; the begun
+ * record keeps `place: 'checkout'` and the part's title. The answer carries
+ * `place`, `workspace: null` and `checkout: { from }`, the branch it left.
+ * Partial steps there: `branch` and `files`.
  */
 async function handleStartRequest(request, deps) {
   const r = obj(request);
+  const serverKey = isNonEmpty(r.serverKey) ? r.serverKey : null;
+  const place = PLACES.includes(r.place) ? r.place : (serverKey ? 'server' : 'workspace');
+  if ((place === 'server') !== Boolean(serverKey)) return { ok: false, reason: 'badRequest' };
+  const inCheckout = place === 'checkout';
+
   const read = await deps.call((ctx) => getBrief({ ...ctx, projectSlug: deps.projectSlug, number: r.number }));
   if (!read.ok) return { ok: false, reason: read.reason };
   const brief = read.value;
@@ -725,19 +747,28 @@ async function handleStartRequest(request, deps) {
   const branch = str(r.branch).trim() || branchSuggestions(brief)[part.id];
   if (!deps.isValidBranchName(branch)) return { ok: false, reason: 'badBranch', detail: branch };
 
-  const serverKey = isNonEmpty(r.serverKey) ? r.serverKey : null;
-  // The base the user picked, else the brief's target (origin's, else local).
+  // The base the user picked, else the brief's target (origin's, else local;
+  // local first in the project checkout).
   const chosenBase = str(r.base).trim();
   let base;
   let fetch;
   let serverTasksPath = null;
   let sent = null;
+  let checkoutFrom = '';
   if (serverKey) {
     const checked = await serverChecks({ brief, branch, chosenBase }, deps);
     if (!checked.ok) return checked;
     ({ base, fetch, sent } = checked);
     serverTasksPath = checked.tasksPath;
   } else {
+    if (inCheckout) {
+      // Main reads the checkout again: the renderer's lock is not trusted (C2).
+      if (!deps.checkoutState) return { ok: false, reason: 'other' };
+      const state = obj(await deps.checkoutState());
+      const block = checkoutBlock(state);
+      if (block) return { ok: false, ...block };
+      checkoutFrom = str(state.branch);
+    }
     if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
     if (chosenBase) {
       if (!await baseExists(chosenBase, deps)) return { ok: false, reason: 'baseMissing', detail: chosenBase };
@@ -746,7 +777,7 @@ async function handleStartRequest(request, deps) {
       base = pickBase(brief.targetBranch, {
         local: await deps.localBranchExists(brief.targetBranch),
         remote: await deps.remoteBranchExists(brief.targetBranch),
-      });
+      }, { prefer: inCheckout ? 'local' : 'origin' });
       if (!base) return { ok: false, reason: 'baseMissing', detail: brief.targetBranch };
     }
     fetch = await fetchBase(base, deps);
@@ -773,8 +804,10 @@ async function handleStartRequest(request, deps) {
   let baseSha = null;
   if (!serverKey) {
     try {
-      // A remote base is cut without tracking, so the work branch does not track it.
-      await deps.createBranch(branch, base, { track: !base.startsWith('origin/') });
+      // A remote base is cut without tracking, so the work branch does not track
+      // it. In the project checkout the branch is also checked out there.
+      const track = !base.startsWith('origin/');
+      await deps.createBranch(branch, base, inCheckout ? { track, checkout: true } : { track });
     } catch (err) {
       return partial('branch', err);
     }
@@ -793,30 +826,33 @@ async function handleStartRequest(request, deps) {
   // The part's own workspace, opened on the branch just cut — or, on a
   // server, cut and opened there in one call. A failure leaves a Mac branch
   // where it is: Start Work can be finished from it by hand. The server
-  // drops its own half-made branch.
-  let workspace;
+  // drops its own half-made branch. The project checkout opens none.
+  let workspace = null;
   let setupScript = '';
-  try {
-    const created = obj(await deps.createWorkspace(branch, workspaceBase(base)));
-    const ws = obj(created.workspace);
-    if (!isNonEmpty(ws.id) || !isNonEmpty(ws.path)) throw new Error('the workspace was not created');
-    workspace = { id: ws.id, name: str(ws.name), path: ws.path, branch: str(ws.branch) || branch, base: ws.base || null };
-    if (serverKey) {
-      workspace.location = 'server';
-      workspace.serverKey = serverKey;
-      if (isNonEmpty(ws.host)) workspace.host = ws.host;
-      baseSha = isSha(created.startSha) ? created.startSha : null;
+  if (!inCheckout) {
+    try {
+      const created = obj(await deps.createWorkspace(branch, workspaceBase(base)));
+      const ws = obj(created.workspace);
+      if (!isNonEmpty(ws.id) || !isNonEmpty(ws.path)) throw new Error('the workspace was not created');
+      workspace = { id: ws.id, name: str(ws.name), path: ws.path, branch: str(ws.branch) || branch, base: ws.base || null };
+      if (serverKey) {
+        workspace.location = 'server';
+        workspace.serverKey = serverKey;
+        if (isNonEmpty(ws.host)) workspace.host = ws.host;
+        baseSha = isSha(created.startSha) ? created.startSha : null;
+      }
+      setupScript = str(created.setupScript);
+    } catch (err) {
+      return partial('workspace', err);
     }
-    setupScript = str(created.setupScript);
-  } catch (err) {
-    return partial('workspace', err);
   }
 
   const now = deps.now();
   let begin;
   try {
     if (part.shape === 'spec') {
-      await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }), workspace.path);
+      const root = inCheckout ? deps.checkoutPath : workspace.path;
+      await deps.writeSpec(ref, specFiles({ slug: ref, title: part.title, definition: part.definition, now }), root);
       begin = { shape: 'spec', slug: ref, title: part.title };
     } else {
       const row = taskRow({ part, fields: parseTaskDefinition(part.definition).fields, id: ref, brief, now });
@@ -831,7 +867,10 @@ async function handleStartRequest(request, deps) {
   } catch (err) {
     return partial('files', err);
   }
-  await deps.recordBegun(serverKey ? { partId: part.id, ref, branch, baseSha, serverKey } : { partId: part.id, ref, branch, baseSha });
+  const entry = { partId: part.id, ref, branch, baseSha };
+  if (serverKey) entry.serverKey = serverKey;
+  if (inCheckout) Object.assign(entry, { place: 'checkout', title: part.title });
+  await deps.recordBegun(entry);
   if (baseSha && deps.recordBranch) {
     // Fired, not awaited: a failure never reaches Begin's answer.
     (async () => deps.recordBranch({ id: brief.id, partId: part.id, branch, baseSha }))().catch(() => {});
@@ -846,14 +885,17 @@ async function handleStartRequest(request, deps) {
     specs: part.shape === 'spec' ? 1 : 0,
     tasks: part.shape === 'task' ? 1 : 0,
     begin,
+    place,
     workspace,
     setupScript,
     fetch,
     ...(sent ? { sent } : {}),
+    ...(inCheckout ? { checkout: { from: checkoutFrom } } : {}),
   };
 }
 
 module.exports = {
+  PLACES,
   SLUG_MAX,
   BRANCH_NAME_MAX,
   TASK_TITLE_MAX,

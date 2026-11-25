@@ -16,3 +16,11 @@ _Captured: 2026-11-25T11:45:34.068Z · 2 file change(s)_
 
 ---
 
+## T03 — The checkout path of handleStartRequest
+
+Added `place` to `handleStartRequest` with the checkout path: the lock from `deps.checkoutState()` first, the local-first base, `createBranch(…, { checkout: true })`, no workspace, the spec under `deps.checkoutPath`, and `place: 'checkout'` plus the title in the begun record; every answer names its place and a checkout answer carries `checkout: { from }`. Two choices the plan left open: the place/serverKey mismatch is refused before the brief is read, and a missing `checkoutState` dep refuses with `other`. Files: `src/main/cloud/cloudStart.js`, `test/cloudStart.test.js`.
+
+_Captured: 2026-11-25T11:47:17.719Z · 2 file change(s)_
+
+---
+

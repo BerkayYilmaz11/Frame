@@ -3726,6 +3726,7 @@
       "file": "src/main/cloud/cloudStart.js",
       "description": "cloudStart — the pure core of starting a shaped Frame Cloud work brief.",
       "exports": [
+        "PLACES",
         "SLUG_MAX",
         "BRANCH_NAME_MAX",
         "TASK_TITLE_MAX",
@@ -3763,25 +3764,25 @@
       ],
       "functions": {
         "str": {
-          "line": 31,
+          "line": 34,
           "params": [
             "value"
           ]
         },
         "arr": {
-          "line": 35,
+          "line": 38,
           "params": [
             "value"
           ]
         },
         "obj": {
-          "line": 39,
+          "line": 42,
           "params": [
             "value"
           ]
         },
         "slugify": {
-          "line": 53,
+          "line": 56,
           "params": [
             "title",
             "fallback = ''",
@@ -3790,7 +3791,7 @@
           "purpose": "A title → spec.new's slug: lowercase, `[a-z0-9-]` only, runs of `-`"
         },
         "partName": {
-          "line": 67,
+          "line": 70,
           "params": [
             "part",
             "fallback",
@@ -3799,7 +3800,7 @@
           "purpose": "A part's name for its spec slug or task id: its key from Shape, else its title's slug."
         },
         "suggestBranchName": {
-          "line": 77,
+          "line": 80,
           "params": [
             "type",
             "part",
@@ -3808,21 +3809,21 @@
           "purpose": "The branch Start Work suggests for a part: the type's prefix, then its key"
         },
         "splitSections": {
-          "line": 87,
+          "line": 90,
           "params": [
             "text"
           ],
           "purpose": "A definition split on its `## ` headings, outside code fences."
         },
         "sameHeading": {
-          "line": 112,
+          "line": 115,
           "params": [
             "a",
             "b"
           ]
         },
         "sectionBody": {
-          "line": 117,
+          "line": 120,
           "params": [
             "sections",
             "name"
@@ -3830,21 +3831,21 @@
           "purpose": "The body under `name` (every section of that name, joined); '' when absent."
         },
         "parseSpecDefinition": {
-          "line": 127,
+          "line": 130,
           "params": [
             "text"
           ],
           "purpose": "A spec part's definition, checked: it needs `## Problem` and `## Goal`,"
         },
         "parseTaskDefinition": {
-          "line": 144,
+          "line": 147,
           "params": [
             "text"
           ],
           "purpose": "A task part's definition → the task's fields. `## Description` is required;"
         },
         "freeName": {
-          "line": 165,
+          "line": 168,
           "params": [
             "base",
             "taken",
@@ -3853,7 +3854,7 @@
           "purpose": "`base`, else `base-2`, `base-3`… — the first not in `taken`. A spec slug stays within 48 characters."
         },
         "allocateRefs": {
-          "line": 183,
+          "line": 186,
           "params": [
             "parts",
             "{ specSlugs = []",
@@ -3863,7 +3864,7 @@
           "purpose": "Each part's `recordRef`, in part order, named from its key or else its"
         },
         "specFiles": {
-          "line": 203,
+          "line": 206,
           "params": [
             "{ slug",
             "title",
@@ -3873,14 +3874,14 @@
           "purpose": "A spec part's folder: `spec.md` is the part's title as a heading over the"
         },
         "taskTitle": {
-          "line": 220,
+          "line": 223,
           "params": [
             "title"
           ],
           "purpose": "A title within 60 characters: cut at the last space inside the limit, or hard at 60."
         },
         "taskRow": {
-          "line": 232,
+          "line": 235,
           "params": [
             "{ part",
             "fields",
@@ -3891,20 +3892,20 @@
           "purpose": "A task part's `tasks.json` row, pending. `fields` is parseTaskDefinition's;"
         },
         "startable": {
-          "line": 249,
+          "line": 252,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped, unstarted work: the only brief Start Work offers itself on."
         },
         "isNonEmpty": {
-          "line": 266,
+          "line": 269,
           "params": [
             "value"
           ]
         },
         "begunKey": {
-          "line": 270,
+          "line": 273,
           "params": [
             "projectId",
             "number",
@@ -3912,31 +3913,31 @@
           ]
         },
         "isSha": {
-          "line": 275,
+          "line": 278,
           "params": [
             "value"
           ],
           "purpose": "A full commit id as `git rev-parse` prints it: 40 lowercase hex characters."
         },
         "normalizeBegunEntry": {
-          "line": 285,
+          "line": 288,
           "params": [
             "raw"
           ],
           "purpose": "`{ ref, branch, begunAt, baseSha?, serverKey?, place?, title? }`, or null."
         },
         "emptyBegun": {
-          "line": 298
+          "line": 301
         },
         "normalizeBegun": {
-          "line": 303,
+          "line": 306,
           "params": [
             "store"
           ],
           "purpose": "Any shape in → a valid store out: malformed entries and keys are dropped."
         },
         "addBegun": {
-          "line": 313,
+          "line": 316,
           "params": [
             "store",
             "{ projectId",
@@ -3953,7 +3954,7 @@
           "purpose": "The store with one part recorded as begun (a later Begin of the same part replaces it)."
         },
         "getBegun": {
-          "line": 321,
+          "line": 324,
           "params": [
             "store",
             "projectId",
@@ -3963,7 +3964,7 @@
           "purpose": "`{ ref, branch, begunAt, baseSha?, serverKey?, place?, title? }` for a part this machine began, or null."
         },
         "begunLive": {
-          "line": 336,
+          "line": 339,
           "params": [
             "entry",
             "localBranches = null",
@@ -3972,7 +3973,7 @@
           "purpose": "Does a begun entry still stand? A Mac entry while `localBranches` (a Set"
         },
         "withBegunBranches": {
-          "line": 356,
+          "line": 359,
           "params": [
             "briefs",
             "store",
@@ -3983,7 +3984,7 @@
           "purpose": "The briefs with `begunBranch` (a branch, or null) and `branchGone` on each"
         },
         "checkoutBusy": {
-          "line": 383,
+          "line": 386,
           "params": [
             "store",
             "projectId",
@@ -3993,7 +3994,7 @@
           "purpose": "The begun part that keeps the project checkout busy (frame-cloud-start-places"
         },
         "checkoutBlock": {
-          "line": 402,
+          "line": 405,
           "params": [
             "{ changes",
             "busy } = {}"
@@ -4001,7 +4002,7 @@
           "purpose": "Why the project checkout cannot take a part now, or null (D6, D14): a busy"
         },
         "pickBase": {
-          "line": 419,
+          "line": 422,
           "params": [
             "targetBranch",
             "{ local",
@@ -4011,7 +4012,7 @@
           "purpose": "What the branch is cut from by default: `origin/<targetBranch>`, which the"
         },
         "placeBases": {
-          "line": 433,
+          "line": 436,
           "params": [
             "targetBranch",
             "targetOn"
@@ -4019,28 +4020,28 @@
           "purpose": "Each place's default base (D13, D17): the checkout's local target first,"
         },
         "checkoutView": {
-          "line": 443,
+          "line": 446,
           "params": [
             "checkout"
           ],
           "purpose": "The checkout's facts as the dialog reads them, or null when main gave none."
         },
         "workspaceBase": {
-          "line": 461,
+          "line": 464,
           "params": [
             "base"
           ],
           "purpose": "The workspace's base for a branch cut from `base`: a branch name, never a"
         },
         "baseOptions": {
-          "line": 471,
+          "line": 474,
           "params": [
             "branches"
           ],
           "purpose": "The branches the dialog's \"from\" menu offers, from gitBranchesManager's"
         },
         "fetchBase": {
-          "line": 488,
+          "line": 491,
           "params": [
             "base",
             "deps"
@@ -4048,7 +4049,7 @@
           "purpose": "Fetch an `origin/<name>` base, so the branch is cut from origin's latest."
         },
         "baseExists": {
-          "line": 499,
+          "line": 502,
           "params": [
             "base",
             "deps"
@@ -4056,35 +4057,35 @@
           "purpose": "Does `base` name a branch this folder has: a local one, or `origin/<name>`?"
         },
         "definitionProblem": {
-          "line": 506,
+          "line": 509,
           "params": [
             "part"
           ],
           "purpose": "Why a part's definition does not parse, or null when it does."
         },
         "branchSuggestions": {
-          "line": 512,
+          "line": 515,
           "params": [
             "brief"
           ],
           "purpose": "The branch each part suggests: its type's prefix and its title's slug."
         },
         "beginnable": {
-          "line": 521,
+          "line": 524,
           "params": [
             "brief"
           ],
           "purpose": "Open, shaped work that was started: its parts not begun yet are begun one by one."
         },
         "startMode": {
-          "line": 527,
+          "line": 530,
           "params": [
             "brief"
           ],
           "purpose": "'start' for a brief not started yet, 'begin' for a started one, or null for neither."
         },
         "prepareView": {
-          "line": 551,
+          "line": 554,
           "params": [
             "{ brief",
             "base",
@@ -4097,13 +4098,13 @@
           "purpose": "What the Start Work dialog shows for a brief detail and the folder's branches."
         },
         "errorText": {
-          "line": 585,
+          "line": 588,
           "params": [
             "err"
           ]
         },
         "begunStands": {
-          "line": 594,
+          "line": 597,
           "params": [
             "entry",
             "deps"
@@ -4111,7 +4112,7 @@
           "purpose": "Does this machine's begun entry still stand in the way of Begin? The"
         },
         "begunDetail": {
-          "line": 600,
+          "line": 603,
           "params": [
             "entry",
             "deps"
@@ -4119,7 +4120,7 @@
           "purpose": "`alreadyBegun`'s detail: the branch, and the host when the part is on a server (D5)."
         },
         "serverChecks": {
-          "line": 612,
+          "line": 615,
           "params": [
             "{ brief",
             "branch",
@@ -4129,7 +4130,7 @@
           "purpose": "The checks a server start runs before `brief.start` (D9, D15): a base on"
         },
         "handleStartRequest": {
-          "line": 700,
+          "line": 717,
           "params": [
             "request",
             "deps"
@@ -4137,7 +4138,7 @@
           "purpose": "A Start Work or Begin request (`{ number, beginPartId, branch, base,"
         }
       },
-      "sizeBytes": 37911,
+      "sizeBytes": 40187,
       "extraction": {
         "status": "parsed"
       },
@@ -38398,20 +38399,28 @@
           ]
         },
         "serverFakes": {
-          "line": 897,
+          "line": 898,
           "params": [
             "answers = {}"
           ],
           "purpose": "fakes() with the server deps the service binds for one server: the"
+        },
+        "checkoutFakes": {
+          "line": 1111,
+          "params": [
+            "answers = {}"
+          ],
+          "purpose": "fakes() with the checkout's deps: its state (`answers.checkout`) and its folder."
         }
       },
-      "sizeBytes": 63193,
+      "sizeBytes": 70802,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "d80dde1285d8f9dd",
         "purposes": {
+          "checkoutFakes": "341b0811246579c7",
           "serverFakes": "6cf2b3381d265ef5"
         }
       }
@@ -46566,6 +46575,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "0885b3fade7ac445869fd1d49359a3011a6fd9d4abc223194b10710345966390"
+    "revision": "68b6bdab5f182686ba8928980ebbc93e71633c1e4a9cd3bb62d84a573f848579"
   }
 }
