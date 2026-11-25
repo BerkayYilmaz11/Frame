@@ -80,3 +80,11 @@ _Captured: 2026-11-25T09:27:02.951Z · 2 file change(s)_
 
 ---
 
+## T12 — The normal server way on Begin: Send files and the sent notice
+
+Added T12 after T10, outside the original plan. The Flow's step 8 kept `openBeginLane` unchanged, which missed the spec's "normal server way" (New Workspace's Send files step and its sent-project notice). `selectBegunWorkspace` now offers `sendFilesModal` for a server workspace before setup, and `sent` travels from `serverProject({ ensure })` through the preflight and the start's answer to `cloudBriefsCopy.sentNotice`. Files: `src/main/workspaceManager.js`, `src/main/cloud/cloudStartService.js`, `src/main/cloud/cloudStart.js`, `src/renderer/cloudBriefsCopy.js`, `src/renderer/cloudBriefsPanel.js`, `test/cloudStart.test.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-25T11:14:41.962Z · 7 file change(s)_
+
+---
+

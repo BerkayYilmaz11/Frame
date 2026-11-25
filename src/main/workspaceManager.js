@@ -351,7 +351,8 @@ function serverCall(method, projectPath, id, extra = {}) {
  * frame-cloud-start-on-server D9): `{ link, host, serverKey,
  * serverProjectPath }`, where `serverProjectPath` is null when the server has
  * no copy. With `ensure`, a missing project is sent first, as creating a
- * workspace sends it. → `{ error, unsaved? }` for a server no longer saved
+ * workspace sends it, and `sent: { uncommitted }` says so (T12).
+ * → `{ error, unsaved? }` for a server no longer saved
  * (`unsaved`), not connected, or one that could not take the project; every
  * error but the unsaved one names the host.
  */
@@ -360,10 +361,12 @@ async function serverProject(projectPath, serverKey, { ensure = false } = {}) {
   if (!link) return { error: 'That server is no longer in the list.', unsaved: true };
   if (!link.isConnected()) return { error: `Not connected to ${link.host} — connect it first.` };
   try {
-    const serverProjectPath = ensure
-      ? (await ensureOnServer(projectPath, link)).serverProjectPath
-      : await serverProjectFor(projectPath, link);
-    return { link, host: link.host, serverKey: link.key, serverProjectPath: serverProjectPath || null };
+    const ensured = ensure ? await ensureOnServer(projectPath, link) : null;
+    const serverProjectPath = ensured ? ensured.serverProjectPath : await serverProjectFor(projectPath, link);
+    return {
+      link, host: link.host, serverKey: link.key, serverProjectPath: serverProjectPath || null,
+      ...(ensured && ensured.sent ? { sent: ensured.sent } : {})
+    };
   } catch (err) {
     const msg = err.message || String(err);
     return { error: msg.includes(link.host) ? msg : `${link.host}: ${msg}` };

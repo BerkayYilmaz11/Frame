@@ -992,3 +992,13 @@ test('start-on-server T06: a Mac start never asks the server deps', async () => 
   assert.deepEqual(steps(log), ['branch', 'workspace', 'spec', 'recorded']);
   assert.deepEqual(effect(log, 'recorded')[1], { partId: 'p1', ref: 'login-flow', branch: 'feat/login-flow', baseSha: HEAD });
 });
+
+test('start-on-server T12: a server start that sent the project says so; one that did not, and a Mac start, do not', async () => {
+  const sentAnswer = { branchTaken: false, baseOnOrigin: true, fetch: { fetched: true, error: null }, tasksPath: SERVER_TASKS, sent: { uncommitted: 3 } };
+  const sent = serverFakes({ preflight: sentAnswer });
+  assert.deepEqual((await start.handleStartRequest(SERVER_REQUEST, sent.deps)).sent, { uncommitted: 3 });
+  const there = serverFakes();
+  assert.equal('sent' in (await start.handleStartRequest(SERVER_REQUEST, there.deps)), false, 'the project was already on the server');
+  const mac = fakes({ remote: ['main'] });
+  assert.equal('sent' in (await start.handleStartRequest(REQUEST, mac.deps)), false);
+});

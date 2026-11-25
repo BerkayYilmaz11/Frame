@@ -686,6 +686,18 @@ function fetchFailedNotice({ fetch, workspace } = {}) {
   return `Couldn't fetch ${base} — cut from the last fetched copy.`;
 }
 
+/**
+ * The note after a server start that first sent the project there (T12), as
+ * New Workspace says it: committed history only, and what stayed on this
+ * Mac. Null when nothing was sent.
+ */
+function sentNotice({ sent, workspace } = {}) {
+  if (!sent) return null;
+  const host = (workspace && workspace.host) || 'the server';
+  const n = Number(sent.uncommitted) || 0;
+  return `Sent this project's committed history to ${host}.${n ? ` ${n} uncommitted change${n === 1 ? '' : 's'} stayed on this Mac — commit and push them to use them there.` : ''}`;
+}
+
 const OPEN_SPEC_LABEL = 'Open spec';
 const OPEN_TASK_LABEL = 'Open task';
 
@@ -1379,6 +1391,7 @@ module.exports = {
   partialMessage,
   startedNotice,
   fetchFailedNotice,
+  sentNotice,
   OPEN_SPEC_LABEL,
   OPEN_TASK_LABEL,
   partWorkspace,

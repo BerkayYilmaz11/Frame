@@ -1292,3 +1292,13 @@ test('start-on-server T08: the Location copy labels servers by host and says why
   assert.equal(copy.serverLocationHint('box.local'), 'Opens the workspace on box.local, on a branch cut from origin.');
   assert.match(copy.LOCAL_MODE_LOCATION_HINT, /local mode/);
 });
+
+test('start-on-server T12: sentNotice says the committed history went to the server and what stayed here', () => {
+  assert.equal(copy.sentNotice({ sent: { uncommitted: 3 }, workspace: { host: 'box.local' } }),
+    'Sent this project\'s committed history to box.local. 3 uncommitted changes stayed on this Mac — commit and push them to use them there.');
+  assert.equal(copy.sentNotice({ sent: { uncommitted: 1 }, workspace: { host: 'box.local' } }),
+    'Sent this project\'s committed history to box.local. 1 uncommitted change stayed on this Mac — commit and push them to use them there.');
+  assert.equal(copy.sentNotice({ sent: { uncommitted: 0 }, workspace: { host: 'box.local' } }), 'Sent this project\'s committed history to box.local.');
+  assert.equal(copy.sentNotice({ workspace: { host: 'box.local' } }), null);
+  assert.equal(copy.sentNotice(), null);
+});

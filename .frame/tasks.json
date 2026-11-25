@@ -11553,10 +11553,23 @@
       "createdAt": "2026-11-25T09:02:48.657Z",
       "updatedAt": "2026-11-25T09:02:48.657Z",
       "completedAt": null
+    },
+    {
+      "id": "task-spec-frame-cloud-start-on-server-T12",
+      "title": "Open the server workspace the normal server way on Begin: in `src/renderer/cloudBriefsPanel.js` offer `sendFilesModal` (context `create`) before the setup script when the begun workspace is on a server, and carry `sent` (project sent as a bundle, uncommitted count) from `workspaceManager.serverProject({ ensure })` through `cloudStartService`'s preflight and `handleStartRequest`'s answer to a `cloudBriefsCopy.sentNotice`; test in `test/cloudStart.test.js` and `test/cloudBriefsCopy.test.js`",
+      "description": "",
+      "source": "spec:frame-cloud-start-on-server:T12",
+      "status": "completed",
+      "priority": "medium",
+      "category": "fix",
+      "context": "From spec: frame-cloud-start-on-server",
+      "createdAt": "2026-11-25T11:13:37.790Z",
+      "updatedAt": "2026-11-25T11:14:41.962Z",
+      "completedAt": "2026-11-25T11:14:41.962Z"
     }
   ],
-  "lastUpdated": "2026-11-25T09:27:02.951Z",
+  "lastUpdated": "2026-11-25T11:14:41.962Z",
   "metadata": {
-    "totalCreated": 912
+    "totalCreated": 913
   }
 }

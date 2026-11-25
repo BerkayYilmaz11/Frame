@@ -318,6 +318,16 @@ None.
    workspace-name line per location, and `serverKey` in the request.
 10. **The card chip.** `renderPartWorkspace` draws the server chip and its
     offline state, with CSS in `cloud-briefs.css`.
+12. **The normal server way on Begin (added 2026-11-25, after T10).** The
+    spec's Goal opens a server workspace "the normal server way", but step 8
+    of the Flow left `openBeginLane` unchanged, so Begin skipped what New
+    Workspace does for a server: the Send files step before setup
+    (`sendFilesModal`, server-copy-files) and the notice that the project's
+    committed history was sent and what stayed on this Mac. `selectBegunWorkspace`
+    offers Send files for a server workspace before its setup script, and
+    `sent` travels from `workspaceManager.serverProject({ ensure })` through
+    the preflight and the start's answer to `cloudBriefsCopy.sentNotice`.
+    Tests in `test/cloudStart.test.js` and `test/cloudBriefsCopy.test.js`.
 11. **Developer walk.** Walk S1–S11 against a real Frame Server: a spec part
     and a task part on the server, a Mac part and a server part of one brief
     side by side, Begin refused while the server is offline, an older server

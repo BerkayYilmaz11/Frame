@@ -545,7 +545,8 @@ async function serverChecks({ brief, branch, chosenBase }, deps) {
   if (!pre.baseOnOrigin) return { ok: false, reason: 'baseNotOnOrigin', detail: base };
   const f = obj(pre.fetch);
   const fetch = { fetched: f.fetched === true, error: f.fetched === true ? null : errorText(f.error || 'the fetch failed'), skipped: false };
-  return { ok: true, base, fetch, tasksPath: str(pre.tasksPath) || null };
+  const sent = pre.sent && typeof pre.sent === 'object' ? { uncommitted: Number(pre.sent.uncommitted) || 0 } : null;
+  return { ok: true, base, fetch, tasksPath: str(pre.tasksPath) || null, sent };
 }
 
 /**
@@ -608,7 +609,8 @@ async function serverChecks({ brief, branch, chosenBase }, deps) {
  * part's `tasksPath` is the server clone's, from the preflight. The begun
  * record keeps `serverKey`. Begin's guard asks `deps.begunStands(entry)`
  * when given (D14), and `deps.hostOf(serverKey)` names the host in
- * `alreadyBegun` (D5).
+ * `alreadyBegun` (D5). When the preflight had to send the project there
+ * (`sent: { uncommitted }`), the answer carries `sent` too (T12).
  */
 async function handleStartRequest(request, deps) {
   const r = obj(request);
@@ -644,10 +646,11 @@ async function handleStartRequest(request, deps) {
   let base;
   let fetch;
   let serverTasksPath = null;
+  let sent = null;
   if (serverKey) {
     const checked = await serverChecks({ brief, branch, chosenBase }, deps);
     if (!checked.ok) return checked;
-    ({ base, fetch } = checked);
+    ({ base, fetch, sent } = checked);
     serverTasksPath = checked.tasksPath;
   } else {
     if (await deps.localBranchExists(branch)) return { ok: false, reason: 'branchTaken', detail: branch };
@@ -761,6 +764,7 @@ async function handleStartRequest(request, deps) {
     workspace,
     setupScript,
     fetch,
+    ...(sent ? { sent } : {}),
   };
 }
 

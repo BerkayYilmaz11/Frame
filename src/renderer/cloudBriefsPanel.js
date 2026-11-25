@@ -1708,6 +1708,8 @@ function openStartDialog(number, partId) {
       notify.success(copy.startedNotice(result));
       const fetchNote = copy.fetchFailedNotice(result);
       if (fetchNote) notify.info(fetchNote);
+      const sentNote = copy.sentNotice(result);
+      if (sentNote) notify.info(sentNote);
       reloadAfterStart(number);
       openBeginLane(result);
     },
@@ -1717,9 +1719,10 @@ function openStartDialog(number, partId) {
 
 /**
  * Begin: a lane on the chosen part, in the workspace Start Work created for
- * it (frame-cloud-start-workspace). The workspace is listed and selected, its
- * setup script runs to the end (as New Workspace runs it, without an agent),
- * and it is selected again, since the user may have moved during setup.
+ * it (frame-cloud-start-workspace). The workspace is listed and selected; on
+ * a Frame Server, Send files is offered first (frame-cloud-start-on-server
+ * T12); its setup script runs to the end (as New Workspace runs it, without
+ * an agent), and it is selected again, since the user may have moved during setup.
  * Then the lane opens through the paths a spec or a task runs by today:
  * `/spec.plan` for a spec, the task run for a task, which names the main
  * checkout's tasks.json and then goes in progress there. Frame opened the
@@ -1762,6 +1765,19 @@ async function selectBegunWorkspace(path, workspace, setupScript) {
   await section.load();
   if (state.getProjectPath() !== path) return false;
   pick();
+  // A server workspace has only what git carries: offer the files git leaves
+  // out before setup runs, as New Workspace does (server-copy-files, T12).
+  if (workspace.location === 'server') {
+    const listed = section.getWorkspaces().find((w) => w.id === workspace.id) || workspace;
+    try {
+      const sendFiles = require('./sendFilesModal');
+      const picked = await sendFiles.open({ projectPath: path, workspace: listed, context: 'create' });
+      if (picked && picked.sent) notify.info(sendFiles.summary(picked.sent));
+    } catch (err) {
+      console.error('cloudBriefsPanel: could not offer files for the server workspace', err);
+    }
+    if (state.getProjectPath() !== path) return false;
+  }
   if (setupScript) {
     try {
       await require('./newWorkspaceModal').runSetupThenAgent({ setupScript, openAgent: false });

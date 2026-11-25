@@ -290,7 +290,8 @@ function serverDeps(folderPath, serverKey) {
       if (!sp.serverProjectPath) return { ok: false, reason: 'serverUnavailable', detail: `${sp.host} could not take this project` };
       try {
         const res = await sp.link.call('workspaces.preflight', { projectPath: sp.serverProjectPath, branch, base }, SERVER_PREFLIGHT_MS);
-        return { ok: true, ...(res || {}) };
+        // The project went there as a bundle just now: the start's answer says so (T12).
+        return { ok: true, ...(res || {}), ...(sp.sent ? { sent: sp.sent } : {}) };
       } catch (err) {
         const msg = err.message || String(err);
         // A server without this spec's methods (D1, D8): update it, never fall back.
