@@ -521,7 +521,7 @@ test('the Start Work dialog words', () => {
   assert.equal(copy.WORKSPACE_LABEL, 'Workspace');
   assert.equal(copy.LOCATION_LABEL, 'Location');
   assert.equal(copy.THIS_MAC_LABEL, 'This Mac');
-  assert.equal(copy.SERVER_LOCATION_LABEL, 'Server');
+  assert.equal(copy.SERVER_LOCATION_LABEL, undefined, 'servers are listed by host now (frame-cloud-start-on-server)');
   assert.match(copy.START_DIALOG_DESCRIPTION, /its own branch and workspace/);
   assert.match(copy.BEGIN_DIALOG_DESCRIPTION, /its own branch and workspace/);
   assert.match(copy.beginHint('spec'), /new workspace/);

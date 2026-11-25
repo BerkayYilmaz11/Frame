@@ -530,7 +530,6 @@ const FROM_LABEL = 'from';
 const WORKSPACE_LABEL = 'Workspace';
 const LOCATION_LABEL = 'Location';
 const THIS_MAC_LABEL = 'This Mac';
-const SERVER_LOCATION_LABEL = 'Server';
 const LOCAL_MODE_LOCATION_HINT = 'This project keeps Frame files out of git (local mode), so its parts start on This Mac only.';
 
 /**
@@ -1362,7 +1361,6 @@ module.exports = {
   WORKSPACE_LABEL,
   LOCATION_LABEL,
   THIS_MAC_LABEL,
-  SERVER_LOCATION_LABEL,
   serverLocationLabel,
   serverLocationHint,
   LOCAL_MODE_LOCATION_HINT,

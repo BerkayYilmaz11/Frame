@@ -11520,13 +11520,13 @@
       "title": "Replace the Coming soon location in `src/renderer/cloudStartDialog.js` with radios for This Mac (checked) and each saved server by host, disabled when offline or when `view.localMode` is set; on a server, filter the base menu to origin bases (switching a local base to `origin/<target>`, else the first remote, else none), count that server's workspace names in the name line, and send `serverKey` with the request",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T09",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:26:18.292Z",
+      "completedAt": "2026-11-25T09:26:18.292Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T10",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:25:00.463Z",
+  "lastUpdated": "2026-11-25T09:26:18.292Z",
   "metadata": {
     "totalCreated": 912
   }

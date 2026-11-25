@@ -11,8 +11,12 @@
  * uncommitted changes are not asked about: the part opens in a workspace of
  * its own, and the main checkout is never switched or stashed
  * (frame-cloud-start-workspace). Under the branch row, the workspace's name
- * follows the branch as it is typed; with a server saved, a Location line
- * reads This Mac, with Server shown disabled as Coming soon (phase 2).
+ * follows the branch as it is typed. With a server saved, a Location line
+ * offers This Mac (always selected when the dialog opens) and each saved
+ * Frame Server by host (frame-cloud-start-on-server). A server that is not
+ * connected is disabled, and so is every server in local mode. Choosing a server
+ * narrows the base menu to origin's branches — a server cuts only from
+ * origin — and names the workspace against that server's workspaces.
  *
  * Main prepares the view and does every check and write again: this module
  * sends a folder path, a brief number and the user's choices. Its words live
@@ -37,7 +41,8 @@ const ICON = {
 };
 
 // The one open dialog: { el, id, number, partId, view, choice, edited, base,
-// menuOpen, pending, done, onStarted, onPartial }.
+// location ('local' or a saved server's key), macBase (the base to restore
+// when This Mac is chosen again), menuOpen, pending, done, onStarted, onPartial }.
 let dialog = null;
 
 function ref(name) {
@@ -61,6 +66,7 @@ function open({ number, partId = null, onStarted, onPartial }) {
     </div>`;
   dialog = {
     el, id, number, partId, view: null, choice: null, edited: false, base: null,
+    location: 'local', macBase: null,
     menuOpen: false, pending: false, done: false, onStarted, onPartial,
   };
   el.addEventListener('click', onClick);
@@ -198,23 +204,45 @@ function renderBranchRow() {
 }
 
 /**
- * Where the workspace is created: This Mac, the only place in phase 1, and a
- * server location shown disabled as Coming soon. Shown only once a server is
- * saved, as New Workspace's Location row is.
+ * Where the workspace is created: This Mac, checked, and each saved Frame
+ * Server by host — disabled while not connected, and every one in local mode
+ * (C6). Shown only once a server is saved, as New Workspace's Location row
+ * is. An older server is not disabled here: Start refuses it, naming the
+ * update (D1).
  */
 function renderLocation() {
-  if (savedServers().length === 0) return '';
+  const servers = savedServers();
+  if (servers.length === 0) return '';
   const name = `${dialog.id}-location`;
+  const localMode = Boolean(dialog.view.localMode);
+  const rows = servers.map((srv) => {
+    const offline = !isConnected(srv);
+    const disabled = offline || localMode;
+    const hint = copy.serverLocationHint(srv.host, { offline, localMode });
+    return `<label class="cloud-briefs-start-location${disabled ? ' disabled' : ''}" title="${escapeHtml(hint)}">
+        <input type="radio" name="${name}" value="${escapeHtml(srv.key)}"${dialog.location === srv.key ? ' checked' : ''}${disabled ? ' disabled' : ''}> ${escapeHtml(copy.serverLocationLabel(srv.host, { offline }))}
+      </label>`;
+  }).join('');
   return `<div class="cloud-briefs-start-where" role="radiogroup" aria-label="${escapeHtml(copy.LOCATION_LABEL)}">
       <span class="cloud-briefs-start-where-label">${escapeHtml(copy.LOCATION_LABEL)}</span>
       <label class="cloud-briefs-start-location">
-        <input type="radio" name="${name}" value="" checked> ${escapeHtml(copy.THIS_MAC_LABEL)}
+        <input type="radio" name="${name}" value="local"${dialog.location === 'local' ? ' checked' : ''}> ${escapeHtml(copy.THIS_MAC_LABEL)}
       </label>
-      <label class="cloud-briefs-start-location disabled">
-        <input type="radio" name="${name}" value="" disabled> ${escapeHtml(copy.SERVER_LOCATION_LABEL)}
-        <span class="cloud-briefs-start-soon">${escapeHtml(copy.COMING_SOON)}</span>
-      </label>
-    </div>`;
+      ${rows}
+    </div>
+    <p class="cloud-briefs-field-hint cloud-briefs-start-location-hint" data-ref="locationhint" hidden></p>`;
+}
+
+/** The hint under Location: local mode's reason, else what the chosen server does; hidden on This Mac. */
+function renderLocationHint() {
+  const el = ref('locationhint');
+  if (!el) return;
+  const srv = chosenServer();
+  const text = dialog.view.localMode
+    ? copy.LOCAL_MODE_LOCATION_HINT
+    : (srv ? copy.serverLocationHint(srv.host) : '');
+  el.textContent = text;
+  el.hidden = !text;
 }
 
 /** The project's saved Frame Servers; none when the list cannot be read. */
@@ -227,20 +255,64 @@ function savedServers() {
   }
 }
 
+function isConnected(srv) {
+  return Boolean(srv && srv.status && srv.status.state === 'connected');
+}
+
+/** The saved server chosen as the location, or null for This Mac. */
+function chosenServer() {
+  if (!dialog || dialog.location === 'local') return null;
+  return savedServers().find((s) => s.key === dialog.location) || null;
+}
+
+/** What the base menu offers: every base on This Mac, origin's alone on a server (D15). */
+function basesFor() {
+  const bases = dialog.view.bases || [];
+  return dialog.location === 'local' ? bases : bases.filter((b) => b.remote);
+}
+
+/**
+ * Move to `location`. A server keeps an origin base and swaps any other for
+ * `origin/<target>` when offered, else origin's first branch, else none
+ * (Start stays disabled); This Mac gets back the base it had.
+ */
+function setLocation(location) {
+  const wasMac = dialog.location === 'local';
+  dialog.location = location;
+  if (location === 'local') {
+    if (!wasMac) dialog.base = dialog.macBase;
+  } else {
+    if (wasMac) dialog.macBase = dialog.base;
+    const remote = basesFor();
+    if (!remote.some((b) => b.name === dialog.base)) {
+      const target = dialog.view.targetBranch ? `origin/${dialog.view.targetBranch}` : null;
+      dialog.base = (target && remote.some((b) => b.name === target)) ? target : (remote[0] ? remote[0].name : null);
+    }
+  }
+  if (dialog.menuOpen) setMenu(false);
+  renderBase();
+  renderWorkspaceName();
+  renderLocationHint();
+}
+
 /**
  * The workspace name line: what workspaceManager.create will call a
  * workspace opened on this branch (an empty field begins on the
- * suggestion), against this Mac's loaded workspaces.
+ * suggestion), against the loaded workspaces of the chosen location — this
+ * Mac's, or that server's.
  */
 function renderWorkspaceName() {
   const el = ref('wsname');
   if (!el) return;
   const typed = ref('branch').value.trim();
   const branch = typed || dialog.view.suggestions[dialog.choice] || '';
+  const here = dialog.location === 'local'
+    ? (w) => w.location !== 'server'
+    : (w) => w.location === 'server' && w.serverKey === dialog.location;
   let taken = [];
   try {
     taken = require('./workspaceSection').getWorkspaces()
-      .filter((w) => w.location !== 'server')
+      .filter(here)
       .map((w) => w.name);
   } catch (_) { /* the sidebar is not loaded: no names taken */ }
   el.textContent = copy.workspaceNameText(copy.beginWorkspaceName(branch, taken));
@@ -260,6 +332,7 @@ function renderReady() {
     </div>`;
   renderBase();
   renderWorkspaceName();
+  renderLocationHint();
   const name = ref('branch');
   name.focus();
   name.select();
@@ -287,7 +360,7 @@ function syncConfirm() {
 
 function renderBaseList() {
   const filter = ref('basefilter').value.trim().toLowerCase();
-  const options = dialog.view.bases.filter((b) => !filter || b.name.toLowerCase().includes(filter));
+  const options = basesFor().filter((b) => !filter || b.name.toLowerCase().includes(filter));
   const section = (title, rows) => (rows.length === 0 ? '' : `<div class="cloud-briefs-basemenu-title">${escapeHtml(title)}</div>${rows.map((b) => `
       <button type="button" class="cloud-briefs-basemenu-item${b.name === dialog.base ? ' current' : ''}" role="option" aria-selected="${b.name === dialog.base}" data-action="pick-base" data-base="${escapeHtml(b.name)}">
         ${b.remote ? ICON.remote : ICON.local}<span>${escapeHtml(b.name)}</span>${b.name === dialog.base ? ICON.check : ''}
@@ -349,6 +422,10 @@ function onClick(e) {
 
 function onChange(e) {
   if (!dialog || !dialog.view || e.target.type !== 'radio' || !e.target.value) return;
+  if (e.target.name === `${dialog.id}-location`) {
+    setLocation(e.target.value);
+    return;
+  }
   if (e.target.name !== `${dialog.id}-choice`) return;
   dialog.choice = e.target.value;
   // The name follows the choice until the user types in it.
@@ -388,6 +465,7 @@ async function confirm() {
     beginPartId: part.partId,
     branch: ref('branch').value.trim(),
     base: current.base,
+    ...(current.location !== 'local' ? { serverKey: current.location } : {}),
   };
   ref('error').hidden = true;
   setPending(true);

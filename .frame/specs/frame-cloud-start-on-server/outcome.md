@@ -64,3 +64,11 @@ _Captured: 2026-11-25T09:25:00.463Z · 2 file change(s)_
 
 ---
 
+## T09 — Dialog: Location radios, origin-only bases, per-location names
+
+Replaced the Coming soon location with This Mac / per-server radios (offline and local-mode disabled, with a hint line), filtered the base menu to origin bases on a server with the target-then-first-remote swap, made the workspace-name line count the chosen location's names, and sent `serverKey` with the request. Dropped `SERVER_LOCATION_LABEL` here rather than in T08, once it was unused (see T08). Files: `src/renderer/cloudStartDialog.js`, `src/renderer/cloudBriefsCopy.js`, `test/cloudBriefsCopy.test.js`.
+
+_Captured: 2026-11-25T09:26:18.292Z · 3 file change(s)_
+
+---
+
