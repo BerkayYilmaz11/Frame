@@ -11572,13 +11572,13 @@
       "title": "Teach the begun store the checkout in `src/main/cloud/cloudStart.js`: keep `place: 'checkout'` and `title` on a checkout entry (`normalizeBegunEntry`, `addBegun`), set `begunPlace` on a live checkout part in `withBegunBranches`, and add `checkoutBusy(store, projectId, currentBranch, isFinished)` and `checkoutBlock({ changes, busy })` (busy before dirty); test in `test/cloudStart.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T01",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:44:44.166Z",
+      "completedAt": "2026-11-25T11:44:44.166Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T02",

@@ -1002,3 +1002,59 @@ test('start-on-server T12: a server start that sent the project says so; one tha
   const mac = fakes({ remote: ['main'] });
   assert.equal('sent' in (await start.handleStartRequest(REQUEST, mac.deps)), false);
 });
+
+// ─── frame-cloud-start-places T01: a part begun in the project checkout ─
+
+const CHECKOUT_BEGUN = { ...BEGUN, place: 'checkout', title: 'Login flow' };
+
+test('start-places T01: a checkout entry keeps place and title; any other place or a server entry keeps neither', () => {
+  const store = start.addBegun(start.emptyBegun(), CHECKOUT_BEGUN);
+  assert.deepEqual(start.getBegun(store, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW, place: 'checkout', title: 'Login flow' });
+  const reread = start.normalizeBegun(JSON.parse(JSON.stringify(store)));
+  assert.equal(start.getBegun(reread, 'proj1', 3, 'p1').place, 'checkout', 'survives the file round trip');
+
+  const untitled = start.addBegun(start.emptyBegun(), { ...CHECKOUT_BEGUN, title: '' });
+  assert.deepEqual(start.getBegun(untitled, 'proj1', 3, 'p1'), { ref: 'login-flow', branch: 'feat/login-flow', begunAt: NOW, place: 'checkout' });
+
+  for (const place of ['workspace', 'server', 'elsewhere', 7, null]) {
+    const kept = start.getBegun(start.addBegun(start.emptyBegun(), { ...CHECKOUT_BEGUN, place }), 'proj1', 3, 'p1');
+    assert.deepEqual(Object.keys(kept).sort(), ['begunAt', 'branch', 'ref'], String(place));
+  }
+  const onServer = start.getBegun(start.addBegun(start.emptyBegun(), { ...CHECKOUT_BEGUN, serverKey: 'k-box' }), 'proj1', 3, 'p1');
+  assert.equal('place' in onServer, false, 'a server entry is never a checkout entry');
+  assert.equal('title' in onServer, false);
+});
+
+test('start-places T01: withBegunBranches marks a live checkout part, and a gone branch drops it as any Mac entry', () => {
+  const store = start.addBegun(start.addBegun(start.emptyBegun(), CHECKOUT_BEGUN), { ...BEGUN, partId: 'p2', ref: 'task-fix-typo', branch: 'fix/typo' });
+  const briefs = [{ number: 3, parts: [{ id: 'p1', recordRef: 'login-flow' }, { id: 'p2', recordRef: 'task-fix-typo' }] }];
+  const [inCheckout, inWorkspace] = start.withBegunBranches(briefs, store, 'proj1', new Set(['main', 'feat/login-flow', 'fix/typo']))[0].parts;
+  assert.deepEqual([inCheckout.begunBranch, inCheckout.begunPlace], ['feat/login-flow', 'checkout']);
+  assert.equal('begunPlace' in inWorkspace, false, 'a workspace part has no place key');
+  const gone = start.withBegunBranches(briefs, store, 'proj1', new Set(['main']))[0].parts[0];
+  assert.deepEqual([gone.begunBranch, 'begunPlace' in gone], [null, false]);
+});
+
+test('start-places T01: checkoutBusy finds an unfinished checkout part on the current branch', () => {
+  const other = { ...CHECKOUT_BEGUN, projectId: 'proj2' };
+  const workspacePart = { ...BEGUN, number: 4, partId: 'p9', ref: 'ws-part', branch: 'feat/login-flow' };
+  const store = [CHECKOUT_BEGUN, other, workspacePart].reduce((s, e) => start.addBegun(s, e), start.emptyBegun());
+  assert.deepEqual(start.checkoutBusy(store, 'proj1', 'feat/login-flow'), { title: 'Login flow', ref: 'login-flow', branch: 'feat/login-flow' });
+  assert.equal(start.checkoutBusy(store, 'proj1', 'main'), null, 'the checkout moved to another branch');
+  assert.equal(start.checkoutBusy(store, 'proj1', ''), null, 'a detached HEAD holds no begun part');
+  assert.equal(start.checkoutBusy(store, 'proj3', 'feat/login-flow'), null, 'another project');
+  const asked = [];
+  assert.equal(start.checkoutBusy(store, 'proj1', 'feat/login-flow', (e) => { asked.push(e.ref); return true; }), null, 'finished');
+  assert.deepEqual(asked, ['login-flow'], 'only checkout entries on that branch are asked about');
+  const untitled = start.addBegun(start.emptyBegun(), { ...CHECKOUT_BEGUN, title: undefined });
+  assert.equal(start.checkoutBusy(untitled, 'proj1', 'feat/login-flow').title, 'login-flow', 'the ref names an untitled part');
+});
+
+test('start-places T01: checkoutBlock locks on a busy part first, then on uncommitted changes', () => {
+  const busy = { title: 'Login flow', ref: 'login-flow', branch: 'feat/login-flow' };
+  assert.deepEqual(start.checkoutBlock({ changes: 3, busy }), { reason: 'checkoutBusy', part: 'Login flow', detail: 'feat/login-flow' });
+  assert.deepEqual(start.checkoutBlock({ changes: 3, busy: null }), { reason: 'checkoutDirty', detail: 3 });
+  assert.equal(start.checkoutBlock({ changes: 0, busy: null }), null);
+  assert.equal(start.checkoutBlock({}), null);
+  assert.equal(start.checkoutBlock(), null);
+});

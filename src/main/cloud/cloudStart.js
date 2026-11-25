@@ -259,7 +259,9 @@ function startable(brief) {
 // store stays the machine's own record, for parts begun before that and for
 // telling this machine's deleted branch from a teammate's. A part begun in a
 // workspace on a Frame Server also keeps that server's key (`serverKey`,
-// frame-cloud-start-on-server D13); an entry without one is This Mac's.
+// frame-cloud-start-on-server D13); an entry without one is This Mac's. A
+// part begun in the project checkout keeps `place: 'checkout'` and its
+// `title` (frame-cloud-start-places D2), so the checkout's lock can name it.
 
 function isNonEmpty(value) {
   return typeof value === 'string' && value.length > 0;
@@ -275,9 +277,10 @@ function isSha(value) {
 }
 
 /**
- * `{ ref, branch, begunAt, baseSha?, serverKey? }`, or null. `baseSha` is
- * optional: older entries have none. No `serverKey` means This Mac, so the
- * store grows without a migration.
+ * `{ ref, branch, begunAt, baseSha?, serverKey?, place?, title? }`, or null.
+ * `baseSha` is optional: older entries have none. No `serverKey` means This
+ * Mac, and no `place` a workspace, so the store grows without a migration.
+ * `place` is only ever 'checkout', and `title` is kept only with it.
  */
 function normalizeBegunEntry(raw) {
   const e = obj(raw);
@@ -285,6 +288,10 @@ function normalizeBegunEntry(raw) {
   const entry = { ref: e.ref, branch: e.branch, begunAt: e.begunAt };
   if (isSha(e.baseSha)) entry.baseSha = e.baseSha;
   if (isNonEmpty(e.serverKey)) entry.serverKey = e.serverKey;
+  if (e.place === 'checkout' && !entry.serverKey) {
+    entry.place = 'checkout';
+    if (isNonEmpty(e.title)) entry.title = e.title;
+  }
   return entry;
 }
 
@@ -303,14 +310,14 @@ function normalizeBegun(store) {
 }
 
 /** The store with one part recorded as begun (a later Begin of the same part replaces it). */
-function addBegun(store, { projectId, number, partId, ref, branch, begunAt, baseSha, serverKey }) {
+function addBegun(store, { projectId, number, partId, ref, branch, begunAt, baseSha, serverKey, place, title }) {
   const base = normalizeBegun(store);
-  const entry = normalizeBegunEntry({ ref, branch, begunAt, baseSha, serverKey });
+  const entry = normalizeBegunEntry({ ref, branch, begunAt, baseSha, serverKey, place, title });
   if (!isNonEmpty(projectId) || !Number.isInteger(number) || !isNonEmpty(partId) || !entry) return base;
   return { version: 1, begun: { ...base.begun, [begunKey(projectId, number, partId)]: entry } };
 }
 
-/** `{ ref, branch, begunAt, baseSha?, serverKey? }` for a part this machine began, or null. */
+/** `{ ref, branch, begunAt, baseSha?, serverKey?, place?, title? }` for a part this machine began, or null. */
 function getBegun(store, projectId, number, partId) {
   const begun = obj(obj(store).begun);
   const key = begunKey(projectId, number, partId);
@@ -337,7 +344,8 @@ function begunLive(entry, localBranches = null, servers = null) {
 
 /**
  * The briefs with `begunBranch` (a branch, or null) and `branchGone` on each
- * listed part, and `begunServerKey` on a part begun on a Frame Server.
+ * listed part, `begunServerKey` on a part begun on a Frame Server, and
+ * `begunPlace: 'checkout'` on one begun in the project checkout.
  * An entry that no longer stands (`begunLive`) — its branch deleted since,
  * or its server removed — lets the part wait to be begun again.
  * `branchGone` is true when that entry's branch is also the part's cloud
@@ -356,10 +364,46 @@ function withBegunBranches(briefs, store, projectId, localBranches = null, serve
         const branchGone = Boolean(entry && !live && part.branch && part.branch === entry.branch);
         const out = { ...part, begunBranch: live ? entry.branch : null, branchGone };
         if (live && entry.serverKey) out.begunServerKey = entry.serverKey;
+        if (live && entry.place === 'checkout') out.begunPlace = 'checkout';
         return out;
       }),
     };
   });
+}
+
+// ─── The project checkout ─────────────────────────────────────
+
+/**
+ * The begun part that keeps the project checkout busy (frame-cloud-start-places
+ * D1, D15): an entry of `projectId` begun in the checkout, whose branch is
+ * the checkout's `currentBranch`, and whose record `isFinished(entry)` says
+ * is not finished yet (its spec is not `done`, its task not `completed`).
+ * → `{ title, ref, branch }`, the title falling back to the ref, or null.
+ */
+function checkoutBusy(store, projectId, currentBranch, isFinished = () => false) {
+  if (!isNonEmpty(projectId) || !isNonEmpty(currentBranch)) return null;
+  const prefix = `${projectId}:`;
+  for (const [key, raw] of Object.entries(obj(obj(store).begun))) {
+    if (!key.startsWith(prefix)) continue;
+    const entry = normalizeBegunEntry(raw);
+    if (!entry || entry.place !== 'checkout' || entry.branch !== currentBranch) continue;
+    if (isFinished(entry)) continue;
+    return { title: entry.title || entry.ref, ref: entry.ref, branch: entry.branch };
+  }
+  return null;
+}
+
+/**
+ * Why the project checkout cannot take a part now, or null (D6, D14): a busy
+ * part first — `{ reason: 'checkoutBusy', part: <title>, detail: <branch> }` —
+ * then uncommitted changes — `{ reason: 'checkoutDirty', detail: <count> }`.
+ * The checkout is never stashed, so either one locks it.
+ */
+function checkoutBlock({ changes, busy } = {}) {
+  if (busy && isNonEmpty(busy.branch)) return { reason: 'checkoutBusy', part: str(busy.title) || str(busy.ref), detail: busy.branch };
+  const count = Number(changes) || 0;
+  if (count > 0) return { reason: 'checkoutDirty', detail: count };
+  return null;
 }
 
 // ─── The dialog and the start ─────────────────────────────────
@@ -791,6 +835,8 @@ module.exports = {
   getBegun,
   begunLive,
   withBegunBranches,
+  checkoutBusy,
+  checkoutBlock,
   pickBase,
   workspaceBase,
   baseOptions,
