@@ -56,3 +56,11 @@ _Captured: 2026-11-25T11:53:21.782Z · 2 file change(s)_
 
 ---
 
+## T08 — The three place cards
+
+Replaced the Location radios with the three place cards (checkout lock, server states, Server select, Connect / Add a server… through `serverConnect.open({ onClose })` with Start Work hidden via `style.display` because the backdrop's `display: flex` beats `hidden`), per-place bases from `view.placeBases`, and a live server card that redraws only when its shown state changes. Diverged from the plan's sequencing: `place` and `serverKey` went into the request here rather than in T09, so no commit starts a checkout pick as a workspace. Files: `src/renderer/cloudStartDialog.js`, `src/renderer/styles/components/cloud-briefs.css`.
+
+_Captured: 2026-11-25T11:56:19.555Z · 2 file change(s)_
+
+---
+

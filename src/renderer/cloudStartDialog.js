@@ -6,19 +6,22 @@
  * first asks what to work on — every part, and Orchestrate, disabled — then,
  * after Next, where to work. Begin on a started brief's part opens on the
  * second step for that part alone. Back returns to the first step and keeps
- * every choice. The branch
- * row reads like a code host's new-branch control: the name as an editable
- * chip, prefilled with the suggestion, and "from <base> ⌄", the brief's
- * target unless the user picks another local or origin branch. The folder's
- * uncommitted changes are not asked about: the part opens in a workspace of
- * its own, and the main checkout is never switched or stashed
- * (frame-cloud-start-workspace). Under the branch row, the workspace's name
- * follows the branch as it is typed. With a server saved, a Location line
- * offers This Mac (always selected when the dialog opens) and each saved
- * Frame Server by host (frame-cloud-start-on-server). A server that is not
- * connected is disabled, and so is every server in local mode. Choosing a server
- * narrows the base menu to origin's branches — a server cuts only from
- * origin — and names the workspace against that server's workspaces.
+ * every choice.
+ *
+ * Where to work is three equal cards, none picked when the dialog opens and
+ * nothing remembered between dialogs (overturning frame-cloud-start-on-server
+ * D2): the project checkout (its path and branch; locked, with the reason,
+ * while a begun part is unfinished on its branch or it has uncommitted
+ * changes — it is never stashed), a new workspace on This Mac, and a server
+ * workspace (the connected hosts; a Server select with two or more; offline
+ * with Connect; "No server yet" with Add a server…; disabled in local mode).
+ * Connect and Add a server… open the Servers dialog and hide this one until
+ * it closes; a server that came back connected is then picked
+ * (serverConnect.open's `onClose`). Each place keeps its own base, from main's
+ * defaults; a server's menu offers origin's branches only.
+ *
+ * The branch row reads like a code host's new-branch control: the name as an
+ * editable chip, prefilled with the suggestion, and "from <base> ⌄".
  *
  * Main prepares the view and does every check and write again: this module
  * sends a folder path, a brief number and the user's choices. Its words live
@@ -27,10 +30,11 @@
  */
 
 const { ipcRenderer } = require('electron');
-const { GitBranch, Cloud, ChevronDown, Check } = require('lucide');
+const { GitBranch, Cloud, ChevronDown, Check, Folder, FolderPlus, Server, CircleAlert } = require('lucide');
 const { IPC } = require('../shared/ipcChannels');
 const state = require('./state');
 const dock = require('./dock');
+const notify = require('./notify');
 const { escapeHtml } = require('./htmlUtils');
 const copy = require('./cloudBriefsCopy');
 
@@ -40,13 +44,19 @@ const ICON = {
   remote: dock.lucideIcon(Cloud, 13),
   chevron: dock.lucideIcon(ChevronDown, 13),
   check: dock.lucideIcon(Check, 12),
+  checkout: dock.lucideIcon(Folder, 14),
+  workspace: dock.lucideIcon(FolderPlus, 14),
+  server: dock.lucideIcon(Server, 14),
+  alert: dock.lucideIcon(CircleAlert, 13),
 };
 
 // The one open dialog: { el, id, number, partId, view, step (1: what to work
 // on, 2: where to work), choice, edited, branchText (the branch name as
-// typed, kept across steps), base, location ('local' or a saved server's
-// key), macBase (the base to restore when This Mac is chosen again),
-// menuOpen, pending, done, onStarted, onPartial }.
+// typed, kept across steps), place (null until picked: 'checkout',
+// 'workspace' or 'server'), serverKey (the server picked on the server card),
+// bases ({ checkout, workspace, server }: each place's base), away (while the
+// Servers dialog is open: { known, wanted }), unsubscribe, serverSig (what the
+// server card last showed), menuOpen, pending, done, onStarted, onPartial }.
 let dialog = null;
 
 function ref(name) {
@@ -69,8 +79,9 @@ function open({ number, partId = null, onStarted, onPartial }) {
       <div data-ref="body"><p class="cloud-briefs-muted">Loading…</p></div>
     </div>`;
   dialog = {
-    el, id, number, partId, view: null, step: 1, choice: null, edited: false, branchText: '', base: null,
-    location: 'local', macBase: null,
+    el, id, number, partId, view: null, step: 1, choice: null, edited: false, branchText: '',
+    place: null, serverKey: null, bases: { checkout: null, workspace: null, server: null },
+    away: null, unsubscribe: null, serverSig: '',
     menuOpen: false, pending: false, done: false, onStarted, onPartial,
   };
   el.addEventListener('click', onClick);
@@ -83,6 +94,7 @@ function open({ number, partId = null, onStarted, onPartial }) {
 
 function close() {
   if (!dialog || dialog.pending) return;
+  if (dialog.unsubscribe) dialog.unsubscribe();
   dialog.el.remove();
   dialog = null;
 }
@@ -114,10 +126,14 @@ async function prepare() {
   current.view = view;
   current.choice = (wanted || first).partId;
   current.branchText = view.suggestions[current.choice] || '';
-  current.base = view.base;
+  current.bases = { checkout: null, workspace: null, server: null, ...(view.placeBases || {}) };
   // Begin knows its part: it opens on where to work.
   current.step = view.mode === 'begin' ? 2 : 1;
   if (view.mode === 'begin') ref('title').textContent = copy.beginDialogTitle(wanted.title);
+  // The server card follows the servers while the dialog is open.
+  try {
+    current.unsubscribe = require('./serverConnect').onServersChange(() => onServersChanged(current));
+  } catch (_) { /* no Servers module: the card reads the list once */ }
   renderStep();
 }
 
@@ -201,10 +217,204 @@ function renderStepper() {
     </span>`;
 }
 
+// ─── Where to work: the three places ──────────────────────────
+
+/** The project's saved Frame Servers; none when the list cannot be read. */
+function savedServers() {
+  try {
+    // Lazy-required, as New Workspace reaches it.
+    return require('./serverConnect').getServers() || [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function isConnected(srv) {
+  return Boolean(srv && srv.status && srv.status.state === 'connected');
+}
+
+/** The server card's state: localMode, none, offline or ready, with the connected and offline servers. */
+function serverState() {
+  return copy.serverCardState(savedServers(), { localMode: Boolean(dialog.view.localMode) });
+}
+
+/** What the server card shows, as one string: a status change that changes none of it draws nothing. */
+function serverSignature(srv) {
+  return `${srv.kind}|${srv.connected.map((s) => `${s.key}=${s.host}`).join(',')}|${srv.offline.map((s) => `${s.key}=${s.host}`).join(',')}`;
+}
+
+/** The connected server picked on the server card, or null. */
+function chosenServer() {
+  if (!dialog || dialog.place !== 'server' || !dialog.serverKey) return null;
+  const srv = savedServers().find((s) => s.key === dialog.serverKey);
+  return isConnected(srv) ? srv : null;
+}
+
+/** Why the project checkout card is locked, or null (D1, D6). */
+function checkoutLock() {
+  return dialog.view.checkout ? copy.checkoutLock(dialog.view.checkout) : null;
+}
+
+/** One card's inside: its head (ring, icon, title), meta line and three facts. */
+function cardBody(place, meta, { ring = true } = {}) {
+  const checkout = dialog.view.checkout || {};
+  const facts = copy.placeFacts(place, { branch: checkout.branch });
+  return `<span class="cloud-briefs-place-head">${ring ? '<span class="cloud-briefs-place-ring" aria-hidden="true"></span>' : ''}${ICON[place]}<span>${escapeHtml(copy.PLACE_LABELS[place])}</span></span>
+      <span class="cloud-briefs-place-meta">${escapeHtml(meta)}</span>
+      <ul class="cloud-briefs-place-facts">${facts.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>`;
+}
+
+/** A line saying why a card cannot be picked. */
+function lockLine(text) {
+  return `<span class="cloud-briefs-place-lock">${ICON.alert}<span>${escapeHtml(text)}</span></span>`;
+}
+
+/** A card that can be picked: a radio in `<id>-place`, disabled with `lock`'s reason. */
+function choiceCard(place, meta, lock = null) {
+  const on = dialog.place === place;
+  return `<label class="cloud-briefs-place${on ? ' on' : ''}${lock ? ' off' : ''}">
+      <input type="radio" name="${dialog.id}-place" value="${place}"${on ? ' checked' : ''}${lock ? ' disabled' : ''}>
+      ${cardBody(place, meta)}
+      ${lock ? lockLine(lock) : ''}
+    </label>`;
+}
+
+/**
+ * The server card by its state: ready (a choice, the connected hosts),
+ * offline (each server not connected, with Connect), none ("No server yet"
+ * and Add a server…) or local mode (disabled with the reason, D8).
+ */
+function renderServerCard(srv) {
+  if (srv.kind === 'ready') return choiceCard('server', copy.serverCardMeta(srv.connected.map((s) => s.host)));
+  if (srv.kind === 'localMode') {
+    return `<div class="cloud-briefs-place off">${cardBody('server', '', { ring: false })}${lockLine(copy.LOCAL_MODE_LOCATION_HINT)}</div>`;
+  }
+  if (srv.kind === 'offline') {
+    const lines = srv.offline.map((s) => `<span class="cloud-briefs-place-lock">${ICON.alert}<span>${escapeHtml(copy.serverOfflineLine(s.host))}</span>
+        <button type="button" class="cloud-briefs-place-link" data-action="connect-server" data-key="${escapeHtml(s.key)}">${escapeHtml(copy.CONNECT_LABEL)}</button></span>`).join('');
+    return `<div class="cloud-briefs-place off">${cardBody('server', copy.serverCardMeta(srv.offline.map((s) => s.host)), { ring: false })}${lines}</div>`;
+  }
+  return `<div class="cloud-briefs-place notice">
+      <span class="cloud-briefs-place-head">${ICON.server}<span>${escapeHtml(copy.PLACE_LABELS.server)}</span><span class="cloud-briefs-place-tag">${escapeHtml(copy.NO_SERVER_TAG)}</span></span>
+      <span class="cloud-briefs-field-hint">${escapeHtml(copy.NO_SERVER_TEXT)}</span>
+      <ul class="cloud-briefs-place-facts">${copy.NO_SERVER_FACTS.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
+      <button type="button" class="cloud-briefs-web-btn cloud-briefs-place-add" data-action="add-server">${escapeHtml(copy.ADD_SERVER_LABEL)}</button>
+    </div>`;
+}
+
+/** With the server card picked and two or more servers connected: which one, under the cards. */
+function renderServerSelect(srv) {
+  if (dialog.place !== 'server' || srv.kind !== 'ready' || srv.connected.length < 2) return '';
+  const id = `${dialog.id}-server`;
+  const options = savedServers().map((s) => {
+    const offline = !isConnected(s);
+    return `<option value="${escapeHtml(s.key)}"${s.key === dialog.serverKey ? ' selected' : ''}${offline ? ' disabled' : ''}>${escapeHtml(copy.serverOptionLabel(s.host, { offline }))}</option>`;
+  }).join('');
+  return `<div class="cloud-briefs-place-server">
+      <label class="cloud-briefs-label" for="${id}">${escapeHtml(copy.SERVER_SELECT_LABEL)}</label>
+      <select id="${id}" class="cloud-briefs-input cloud-briefs-place-select" data-ref="server">${options}</select>
+    </div>`;
+}
+
+/** Step 2's places: three cards, none picked until the user picks one (C1). */
+function renderPlaces() {
+  const checkout = dialog.view.checkout || {};
+  const srv = serverState();
+  dialog.serverSig = serverSignature(srv);
+  return `<fieldset class="cloud-briefs-field">
+      <legend class="cloud-briefs-label">${escapeHtml(copy.PLACE_TITLE)}</legend>
+      <div class="cloud-briefs-places">
+        ${choiceCard('checkout', copy.checkoutMeta(checkout.path, checkout.branch), dialog.view.checkout ? checkoutLock() : '')}
+        ${choiceCard('workspace', copy.THIS_MAC_LABEL)}
+        ${renderServerCard(srv)}
+      </div>
+      ${renderServerSelect(srv)}
+    </fieldset>`;
+}
+
+/**
+ * Pick `place`. The server card picks its connected server: the one picked
+ * before while it is still connected, else the first connected one.
+ */
+function setPlace(place) {
+  dialog.place = place;
+  if (place === 'server') {
+    const up = savedServers().filter(isConnected);
+    if (!up.some((s) => s.key === dialog.serverKey)) dialog.serverKey = up[0] ? up[0].key : null;
+  }
+  renderStepTwo({ focusPlace: true });
+}
+
+/**
+ * The servers changed while the dialog is open: a picked server that is no
+ * longer connected leaves no place picked, and the cards are drawn again.
+ * Nothing is drawn while the Servers dialog has the screen.
+ */
+function onServersChanged(current) {
+  if (dialog !== current || !current.view || current.step !== 2 || current.away || current.pending || current.done) return;
+  const dropped = current.place === 'server' && !chosenServer();
+  if (!dropped && serverSignature(serverState()) === current.serverSig) return;
+  if (dropped) {
+    current.place = null;
+    current.serverKey = null;
+  }
+  renderStepTwo({ keepFocus: true });
+}
+
+/**
+ * Connect (`key`) or Add a server… (`add`): the Servers dialog, with this one
+ * hidden until it closes (D3). It comes back with the server it added — or
+ * the one Connect was for — picked once connected. When Servers closed to
+ * hand the screen to a terminal, this dialog closes too and says so.
+ */
+async function openServers({ key = null, add = false }) {
+  const current = dialog;
+  if (!current || current.pending || current.done) return;
+  current.away = { known: new Set(savedServers().map((s) => s.key)), wanted: key };
+  // The backdrop is display: flex, which the hidden attribute alone does not beat.
+  current.el.style.display = 'none';
+  try {
+    await require('./serverConnect').open({ key, add, onClose: ({ handoff }) => backFromServers(current, handoff) });
+  } catch (err) {
+    console.error('cloudStartDialog: could not open Servers', err);
+  }
+  // The Servers dialog did not open: come back now rather than stay hidden.
+  const servers = document.getElementById('server-connect-modal');
+  if (!servers || !servers.classList.contains('visible')) backFromServers(current, false);
+}
+
+function backFromServers(current, handoff) {
+  if (dialog !== current || !current.away) return;
+  const { known, wanted } = current.away;
+  current.away = null;
+  if (handoff) {
+    close();
+    notify.info(copy.SERVER_HANDOFF_NOTICE);
+    return;
+  }
+  current.el.style.display = '';
+  const up = savedServers().filter(isConnected);
+  const picked = up.find((s) => !known.has(s.key)) || (wanted ? up.find((s) => s.key === wanted) : null);
+  if (picked && !current.view.localMode) {
+    current.place = 'server';
+    current.serverKey = picked.key;
+  } else if (current.place === 'server' && !chosenServer()) {
+    current.place = null;
+    current.serverKey = null;
+  }
+  renderStepTwo({ focusPlace: true });
+}
+
+// ─── The branch row ───────────────────────────────────────────
+
+/** The base of the picked place, or null before one is picked. */
+function currentBase() {
+  return dialog.place ? dialog.bases[dialog.place] || null : null;
+}
+
 /** The branch row: icon, the name as an editable chip, and "from <base> ⌄" with its menu. */
 function renderBranchRow() {
   const { view, id } = dialog;
-  const part = chosenPart();
   return `<div class="cloud-briefs-field">
       <label class="cloud-briefs-label" for="${id}-branch">${escapeHtml(copy.BRANCH_LABEL)}</label>
       <div class="cloud-briefs-branchrow">
@@ -224,106 +434,19 @@ function renderBranchRow() {
         <span class="cloud-briefs-start-where-label">${escapeHtml(copy.WORKSPACE_LABEL)}</span>
         <span class="cloud-briefs-start-workspace" data-ref="wsname"></span>
       </div>
-      ${renderLocation()}
     </div>`;
 }
 
-/**
- * Where the workspace is created: This Mac, checked, and each saved Frame
- * Server by host — disabled while not connected, and every one in local mode
- * (C6). Shown only once a server is saved, as New Workspace's Location row
- * is. An older server is not disabled here: Start refuses it, naming the
- * update (D1).
- */
-function renderLocation() {
-  const servers = savedServers();
-  if (servers.length === 0) return '';
-  const name = `${dialog.id}-location`;
-  const localMode = Boolean(dialog.view.localMode);
-  const rows = servers.map((srv) => {
-    const offline = !isConnected(srv);
-    const disabled = offline || localMode;
-    const hint = copy.serverLocationHint(srv.host, { offline, localMode });
-    return `<label class="cloud-briefs-start-location${disabled ? ' disabled' : ''}" title="${escapeHtml(hint)}">
-        <input type="radio" name="${name}" value="${escapeHtml(srv.key)}"${dialog.location === srv.key ? ' checked' : ''}${disabled ? ' disabled' : ''}> ${escapeHtml(copy.serverLocationLabel(srv.host, { offline }))}
-      </label>`;
-  }).join('');
-  return `<div class="cloud-briefs-start-where" role="radiogroup" aria-label="${escapeHtml(copy.LOCATION_LABEL)}">
-      <span class="cloud-briefs-start-where-label">${escapeHtml(copy.LOCATION_LABEL)}</span>
-      <label class="cloud-briefs-start-location">
-        <input type="radio" name="${name}" value="local"${dialog.location === 'local' ? ' checked' : ''}> ${escapeHtml(copy.THIS_MAC_LABEL)}
-      </label>
-      ${rows}
-    </div>
-    <p class="cloud-briefs-field-hint cloud-briefs-start-location-hint" data-ref="locationhint" hidden></p>`;
-}
-
-/** The hint under Location: local mode's reason, else what the chosen server does; hidden on This Mac. */
-function renderLocationHint() {
-  const el = ref('locationhint');
-  if (!el) return;
-  const srv = chosenServer();
-  const text = dialog.view.localMode
-    ? copy.LOCAL_MODE_LOCATION_HINT
-    : (srv ? copy.serverLocationHint(srv.host) : '');
-  el.textContent = text;
-  el.hidden = !text;
-}
-
-/** The project's saved Frame Servers; none when the list cannot be read. */
-function savedServers() {
-  try {
-    // Lazy-required, as New Workspace reaches it.
-    return require('./serverConnect').getServers() || [];
-  } catch (_) {
-    return [];
-  }
-}
-
-function isConnected(srv) {
-  return Boolean(srv && srv.status && srv.status.state === 'connected');
-}
-
-/** The saved server chosen as the location, or null for This Mac. */
-function chosenServer() {
-  if (!dialog || dialog.location === 'local') return null;
-  return savedServers().find((s) => s.key === dialog.location) || null;
-}
-
-/** What the base menu offers: every base on This Mac, origin's alone on a server (D15). */
+/** What the base menu offers: every base, but origin's alone on a server (start-on-server D15). */
 function basesFor() {
   const bases = dialog.view.bases || [];
-  return dialog.location === 'local' ? bases : bases.filter((b) => b.remote);
-}
-
-/**
- * Move to `location`. A server keeps an origin base and swaps any other for
- * `origin/<target>` when offered, else origin's first branch, else none
- * (Start stays disabled); This Mac gets back the base it had.
- */
-function setLocation(location) {
-  const wasMac = dialog.location === 'local';
-  dialog.location = location;
-  if (location === 'local') {
-    if (!wasMac) dialog.base = dialog.macBase;
-  } else {
-    if (wasMac) dialog.macBase = dialog.base;
-    const remote = basesFor();
-    if (!remote.some((b) => b.name === dialog.base)) {
-      const target = dialog.view.targetBranch ? `origin/${dialog.view.targetBranch}` : null;
-      dialog.base = (target && remote.some((b) => b.name === target)) ? target : (remote[0] ? remote[0].name : null);
-    }
-  }
-  if (dialog.menuOpen) setMenu(false);
-  renderBase();
-  renderWorkspaceName();
-  renderLocationHint();
+  return dialog.place === 'server' ? bases.filter((b) => b.remote) : bases;
 }
 
 /**
  * The workspace name line: what workspaceManager.create will call a
  * workspace opened on this branch (an empty field begins on the
- * suggestion), against the loaded workspaces of the chosen location — this
+ * suggestion), against the loaded workspaces of the picked place — this
  * Mac's, or that server's.
  */
 function renderWorkspaceName() {
@@ -331,9 +454,9 @@ function renderWorkspaceName() {
   if (!el) return;
   const typed = dialog.branchText.trim();
   const branch = typed || dialog.view.suggestions[dialog.choice] || '';
-  const here = dialog.location === 'local'
-    ? (w) => w.location !== 'server'
-    : (w) => w.location === 'server' && w.serverKey === dialog.location;
+  const here = dialog.place === 'server'
+    ? (w) => w.location === 'server' && w.serverKey === dialog.serverKey
+    : (w) => w.location !== 'server';
   let taken = [];
   try {
     taken = require('./workspaceSection').getWorkspaces()
@@ -342,6 +465,8 @@ function renderWorkspaceName() {
   } catch (_) { /* the sidebar is not loaded: no names taken */ }
   el.textContent = copy.workspaceNameText(copy.beginWorkspaceName(branch, taken));
 }
+
+// ─── Steps ────────────────────────────────────────────────────
 
 function renderStep() {
   if (dialog.menuOpen) dialog.menuOpen = false;
@@ -369,15 +494,23 @@ function renderStepOne() {
   if (picked) picked.focus();
 }
 
-/** Step 2 · Where to work: the part chosen, then the branch, and Start. Back (Cancel on Begin) leaves it. */
-function renderStepTwo() {
+/**
+ * Step 2 · Where to work: the part chosen, the three places, then the
+ * branch, and Start. Back (Cancel on Begin) leaves it. `focusPlace` puts the
+ * focus on the picked card; `keepFocus` leaves it where it was.
+ */
+function renderStepTwo({ focusPlace = false, keepFocus = false } = {}) {
   const { view } = dialog;
+  const focused = keepFocus ? document.activeElement : null;
+  const typing = focused && focused === ref('branch');
+  if (dialog.menuOpen) dialog.menuOpen = false;
   const leave = view.mode === 'start'
     ? `<button type="button" class="cloud-briefs-web-btn" data-action="back">${escapeHtml(copy.BACK_LABEL)}</button>`
     : `<button type="button" class="cloud-briefs-web-btn" data-action="cancel">${escapeHtml(copy.CANCEL_LABEL)}</button>`;
   ref('body').innerHTML = `
     ${view.mode === 'begin' ? `<p class="cloud-briefs-muted">${escapeHtml(copy.BEGIN_DIALOG_DESCRIPTION)}</p>` : ''}
     ${renderPicked()}
+    ${renderPlaces()}
     ${renderBranchRow()}
     <p class="cloud-briefs-form-error" data-ref="error" hidden></p>
     <div class="cloud-briefs-start-actions" data-ref="actions">
@@ -387,10 +520,16 @@ function renderStepTwo() {
     </div>`;
   renderBase();
   renderWorkspaceName();
-  renderLocationHint();
-  const name = ref('branch');
-  name.focus();
-  name.select();
+  if (typing) {
+    const name = ref('branch');
+    name.focus();
+    name.setSelectionRange(name.value.length, name.value.length);
+    return;
+  }
+  if (keepFocus) return;
+  const card = focusPlace && dialog.el.querySelector(`input[name="${dialog.id}-place"]:checked`);
+  const first = card || dialog.el.querySelector(`input[name="${dialog.id}-place"]:not([disabled])`) || ref('body').querySelector('[data-action="confirm"]');
+  if (first) first.focus();
 }
 
 /** Step 1's Next: only for a part that can be begun. */
@@ -415,27 +554,34 @@ function goToStep(step) {
  * button carries the base's icon, local or origin, as its menu row does.
  */
 function renderBase() {
-  const { base } = dialog;
+  const base = currentBase();
   const button = ref('base');
   const known = base ? dialog.view.bases.find((b) => b.name === base) : null;
   const icon = !base ? '' : (known ? known.remote : base.startsWith('origin/')) ? ICON.remote : ICON.local;
   button.innerHTML = `${icon}<span>${escapeHtml(base || copy.PICK_BASE_LABEL)}</span>${ICON.chevron}`;
-  ref('basemissing').hidden = Boolean(base);
+  button.disabled = !dialog.place || dialog.pending;
+  ref('basemissing').hidden = !dialog.place || Boolean(base);
   syncConfirm();
 }
 
+/** Start goes once a place is picked and can take the part, with a base and a part that can be begun. */
 function syncConfirm() {
   const confirm = ref('body').querySelector('[data-action="confirm"]');
+  if (!confirm) return;
   const part = chosenPart();
-  if (confirm) confirm.disabled = dialog.pending || !dialog.base || !part || !part.canBegin;
+  const placeOk = dialog.place === 'checkout' ? !checkoutLock()
+    : dialog.place === 'server' ? Boolean(chosenServer()) && !dialog.view.localMode
+      : dialog.place === 'workspace';
+  confirm.disabled = dialog.pending || !placeOk || !currentBase() || !part || !part.canBegin;
 }
 
 function renderBaseList() {
   const filter = ref('basefilter').value.trim().toLowerCase();
+  const base = currentBase();
   const options = basesFor().filter((b) => !filter || b.name.toLowerCase().includes(filter));
   const section = (title, rows) => (rows.length === 0 ? '' : `<div class="cloud-briefs-basemenu-title">${escapeHtml(title)}</div>${rows.map((b) => `
-      <button type="button" class="cloud-briefs-basemenu-item${b.name === dialog.base ? ' current' : ''}" role="option" aria-selected="${b.name === dialog.base}" data-action="pick-base" data-base="${escapeHtml(b.name)}">
-        ${b.remote ? ICON.remote : ICON.local}<span>${escapeHtml(b.name)}</span>${b.name === dialog.base ? ICON.check : ''}
+      <button type="button" class="cloud-briefs-basemenu-item${b.name === base ? ' current' : ''}" role="option" aria-selected="${b.name === base}" data-action="pick-base" data-base="${escapeHtml(b.name)}">
+        ${b.remote ? ICON.remote : ICON.local}<span>${escapeHtml(b.name)}</span>${b.name === base ? ICON.check : ''}
       </button>`).join('')}`);
   const html = section(copy.BASE_LOCAL_TITLE, options.filter((b) => !b.remote))
     + section(copy.BASE_REMOTE_TITLE, options.filter((b) => b.remote));
@@ -463,8 +609,9 @@ function setPending(on) {
   dialog.pending = on;
   const confirm = ref('body').querySelector('[data-action="confirm"]');
   if (confirm) confirm.textContent = copy.startSubmitLabel(on);
-  for (const input of dialog.el.querySelectorAll('input')) input.disabled = on || input.closest('.disabled') !== null;
-  ref('base').disabled = on;
+  for (const input of dialog.el.querySelectorAll('input, select')) input.disabled = on || input.closest('.disabled, .off') !== null;
+  for (const button of dialog.el.querySelectorAll('[data-action="connect-server"], [data-action="add-server"], [data-action="back"]')) button.disabled = on;
+  ref('base').disabled = on || !dialog.place;
   syncConfirm();
 }
 
@@ -484,10 +631,12 @@ function onClick(e) {
   else if (name === 'next') goToStep(2);
   else if (name === 'back') goToStep(1);
   else if (name === 'confirm') confirm();
+  else if (name === 'add-server') openServers({ add: true });
+  else if (name === 'connect-server') openServers({ key: action.dataset.key || null });
   else if (name === 'toggle-base') {
     setMenu(!dialog.menuOpen);
   } else if (name === 'pick-base') {
-    dialog.base = action.dataset.base;
+    if (dialog.place) dialog.bases[dialog.place] = action.dataset.base;
     setMenu(false);
     renderBase();
     ref('branch').focus();
@@ -495,9 +644,16 @@ function onClick(e) {
 }
 
 function onChange(e) {
-  if (!dialog || !dialog.view || e.target.type !== 'radio' || !e.target.value) return;
-  if (e.target.name === `${dialog.id}-location`) {
-    setLocation(e.target.value);
+  if (!dialog || !dialog.view) return;
+  if (e.target === ref('server')) {
+    dialog.serverKey = e.target.value || null;
+    renderStepTwo({ keepFocus: true });
+    ref('server').focus();
+    return;
+  }
+  if (e.target.type !== 'radio' || !e.target.value) return;
+  if (e.target.name === `${dialog.id}-place`) {
+    setPlace(e.target.value);
     return;
   }
   if (e.target.name !== `${dialog.id}-choice`) return;
@@ -530,16 +686,20 @@ function onKeydown(e) {
 
 async function confirm() {
   const current = dialog;
-  if (!current || current.pending || current.done || !current.view) return;
+  if (!current || current.pending || current.done || !current.view || !current.place) return;
   const part = chosenPart();
-  if (!part || !part.canBegin || !current.base) return;
+  const base = currentBase();
+  if (!part || !part.canBegin || !base) return;
+  const server = current.place === 'server' ? chosenServer() : null;
+  if (current.place === 'server' && !server) return;
   const path = state.getProjectPath();
   const request = {
     number: current.number,
     beginPartId: part.partId,
     branch: current.branchText.trim(),
-    base: current.base,
-    ...(current.location !== 'local' ? { serverKey: current.location } : {}),
+    base,
+    place: current.place,
+    ...(server ? { serverKey: server.key } : {}),
   };
   ref('error').hidden = true;
   setPending(true);
@@ -566,7 +726,8 @@ async function confirm() {
     showError(copy.partialMessage(result));
     const confirmBtn = ref('body').querySelector('[data-action="confirm"]');
     if (confirmBtn) confirmBtn.remove();
-    for (const input of current.el.querySelectorAll('input')) input.disabled = true;
+    for (const input of current.el.querySelectorAll('input, select')) input.disabled = true;
+    for (const button of current.el.querySelectorAll('[data-action="connect-server"], [data-action="add-server"], [data-action="back"]')) button.disabled = true;
     ref('base').disabled = true;
     if (current.onPartial) current.onPartial(result);
     return;

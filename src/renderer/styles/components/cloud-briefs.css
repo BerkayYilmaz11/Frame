@@ -1250,7 +1250,7 @@ button.cloud-briefs-milestone-name:focus-visible {
 
 /* No scroll on the dialog itself: the base menu hangs below the branch row. Long part lists scroll instead. */
 .cloud-briefs-start-dialog {
-  width: min(560px, 100%);
+  width: min(700px, 100%);
 }
 
 .cloud-briefs-start-dialog [hidden] {
@@ -1546,6 +1546,190 @@ button.cloud-briefs-milestone-name:focus-visible {
 
 .cloud-briefs-start-pip.on {
   background: var(--accent-primary);
+}
+
+/* Where to work: three equal cards, none picked (frame-cloud-start-places). */
+.cloud-briefs-places {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+@media (max-width: 720px) {
+  .cloud-briefs-places {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cloud-briefs-place {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+}
+
+label.cloud-briefs-place {
+  cursor: pointer;
+}
+
+label.cloud-briefs-place:hover {
+  border-color: var(--border-strong);
+}
+
+label.cloud-briefs-place:has(input:focus-visible) {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.cloud-briefs-place.on {
+  border-color: var(--accent-primary);
+  background: var(--accent-subtle);
+}
+
+.cloud-briefs-place.off {
+  cursor: not-allowed;
+}
+
+label.cloud-briefs-place.off:hover {
+  border-color: var(--border-default);
+}
+
+.cloud-briefs-place.off .cloud-briefs-place-head,
+.cloud-briefs-place.off .cloud-briefs-place-meta,
+.cloud-briefs-place.off .cloud-briefs-place-facts {
+  color: var(--text-muted);
+}
+
+/* No server yet: the card says what a server gives and offers Add a server…. */
+.cloud-briefs-place.notice {
+  border-style: dashed;
+  border-color: var(--warning);
+}
+
+/* The radio is the card itself: hidden, with a ring drawn in the head. */
+.cloud-briefs-place input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cloud-briefs-place-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cloud-briefs-place-ring {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border: 1.5px solid var(--text-tertiary);
+  border-radius: 50%;
+}
+
+.cloud-briefs-place.on .cloud-briefs-place-ring {
+  border-color: var(--accent-primary);
+}
+
+.cloud-briefs-place.on .cloud-briefs-place-ring::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+}
+
+.cloud-briefs-place-tag {
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--warning);
+  white-space: nowrap;
+}
+
+.cloud-briefs-place-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.cloud-briefs-place-facts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+.cloud-briefs-place-facts li {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-place-facts li::before {
+  content: "•";
+  color: var(--text-muted);
+}
+
+/* Why a card cannot be picked: the checkout's lock, an offline server, local mode. */
+.cloud-briefs-place-lock {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--warning);
+}
+
+.cloud-briefs-place-lock svg {
+  margin-top: 2px;
+}
+
+.cloud-briefs-place-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-primary);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.cloud-briefs-place-add {
+  align-self: flex-start;
+}
+
+/* Two or more servers connected: which one, under the cards. */
+.cloud-briefs-place-server {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cloud-briefs-place-select {
+  width: auto;
+  min-width: 180px;
 }
 
 /* Step 2's first line: the part chosen, and Change on Start Work. */

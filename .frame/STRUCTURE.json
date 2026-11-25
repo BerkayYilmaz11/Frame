@@ -17246,6 +17246,7 @@
         "shared/ipcChannels",
         "state",
         "dock",
+        "notify",
         "htmlUtils",
         "cloudBriefsCopy",
         "serverConnect",
@@ -17253,13 +17254,13 @@
       ],
       "functions": {
         "ref": {
-          "line": 52,
+          "line": 62,
           "params": [
             "name"
           ]
         },
         "open": {
-          "line": 62,
+          "line": 72,
           "params": [
             "{ number",
             "partId = null",
@@ -17269,184 +17270,276 @@
           "purpose": "Open the dialog for brief `number`; `partId` names the part to begin on a"
         },
         "close": {
-          "line": 84
+          "line": 95
         },
         "prepare": {
-          "line": 90
+          "line": 102
         },
         "renderFailure": {
-          "line": 126,
+          "line": 142,
           "params": [
             "message"
           ]
         },
         "chosenPart": {
-          "line": 134
+          "line": 150
         },
         "partChips": {
-          "line": 138,
+          "line": 154,
           "params": [
             "part"
           ]
         },
         "problemLine": {
-          "line": 143,
+          "line": 159,
           "params": [
             "part"
           ]
         },
         "renderChoices": {
-          "line": 150,
+          "line": 166,
           "purpose": "Step 1 on a brief not started yet: a choice per part, and Orchestrate (not yet)."
         },
         "renderPicked": {
-          "line": 181,
+          "line": 197,
           "purpose": "Step 2's first line: the part chosen, and on Start Work a Change link back"
         },
         "renderStepper": {
-          "line": 195,
+          "line": 211,
           "purpose": "Start Work's step counter, left of the buttons; Begin has one step and none."
         },
-        "renderBranchRow": {
-          "line": 205,
-          "purpose": "The branch row: icon, the name as an editable chip, and \"from <base> ⌄\" with its menu."
-        },
-        "renderLocation": {
-          "line": 238,
-          "purpose": "Where the workspace is created: This Mac, checked, and each saved Frame"
-        },
-        "renderLocationHint": {
-          "line": 262,
-          "purpose": "The hint under Location: local mode's reason, else what the chosen server does; hidden on This Mac."
-        },
         "savedServers": {
-          "line": 274,
+          "line": 223,
           "purpose": "The project's saved Frame Servers; none when the list cannot be read."
         },
         "isConnected": {
-          "line": 283,
+          "line": 232,
           "params": [
             "srv"
           ]
         },
+        "serverState": {
+          "line": 237,
+          "purpose": "The server card's state: localMode, none, offline or ready, with the connected and offline servers."
+        },
+        "serverSignature": {
+          "line": 242,
+          "params": [
+            "srv"
+          ],
+          "purpose": "What the server card shows, as one string: a status change that changes none of it draws nothing."
+        },
         "chosenServer": {
-          "line": 288,
-          "purpose": "The saved server chosen as the location, or null for This Mac."
+          "line": 247,
+          "purpose": "The connected server picked on the server card, or null."
+        },
+        "checkoutLock": {
+          "line": 254,
+          "purpose": "Why the project checkout card is locked, or null (D1, D6)."
+        },
+        "cardBody": {
+          "line": 259,
+          "params": [
+            "place",
+            "meta",
+            "{ ring = true } = {}"
+          ],
+          "purpose": "One card's inside: its head (ring, icon, title), meta line and three facts."
+        },
+        "lockLine": {
+          "line": 268,
+          "params": [
+            "text"
+          ],
+          "purpose": "A line saying why a card cannot be picked."
+        },
+        "choiceCard": {
+          "line": 273,
+          "params": [
+            "place",
+            "meta",
+            "lock = null"
+          ],
+          "purpose": "A card that can be picked: a radio in `<id>-place`, disabled with `lock`'s reason."
+        },
+        "renderServerCard": {
+          "line": 287,
+          "params": [
+            "srv"
+          ],
+          "purpose": "The server card by its state: ready (a choice, the connected hosts),"
+        },
+        "renderServerSelect": {
+          "line": 306,
+          "params": [
+            "srv"
+          ],
+          "purpose": "With the server card picked and two or more servers connected: which one, under the cards."
+        },
+        "renderPlaces": {
+          "line": 320,
+          "purpose": "Step 2's places: three cards, none picked until the user picks one (C1)."
+        },
+        "setPlace": {
+          "line": 339,
+          "params": [
+            "place"
+          ],
+          "purpose": "Pick `place`. The server card picks its connected server: the one picked"
+        },
+        "onServersChanged": {
+          "line": 353,
+          "params": [
+            "current"
+          ],
+          "purpose": "The servers changed while the dialog is open: a picked server that is no"
+        },
+        "openServers": {
+          "line": 370,
+          "params": [
+            "{ key = null",
+            "add = false }"
+          ],
+          "purpose": "Connect (`key`) or Add a server… (`add`): the Servers dialog, with this one"
+        },
+        "backFromServers": {
+          "line": 386,
+          "params": [
+            "current",
+            "handoff"
+          ]
+        },
+        "currentBase": {
+          "line": 411,
+          "purpose": "The base of the picked place, or null before one is picked."
+        },
+        "renderBranchRow": {
+          "line": 416,
+          "purpose": "The branch row: icon, the name as an editable chip, and \"from <base> ⌄\" with its menu."
         },
         "basesFor": {
-          "line": 294,
-          "purpose": "What the base menu offers: every base on This Mac, origin's alone on a server (D15)."
-        },
-        "setLocation": {
-          "line": 304,
-          "params": [
-            "location"
-          ],
-          "purpose": "Move to `location`. A server keeps an origin base and swaps any other for"
+          "line": 441,
+          "purpose": "What the base menu offers: every base, but origin's alone on a server (start-on-server D15)."
         },
         "renderWorkspaceName": {
-          "line": 329,
+          "line": 452,
           "purpose": "The workspace name line: what workspaceManager.create will call a"
         },
         "renderStep": {
-          "line": 346
+          "line": 471
         },
         "renderStepOne": {
-          "line": 357,
+          "line": 482,
           "purpose": "Step 1 · What to work on (Start Work only, D5): every part, even when"
         },
         "renderStepTwo": {
-          "line": 373,
-          "purpose": "Step 2 · Where to work: the part chosen, then the branch, and Start. Back (Cancel on Begin) leaves it."
+          "line": 502,
+          "params": [
+            "{ focusPlace = false",
+            "keepFocus = false } = {}"
+          ],
+          "purpose": "Step 2 · Where to work: the part chosen, the three places, then the"
         },
         "syncNext": {
-          "line": 397,
+          "line": 536,
           "purpose": "Step 1's Next: only for a part that can be begun."
         },
         "goToStep": {
-          "line": 403,
+          "line": 542,
           "params": [
             "step"
           ]
         },
         "renderBase": {
-          "line": 417,
+          "line": 556,
           "purpose": "The base button, the missing-base line and whether confirm can go. The"
         },
         "syncConfirm": {
-          "line": 427
+          "line": 568,
+          "purpose": "Start goes once a place is picked and can take the part, with a base and a part that can be begun."
         },
         "renderBaseList": {
-          "line": 433
+          "line": 578
         },
         "setMenu": {
-          "line": 445,
+          "line": 591,
           "params": [
             "openIt"
           ]
         },
         "showError": {
-          "line": 456,
+          "line": 602,
           "params": [
             "message"
           ]
         },
         "setPending": {
-          "line": 462,
+          "line": 608,
           "params": [
             "on"
           ]
         },
         "onClick": {
-          "line": 473,
+          "line": 620,
           "params": [
             "e"
           ]
         },
         "onChange": {
-          "line": 497,
+          "line": 646,
           "params": [
             "e"
           ]
         },
         "onInput": {
-          "line": 510,
+          "line": 666,
           "params": [
             "e"
           ]
         },
         "onKeydown": {
-          "line": 519,
+          "line": 675,
           "params": [
             "e"
           ]
         },
         "confirm": {
-          "line": 531
+          "line": 687
         }
       },
-      "sizeBytes": 23980,
+      "sizeBytes": 32715,
       "extraction": {
         "status": "parsed"
       },
       "provenance": {
         "description": "d44606274ace9e2d",
         "purposes": {
-          "basesFor": "f9ccf98280033663",
-          "chosenServer": "59ea23bf1e1507fc",
+          "basesFor": "151d316da6e5fe6d",
+          "cardBody": "8f81ced3b82d02bf",
+          "checkoutLock": "528664fa8f666c29",
+          "choiceCard": "2f40d713ed676f57",
+          "chosenServer": "c1036d3462c95460",
+          "currentBase": "d4d220999b8fd188",
+          "lockLine": "096899bcf17a69ed",
+          "onServersChanged": "777e48eb19324ed4",
           "open": "6a918af92066ac2e",
+          "openServers": "04819ebce537d5f1",
           "renderBase": "356c65cb6d84c1ea",
           "renderBranchRow": "0dd5e1b4d8750b55",
           "renderChoices": "ef2ed67e422604b2",
-          "renderLocation": "5d77329ea101c3e2",
-          "renderLocationHint": "859af2aeb0a3be03",
           "renderPicked": "59ffcc93fd1e13c2",
+          "renderPlaces": "ff1ecc46b0be7325",
+          "renderServerCard": "f2b5c83cd77d8abc",
+          "renderServerSelect": "cbcd0c2287d4308f",
           "renderStepOne": "4793f73c9173b8d9",
-          "renderStepTwo": "07b677e8de0f1631",
+          "renderStepTwo": "3f438008eb7faf4a",
           "renderStepper": "6d0c3c84f8db6d3c",
           "renderWorkspaceName": "19527a0b1afeab3c",
           "savedServers": "1d59145a44438fe7",
-          "setLocation": "5e225d723a626d4c",
+          "serverSignature": "b9cfdb06fe99ca33",
+          "serverState": "d23822a43a2eef2a",
+          "setPlace": "57716b54fb391eb2",
+          "syncConfirm": "54bc1648befe0977",
           "syncNext": "da78891caea58149"
         }
       }
@@ -26210,7 +26303,7 @@
       "exports": [],
       "depends": [],
       "functions": {},
-      "sizeBytes": 38947,
+      "sizeBytes": 42739,
       "extraction": {
         "status": "unsupported",
         "reason": "no-extractor"
@@ -46826,6 +46919,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "a2f687da212a2a397c5fe44c116db29dc3f52e92a5caabacb339af413cf109f7"
+    "revision": "2a098826297816701998aaabfb71bcc6b826a77aae392891632b20ff787a6427"
   }
 }

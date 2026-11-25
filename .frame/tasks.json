@@ -11663,13 +11663,13 @@
       "title": "Draw the three place cards in `src/renderer/cloudStartDialog.js`, none picked: the checkout locked with its reason, the server card's states (connected hosts, Server select for two or more, offline with Connect, no server yet with Add a server…, local mode disabled), Connect and Add hiding the dialog and returning through `onClose` with a newly connected server picked (closing with a notice on a terminal handoff), and a live re-render on `serverConnect.onServersChange` that unpicks a server that drops; add the card styles to `src/renderer/styles/components/cloud-briefs.css`",
       "description": "",
       "source": "spec:frame-cloud-start-places:T08",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-places",
       "createdAt": "2026-11-25T11:42:41.434Z",
-      "updatedAt": "2026-11-25T11:42:41.434Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T11:56:19.555Z",
+      "completedAt": "2026-11-25T11:56:19.555Z"
     },
     {
       "id": "task-spec-frame-cloud-start-places-T09",
