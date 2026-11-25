@@ -16,3 +16,11 @@ _Captured: 2026-11-25T09:14:22.310Z · 2 file change(s)_
 
 ---
 
+## T03 — Server specs.create
+
+Added `specs.create` to `src/server/specs.js` behind `checkout()` and `needSlug()`: string `spec.md`/`status.json` only, create-only folder, atomic writes, answering `{ created }`. Beyond the plan's guard list it also refuses `gitSharing: local` with the module's `LOCAL_MODE` sentence, matching `specs.stage` and the spec's local-mode constraint (the desktop refuses it first in T07). Files: `src/server/specs.js`, `test/serverSpecs.test.js`.
+
+_Captured: 2026-11-25T09:15:34.669Z · 2 file change(s)_
+
+---
+

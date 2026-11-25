@@ -33543,14 +33543,14 @@
       ],
       "functions": {
         "setup": {
-          "line": 46,
+          "line": 50,
           "params": [
             "{ registerMethods",
             "broadcast }"
           ]
         }
       },
-      "sizeBytes": 7649,
+      "sizeBytes": 9122,
       "extraction": {
         "status": "parsed"
       },
@@ -41513,7 +41513,7 @@
           ]
         }
       },
-      "sizeBytes": 18169,
+      "sizeBytes": 20558,
       "extraction": {
         "status": "parsed"
       },
@@ -46314,6 +46314,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "7b78db9395ee6f299f01fe26bfc44b4b227ec1e61cb2380452ec906f61e240e1"
+    "revision": "73044a991d7ee065de95fcf646f65d76bbdb9a1bbc6da79cd772fdf2943fef4f"
   }
 }
