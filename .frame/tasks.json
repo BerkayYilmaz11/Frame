@@ -11429,13 +11429,13 @@
       "title": "Add `workspaces.preflight { projectPath, branch, base }` to `src/server/projects.js` (registered project only, branch and base names validated, fetch `origin/<base>` with the last-fetched-copy fallback, answer `{ branchTaken, baseOnOrigin, fetch, tasksPath }`); test in `test/serverProjects.test.js`",
       "description": "",
       "source": "spec:frame-cloud-start-on-server:T02",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "category": "feature",
       "context": "From spec: frame-cloud-start-on-server",
       "createdAt": "2026-11-25T09:02:48.657Z",
-      "updatedAt": "2026-11-25T09:02:48.657Z",
-      "completedAt": null
+      "updatedAt": "2026-11-25T09:14:22.310Z",
+      "completedAt": "2026-11-25T09:14:22.310Z"
     },
     {
       "id": "task-spec-frame-cloud-start-on-server-T03",
@@ -11555,7 +11555,7 @@
       "completedAt": null
     }
   ],
-  "lastUpdated": "2026-11-25T09:12:25.109Z",
+  "lastUpdated": "2026-11-25T09:14:22.310Z",
   "metadata": {
     "totalCreated": 912
   }

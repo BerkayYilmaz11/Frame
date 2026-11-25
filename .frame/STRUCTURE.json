@@ -33402,7 +33402,10 @@
         "shared/workspaceRegistry",
         "tooling",
         "main/gitBranchesManager",
-        "main/aiToolManager"
+        "main/aiToolManager",
+        "main/frameStore",
+        "shared/frameConstants",
+        "shared/gitRefNames"
       ],
       "functions": {
         "uploadsDir": {
@@ -33421,7 +33424,7 @@
           ]
         }
       },
-      "sizeBytes": 10324,
+      "sizeBytes": 11632,
       "extraction": {
         "status": "parsed"
       },
@@ -41232,7 +41235,7 @@
           "purpose": "A project on the server whose `origin` is a real (bare) repository, with"
         }
       },
-      "sizeBytes": 8410,
+      "sizeBytes": 10980,
       "extraction": {
         "status": "parsed"
       },
@@ -46311,6 +46314,6 @@
       "truncated": false,
       "samples": []
     },
-    "revision": "f4479133ce35bff808f22f8644991453c9fa236589c15fcc42a9b96a6b46d1cd"
+    "revision": "7b78db9395ee6f299f01fe26bfc44b4b227ec1e61cb2380452ec906f61e240e1"
   }
 }

@@ -8,3 +8,11 @@ _Captured: 2026-11-25T09:12:25.109Z · 2 file change(s)_
 
 ---
 
+## T02 — Server workspaces.preflight
+
+Added `workspaces.preflight` to `src/server/projects.js`: registered project only, branch and base validated before git, `fetchBranch` then `localBranchExists`/`remoteBranchExists`, answering `{ branchTaken, baseOnOrigin, fetch, tasksPath }`. `base` is a plain branch name (the caller strips `origin/`), and `tasksPath` is null when the clone has no Frame setup, as `tasks.list` answers — a detail the plan did not specify. Files: `src/server/projects.js`, `test/serverProjects.test.js`.
+
+_Captured: 2026-11-25T09:14:22.310Z · 2 file change(s)_
+
+---
+

@@ -133,3 +133,39 @@ test('workspaces.create without a branch still picks its own name and answers st
   assert.equal(res.startSha, tip);
   assert.equal(git(['rev-parse', `refs/heads/${res.workspace.branch}`], projectPath), tip);
 });
+
+test('workspaces.preflight fetches the base and answers what Start Work checks, writing nothing', async () => {
+  const { projectPath, tip } = await onServerWithOrigin();
+  const branchesBefore = git(['branch', '--list'], projectPath);
+  const res = await methods['workspaces.preflight']({ projectPath, branch: 'frame/cloud-20-new', base: 'main' });
+  assert.deepEqual(res, { branchTaken: false, baseOnOrigin: true, fetch: { fetched: true, error: null }, tasksPath: null });
+  assert.equal(git(['rev-parse', 'refs/remotes/origin/main'], projectPath), tip, 'origin/main was fetched');
+  assert.equal(git(['branch', '--list'], projectPath), branchesBefore, 'no branch was made');
+
+  git(['branch', 'frame/cloud-20-taken', 'main'], projectPath);
+  assert.equal((await methods['workspaces.preflight']({ projectPath, branch: 'frame/cloud-20-taken', base: 'main' })).branchTaken, true);
+
+  const missing = await methods['workspaces.preflight']({ projectPath, branch: 'frame/cloud-20-new', base: 'only-on-mac' });
+  assert.equal(missing.baseOnOrigin, false);
+  assert.equal(missing.fetch.fetched, false);
+
+  fs.mkdirSync(path.join(projectPath, '.frame'), { recursive: true });
+  fs.writeFileSync(path.join(projectPath, '.frame', 'config.json'), '{}\n');
+  assert.equal((await methods['workspaces.preflight']({ projectPath, branch: 'frame/cloud-20-new', base: 'main' })).tasksPath, path.join(projectPath, '.frame', 'tasks.json'));
+});
+
+test('workspaces.preflight keeps the last fetched copy of the base when the fetch fails', async () => {
+  const { projectPath } = await onServerWithOrigin();
+  git(['remote', 'set-url', 'origin', path.join(SANDBOX, 'gone.git')], projectPath);
+  const res = await methods['workspaces.preflight']({ projectPath, branch: 'frame/cloud-21-x', base: 'main' });
+  assert.equal(res.fetch.fetched, false);
+  assert.ok(res.fetch.error);
+  assert.equal(res.baseOnOrigin, true, 'origin/main from the last fetch still counts');
+});
+
+test('workspaces.preflight refuses an unknown project and invalid names before any git runs', async () => {
+  const { projectPath } = await onServerWithOrigin();
+  await assert.rejects(methods['workspaces.preflight']({ projectPath: path.join(SANDBOX, 'nope'), branch: 'a', base: 'main' }), /not on the server/);
+  await assert.rejects(methods['workspaces.preflight']({ projectPath, branch: '--upload-pack=touch x', base: 'main' }), /not a valid branch name/);
+  await assert.rejects(methods['workspaces.preflight']({ projectPath, branch: 'frame/ok', base: '--upload-pack=touch x' }), /not a valid base branch name/);
+});
