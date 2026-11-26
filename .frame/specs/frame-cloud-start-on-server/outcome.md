@@ -88,3 +88,11 @@ _Captured: 2026-11-25T11:14:41.962Z · 7 file change(s)_
 
 ---
 
+
+## T11 — Walk it, together with frame-cloud-start-places
+
+Walked as part of `frame-cloud-start-places` T11, where `a3f99d0` moved it so one walk covers both specs. The developer reported both specs working on 2026-11-26. No code changed. The report did not list S1–S11 one by one. Two of this spec's decisions did not survive: `frame-cloud-start-places` overturned D2 (This Mac preselected; the place is now picked with none preselected) and replaced the Location radio row (T09) with three place cards.
+
+_Captured: 2026-11-26 · 0 file change(s)_
+
+---

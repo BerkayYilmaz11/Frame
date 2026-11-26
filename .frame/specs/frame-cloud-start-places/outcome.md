@@ -80,3 +80,11 @@ _Captured: 2026-11-25T11:58:43.593Z · 2 file change(s)_
 
 ---
 
+
+## T11 — Walk both specs
+
+The developer walked both specs in one walk, as C8 set out: this spec's S1–S9 and `frame-cloud-start-on-server`'s S1–S11 (its T11). They reported both working on 2026-11-26. No code changed. The report did not go through the steps one by one, so it does not say which server states, server versions or project modes were tried. The agent did not drive the walk, because the cloud sign-in and the Frame Server connection are the developer's.
+
+_Captured: 2026-11-26 · 0 file change(s)_
+
+---

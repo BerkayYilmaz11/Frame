@@ -1,7 +1,7 @@
 {
   "slug": "frame-cloud-start-places",
   "title": "Start Work in Three Places",
-  "phase": "implementing",
+  "phase": "done",
   "generated_task_ids": [
     "task-spec-frame-cloud-start-places-T01",
     "task-spec-frame-cloud-start-places-T02",
@@ -17,8 +17,8 @@
   ],
   "ai_tool": "claude-code",
   "created_at": "2026-11-25T11:29:11.762Z",
-  "updated_at": "2026-11-25T11:43:05.960Z",
-  "last_phase_at": "2026-11-25T11:42:44.431Z",
+  "updated_at": "2026-11-26T09:39:16.551Z",
+  "last_phase_at": "2026-11-26T09:39:16.551Z",
   "flow_mode": "full-auto",
   "implement_mode": "autonomous"
 }
